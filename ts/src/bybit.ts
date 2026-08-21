@@ -1139,7 +1139,7 @@ export default class bybit extends Exchange {
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
                 'createOrder': {
-                    'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                    'createMarketBuyOrderRequiresPrice': false,
                 },
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
@@ -3672,8 +3672,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const request: Dict = {};
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        await this.isUnifiedEnabled ();
         let type: Str = undefined;
         // don't use getBybitType here
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -3684,25 +3683,18 @@ export default class bybit extends Exchange {
         }
         const lowercaseRawType = (type !== undefined) ? type.toLowerCase () : undefined;
         const isSpot = (type === 'spot');
-        const isLinear = (type === 'linear');
         const isInverse = (type === 'inverse');
         const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
-        if (isUnifiedAccount) {
-            const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
-            if (unifiedMarginStatus < 5) {
-                // it's not uta.20 where inverse are unified
-                if (isInverse) {
-                    type = 'contract';
-                } else {
-                    type = 'unified';
-                }
+        const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 6);
+        if (unifiedMarginStatus < 5) {
+            // it's not uta.20 where inverse are unified
+            if (isInverse) {
+                type = 'contract';
             } else {
-                type = 'unified'; // uta.20 where inverse are unified
+                type = 'unified';
             }
         } else {
-            if (isLinear || isInverse) {
-                type = 'contract';
-            }
+            type = 'unified'; // uta.20 where inverse are unified
         }
         const accountTypes = this.safeDict (this.options, 'accountsByType', {});
         const unifiedType = this.safeStringUpper (accountTypes, type, type);
@@ -4126,11 +4118,6 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
-        if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
-        }
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketSellOrderWithCost() supports spot orders only');
@@ -4181,12 +4168,10 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const parts = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = parts[1];
         const isTrailingOrder = this.safeString2 (params, 'trailingAmount', 'trailingStop') !== undefined;
         const isStopLossOrder = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitOrder = this.safeString (params, 'takeProfitPrice') !== undefined;
-        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params, enableUnifiedAccount);
+        const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, params);
         const switchToOco = (isStopLossOrder && isTakeProfitOrder) || this.safeBool (params, 'tradingStopEndpoint', false);
         let defaultMethod: Str = undefined;
         if ((isTrailingOrder || switchToOco) && !market['spot']) {
@@ -4218,7 +4203,7 @@ export default class bybit extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}, isUTA = true) {
+    createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
         }
@@ -4385,8 +4370,7 @@ export default class bybit extends Exchange {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
         const isMarketOrder = lowerCaseType === 'market';
-        if (market['spot'] && isMarketOrder && isUTA && !isMarketBuyAndCostInferable) {
-            // UTA account can specify the cost of the order on both sides
+        if (market['spot'] && isMarketOrder && !isMarketBuyAndCostInferable) {
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
                 let orderCost: Str = undefined;
@@ -4402,7 +4386,6 @@ export default class bybit extends Exchange {
                 request['qty'] = amountString;
             }
         } else if (market['spot'] && isMarketOrder && (side === 'buy')) {
-            // classic accounts
             // for market buy it requires the amount of quote currency to spend
             let createMarketBuyOrderRequiresPrice = true;
             [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
@@ -4522,8 +4505,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accounts = await this.isUnifiedEnabled ();
-        const isUta = accounts[1];
+        await this.isUnifiedEnabled ();
         const ordersRequests: List = [];
         const orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -4535,7 +4517,7 @@ export default class bybit extends Exchange {
             const amount = this.safeValue (rawOrder, 'amount');
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams, isUta);
+            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, orderParams);
             delete orderRequest['category'];
             ordersRequests.push (orderRequest);
         }
@@ -4748,6 +4730,7 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        await this.isUnifiedEnabled ();
         const ordersRequests: List = [];
         let orderSymbols: List = [];
         for (let i = 0; i < orders.length; i++) {
@@ -4909,11 +4892,6 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
-        if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' cancelOrders() supports UTA accounts only');
-        }
         let category: Str = undefined;
         [ category, params ] = this.getBybitType ('cancelOrders', market, params);
         if (category === 'inverse') {
@@ -5031,11 +5009,6 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const types = await this.isUnifiedEnabled ();
-        const enableUnifiedAccount = types[1];
-        if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
-        }
         const ordersRequests: List = [];
         let category: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -5127,8 +5100,6 @@ export default class bybit extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -5138,9 +5109,6 @@ export default class bybit extends Exchange {
         let type: Str = undefined;
         [ type, params ] = this.getBybitType ('cancelAllOrders', market, params);
         request['category'] = type;
-        if ((type === 'option') && !isUnifiedAccount) {
-            throw new NotSupported (this.id + ' cancelAllOrders() Normal Account not support ' + type + ' market');
-        }
         if ((type === 'linear') || (type === 'inverse')) {
             const baseCoin = this.safeString (params, 'baseCoin');
             if (symbol === undefined && baseCoin === undefined) {
@@ -5192,45 +5160,8 @@ export default class bybit extends Exchange {
 
     /**
      * @method
-     * @name bybit#fetchOrderClassic
-     * @description fetches information on an order made by the user *classic accounts only*
-     * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-     * @param {string} id the order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchOrderClassic (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        const market = this.market (symbol);
-        if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchOrder() is not supported for spot markets');
-        }
-        const request: Dict = {
-            'orderId': id,
-        };
-        const result = await this.fetchOrdersClassic (symbol, undefined, undefined, this.extend (request, params));
-        const length = result.length;
-        if (length === 0) {
-            const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-            const extra = isTrigger ? '' : ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = true';
-            throw new OrderNotFound ('Order ' + id.toString () + ' was not found.' + extra);
-        }
-        if (length > 1) {
-            throw new InvalidOrder (this.id + ' returned more than one order');
-        }
-        return this.safeValue (result, 0) as Order;
-    }
-
-    /**
-     * @method
      * @name bybit#fetchOrder
-     * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
+     * @description fetches information on an order made by the user
      * @see https://bybit-exchange.github.io/docs/v5/order/order-list
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
@@ -5241,11 +5172,6 @@ export default class bybit extends Exchange {
     override async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
-        }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        if (!isUnifiedAccount) {
-            return await this.fetchOrderClassic (id, symbol, params);
         }
         let acknowledge = false;
         [ acknowledge, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'acknowledged');
@@ -5326,117 +5252,6 @@ export default class bybit extends Exchange {
         }
         const order = this.safeDict (innerList, 0, {});
         return this.parseOrder (order, market);
-    }
-
-    /**
-     * @method
-     * @name bybit#fetchOrdersClassic
-     * @description fetches information on multiple orders made by the user *classic accounts only*
-     * @see https://bybit-exchange.github.io/docs/v5/order/order-list
-     * @param {string} symbol unified market symbol of the market orders were made in
-     * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] true if trigger order
-     * @param {boolean} [params.stop] alias for trigger
-     * @param {string} [params.type] market type, ['swap', 'option', 'spot']
-     * @param {string} [params.subType] market subType, ['linear', 'inverse']
-     * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
-     * @param {int} [params.until] the latest time in ms to fetch entries for
-     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    async fetchOrdersClassic (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
-        let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrdersClassic', 'paginate');
-        if (paginate) {
-            return await this.fetchPaginatedCallCursor ('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', undefined, 50) as Order[];
-        }
-        const request: Dict = {};
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        let type: Str = undefined;
-        [ type, params ] = this.getBybitType ('fetchOrdersClassic', market, params);
-        if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrdersClassic() is not supported for spot markets');
-        }
-        request['category'] = type;
-        const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
-        params = this.omit (params, [ 'trigger', 'stop' ]);
-        if (isTrigger) {
-            request['orderFilter'] = 'StopOrder';
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        if (since !== undefined) {
-            request['startTime'] = since;
-        }
-        const until = this.safeInteger (params, 'until'); // unified in milliseconds
-        const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
-        params = this.omit (params, [ 'endTime', 'until' ]);
-        if (endTime !== undefined) {
-            request['endTime'] = endTime;
-        }
-        const response = await this.privateGetV5OrderHistory (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "nextPageCursor": "03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387%2C03234de9-1332-41eb-b805-4a9f42c136a3%3A1672220109387",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "symbol": "BTCUSDT",
-        //                     "orderType": "Limit",
-        //                     "orderLinkId": "test-001",
-        //                     "orderId": "03234de9-1332-41eb-b805-4a9f42c136a3",
-        //                     "cancelType": "CancelByUser",
-        //                     "avgPrice": "0",
-        //                     "stopOrderType": "UNKNOWN",
-        //                     "lastPriceOnCreated": "16656.5",
-        //                     "orderStatus": "Cancelled",
-        //                     "takeProfit": "",
-        //                     "cumExecValue": "0",
-        //                     "triggerDirection": 0,
-        //                     "blockTradeId": "",
-        //                     "rejectReason": "EC_PerCancelRequest",
-        //                     "isLeverage": "",
-        //                     "price": "18000",
-        //                     "orderIv": "",
-        //                     "createdTime": "1672220109387",
-        //                     "tpTriggerBy": "UNKNOWN",
-        //                     "positionIdx": 0,
-        //                     "timeInForce": "GoodTillCancel",
-        //                     "leavesValue": "0",
-        //                     "updatedTime": "1672220114123",
-        //                     "side": "Sell",
-        //                     "triggerPrice": "",
-        //                     "cumExecFee": "0",
-        //                     "slTriggerBy": "UNKNOWN",
-        //                     "leavesQty": "0",
-        //                     "closeOnTrigger": false,
-        //                     "cumExecQty": "0",
-        //                     "reduceOnly": false,
-        //                     "qty": "0.1",
-        //                     "stopLoss": "",
-        //                     "triggerBy": "UNKNOWN"
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {},
-        //         "time": 1672221263862
-        //     }
-        //
-        const data = this.addPaginationCursorToResult (response);
-        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -6315,18 +6130,12 @@ export default class bybit extends Exchange {
             // 'limit': 0, Limit for data size per page. [1, 50]. Default: 20
             // 'cursor': '', Cursor. Used for pagination
         };
-        const enableUnified = await this.isUnifiedEnabled ();
+        await this.isUnifiedEnabled ();
         let currency: Currency = undefined;
         let currencyKey = 'coin';
-        if (enableUnified[1]) {
-            currencyKey = 'currency';
-            if (since !== undefined) {
-                request['startTime'] = since;
-            }
-        } else {
-            if (since !== undefined) {
-                request['start_date'] = this.yyyymmdd (since);
-            }
+        currencyKey = 'currency';
+        if (since !== undefined) {
+            request['startTime'] = since;
         }
         if (code !== undefined) {
             currency = this.currency (code);
@@ -6338,15 +6147,11 @@ export default class bybit extends Exchange {
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchLedger', undefined, params);
         let response: Dict;
-        if (enableUnified[1]) {
-            const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
-            if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
-                response = await this.privateGetV5AccountContractTransactionLog (this.extend (request, params));
-            } else {
-                response = await this.privateGetV5AccountTransactionLog (this.extend (request, params));
-            }
-        } else {
+        const unifiedMarginStatus = this.safeInteger (this.options, 'unifiedMarginStatus', 5); // 3/4 uta 1.0, 5/6 uta 2.0
+        if (subType === 'inverse' && (unifiedMarginStatus < 5)) {
             response = await this.privateGetV5AccountContractTransactionLog (this.extend (request, params));
+        } else {
+            response = await this.privateGetV5AccountTransactionLog (this.extend (request, params));
         }
         //
         //     {
@@ -6569,17 +6374,15 @@ export default class bybit extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
+     * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', or 'SPOT' (for non-UTA accounts)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         let accountType: Str = undefined;
-        const accounts = await this.isUnifiedEnabled ();
-        const isUta = accounts[1];
         [ accountType, params ] = this.handleOptionAndParams (params, 'withdraw', 'accountType');
         if (accountType === undefined) {
-            accountType = isUta ? 'UTA' : 'SPOT';
+            accountType = 'UTA'; // default to 'UTA' if not specified
         }
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -7085,97 +6888,30 @@ export default class bybit extends Exchange {
     /**
      * @method
      * @name bybit#setMarginMode
-     * @description set margin mode (account) or trade mode (symbol)
+     * @description set margin mode (account)
      * @see https://bybit-exchange.github.io/docs/v5/account/set-margin-mode
-     * @see https://bybit-exchange.github.io/docs/v5/position/cross-isolate
-     * @param {string} marginMode account mode must be either [isolated, cross, portfolio], trade mode must be either [isolated, cross]
-     * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+     * @param {string} marginMode account mode must be either [isolated, cross, portfolio]
+     * @param {string} [symbol] not used by bybit#setMarginMode
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.leverage] the rate of leverage, is required if setting trade mode (symbol)
      * @returns {object} response from the exchange
      */
     override async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        let market: Market = undefined;
-        let response: Dict;
-        if (isUnifiedAccount) {
-            if (marginMode === 'isolated') {
-                marginMode = 'ISOLATED_MARGIN';
-            } else if (marginMode === 'cross') {
-                marginMode = 'REGULAR_MARGIN';
-            } else if (marginMode === 'portfolio') {
-                marginMode = 'PORTFOLIO_MARGIN';
-            } else {
-                throw new NotSupported (this.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]');
-            }
-            const request: Dict = {
-                'setMarginMode': marginMode,
-            };
-            response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
+        if (marginMode === 'isolated') {
+            marginMode = 'ISOLATED_MARGIN';
+        } else if (marginMode === 'cross') {
+            marginMode = 'REGULAR_MARGIN';
+        } else if (marginMode === 'portfolio') {
+            marginMode = 'PORTFOLIO_MARGIN';
         } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol parameter for non unified account');
-            }
-            market = this.market (symbol);
-            const isUsdcSettled = market['settle'] === 'USDC';
-            if (isUsdcSettled) {
-                if (marginMode === 'cross') {
-                    marginMode = 'REGULAR_MARGIN';
-                } else if (marginMode === 'portfolio') {
-                    marginMode = 'PORTFOLIO_MARGIN';
-                } else {
-                    throw new NotSupported (this.id + ' setMarginMode() for usdc market marginMode must be either [cross, portfolio]');
-                }
-                const request: Dict = {
-                    'setMarginMode': marginMode,
-                };
-                response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
-            } else {
-                let type: Str = undefined;
-                [ type, params ] = this.getBybitType ('setPositionMode', market, params);
-                let tradeMode: Int = undefined;
-                if (marginMode === 'cross') {
-                    tradeMode = 0;
-                } else if (marginMode === 'isolated') {
-                    tradeMode = 1;
-                } else {
-                    throw new NotSupported (this.id + ' setMarginMode() with symbol marginMode must be either [isolated, cross]');
-                }
-                let sellLeverage: Str = undefined;
-                let buyLeverage: Str = undefined;
-                const leverage = this.safeString (params, 'leverage');
-                if (leverage === undefined) {
-                    sellLeverage = this.safeString2 (params, 'sell_leverage', 'sellLeverage');
-                    buyLeverage = this.safeString2 (params, 'buy_leverage', 'buyLeverage');
-                    if (sellLeverage === undefined && buyLeverage === undefined) {
-                        throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
-                    }
-                    if (buyLeverage === undefined) {
-                        buyLeverage = sellLeverage;
-                    }
-                    if (sellLeverage === undefined) {
-                        sellLeverage = buyLeverage;
-                    }
-                    params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
-                } else {
-                    sellLeverage = leverage;
-                    buyLeverage = leverage;
-                    params = this.omit (params, 'leverage');
-                }
-                const request: Dict = {
-                    'category': type,
-                    'symbol': market['id'],
-                    'tradeMode': tradeMode,
-                    'buyLeverage': buyLeverage,
-                    'sellLeverage': sellLeverage,
-                };
-                response = await this.privatePostV5PositionSwitchIsolated (this.extend (request, params));
-            }
+            throw new NotSupported (this.id + ' setMarginMode() marginMode must be either [isolated, cross, portfolio]');
         }
+        const request: Dict = {
+            'setMarginMode': marginMode,
+        };
+        const response = await this.privatePostV5AccountSetMarginMode (this.extend (request, params));
         return response;
     }
 
@@ -9339,9 +9075,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let accountType: Str = undefined;
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        const accountTypeDefault = 'eb_convert_uta';
         [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertCurrencies', 'accountType', accountTypeDefault);
         const request: Dict = {
             'accountType': accountType,
@@ -9441,9 +9175,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let accountType: Str = undefined;
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        const accountTypeDefault = 'eb_convert_uta';
         [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertQuote', 'accountType', accountTypeDefault);
         const request: Dict = {
             'fromCoin': fromCode,
@@ -9533,9 +9265,7 @@ export default class bybit extends Exchange {
             await this.loadMarkets ();
         }
         let accountType: Str = undefined;
-        const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
-        const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const accountTypeDefault = isUnifiedAccount ? 'eb_convert_uta' : 'eb_convert_spot';
+        const accountTypeDefault = 'eb_convert_uta';
         [ accountType, params ] = this.handleOptionAndParams (params, 'fetchConvertTrade', 'accountType', accountTypeDefault);
         const request: Dict = {
             'quoteTxId': id,
