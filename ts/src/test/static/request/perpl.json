@@ -1,0 +1,210 @@
+{
+    "exchange": "perpl",
+    "apiKey": "test-api-key",
+    "secret": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": []
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch the latest candles ending at until",
+                "method": "fetchOHLCV",
+                "url": "https://app.perpl.xyz/api/v1/market-data/1/candles/60/1787037000000-1787037900000",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "1m",
+                    null,
+                    16,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            },
+            {
+                "description": "fetch one minute candles with an explicit range",
+                "method": "fetchOHLCV",
+                "url": "https://app.perpl.xyz/api/v1/market-data/1/candles/60/1787037000000-1787037900000",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    "1m",
+                    1787037000000,
+                    16,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetch a filtered list of tickers",
+                "method": "fetchTickers",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetch a single ticker",
+                "method": "fetchTicker",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ]
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch current funding rates",
+                "method": "fetchFundingRates",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingIntervals": [
+            {
+                "description": "fetch funding intervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch a current funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests with one market filter",
+                "method": "fetchOpenInterests",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch one open interest through the unified emulation",
+                "method": "fetchOpenInterest",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch private fills with a pagination cursor",
+                "method": "fetchMyTrades",
+                "url": "https://app.perpl.xyz/api/v1/trading/fills?count=2&page=next-page-cursor",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    2,
+                    {
+                        "page": "next-page-cursor"
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetch funding rate history for one market",
+                "method": "fetchFundingRateHistory",
+                "url": "https://app.perpl.xyz/api/v1/market-data/1/funding/1787035320000-1787037900000",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    1787035320000,
+                    2,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            },
+            {
+                "description": "fetch funding rate history for all markets",
+                "method": "fetchFundingRateHistory",
+                "url": "https://app.perpl.xyz/api/v1/market-data/funding/1787035320000-1787037900000",
+                "input": [
+                    null,
+                    1787035320000,
+                    2,
+                    {
+                        "until": 1787037900000
+                    }
+                ]
+            }
+        ]
+    }
+}
