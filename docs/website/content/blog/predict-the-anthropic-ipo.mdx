@@ -78,7 +78,8 @@ async function readYes (venueId: string) {
     try {
         const events = await ex.fetchEvents ({ 'query': 'Anthropic IPO', 'sort': 'volume' });
         const market = events[0].markets[0];
-        const yes = market.outcomes.find ((o) => o.label === 'Yes');
+        // labels are lowercase on some venues (e.g. Limitless), Capitalized on others (Polymarket)
+        const yes = market.outcomes.find ((o) => o.label.toLowerCase () === 'yes');
         const ob = await ex.fetchOrderBook (yes.outcome);        // yes.outcome is the tradeable handle
         return { venueId, 'bid': ob.bids[0]?.[0], 'ask': ob.asks[0]?.[0] };
     } finally {
@@ -122,8 +123,11 @@ function findArb (board) {
 It doesn't care who wins the IPO race. It collects the gap between two crowds who haven't
 noticed they disagree.
 
-> **The catch (why this isn't free money):** fees and slippage eat thin edges, both legs must
-> actually fill, and your capital is locked until the market resolves. Real arbs are smaller
+> **The catch (why this isn't free money):** the two legs must settle on the *identical* event
+> (pairing "Anthropic IPOs in 2026?" with "Anthropic *or OpenAI* first?" is a naked position, not
+> a hedge) — so match the exact head-to-head market on every venue. On top of that, fees and
+> slippage eat thin edges, both legs must actually fill, and your capital is locked until the
+> market resolves. Real arbs are smaller
 > and rarer than the toy numbers here — but a bot scanning every venue in a `Promise.all` finds
 > them faster than you can refresh a tab. Efficient markets show **no** edge most of the time,
 > and that's the normal, honest result.
@@ -186,5 +190,5 @@ so your strategy sees all of them at once and pounces where they disagree.
 Bet responsibly: these are real markets with real money, fees, and settlement risk. Read "free
 lunch" as "find an edge," not "print cash." May your outcomes settle YES. 🚀
 
-The full [Prediction Markets guide](/docs/prediction-markets) covers every venue, the complete
+The full [Prediction Markets guide](/docs/prediction) covers every venue, the complete
 data model, and the unified methods used above.
