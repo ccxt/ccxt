@@ -3318,6 +3318,23 @@ func PanicOnError(msg any) {
 	}
 }
 
+// PanicMessage renders a recovered value into the same "panic:<msg>\nStack trace:\n<stack>"
+// string that ReturnPanicError pushes into an async core's channel, so that IsError,
+// CreateReturnError and PanicOnError recognise it downstream.
+//
+// It exists for recover sites that own a *Future instead of a `chan any` (Spawn), where the
+// blocking `ch <- panicMsg` of ReturnPanicError is not applicable. ReturnPanicError is left
+// byte-for-byte untouched on purpose: legacy unbuffered cores rely on that send blocking.
+// Keep the two formatters in sync.
+func PanicMessage(r any) string {
+	stack := debug.Stack()
+	strErr := ToString(r)
+	if !strings.HasPrefix(strErr, "panic:") {
+		return fmt.Sprintf("panic:%s\nStack trace:\n%s", strErr, stack)
+	}
+	return fmt.Sprintf("%s\nStack trace:\n%s", strErr, stack)
+}
+
 func ReturnPanicError(ch chan any) {
 	// https://stackoverflow.com/questions/72651899/why-golang-can-not-recover-from-a-panic-in-a-function-called-by-the-defer-functi
 	if r := recover(); r != nil {
