@@ -328,7 +328,6 @@ public class BithumbCore extends BithumbApi
                 }} );
             }} );
             put( "commonCurrencies", new java.util.HashMap<String, Object>() {{
-                put( "ALT", "ArchLoot" );
                 put( "FTC", "FTC2" );
                 put( "SOC", "Soda Coin" );
             }} );
