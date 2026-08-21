@@ -320,7 +320,14 @@ class btcmarkets extends Exchange {
         if ($code !== null) {
             $currency = $this->currency($code);
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($method === 'privateGetTransfers') {
+            $response = Async\await($this->privateGetTransfers($this->extend($request, $params)));
+        } elseif ($method === 'privateGetDeposits') {
+            $response = Async\await($this->privateGetDeposits($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateGetWithdrawals($this->extend($request, $params)));
+        }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 

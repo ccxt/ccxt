@@ -1292,6 +1292,9 @@ export default class phemex extends Exchange {
     }
 
     toEn (n: any, scale: any) {
+        if ((n === undefined) || (scale === undefined)) {
+            return undefined;
+        }
         const stringN = this.numberToString (n);
         const precise = new Precise (stringN as string);
         precise.decimals = precise.decimals - scale;
@@ -1304,14 +1307,14 @@ export default class phemex extends Exchange {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
-        return this.toEn (amount, market['valueScale']);
+        return this.toEn (amount, this.safeInteger (market, 'valueScale'));
     }
 
     toEp (price: any, market: Market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn (price, this.safeValue (market, 'priceScale'));
+        return this.toEn (price, this.safeInteger (market, 'priceScale'));
     }
 
     fromEn (en: any, scale: any) {
@@ -3849,7 +3852,7 @@ export default class phemex extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
@@ -5483,7 +5486,7 @@ export default class phemex extends Exchange {
 
     /**
      * @method
-     * @name phemex#fetchPositionADLRank
+     * @name phemex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -5491,7 +5494,7 @@ export default class phemex extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     override async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {

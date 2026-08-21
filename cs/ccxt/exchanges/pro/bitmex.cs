@@ -795,7 +795,8 @@ public partial class bitmex : ccxt.bitmex
         object messageHash = "positions";
         if (!isTrue(this.isEmpty(symbols)))
         {
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            symbols = this.marketSymbols(symbols);
+            messageHash = add("positions::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {

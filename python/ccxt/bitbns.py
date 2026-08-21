@@ -672,11 +672,9 @@ class bitbns(Exchange, ImplicitAPI):
             # 't_rate': self.price_to_precision(symbol, stopPrice),
             # 'trail_rate': self.price_to_precision(symbol, trailRate),
         }
-        method = 'v2PostOrders'
         if type == 'limit':
             request['rate'] = self.price_to_precision(symbol, price)
         else:
-            method = 'v1PostPlaceMarketOrderQntySymbol'
             request['market'] = market['quoteId']
         if triggerPrice is not None:
             request['t_rate'] = self.price_to_precision(symbol, triggerPrice)
@@ -684,7 +682,11 @@ class bitbns(Exchange, ImplicitAPI):
             request['target_rate'] = self.price_to_precision(symbol, targetRate)
         if trailRate is not None:
             request['trail_rate'] = self.price_to_precision(symbol, trailRate)
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if type == 'limit':
+            response = self.v2PostOrders(self.extend(request, params))
+        else:
+            response = self.v1PostPlaceMarketOrderQntySymbol(self.extend(request, params))
         #
         #     {
         #         "data":"Successfully placed bid to purchase currency",

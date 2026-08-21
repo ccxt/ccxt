@@ -1559,6 +1559,10 @@ public class BullishCore extends BullishApi
             var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", 3);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "fetchOHLCV"))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchFundingRateHistory")))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchTrades")))))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " safeDeterministicCall() does not support the "), method), " method")) ;
+            }
             Object errors = 0;
             parameters = this.omit(parameters, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
@@ -1567,12 +1571,15 @@ public class BullishCore extends BullishApi
             {
                 try
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(timeframe) && Helpers.isTrue(!Helpers.isEqual(method, "fetchFundingRateHistory"))))
+                    if (Helpers.isTrue(Helpers.isEqual(method, "fetchOHLCV")))
                     {
-                        return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, limit, parameters })).join();
+                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join();
+                    } else if (Helpers.isTrue(Helpers.isEqual(method, "fetchFundingRateHistory")))
+                    {
+                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
                     } else
                     {
-                        return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, limit, parameters })).join();
+                        return (this.fetchTrades(((String)symbol), since, limit, parameters)).join();
                     }
                 } catch(Exception e)
                 {

@@ -32,14 +32,6 @@ class Client(object):
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
-    # latest resolved value per message_hash that arrived while no consumer
-    # future existed, so an update landing between a resolve and the
-    # consumer's next future() call is delivered instead of silently
-    # dropped, latest value wins matching watch coalescing semantics, see
-    # https://github.com/ccxt/ccxt/issues/28089 and
-    # https://github.com/ccxt/ccxt/issues/23251 and the go lane fix
-    # https://github.com/ccxt/ccxt/pull/29719
-    pending_results = {}
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -72,7 +64,6 @@ class Client(object):
             'futures': {},
             'subscriptions': {},
             'rejections': {},
-            'pending_results': {},
             'on_message_callback': on_message_callback,
             'on_error_callback': on_error_callback,
             'on_close_callback': on_close_callback,
@@ -111,14 +102,6 @@ class Client(object):
         self.last_message_at = None
 
     def future(self, message_hash):
-        # a value that arrived while no future existed satisfies this
-        # consumer immediately, the spent future intentionally stays out of
-        # the map so the next consumer waits for fresh data
-        if message_hash in self.pending_results:
-            pending = self.pending_results.pop(message_hash)
-            spent = Future()
-            spent.resolve(pending)
-            return spent
         if message_hash not in self.futures or self.futures[message_hash].cancelled():
             self.futures[message_hash] = Future()
         future = self.futures[message_hash]
@@ -140,14 +123,6 @@ class Client(object):
             future = self.futures[message_hash]
             future.resolve(result)
             del self.futures[message_hash]
-        else:
-            # no consumer future right now, keep the latest value so the
-            # next future() call is resolved with it instead of waiting for
-            # data that already arrived. A successful resolve after a
-            # retained error means the stream recovered, the stale error
-            # must not fail a later waiter
-            self.pending_results[message_hash] = result
-            self.rejections.pop(message_hash, None)
         return result
 
     def reject(self, result, message_hash=None):
@@ -158,13 +133,10 @@ class Client(object):
                 del self.futures[message_hash]
             else:
                 self.rejections[message_hash] = result
-            # stale pre-error values must not satisfy post-error consumers
-            self.pending_results.pop(message_hash, None)
         else:
             message_hashes = list(self.futures.keys())
             for message_hash in message_hashes:
                 self.reject(result, message_hash)
-            self.pending_results = {}
         return result
 
     def receive_loop(self):

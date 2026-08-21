@@ -969,7 +969,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         }
         # publicGetProductsIdTicker or publicGetProductsIdStats
         method = self.safe_string(self.options, 'fetchTickerMethod', 'publicGetProductsIdTicker')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'publicGetProductsIdStats':
+            response = self.publicGetProductsIdStats(self.extend(request, params))
+        else:
+            response = self.publicGetProductsIdTicker(self.extend(request, params))
         #
         # publicGetProductsIdTicker
         #
@@ -1359,15 +1363,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        method = None
+        response = None
         if clientOrderId is None:
-            method = 'privateGetOrdersId'
             request['id'] = id
+            response = self.privateGetOrdersId(self.extend(request, params))
         else:
-            method = 'privateGetOrdersClientClientOid'
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privateGetOrdersClientClientOid(self.extend(request, params))
         return self.parse_order(response)
 
     def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1566,19 +1569,20 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             # 'product_id': market['id'],  # the request will be more performant if you include it
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_oid')
-        method = None
         if clientOrderId is None:
-            method = 'privateDeleteOrdersId'
             request['id'] = id
         else:
-            method = 'privateDeleteOrdersClientClientOid'
             request['client_oid'] = clientOrderId
             params = self.omit(params, ['clientOrderId', 'client_oid'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['product_id'] = market['symbol']  # the request will be more performant if you include it
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if clientOrderId is None:
+            response = self.privateDeleteOrdersId(self.extend(request, params))
+        else:
+            response = self.privateDeleteOrdersClientClientOid(self.extend(request, params))
         return self.safe_order({'info': response})
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
@@ -1627,17 +1631,16 @@ class coinbaseexchange(Exchange, ImplicitAPI):
             'currency': currency['id'],
             'amount': amount,
         }
-        method = 'privatePostWithdrawals'
+        response = None
         if 'payment_method_id' in params:
-            method += 'PaymentMethod'
+            response = self.privatePostWithdrawalsPaymentMethod(self.extend(request, params))
         elif 'coinbase_account_id' in params:
-            method += 'CoinbaseAccount'
+            response = self.privatePostWithdrawalsCoinbaseAccount(self.extend(request, params))
         else:
-            method += 'Crypto'
             request['crypto_address'] = address
             if tag is not None:
                 request['destination_tag'] = tag
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostWithdrawalsCrypto(self.extend(request, params))
         if not response:
             raise ExchangeError(self.id + ' withdraw() error: ' + self.json(response))
         return self.parse_transaction(response, currency)

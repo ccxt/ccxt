@@ -902,7 +902,13 @@ class coinbase(Exchange, ImplicitAPI):
         request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         if self.markets is None:
             self.load_markets()
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'v2PrivateGetAccountsAccountIdTransactions':
+            response = self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
+        elif method == 'v2PrivateGetAccountsAccountIdWithdrawals':
+            response = self.v2PrivateGetAccountsAccountIdWithdrawals(self.extend(request, params))
+        else:
+            response = self.v2PrivateGetAccountsAccountIdDeposits(self.extend(request, params))
         return self.parse_transactions(response['data'], None, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
