@@ -1467,6 +1467,10 @@ public partial class bullish : Exchange
         var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", 3);
         maxRetries = ((IList<object>)maxRetriesparametersVariable)[0];
         parameters = ((IList<object>)maxRetriesparametersVariable)[1];
+        if (isTrue(isTrue(isTrue((!isEqual(method, "fetchOHLCV"))) && isTrue((!isEqual(method, "fetchFundingRateHistory")))) && isTrue((!isEqual(method, "fetchTrades")))))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " safeDeterministicCall() does not support the "), method), " method")) ;
+        }
         object errors = 0;
         parameters = this.omit(parameters, "until");
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
@@ -1475,12 +1479,15 @@ public partial class bullish : Exchange
         {
             try
             {
-                if (isTrue(isTrue(timeframe) && isTrue(!isEqual(method, "fetchFundingRateHistory"))))
+                if (isTrue(isEqual(method, "fetchOHLCV")))
                 {
-                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
+                    return await this.fetchOHLCV(((string)symbol), timeframe, since, limit, parameters);
+                } else if (isTrue(isEqual(method, "fetchFundingRateHistory")))
+                {
+                    return await this.fetchFundingRateHistory(symbol, since, limit, parameters);
                 } else
                 {
-                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
+                    return await this.fetchTrades(((string)symbol), since, limit, parameters);
                 }
             } catch(Exception e)
             {
