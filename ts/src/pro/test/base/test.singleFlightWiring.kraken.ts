@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { AuthenticationError } from '../../../base/errors.js';
+import { AuthenticationError, ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
 
 // native ts test, intentionally not transpiled - pins the single-flight
@@ -54,15 +54,14 @@ function futureCount (exchange: any) {
 }
 
 function residueCount (exchange: any) {
-    // client.resolve () parks its value in pendingResults and client.reject ()
-    // parks its error in rejections whenever no future is registered at settle
-    // time - both would silently poison the NEXT flight, so a settled flight
-    // must leave neither behind
+    // client.reject () parks its error in client.rejections whenever no future
+    // is registered at settle time - a parked rejection silently poisons the
+    // NEXT flight, so a settled flight must leave nothing behind
     const client = privateClient (exchange);
     if (client === undefined) {
         return 0;
     }
-    return Object.keys (client.pendingResults).length + Object.keys (client.rejections).length;
+    return Object.keys (client.rejections).length;
 }
 
 function cachedToken (exchange: any) {
@@ -112,7 +111,7 @@ async function testKrakenAuthenticateSingleFlight () {
     assert (exchange.safeInteger (client.subscriptions['authenticated'], 'start') !== undefined, 'the cached subscription must keep the start stamp');
     assert (flightCount (exchange) === 0, 'settled flights must be cleared from client.futures');
     assert (futureCount (exchange) === 0, 'settled flights must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a settled flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'a settled flight must leave no rejections residue');
     // a fresh call inside the expiry window is a no-op: no new fetch
     const warm = await exchange.authenticate ();
     assert (state.fetches === 1, 'a warm authenticate inside the expiry window must not fetch');
@@ -146,7 +145,7 @@ async function testKrakenAuthenticateExpiredRefetches () {
     assert (cachedToken (exchange) === 'KRAKEN-TOKEN-2', 'the refreshed token must replace the cached one');
     assert (flightCount (exchange) === 0, 'the refresh flight must be cleared from client.futures');
     assert (futureCount (exchange) === 0, 'the refresh flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'the refresh flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'the refresh flight must leave no rejections residue');
 }
 
 async function testKrakenAuthenticateEmptyTokenRejection () {
@@ -180,7 +179,7 @@ async function testKrakenAuthenticateEmptyTokenRejection () {
     // a rejection parked under the flight hash would be replayed onto the
     // FIRST waiter of the next flight by Client.future (), turning a healthy
     // retry into a spurious AuthenticationError
-    assert (residueCount (exchange) === 0, 'a rejected flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'a rejected flight must leave no rejections residue');
     // recovery: a good response re-leads and caches
     (exchange as any).privatePostGetWebSocketsToken = async () => {
         state.fetches = state.fetches + 1;
@@ -216,7 +215,7 @@ async function testKrakenAuthenticateSoloLeaderRejection () {
     await sleep (20);
     assert (flightCount (exchange) === 0, 'a solo rejected flight must be cleared from client.futures');
     assert (futureCount (exchange) === 0, 'a solo rejected flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a solo rejected flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'a solo rejected flight must leave no rejections residue');
     // the next caller becomes a fresh leader
     (exchange as any).privatePostGetWebSocketsToken = async () => {
         state.fetches = state.fetches + 1;
@@ -227,12 +226,12 @@ async function testKrakenAuthenticateSoloLeaderRejection () {
 }
 
 async function testKrakenAuthenticateWaiterAlwaysSettles () {
-    // the flight is parked on the private-url client, which kraken never
-    // dials (every watch* subscribes to ws.privateV2 / ws.publicV2), so no
-    // socket teardown can reset that client and strand or poison the flight.
-    // the leader is therefore the only settler and MUST settle on both paths -
-    // this pins that a waiter never outlives the leader's REST call even when
-    // the exchange is closed mid-flight
+    // the flight is parked on the private-url client, and close () walks every
+    // entry of exchange.clients - including a client that was only ever
+    // instantiated to hold the token cache and never actually dialed. so
+    // close () rejects the flight future and BOTH the leader and the waiter
+    // must observe ExchangeClosedByUser rather than hanging until the
+    // held-open REST call lands. this pins that a waiter is never stranded
     const state = { 'fetches': 0 };
     const exchange = makeStubbedKraken (state);
     (exchange as any).privatePostGetWebSocketsToken = async () => {
@@ -240,20 +239,34 @@ async function testKrakenAuthenticateWaiterAlwaysSettles () {
         await sleep (200); // held open across the close () below
         return { 'error': [], 'result': { 'token': 'KRAKEN-TOKEN-HELD', 'expires': 900 } };
     };
-    const leader = exchange.authenticate ();
+    // attach the handlers up front: close () settles both promises, and an
+    // unhandled native rejection would kill the process instead of failing
+    let leaderError: any = undefined;
+    const leader = exchange.authenticate ().catch ((e: any) => {
+        leaderError = e;
+    });
     await sleep (20); // the leader registers the flight in client.futures
-    const waiter = exchange.authenticate ();
-    await sleep (20); // the waiter joins the leader's future and awaits it
+    let waiterError: any = undefined;
+    const waiter = exchange.authenticate ().catch ((e: any) => {
+        waiterError = e;
+    });
+    await sleep (20); // the waiter joins the leader's future
     assert (flightCount (exchange) === 1, 'the in-progress flight must be registered in client.futures');
     assert (futureCount (exchange) === 1, 'the leader and the waiter must share exactly one future');
+    assert (state.fetches === 1, 'the waiter must not have started a second fetch');
+    const url = exchange.urls['api']['ws']['private'];
     await exchange.close ();
-    // the leader still owns its client reference, so both settle on the
-    // leader's completion - bounded by the REST call, never an infinite hang
-    const leaderToken = await leader;
-    const waiterToken = await waiter;
-    assert (leaderToken === 'KRAKEN-TOKEN-HELD', 'the leader must still complete across a close ()');
-    assert (waiterToken === 'KRAKEN-TOKEN-HELD', 'the waiter must be settled by the leader, not stranded');
+    await waiter;
+    assert (waiterError instanceof ExchangeClosedByUser, 'close () must settle an in-flight waiter with ExchangeClosedByUser');
+    await leader;
+    assert (leaderError instanceof ExchangeClosedByUser, 'close () must settle the leader too, not strand it');
+    // close () evicts the private client from exchange.clients, so the late
+    // client.resolve () from the still-running fetch cannot poison anything:
+    // a value parked on a discarded client is unreachable
+    assert (!(url in exchange.clients), 'close () must evict the private client that carried the flight');
     assert (state.fetches === 1, 'the close () must not have triggered a second fetch');
+    await sleep (350); // let the held-open fetch land its late settle
+    assert (!(url in exchange.clients), 'a late settle must not resurrect the private client');
 }
 
 async function testKrakenSingleFlightWiring () {
