@@ -1088,7 +1088,17 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "v2PrivateGetAccountsAccountIdTransactions")))
+        {
+            response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "v2PrivateGetAccountsAccountIdWithdrawals")))
+        {
+            response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, parameters));
+        }
         return this.parseTransactions(getValue(response, "data"), null, since, limit);
     }
 

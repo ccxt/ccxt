@@ -790,7 +790,8 @@ class bitmex extends \ccxt\async\bitmex {
         $subscriptionHash = 'position';
         $messageHash = 'positions';
         if (!$this->is_empty($symbols)) {
-            $messageHash = '::' . implode(',', ($symbols));
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = 'positions::' . implode(',', ($symbols));
         }
         $url = $this->urls['api']['ws'];
         $request = array(

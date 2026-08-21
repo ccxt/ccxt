@@ -1279,7 +1279,7 @@ func (this *CryptocomCore) WatchPositions(optionalArgs ...any) <-chan any {
 			if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPositions() symbols is required")))
 			}
-			messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
+			messageHash = ccxt.Add("positions::", ccxt.Join(symbols, ","))
 		}
 		var client any = this.Client(url)
 		this.SetPositionsCache(client, symbols)

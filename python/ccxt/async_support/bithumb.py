@@ -845,13 +845,15 @@ class bithumb(Exchange, ImplicitAPI):
             'payment_currency': market['quote'],
             'units': amount,
         }
-        method = 'privatePostTradePlace'
+        response = None
         if type == 'limit':
             request['price'] = price
             request['type'] = 'bid' if (side == 'buy') else 'ask'
+            response = await self.privatePostTradePlace(self.extend(request, params))
+        elif side == 'buy':
+            response = await self.privatePostTradeMarketBuy(self.extend(request, params))
         else:
-            method = 'privatePostTradeMarket' + self.capitalize(side)
-        response = await getattr(self, method)(self.extend(request, params))
+            response = await self.privatePostTradeMarketSell(self.extend(request, params))
         id = self.safe_string(response, 'order_id')
         if id is None:
             raise InvalidOrder(self.id + ' createOrder() did not return an order id')

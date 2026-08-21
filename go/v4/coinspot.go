@@ -631,9 +631,16 @@ func (this *CoinspotCore) FetchBalance(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes33212)
 		}
 		var method any = this.SafeString(this.Options, "fetchBalance", "private_post_my_balances")
+		var response any = nil
+		if IsTrue(IsTrue((IsEqual(method, "private_post_ro_my_balances"))) || IsTrue((IsEqual(method, "privatePostRoMyBalances")))) {
 
-		response := (<-this.CallDynamically(method, params))
-		PanicOnError(response)
+			response = (<-this.PrivatePostRoMyBalances(params))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivatePostMyBalances(params))
+			PanicOnError(response)
+		}
 
 		//
 		// read-write api keys
@@ -679,8 +686,8 @@ func (this *CoinspotCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes36712 := (<-this.LoadMarkets())
-			PanicOnError(retRes36712)
+			retRes37212 := (<-this.LoadMarkets())
+			PanicOnError(retRes37212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -752,8 +759,8 @@ func (this *CoinspotCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes42412 := (<-this.LoadMarkets())
-			PanicOnError(retRes42412)
+			retRes42912 := (<-this.LoadMarkets())
+			PanicOnError(retRes42912)
 		}
 		var market any = this.Market(symbol)
 
@@ -803,8 +810,8 @@ func (this *CoinspotCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes45812 := (<-this.LoadMarkets())
-			PanicOnError(retRes45812)
+			retRes46312 := (<-this.LoadMarkets())
+			PanicOnError(retRes46312)
 		}
 
 		response := (<-this.PublicGetLatest(params))
@@ -870,8 +877,8 @@ func (this *CoinspotCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes50612 := (<-this.LoadMarkets())
-			PanicOnError(retRes50612)
+			retRes51112 := (<-this.LoadMarkets())
+			PanicOnError(retRes51112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -923,8 +930,8 @@ func (this *CoinspotCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes53812 := (<-this.LoadMarkets())
-			PanicOnError(retRes53812)
+			retRes54312 := (<-this.LoadMarkets())
+			PanicOnError(retRes54312)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -1075,8 +1082,8 @@ func (this *CoinspotCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes67212 := (<-this.LoadMarkets())
-			PanicOnError(retRes67212)
+			retRes67712 := (<-this.LoadMarkets())
+			PanicOnError(retRes67712)
 		}
 		if IsTrue(IsEqual(side, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))

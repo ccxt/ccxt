@@ -1049,7 +1049,7 @@ public partial class cryptocom : ccxt.cryptocom
             {
                 throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
             }
-            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
+            messageHash = add("positions::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);

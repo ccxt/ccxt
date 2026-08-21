@@ -662,15 +662,21 @@ public partial class bit2c : Exchange
         {
             await this.loadMarkets();
         }
-        object method = "privatePostOrderAddOrder";
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "Amount", amount },
             { "Pair", getValue(market, "id") },
         };
+        object response = null;
         if (isTrue(isEqual(type, "market")))
         {
-            method = add(method, add("MarketPrice", this.capitalize(side)));
+            if (isTrue(isEqual(side, "buy")))
+            {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, parameters));
+            }
         } else
         {
             ((IDictionary<string,object>)request)["Price"] = price;
@@ -678,8 +684,8 @@ public partial class bit2c : Exchange
             object priceString = this.numberToString(price);
             ((IDictionary<string,object>)request)["Total"] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
             ((IDictionary<string,object>)request)["IsBid"] = (isEqual(side, "buy"));
+            response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseOrder(response, market);
     }
 

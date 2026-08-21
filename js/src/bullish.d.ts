@@ -104,7 +104,7 @@ export default class bullish extends Exchange {
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
-    safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<any>;
+    safeDeterministicCall(method: string, symbol?: Str, since?: Int, limit?: Int, timeframe?: Str, params?: {}): Promise<FundingRateHistory[] | OHLCV[] | Trade[]>;
     /**
      * @method
      * @name bullish#fetchOHLCV

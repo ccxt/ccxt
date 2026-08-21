@@ -3704,17 +3704,26 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
-                // single-flight leader election: the flight lives on the exchange,
-                // not parked on a ws client, so no client is instantiated just to
-                // carry the future and no listenKey-free parking url is needed -
-                // waiters wake when the leader settles and read the cached bucket
-                Object flightHash = Helpers.add("authenticate:", type);
-                Object isLeader = (this.singleFlightAcquire(flightHash)).join();
-                if (!Helpers.isTrue(isLeader))
+                // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+                // the flight is registered on a never-dialed client because the
+                // user-data url embeds the listenKey, so no real client exists
+                // before the fetch and no listenKey-free parking url is needed.
+                // client.futures is the registry: client.future () is the atomic
+                // check-and-insert and client.resolve () / client.reject () settle
+                // and remove the entry under the same lock in every port
+                Object messageHash = Helpers.add("authenticate:", type);
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    // the leader settled the flight: the listenKey is in the bucket
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
                     return null;
                 }
+                // reusableFuture (), not future () - the two match in
+                // js/py/php/cs/java, but go's Client.Future () yields a channel
+                // that the trailing suspension point below would panic on
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
                     Object response = null;
@@ -3763,12 +3772,17 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         }});
                     }
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", delayParams);
-                    this.singleFlightResolve(flightHash, listenKey);
+                    // settle the flight: client.resolve () removes the future from
+                    // client.futures and wakes every waiter
+                    client.resolve(listenKey, messageHash);
                 } catch(Exception e)
                 {
-                    this.singleFlightReject(flightHash, e);
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    // reject the flight - waiters throw and the next caller re-leads.
+                    // no rethrow here, the trailing suspension point rethrows to this
+                    // caller AND attaches the handler an alone leader needs
+                    client.reject(e, messageHash);
                 }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });

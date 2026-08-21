@@ -292,6 +292,21 @@ func (this *CoinmateCore) PrivatePostUnconfirmedAdaDeposits(args ...any) <-chan 
 	return this.callEndpointAsync("privatePostUnconfirmedAdaDeposits", args...)
 }
 
+// PrivatePostDaiWithdrawal returns a channel that yields a JSON object.
+func (this *CoinmateCore) PrivatePostDaiWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDaiWithdrawal", args...)
+}
+
+// PrivatePostDaiDepositAddresses returns a channel that yields a JSON object.
+func (this *CoinmateCore) PrivatePostDaiDepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDaiDepositAddresses", args...)
+}
+
+// PrivatePostUnconfirmedDaiDeposits returns a channel that yields a JSON object.
+func (this *CoinmateCore) PrivatePostUnconfirmedDaiDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUnconfirmedDaiDeposits", args...)
+}
+
 // PrivatePostSolWithdrawal returns a channel that yields a JSON object.
 func (this *CoinmateCore) PrivatePostSolWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSolWithdrawal", args...)
