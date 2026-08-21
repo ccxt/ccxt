@@ -386,7 +386,6 @@ export default class bingx extends Exchange {
                                 'trade/positionMargin': { 'cost': 2 } as Endpoint<Dict>,
                             },
                             'delete': {
-                                'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>, // post method in doc
                                 'trade/cancelOrder': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
@@ -4221,7 +4220,7 @@ export default class bingx extends Exchange {
             //
         } else if (marketType === 'swap') {
             if (subType === 'inverse') {
-                response = await this.cswapV1PrivateDeleteTradeAllOpenOrders (this.extend (request, params));
+                response = await this.cswapV1PrivatePostTradeAllOpenOrders (this.extend (request, params));
                 //
                 //     {
                 //         "code": 0,
