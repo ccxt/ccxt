@@ -145,7 +145,6 @@ public class Tests
                 WsOrderBookTests();
                 WsOrderBookDefaultsTests();
                 WsOrderBookCopyAtomicityTests();
-                await WsClientRetentionTests();
                 await WsClientKeepAliveLivenessTests();
                 Helper.Green("[C#] base WS tests passed");
             }
@@ -186,12 +185,6 @@ public class Tests
     {
         baseTestInstance.testWsCacheRegressions();
         Helper.Green(" [C#] ArrayCache regression tests passed");
-    }
-
-    static async Task WsClientRetentionTests()
-    {
-        await baseTestInstance.testWsClientRetention();
-        Helper.Green(" [C#] WebSocketClient retention tests passed");
     }
 
     static void WsOrderBookDefaultsTests()

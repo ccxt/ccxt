@@ -844,11 +844,9 @@ func (this *BitbnsCore) CreateOrder(symbol any, typeVar any, side any, amount an
 			"symbol":   GetValue(market, "uppercaseId"),
 			"quantity": this.AmountToPrecision(symbol, amount),
 		}
-		var method any = "v2PostOrders"
 		if IsTrue(IsEqual(typeVar, "limit")) {
 			AddElementToObject(request, "rate", this.PriceToPrecision(symbol, price))
 		} else {
-			method = "v1PostPlaceMarketOrderQntySymbol"
 			AddElementToObject(request, "market", GetValue(market, "quoteId"))
 		}
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -860,9 +858,16 @@ func (this *BitbnsCore) CreateOrder(symbol any, typeVar any, side any, amount an
 		if IsTrue(!IsEqual(trailRate, nil)) {
 			AddElementToObject(request, "trail_rate", this.PriceToPrecision(symbol, trailRate))
 		}
+		var response any = nil
+		if IsTrue(IsEqual(typeVar, "limit")) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.V2PostOrders(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.V1PostPlaceMarketOrderQntySymbol(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 		//
 		//     {
 		//         "data":"Successfully placed bid to purchase currency",
@@ -907,8 +912,8 @@ func (this *BitbnsCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes75012 := (<-this.LoadMarkets())
-			PanicOnError(retRes75012)
+			retRes75312 := (<-this.LoadMarkets())
+			PanicOnError(retRes75312)
 		}
 		var market any = this.Market(symbol)
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop")
@@ -958,8 +963,8 @@ func (this *BitbnsCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78412 := (<-this.LoadMarkets())
-			PanicOnError(retRes78412)
+			retRes78712 := (<-this.LoadMarkets())
+			PanicOnError(retRes78712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1039,8 +1044,8 @@ func (this *BitbnsCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes84412 := (<-this.LoadMarkets())
-			PanicOnError(retRes84412)
+			retRes84712 := (<-this.LoadMarkets())
+			PanicOnError(retRes84712)
 		}
 		var market any = this.Market(symbol)
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop")
@@ -1193,8 +1198,8 @@ func (this *BitbnsCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes97612 := (<-this.LoadMarkets())
-			PanicOnError(retRes97612)
+			retRes97912 := (<-this.LoadMarkets())
+			PanicOnError(retRes97912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1283,8 +1288,8 @@ func (this *BitbnsCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes104712 := (<-this.LoadMarkets())
-			PanicOnError(retRes104712)
+			retRes105012 := (<-this.LoadMarkets())
+			PanicOnError(retRes105012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1337,8 +1342,8 @@ func (this *BitbnsCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes108012 := (<-this.LoadMarkets())
-			PanicOnError(retRes108012)
+			retRes108312 := (<-this.LoadMarkets())
+			PanicOnError(retRes108312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1408,8 +1413,8 @@ func (this *BitbnsCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes113012 := (<-this.LoadMarkets())
-			PanicOnError(retRes113012)
+			retRes113312 := (<-this.LoadMarkets())
+			PanicOnError(retRes113312)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1541,8 +1546,8 @@ func (this *BitbnsCore) FetchDepositAddress(code any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes124312 := (<-this.LoadMarkets())
-			PanicOnError(retRes124312)
+			retRes124612 := (<-this.LoadMarkets())
+			PanicOnError(retRes124612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

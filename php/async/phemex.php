@@ -1307,6 +1307,9 @@ class phemex extends Exchange {
     }
 
     public function to_en(mixed $n, mixed $scale) {
+        if (($n === null) || ($scale === null)) {
+            return null;
+        }
         $stringN = $this->number_to_string($n);
         $precise = new Precise($stringN);
         $precise->decimals = $precise->decimals - $scale;
@@ -1319,14 +1322,14 @@ class phemex extends Exchange {
         if (($amount === null) || ($market === null)) {
             return $amount;
         }
-        return $this->to_en($amount, $market['valueScale']);
+        return $this->to_en($amount, $this->safe_integer($market, 'valueScale'));
     }
 
     public function to_ep(mixed $price, ?array $market = null) {
         if (($price === null) || ($market === null)) {
             return $price;
         }
-        return $this->to_en($price, $this->safe_value($market, 'priceScale'));
+        return $this->to_en($price, $this->safe_integer($market, 'priceScale'));
     }
 
     public function from_en(mixed $en, mixed $scale) {
@@ -3912,7 +3915,7 @@ class phemex extends Exchange {
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->code] the $currency $code to fetch $positions for, USD, BTC or USDT, USDT is the default
-         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         if ($this->markets === null) {
@@ -5614,7 +5617,7 @@ class phemex extends Exchange {
          * @param {string[]} [$symbols] list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->code] the $currency $code to fetch $ranks for, USD, BTC or USDT, USDT is the default
-         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+         * @param {string} [$params->method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
         if ($this->markets === null) {

@@ -928,16 +928,19 @@ public partial class bithumb : Exchange
             { "payment_currency", getValue(market, "quote") },
             { "units", amount },
         };
-        object method = "privatePostTradePlace";
+        object response = null;
         if (isTrue(isEqual(type, "limit")))
         {
             ((IDictionary<string,object>)request)["price"] = price;
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
+            response = await this.privatePostTradePlace(this.extend(request, parameters));
+        } else if (isTrue(isEqual(side, "buy")))
+        {
+            response = await this.privatePostTradeMarketBuy(this.extend(request, parameters));
         } else
         {
-            method = add("privatePostTradeMarket", this.capitalize(side));
+            response = await this.privatePostTradeMarketSell(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         object id = this.safeString(response, "order_id");
         if (isTrue(isEqual(id, null)))
         {

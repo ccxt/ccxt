@@ -1340,12 +1340,24 @@ class bingx(ccxt.async_support.bingx):
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            # single-flight leader election, see  #29393: racing fetches mint
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
             # different keys and the key rides the private url, so losers
-            # connect their watchers to an orphaned stream
-            isLeader = await self.single_flight_acquire('authenticate')
-            if not isLeader:
-                return  # the leader settled: the listenKey is in the bucket
+            # connect their watchers to an orphaned stream. client.futures is
+            # the registry: client.future() is the atomic check-and-insert
+            # and client.resolve() / client.reject() settle and remove the
+            # entry under the same lock in every port
+            messageHash = 'authenticate'
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
+                return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
             try:
                 response = await self.userAuthPrivatePostUserDataStream()
                 listenKey = self.safe_string(response, 'listenKey')
@@ -1356,10 +1368,15 @@ class bingx(ccxt.async_support.bingx):
                 self.options['listenKey'] = listenKey
                 self.options['lastAuthenticatedTime'] = time
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                self.single_flight_resolve('authenticate', listenKey)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
             except Exception as e:
-                self.single_flight_reject('authenticate', e)
-                raise e
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash)
+            await future
 
     async def pong(self, client: Client, message: object):
         #

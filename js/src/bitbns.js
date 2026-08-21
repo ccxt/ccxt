@@ -694,12 +694,10 @@ export default class bitbns extends Exchange {
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
         };
-        let method = 'v2PostOrders';
         if (type === 'limit') {
             request['rate'] = this.priceToPrecision(symbol, price);
         }
         else {
-            method = 'v1PostPlaceMarketOrderQntySymbol';
             request['market'] = market['quoteId'];
         }
         if (triggerPrice !== undefined) {
@@ -711,7 +709,13 @@ export default class bitbns extends Exchange {
         if (trailRate !== undefined) {
             request['trail_rate'] = this.priceToPrecision(symbol, trailRate);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'limit') {
+            response = await this.v2PostOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",

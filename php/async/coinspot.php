@@ -339,7 +339,12 @@ class coinspot extends Exchange {
             Async\await($this->load_markets());
         }
         $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-        $response = Async\await($this->$method($params));
+        $response = null;
+        if (($method === 'private_post_ro_my_balances') || ($method === 'privatePostRoMyBalances')) {
+            $response = Async\await($this->privatePostRoMyBalances($params));
+        } else {
+            $response = Async\await($this->privatePostMyBalances($params));
+        }
         //
         // read-write api keys
         //

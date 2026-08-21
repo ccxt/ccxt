@@ -2038,70 +2038,6 @@ public class BaseExchange {
         return new io.github.ccxt.ws.WsOrderBook.CountedOrderBook(snapshot, depth);
     }
 
-    // single-flight guards for check-then-fetch auth flows
-    // see https://github.com/ccxt/ccxt/issues/29393
-    public java.util.concurrent.ConcurrentHashMap<String, io.github.ccxt.ws.Future> authenticationFlights = new java.util.concurrent.ConcurrentHashMap<>();
-
-    /**
-     * Leader election for check-then-fetch authentication flows such as
-     * listenKey and token fetches. Completes with true when the caller is
-     * elected leader and must perform the fetch itself, then settle the
-     * flight with singleFlightResolve on success or singleFlightReject on
-     * failure. Completes with false after an in-progress flight settled,
-     * in which case the caller re-reads the cached credential. A rejected
-     * flight throws into all waiters so nothing deadlocks.
-     */
-    public java.util.concurrent.CompletableFuture<Object> singleFlightAcquire(Object flightHash2) {
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future created = new io.github.ccxt.ws.Future();
-        // putIfAbsent makes the check-then-create atomic under thread concurrency
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.putIfAbsent(flightHash, created);
-        if (existing != null) {
-            // non-blocking: waiters chain on the leader's future instead of
-            // pinning a common-pool thread with join(); a rejected flight
-            // propagates exceptionally with the original error type
-            return existing.getFuture().thenApply(v -> (Object) false);
-        }
-        return java.util.concurrent.CompletableFuture.completedFuture(true);
-    }
-
-    /**
-     * Awaits an in-progress flight without electing a leader.
-     * Completes immediately when no flight is in progress.
-     */
-    public java.util.concurrent.CompletableFuture<Object> singleFlightWait(Object flightHash2) {
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.get(flightHash);
-        if (existing != null) {
-            // non-blocking chain, see singleFlightAcquire
-            return existing.getFuture().thenApply(v -> (Object) null);
-        }
-        return java.util.concurrent.CompletableFuture.completedFuture(null);
-    }
-
-    /**
-     * Settles a flight successfully and wakes all waiters.
-     */
-    public void singleFlightResolve(Object flightHash2, Object... optionalArgs) {
-        Object result = optionalArgs.length > 0 ? optionalArgs[0] : null;
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.remove(flightHash);
-        if (existing != null) {
-            existing.resolve(result);
-        }
-    }
-
-    /**
-     * Settles a flight with an error - all waiters throw.
-     */
-    public void singleFlightReject(Object flightHash2, Object error) {
-        String flightHash = (String) flightHash2;
-        io.github.ccxt.ws.Future existing = this.authenticationFlights.remove(flightHash);
-        if (existing != null) {
-            existing.reject(error);
-        }
-    }
-
     private String httpClientProxyFingerprint = "__init__";
 
     private String currentProxyFingerprint() {
@@ -3844,17 +3780,6 @@ public class BaseExchange {
      */
     @SuppressWarnings("unchecked")
     public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData) {
-        // settle any in-flight auth flights so their waiters do not hang across
-        // a close - same idea as client reset. note: an exceptionally-completed
-        // CompletableFuture with no consumer does not crash the jvm, so no
-        // swallow is needed here
-        java.util.List<String> flightHashes = new java.util.ArrayList<String>(this.authenticationFlights.keySet());
-        for (String flightHash : flightHashes) {
-            io.github.ccxt.ws.Future flight = this.authenticationFlights.remove(flightHash);
-            if (flight != null) {
-                flight.reject(new io.github.ccxt.errors.ExchangeClosedByUser(this.id + " close() was called"));
-            }
-        }
         closeWsClients().join();
         // [WS]
         if (cleanInstanceData) {
