@@ -341,7 +341,13 @@ export default class krakenfutures extends krakenfuturesRest {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
-        const rawPositions = this.safeValue (message, 'positions', []);
+        const rawPositions = this.safeList (message, 'positions');
+        if (rawPositions === undefined) {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -809,12 +815,25 @@ export default class krakenfutures extends krakenfuturesRest {
         } else {
             const isCancel = this.safeValue (message, 'is_cancel');
             if (isCancel) {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                const reason = this.safeString (message, 'reason');
+                let status = 'canceled';
+                if (reason === 'full_fill') {
+                    status = 'closed';
+                }
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
                     if (currentOrder['id'] === message['order_id']) {
+                        const info = this.extend (this.safeDict (currentOrder, 'info', {}), {
+                            'reason': reason,
+                        });
                         orders[i] = this.extend (currentOrder, {
-                            'status': 'canceled',
+                            'status': status,
+                            'info': info,
                         });
                         client.resolve (orders, 'orders');
                         client.resolve (orders, 'orders:' + currentOrder['symbol']);

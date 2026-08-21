@@ -1116,38 +1116,47 @@ class tokocrypto(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'symbol': self.get_market_id_by_type(market),
             # 'fromId': 123,    # ID to get aggregate trades from INCLUSIVE.
             # 'startTime': 456,  # Timestamp in ms to get aggregate trades from INCLUSIVE.
             # 'endTime': 789,   # Timestamp in ms to get aggregate trades until INCLUSIVE.
             # 'limit': 500,     # default = 500, maximum = 1000
         }
-        if market['quote'] != 'USDT':
+        # the venue routes market data by the symbol type reported by fetchMarkets,
+        # not by the quote currency: type 1 markets are served by the binance host
+        # with the underscore-less id, every other type by open/v1 with the raw id
+        marketInfo = self.safe_dict(market, 'info', {})
+        symbolType = self.safe_string(marketInfo, 'type')
+        if symbolType != '1':
+            request['symbol'] = market['id']
             if limit is not None:
                 request['limit'] = limit
-            responseInner = self.publicGetOpenV1MarketTrades(self.extend(request, params))
+            # open/v1/market/trades answers an empty list for every market, the
+            # aggregate endpoint is the one that carries data for these markets
+            responseInner = await self.publicGetOpenV1MarketAggTrades(self.extend(request, params))
             #
             #    {
             #       "code": 0,
-            #       "msg": "success",
+            #       "msg": "Success",
             #       "data": {
             #           "list": [
             #                {
-            #                    "id": 28457,
-            #                    "price": "4.00000100",
-            #                    "qty": "12.00000000",
-            #                    "time": 1499865549590,
-            #                    "isBuyerMaker": True,
-            #                    "isBestMatch": True
+            #                    "a": 14433,             # aggregate tradeId
+            #                    "p": "495.00",          # price
+            #                    "q": "42.00000000",     # quantity
+            #                    "f": 15578,             # first tradeId
+            #                    "l": 15578,             # last tradeId
+            #                    "T": 1787292236948,     # timestamp
+            #                    "m": False              # was the buyer the maker?
             #                }
             #            ]
             #        },
-            #        "timestamp": 1571921637091
+            #        "timestamp": 1787318052414
             #    }
             #
             data = self.safe_dict(responseInner, 'data', {})
             list = self.safe_list(data, 'list', [])
             return self.parse_trades(list, market, since, limit)
+        request['symbol'] = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
         if limit is not None:
             request['limit'] = limit  # default = 500, maximum = 1000
         defaultMethod = 'binanceGetTrades'

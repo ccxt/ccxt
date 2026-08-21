@@ -5,6 +5,7 @@ interface CustomArray extends Array<any> {
 declare class BaseCache extends Array {
     constructor(maxSize?: Int);
     clear(): void;
+    removeAt(index: any): any;
 }
 declare class ArrayCache extends BaseCache implements CustomArray {
     hashmap: object;

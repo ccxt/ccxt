@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
@@ -1375,16 +1376,54 @@ class aster extends \ccxt\async\aster {
         $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
         $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            $response = array();
-            if ($type === 'spot') {
-                $response = Async\await($this->sapiPrivatePostV3ListenKey($params));
-            } else {
-                $response = Async\await($this->fapiPrivatePostV3ListenKey($params));
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393 => concurrent watch
+            // calls on a cold instance each passed the staleness check and
+            // fetched their own $listenKey (last write wins, earlier keys
+            // orphan) - now one leader fetches per $type and waiters wake when
+            // the flight settles. $client->futures is the registry:
+            // $client->future() is the atomic check-and-insert and
+            // $client->resolve() / $client->reject() settle and remove the entry
+            // under the same lock in every port
+            $messageHash = 'authenticate:' . $type;
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $listenKey is then in the bucket
+                Async\await($client->future($messageHash));
+                return;
             }
-            $this->options['listenKey'][$type] = $this->safe_string($response, 'listenKey');
-            $this->options['lastAuthenticatedTime'][$type] = $time;
-            $params = $this->extend(array( 'type' => $type ), $params);
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            // reusableFuture (), not $future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            $future = $client->reusableFuture($messageHash);
+            try {
+                $response = array();
+                if ($type === 'spot') {
+                    $response = Async\await($this->sapiPrivatePostV3ListenKey($params));
+                } else {
+                    $response = Async\await($this->fapiPrivatePostV3ListenKey($params));
+                }
+                $listenKey = $this->safe_string($response, 'listenKey');
+                if ($listenKey === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $this->options['listenKey'][$type] = $listenKey;
+                $this->options['lastAuthenticatedTime'][$type] = $time;
+                $params = $this->extend(array( 'type' => $type ), $params);
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                // settle the flight => $client->resolve() removes the $future from
+                // $client->futures and wakes every waiter
+                $client->resolve($listenKey, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                $client->reject($e, $messageHash);
+            }
+            Async\await($future);
         }
     }
 

@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -892,20 +893,62 @@ class bitrue extends \ccxt\async\bitrue {
     private function do_authenticate($params = array()) {
         $listenKey = $this->safe_value($this->options, 'listenKey');
         if ($listenKey === null) {
-            $response = Async\await($this->openV1PrivatePostPoseidonApiV1ListenKey($params));
-            //
-            //     {
-            //         "msg" => "succ",
-            //         "code" => 200,
-            //         "data" => {
-            //             "listenKey" => "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $key = $this->safe_string($data, 'listenKey');
-            $this->options['listenKey'] = $key;
-            $this->options['listenKeyUrl'] = $this->urls['api']['ws']['private'] . '/stream?$listenKey=' . $key;
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393 => the $key rides the
+            // stream url, so racing fetches mint several listenKeys and the
+            // losers dial '/stream?$listenKey=' . an orphaned $key whose
+            // subscriptions never deliver. the flight is registered in
+            // $client->futures and settled through $client->resolve/client->reject,
+            // so every mutation of that map happens under the ws client's own
+            // lock rather than through an unsynchronized map write
+            $messageHash = 'authenticateFlight';
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $listenKey url is then in the options
+                Async\await($client->future($messageHash));
+                return $this->options['listenKeyUrl'];
+            }
+            // register before the first await, so a concurrent caller entering
+            // authenticate () while this one is inside the fetch sees the flight
+            $future = $client->reusableFuture($messageHash);
+            try {
+                $response = Async\await($this->openV1PrivatePostPoseidonApiV1ListenKey($params));
+                //
+                //     {
+                //         "msg" => "succ",
+                //         "code" => 200,
+                //         "data" => {
+                //             "listenKey" => "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                $key = $this->safe_string($data, 'listenKey');
+                if ($key === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than dial a hollow stream url
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $this->options['listenKey'] = $key;
+                $this->options['listenKeyUrl'] = $this->urls['api']['ws']['private'] . '/stream?$listenKey=' . $key;
+                $client->resolve($key, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                $client->reject($e, $messageHash);
+            }
+            // rethrows to the leader on failure and attaches the handler that
+            // keeps an alone leader's rejection from crashing the process
+            Async\await($future);
+            // only the leader schedules the keepalive, so a burst of watchers
+            // no longer stacks one refresh timer per racing caller. waiters
+            // early-return above, so this runs once per successful flight.
+            // it also has to stay the LAST statement of the block => master's
+            // build/csharpTranspiler.ts:154 rewrites array($this, 'delay') with a greedy
+            // /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+            // so any following statement carrying a comma gets swallowed into
+            // a bogus `new objectarray() array(...)` argument
             $refreshTimeout = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1800000);
             $this->delay($refreshTimeout, array($this, 'keep_alive_listen_key'));
         }

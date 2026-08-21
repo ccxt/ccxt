@@ -598,16 +598,16 @@ class kraken(ccxt.async_support.kraken):
             self.ohlcvs[symbol][timeframe] = stored
         ohlcvsLength = len(data)
         for i in range(0, ohlcvsLength):
-            candle = data[ohlcvsLength - i - 1]
+            candle = data[i]
             datetime = self.safe_string(candle, 'interval_begin')
             timestamp = self.parse8601(datetime)
             parsed = [
                 timestamp,
-                self.safe_string(candle, 'open'),
-                self.safe_string(candle, 'high'),
-                self.safe_string(candle, 'low'),
-                self.safe_string(candle, 'close'),
-                self.safe_string(candle, 'volume'),
+                self.safe_number(candle, 'open'),
+                self.safe_number(candle, 'high'),
+                self.safe_number(candle, 'low'),
+                self.safe_number(candle, 'close'),
+                self.safe_number(candle, 'volume'),
             ]
             stored.append(parsed)
         client.resolve(stored, messageHash)
@@ -1004,20 +1004,55 @@ class kraken(ccxt.async_support.kraken):
         start = self.safe_integer(subscription, 'start')
         expires = self.safe_integer(subscription, 'expires')
         if (subscription is None) or ((subscription is not None) and (start + expires) <= now):
-            # https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            response = await self.privatePostGetWebSocketsToken(params)
-            #
-            #     {
-            #         "error":[],
-            #         "result":{
-            #             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            #             "expires":900
-            #         }
-            #     }
-            #
-            subscription = self.safe_dict(response, 'result')
-            subscription['start'] = now
-            client.subscriptions[authenticated] = subscription
+            # single-flight leader election, see
+            # https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            # above is followed by an awaited privatePostGetWebSocketsToken(),
+            # so N concurrent watchPrivate() calls on a cold instance each
+            # pass the gate and each burn a rate-limited private REST call to
+            # mint a separate token. client.futures is the flight registry
+            # itself, namespaced away from the real subscription keys on the
+            # same client that already caches the token, and settlement goes
+            # through client.resolve() / client.reject() so every write to
+            # that map stays behind the client's own lock
+            messageHash = 'authenticateFlight'
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the token is then in the subscriptions bucket
+                await client.future(messageHash)
+                subscription = self.safe_dict(client.subscriptions, authenticated)
+                return self.safe_string(subscription, 'token')
+            future = client.reusableFuture(messageHash)
+            try:
+                # https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                response = await self.privatePostGetWebSocketsToken(params)
+                #
+                #     {
+                #         "error":[],
+                #         "result":{
+                #             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                #             "expires":900
+                #         }
+                #     }
+                #
+                subscription = self.safe_dict(response, 'result')
+                token = self.safe_string(subscription, 'token')
+                if token is None:
+                    # reject instead of caching an empty credential, so
+                    # waiters retry rather than proceed unauthenticated
+                    raise AuthenticationError(self.id + ' authenticate() received an empty token')
+                subscription['start'] = now
+                client.subscriptions[authenticated] = subscription
+                # settle the flight and wake every waiter - resolve() also
+                # clears the registry entry, so the next refresh re-leads
+                client.resolve(token, messageHash)
+            except Exception as e:
+                # reject the flight - all waiters raise and the next caller
+                # re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash)
+            # rethrows the leader's own failure and attaches the handler that
+            # keeps an alone leader's rejection from killing the process
+            await future
+            subscription = self.safe_dict(client.subscriptions, authenticated)
         return self.safe_string(subscription, 'token')
 
     async def watch_private(self, name: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):

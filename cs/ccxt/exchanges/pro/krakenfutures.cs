@@ -377,7 +377,14 @@ public partial class krakenfutures : ccxt.krakenfutures
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
-        object rawPositions = this.safeValue(message, "positions", new List<object>() {});
+        object rawPositions = this.safeList(message, "positions");
+        if (isTrue(isEqual(rawPositions, null)))
+        {
+            // an open_positions frame without the positions key is malformed;
+            // do not resolve with a fabricated empty list (the caller cannot
+            // distinguish it from a genuinely flat account)
+            return;
+        }
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
@@ -888,14 +895,28 @@ public partial class krakenfutures : ccxt.krakenfutures
             object isCancel = this.safeValue(message, "is_cancel");
             if (isTrue(isCancel))
             {
+                // Kraken documents is_cancel as "fully filled, cancelled, or
+                // rejected". Derive unified status from `reason` instead of
+                // mapping every removal to canceled. Preserve reason on info
+                // so consumers can tell a user cancel from liquidation, etc.
+                object reason = this.safeString(message, "reason");
+                object status = "canceled";
+                if (isTrue(isEqual(reason, "full_fill")))
+                {
+                    status = "closed";
+                }
                 // get order without symbol
                 for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                 {
                     object currentOrder = getValue(orders, i);
                     if (isTrue(isEqual(getValue(currentOrder, "id"), getValue(message, "order_id"))))
                     {
+                        object info = this.extend(this.safeDict(currentOrder, "info", new Dictionary<string, object>() {}), new Dictionary<string, object>() {
+                            { "reason", reason },
+                        });
                         ((List<object>)orders)[Convert.ToInt32(i)] = this.extend(currentOrder, new Dictionary<string, object>() {
-                            { "status", "canceled" },
+                            { "status", status },
+                            { "info", info },
                         });
                         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, "orders"});
                         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, add("orders:", getValue(currentOrder, "symbol"))});

@@ -306,8 +306,9 @@ class poloniex extends Exchange {
                 'networks' => array(
                     'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
-                    'TRC20' => 'TRON',
-                    'TRX' => 'TRON',
+                    // v2 withdraw accepts only the blockchain id => 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20' => 'TRX',
+                    'TRX' => 'TRX',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
@@ -553,6 +554,10 @@ class poloniex extends Exchange {
                     '25017' => '\\ccxt\\ExchangeError', // No orders were canceled
                     '25018' => '\\ccxt\\BadRequest', // Invalid accountType
                     '25019' => '\\ccxt\\BadSymbol', // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181' => '\\ccxt\\BadRequest', // array("code":820181,"message":"amount must be greater than the transaction fee.")
+                    '820201' => '\\ccxt\\BadRequest', // array("code":820201,"message":"blockchain param check error") — network param missing
+                    '830111' => '\\ccxt\\BadRequest', // array("code":830111,"message":"Currency or Network does not exist")
                     // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
                     '250' => '\\ccxt\\DuplicateOrderId', // array("code":250,"msg":"Client order id already exists") — live-verified on v3/trade/order
                     '400' => '\\ccxt\\BadRequest', // ILLEGAL_PARAM
@@ -2042,6 +2047,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets();
@@ -2144,10 +2150,12 @@ class poloniex extends Exchange {
             $priceKey = $market['spot'] ? 'price' : 'px';
             $request[$priceKey] = $this->price_to_precision($symbol, $price);
         }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clOrdId');
         if ($clientOrderId !== null) {
-            $request['clientOrderId'] = $clientOrderId;
-            $params = $this->omit($params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            $clientOrderIdKey = $market['spot'] ? 'clientOrderId' : 'clOrdId';
+            $request[$clientOrderIdKey] = $clientOrderId;
+            $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
         }
         // remember the timestamp before issuing the $request
         return array( $request, $params );
@@ -2168,6 +2176,7 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets();

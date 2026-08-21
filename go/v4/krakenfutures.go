@@ -3589,6 +3589,7 @@ func (this *KrakenfuturesCore) ParsePosition(position any, optionalArgs ...any) 
 	//        "price": "0.7533",
 	//        "fillTime": "2022-03-03T22:51:16.566Z",
 	//        "size": "230",
+	//        "unrealizedPnl": "-607250.006654067",
 	//        "unrealizedFunding": "-0.001878596918214635"
 	//    }
 	//
@@ -3599,6 +3600,7 @@ func (this *KrakenfuturesCore) ParsePosition(position any, optionalArgs ...any) 
 	//        "price":"0.4921",
 	//        "fillTime":"2023-02-22T11:37:16.685Z",
 	//        "size":"1",
+	//        "unrealizedPnl":"12.34",
 	//        "unrealizedFunding":"-8.155240068885155E-8",
 	//        "pnlCurrency":"USD",
 	//        "maxFixedLeverage":"1.0"
@@ -3626,7 +3628,7 @@ func (this *KrakenfuturesCore) ParsePosition(position any, optionalArgs ...any) 
 		"entryPrice":                  this.SafeNumber(position, "price"),
 		"notional":                    nil,
 		"leverage":                    leverage,
-		"unrealizedPnl":               nil,
+		"unrealizedPnl":               this.SafeNumber(position, "unrealizedPnl"),
 		"contracts":                   this.SafeNumber(position, "size"),
 		"contractSize":                this.SafeNumber(market, "contractSize"),
 		"marginRatio":                 nil,
@@ -3659,8 +3661,8 @@ func (this *KrakenfuturesCore) FetchLeverageTiers(optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes311912 := (<-this.LoadMarkets())
-			PanicOnError(retRes311912)
+			retRes312112 := (<-this.LoadMarkets())
+			PanicOnError(retRes312112)
 		}
 
 		response := (<-this.PublicGetInstruments(params))
@@ -3856,9 +3858,9 @@ func (this *KrakenfuturesCore) TransferOut(code any, amount any, optionalArgs ..
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes330015 := (<-this.Transfer(code, amount, "future", "spot", params))
-		PanicOnError(retRes330015)
-		ch <- retRes330015
+		retRes330215 := (<-this.Transfer(code, amount, "future", "spot", params))
+		PanicOnError(retRes330215)
+		ch <- retRes330215
 		return nil
 
 	}()
@@ -3887,8 +3889,8 @@ func (this *KrakenfuturesCore) Transfer(code any, amount any, fromAccount any, t
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes331812 := (<-this.LoadMarkets())
-			PanicOnError(retRes331812)
+			retRes332012 := (<-this.LoadMarkets())
+			PanicOnError(retRes332012)
 		}
 		var currency any = this.Currency(code)
 		if IsTrue(IsEqual(fromAccount, "spot")) {
@@ -3957,8 +3959,8 @@ func (this *KrakenfuturesCore) SetLeverage(leverage any, optionalArgs ...any) <-
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes336912 := (<-this.LoadMarkets())
-			PanicOnError(retRes336912)
+			retRes337112 := (<-this.LoadMarkets())
+			PanicOnError(retRes337112)
 		}
 		var marketIdUpper any = this.MarketId(symbol)
 		if IsTrue(IsEqual(marketIdUpper, nil)) {
@@ -3969,12 +3971,12 @@ func (this *KrakenfuturesCore) SetLeverage(leverage any, optionalArgs ...any) <-
 			"symbol":      ToUpper(marketIdUpper),
 		}
 
-		retRes338215 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
-		PanicOnError(retRes338215)
+		retRes338415 := (<-this.PrivatePutLeveragepreferences(this.Extend(request, params)))
+		PanicOnError(retRes338415)
 		//
 		// { result: "success", serverTime: "2023-08-01T09:40:32.345Z" }
 		//
-		ch <- retRes338215
+		ch <- retRes338415
 		return nil
 
 	}()
@@ -4001,8 +4003,8 @@ func (this *KrakenfuturesCore) FetchLeverages(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes339612 := (<-this.LoadMarkets())
-			PanicOnError(retRes339612)
+			retRes339812 := (<-this.LoadMarkets())
+			PanicOnError(retRes339812)
 		}
 
 		response := (<-this.PrivateGetLeveragepreferences(params))
@@ -4049,8 +4051,8 @@ func (this *KrakenfuturesCore) FetchLeverage(symbol any, optionalArgs ...any) <-
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes342912 := (<-this.LoadMarkets())
-			PanicOnError(retRes342912)
+			retRes343112 := (<-this.LoadMarkets())
+			PanicOnError(retRes343112)
 		}
 		var market any = this.Market(symbol)
 		var marketIdUpper any = this.MarketId(symbol)

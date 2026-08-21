@@ -9129,7 +9129,7 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "from", since);
+                Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Object response = (this.publicFuturesGetSettleContractStats(this.extend(request, parameters))).join();
             //

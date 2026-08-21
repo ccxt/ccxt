@@ -29,7 +29,7 @@ class bitmex(ccxt.async_support.bitmex):
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
-                'watchPostions': True,
+                'watchPositions': True,
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
@@ -730,7 +730,8 @@ class bitmex(ccxt.async_support.bitmex):
         subscriptionHash = 'position'
         messageHash = 'positions'
         if not self.is_empty(symbols):
-            messageHash = '::' + ','.join((symbols))
+            symbols = self.market_symbols(symbols)
+            messageHash = 'positions::' + ','.join((symbols))
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',

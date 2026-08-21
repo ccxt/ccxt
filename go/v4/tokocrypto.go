@@ -1241,31 +1241,40 @@ func (this *TokocryptoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan 
 			PanicOnError(retRes111512)
 		}
 		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": this.GetMarketIdByType(market),
-		}
-		if IsTrue(!IsEqual(GetValue(market, "quote"), "USDT")) {
+		var request any = map[string]any{}
+		// the venue routes market data by the symbol type reported by fetchMarkets,
+		// not by the quote currency: type 1 markets are served by the binance host
+		// with the underscore-less id, every other type by open/v1 with the raw id
+		var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+		var symbolType any = this.SafeString(marketInfo, "type")
+		if IsTrue(!IsEqual(symbolType, "1")) {
+			AddElementToObject(request, "symbol", GetValue(market, "id"))
 			if IsTrue(!IsEqual(limit, nil)) {
 				AddElementToObject(request, "limit", limit)
 			}
-			var responseInner any = this.PublicGetOpenV1MarketTrades(this.Extend(request, params))
+			// open/v1/market/trades answers an empty list for every market, the
+			// aggregate endpoint is the one that carries data for these markets
+
+			responseInner := (<-this.PublicGetOpenV1MarketAggTrades(this.Extend(request, params)))
+			PanicOnError(responseInner)
 			//
 			//    {
 			//       "code": 0,
-			//       "msg": "success",
+			//       "msg": "Success",
 			//       "data": {
 			//           "list": [
 			//                {
-			//                    "id": 28457,
-			//                    "price": "4.00000100",
-			//                    "qty": "12.00000000",
-			//                    "time": 1499865549590,
-			//                    "isBuyerMaker": true,
-			//                    "isBestMatch": true
+			//                    "a": 14433,             // aggregate tradeId
+			//                    "p": "495.00",          // price
+			//                    "q": "42.00000000",     // quantity
+			//                    "f": 15578,             // first tradeId
+			//                    "l": 15578,             // last tradeId
+			//                    "T": 1787292236948,     // timestamp
+			//                    "m": false              // was the buyer the maker?
 			//                }
 			//            ]
 			//        },
-			//        "timestamp": 1571921637091
+			//        "timestamp": 1787318052414
 			//    }
 			//
 			var data any = this.SafeDict(responseInner, "data", map[string]any{})
@@ -1274,6 +1283,7 @@ func (this *TokocryptoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan 
 			ch <- this.ParseTrades(list, market, since, limit)
 			return nil
 		}
+		AddElementToObject(request, "symbol", Add(this.SafeString(market, "baseId", ""), this.SafeString(market, "quoteId", "")))
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit) // default = 500, maximum = 1000
 		}
@@ -1446,8 +1456,8 @@ func (this *TokocryptoCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes130612 := (<-this.LoadMarkets())
-			PanicOnError(retRes130612)
+			retRes131512 := (<-this.LoadMarkets())
+			PanicOnError(retRes131512)
 		}
 
 		response := (<-this.BinanceGetTicker24hr(params))
@@ -1492,8 +1502,8 @@ func (this *TokocryptoCore) FetchTicker(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes133612 := (<-this.LoadMarkets())
-			PanicOnError(retRes133612)
+			retRes134512 := (<-this.LoadMarkets())
+			PanicOnError(retRes134512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1536,8 +1546,8 @@ func (this *TokocryptoCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes136112 := (<-this.LoadMarkets())
-			PanicOnError(retRes136112)
+			retRes137012 := (<-this.LoadMarkets())
+			PanicOnError(retRes137012)
 		}
 
 		response := (<-this.BinanceGetTickerBookTicker(params))
@@ -1618,8 +1628,8 @@ func (this *TokocryptoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes142812 := (<-this.LoadMarkets())
-			PanicOnError(retRes142812)
+			retRes143712 := (<-this.LoadMarkets())
+			PanicOnError(retRes143712)
 		}
 		var market any = this.Market(symbol)
 		// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
@@ -1713,8 +1723,8 @@ func (this *TokocryptoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes150612 := (<-this.LoadMarkets())
-			PanicOnError(retRes150612)
+			retRes151512 := (<-this.LoadMarkets())
+			PanicOnError(retRes151512)
 		}
 		var defaultType any = this.SafeString2(this.Options, "fetchBalance", "defaultType", "spot")
 		var typeVar any = this.SafeString(params, "type", defaultType)
@@ -1990,8 +2000,8 @@ func (this *TokocryptoCore) CreateOrder(symbol any, typeVar any, side any, amoun
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes176412 := (<-this.LoadMarkets())
-			PanicOnError(retRes176412)
+			retRes177312 := (<-this.LoadMarkets())
+			PanicOnError(retRes177312)
 		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId")
@@ -2259,8 +2269,8 @@ func (this *TokocryptoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes199512 := (<-this.LoadMarkets())
-			PanicOnError(retRes199512)
+			retRes200412 := (<-this.LoadMarkets())
+			PanicOnError(retRes200412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2346,9 +2356,9 @@ func (this *TokocryptoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 			"type": 1,
 		} // -1 = all, 1 = open, 2 = closed
 
-		retRes206615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes206615)
-		ch <- retRes206615
+		retRes207515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes207515)
+		ch <- retRes207515
 		return nil
 
 	}()
@@ -2383,9 +2393,9 @@ func (this *TokocryptoCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 			"type": 2,
 		} // -1 = all, 1 = open, 2 = closed
 
-		retRes208215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes208215)
-		ch <- retRes208215
+		retRes209115 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes209115)
+		ch <- retRes209115
 		return nil
 
 	}()
@@ -2482,8 +2492,8 @@ func (this *TokocryptoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes214712 := (<-this.LoadMarkets())
-			PanicOnError(retRes214712)
+			retRes215612 := (<-this.LoadMarkets())
+			PanicOnError(retRes215612)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -2556,8 +2566,8 @@ func (this *TokocryptoCore) FetchDepositAddress(code any, optionalArgs ...any) <
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes220612 := (<-this.LoadMarkets())
-			PanicOnError(retRes220612)
+			retRes221512 := (<-this.LoadMarkets())
+			PanicOnError(retRes221512)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -2638,8 +2648,8 @@ func (this *TokocryptoCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes226812 := (<-this.LoadMarkets())
-			PanicOnError(retRes226812)
+			retRes227712 := (<-this.LoadMarkets())
+			PanicOnError(retRes227712)
 		}
 		var currency any = nil
 		var request any = map[string]any{}
@@ -2722,8 +2732,8 @@ func (this *TokocryptoCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes233112 := (<-this.LoadMarkets())
-			PanicOnError(retRes233112)
+			retRes234012 := (<-this.LoadMarkets())
+			PanicOnError(retRes234012)
 		}
 		var request any = map[string]any{}
 		var currency any = nil
@@ -2941,8 +2951,8 @@ func (this *TokocryptoCore) Withdraw(code any, amount any, address any, optional
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes252912 := (<-this.LoadMarkets())
-			PanicOnError(retRes252912)
+			retRes253812 := (<-this.LoadMarkets())
+			PanicOnError(retRes253812)
 		}
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)

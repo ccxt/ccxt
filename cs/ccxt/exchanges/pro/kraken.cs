@@ -692,10 +692,10 @@ public partial class kraken : ccxt.kraken
         object ohlcvsLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, ohlcvsLength); postFixIncrement(ref i))
         {
-            object candle = getValue(data, subtract(subtract(ohlcvsLength, i), 1));
+            object candle = getValue(data, i);
             object datetime = this.safeString(candle, "interval_begin");
             object timestamp = this.parse8601(datetime);
-            object parsed = new List<object>() {timestamp, this.safeString(candle, "open"), this.safeString(candle, "high"), this.safeString(candle, "low"), this.safeString(candle, "close"), this.safeString(candle, "volume")};
+            object parsed = new List<object>() {timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")};
             callDynamically(stored, "append", new object[] {parsed});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -1187,20 +1187,60 @@ public partial class kraken : ccxt.kraken
         object expires = this.safeInteger(subscription, "expires");
         if (isTrue(isTrue((isEqual(subscription, null))) || isTrue((isTrue((!isEqual(subscription, null))) && isTrue(isLessThanOrEqual((add(start, expires)), now))))))
         {
-            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            object response = await this.privatePostGetWebSocketsToken(parameters);
-            //
-            //     {
-            //         "error":[],
-            //         "result":{
-            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            //             "expires":900
-            //         }
-            //     }
-            //
-            subscription = this.safeDict(response, "result");
-            ((IDictionary<string,object>)subscription)["start"] = now;
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)authenticated] = subscription;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate token. client.futures is the flight registry
+            // itself, namespaced away from the real subscription keys on the
+            // same client that already caches the token, and settlement goes
+            // through client.resolve () / ((WebSocketClient)client).reject () so every write to
+            // that map stays behind the client's own lock
+            object messageHash = "authenticateFlight";
+            if (isTrue(inOp(client.futures, messageHash)))
+            {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the subscriptions bucket
+                await client.future(messageHash);
+                subscription = this.safeDict(((WebSocketClient)client).subscriptions, authenticated);
+                return this.safeString(subscription, "token");
+            }
+            var future = client.reusableFuture(messageHash);
+            try
+            {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                object response = await this.privatePostGetWebSocketsToken(parameters);
+                //
+                //     {
+                //         "error":[],
+                //         "result":{
+                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                //             "expires":900
+                //         }
+                //     }
+                //
+                subscription = this.safeDict(response, "result");
+                object token = this.safeString(subscription, "token");
+                if (isTrue(isEqual(token, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty token")) ;
+                }
+                ((IDictionary<string,object>)subscription)["start"] = now;
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)authenticated] = subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                callDynamically(client as WebSocketClient, "resolve", new object[] {token, messageHash});
+            } catch(Exception e)
+            {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                ((WebSocketClient)client).reject(e, messageHash);
+            }
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            await future;
+            subscription = this.safeDict(((WebSocketClient)client).subscriptions, authenticated);
         }
         return this.safeString(subscription, "token");
     }

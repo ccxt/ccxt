@@ -653,24 +653,77 @@ func (this *BitstampCore) Authenticate(optionalArgs ...any) <-chan any {
 		var time any = this.Milliseconds()
 		var expiresIn any = this.SafeInteger(this.Options, "expiresIn")
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(expiresIn, nil))) || ccxt.IsTrue((ccxt.IsGreaterThan(time, expiresIn)))) {
+			// single-flight leader election on a never-dialed client, see
+			// https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+			// minted by a private REST call and cached in this.options, so N
+			// concurrent subscribePrivate () calls on a cold instance all pass
+			// the staleness check above and each mint their own token - the
+			// tokens are short lived (valid_sec is 60), so this burns the
+			// private endpoint and only the last write survives.
+			// the flight is registered in client.futures and settled through
+			// client.resolve / client.reject, so every mutation of that map
+			// goes through the client's own accessors in the ported languages
+			var messageHash any = "authenticateFlight"
+			var client any = this.Client("authenticationFlights")
+			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+				// a flight is already in progress - wake when the leader
+				// settles it: the token is then in this.options
 
-			response := (<-this.PrivatePostWebsocketsToken(params))
-			ccxt.PanicOnError(response)
-			//
-			// {
-			//     "valid_sec":60,
-			//     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-			//     "user_id":4848701
-			// }
-			//
-			var sessionToken any = this.SafeString(response, "token")
-			if ccxt.IsTrue(!ccxt.IsEqual(sessionToken, nil)) {
-				var userId any = this.SafeString(response, "user_id")
-				var validity any = this.SafeIntegerProduct(response, "valid_sec", 1000)
-				ccxt.AddElementToObject(this.Options, "expiresIn", this.Sum(time, validity))
-				ccxt.AddElementToObject(this.Options, "userId", userId)
-				ccxt.AddElementToObject(this.Options, "wsSessionToken", sessionToken)
+				retRes60916 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+				ccxt.PanicOnError(retRes60916)
+
+				return nil
 			}
+			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+			{
+				func(this *BitstampCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *BitstampCore) any {
+								// catch block:
+								// reject the flight - all waiters throw and the next caller
+								// re-leads instead of deadlocking on a dead flight
+								client.(ccxt.ClientInterface).Reject(e, messageHash)
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					response := (<-this.PrivatePostWebsocketsToken(params))
+					ccxt.PanicOnError(response)
+					//
+					// {
+					//     "valid_sec":60,
+					//     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+					//     "user_id":4848701
+					// }
+					//
+					var sessionToken any = this.SafeString(response, "token")
+					if ccxt.IsTrue(ccxt.IsEqual(sessionToken, nil)) {
+						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
+					}
+					var userId any = this.SafeString(response, "user_id")
+					var validity any = this.SafeIntegerProduct(response, "valid_sec", 1000)
+					ccxt.AddElementToObject(this.Options, "expiresIn", this.Sum(time, validity))
+					ccxt.AddElementToObject(this.Options, "userId", userId)
+					ccxt.AddElementToObject(this.Options, "wsSessionToken", sessionToken)
+					// settle the flight: client.resolve deletes the future from
+					// client.futures and wakes every waiter parked on it
+					client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)
+					return nil
+				}(this)
+
+			}
+			// rethrows to the leader and marks the promise handled, so an
+			// alone leader's rejection is never unhandled
+
+			retRes64512 := <-future.(*ccxt.Future).Await()
+			ccxt.PanicOnError(retRes64512)
 		}
 		return nil
 	}()
@@ -685,8 +738,8 @@ func (this *BitstampCore) SubscribePrivate(subscription any, messageHash any, op
 		_ = params
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 
-		retRes6158 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes6158)
+		retRes6518 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes6518)
 		messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
 		var request any = map[string]any{
 			"event": "bts:subscribe",
@@ -697,9 +750,9 @@ func (this *BitstampCore) SubscribePrivate(subscription any, messageHash any, op
 		}
 		ccxt.AddElementToObject(subscription, "messageHash", messageHash)
 
-		retRes62515 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes62515)
-		ch <- retRes62515
+		retRes66115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+		ccxt.PanicOnError(retRes66115)
+		ch <- retRes66115
 		return nil
 
 	}()

@@ -87,8 +87,7 @@ public partial class toobit : Exchange
                 { "www", "https://www.toobit.com/" },
                 { "doc", new List<object>() {"https://api-docs.toobit.com/"} },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.toobit.com/en-US/r?i=IFFPy0" },
-                    { "discount", 0.1 },
+                    { "url", "https://www.toobit.com/en-US/r?i=dvCpJj" },
                 } },
                 { "fees", "https://www.toobit.com/fee" },
             } },
@@ -2033,10 +2032,10 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
         if (isTrue(isEqual(side, "buy")))
         {
-            side = ((bool) isTrue(reduceOnly)) ? "SELL_CLOSE" : "BUY_OPEN";
+            side = ((bool) isTrue(reduceOnly)) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (isTrue(isEqual(side, "sell")))
         {
-            side = ((bool) isTrue(reduceOnly)) ? "BUY_CLOSE" : "SELL_OPEN";
+            side = ((bool) isTrue(reduceOnly)) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         ((IDictionary<string,object>)request)["side"] = side;
         if (isTrue(!isEqual(price, null)))
@@ -2179,6 +2178,20 @@ public partial class toobit : Exchange
         market = this.safeMarket(marketId, market);
         object rawType = this.safeString(order, "type");
         object rawSideLower = this.safeStringLower(order, "side");
+        object reduceOnly = null;
+        if (isTrue(!isEqual(rawSideLower, null)))
+        {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            object sideParts = ((string)rawSideLower).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object sideSuffix = this.safeString(sideParts, 1);
+            if (isTrue(!isEqual(sideSuffix, null)))
+            {
+                reduceOnly = (isEqual(sideSuffix, "close"));
+            }
+            rawSideLower = this.safeString(sideParts, 0);
+        }
         object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         if (isTrue(isEqual(triggerPrice, "0.0")))
         {
@@ -2208,7 +2221,7 @@ public partial class toobit : Exchange
             { "trades", null },
             { "fee", null },
             { "marginMode", null },
-            { "reduceOnly", null },
+            { "reduceOnly", reduceOnly },
             { "leverage", null },
             { "hedged", null },
         }, market);
