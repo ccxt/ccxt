@@ -296,9 +296,11 @@ const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     'withdrawWs': true,
     "parseLastPrice": false,
     'fetchPositionsADLRank': true,
-    'parseADLRank': false
+    'parseADLRank': false,
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
+    'fetchCurrencies': true,
+    'fetchMarkets': true,
 }
 
 const INTERFACE_METHODS = [
@@ -1991,6 +1993,8 @@ ${constStatements.join('\n')}
             const capitalizedMethod = capitalize(p1);
             return `<-this.DerivedExchange.${capitalizedMethod}(${p2})`;
         });
+
+        baseClass = baseClass.replace(/this\.callInternal\("fetchCurrencies"\)/g, 'this.DerivedExchange.FetchCurrencies()');
         // create wrappers with specific types
         this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [], isWs);
 

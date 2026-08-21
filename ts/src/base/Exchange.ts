@@ -1486,26 +1486,6 @@ export class BaseExchange {
         return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
 
-    async loadMarketsHelper (reload = false, params = {}): Promise<Dictionary<Market>> {
-        if (!reload && this.markets) {
-            if (!this.markets_by_id) {
-                return this.setMarkets (this.markets);
-            }
-            return this.markets;
-        }
-        let currencies: Currencies | undefined = undefined;
-        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
-        if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ();
-            this.options['cachedCurrencies'] = currencies;
-        }
-        const markets = await this.fetchMarkets (params);
-        if ('cachedCurrencies' in this.options) {
-            delete this.options['cachedCurrencies'];
-        }
-        return this.setMarkets (markets, currencies as any);
-    }
-
     /**
      * @method
      * @name Exchange#loadMarkets
@@ -1532,6 +1512,11 @@ export class BaseExchange {
             });
         }
         return this.marketsLoading;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    marketsMutexLocker (locked: boolean) {
+        // stub in js
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
@@ -3151,6 +3136,26 @@ export class BaseExchange {
         };
     }
 
+    async loadMarketsHelper (reload: boolean = false, params: Dict = {}) {
+        if (!reload && this.valueIsDefined (this.markets)) {
+            if (!this.valueIsDefined (this.markets_by_id)) {
+                return this.setMarkets (this.markets);
+            }
+            return this.markets;
+        }
+        let currencies = undefined;
+        // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
+        if (this.has['fetchCurrencies'] === true) {
+            currencies = await this.fetchCurrencies ();
+            this.options['cachedCurrencies'] = currencies;
+        }
+        const markets = await this.fetchMarkets (params);
+        if ('cachedCurrencies' in this.options) {
+            delete this.options['cachedCurrencies'];
+        }
+        return this.setMarkets (markets, currencies);
+    }
+
     cleanRestData () {
         this.ids = undefined;
         this.markets = undefined;
@@ -4572,6 +4577,7 @@ export class BaseExchange {
     }
 
     setMarkets (markets: any, currencies = undefined): Dictionary<Market> {
+      this.marketsMutexLocker (true);
         const values: Dict[] = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
@@ -4677,6 +4683,10 @@ export class BaseExchange {
         this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
+        this.marketsMutexLocker (false);
+      } catch (e) {
+        this.marketsMutexLocker (false);
+      }
         if (this.markets === undefined) {
             throw new ExchangeError (this.id + ' setMarkets() markets not set');
         }
