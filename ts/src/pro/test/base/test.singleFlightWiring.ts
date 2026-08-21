@@ -28,17 +28,15 @@ function flightCount (exchange: any) {
 }
 
 function parkedCount (exchange: any) {
-    // client.resolve () parks its value in pendingResults and client.reject ()
-    // parks in rejections when no future exists at settle time. the leader
-    // always holds a live future when it settles, so nothing must ever park -
-    // a parked value would poison the NEXT flight (client.future () consumes
-    // it and short-circuits the fetch)
+    // client.reject () parks in client.rejections when no future exists at
+    // settle time. the leader always holds a live future when it settles, so
+    // nothing must ever park - a parked rejection poisons the NEXT flight
     const clients = exchange.clients;
     if (!('authenticationFlights' in clients)) {
         return 0;
     }
     const client = clients['authenticationFlights'];
-    return Object.keys (client.pendingResults).length + Object.keys (client.rejections).length;
+    return Object.keys (client.rejections).length;
 }
 
 function makeStubbedAster (state: { spotFetches: number, swapFetches: number }) {
@@ -92,7 +90,7 @@ async function testAsterAuthenticateSoloLeaderRejection () {
     // an alone leader - the fetch fails before any waiter arrives - must throw
     // to its own caller, clear the flight, and NOT produce an unhandled
     // promise rejection (which would kill the process on the tick below). the
-    // trailing `await future` is what attaches the handler AND rethrows; a
+    // trailing suspension point is what attaches the handler AND rethrows; a
     // catch block that also threw would pre-empt it and re-open the crash
     const state = { 'spotFetches': 0, 'swapFetches': 0 };
     const exchange = makeStubbedAster (state);
@@ -126,7 +124,7 @@ async function testAsterAuthenticateCloseSettlesWaiter () {
     // of stranding them: the flight is parked on a never-dialed client, which
     // has no socket teardown to fire the onClose -> reset -> reject chain, so
     // WsClient.close () settles it explicitly. without that both the waiter
-    // and the leader's trailing `await future` hang forever and a shutdown
+    // and the leader's trailing suspension point hang forever and a shutdown
     // never completes
     const state = { 'spotFetches': 0, 'swapFetches': 0 };
     const exchange = makeStubbedAster (state);

@@ -3058,11 +3058,9 @@ export default class binance extends binanceRest {
                 await client.future (messageHash);
                 return;
             }
-            // reusableFuture (), not future (): the two are identical in
-            // js/py/php/cs/java, but go's Client.Future () returns
-            // future.Await () - a <-chan any - while ReusableFuture ()
-            // returns the *Future itself. the trailing await transpiles to
-            // future.(*ccxt.Future).Await (), which panics on a channel
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
             const future = client.reusableFuture (messageHash);
             try {
                 let response = undefined;
@@ -3106,10 +3104,9 @@ export default class binance extends binanceRest {
                 // client.futures and wakes every waiter
                 client.resolve (listenKey, messageHash);
             } catch (e) {
-                // reject the flight - all waiters throw and the next caller
-                // re-leads instead of deadlocking on a dead flight. no throw
-                // here: the await below rethrows to this caller AND attaches
-                // the handler that keeps an alone leader from crashing node
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
                 client.reject (e, messageHash);
             }
             await future;
