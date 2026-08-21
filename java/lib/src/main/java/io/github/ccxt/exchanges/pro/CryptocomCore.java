@@ -1179,7 +1179,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)symbols));
             }
             Client client = this.client(url);
             this.setPositionsCache(client, symbols);

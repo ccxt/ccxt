@@ -5,19 +5,41 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import { AuthenticationError } from '../../../base/errors.js';
+import { AuthenticationError, ExchangeClosedByUser } from '../../../base/errors.js';
 import ccxt from '../../../../ccxt.js';
-// native ts test, intentionally not transpiled - pins the EXCHANGE wiring of
-// the single-flight primitives from https://github.com/ccxt/ccxt/issues/29393
-// onto a real venue class (aster, the first campaign exchange). the base
-// primitives are covered by test.singleFlightPrimitives.ts; this test guards
-// the wiring itself, which no build/lint gate sees: dropping the
-// `if (!isLeader) return;` early-return or the flight settlement still
+// native ts test, intentionally not transpiled - pins the single-flight
+// authentication logic from https://github.com/ccxt/ccxt/issues/29393 on the
+// real venue classes that carry it (aster, binance, bingx). the logic is
+// inlined directly into each authenticate (), so there is no helper method to
+// unit-test: this file is the only guard, and no build/lint gate sees it -
+// dropping the in-progress early-return or the flight settlement still
 // compiles and only surfaces as duplicate listenKey fetches against a live
 // venue. as further #29393 exchanges land, they should register a sibling
 // block here following the same stub shape
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+function flightCount(exchange) {
+    // the flights live on a never-dialed client keyed 'authenticationFlights',
+    // registered in its futures map - see the inlined single-flight block in
+    // authenticate () on binance/aster/bingx. client.future () is the atomic
+    // check-and-insert, client.resolve () / client.reject () remove the entry
+    const clients = exchange.clients;
+    if (!('authenticationFlights' in clients)) {
+        return 0;
+    }
+    return Object.keys(clients['authenticationFlights'].futures).length;
+}
+function parkedCount(exchange) {
+    // client.reject () parks in client.rejections when no future exists at
+    // settle time. the leader always holds a live future when it settles, so
+    // nothing must ever park - a parked rejection poisons the NEXT flight
+    const clients = exchange.clients;
+    if (!('authenticationFlights' in clients)) {
+        return 0;
+    }
+    const client = clients['authenticationFlights'];
+    return Object.keys(client.rejections).length;
 }
 function makeStubbedAster(state) {
     const exchange = new ccxt.pro.aster({
@@ -58,11 +80,82 @@ async function testAsterAuthenticateSingleFlight() {
     assert(state.swapFetches === 1, 'concurrent swap authenticates must elect exactly one leader (got ' + state.swapFetches.toString() + ' fetches)');
     assert(exchange.options['listenKey']['spot'] === 'SPOT-KEY-1', 'the leader listenKey must be cached for spot');
     assert(exchange.options['listenKey']['swap'] === 'SWAP-KEY-1', 'the leader listenKey must be cached for swap');
-    const flightCount = Object.keys(exchange.authenticationFlights).length;
-    assert(flightCount === 0, 'settled flights must be cleared');
+    assert(flightCount(exchange) === 0, 'settled flights must be cleared');
+    assert(parkedCount(exchange) === 0, 'a settled flight must leave no parked value or rejection behind');
     // a fresh call within the staleness window is a no-op: no new fetch
     await exchange.authenticate('spot');
     assert(state.spotFetches === 1, 'a warm authenticate within the refresh window must not fetch');
+}
+async function testAsterAuthenticateSoloLeaderRejection() {
+    // an alone leader - the fetch fails before any waiter arrives - must throw
+    // to its own caller, clear the flight, and NOT produce an unhandled
+    // promise rejection (which would kill the process on the tick below). the
+    // trailing suspension point is what attaches the handler AND rethrows; a
+    // catch block that also threw would pre-empt it and re-open the crash
+    const state = { 'spotFetches': 0, 'swapFetches': 0 };
+    const exchange = makeStubbedAster(state);
+    exchange.sapiPrivatePostV3ListenKey = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        throw new AuthenticationError('aster solo leader failure');
+    };
+    let soloError = undefined;
+    try {
+        await exchange.authenticate('spot');
+    }
+    catch (e) {
+        soloError = e;
+    }
+    assert(soloError instanceof AuthenticationError, 'a solo leader must throw its own error');
+    // give the microtask queue a tick - an unhandled rejection fires here
+    await sleep(20);
+    assert(flightCount(exchange) === 0, 'a solo rejected flight must be cleared');
+    assert(parkedCount(exchange) === 0, 'a solo rejection must not park in client.rejections');
+    // the next caller becomes a fresh leader
+    exchange.sapiPrivatePostV3ListenKey = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        return { 'listenKey': 'SPOT-KEY-SOLO-RETRY' };
+    };
+    await exchange.authenticate('spot');
+    assert(exchange.options['listenKey']['spot'] === 'SPOT-KEY-SOLO-RETRY', 'the caller after a solo rejection must re-lead');
+    assert(parkedCount(exchange) === 0, 'the re-led flight must leave nothing parked');
+}
+async function testAsterAuthenticateCloseSettlesWaiter() {
+    // close () while a flight is in progress must settle every awaiter instead
+    // of stranding them: the flight is parked on a never-dialed client, which
+    // has no socket teardown to fire the onClose -> reset -> reject chain, so
+    // WsClient.close () settles it explicitly. without that both the waiter
+    // and the leader's trailing suspension point hang forever and a shutdown
+    // never completes
+    const state = { 'spotFetches': 0, 'swapFetches': 0 };
+    const exchange = makeStubbedAster(state);
+    exchange.sapiPrivatePostV3ListenKey = async () => {
+        state.spotFetches = state.spotFetches + 1;
+        await sleep(300); // held open across the close () below
+        return { 'listenKey': 'SPOT-KEY-HELD' };
+    };
+    let leaderError = undefined;
+    const leader = exchange.authenticate('spot').catch((e) => {
+        leaderError = e;
+    });
+    await sleep(20); // the leader registers the flight
+    let waiterError = undefined;
+    const waiter = exchange.authenticate('spot').catch((e) => {
+        waiterError = e;
+    });
+    await sleep(20); // the waiter joins the leader's future
+    assert(flightCount(exchange) === 1, 'the in-progress flight must be registered in client.futures');
+    assert(state.spotFetches === 1, 'the waiter must not have started a second fetch');
+    await exchange.close();
+    await waiter;
+    assert(waiterError instanceof ExchangeClosedByUser, 'close () must settle an in-flight waiter with ExchangeClosedByUser');
+    await leader;
+    assert(leaderError instanceof ExchangeClosedByUser, 'close () must settle the leader too, not strand it');
+    // close () evicts the flight client from exchange.clients, so the late
+    // client.resolve () from the still-running fetch cannot poison anything:
+    // a value parked on a discarded client is unreachable
+    assert(!('authenticationFlights' in exchange.clients), 'close () must evict the flight client');
+    await sleep(350); // let the held-open fetch land its late resolve
+    assert(!('authenticationFlights' in exchange.clients), 'a late settle must not resurrect the flight client');
 }
 async function testAsterAuthenticateEmptyKeyRejection() {
     // a hollow 200 must reject the flight BEFORE any cache write: the key
@@ -90,8 +183,8 @@ async function testAsterAuthenticateEmptyKeyRejection() {
     assert(cachedKey === undefined, 'an empty listenKey must never be cached');
     const lastTime = exchange.safeInteger(exchange.options['lastAuthenticatedTime'], 'spot', 0);
     assert(lastTime === 0, 'a failed flight must not stamp lastAuthenticatedTime');
-    const flightCount = Object.keys(exchange.authenticationFlights).length;
-    assert(flightCount === 0, 'a rejected flight must be cleared');
+    assert(flightCount(exchange) === 0, 'a rejected flight must be cleared');
+    assert(parkedCount(exchange) === 0, 'a fanned-out rejection must not park in client.rejections');
     // recovery: a subsequent good response fetches again and caches
     exchange.sapiPrivatePostV3ListenKey = async () => {
         state.spotFetches = state.spotFetches + 1;
@@ -130,8 +223,8 @@ async function testBinanceAuthenticateEmptyKeyRejection() {
     const bucket = exchange.safeValue(exchange.options, 'future', {});
     assert(exchange.safeString(bucket, 'listenKey') === undefined, 'an empty listenKey must never be cached');
     assert(exchange.safeInteger(bucket, 'lastAuthenticatedTime', 0) === 0, 'a failed flight must not stamp lastAuthenticatedTime');
-    const flightCount = Object.keys(exchange.authenticationFlights).length;
-    assert(flightCount === 0, 'a rejected flight must be cleared');
+    assert(flightCount(exchange) === 0, 'a rejected flight must be cleared');
+    assert(parkedCount(exchange) === 0, 'a fanned-out rejection must not park in client.rejections');
     // recovery: a good response re-leads and caches
     exchange.fapiPrivatePostListenKey = async () => {
         state.fetches = state.fetches + 1;
@@ -163,8 +256,8 @@ async function testBingxAuthenticateSingleFlight() {
     ]);
     assert(state.fetches === 1, 'concurrent bingx authenticates must elect exactly one leader (got ' + state.fetches.toString() + ' fetches)');
     assert(exchange.options['listenKey'] === 'BINGX-KEY-1', 'the leader listenKey must be cached');
-    let flightCount = Object.keys(exchange.authenticationFlights).length;
-    assert(flightCount === 0, 'settled flights must be cleared');
+    assert(flightCount(exchange) === 0, 'settled flights must be cleared');
+    assert(parkedCount(exchange) === 0, 'a settled flight must leave no parked value or rejection behind');
     // warm call within the refresh window is a no-op
     await exchange.authenticate();
     assert(state.fetches === 1, 'a warm authenticate within the refresh window must not fetch');
@@ -189,8 +282,8 @@ async function testBingxAuthenticateSingleFlight() {
     assert(outcomes[1].reason instanceof AuthenticationError, 'the bingx waiter must observe the same AuthenticationError');
     assert(failing.safeString(failing.options, 'listenKey') === undefined, 'an empty listenKey must never be cached');
     assert(failing.safeInteger(failing.options, 'lastAuthenticatedTime', 0) === 0, 'a failed flight must not stamp lastAuthenticatedTime');
-    flightCount = Object.keys(failing.authenticationFlights).length;
-    assert(flightCount === 0, 'a rejected flight must be cleared');
+    assert(flightCount(failing) === 0, 'a rejected flight must be cleared');
+    assert(parkedCount(failing) === 0, 'a fanned-out rejection must not park in client.rejections');
     // recovery: a good response re-leads and caches
     failing.userAuthPrivatePostUserDataStream = async () => {
         failState.fetches = failState.fetches + 1;
@@ -201,6 +294,8 @@ async function testBingxAuthenticateSingleFlight() {
 }
 async function testWsSingleFlightWiring() {
     await testAsterAuthenticateSingleFlight();
+    await testAsterAuthenticateSoloLeaderRejection();
+    await testAsterAuthenticateCloseSettlesWaiter();
     await testAsterAuthenticateEmptyKeyRejection();
     await testBinanceAuthenticateEmptyKeyRejection();
     await testBingxAuthenticateSingleFlight();
