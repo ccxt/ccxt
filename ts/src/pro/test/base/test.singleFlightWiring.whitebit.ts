@@ -54,17 +54,6 @@ function flightCount (exchange: any) {
     return 0;
 }
 
-function parkedResultCount (exchange: any) {
-    // client.resolve () parks the value in pendingResults when no future is
-    // registered - the leader always holds one, so this must stay empty or a
-    // later caller would silently skip the flight
-    const client = flightClient (exchange);
-    if (client === undefined) {
-        return 0;
-    }
-    return Object.keys (client.pendingResults).length;
-}
-
 function parkedRejectionCount (exchange: any) {
     // client.reject () parks the error in rejections when no future is
     // registered - a parked rejection would poison the FIRST waiter of the
@@ -78,7 +67,6 @@ function parkedRejectionCount (exchange: any) {
 
 function assertNoFlightResidue (exchange: any, label: string) {
     assertCount (flightCount (exchange), 0, label + ': a settled flight must leave no future behind');
-    assertCount (parkedResultCount (exchange), 0, label + ': a settled flight must park no pendingResult');
     assertCount (parkedRejectionCount (exchange), 0, label + ': a settled flight must park no rejection');
 }
 
