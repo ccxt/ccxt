@@ -1347,7 +1347,7 @@ export default class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
-                        'stock'
+                        'stock',
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': false,
