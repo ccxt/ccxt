@@ -1314,11 +1314,12 @@ class bingx(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['limit'] = min(limit, 100)  # avoid API exception "limit should less than 100"
         response: dict
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchTrades', market, params)
+        if limit is not None:
+            maxLimit = 500 if (marketType == 'spot') else 1000
+            request['limit'] = min(limit, maxLimit)
         if marketType == 'spot':
             response = await self.spotV1PublicGetMarketTrades(self.extend(request, params))
         else:
