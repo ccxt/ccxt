@@ -6,7 +6,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List, Position } from '../base/types.js';
-import { AuthenticationError, BadRequest } from '../base/errors.js';
+import { AuthenticationError, BadRequest, AccountNotEnabled } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -1508,30 +1508,35 @@ export default class phemex extends phemexRest {
     }
 
     async loadPositionsSnapshot (client: Client, messageHash: string, family: string, settles: Str[]) {
-        const cache = new ArrayCacheBySymbolBySide ();
+        const snapshot: Position[] = [];
         for (let i = 0; i < settles.length; i++) {
             // the rest endpoint serves one settle currency per call
             let positions: Position[] = [];
             try {
-                positions = await this.fetchPositions (undefined, { 'settle': settles[i] });
+                positions = await this.fetchPositions (undefined, { 'code': settles[i] });
             } catch (e) {
-                if (e instanceof AuthenticationError) {
+                if (e instanceof AccountNotEnabled) {
+                    // the account has no wallet for this settle currency, nothing to snapshot for it
+                    positions = [];
+                } else {
                     client.reject (e, messageHash);
                     return;
                 }
-                // the account does not necessarily hold a wallet for every settle currency of the family
-                positions = [];
             }
             for (let j = 0; j < positions.length; j++) {
                 const position = positions[j];
                 const contracts = this.safeNumber (position, 'contracts', 0);
                 if ((contracts !== undefined) && (contracts > 0)) {
                     // the rest endpoint also returns flat placeholder rows
-                    cache.append (position);
+                    snapshot.push (position);
                 }
             }
         }
-        this.positions[family] = cache;
+        this.positions[family] = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions[family];
+        for (let i = 0; i < snapshot.length; i++) {
+            cache.append (snapshot[i]);
+        }
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
