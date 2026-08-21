@@ -74,9 +74,9 @@ func (this *HashkeyCore) WathPublic(market any, topic any, messageHash any, opti
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 
-		retRes6015 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-		ccxt.PanicOnError(retRes6015)
-		ch <- retRes6015
+		retRes6115 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+		ccxt.PanicOnError(retRes6115)
+		ch <- retRes6115
 		return nil
 
 	}()
@@ -92,9 +92,9 @@ func (this *HashkeyCore) WatchPrivate(messageHash any) <-chan any {
 		ccxt.PanicOnError(listenKey)
 		var url any = this.GetPrivateUrl(listenKey)
 
-		retRes6615 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes6615)
-		ch <- retRes6615
+		retRes6715 := (<-this.Watch(url, messageHash, nil, messageHash))
+		ccxt.PanicOnError(retRes6715)
+		ch <- retRes6715
 		return nil
 
 	}()
@@ -132,8 +132,8 @@ func (this *HashkeyCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes8812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes8812)
+			retRes8912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes8912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -240,17 +240,17 @@ func (this *HashkeyCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes18812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes18812)
+			retRes18912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes18912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		var topic any = "realtimes"
 		var messageHash any = ccxt.Add("ticker:", symbol)
 
-		retRes19415 := (<-this.WathPublic(market, topic, messageHash, params))
-		ccxt.PanicOnError(retRes19415)
-		ch <- retRes19415
+		retRes19515 := (<-this.WathPublic(market, topic, messageHash, params))
+		ccxt.PanicOnError(retRes19515)
+		ch <- retRes19515
 		return nil
 
 	}()
@@ -318,8 +318,8 @@ func (this *HashkeyCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes24812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes24812)
+			retRes24912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes24912)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -405,8 +405,8 @@ func (this *HashkeyCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes31912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes31912)
+			retRes32012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes32012)
 		}
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
@@ -495,8 +495,8 @@ func (this *HashkeyCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes38912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes38912)
+			retRes39012 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes39012)
 		}
 		var messageHash any = "orders"
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -645,8 +645,8 @@ func (this *HashkeyCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes51312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes51312)
+			retRes51412 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes51412)
 		}
 		var messageHash any = "myTrades"
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -787,8 +787,8 @@ func (this *HashkeyCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes63212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes63212)
+			retRes63312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes63312)
 		}
 
 		listenKey := (<-this.Authenticate())
@@ -912,8 +912,8 @@ func (this *HashkeyCore) WatchBalance(optionalArgs ...any) <-chan any {
 		ccxt.PanicOnError(listenKey)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes73612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes73612)
+			retRes73712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes73712)
 		}
 		var typeVar any = "spot"
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
@@ -933,13 +933,13 @@ func (this *HashkeyCore) WatchBalance(optionalArgs ...any) <-chan any {
 		params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
 		if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
 
-			retRes74912 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-			ccxt.PanicOnError(retRes74912)
+			retRes75012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+			ccxt.PanicOnError(retRes75012)
 		}
 
-		retRes75115 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes75115)
-		ch <- retRes75115
+		retRes75215 := (<-this.Watch(url, messageHash, nil, messageHash))
+		ccxt.PanicOnError(retRes75215)
+		ch <- retRes75215
 		return nil
 
 	}()
@@ -1034,18 +1034,75 @@ func (this *HashkeyCore) Authenticate(optionalArgs ...any) <-chan any {
 			ch <- listenKey
 			return nil
 		}
+		// single-flight leader election on a never-dialed client, see
+		// https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+		// mint their own listenKey and each schedules its own
+		// keepAliveListenKey timer, and the key rides the private url built by
+		// getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+		// subscriptions never deliver. the flight is registered in
+		// client.futures and settled through client.resolve () /
+		// client.reject (), so every mutation of the futures map goes through
+		// the client's own accessors
+		var messageHash any = "authenticateFlight"
+		var client any = this.Client("authenticationFlights")
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader
+			// settles it: the listenKey is then in the bucket
 
-		response := (<-this.PrivatePostApiV1UserDataStream(params))
-		ccxt.PanicOnError(response)
-		//
-		//    {
-		//        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-		//    }
-		//
-		listenKey = this.SafeString(response, "listenKey")
-		ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
-		var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
-		this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
+			retRes84312 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes84312)
+
+			ch <- this.SafeString(this.Options, "listenKey")
+			return nil
+		}
+		// register the flight BEFORE the first await, so a caller arriving
+		// during the fetch below finds it and waits instead of re-leading
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *HashkeyCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *HashkeyCore) any {
+							// catch block:
+							// reject the flight - all waiters throw and the next caller
+							// re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				response := (<-this.PrivatePostApiV1UserDataStream(params))
+				ccxt.PanicOnError(response)
+				//
+				//    {
+				//        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+				//    }
+				//
+				listenKey = this.SafeString(response, "listenKey")
+				if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+				}
+				ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
+				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000)
+				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
+				// settle the flight: client.resolve () wakes every waiter and
+				// drops the future from the map
+				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
+				return nil
+			}(this)
+
+		}
+		// rethrows the failure to the leader and attaches the handler that
+		// keeps an alone-leader rejection from crashing the process
+
+		retRes8758 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes8758)
 
 		ch <- listenKey
 		return nil
@@ -1088,8 +1145,8 @@ func (this *HashkeyCore) KeepAliveListenKey(listenKey any, optionalArgs ...any) 
 				}()
 				// try block:
 
-				retRes84912 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes84912)
+				retRes88712 := (<-this.PrivatePutApiV1UserDataStream(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes88712)
 				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
 				return nil
