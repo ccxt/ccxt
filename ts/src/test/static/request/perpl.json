@@ -1,5 +1,7 @@
 {
     "exchange": "perpl",
+    "apiKey": "test-api-key",
+    "secret": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
     "methods": {
         "fetchMarkets": [
             {
@@ -136,6 +138,43 @@
                 "url": "https://app.perpl.xyz/api/v1/pub/context",
                 "input": [
                     "BTC/AUSD:AUSD"
+                ]
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "fetch open interests with one market filter",
+                "method": "fetchOpenInterests",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch one open interest through the unified emulation",
+                "method": "fetchOpenInterest",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch private fills with a pagination cursor",
+                "method": "fetchMyTrades",
+                "url": "https://app.perpl.xyz/api/v1/trading/fills?count=2&page=next-page-cursor",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    2,
+                    {
+                        "page": "next-page-cursor"
+                    }
                 ]
             }
         ],

@@ -1,5 +1,7 @@
 {
     "exchange": "perpl",
+    "apiKey": "test-api-key",
+    "secret": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
     "methods": {
         "fetchMarkets": [
             {
@@ -639,6 +641,173 @@
                     "previousFundingDatetime": null,
                     "interval": "2580s"
                 }
+            }
+        ],
+        "fetchOpenInterests": [
+            {
+                "description": "scaled open interest from market state",
+                "method": "fetchOpenInterests",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "oi": 4056609
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/AUSD:AUSD": {
+                        "symbol": "BTC/AUSD:AUSD",
+                        "openInterestAmount": 40.56609,
+                        "openInterestValue": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "timestamp": 1787037820000,
+                        "datetime": "2026-08-18T07:23:40.000Z",
+                        "info": {
+                            "id": 1,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "oi": 4056609
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOpenInterest": [
+            {
+                "description": "single open interest through the unified emulation",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/AUSD:AUSD"
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "oi": 4056609
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/AUSD:AUSD",
+                    "openInterestAmount": 40.56609,
+                    "openInterestValue": null,
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "timestamp": 1787037820000,
+                    "datetime": "2026-08-18T07:23:40.000Z",
+                    "info": {
+                        "id": 1,
+                        "state": {
+                            "at": {
+                                "b": 97001267,
+                                "t": 1787037820000
+                            },
+                            "oi": 4056609
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "scaled private taker fill with top-level pagination cursor",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    2,
+                    {
+                        "page": "current-page-cursor"
+                    }
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": {
+                                "b": 97001267,
+                                "t": 1787037820000,
+                                "tx": 3,
+                                "txid": "0x1234",
+                                "l": 7
+                            },
+                            "mkt": 1,
+                            "acc": 42,
+                            "oid": 123456,
+                            "t": 1,
+                            "l": 2,
+                            "p": 642517,
+                            "s": 40566,
+                            "f": "17731"
+                        }
+                    ],
+                    "np": "next-page-cursor"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": {
+                                "b": 97001267,
+                                "t": 1787037820000,
+                                "tx": 3,
+                                "txid": "0x1234",
+                                "l": 7
+                            },
+                            "mkt": 1,
+                            "acc": 42,
+                            "oid": 123456,
+                            "t": 1,
+                            "l": 2,
+                            "p": 642517,
+                            "s": 40566,
+                            "f": "17731",
+                            "np": "next-page-cursor"
+                        },
+                        "timestamp": 1787037820000,
+                        "datetime": "2026-08-18T07:23:40.000Z",
+                        "symbol": "BTC/AUSD:AUSD",
+                        "id": "0x1234:7",
+                        "order": "123456",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 64251.7,
+                        "amount": 0.40566,
+                        "cost": 26064.344622,
+                        "fee": {
+                            "cost": 0.017731,
+                            "currency": "AUSD"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.017731,
+                                "currency": "AUSD"
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchFundingRateHistory": [

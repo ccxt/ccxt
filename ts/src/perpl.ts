@@ -1,9 +1,12 @@
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/perpl.js';
-import { BadRequest, BadSymbol, NotSupported, OperationRejected, PermissionDenied } from './base/errors.js';
+import { AuthenticationError, BadRequest, BadSymbol, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
-import type { Currencies, CurrencyInterface, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, Str, Strings, Ticker, Tickers } from './base/types.js';
+import { eddsa } from './base/functions/crypto.js';
+import type { Currencies, CurrencyInterface, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, OpenInterest, OpenInterests, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -50,8 +53,10 @@ export default class perpl extends Exchange {
                 'fetchLastPrices': true,
                 'fetchMarkets': true,
                 'fetchMarkPrices': 'emulated',
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': 'emulated',
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': false,
@@ -136,6 +141,7 @@ export default class perpl extends Exchange {
             },
             'httpExceptions': {
                 '400': BadRequest, // Bad Request
+                '401': AuthenticationError, // Missing/invalid headers, bad or stale signature, replayed nonce, revoked/expired key, IP not allowed
                 '403': PermissionDenied, // Forbidden - scope insufficient
                 '409': OperationRejected, // Public key already registered
                 '423': OperationRejected, // Per-profile key limit reached
@@ -716,6 +722,202 @@ export default class perpl extends Exchange {
 
     /**
      * @method
+     * @name perpl#fetchOpenInterests
+     * @description retrieves the open interest for a list of symbols
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] unified CCXT market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    override async fetchOpenInterests (symbols: Strings = undefined, params = {}): Promise<OpenInterests> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV1PubContext (params);
+        //
+        //     {
+        //         "markets": [
+        //             {
+        //                 "id": 1,
+        //                 "state": {
+        //                     "at": { "b": 97001267, "t": 1787037820000 },
+        //                     "oi": 4056609
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList (response, 'markets', []);
+        return this.parseOpenInterests (markets, symbols) as OpenInterests;
+    }
+
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+        //
+        //     {
+        //         "id": 1,
+        //         "state": {
+        //             "at": { "b": 97001267, "t": 1787037820000 },
+        //             "oi": 4056609
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (interest, 'id');
+        market = this.safeMarket (marketId, market);
+        const state = this.safeDict (interest, 'state', {});
+        const at = this.safeDict (state, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const amountPrecision = this.numberToString (market['precision']['amount']);
+        return {
+            'symbol': market['symbol'],
+            'openInterestAmount': this.parseNumber (Precise.stringMul (this.safeString (state, 'oi'), amountPrecision)),
+            'openInterestValue': undefined,
+            'baseVolume': undefined,
+            'quoteVolume': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'info': interest,
+        } as OpenInterest;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchMyTrades
+     * @description fetch all trades made by the user
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingfills
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch trades for
+     * @param {int} [limit] the maximum number of trade structures to retrieve, maximum 100
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of entries to return, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
+     */
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate', false);
+        if (paginate) {
+            const paginatedTrades = await this.fetchPaginatedCallCursor ('fetchMyTrades', undefined, since, undefined, params, 'np', 'page', undefined, 100) as Trade[];
+            return this.filterBySymbolSinceLimit (paginatedTrades, symbol, since, limit) as Trade[];
+        }
+        const request: Dict = {};
+        let defaultCount = 50;
+        if (limit !== undefined) {
+            defaultCount = Math.min (limit, 100);
+        }
+        const count = this.safeInteger (params, 'count', defaultCount);
+        request['count'] = Math.min (count, 100);
+        params = this.omit (params, 'count');
+        const response = await this.privateGetV1TradingFills (this.extend (request, params));
+        //
+        //     {
+        //         "d": [
+        //             {
+        //                 "at": { "b": 97001267, "t": 1787037820000, "tx": 3, "txid": "0x1234", "l": 7 },
+        //                 "mkt": 1,
+        //                 "acc": 42,
+        //                 "oid": 123456,
+        //                 "t": 1,
+        //                 "l": 2,
+        //                 "p": 642517,
+        //                 "s": 40566,
+        //                 "f": "17731"
+        //             }
+        //         ],
+        //         "np": "next-page-cursor"
+        //     }
+        //
+        const data = this.addPaginationCursorToResult (response);
+        const trades = this.parseTrades (data);
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit) as Trade[];
+    }
+
+    override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "at": { "b": 97001267, "t": 1787037820000, "tx": 3, "txid": "0x1234", "l": 7 },
+        //         "mkt": 1,
+        //         "acc": 42,
+        //         "oid": 123456,
+        //         "t": 1,
+        //         "l": 2,
+        //         "p": 642517,
+        //         "s": 40566,
+        //         "f": "17731"
+        //     }
+        //
+        const marketId = this.safeString (trade, 'mkt');
+        market = this.safeMarket (marketId, market);
+        const at = this.safeDict (trade, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        const amountPrecision = this.numberToString (market['precision']['amount']);
+        const quoteCurrency = this.currency (market['quote']);
+        const quotePrecision = this.numberToString (quoteCurrency['precision']);
+        const orderType = this.safeInteger (trade, 't');
+        let side: Str = undefined;
+        if ((orderType === 1) || (orderType === 4)) {
+            side = 'buy';
+        } else if ((orderType === 2) || (orderType === 3)) {
+            side = 'sell';
+        }
+        const liquiditySide = this.safeInteger (trade, 'l');
+        let takerOrMaker: Str = undefined;
+        if (liquiditySide === 1) {
+            takerOrMaker = 'maker';
+        } else if (liquiditySide === 2) {
+            takerOrMaker = 'taker';
+        }
+        const transactionId = this.safeString (at, 'txid');
+        const logIndex = this.safeString (at, 'l');
+        let id = transactionId;
+        if ((id !== undefined) && (logIndex !== undefined)) {
+            id = id + ':' + logIndex;
+        }
+        return this.safeTrade ({
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'id': id,
+            'order': this.safeString (trade, 'oid'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.parseNumber (Precise.stringMul (this.safeString (trade, 'p'), pricePrecision)),
+            'amount': this.parseNumber (Precise.stringMul (this.safeString (trade, 's'), amountPrecision)),
+            'cost': undefined,
+            'fee': {
+                'cost': this.parseNumber (Precise.stringMul (this.safeString (trade, 'f'), quotePrecision)),
+                'currency': market['quote'],
+            },
+        }, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description adds the top-level Perpl history cursor to the last result for CCXT cursor pagination
+     * @param {object} response raw Perpl history response
+     * @returns {object[]} the history data with pagination context
+     */
+    addPaginationCursorToResult (response: any): Dict[] {
+        const data = this.safeList (response, 'd', []);
+        const paginationCursor = this.safeString (response, 'np');
+        const dataLength = data.length;
+        if ((paginationCursor !== undefined) && (paginationCursor.length > 0) && (dataLength > 0)) {
+            const last = data[dataLength - 1];
+            last['np'] = paginationCursor;
+            data[dataLength - 1] = last;
+        }
+        return data;
+    }
+
+    /**
+     * @method
      * @name perpl#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datamarket_idcandlesresolutionfrom-to
@@ -1006,21 +1208,57 @@ export default class perpl extends Exchange {
         }, market);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        if (api === 'private') {
-            throw new NotSupported (this.id + ' private API authentication is not implemented yet');
-        }
-        let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
+    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined): Dict {
+        const endpoint = '/' + this.implodeParams (path, params);
+        let url = this.urls['api'][api] + endpoint;
         params = this.omit (params, this.extractParams (path));
         const paramsKeys = Object.keys (params);
         const paramsLength = paramsKeys.length;
+        let query = '';
         if (method === 'GET' && paramsLength > 0) {
-            url += '?' + this.urlencode (params);
+            query = this.urlencode (params);
+            url += '?' + query;
         } else if (method === 'POST') {
             headers = {
                 'Content-Type': 'application/json',
             };
             body = this.json (params);
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const secret = this.remove0xPrefix (this.secret);
+            if (secret.length !== 64) {
+                throw new AuthenticationError (this.id + ' private key must be 32 bytes encoded as 64 hexadecimal characters');
+            }
+            const timestamp = this.milliseconds ().toString ();
+            let nonceHex = this.randomBytes (16);
+            nonceHex = nonceHex.padStart (32, '0');
+            const nonce = this.urlencodeBase64 (this.base16ToBinary (nonceHex));
+            let requestTarget = endpoint;
+            if (query.length > 0) {
+                requestTarget += '?' + query;
+            }
+            const bodyPayload = (body === undefined) ? '' : body;
+            const bodyHash = this.hash (this.encode (bodyPayload), sha256, 'hex');
+            let chainIdKey = 'chainId';
+            if (this.isSandboxModeEnabled) {
+                chainIdKey = 'sandboxChainId';
+            }
+            const chainId = this.safeInteger (this.options, chainIdKey);
+            const payloadArray = [ (chainId as number).toString (), method.toUpperCase (), requestTarget, timestamp, nonce, bodyHash ];
+            // eslint-disable-next-line quotes
+            const payload = payloadArray.join ("\n");
+            const signatureBase64 = eddsa (this.encode (payload), this.base16ToBinary (secret), ed25519);
+            const signature = this.urlencodeBase64 (this.base64ToBinary (signatureBase64));
+            if (headers === undefined) {
+                headers = {};
+            }
+            headers = this.extend (headers, {
+                'X-API-Key': this.apiKey,
+                'X-API-Timestamp': timestamp,
+                'X-API-Nonce': nonce,
+                'X-API-Signature': signature,
+            });
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
