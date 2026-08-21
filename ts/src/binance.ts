@@ -3452,7 +3452,7 @@ export default class binance extends Exchange {
                 promisesRaw.push (this.dapiPublicGetExchangeInfo (params));
             } else if (marketType === 'option') {
                 promisesRaw.push (this.eapiPublicGetExchangeInfo (params));
-            } else if (marketType === 'stock'){
+            } else if (marketType === 'stock') {
                 if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
                     promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
                 }
