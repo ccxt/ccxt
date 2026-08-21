@@ -1723,7 +1723,7 @@ export default class bingx extends Exchange {
             const dataList = this.safeList (response, 'data', []);
             data = this.safeDict (dataList, 0, {});
         } else {
-            data = this.safeDict (response, 'data');
+            data = this.safeDict (response, 'data', {});
         }
         return this.parseFundingRate (data, market);
     }
