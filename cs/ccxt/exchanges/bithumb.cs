@@ -316,7 +316,6 @@ public partial class bithumb : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "ALT", "ArchLoot" },
                 { "FTC", "FTC2" },
                 { "SOC", "Soda Coin" },
             } },
