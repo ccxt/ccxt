@@ -578,22 +578,26 @@ class bit2c extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $method = 'privatePostOrderAddOrder';
         $market = $this->market($symbol);
         $request = array(
             'Amount' => $amount,
             'Pair' => $market['id'],
         );
+        $response = null;
         if ($type === 'market') {
-            $method .= 'MarketPrice' . $this->capitalize($side);
+            if ($side === 'buy') {
+                $response = $this->privatePostOrderAddOrderMarketPriceBuy($this->extend($request, $params));
+            } else {
+                $response = $this->privatePostOrderAddOrderMarketPriceSell($this->extend($request, $params));
+            }
         } else {
             $request['Price'] = $price;
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
             $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
+            $response = $this->privatePostOrderAddOrder($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         return $this->parse_order($response, $market);
     }
 

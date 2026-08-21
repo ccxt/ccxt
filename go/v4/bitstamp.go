@@ -2702,19 +2702,24 @@ func (this *BitstampCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			PanicOnError(retRes188612)
 		}
 		var request any = map[string]any{}
-		var method any = "privatePostUserTransactions"
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "pair", GetValue(market, "id"))
-			method = Add(method, "Pair")
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "limit", limit)
 		}
+		var response any = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostUserTransactionsPair(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 		var result any = this.FilterBy(response, "type", "2")
 
 		ch <- this.ParseTrades(result, market, since, limit)
@@ -2757,15 +2762,15 @@ func (this *BitstampCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes192219 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes192219)
-			ch <- retRes192219
+			retRes192519 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+			PanicOnError(retRes192519)
+			ch <- retRes192519
 			return nil
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes192512 := (<-this.LoadMarkets())
-			PanicOnError(retRes192512)
+			retRes192812 := (<-this.LoadMarkets())
+			PanicOnError(retRes192812)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2849,8 +2854,8 @@ func (this *BitstampCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes198612 := (<-this.LoadMarkets())
-			PanicOnError(retRes198612)
+			retRes198912 := (<-this.LoadMarkets())
+			PanicOnError(retRes198912)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2924,8 +2929,8 @@ func (this *BitstampCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes204012 := (<-this.LoadMarkets())
-			PanicOnError(retRes204012)
+			retRes204312 := (<-this.LoadMarkets())
+			PanicOnError(retRes204312)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
@@ -3339,8 +3344,8 @@ func (this *BitstampCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes243312 := (<-this.LoadMarkets())
-			PanicOnError(retRes243312)
+			retRes243612 := (<-this.LoadMarkets())
+			PanicOnError(retRes243612)
 		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -3379,8 +3384,8 @@ func (this *BitstampCore) FetchFundingRate(symbol any, optionalArgs ...any) <-ch
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes245812 := (<-this.LoadMarkets())
-			PanicOnError(retRes245812)
+			retRes246112 := (<-this.LoadMarkets())
+			PanicOnError(retRes246112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -3468,8 +3473,8 @@ func (this *BitstampCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		var market any = nil
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes252512 := (<-this.LoadMarkets())
-			PanicOnError(retRes252512)
+			retRes252812 := (<-this.LoadMarkets())
+			PanicOnError(retRes252812)
 		}
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -3533,9 +3538,10 @@ func (this *BitstampCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
 			panic(NotSupported(Add(Add(Add(this.Id, " fiat fetchDepositAddress() for "), code), " is not supported!")))
 		}
 		var name any = this.GetCurrencyName(code)
-		var method any = Add(Add("privatePost", this.Capitalize(name)), "Address")
+		// the per-currency implicit methods (privatePostBtcAddress etc.) all route
+		// through request(), called here directly to avoid dynamic dispatch
 
-		response := (<-this.CallDynamically(method, params))
+		response := (<-this.Request(Add(name, "_address/"), "private", "POST", params))
 		PanicOnError(response)
 		var address any = this.SafeString(response, "address")
 		var tag any = this.SafeString2(response, "memo_id", "destination_tag")
@@ -3583,18 +3589,17 @@ func (this *BitstampCore) Withdraw(code any, amount any, address any, optionalAr
 		params = GetValue(tagparamsVariable, 1)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes261012 := (<-this.LoadMarkets())
-			PanicOnError(retRes261012)
+			retRes261412 := (<-this.LoadMarkets())
+			PanicOnError(retRes261412)
 		}
 		this.CheckAddress(address)
 		var request any = map[string]any{
 			"amount": amount,
 		}
 		var currency any = nil
-		var method any = nil
+		var response any = nil
 		if !IsTrue(this.IsFiat(code)) {
 			var name any = this.GetCurrencyName(code)
-			method = Add(Add("privatePost", this.Capitalize(name)), "Withdrawal")
 			if IsTrue(IsEqual(code, "XRP")) {
 				if IsTrue(!IsEqual(tag, nil)) {
 					AddElementToObject(request, "destination_tag", tag)
@@ -3605,15 +3610,19 @@ func (this *BitstampCore) Withdraw(code any, amount any, address any, optionalAr
 				}
 			}
 			AddElementToObject(request, "address", address)
+			// the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+			// route through request(), called here directly to avoid dynamic dispatch
+
+			response = (<-this.Request(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, params)))
+			PanicOnError(response)
 		} else {
-			method = "privatePostWithdrawalOpen"
 			currency = this.Currency(code)
 			AddElementToObject(request, "iban", address)
 			AddElementToObject(request, "account_currency", GetValue(currency, "id"))
-		}
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostWithdrawalOpen(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 
 		ch <- this.ParseTransaction(response, currency)
 		return nil
@@ -3644,8 +3653,8 @@ func (this *BitstampCore) Transfer(code any, amount any, fromAccount any, toAcco
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes265612 := (<-this.LoadMarkets())
-			PanicOnError(retRes265612)
+			retRes266112 := (<-this.LoadMarkets())
+			PanicOnError(retRes266112)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{

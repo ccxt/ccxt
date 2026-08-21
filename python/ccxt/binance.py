@@ -1368,6 +1368,7 @@ class binance(Exchange, ImplicitAPI):
                         'spot',  # allows CORS in browsers
                         'linear',  # allows CORS in browsers
                         'inverse',  # allows CORS in browsers
+                        'stock',
                         # 'option',  # does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': False,
@@ -3407,14 +3408,15 @@ class binance(Exchange, ImplicitAPI):
                 if fetchMargins and self.check_required_credentials(False) and not isDemoEnv:
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
-                if not isDemoEnv and (self.apiKey is not None and self.apiKey != ''):
-                    promisesRaw.append(self.sapiGetEquityMarketExchangeInfo(params))
             elif marketType == 'linear':
                 promisesRaw.append(self.fapiPublicGetExchangeInfo(params))
             elif marketType == 'inverse':
                 promisesRaw.append(self.dapiPublicGetExchangeInfo(params))
             elif marketType == 'option':
                 promisesRaw.append(self.eapiPublicGetExchangeInfo(params))
+            elif marketType == 'stock':
+                if not isDemoEnv and (self.apiKey is not None and self.apiKey != ''):
+                    promisesRaw.append(self.sapiGetEquityMarketExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         results = promisesRaw

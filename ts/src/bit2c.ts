@@ -586,22 +586,26 @@ export default class bit2c extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method = 'privatePostOrderAddOrder';
         const market = this.market (symbol);
         const request: Dict = {
             'Amount': amount,
             'Pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'MarketPrice' + this.capitalize (side);
+            if (side === 'buy') {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy (this.extend (request, params));
+            } else {
+                response = await this.privatePostOrderAddOrderMarketPriceSell (this.extend (request, params));
+            }
         } else {
             request['Price'] = price;
             const amountString = this.numberToString (amount);
             const priceString = this.numberToString (price);
             request['Total'] = this.parseToNumeric (Precise.stringMul (amountString, priceString));
             request['IsBid'] = (side === 'buy');
+            response = await this.privatePostOrderAddOrder (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 

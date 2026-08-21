@@ -1300,16 +1300,21 @@ export default class bullish extends Exchange {
     override async safeDeterministicCall (method: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, timeframe: Str = undefined, params = {}) {
         let maxRetries: Int = undefined;
         [ maxRetries, params ] = this.handleOptionAndParams (params, method, 'maxRetries', 3);
+        if ((method !== 'fetchOHLCV') && (method !== 'fetchFundingRateHistory') && (method !== 'fetchTrades')) {
+            throw new NotSupported (this.id + ' safeDeterministicCall() does not support the ' + method + ' method');
+        }
         let errors = 0;
         params = this.omit (params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the method
         while (errors <= maxRetries) {
             try {
-                if (timeframe && method !== 'fetchFundingRateHistory') {
-                    return await this[method] (symbol, timeframe, since, limit, params);
+                if (method === 'fetchOHLCV') {
+                    return await this.fetchOHLCV (symbol as string, timeframe, since, limit, params);
+                } else if (method === 'fetchFundingRateHistory') {
+                    return await this.fetchFundingRateHistory (symbol, since, limit, params);
                 } else {
-                    return await this[method] (symbol, since, limit, params);
+                    return await this.fetchTrades (symbol as string, since, limit, params);
                 }
             } catch (e) {
                 if (e instanceof RateLimitExceeded) {

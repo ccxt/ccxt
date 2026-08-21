@@ -1178,16 +1178,26 @@ class aster(ccxt.async_support.aster):
         listenKeyRefreshRateOptions = self.safe_dict(self.options, 'listenKeyRefreshRate', {})
         listenKeyRefreshRate = self.safe_integer(listenKeyRefreshRateOptions, type, 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            # single-flight leader election on the exchange-level flight map:
-            # concurrent watch calls on a cold instance each passed the
-            # staleness check and fetched their own listenKey(last write
-            # wins, earlier keys orphan) - now one leader fetches per type
-            # and waiters wake when the flight settles, see  #29393
-            flightHash = 'authenticate:' + type
-            isLeader = await self.single_flight_acquire(flightHash)
-            if not isLeader:
-                # the leader settled the flight: the listenKey is in the bucket
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+            # calls on a cold instance each passed the staleness check and
+            # fetched their own listenKey(last write wins, earlier keys
+            # orphan) - now one leader fetches per type and waiters wake when
+            # the flight settles. client.futures is the registry:
+            # client.future() is the atomic check-and-insert and
+            # client.resolve() / client.reject() settle and remove the entry
+            # under the same lock in every port
+            messageHash = 'authenticate:' + type
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
                 return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
             try:
                 response = {}
                 if type == 'spot':
@@ -1203,10 +1213,15 @@ class aster(ccxt.async_support.aster):
                 self.options['lastAuthenticatedTime'][type] = time
                 params = self.extend({'type': type}, params)
                 self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
-                self.single_flight_resolve(flightHash, listenKey)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
             except Exception as e:
-                self.single_flight_reject(flightHash, e)
-                raise e
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash)
+            await future
 
     async def keep_alive_listen_key(self, params={}):
         type = self.safe_string(params, 'type', 'spot')

@@ -1422,18 +1422,28 @@ public partial class aster : ccxt.aster
         object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            // single-flight leader election on the exchange-level flight map:
-            // concurrent watch calls on a cold instance each passed the
-            // staleness check and fetched their own listenKey (last write
-            // wins, earlier keys orphan) - now one leader fetches per type
-            // and waiters wake when the flight settles, see #29393
-            object flightHash = add("authenticate:", type);
-            object isLeader = await this.singleFlightAcquire(flightHash);
-            if (!isTrue(isLeader))
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+            // calls on a cold instance each passed the staleness check and
+            // fetched their own listenKey (last write wins, earlier keys
+            // orphan) - now one leader fetches per type and waiters wake when
+            // the flight settles. client.futures is the registry:
+            // client.future () is the atomic check-and-insert and
+            // client.resolve () / ((WebSocketClient)client).reject () settle and remove the entry
+            // under the same lock in every port
+            object messageHash = add("authenticate:", type);
+            var client = this.client("authenticationFlights");
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                // the leader settled the flight: the listenKey is in the bucket
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
                 return;
             }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            var future = client.reusableFuture(messageHash);
             try
             {
                 object response = new Dictionary<string, object>() {};
@@ -1455,12 +1465,17 @@ public partial class aster : ccxt.aster
                     { "type", type },
                 }, parameters);
                 this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
-                this.singleFlightResolve(flightHash, listenKey);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
             } catch(Exception e)
             {
-                this.singleFlightReject(flightHash, e);
-                throw e;
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                ((WebSocketClient)client).reject(e, messageHash);
             }
+            await future;
         }
     }
 
