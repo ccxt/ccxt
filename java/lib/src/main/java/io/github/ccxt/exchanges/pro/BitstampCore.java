@@ -691,23 +691,58 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             Object expiresIn = this.safeInteger(this.options, "expiresIn");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(expiresIn, null))) || Helpers.isTrue((Helpers.isGreaterThan(time, expiresIn)))))
             {
-                Object response = (this.privatePostWebsocketsToken(parameters)).join();
-                //
-                // {
-                //     "valid_sec":60,
-                //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-                //     "user_id":4848701
-                // }
-                //
-                Object sessionToken = this.safeString(response, "token");
-                if (Helpers.isTrue(!Helpers.isEqual(sessionToken, null)))
+                // single-flight leader election on a never-dialed client, see
+                // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+                // minted by a private REST call and cached in this.options, so N
+                // concurrent subscribePrivate () calls on a cold instance all pass
+                // the staleness check above and each mint their own token - the
+                // tokens are short lived (valid_sec is 60), so this burns the
+                // private endpoint and only the last write survives.
+                // the flight is registered in client.futures and settled through
+                // client.resolve / client.reject, so every mutation of that map
+                // goes through the client's own accessors in the ported languages
+                Object messageHash = "authenticateFlight";
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the token is then in this.options
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
+                }
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    Object response = (this.privatePostWebsocketsToken(parameters)).join();
+                    //
+                    // {
+                    //     "valid_sec":60,
+                    //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                    //     "user_id":4848701
+                    // }
+                    //
+                    Object sessionToken = this.safeString(response, "token");
+                    if (Helpers.isTrue(Helpers.isEqual(sessionToken, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty token")) ;
+                    }
                     Object userId = this.safeString(response, "user_id");
                     Object validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                     Helpers.addElementToObject(this.options, "expiresIn", this.sum(time, validity));
                     Helpers.addElementToObject(this.options, "userId", userId);
                     Helpers.addElementToObject(this.options, "wsSessionToken", sessionToken);
+                    // settle the flight: client.resolve deletes the future from
+                    // client.futures and wakes every waiter parked on it
+                    client.resolve(sessionToken, messageHash);
+                } catch(Exception e)
+                {
+                    // reject the flight - all waiters throw and the next caller
+                    // re-leads instead of deadlocking on a dead flight
+                    client.reject(e, messageHash);
                 }
+                // rethrows to the leader and marks the promise handled, so an
+                // alone leader's rejection is never unhandled
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });
