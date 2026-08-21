@@ -1874,7 +1874,7 @@ export default class upbit extends Exchange {
         let side = this.safeString (order, 'side');
         if (side === 'bid') {
             side = 'buy';
-        } else {
+        } else if (side === 'ask') {
             side = 'sell';
         }
         const identifier = this.safeString (order, 'identifier');
