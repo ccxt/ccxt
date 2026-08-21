@@ -3587,6 +3587,38 @@ export default class bybit extends Exchange {
         //         "time": 1672125441042
         //     }
         //
+        // stock
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //             "totalEquity": "50.0776",
+        //             "list": [
+        //                 {
+        //                     "totalEquity": "50.0776",
+        //                     "valuationCurrency": "USD",
+        //                     "accountType": "UnifiedTradingAccount",
+        //                     "snapshotTime": "1787286682466",
+        //                     "categories": [
+        //                         {
+        //                             "coinDetail": [
+        //                                 {
+        //                                     "equity": "50.0776",
+        //                                     "coin": "GOOGL"
+        //                                 },
+        //                             ],
+        //                             "category": "STOCKS",
+        //                             "equity": "50.0776"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1787286682578
+        //     }
+        //
         const timestamp = this.safeInteger (response, 'time');
         const result: Dict = {
             'info': response,
@@ -3635,6 +3667,25 @@ export default class bybit extends Exchange {
                             result[code] = account;
                         }
                     }
+                } else if (accountType === 'UnifiedTradingAccount') {
+                    const categories = this.safeList (entry, 'categories', []);
+                    for (let i = 0; i < categories.length; i++) {
+                        const categoryEntry = categories[i];
+                        const categoryType = this.safeStringUpper (categoryEntry, 'category');
+                        if (categoryType === 'STOCKS') {
+                            const coinDetail = this.safeList (categoryEntry, 'coinDetail', []);
+                            for (let j = 0; j < coinDetail.length; j++) {
+                                const account = this.account ();
+                                const stockEntry = coinDetail[j];
+                                account['total'] = this.safeString (stockEntry, 'equity');
+                                const currencyId = this.safeString (stockEntry, 'coin');
+                                const code = this.safeCurrencyCode (currencyId);
+                                if (code !== undefined) {
+                                    result[code] = account;
+                                }
+                            }
+                        }
+                    }
                 } else {
                     const account = this.account ();
                     const loan = this.safeString (entry, 'loan');
@@ -3663,14 +3714,18 @@ export default class bybit extends Exchange {
      * @see https://bybit-exchange.github.io/docs/v5/spot-margin-normal/account-info
      * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
      * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
+     * @see https://bybit-exchange.github.io/docs/v5/asset/balance/asset-overview
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
+     * @param {boolean} [params.stock] set to true if you would like to fetch stock account balance
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     override async fetchBalance (params = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'stock', false);
         const request: Dict = {};
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
@@ -3709,7 +3764,10 @@ export default class bybit extends Exchange {
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let response: Dict;
-        if (isSpot && (marginMode !== undefined)) {
+        if (stock) {
+            request['accountType'] = 'UnifiedTradingAccount';
+            response = await this.privateGetV5AssetAssetOverview (this.extend (request, params));
+        } else if (isSpot && (marginMode !== undefined)) {
             response = await this.privateGetV5SpotCrossMarginTradeAccount (this.extend (request, params));
         } else if (isFunding) {
             // use this endpoint only we have no other choice
@@ -3820,6 +3878,38 @@ export default class bybit extends Exchange {
         //         },
         //         "retExtInfo": {},
         //         "time": 1672125441042
+        //     }
+        //
+        // stock
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //             "totalEquity": "50.0776",
+        //             "list": [
+        //                 {
+        //                     "totalEquity": "50.0776",
+        //                     "valuationCurrency": "USD",
+        //                     "accountType": "UnifiedTradingAccount",
+        //                     "snapshotTime": "1787286682466",
+        //                     "categories": [
+        //                         {
+        //                             "coinDetail": [
+        //                                 {
+        //                                     "equity": "50.0776",
+        //                                     "coin": "GOOGL"
+        //                                 },
+        //                             ],
+        //                             "category": "STOCKS",
+        //                             "equity": "50.0776"
+        //                         }
+        //                     ]
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1787286682578
         //     }
         //
         return this.parseBalance (response);
