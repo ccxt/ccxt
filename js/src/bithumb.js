@@ -271,7 +271,6 @@ export default class bithumb extends Exchange {
                 },
             },
             'commonCurrencies': {
-                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
