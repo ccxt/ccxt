@@ -1245,39 +1245,47 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
-                put( "symbol", TokocryptoCore.this.getMarketIdByType(market) );
-            }};
-            if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "quote"), "USDT")))
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            // the venue routes market data by the symbol type reported by fetchMarkets,
+            // not by the quote currency: type 1 markets are served by the binance host
+            // with the underscore-less id, every other type by open/v1 with the raw id
+            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+            Object symbolType = this.safeString(marketInfo, "type");
+            if (Helpers.isTrue(!Helpers.isEqual(symbolType, "1")))
             {
+                Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                Object responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, parameters));
+                // open/v1/market/trades answers an empty list for every market, the
+                // aggregate endpoint is the one that carries data for these markets
+                Object responseInner = (this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //       "code": 0,
-                //       "msg": "success",
+                //       "msg": "Success",
                 //       "data": {
                 //           "list": [
                 //                {
-                //                    "id": 28457,
-                //                    "price": "4.00000100",
-                //                    "qty": "12.00000000",
-                //                    "time": 1499865549590,
-                //                    "isBuyerMaker": true,
-                //                    "isBestMatch": true
+                //                    "a": 14433,             // aggregate tradeId
+                //                    "p": "495.00",          // price
+                //                    "q": "42.00000000",     // quantity
+                //                    "f": 15578,             // first tradeId
+                //                    "l": 15578,             // last tradeId
+                //                    "T": 1787292236948,     // timestamp
+                //                    "m": false              // was the buyer the maker?
                 //                }
                 //            ]
                 //        },
-                //        "timestamp": 1571921637091
+                //        "timestamp": 1787318052414
                 //    }
                 //
                 Object data = this.safeDict(responseInner, "data", new java.util.HashMap<String, Object>() {{}});
                 Object list = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(list, market, since, limit);
             }
+            Helpers.addElementToObject(request, "symbol", Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")));
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // default = 500, maximum = 1000

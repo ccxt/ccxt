@@ -648,23 +648,58 @@ public partial class bitstamp : ccxt.bitstamp
         object expiresIn = this.safeInteger(this.options, "expiresIn");
         if (isTrue(isTrue((isEqual(expiresIn, null))) || isTrue((isGreaterThan(time, expiresIn)))))
         {
-            object response = await this.privatePostWebsocketsToken(parameters);
-            //
-            // {
-            //     "valid_sec":60,
-            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-            //     "user_id":4848701
-            // }
-            //
-            object sessionToken = this.safeString(response, "token");
-            if (isTrue(!isEqual(sessionToken, null)))
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+            // minted by a private REST call and cached in this.options, so N
+            // concurrent subscribePrivate () calls on a cold instance all pass
+            // the staleness check above and each mint their own token - the
+            // tokens are short lived (valid_sec is 60), so this burns the
+            // private endpoint and only the last write survives.
+            // the flight is registered in client.futures and settled through
+            // client.resolve / ((WebSocketClient)client).reject, so every mutation of that map
+            // goes through the client's own accessors in the ported languages
+            object messageHash = "authenticateFlight";
+            var client = this.client("authenticationFlights");
+            if (isTrue(inOp(client.futures, messageHash)))
             {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in this.options
+                await client.future(messageHash);
+                return;
+            }
+            var future = client.reusableFuture(messageHash);
+            try
+            {
+                object response = await this.privatePostWebsocketsToken(parameters);
+                //
+                // {
+                //     "valid_sec":60,
+                //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                //     "user_id":4848701
+                // }
+                //
+                object sessionToken = this.safeString(response, "token");
+                if (isTrue(isEqual(sessionToken, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty token")) ;
+                }
                 object userId = this.safeString(response, "user_id");
                 object validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                 ((IDictionary<string,object>)this.options)["expiresIn"] = this.sum(time, validity);
                 ((IDictionary<string,object>)this.options)["userId"] = userId;
                 ((IDictionary<string,object>)this.options)["wsSessionToken"] = sessionToken;
+                // settle the flight: client.resolve deletes the future from
+                // client.futures and wakes every waiter parked on it
+                callDynamically(client as WebSocketClient, "resolve", new object[] {sessionToken, messageHash});
+            } catch(Exception e)
+            {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                ((WebSocketClient)client).reject(e, messageHash);
             }
+            // rethrows to the leader and marks the promise handled, so an
+            // alone leader's rejection is never unhandled
+            await future;
         }
     }
 

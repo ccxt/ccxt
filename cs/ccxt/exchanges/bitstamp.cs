@@ -2508,19 +2508,24 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         object request = new Dictionary<string, object>() {};
-        object method = "privatePostUserTransactions";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
-            method = add(method, "Pair");
         }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            response = await this.privatePostUserTransactionsPair(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostUserTransactions(this.extend(request, parameters));
+        }
         object result = this.filterBy(response, "type", "2");
         return this.parseTrades(result, market, since, limit);
     }
@@ -3264,8 +3269,9 @@ public partial class bitstamp : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
         }
         object name = this.getCurrencyName(code);
-        object method = add(add("privatePost", this.capitalize(name)), "Address");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+        // through request(), called here directly to avoid dynamic dispatch
+        object response = await this.request(add(name, "_address/"), "private", "POST", parameters);
         object address = this.safeString(response, "address");
         object tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
@@ -3308,11 +3314,10 @@ public partial class bitstamp : Exchange
             { "amount", amount },
         };
         object currency = null;
-        object method = null;
+        object response = null;
         if (!isTrue(this.isFiat(code)))
         {
             object name = this.getCurrencyName(code);
-            method = add(add("privatePost", this.capitalize(name)), "Withdrawal");
             if (isTrue(isEqual(code, "XRP")))
             {
                 if (isTrue(!isEqual(tag, null)))
@@ -3327,14 +3332,16 @@ public partial class bitstamp : Exchange
                 }
             }
             ((IDictionary<string,object>)request)["address"] = address;
+            // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+            // route through request(), called here directly to avoid dynamic dispatch
+            response = await this.request(add(name, "_withdrawal/"), "private", "POST", this.extend(request, parameters));
         } else
         {
-            method = "privatePostWithdrawalOpen";
             currency = this.currency(code);
             ((IDictionary<string,object>)request)["iban"] = address;
             ((IDictionary<string,object>)request)["account_currency"] = getValue(currency, "id");
+            response = await this.privatePostWithdrawalOpen(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseTransaction(response, currency);
     }
 

@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
@@ -1339,10 +1340,43 @@ class bingx(ccxt.async_support.bingx):
         lastAuthenticatedTime = self.safe_integer(self.options, 'lastAuthenticatedTime', 0)
         listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 3600000)  # 1 hour
         if time - lastAuthenticatedTime > listenKeyRefreshRate:
-            response = await self.userAuthPrivatePostUserDataStream()
-            self.options['listenKey'] = self.safe_string(response, 'listenKey')
-            self.options['lastAuthenticatedTime'] = time
-            self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
+            # different keys and the key rides the private url, so losers
+            # connect their watchers to an orphaned stream. client.futures is
+            # the registry: client.future() is the atomic check-and-insert
+            # and client.resolve() / client.reject() settle and remove the
+            # entry under the same lock in every port
+            messageHash = 'authenticate'
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
+                await client.future(messageHash)
+                return
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
+            try:
+                response = await self.userAuthPrivatePostUserDataStream()
+                listenKey = self.safe_string(response, 'listenKey')
+                if listenKey is None:
+                    # reject instead of caching an empty credential, so
+                    # waiters retry rather than proceed unauthenticated
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+                self.options['listenKey'] = listenKey
+                self.options['lastAuthenticatedTime'] = time
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash)
+            await future
 
     async def pong(self, client: Client, message: object):
         #

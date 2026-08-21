@@ -7527,7 +7527,7 @@ class gate extends Exchange {
             $request['limit'] = $limit;
         }
         if ($since !== null) {
-            $request['from'] = $since;
+            $request['from'] = $this->parse_to_int($since / 1000);
         }
         $response = Async\await($this->publicFuturesGetSettleContractStats($this->extend($request, $params)));
         //

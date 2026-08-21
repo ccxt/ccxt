@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
@@ -605,22 +606,58 @@ class bitstamp extends \ccxt\async\bitstamp {
         $time = $this->milliseconds();
         $expiresIn = $this->safe_integer($this->options, 'expiresIn');
         if (($expiresIn === null) || ($time > $expiresIn)) {
-            $response = Async\await($this->privatePostWebsocketsToken($params));
-            //
-            // {
-            //     "valid_sec":60,
-            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-            //     "user_id":4848701
-            // }
-            //
-            $sessionToken = $this->safe_string($response, 'token');
-            if ($sessionToken !== null) {
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393 => the websocket token is
+            // minted by a private REST call and cached in $this->options, so N
+            // concurrent subscribePrivate () calls on a cold instance all pass
+            // the staleness check above and each mint their own token - the
+            // tokens are short lived (valid_sec is 60), so this burns the
+            // private endpoint and only the last write survives.
+            // the flight is registered in $client->futures and settled through
+            // $client->resolve / $client->reject, so every mutation of that map
+            // goes through the client's own accessors in the ported languages
+            $messageHash = 'authenticateFlight';
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the token is then in $this->options
+                Async\await($client->future($messageHash));
+                return;
+            }
+            $future = $client->reusableFuture($messageHash);
+            try {
+                $response = Async\await($this->privatePostWebsocketsToken($params));
+                //
+                // {
+                //     "valid_sec":60,
+                //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                //     "user_id":4848701
+                // }
+                //
+                $sessionToken = $this->safe_string($response, 'token');
+                if ($sessionToken === null) {
+                    // reject the flight BEFORE any cache write => a hollow 200
+                    // used to be swallowed silently, leaving $expiresIn stale
+                    // and every caller subscribing with an empty auth field
+                    // until the $validity window reopened
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty token');
+                }
                 $userId = $this->safe_string($response, 'user_id');
                 $validity = $this->safe_integer_product($response, 'valid_sec', 1000);
                 $this->options['expiresIn'] = $this->sum($time, $validity);
                 $this->options['userId'] = $userId;
                 $this->options['wsSessionToken'] = $sessionToken;
+                // settle the flight => $client->resolve deletes the $future from
+                // $client->futures and wakes every waiter parked on it
+                $client->resolve($sessionToken, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                $client->reject($e, $messageHash);
             }
+            // rethrows to the leader and marks the promise handled, so an
+            // alone leader's rejection is never unhandled
+            Async\await($future);
         }
     }
 

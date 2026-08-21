@@ -1006,16 +1006,55 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             {
                 return listenKey;
             }
-            Object response = (this.privatePostApiV1UserDataStream(parameters)).join();
-            //
-            //    {
-            //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-            //    }
-            //
-            listenKey = this.safeString(response, "listenKey");
-            Helpers.addElementToObject(this.options, "listenKey", listenKey);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
-            this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+            // mint their own listenKey and each schedules its own
+            // keepAliveListenKey timer, and the key rides the private url built by
+            // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+            // subscriptions never deliver. the flight is registered in
+            // client.futures and settled through client.resolve () /
+            // client.reject (), so every mutation of the futures map goes through
+            // the client's own accessors
+            Object messageHash = "authenticateFlight";
+            Client client = this.client("authenticationFlights");
+            if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+            {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                client.future((String)messageHash).getFuture().join();
+                return this.safeString(this.options, "listenKey");
+            }
+            // register the flight BEFORE the first await, so a caller arriving
+            // during the fetch below finds it and waits instead of re-leading
+            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            try
+            {
+                Object response = (this.privatePostApiV1UserDataStream(parameters)).join();
+                //
+                //    {
+                //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+                //    }
+                //
+                listenKey = this.safeString(response, "listenKey");
+                if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                Helpers.addElementToObject(this.options, "listenKey", listenKey);
+                Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
+                this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
+                // settle the flight: client.resolve () wakes every waiter and
+                // drops the future from the map
+                client.resolve(listenKey, messageHash);
+            } catch(Exception e)
+            {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
+            }
+            // rethrows the failure to the leader and attaches the handler that
+            // keeps an alone-leader rejection from crashing the process
+            ((io.github.ccxt.ws.Future)future).getFuture().join();
             return listenKey;
         });
 

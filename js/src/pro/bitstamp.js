@@ -582,22 +582,59 @@ export default class bitstamp extends bitstampRest {
         const time = this.milliseconds();
         const expiresIn = this.safeInteger(this.options, 'expiresIn');
         if ((expiresIn === undefined) || (time > expiresIn)) {
-            const response = await this.privatePostWebsocketsToken(params);
-            //
-            // {
-            //     "valid_sec":60,
-            //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-            //     "user_id":4848701
-            // }
-            //
-            const sessionToken = this.safeString(response, 'token');
-            if (sessionToken !== undefined) {
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+            // minted by a private REST call and cached in this.options, so N
+            // concurrent subscribePrivate () calls on a cold instance all pass
+            // the staleness check above and each mint their own token - the
+            // tokens are short lived (valid_sec is 60), so this burns the
+            // private endpoint and only the last write survives.
+            // the flight is registered in client.futures and settled through
+            // client.resolve / client.reject, so every mutation of that map
+            // goes through the client's own accessors in the ported languages
+            const messageHash = 'authenticateFlight';
+            const client = this.client('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in this.options
+                await client.future(messageHash);
+                return;
+            }
+            const future = client.reusableFuture(messageHash);
+            try {
+                const response = await this.privatePostWebsocketsToken(params);
+                //
+                // {
+                //     "valid_sec":60,
+                //     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+                //     "user_id":4848701
+                // }
+                //
+                const sessionToken = this.safeString(response, 'token');
+                if (sessionToken === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // used to be swallowed silently, leaving expiresIn stale
+                    // and every caller subscribing with an empty auth field
+                    // until the validity window reopened
+                    throw new AuthenticationError(this.id + ' authenticate() received an empty token');
+                }
                 const userId = this.safeString(response, 'user_id');
                 const validity = this.safeIntegerProduct(response, 'valid_sec', 1000);
                 this.options['expiresIn'] = this.sum(time, validity);
                 this.options['userId'] = userId;
                 this.options['wsSessionToken'] = sessionToken;
+                // settle the flight: client.resolve deletes the future from
+                // client.futures and wakes every waiter parked on it
+                client.resolve(sessionToken, messageHash);
             }
+            catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
+            }
+            // rethrows to the leader and marks the promise handled, so an
+            // alone leader's rejection is never unhandled
+            await future;
         }
     }
     async subscribePrivate(subscription, messageHash, params = {}) {

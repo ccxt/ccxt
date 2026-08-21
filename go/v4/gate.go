@@ -9249,7 +9249,7 @@ func (this *GateCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) 
 			AddElementToObject(request, "limit", limit)
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "from", since)
+			AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 		}
 
 		response := (<-this.PublicFuturesGetSettleContractStats(this.Extend(request, params)))

@@ -3048,6 +3048,7 @@ export default class krakenfutures extends Exchange {
         //        "price": "0.7533",
         //        "fillTime": "2022-03-03T22:51:16.566Z",
         //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
         //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
@@ -3058,6 +3059,7 @@ export default class krakenfutures extends Exchange {
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -3083,7 +3085,7 @@ export default class krakenfutures extends Exchange {
             'entryPrice': this.safeNumber(position, 'price'),
             'notional': undefined,
             'leverage': leverage,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber(position, 'unrealizedPnl'),
             'contracts': this.safeNumber(position, 'size'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'marginRatio': undefined,

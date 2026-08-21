@@ -333,7 +333,12 @@ export default class coinspot extends Exchange {
             await this.loadMarkets ();
         }
         const method = this.safeString (this.options, 'fetchBalance', 'private_post_my_balances');
-        const response = await this[method] (params);
+        let response = undefined;
+        if ((method === 'private_post_ro_my_balances') || (method === 'privatePostRoMyBalances')) {
+            response = await this.privatePostRoMyBalances (params);
+        } else {
+            response = await this.privatePostMyBalances (params);
+        }
         //
         // read-write api keys
         //

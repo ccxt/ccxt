@@ -990,11 +990,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 parameters = ((java.util.List<Object>) networkIdparametersVariable).get(1);
                 Helpers.addElementToObject(request, "network_arn_id", networkId);
             }
-            if (Helpers.isTrue(Helpers.isEqual(method, null)))
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " method is required")) ;
+                response = (this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v1PrivatePostTransfersAddress(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             //
             // v1PrivatePostTransfersAddress
             //    {
@@ -1010,12 +1013,13 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             //
             Object tag = this.safeString(response, "destination_tag");
             Object address = this.safeString2(response, "address", "counterparty_id");
+            final Object finalResponse = response;
             return new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
                 put( "tag", tag );
                 put( "address", address );
                 put( "network", null );
-                put( "info", response );
+                put( "info", finalResponse );
             }};
         });
 
@@ -2859,11 +2863,14 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "network_arn_id", finalNetworkId );
                 put( "nonce", CoinbaseinternationalCore.this.nonce() );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(method, null)))
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
             {
-                throw new ArgumentsRequired((String)Helpers.add(this.id, " method is required")) ;
+                response = (this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v1PrivatePostTransfersWithdraw(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             //
             //    {
             //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

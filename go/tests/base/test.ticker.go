@@ -196,24 +196,35 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	var percentage any = exchange.SafeString(entry, "percentage")
 	var change any = exchange.SafeString(entry, "change")
+	// option markets are exempt from the UPPER percentage/change caps only:
+	// expiry-day convexity makes any finite cap wrong - a formerly-OTM
+	// contract moving into the money legitimately gains 1000x+ (observed: a
+	// paradex call at +109055% on its expiry date, mark price equal to
+	// intrinsic). the floors stay: a long option cannot lose more than its
+	// premium, so percentage >= -100 and change >= -open hold for options too
+	var isOptionMarket any = exchange.SafeBool(market, "option", false)
 	if IsTrue(!IsTrue((InOp(skippedProperties, "maxIncrease"))) && !IsTrue(isUnrecognizedSymbol)) {
 		//
 		// percentage
 		//
 		var maxIncrease any = "1000" // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
 		if IsTrue(!IsEqual(percentage, nil)) {
-			// - should be above -100 and below MAX
+			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
-			Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
+			if !IsTrue(isOptionMarket) {
+				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
+			}
 		}
 		//
 		// change
 		//
 		var approxValue any = exchange.SafeStringN(entry, []any{"open", "close", "average", "bid", "ask", "vwap", "previousClose"})
 		if IsTrue(!IsEqual(change, nil)) {
-			// - should be between -price & +price*100
+			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
-			Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
+			if !IsTrue(isOptionMarket) {
+				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
+			}
 		}
 	}
 	//

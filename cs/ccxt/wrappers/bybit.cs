@@ -1949,7 +1949,7 @@ public partial class bybit
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : Not used by Bybit
+    /// int : Timestamp in ms of the earliest open interest to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -1962,6 +1962,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : Exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : Timestamp in ms of the latest open interest to fetch
     /// </description>
     /// </item>
     /// <item>

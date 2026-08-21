@@ -20,7 +20,22 @@
                         "network": "ERC20"
                     }
                 ],
-                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"0x883b79D31EA07AA200A4a83c50d444470A212eEE\",\"network\":\"ETH\"}"
+                "output": { "coin": "USDT", "amount": "5", "address": "0x883b79D31EA07AA200A4a83c50d444470A212eEE", "network": "ETH" }
+            },
+            {
+                "description": "tron network id must be TRX, TRON is rejected by the api",
+                "method": "withdraw",
+                "url": "https://api.poloniex.com/v2/wallets/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    null,
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": { "coin": "USDT", "amount": "5", "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD", "network": "TRX" }
             }
         ],
         "fetchDepositAddress": [
@@ -96,7 +111,7 @@
                         "network": "ETH"
                     }
                 ],
-                "output": "{\"currency\":\"ETH\"}"
+                "output": { "currency": "ETH" }
             },
             {
                 "description": "create BTC",
@@ -108,7 +123,7 @@
                         "network": "BTC"
                     }
                 ],
-                "output": "{\"currency\":\"BTC\"}"
+                "output": { "currency": "BTC" }
             },
             {
                 "description": "create ETH",
@@ -120,7 +135,7 @@
                         "network": "ETH"
                     }
                 ],
-                "output": "{\"currency\":\"USDTETH\"}"
+                "output": { "currency": "USDTETH" }
             },
             {
                 "description": "create ERC20",
@@ -132,7 +147,7 @@
                         "network": "ERC20"
                     }
                 ],
-                "output": "{\"currency\":\"USDTETH\"}"
+                "output": { "currency": "USDTETH" }
             },
             {
                 "description": "create TRC20",
@@ -144,7 +159,7 @@
                         "network": "TRC20"
                     }
                 ],
-                "output": "{\"currency\":\"USDTTRON\"}"
+                "output": { "currency": "USDTTRON" }
             }
         ],
         "fetchCurrencies": [
@@ -189,7 +204,7 @@
                     true,
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"posMode\":\"HEDGE\"}"
+                "output": { "posMode": "HEDGE" }
             }
         ],
         "fetchPositionMode": [
@@ -229,7 +244,7 @@
                         "marginMode": "cross"
                     }
                 ],
-                "output": "{\"lever\":20,\"mgnMode\":\"CROSS\",\"symbol\":\"BTC_USDT_PERP\"}"
+                "output": { "lever": 20, "mgnMode": "CROSS", "symbol": "BTC_USDT_PERP" }
             }
         ],
         "fetchOrderTrades": [
@@ -307,7 +322,7 @@
                     "420053842861056000",
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"ordId\":\"420053842861056000\"}"
+                "output": { "symbol": "BTC_USDT_PERP", "ordId": "420053842861056000" }
             },
             {
                 "description": "cancel spot order",
@@ -327,7 +342,7 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"symbols\":[\"BTC_USDT_PERP\"]}"
+                "output": { "symbols": [ "BTC_USDT_PERP" ] }
             },
             {
                 "description": "Cancel spot orders",
@@ -336,7 +351,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbols\":[\"LTC_USDT\"]}"
+                "output": { "symbols": [ "LTC_USDT" ] }
             }
         ],
         "fetchBalance": [
@@ -390,7 +405,55 @@
                     1,
                     84000
                 ],
-                "output": "{\"symbol\":\"BTC_USDT_PERP\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"sz\":\"1\",\"px\":\"84000\"}"
+                "output": { "symbol": "BTC_USDT_PERP", "side": "BUY", "type": "LIMIT", "sz": "1", "px": "84000" }
+            },
+            {
+                "description": "linear limit buy with clientOrderId, must map to clOrdId",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/v3/trade/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    84000,
+                    {
+                        "clientOrderId": "myOwnId-123"
+                    }
+                ],
+                "output": { "symbol": "BTC_USDT_PERP", "side": "BUY", "type": "LIMIT", "sz": "1", "px": "84000", "clOrdId": "myOwnId-123" }
+            },
+            {
+                "description": "linear limit buy with exchange-specific clOrdId alias",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/v3/trade/order",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    84000,
+                    {
+                        "clOrdId": "myOwnId-125"
+                    }
+                ],
+                "output": { "symbol": "BTC_USDT_PERP", "side": "BUY", "type": "LIMIT", "sz": "1", "px": "84000", "clOrdId": "myOwnId-125" }
+            },
+            {
+                "description": "spot limit buy with clientOrderId, key stays clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.poloniex.com/orders",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    20000,
+                    {
+                        "clientOrderId": "myOwnId-124"
+                    }
+                ],
+                "output": { "symbol": "BTC_USDT", "side": "BUY", "type": "LIMIT", "quantity": "1", "price": "20000", "clientOrderId": "myOwnId-124" }
             },
             {
                 "description": "Spot limit buy",
@@ -403,7 +466,7 @@
                     0.1,
                     50
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"50\"}"
+                "output": { "symbol": "LTC_USDT", "side": "BUY", "type": "LIMIT", "quantity": "0.1", "price": "50" }
             },
             {
                 "description": "spot market sell",
@@ -415,7 +478,7 @@
                     "sell",
                     0.1
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"0.1\"}"
+                "output": { "symbol": "LTC_USDT", "side": "SELL", "type": "MARKET", "quantity": "0.1" }
             },
             {
                 "description": "market buy with createMarketBuyOrderRequiresPrice set to false",
@@ -431,7 +494,7 @@
                         "createMarketBuyOrderRequiresPrice": false
                     }
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"amount\":\"10\"}"
+                "output": { "symbol": "LTC_USDT", "side": "BUY", "type": "MARKET", "amount": "10" }
             },
             {
                 "description": "Spot limit sell",
@@ -444,7 +507,7 @@
                     0.1,
                     100
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"100\"}"
+                "output": { "symbol": "LTC_USDT", "side": "SELL", "type": "LIMIT", "quantity": "0.1", "price": "100" }
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -456,7 +519,7 @@
                     "LTC/USDT",
                     10
                 ],
-                "output": "{\"symbol\":\"LTC_USDT\",\"side\":\"BUY\",\"type\":\"MARKET\",\"amount\":\"10\"}"
+                "output": { "symbol": "LTC_USDT", "side": "BUY", "type": "MARKET", "amount": "10" }
             }
         ],
         "fetchTime": [

@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
@@ -654,16 +655,16 @@ class kraken extends \ccxt\async\kraken {
         }
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
-            $candle = $data[$ohlcvsLength - $i - 1];
+            $candle = $data[$i];
             $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
                 $timestamp,
-                $this->safe_string($candle, 'open'),
-                $this->safe_string($candle, 'high'),
-                $this->safe_string($candle, 'low'),
-                $this->safe_string($candle, 'close'),
-                $this->safe_string($candle, 'volume'),
+                $this->safe_number($candle, 'open'),
+                $this->safe_number($candle, 'high'),
+                $this->safe_number($candle, 'low'),
+                $this->safe_number($candle, 'close'),
+                $this->safe_number($candle, 'volume'),
             );
             $stored->append($parsed);
         }
@@ -1139,20 +1140,58 @@ class kraken extends \ccxt\async\kraken {
         $start = $this->safe_integer($subscription, 'start');
         $expires = $this->safe_integer($subscription, 'expires');
         if (($subscription === null) || (($subscription !== null) && ($start . $expires) <= $now)) {
-            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            $response = Async\await($this->privatePostGetWebSocketsToken($params));
-            //
-            //     {
-            //         "error":array(),
-            //         "result":{
-            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            //             "expires":900
-            //         }
-            //     }
-            //
-            $subscription = $this->safe_dict($response, 'result');
-            $subscription['start'] = $now;
-            $client->subscriptions[$authenticated] = $subscription;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393 => the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate $token-> $client->futures is the flight registry
+            // itself, namespaced away from the real $subscription keys on the
+            // same $client that already caches the $token, and settlement goes
+            // through $client->resolve() / $client->reject() so every write to
+            // that map stays behind the client's own lock
+            $messageHash = 'authenticateFlight';
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $token is then in the subscriptions bucket
+                Async\await($client->future($messageHash));
+                $subscription = $this->safe_dict($client->subscriptions, $authenticated);
+                return $this->safe_string($subscription, 'token');
+            }
+            $future = $client->reusableFuture($messageHash);
+            try {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-$token
+                $response = Async\await($this->privatePostGetWebSocketsToken($params));
+                //
+                //     {
+                //         "error":array(),
+                //         "result":{
+                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                //             "expires":900
+                //         }
+                //     }
+                //
+                $subscription = $this->safe_dict($response, 'result');
+                $token = $this->safe_string($subscription, 'token');
+                if ($token === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty token');
+                }
+                $subscription['start'] = $now;
+                $client->subscriptions[$authenticated] = $subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                $client->resolve($token, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                $client->reject($e, $messageHash);
+            }
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            Async\await($future);
+            $subscription = $this->safe_dict($client->subscriptions, $authenticated);
         }
         return $this->safe_string($subscription, 'token');
     }

@@ -378,7 +378,17 @@ public partial class btcmarkets : Exchange
         {
             currency = this.currency(code);
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "privateGetTransfers")))
+        {
+            response = await this.privateGetTransfers(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "privateGetDeposits")))
+        {
+            response = await this.privateGetDeposits(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateGetWithdrawals(this.extend(request, parameters));
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
 

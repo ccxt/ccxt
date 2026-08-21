@@ -7,6 +7,7 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -189,31 +190,74 @@ class deepcoin extends \ccxt\async\deepcoin {
     private function do_authenticate($params = array()) {
         $this->check_required_credentials();
         $time = $this->milliseconds();
-        $listenKeyExpiryTimestamp = $this->safe_integer($this->options, 'listenKeyExpiryTimestamp', $time);
-        $expired = ($time - $listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
-        $listenKey = $this->safe_string($this->options, 'listenKey');
-        $response = null;
-        if ($listenKey === null) {
-            $response = Async\await($this->privateGetDeepcoinListenkeyAcquire($params));
-        } elseif ($expired) {
-            $method = $this->safe_string($this->options, 'method', 'privateGetDeepcoinListenkeyExtend');
-            $getNewKey = ($method === 'privateGetDeepcoinListenkeyAcquire');
-            if ($getNewKey) {
+        // single-flight leader election on a never-dialed $client, see
+        // https://github.com/ccxt/ccxt/issues/29393 => the key rides the private
+        // ws url query string, so racing acquires mint several keys, the last
+        // write wins the cache and every loser dials a stream keyed to an
+        // orphaned credential that never delivers.
+        // the whole check-then-fetch is the critical section here => the
+        // acquire-vs-extend branch reads the very key and expiry the leader
+        // rewrites. the flight IS the entry in $client->futures - registered
+        // before the first fetch and settled through $client->resolve /
+        // $client->reject, so every mutation of that registry happens inside the
+        // $client, which is what keeps the go port's map access under one lock
+        $messageHash = 'authenticate';
+        $client = $this->client('authenticationFlights');
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader
+            // settles it => the $listenKey is then in the bucket
+            Async\await($client->future($messageHash));
+            return $this->safe_string($this->options, 'listenKey');
+        }
+        $future = $client->reusableFuture($messageHash);
+        $listenKey = null;
+        try {
+            $listenKeyExpiryTimestamp = $this->safe_integer($this->options, 'listenKeyExpiryTimestamp', $time);
+            $expired = ($time - $listenKeyExpiryTimestamp) > 60000; // 1 minute before expiry
+            $listenKey = $this->safe_string($this->options, 'listenKey');
+            $response = null;
+            if ($listenKey === null) {
                 $response = Async\await($this->privateGetDeepcoinListenkeyAcquire($params));
-            } else {
-                $request = array(
-                    'listenkey' => $listenKey,
-                );
-                $response = Async\await($this->privateGetDeepcoinListenkeyExtend($this->extend($request, $params)));
+            } elseif ($expired) {
+                $method = $this->safe_string($this->options, 'method', 'privateGetDeepcoinListenkeyExtend');
+                $getNewKey = ($method === 'privateGetDeepcoinListenkeyAcquire');
+                if ($getNewKey) {
+                    $response = Async\await($this->privateGetDeepcoinListenkeyAcquire($params));
+                } else {
+                    $request = array(
+                        'listenkey' => $listenKey,
+                    );
+                    $response = Async\await($this->privateGetDeepcoinListenkeyExtend($this->extend($request, $params)));
+                }
             }
+            if ($response !== null) {
+                $data = $this->safe_dict($response, 'data', array());
+                $listenKey = $this->safe_string($data, 'listenkey');
+                if ($listenKey === null) {
+                    // reject the flight BEFORE any cache write => a hollow 200
+                    // would otherwise cache an empty credential together with a
+                    // fresh expiry, parking every caller on a query string with
+                    // no key and no retry until that expiry lapses - the catch
+                    // below rejects the flight instead, so the waiters throw
+                    // and the next caller re-leads
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $listenKeyExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
+                $this->options['listenKey'] = $listenKey;
+                $this->options['listenKeyExpiryTimestamp'] = $listenKeyExpiryTimestamp;
+            }
+            // settle the flight => $client->resolve wakes every waiter and drops
+            // the $future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            $client->resolve($listenKey, $messageHash);
+        } catch (Exception $e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
         }
-        if ($response !== null) {
-            $data = $this->safe_dict($response, 'data', array());
-            $listenKey = $this->safe_string($data, 'listenkey');
-            $listenKeyExpiryTimestamp = $this->safe_timestamp($data, 'expire_time');
-            $this->options['listenKey'] = $listenKey;
-            $this->options['listenKeyExpiryTimestamp'] = $listenKeyExpiryTimestamp;
-        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        Async\await($future);
         return $listenKey;
     }
 

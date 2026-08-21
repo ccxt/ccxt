@@ -312,8 +312,9 @@ class poloniex extends poloniex$1["default"] {
                 'networks': {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
-                    'TRC20': 'TRON',
-                    'TRX': 'TRON',
+                    // v2 withdraw accepts only the blockchain id: 'TRX' passes validation, 'TRON' is rejected with 830111 (live-verified)
+                    'TRC20': 'TRX',
+                    'TRX': 'TRX',
                 },
                 'networksById': {
                     'TRX': 'TRC20',
@@ -559,6 +560,10 @@ class poloniex extends poloniex$1["default"] {
                     '25017': errors.ExchangeError, // No orders were canceled
                     '25018': errors.BadRequest, // Invalid accountType
                     '25019': errors.BadSymbol, // Invalid symbol
+                    // Wallets v2 (undocumented codes, live-verified via validation probes)
+                    '820181': errors.BadRequest, // {"code":820181,"message":"amount must be greater than the transaction fee."}
+                    '820201': errors.BadRequest, // {"code":820201,"message":"blockchain param check error"} — network param missing
+                    '830111': errors.BadRequest, // {"code":830111,"message":"Currency or Network does not exist"}
                     // Futures v3 (https://api-docs.poloniex.com/v3/futures/error)
                     '250': errors.DuplicateOrderId, // {"code":250,"msg":"Client order id already exists"} — live-verified on v3/trade/order
                     '400': errors.BadRequest, // ILLEGAL_PARAM
@@ -2026,6 +2031,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2136,10 +2142,12 @@ class poloniex extends poloniex$1["default"] {
             const priceKey = market['spot'] ? 'price' : 'px';
             request[priceKey] = this.priceToPrecision(symbol, price);
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'clientOrderId', 'clOrdId');
         if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-            params = this.omit(params, 'clientOrderId');
+            // the futures v3 api silently ignores the spot key and generates its own id
+            const clientOrderIdKey = market['spot'] ? 'clientOrderId' : 'clOrdId';
+            request[clientOrderIdKey] = clientOrderId;
+            params = this.omit(params, ['clientOrderId', 'clOrdId']);
         }
         // remember the timestamp before issuing the request
         return [request, params];
@@ -2158,6 +2166,7 @@ class poloniex extends poloniex$1["default"] {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {

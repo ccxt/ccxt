@@ -53,7 +53,6 @@ class foxbit(Exchange, ImplicitAPI):
                 'createOrder': True,
                 'createOrders': True,
                 'editOrder': True,
-                'fecthOrderBook': True,
                 'fetchBalance': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,

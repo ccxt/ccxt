@@ -30,7 +30,7 @@ class bitmex extends \ccxt\async\bitmex {
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
-                'watchPostions' => true,
+                'watchPositions' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
@@ -790,7 +790,8 @@ class bitmex extends \ccxt\async\bitmex {
         $subscriptionHash = 'position';
         $messageHash = 'positions';
         if (!$this->is_empty($symbols)) {
-            $messageHash = '::' . implode(',', ($symbols));
+            $symbols = $this->market_symbols($symbols);
+            $messageHash = 'positions::' . implode(',', ($symbols));
         }
         $url = $this->urls['api']['ws'];
         $request = array(

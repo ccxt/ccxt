@@ -92,8 +92,7 @@ class toobit extends Exchange {
                     'https://api-docs.toobit.com/',
                 ),
                 'referral' => array(
-                    'url' => 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount' => 0.1,
+                    'url' => 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 ),
                 'fees' => 'https://www.toobit.com/fee',
             ),
@@ -1830,9 +1829,9 @@ class toobit extends Exchange {
         $reduceOnly = null;
         list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly');
         if ($side === 'buy') {
-            $side = $reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            $side = $reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
         } elseif ($side === 'sell') {
-            $side = $reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            $side = $reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         $request['side'] = $side;
         if ($price !== null) {
@@ -1960,6 +1959,18 @@ class toobit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'type');
         $rawSideLower = $this->safe_string_lower($order, 'side');
+        $reduceOnly = null;
+        if ($rawSideLower !== null) {
+            // contract orders arrive, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries $reduceOnly, so read
+            // it before discarding it (spot sides have no suffix => null)
+            $sideParts = explode('_', $rawSideLower);
+            $sideSuffix = $this->safe_string($sideParts, 1);
+            if ($sideSuffix !== null) {
+                $reduceOnly = ($sideSuffix === 'close');
+            }
+            $rawSideLower = $this->safe_string($sideParts, 0);
+        }
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         if ($triggerPrice === '0.0') {
             $triggerPrice = null;
@@ -1988,7 +1999,7 @@ class toobit extends Exchange {
             'trades' => null,
             'fee' => null,
             'marginMode' => null,
-            'reduceOnly' => null,
+            'reduceOnly' => $reduceOnly,
             'leverage' => null,
             'hedged' => null,
         ), $market);

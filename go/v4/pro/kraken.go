@@ -730,10 +730,10 @@ func (this *KrakenCore) HandleOHLCV(client any, message any) {
 	}
 	var ohlcvsLength any = ccxt.GetArrayLength(data)
 	for i := 0; ccxt.IsLessThan(i, ohlcvsLength); i++ {
-		var candle any = ccxt.GetValue(data, ccxt.Subtract(ccxt.Subtract(ohlcvsLength, i), 1))
+		var candle any = ccxt.GetValue(data, i)
 		var datetime any = this.SafeString(candle, "interval_begin")
 		var timestamp any = this.Parse8601(datetime)
-		var parsed any = []any{timestamp, this.SafeString(candle, "open"), this.SafeString(candle, "high"), this.SafeString(candle, "low"), this.SafeString(candle, "close"), this.SafeString(candle, "volume")}
+		var parsed any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1329,22 +1329,80 @@ func (this *KrakenCore) Authenticate(optionalArgs ...any) <-chan any {
 		var start any = this.SafeInteger(subscription, "start")
 		var expires any = this.SafeInteger(subscription, "expires")
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(subscription, nil))) || ccxt.IsTrue((ccxt.IsTrue((!ccxt.IsEqual(subscription, nil))) && ccxt.IsTrue(ccxt.IsLessThanOrEqual((ccxt.Add(start, expires)), now))))) {
-			// https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+			// single-flight leader election, see
+			// https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+			// above is followed by an awaited privatePostGetWebSocketsToken (),
+			// so N concurrent watchPrivate () calls on a cold instance each
+			// pass the gate and each burn a rate-limited private REST call to
+			// mint a separate token. client.futures is the flight registry
+			// itself, namespaced away from the real subscription keys on the
+			// same client that already caches the token, and settlement goes
+			// through client.resolve () / client.reject () so every write to
+			// that map stays behind the client's own lock
+			var messageHash any = "authenticateFlight"
+			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+				// a flight is already in progress - wake when the leader
+				// settles it: the token is then in the subscriptions bucket
 
-			response := (<-this.PrivatePostGetWebSocketsToken(params))
-			ccxt.PanicOnError(response)
-			//
-			//     {
-			//         "error":[],
-			//         "result":{
-			//             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-			//             "expires":900
-			//         }
-			//     }
-			//
-			subscription = this.SafeDict(response, "result")
-			ccxt.AddElementToObject(subscription, "start", now)
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated, subscription)
+				retRes109216 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+				ccxt.PanicOnError(retRes109216)
+				subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+
+				ch <- this.SafeString(subscription, "token")
+				return nil
+			}
+			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+			{
+				func(this *KrakenCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *KrakenCore) any {
+								// catch block:
+								// reject the flight - all waiters throw and the next caller
+								// re-leads instead of deadlocking on a dead flight
+								client.(ccxt.ClientInterface).Reject(e, messageHash)
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+					// https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+
+					response := (<-this.PrivatePostGetWebSocketsToken(params))
+					ccxt.PanicOnError(response)
+					//
+					//     {
+					//         "error":[],
+					//         "result":{
+					//             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+					//             "expires":900
+					//         }
+					//     }
+					//
+					subscription = this.SafeDict(response, "result")
+					var token any = this.SafeString(subscription, "token")
+					if ccxt.IsTrue(ccxt.IsEqual(token, nil)) {
+						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
+					}
+					ccxt.AddElementToObject(subscription, "start", now)
+					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated, subscription)
+					// settle the flight and wake every waiter - resolve () also
+					// clears the registry entry, so the next refresh re-leads
+					client.(ccxt.ClientInterface).Resolve(token, messageHash)
+					return nil
+				}(this)
+
+			}
+			// rethrows the leader's own failure and attaches the handler that
+			// keeps an alone leader's rejection from killing the process
+
+			retRes112812 := <-future.(*ccxt.Future).Await()
+			ccxt.PanicOnError(retRes112812)
+			subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
 		}
 
 		ch <- this.SafeString(subscription, "token")
@@ -1367,8 +1425,8 @@ func (this *KrakenCore) WatchPrivate(name any, optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes10978 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes10978)
+		retRes11358 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes11358)
 
 		token := (<-this.Authenticate())
 		ccxt.PanicOnError(token)
@@ -1431,9 +1489,9 @@ func (this *KrakenCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		ccxt.AddElementToObject(params, "snap_trades", true)
 
-		retRes113815 := (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
-		ccxt.PanicOnError(retRes113815)
-		ch <- retRes113815
+		retRes117615 := (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
+		ccxt.PanicOnError(retRes117615)
+		ch <- retRes117615
 		return nil
 
 	}()
@@ -1583,11 +1641,11 @@ func (this *KrakenCore) WatchOrders(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes126915 := (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]any{
+		retRes130715 := (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]any{
 			"snap_orders": true,
 		})))
-		ccxt.PanicOnError(retRes126915)
-		ch <- retRes126915
+		ccxt.PanicOnError(retRes130715)
+		ch <- retRes130715
 		return nil
 
 	}()
@@ -1751,8 +1809,8 @@ func (this *KrakenCore) WatchMultiHelper(unifiedName any, channelName any, optio
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		retRes14178 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes14178)
+		retRes14558 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes14558)
 		// symbols are required
 		symbols = this.MarketSymbols(symbols, nil, false, true, false)
 		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
@@ -1779,9 +1837,9 @@ func (this *KrakenCore) WatchMultiHelper(unifiedName any, channelName any, optio
 		ccxt.AddElementToObject(request, "params", this.DeepExtend(ccxt.GetValue(request, "params"), params))
 		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
 
-		retRes144215 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
-		ccxt.PanicOnError(retRes144215)
-		ch <- retRes144215
+		retRes148015 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
+		ccxt.PanicOnError(retRes148015)
+		ch <- retRes148015
 		return nil
 
 	}()
@@ -1804,8 +1862,8 @@ func (this *KrakenCore) WatchBalance(optionalArgs ...any) <-chan any {
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes14548 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes14548)
+		retRes14928 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes14928)
 
 		token := (<-this.Authenticate())
 		ccxt.PanicOnError(token)
@@ -1822,9 +1880,9 @@ func (this *KrakenCore) WatchBalance(optionalArgs ...any) <-chan any {
 		}
 		var request any = this.DeepExtend(subscribe, params)
 
-		retRes146815 := (<-this.Watch(url, messageHash, request, messageHash))
-		ccxt.PanicOnError(retRes146815)
-		ch <- retRes146815
+		retRes150615 := (<-this.Watch(url, messageHash, request, messageHash))
+		ccxt.PanicOnError(retRes150615)
+		ch <- retRes150615
 		return nil
 
 	}()

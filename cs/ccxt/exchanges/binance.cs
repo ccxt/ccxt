@@ -2894,7 +2894,7 @@ public partial class binance : Exchange
                 { "sandboxMode", false },
                 { "fetchMargins", true },
                 { "fetchMarkets", new Dictionary<string, object>() {
-                    { "types", new List<object>() {"spot", "linear", "inverse"} },
+                    { "types", new List<object>() {"spot", "linear", "inverse", "stock"} },
                     { "loadAllOptions", false },
                 } },
                 { "fetchCurrencies", true },
@@ -4944,10 +4944,6 @@ public partial class binance : Exchange
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginAllPairs(parameters));
                     ((IList<object>)promisesRaw).Add(this.sapiGetMarginIsolatedAllPairs(parameters));
                 }
-                if (isTrue(!isTrue(isDemoEnv) && isTrue((isTrue(!isEqual(this.apiKey, null)) && isTrue(!isEqual(this.apiKey, ""))))))
-                {
-                    ((IList<object>)promisesRaw).Add(this.sapiGetEquityMarketExchangeInfo(parameters));
-                }
             } else if (isTrue(isEqual(marketType, "linear")))
             {
                 ((IList<object>)promisesRaw).Add(this.fapiPublicGetExchangeInfo(parameters));
@@ -4957,6 +4953,12 @@ public partial class binance : Exchange
             } else if (isTrue(isEqual(marketType, "option")))
             {
                 ((IList<object>)promisesRaw).Add(this.eapiPublicGetExchangeInfo(parameters));
+            } else if (isTrue(isEqual(marketType, "stock")))
+            {
+                if (isTrue(!isTrue(isDemoEnv) && isTrue((isTrue(!isEqual(this.apiKey, null)) && isTrue(!isEqual(this.apiKey, ""))))))
+                {
+                    ((IList<object>)promisesRaw).Add(this.sapiGetEquityMarketExchangeInfo(parameters));
+                }
             } else
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;

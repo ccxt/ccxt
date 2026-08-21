@@ -1788,15 +1788,17 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         request = {}
-        method = 'privatePostUserTransactions'
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
-            method += 'Pair'
         if limit is not None:
             request['limit'] = limit
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if symbol is not None:
+            response = self.privatePostUserTransactionsPair(self.extend(request, params))
+        else:
+            response = self.privatePostUserTransactions(self.extend(request, params))
         result = self.filter_by(response, 'type', '2')
         return self.parse_trades(result, market, since, limit)
 
@@ -2427,8 +2429,9 @@ class bitstamp(Exchange, ImplicitAPI):
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fiat fetchDepositAddress() for ' + code + ' is not supported!')
         name = self.get_currency_name(code)
-        method = 'privatePost' + self.capitalize(name) + 'Address'
-        response = getattr(self, method)(params)
+        # the per-currency implicit methods(privatePostBtcAddress etc.) all route
+        # through request(), called here directly to avoid dynamic dispatch
+        response = self.request(name + '_address/', 'private', 'POST', params)
         address = self.safe_string(response, 'address')
         tag = self.safe_string_2(response, 'memo_id', 'destination_tag')
         self.check_address(address)
@@ -2464,10 +2467,9 @@ class bitstamp(Exchange, ImplicitAPI):
             'amount': amount,
         }
         currency = None
-        method = None
+        response = None
         if not self.is_fiat(code):
             name = self.get_currency_name(code)
-            method = 'privatePost' + self.capitalize(name) + 'Withdrawal'
             if code == 'XRP':
                 if tag is not None:
                     request['destination_tag'] = tag
@@ -2475,12 +2477,14 @@ class bitstamp(Exchange, ImplicitAPI):
                 if tag is not None:
                     request['memo_id'] = tag
             request['address'] = address
+            # the per-currency implicit methods(privatePostBtcWithdrawal etc.) all
+            # route through request(), called here directly to avoid dynamic dispatch
+            response = self.request(name + '_withdrawal/', 'private', 'POST', self.extend(request, params))
         else:
-            method = 'privatePostWithdrawalOpen'
             currency = self.currency(code)
             request['iban'] = address
             request['account_currency'] = currency['id']
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostWithdrawalOpen(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:

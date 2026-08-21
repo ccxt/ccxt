@@ -1422,20 +1422,60 @@ public partial class aster : ccxt.aster
         object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            object response = new Dictionary<string, object>() {};
-            if (isTrue(isEqual(type, "spot")))
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+            // calls on a cold instance each passed the staleness check and
+            // fetched their own listenKey (last write wins, earlier keys
+            // orphan) - now one leader fetches per type and waiters wake when
+            // the flight settles. client.futures is the registry:
+            // client.future () is the atomic check-and-insert and
+            // client.resolve () / ((WebSocketClient)client).reject () settle and remove the entry
+            // under the same lock in every port
+            object messageHash = add("authenticate:", type);
+            var client = this.client("authenticationFlights");
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                response = await this.sapiPrivatePostV3ListenKey(parameters);
-            } else
-            {
-                response = await this.fapiPrivatePostV3ListenKey(parameters);
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
+                return;
             }
-            ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)getValue(this.options, "lastAuthenticatedTime"))[(string)type] = time;
-            parameters = this.extend(new Dictionary<string, object>() {
-                { "type", type },
-            }, parameters);
-            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            var future = client.reusableFuture(messageHash);
+            try
+            {
+                object response = new Dictionary<string, object>() {};
+                if (isTrue(isEqual(type, "spot")))
+                {
+                    response = await this.sapiPrivatePostV3ListenKey(parameters);
+                } else
+                {
+                    response = await this.fapiPrivatePostV3ListenKey(parameters);
+                }
+                object listenKey = this.safeString(response, "listenKey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                ((IDictionary<string,object>)getValue(this.options, "listenKey"))[(string)type] = listenKey;
+                ((IDictionary<string,object>)getValue(this.options, "lastAuthenticatedTime"))[(string)type] = time;
+                parameters = this.extend(new Dictionary<string, object>() {
+                    { "type", type },
+                }, parameters);
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+            } catch(Exception e)
+            {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                ((WebSocketClient)client).reject(e, messageHash);
+            }
+            await future;
         }
     }
 

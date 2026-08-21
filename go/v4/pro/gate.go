@@ -1971,7 +1971,7 @@ func (this *GateCore) HandlePositions(client any, message any) {
 			cache.(ccxt.Appender).Append(position)
 		}
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), ccxt.Add(typeVar, ":positions::"))
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(typeVar, ":positions::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -2564,7 +2564,7 @@ func (this *GateCore) HandleUnSubscribe(client any, message any) {
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(messageHashes)); j++ {
 				var unsubHash any = ccxt.GetValue(messageHashes, j)
 				var subHash any = ccxt.GetValue(subMessageHashes, j)
-				this.CleanUnsubscription(client.(*ccxt.Client), subHash, unsubHash)
+				this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 			}
 			this.CleanCache(subscription)
 		}

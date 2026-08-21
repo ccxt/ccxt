@@ -1879,17 +1879,20 @@ class bitstamp extends Exchange {
             $this->load_markets();
         }
         $request = array();
-        $method = 'privatePostUserTransactions';
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['pair'] = $market['id'];
-            $method .= 'Pair';
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($symbol !== null) {
+            $response = $this->privatePostUserTransactionsPair($this->extend($request, $params));
+        } else {
+            $response = $this->privatePostUserTransactions($this->extend($request, $params));
+        }
         $result = $this->filter_by($response, 'type', '2');
         return $this->parse_trades($result, $market, $since, $limit);
     }
@@ -2567,8 +2570,9 @@ class bitstamp extends Exchange {
             throw new NotSupported($this->id . ' fiat fetchDepositAddress() for ' . $code . ' is not supported!');
         }
         $name = $this->get_currency_name($code);
-        $method = 'privatePost' . $this->capitalize($name) . 'Address';
-        $response = $this->$method($params);
+        // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+        // through request(), called here directly to avoid dynamic dispatch
+        $response = $this->request($name . '_address/', 'private', 'POST', $params);
         $address = $this->safe_string($response, 'address');
         $tag = $this->safe_string_2($response, 'memo_id', 'destination_tag');
         $this->check_address($address);
@@ -2606,10 +2610,9 @@ class bitstamp extends Exchange {
             'amount' => $amount,
         );
         $currency = null;
-        $method = null;
+        $response = null;
         if (!$this->is_fiat($code)) {
             $name = $this->get_currency_name($code);
-            $method = 'privatePost' . $this->capitalize($name) . 'Withdrawal';
             if ($code === 'XRP') {
                 if ($tag !== null) {
                     $request['destination_tag'] = $tag;
@@ -2620,13 +2623,15 @@ class bitstamp extends Exchange {
                 }
             }
             $request['address'] = $address;
+            // the per-$currency implicit methods (privatePostBtcWithdrawal etc.) all
+            // route through $request(), called here directly to avoid dynamic dispatch
+            $response = $this->request($name . '_withdrawal/', 'private', 'POST', $this->extend($request, $params));
         } else {
-            $method = 'privatePostWithdrawalOpen';
             $currency = $this->currency($code);
             $request['iban'] = $address;
             $request['account_currency'] = $currency['id'];
+            $response = $this->privatePostWithdrawalOpen($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 

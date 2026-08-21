@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -879,16 +880,53 @@ class hashkey extends \ccxt\async\hashkey {
         if ($listenKey !== null) {
             return $listenKey;
         }
-        $response = Async\await($this->privatePostApiV1UserDataStream($params));
-        //
-        //    {
-        //        "listenKey" => "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-        //    }
-        //
-        $listenKey = $this->safe_string($response, 'listenKey');
-        $this->options['listenKey'] = $listenKey;
-        $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
-        $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
+        // single-flight leader election on a never-dialed $client, see
+        // https://github.com/ccxt/ccxt/issues/29393 => racing cold callers each
+        // mint their own $listenKey and each schedules its own
+        // keepAliveListenKey timer, and the key rides the private url built by
+        // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+        // subscriptions never deliver. the flight is registered in
+        // $client->futures and settled through $client->resolve() /
+        // $client->reject(), so every mutation of the futures map goes through
+        // the client's own accessors
+        $messageHash = 'authenticateFlight';
+        $client = $this->client('authenticationFlights');
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader
+            // settles it => the $listenKey is then in the bucket
+            Async\await($client->future($messageHash));
+            return $this->safe_string($this->options, 'listenKey');
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch below finds it and waits instead of re-leading
+        $future = $client->reusableFuture($messageHash);
+        try {
+            $response = Async\await($this->privatePostApiV1UserDataStream($params));
+            //
+            //    {
+            //        "listenKey" => "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            //    }
+            //
+            $listenKey = $this->safe_string($response, 'listenKey');
+            if ($listenKey === null) {
+                // reject instead of caching an empty credential, so waiters
+                // retry rather than dial .../ws/null for an hour
+                throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+            }
+            $this->options['listenKey'] = $listenKey;
+            $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
+            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
+            // settle the flight => $client->resolve() wakes every waiter and
+            // drops the $future from the map
+            $client->resolve($listenKey, $messageHash);
+        } catch (Exception $e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        Async\await($future);
         return $listenKey;
     }
 
