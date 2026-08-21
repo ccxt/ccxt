@@ -1490,9 +1490,9 @@ export default class phemex extends phemexRest {
         const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
-            const side = this.safeString (position, 'side');
-            if (side !== undefined) {
-                // flat placeholder rows have no side
+            const contracts = this.safeNumber (position, 'contracts', 0);
+            if ((contracts !== undefined) && (contracts > 0)) {
+                // the rest endpoint also returns flat placeholder rows
                 cache.append (position);
             }
         }
@@ -1557,8 +1557,10 @@ export default class phemex extends phemexRest {
             const side = this.safeString (position, 'side');
             if (side === undefined) {
                 // a flat row has no side, reset both sides of the cache
-                cache.append (this.extend (position, { 'side': 'long' }));
-                cache.append (this.extend (position, { 'side': 'short' }));
+                const longPosition = this.extend (position, { 'side': 'long' });
+                const shortPosition = this.extend (position, { 'side': 'short' });
+                cache.append (longPosition);
+                cache.append (shortPosition);
             } else {
                 cache.append (position);
             }
