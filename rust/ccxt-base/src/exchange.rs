@@ -78,8 +78,8 @@ pub struct Internals {
     pub throttle:       std::sync::Arc<tokio::sync::Mutex<(f64, i64)>>,
     /// Cached dispatch table built from `self.api`. Maps the snake-case
     /// implicit API name (e.g. `public_get_exchange_info`) to
-    /// `(path, api_scope, http_verb)`.
-    pub implicit_api:   HashMap<String, (String, Vec<String>, String)>,
+    /// `(path, api_scope, http_verb, endpoint_config)`.
+    pub implicit_api:   HashMap<String, (String, Vec<String>, String, Value)>,
     /// Method names currently being dispatched to a derived override. Lets the
     /// async `dispatch_to_derived` default (in `ExchangeBase`) block recursion
     /// on a single method while allowing sibling dispatches. This is the only
@@ -1357,11 +1357,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         Ok(json)
     } }
 
-    fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
+    fn request_typed(&mut self, path: &str, scope_segments: &[String], verb: &str, params: Value, cost: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
         if !matches!(self.mock_response, Value::Null) {
             return self.fetch_typed("", verb, HashMap::new(), None).await;
         }
-        self.throttle(&[]).await;
+        self.throttle(&[cost]).await;
         let api_arg = if scope_segments.len() == 1 {
             Value::Str(scope_segments[0].clone())
         } else {
@@ -1438,14 +1438,47 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             self.build_implicit_api();
         }
         let entry = self.internals.implicit_api.get(name).cloned();
-        let (path, scope_segments, verb) = match entry {
+        let (path, scope_segments, verb, config) = match entry {
             Some(t) => t,
             None => return Err(ExchangeError::new(
                 "NotSupported",
                 format!("implicit API method {name} not found in api block"),
             )),
         };
-        self.request_typed(&path, &scope_segments, &verb, params).await
+        let api = if scope_segments.len() == 1 {
+            Value::Str(scope_segments[0].clone())
+        } else {
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+        };
+        let cost = if matches!(self.enableRateLimit, Value::Bool(true)) {
+            self.call_dynamic(
+                "calculate_rate_limiter_cost",
+                vec![api, Value::Str(verb.clone()), Value::Str(path.clone()), params.clone(), config],
+            ).await
+        } else {
+            Value::Null
+        };
+        self.request_typed(&path, &scope_segments, &verb, params, cost).await
+    } }
+
+    #[cfg(test)]
+    fn implicit_api_rate_limit_cost(&mut self, name: &str, params: Value) -> impl ::std::future::Future<Output = Result<Value>> + Send { async move {
+        if self.internals.implicit_api.is_empty() {
+            self.build_implicit_api();
+        }
+        let (path, scope_segments, verb, config) = self.internals.implicit_api
+            .get(name)
+            .cloned()
+            .ok_or_else(|| ExchangeError::new("NotSupported", format!("implicit API method {name} not found in api block")))?;
+        let api = if scope_segments.len() == 1 {
+            Value::Str(scope_segments[0].clone())
+        } else {
+            Value::Array(scope_segments.iter().map(|s| Value::Str(s.clone())).collect())
+        };
+        Ok(self.call_dynamic(
+            "calculate_rate_limiter_cost",
+            vec![api, Value::Str(verb), Value::Str(path), params, config],
+        ).await)
     } }
 
     /// Dispatch an implicit-API method by name (from transpiled `_api.rs`).
@@ -1614,7 +1647,7 @@ impl Exchange {
     /// `get`/`post`/`put`/`delete`/`patch` (any case). All path components
     /// before the verb concatenate into the scope (joined by `_`).
     pub fn build_implicit_api(&mut self) {
-        let mut map: HashMap<String, (String, Vec<String>, String)> = HashMap::new();
+        let mut map: HashMap<String, (String, Vec<String>, String, Value)> = HashMap::new();
         Self::walk_api_node(&self.api, &[], &mut map);
         self.internals.implicit_api = map;
     }
@@ -1622,7 +1655,7 @@ impl Exchange {
     fn walk_api_node(
         node: &Value,
         crumbs: &[String],
-        out: &mut HashMap<String, (String, Vec<String>, String)>,
+        out: &mut HashMap<String, (String, Vec<String>, String, Value)>,
     ) {
         let known_verbs = ["get", "post", "put", "delete", "patch"];
         let last_is_verb = crumbs.last()
@@ -1642,8 +1675,17 @@ impl Exchange {
                 //  for gate). Preserve as Vec<String> so the dispatcher
                 //  can choose Value::Str (single) vs Value::Array (multi).
                 let scope_segments: Vec<String> = crumbs[..crumbs.len() - 1].to_vec();
-                for path_key in m.keys() {
-                    Self::register_implicit(&verb, &scope_snake, &scope_segments, path_key, out);
+                for (path_key, endpoint_config) in m.iter() {
+                    let config = match endpoint_config {
+                        Value::Dict(_) => endpoint_config.clone(),
+                        Value::Int(_) | Value::Float(_) => Value::Map({
+                            let mut config = crate::value::HashMap::new();
+                            config.insert("cost".to_string(), endpoint_config.clone());
+                            config
+                        }),
+                        _ => Value::Map(crate::value::HashMap::new()),
+                    };
+                    Self::register_implicit(&verb, &scope_snake, &scope_segments, path_key, config, out);
                 }
             }
             Value::Dict(m) => {
@@ -1659,15 +1701,15 @@ impl Exchange {
                 let scope_snake = Self::api_scope_from_crumbs(&crumbs[..crumbs.len() - 1]);
                 let scope_segments: Vec<String> = crumbs[..crumbs.len() - 1].to_vec();
                 for path in a.iter() {
-                    let path_str = match path {
-                        Value::Str(s) => s.clone(),
+                    let (path_str, config) = match path {
+                        Value::Str(s) => (s.clone(), Value::Map(crate::value::HashMap::new())),
                         Value::Dict(pm) => match pm.get("method").or_else(|| pm.get("path")) {
-                            Some(Value::Str(s)) => s.clone(),
+                            Some(Value::Str(s)) => (s.clone(), path.clone()),
                             _ => continue,
                         },
                         _ => continue,
                     };
-                    Self::register_implicit(&verb, &scope_snake, &scope_segments, &path_str, out);
+                    Self::register_implicit(&verb, &scope_snake, &scope_segments, &path_str, config, out);
                 }
             }
             _ => {}
@@ -1699,7 +1741,8 @@ impl Exchange {
         scope_snake: &str,
         scope_segments: &[String],
         path: &str,
-        out: &mut HashMap<String, (String, Vec<String>, String)>,
+        config: Value,
+        out: &mut HashMap<String, (String, Vec<String>, String, Value)>,
     ) {
         // CCXT's TS `defineRestApiEndpoint` builds the method name by
         // splitting the path on EVERY non-alphanumeric character:
@@ -1758,7 +1801,7 @@ impl Exchange {
             }
         };
         let camel_name = format!("{scope_camel}{verb_camel}{camel}");
-        let entry = (path.to_string(), scope_segments.to_vec(), verb.to_uppercase());
+        let entry = (path.to_string(), scope_segments.to_vec(), verb.to_uppercase(), config);
         out.insert(snake_name, entry.clone());
         if !out.contains_key(&camel_name) {
             out.insert(camel_name, entry);
@@ -2140,6 +2183,33 @@ mod throttle_tests {
     use super::Exchange;
     use crate::Value;
 
+    #[test]
+    fn implicit_api_retains_endpoint_cost_config() {
+        let mut by_limit = crate::value::HashMap::new();
+        by_limit.insert("cost".to_string(), Value::Int(2));
+        by_limit.insert("byLimit".to_string(), Value::List(vec![
+            Value::List(vec![Value::Int(100), Value::Int(5)]),
+        ]));
+        let mut endpoints = crate::value::HashMap::new();
+        endpoints.insert("ticker".to_string(), Value::Float(0.1));
+        endpoints.insert("depth".to_string(), Value::Map(by_limit.clone()));
+        let mut verbs = crate::value::HashMap::new();
+        verbs.insert("get".to_string(), Value::Map(endpoints));
+        let mut api = crate::value::HashMap::new();
+        api.insert("public".to_string(), Value::Map(verbs));
+        let mut exchange = Exchange::new(None);
+        exchange.api = Value::Map(api);
+        exchange.build_implicit_api();
+        let ticker_config = &exchange.internals.implicit_api["public_get_ticker"].3;
+        assert_eq!(
+            crate::get_value(ticker_config, &Value::Str("cost".to_string())),
+            Value::Float(0.1),
+            "numeric endpoint costs must be normalized to a config object"
+        );
+        let depth_config = &exchange.internals.implicit_api["public_get_depth"].3;
+        assert_eq!(depth_config, &Value::Map(by_limit), "object endpoint config must be retained");
+    }
+
     // The leaky-bucket limiter must space requests by ~rateLimit ms (real time).
     #[tokio::test]
     async fn spaces_requests_by_rate_limit() {
@@ -2167,6 +2237,8 @@ mod throttle_tests {
 
 #[cfg(all(test, feature = "transpiled-base"))]
 mod rate_limit_config_tests {
+    use crate::exchange::ExchangeRuntime;
+    use crate::exchange_generated::ExchangeBase;
     use crate::Value;
 
     // init() must apply describe().rateLimit so the limiter spaces requests at
@@ -2190,6 +2262,35 @@ mod rate_limit_config_tests {
         cfg.insert("rateLimit".to_string(), Value::Int(123));
         let b = crate::exchanges::binance::BinanceCore::new(Some(Value::Map(cfg)));
         assert_eq!(b.exchange.rateLimit, Value::Int(123), "config rateLimit was clobbered by describe()");
+    }
+
+    #[tokio::test]
+    async fn implicit_api_preserves_and_calculates_endpoint_cost() {
+        let mut binance = crate::exchanges::binance::BinanceCore::new(None);
+        binance.build_implicit_api();
+        let config = binance
+            .exchange
+            .internals
+            .implicit_api
+            .get("fapi_public_get_depth")
+            .expect("Binance futures depth endpoint must be registered")
+            .3
+            .clone();
+        assert_eq!(
+            crate::get_value(&config, &Value::Str("cost".to_string())),
+            Value::Int(2),
+            "the implicit API table dropped the endpoint's base cost"
+        );
+        let params = Value::Map({
+            let mut map = crate::value::HashMap::new();
+            map.insert("limit".to_string(), Value::Int(100));
+            map
+        });
+        let cost = binance
+            .implicit_api_rate_limit_cost("fapi_public_get_depth", params)
+            .await
+            .expect("registered endpoint must have a calculable cost");
+        assert_eq!(cost, Value::Int(5), "Binance byLimit cost was not applied");
     }
 }
 
