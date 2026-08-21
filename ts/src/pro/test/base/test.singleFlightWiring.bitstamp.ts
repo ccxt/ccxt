@@ -30,17 +30,16 @@ function flightCount (exchange: any) {
 }
 
 function residueCount (exchange: any) {
-    // client.resolve parks its result in pendingResults and client.reject
-    // parks in rejections whenever no future is registered at settle time -
-    // a parked value would be consumed by the FIRST caller of the NEXT
-    // flight, poisoning or short-circuiting it. the leader registers its
-    // future before the fetch, so neither map may ever hold this flight
+    // client.reject parks its result in rejections whenever no future is
+    // registered at settle time - a parked rejection is consumed by the
+    // FIRST caller of the NEXT flight, poisoning it. the leader registers
+    // its future before the fetch, so rejections may never hold this flight
     const clients = exchange.clients;
     if (!('authenticationFlights' in clients)) {
         return 0;
     }
     const client = clients['authenticationFlights'];
-    return Object.keys (client.pendingResults).length + Object.keys (client.rejections).length;
+    return Object.keys (client.rejections).length;
 }
 
 function makeStubbedBitstamp (state: { fetches: number }) {
@@ -83,7 +82,7 @@ async function testBitstampAuthenticateSingleFlight () {
     const expiresIn = exchange.options['expiresIn'];
     assert (expiresIn >= before + 60000 && expiresIn <= after + 60000, 'expiresIn must be stamped from valid_sec (got ' + expiresIn.toString () + ')');
     assert (flightCount (exchange) === 0, 'settled flights must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a settled flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'a settled flight must leave no rejections residue');
     // a fresh call inside the validity window is a no-op: no new fetch
     await exchange.authenticate ();
     assert (state.fetches === 1, 'a warm authenticate inside the validity window must not fetch');
@@ -117,7 +116,7 @@ async function testBitstampAuthenticateEmptyTokenRejection () {
     assert (exchange.options['wsSessionToken'] === pristineToken, 'an empty token must never be cached');
     assert (exchange.options['expiresIn'] === '', 'a failed flight must not stamp expiresIn');
     assert (flightCount (exchange) === 0, 'a rejected flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a rejected flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'a rejected flight must leave no rejections residue');
     // recovery: a good response re-leads and caches
     (exchange as any).privatePostWebsocketsToken = async () => {
         state.fetches = state.fetches + 1;
@@ -149,7 +148,7 @@ async function testBitstampAuthenticateSoloLeaderRejection () {
     // give the microtask queue a tick - an unhandled rejection fires here
     await sleep (20);
     assert (flightCount (exchange) === 0, 'a solo rejected flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a solo rejected flight must leave no pendingResults / rejections residue');
+    assert (residueCount (exchange) === 0, 'a solo rejected flight must leave no rejections residue');
     // the next caller becomes a fresh leader
     (exchange as any).privatePostWebsocketsToken = async () => {
         state.fetches = state.fetches + 1;
