@@ -27,17 +27,15 @@ function flightCount (exchange: any) {
 }
 
 function residueCount (exchange: any) {
-    // client.resolve parks its value in pendingResults and client.reject parks
-    // in rejections whenever no future is live at settle time. the leader mints
-    // the future before its first await and always holds it, so nothing may
-    // park: a parked value would hand the next flight a stale key, a parked
-    // rejection would poison the first waiter of the next retry
+    // client.reject parks its error in client.rejections whenever no future is
+    // live at settle time. the leader mints the future before its first fetch
+    // and always holds it, so a parked rejection would poison the next retry
     const clients = exchange.clients;
     if (!('authenticationFlights' in clients)) {
         return 0;
     }
     const client = clients['authenticationFlights'];
-    return Object.keys (client.pendingResults).length + Object.keys (client.rejections).length;
+    return Object.keys (client.rejections).length;
 }
 
 function makeStubbedDeepcoin (state: { acquires: number, extends: number }, expireTime: number) {
@@ -86,7 +84,7 @@ async function testDeepcoinAuthenticateSingleFlight () {
     assert (exchange.options['listenKey'] === 'DEEPCOIN-KEY-1', 'the leader listenKey must be cached');
     assert (exchange.options['listenKeyExpiryTimestamp'] === future * 1000, 'the leader expiry must be cached in milliseconds');
     assert (flightCount (exchange) === 0, 'a settled flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a settled flight must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, 'a settled flight must park nothing in client.rejections');
     // a fresh call inside the validity window is a no-op: no new fetch
     const warm = await exchange.authenticate ();
     assert (state.acquires === 1 && state.extends === 0, 'a warm authenticate inside the validity window must not fetch');
@@ -113,7 +111,7 @@ async function testDeepcoinAuthenticateExpiredSingleFlight () {
     assert (exchange.options['listenKey'] === 'DEEPCOIN-EXTENDED-1', 'the refreshed listenKey must be cached');
     assert (exchange.options['listenKeyExpiryTimestamp'] === future * 1000, 'the refreshed expiry must be cached in milliseconds');
     assert (flightCount (exchange) === 0, 'a settled flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a settled flight must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, 'a settled flight must park nothing in client.rejections');
 }
 
 async function testDeepcoinAuthenticateAcquireOverride () {
@@ -133,7 +131,7 @@ async function testDeepcoinAuthenticateAcquireOverride () {
     assert (state.extends === 0, 'the acquire override must not hit the extend endpoint');
     assert (exchange.options['listenKey'] === 'DEEPCOIN-KEY-1', 'the acquired listenKey must be cached');
     assert (flightCount (exchange) === 0, 'a settled flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a settled flight must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, 'a settled flight must park nothing in client.rejections');
 }
 
 async function testDeepcoinAuthenticateEmptyKeyRejection () {
@@ -162,7 +160,7 @@ async function testDeepcoinAuthenticateEmptyKeyRejection () {
     assert (exchange.safeString (exchange.options, 'listenKey') === undefined, 'an empty listenKey must never be cached');
     assert (exchange.safeInteger (exchange.options, 'listenKeyExpiryTimestamp') === undefined, 'a failed flight must not stamp the expiry');
     assert (flightCount (exchange) === 0, 'a rejected flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a rejected flight must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, 'a rejected flight must park nothing in client.rejections');
     // recovery: a good response re-leads and caches
     (exchange as any).privateGetDeepcoinListenkeyAcquire = async () => {
         state.acquires = state.acquires + 1;
@@ -195,7 +193,7 @@ async function testDeepcoinAuthenticateSoloLeaderRejection () {
     // give the microtask queue a tick - an unhandled rejection fires here
     await sleep (20);
     assert (flightCount (exchange) === 0, 'a solo rejected flight must leave no future behind');
-    assert (residueCount (exchange) === 0, 'a solo rejected flight must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, 'a solo rejected flight must park nothing in client.rejections');
     // the next caller becomes a fresh leader
     (exchange as any).privateGetDeepcoinListenkeyAcquire = async () => {
         state.acquires = state.acquires + 1;
@@ -219,7 +217,7 @@ async function testDeepcoinAuthenticateMissingCredentials () {
     }
     assert (credentialError instanceof AuthenticationError, 'a missing credential must throw AuthenticationError');
     assert (flightCount (exchange) === 0, 'a missing credential must not register a flight');
-    assert (residueCount (exchange) === 0, 'a missing credential must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, 'a missing credential must park nothing in client.rejections');
 }
 
 async function testWsSingleFlightWiringDeepcoin () {
