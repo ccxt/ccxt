@@ -97,6 +97,62 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "public trades on a type-3 market, served by open/v1 agg-trades with the data.list envelope",
+                "method": "fetchTrades",
+                "input": [
+                    "ALCH/IDR",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "list": [
+                            {
+                                "a": 14434,
+                                "p": "500.00",
+                                "q": "42.00000000",
+                                "f": 15579,
+                                "l": 15579,
+                                "T": 1787301873244,
+                                "m": false
+                            }
+                        ]
+                    },
+                    "timestamp": 1787318103624
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": 14434,
+                            "p": "500.00",
+                            "q": "42.00000000",
+                            "f": 15579,
+                            "l": 15579,
+                            "T": 1787301873244,
+                            "m": false
+                        },
+                        "timestamp": 1787301873244,
+                        "datetime": "2026-08-21T08:44:33.244Z",
+                        "symbol": "ALCH/IDR",
+                        "id": "14434",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 500,
+                        "amount": 42,
+                        "cost": 21000,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [

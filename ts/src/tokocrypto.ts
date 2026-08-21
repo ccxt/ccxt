@@ -1132,24 +1132,27 @@ export default class tokocrypto extends Exchange {
             if (limit !== undefined) {
                 request['limit'] = limit;
             }
-            const responseInner = await this.publicGetOpenV1MarketTrades (this.extend (request, params));
+            // open/v1/market/trades answers an empty list for every market, the
+            // aggregate endpoint is the one that carries data for these markets
+            const responseInner = await this.publicGetOpenV1MarketAggTrades (this.extend (request, params));
             //
             //    {
             //       "code": 0,
-            //       "msg": "success",
+            //       "msg": "Success",
             //       "data": {
             //           "list": [
             //                {
-            //                    "id": 28457,
-            //                    "price": "4.00000100",
-            //                    "qty": "12.00000000",
-            //                    "time": 1499865549590,
-            //                    "isBuyerMaker": true,
-            //                    "isBestMatch": true
+            //                    "a": 14433,             // aggregate tradeId
+            //                    "p": "495.00",          // price
+            //                    "q": "42.00000000",     // quantity
+            //                    "f": 15578,             // first tradeId
+            //                    "l": 15578,             // last tradeId
+            //                    "T": 1787292236948,     // timestamp
+            //                    "m": false              // was the buyer the maker?
             //                }
             //            ]
             //        },
-            //        "timestamp": 1571921637091
+            //        "timestamp": 1787318052414
             //    }
             //
             const data = this.safeDict (responseInner, 'data', {});

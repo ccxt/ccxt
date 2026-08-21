@@ -234,9 +234,9 @@
                 ]
             },
             {
-                "description": "public trades on a type-3 market, routed to open/v1 with the raw id",
+                "description": "public trades on a type-3 market, routed to open/v1 agg-trades with the raw id",
                 "method": "fetchTrades",
-                "url": "https://www.tokocrypto.com/open/v1/market/trades?symbol=ALCH_IDR&limit=2",
+                "url": "https://www.tokocrypto.com/open/v1/market/agg-trades?symbol=ALCH_IDR&limit=2",
                 "input": [
                     "ALCH/IDR",
                     null,
