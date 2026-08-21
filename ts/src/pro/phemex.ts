@@ -4,9 +4,9 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List } from '../base/types.js';
-import { AuthenticationError } from '../base/errors.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Num, Market, List, Position } from '../base/types.js';
+import { AuthenticationError, BadRequest, AccountNotEnabled } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,7 +23,7 @@ export default class phemex extends phemexRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
-                'watchPositions': undefined, // TODO
+                'watchPositions': true,
                 // multi-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': false,
                 'watchTradesForSymbols': false,
@@ -41,6 +41,10 @@ export default class phemex extends phemexRest {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
+                'watchPositions': {
+                    'fetchPositionsSnapshot': true, // or false
+                    'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 9000,
@@ -1406,6 +1410,219 @@ export default class phemex extends phemexRest {
         }, market);
     }
 
+    /**
+     * @method
+     * @name phemex#watchPositions
+     * @description watch all open positions
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-account-order-position-aop
+     * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-account-order-position-aop
+     * @param {string[]} [symbols] list of unified market symbols, they must all be either stable-settled (USDT, USDC) or coin-settled
+     * @param {int} [since] the earliest time in ms to fetch positions for
+     * @param {int} [limit] the maximum number of positions to retrieve
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.settle] settle currency selecting the channel, 'USDT' or 'USDC' for the hedged perpetual channel, any other one for the coin-settled contract channel, inferred from the symbols when provided, default is 'USDT'
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
+     */
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbols = this.marketSymbols (symbols, 'swap', true, true);
+        let messageHash = 'positions';
+        let settle: Str = this.safeString (params, 'settle', 'USDT');
+        params = this.omit (params, 'settle');
+        // the hedged perpetual channel streams the stable-settled contracts, the legacy contract channel the coin-settled ones
+        let isStableSettled = this.isStableSettle (settle);
+        const settles: Str[] = [];
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
+            const firstMarket = this.market (symbols[0]);
+            settle = firstMarket['settle'];
+            isStableSettled = this.isStableSettle (settle);
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                const marketSettle = market['settle'];
+                if (this.isStableSettle (marketSettle) !== isStableSettled) {
+                    throw new BadRequest (this.id + ' watchPositions() requires all symbols to be either stable-settled or coin-settled, they are streamed by different channels');
+                }
+                if (!this.inArray (marketSettle, settles)) {
+                    settles.push (marketSettle);
+                }
+            }
+            messageHash = messageHash + '::' + symbols.join (',');
+        } else {
+            // without symbols the snapshot has to cover every settle currency of the family, the channel streams all of them
+            for (let i = 0; i < this.symbols.length; i++) {
+                const market = this.market (this.symbols[i]);
+                const marketSettle = market['settle'];
+                if (market['swap'] && (this.isStableSettle (marketSettle) === isStableSettled) && !this.inArray (marketSettle, settles)) {
+                    settles.push (marketSettle);
+                }
+            }
+        }
+        const family = (isStableSettled) ? 'perpetual' : 'swap';
+        if ((symbols === undefined) || this.isEmpty (symbols)) {
+            messageHash = messageHash + ':' + family;
+        }
+        if (isStableSettled) {
+            // subscribePrivate switches to the hedged aop_p channel on this flag
+            params = this.extend (params, { 'settle': 'USDT' });
+        }
+        const url = this.urls['api']['ws'];
+        const client = this.client (url);
+        this.setPositionsCache (client, family, settles);
+        const cache = this.safeValue (this.positions, family);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
+            const snapshot = await client.future (family + ':fetchPositionsSnapshot');
+            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+        }
+        const newPositions = await this.subscribePrivate ('swap', messageHash, params);
+        if (this.newUpdates) {
+            return newPositions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions[family], symbols, since, limit, true);
+    }
+
+    isStableSettle (settle: Str): boolean {
+        return (settle === 'USDT') || (settle === 'USDC');
+    }
+
+    setPositionsCache (client: Client, family: string, settles: Str[]) {
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (family in this.positions) {
+            return;
+        }
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        if (fetchPositionsSnapshot) {
+            const messageHash = family + ':fetchPositionsSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadPositionsSnapshot, client, messageHash, family, settles);
+            }
+        } else {
+            this.positions[family] = new ArrayCacheBySymbolBySide ();
+        }
+    }
+
+    async loadPositionsSnapshot (client: Client, messageHash: string, family: string, settles: Str[]) {
+        const snapshot: Position[] = [];
+        for (let i = 0; i < settles.length; i++) {
+            // the rest endpoint serves one settle currency per call
+            let positions: Position[] = [];
+            try {
+                positions = await this.fetchPositions (undefined, { 'code': settles[i] });
+            } catch (e) {
+                if (e instanceof AccountNotEnabled) {
+                    // the account has no wallet for this settle currency, nothing to snapshot for it
+                    positions = [];
+                } else {
+                    client.reject (e, messageHash);
+                    return;
+                }
+            }
+            for (let j = 0; j < positions.length; j++) {
+                const position = positions[j];
+                const contracts = this.safeNumber (position, 'contracts', 0);
+                if ((contracts !== undefined) && (contracts > 0)) {
+                    // the rest endpoint also returns flat placeholder rows
+                    snapshot.push (position);
+                }
+            }
+        }
+        this.positions[family] = new ArrayCacheBySymbolBySide ();
+        const cache = this.positions[family];
+        for (let i = 0; i < snapshot.length; i++) {
+            cache.append (snapshot[i]);
+        }
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve (cache);
+            client.resolve (cache, 'positions:' + family);
+        }
+    }
+
+    handlePositions (client: Client, message: any) {
+        //
+        // USDT-settled perpetual (aop_p)
+        //
+        //     {
+        //         "sequence": 68744,
+        //         "timestamp": 1666858780883525030,
+        //         "type": "incremental",
+        //         "version": 0,
+        //         "accounts_p": [],
+        //         "orders_p": [],
+        //         "positions_p": [
+        //             {
+        //                 "accountID": 9328670003,
+        //                 "assignedPosBalanceRv": "0.733687744",
+        //                 "avgEntryPriceRp": "90.95",
+        //                 "currency": "USDT",
+        //                 "curTermRealisedPnlRv": "-0.0043656",
+        //                 "execSeq": 66511990648,
+        //                 "leverageRr": "-10",
+        //                 "liquidationPriceRp": "0.01",
+        //                 "maintMarginReqRr": "0.01",
+        //                 "markPriceRp": "90.92",
+        //                 "posMode": "OneWay",
+        //                 "posSide": "Merged",
+        //                 "positionMarginRv": "0.7269672256",
+        //                 "side": "Buy", // "None" once the position is flat
+        //                 "size": "0.08",
+        //                 "symbol": "SOLUSDT",
+        //                 "transactTimeNs": "1787300198343646745",
+        //                 "unrealisedPnlRv": "-0.0024",
+        //                 "valueRv": "7.276"
+        //             }
+        //         ]
+        //     }
+        //
+        // coin-settled contracts (aop) carry the same rows with the scaled Ev/Ep/Er fields instead,
+        // see the "private swap update" sample in handleMessage
+        //
+        const isPerpetual = ('positions_p' in message);
+        const family = (isPerpetual) ? 'perpetual' : 'swap';
+        if (this.positions === undefined) {
+            this.positions = {};
+        }
+        if (!(family in this.positions)) {
+            this.positions[family] = new ArrayCacheBySymbolBySide ();
+        }
+        const cache = this.positions[family];
+        const rawPositions = this.safeList2 (message, 'positions_p', 'positions', []);
+        const newPositions: Position[] = [];
+        for (let i = 0; i < rawPositions.length; i++) {
+            const position = this.parsePosition (rawPositions[i]);
+            newPositions.push (position);
+            const side = this.safeString (position, 'side');
+            if (side === undefined) {
+                // a flat row has no side, reset both sides of the cache
+                const longPosition = this.extend (position, { 'side': 'long' });
+                const shortPosition = this.extend (position, { 'side': 'short' });
+                cache.append (longPosition);
+                cache.append (shortPosition);
+            } else {
+                cache.append (position);
+            }
+        }
+        const messageHashes = this.findMessageHashes (client, 'positions::');
+        for (let i = 0; i < messageHashes.length; i++) {
+            const messageHash = messageHashes[i];
+            const parts = messageHash.split ('::');
+            const symbolsString = parts[1];
+            const symbols = symbolsString.split (',');
+            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
+            if (!this.isEmpty (positions)) {
+                client.resolve (positions, messageHash);
+            }
+        }
+        client.resolve (newPositions, 'positions:' + family);
+    }
+
     override handleMessage (client: Client, message: any) {
         // private spot update
         // {
@@ -1536,6 +1753,9 @@ export default class phemex extends phemexRest {
             }
             const accounts = this.safeValueN (message, [ 'accounts', 'accounts_p', 'wallets' ], []);
             this.handleBalance (type, client, accounts);
+        }
+        if (('positions' in message) || ('positions_p' in message)) {
+            this.handlePositions (client, message);
         }
     }
 
