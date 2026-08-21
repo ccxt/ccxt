@@ -960,7 +960,14 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            $response = Async\await($this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $params)));
+        } elseif ($method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            $response = Async\await($this->v2PrivateGetAccountsAccountIdWithdrawals($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->v2PrivateGetAccountsAccountIdDeposits($this->extend($request, $params)));
+        }
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 

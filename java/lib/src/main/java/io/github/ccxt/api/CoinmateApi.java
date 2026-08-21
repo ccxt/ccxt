@@ -647,6 +647,39 @@ public class CoinmateApi extends Exchange
     }
 
     /**
+     * Calls the privatePostDaiWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDaiWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDaiWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostDaiDepositAddresses endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostDaiDepositAddresses (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostDaiDepositAddresses", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUnconfirmedDaiDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUnconfirmedDaiDeposits (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUnconfirmedDaiDeposits", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostSolWithdrawal endpoint.
      *
      * @param optionalArgs the request parameters

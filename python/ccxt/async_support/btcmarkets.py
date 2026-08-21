@@ -314,7 +314,13 @@ class btcmarkets(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'privateGetTransfers':
+            response = await self.privateGetTransfers(self.extend(request, params))
+        elif method == 'privateGetDeposits':
+            response = await self.privateGetDeposits(self.extend(request, params))
+        else:
+            response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:

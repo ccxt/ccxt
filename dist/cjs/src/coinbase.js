@@ -928,7 +928,16 @@ class coinbase extends coinbase$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
+        }
+        else if (method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, params));
+        }
+        else {
+            response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, params));
+        }
         return this.parseTransactions(response['data'], undefined, since, limit);
     }
     /**
