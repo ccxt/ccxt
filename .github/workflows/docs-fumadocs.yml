@@ -58,8 +58,9 @@ jobs:
         with:
           client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
           private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
-          owner: ccxt
-          repositories: ccxt.wiki
+          # No owner/repositories: a wiki is not a REST repository, so scoping the token to
+          # `ccxt.wiki` 404'd on /repos/ccxt/ccxt.wiki/installation and failed this step on
+          # every run. Defaulting to the current repo is what the other workflows already do.
           permission-contents: write
       - name: Checkout ccxt.wiki
         uses: actions/checkout@v6
