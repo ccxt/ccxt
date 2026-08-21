@@ -730,7 +730,8 @@ class bitmex(ccxt.async_support.bitmex):
         subscriptionHash = 'position'
         messageHash = 'positions'
         if not self.is_empty(symbols):
-            messageHash = '::' + ','.join((symbols))
+            symbols = self.market_symbols(symbols)
+            messageHash = 'positions::' + ','.join((symbols))
         url = self.urls['api']['ws']
         request = {
             'op': 'subscribe',

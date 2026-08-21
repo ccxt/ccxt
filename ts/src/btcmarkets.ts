@@ -315,7 +315,14 @@ export default class btcmarkets extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'privateGetTransfers') {
+            response = await this.privateGetTransfers (this.extend (request, params));
+        } else if (method === 'privateGetDeposits') {
+            response = await this.privateGetDeposits (this.extend (request, params));
+        } else {
+            response = await this.privateGetWithdrawals (this.extend (request, params));
+        }
         return this.parseTransactions (response, currency, since, limit);
     }
 

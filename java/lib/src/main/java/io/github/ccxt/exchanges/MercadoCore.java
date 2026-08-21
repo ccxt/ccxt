@@ -594,21 +594,25 @@ public class MercadoCore extends MercadoApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object method = "publicGetCoinTrades";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "base") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                method = Helpers.add(method, "From");
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Object to = this.safeInteger(parameters, "to");
-            if (Helpers.isTrue(!Helpers.isEqual(to, null)))
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((!Helpers.isEqual(to, null)))))
             {
-                method = Helpers.add(method, "To");
+                response = (this.publicGetCoinTradesFromTo(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                response = (this.publicGetCoinTradesFrom(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.publicGetCoinTrades(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -693,15 +697,20 @@ public class MercadoCore extends MercadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
-            Object method = Helpers.add(this.capitalize(side), "Order");
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
-                method = Helpers.add("privatePostPlace", method);
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
                 Helpers.addElementToObject(request, "quantity", this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount));
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                {
+                    response = (this.privatePostPlaceBuyOrder(this.extend(request, parameters))).join();
+                } else
+                {
+                    response = (this.privatePostPlaceSellOrder(this.extend(request, parameters))).join();
+                }
             } else
             {
-                method = Helpers.add("privatePostPlaceMarket", method);
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(price, null)))
@@ -712,16 +721,18 @@ public class MercadoCore extends MercadoApi
                     Object priceString = this.numberToString(price);
                     Object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                     Helpers.addElementToObject(request, "cost", this.priceToPrecision(Helpers.GetValue(market, "symbol"), cost));
+                    response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();
                 } else
                 {
                     Helpers.addElementToObject(request, "quantity", this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount));
+                    response = (this.privatePostPlaceMarketSellOrder(this.extend(request, parameters))).join();
                 }
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             // TODO: replace this with a call to parseOrder for unification
+            final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "info", response );
-                put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(response, "response_data"), "order"), "order_id")) );
+                put( "info", finalResponse );
+                put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(finalResponse, "response_data"), "order"), "order_id")) );
             }}, market);
         });
 

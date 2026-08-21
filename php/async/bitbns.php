@@ -717,11 +717,9 @@ class bitbns extends Exchange {
             // 't_rate' => $this->price_to_precision($symbol, stopPrice),
             // 'trail_rate' => $this->price_to_precision($symbol, $trailRate),
         );
-        $method = 'v2PostOrders';
         if ($type === 'limit') {
             $request['rate'] = $this->price_to_precision($symbol, $price);
         } else {
-            $method = 'v1PostPlaceMarketOrderQntySymbol';
             $request['market'] = $market['quoteId'];
         }
         if ($triggerPrice !== null) {
@@ -733,7 +731,12 @@ class bitbns extends Exchange {
         if ($trailRate !== null) {
             $request['trail_rate'] = $this->price_to_precision($symbol, $trailRate);
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
+        $response = null;
+        if ($type === 'limit') {
+            $response = Async\await($this->v2PostOrders($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->v1PostPlaceMarketOrderQntySymbol($this->extend($request, $params)));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",

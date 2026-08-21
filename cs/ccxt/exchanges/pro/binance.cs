@@ -3448,17 +3448,26 @@ public partial class binance : ccxt.binance
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
-            // single-flight leader election: the flight lives on the exchange,
-            // not parked on a ws client, so no client is instantiated just to
-            // carry the future and no listenKey-free parking url is needed -
-            // waiters wake when the leader settles and read the cached bucket
-            object flightHash = add("authenticate:", type);
-            object isLeader = await this.singleFlightAcquire(flightHash);
-            if (!isTrue(isLeader))
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+            // the flight is registered on a never-dialed client because the
+            // user-data url embeds the listenKey, so no real client exists
+            // before the fetch and no listenKey-free parking url is needed.
+            // client.futures is the registry: client.future () is the atomic
+            // check-and-insert and client.resolve () / ((WebSocketClient)client).reject () settle
+            // and remove the entry under the same lock in every port
+            object messageHash = add("authenticate:", type);
+            var client = this.client("authenticationFlights");
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                // the leader settled the flight: the listenKey is in the bucket
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
                 return;
             }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            var future = client.reusableFuture(messageHash);
             try
             {
                 object response = null;
@@ -3505,12 +3514,17 @@ public partial class binance : ccxt.binance
                     });
                 }
                 this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { delayParams});
-                this.singleFlightResolve(flightHash, listenKey);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
             } catch(Exception e)
             {
-                this.singleFlightReject(flightHash, e);
-                throw e;
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                ((WebSocketClient)client).reject(e, messageHash);
             }
+            await future;
         }
     }
 
