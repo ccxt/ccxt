@@ -848,8 +848,15 @@
                 ]
             },
             {
-                "description": "coin-settled contract snapshot streamed by the aop channel with the scaled Ev/Ep/Er fields, sample from the exchange docs",
-                "input": [],
+                "description": "coin-settled contract snapshot streamed by the aop channel with the scaled Ev/Ep/Er fields, selected via params.settle, sample from the exchange docs",
+                "input": [
+                    null,
+                    null,
+                    null,
+                    {
+                        "settle": "BTC"
+                    }
+                ],
                 "url": "wss://ws.phemex.com",
                 "messages": [
                     {
