@@ -1873,7 +1873,7 @@
                     "network": "TRC20"
                   }
                 ],
-                "output": { "coin": "USDT", "amount": "5", "address": "TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz", "timestamp": 1723663288607, "accountType": "SPOT", "chain": "TRX" }
+                "output": { "coin": "USDT", "amount": "5", "address": "TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz", "timestamp": 1723663288607, "accountType": "UTA", "chain": "TRX" }
             }
         ],
         "fetchConvertCurrencies": [

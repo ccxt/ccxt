@@ -4370,6 +4370,9 @@ export default class bybit extends Exchange {
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         const isMarketBuyAndCostInferable = (lowerCaseType === 'market') && (side === 'buy') && ((price !== undefined) || (cost !== undefined));
         const isMarketOrder = lowerCaseType === 'market';
+        // for market buy it requires the amount of quote currency to spend
+        let createMarketBuyOrderRequiresPrice = true;
+        [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
         if (market['spot'] && isMarketOrder && !isMarketBuyAndCostInferable) {
             if ((cost !== undefined) || (price !== undefined)) {
                 request['marketUnit'] = 'quoteCoin';
@@ -4386,9 +4389,6 @@ export default class bybit extends Exchange {
                 request['qty'] = amountString;
             }
         } else if (market['spot'] && isMarketOrder && (side === 'buy')) {
-            // for market buy it requires the amount of quote currency to spend
-            let createMarketBuyOrderRequiresPrice = true;
-            [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice');
             if (createMarketBuyOrderRequiresPrice) {
                 if ((price === undefined) && (cost === undefined)) {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
