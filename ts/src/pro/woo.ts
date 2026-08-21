@@ -1,8 +1,7 @@
 // ----------------------------------------------------------------------------
 
-import { sha256 } from '@noble/hashes/sha2.js';
 import wooRest from '../woo.js';
-import { ArgumentsRequired, ExchangeError, AuthenticationError, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, Fee, List, Bool, FundingRate, Market } from '../base/types.js';
@@ -30,6 +29,7 @@ export default class woo extends wooRest {
                 'watchPositions': true,
                 'unWatchTicker': true,
                 'unWatchTickers': true,
+                'unWatchBidsAsks': true,
                 'unWatchOrderBook': true,
                 'unWatchOHLCV': true,
                 'unWatchTrades': true,
@@ -37,21 +37,16 @@ export default class woo extends wooRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'public': 'wss://wss.woox.io/ws/stream',
-                        'private': 'wss://wss.woox.io/v2/ws/private/stream',
+                        'public': 'wss://wss.woox.io/v3/public',
+                        'private': 'wss://wss.woox.io/v3/private',
                     },
                 },
                 'test': {
                     'ws': {
-                        'public': 'wss://wss.staging.woox.io/ws/stream',
-                        'private': 'wss://wss.staging.woox.io/v2/ws/private/stream',
+                        'public': 'wss://wss.staging.woox.io/v3/public',
+                        'private': 'wss://wss.staging.woox.io/v3/private',
                     },
                 },
-            },
-            'requiredCredentials': {
-                'apiKey': true,
-                'secret': true,
-                'uid': true,
             },
             'options': {
                 'tradesLimit': 1000,
@@ -84,74 +79,113 @@ export default class woo extends wooRest {
         return newValue;
     }
 
-    async watchPublic (messageHash: any, message: any) {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+    async watchPublic (messageHash: string, topic: string, params = {}) {
+        const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId (url);
-        const subscribe: Dict = {
-            'id': requestId,
+        const request: Dict = {
+            'id': requestId.toString (),
+            'cmd': 'SUBSCRIBE',
+            'params': [ topic ],
         };
-        const request = this.extend (subscribe, message);
-        return await this.watch (url, messageHash, request, messageHash, subscribe);
+        const subscription: Dict = {
+            'id': requestId.toString (),
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), topic, subscription);
     }
 
-    async unwatchPublic (subHash: string, symbol: Str, topic: string, params = {}): Promise<any> {
-        const urlUid = (this.uid) ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+    async watchPublicMultiple (messageHashes: string[], topics: string[], params = {}) {
+        const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId (url);
-        const unsubHash = 'unsubscribe::' + subHash;
+        const request: Dict = {
+            'id': requestId.toString (),
+            'cmd': 'SUBSCRIBE',
+            'params': topics,
+        };
+        const subscription: Dict = {
+            'id': requestId.toString (),
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), topics, subscription);
+    }
+
+    async unwatchPublic (topics: string[], cacheTopic: string, symbols: Strings = undefined, params = {}): Promise<any> {
+        const url = this.urls['api']['ws']['public'];
+        const requestId = this.requestId (url);
+        const unsubMessageHashes = [];
+        for (let i = 0; i < topics.length; i++) {
+            unsubMessageHashes.push ('unsubscribe::' + topics[i]);
+        }
         const message: Dict = {
-            'id': requestId,
-            'event': 'unsubscribe',
-            'topic': subHash,
+            'id': requestId.toString (),
+            'cmd': 'UN_SUBSCRIBE',
+            'params': topics,
         };
         const subscription: Dict = {
             'id': requestId.toString (),
             'unsubscribe': true,
-            'symbols': [ symbol ],
-            'topic': topic,
-            'subMessageHashes': [ subHash ],
-            'unsubMessageHashes': [ unsubHash ],
+            'symbols': symbols,
+            'topic': cacheTopic,
+            'subMessageHashes': topics,
+            'unsubMessageHashes': unsubMessageHashes,
         };
         const symbolsAndTimeframes = this.safeList (params, 'symbolsAndTimeframes');
         if (symbolsAndTimeframes !== undefined) {
             subscription['symbolsAndTimeframes'] = symbolsAndTimeframes;
             params = this.omit (params, 'symbolsAndTimeframes');
         }
-        return await this.watch (url, unsubHash, this.extend (message, params), unsubHash, subscription);
+        return await this.watchMultiple (url, unsubMessageHashes, this.extend (message, params), unsubMessageHashes, subscription);
     }
 
     /**
      * @method
      * @name woo#watchOrderBook
-     * @see https://docs.woox.io/#orderbookupdate
-     * @see https://docs.woox.io/#orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Orderbook_update
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/ORDERBOOK10
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return.
+     * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
+     * @param {string} [params.method] 'orderbookupdate' (default for swap markets) or 'orderbook10' (default for spot markets, the exchange does not push orderbookupdate deltas for spot symbols)
+     * @param {int} [params.depth] the depth of the incremental 'orderbookupdate' stream, one of 50, 200 or 500, default is derived from limit, or 50
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + method;
-        const urlUid = (this.uid) ? '/' + this.uid : '';
-        const url = this.urls['api']['ws']['public'] + urlUid;
+        const defaultMethod = (market['spot']) ? 'orderbook10' : 'orderbookupdate';
+        let method: Str = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
+        let topic: Str = undefined;
+        let depth: Str = undefined;
+        if (method === 'orderbookupdate') {
+            depth = this.safeString (params, 'depth');
+            params = this.omit (params, 'depth');
+            if (depth === undefined) {
+                if ((limit === undefined) || (limit <= 50)) {
+                    depth = '50';
+                } else if (limit <= 200) {
+                    depth = '200';
+                } else {
+                    depth = '500';
+                }
+            }
+            topic = 'orderbookupdate@' + market['id'] + '@' + depth;
+        } else {
+            topic = 'orderbook10@' + market['id'];
+        }
+        const url = this.urls['api']['ws']['public'];
         const requestId = this.requestId (url);
         const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-            'id': requestId,
+            'id': requestId.toString (),
+            'cmd': 'SUBSCRIBE',
+            'params': [ topic ],
         };
         const subscription: Dict = {
             'id': requestId.toString (),
             'name': method,
+            'topic': topic,
+            'depth': depth,
             'symbol': market['symbol'],
             'limit': limit,
             'params': params,
@@ -167,79 +201,125 @@ export default class woo extends wooRest {
      * @method
      * @name woo#unWatchOrderBook
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.woox.io/#orderbookupdate
-     * @see https://docs.woox.io/#orderbook
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Unsubscribe
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.method] 'orderbookupdate' (default for swap markets) or 'orderbook10' (default for spot markets), must match the subscription
+     * @param {int} [params.depth] the depth used when subscribing, one of 50, 200 or 500, when omitted the depth of the active subscription is used
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
-        const subHash = market['id'] + '@' + method;
-        const topic = 'orderbook';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        const defaultMethod = (market['spot']) ? 'orderbook10' : 'orderbookupdate';
+        let method: Str = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', defaultMethod);
+        let subHash: Str = undefined;
+        if (method === 'orderbookupdate') {
+            const depth = this.safeString (params, 'depth');
+            params = this.omit (params, 'depth');
+            if (depth !== undefined) {
+                subHash = 'orderbookupdate@' + market['id'] + '@' + depth;
+            } else {
+                // recover the exact topic from the active subscription instead
+                // of guessing, watchOrderBook stores the topic and the depth
+                // that it derived from the limit argument on the subscription
+                const url = this.urls['api']['ws']['public'];
+                const client = this.safeValue (this.clients, url);
+                if (client !== undefined) {
+                    const subscriptionHashes = Object.keys (client.subscriptions);
+                    for (let i = 0; i < subscriptionHashes.length; i++) {
+                        const subscriptionHash = subscriptionHashes[i];
+                        const subscription = this.safeDict (client.subscriptions, subscriptionHash, {});
+                        const subscriptionName = this.safeString (subscription, 'name');
+                        const subscriptionSymbol = this.safeString (subscription, 'symbol');
+                        if ((subscriptionName === 'orderbookupdate') && (subscriptionSymbol === market['symbol'])) {
+                            subHash = this.safeString (subscription, 'topic');
+                        }
+                    }
+                }
+                if (subHash === undefined) {
+                    subHash = 'orderbookupdate@' + market['id'] + '@50';
+                }
+            }
+        } else {
+            subHash = 'orderbook10@' + market['id'];
+        }
+        return await this.unwatchPublic ([ subHash ], 'orderbook', [ market['symbol'] ], params);
     }
 
     handleOrderBook (client: Client, message: any) {
         //
+        // orderbookupdate
+        //
         //     {
-        //         "topic": "PERP_BTC_USDT@orderbookupdate",
+        //         "topic": "orderbookupdate@SPOT_BTC_USDT@50",
         //         "ts": 1722500373999,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
+        //             "s": "SPOT_BTC_USDT",
         //             "prevTs": 1722500373799,
+        //             "ts": 1722500373899,
         //             "bids": [
-        //                 [
-        //                     0.30891,
-        //                     2469.98
-        //                 ]
+        //                 [ "0.30891", "2469.98" ]
         //             ],
         //             "asks": [
-        //                 [
-        //                     0.31075,
-        //                     2379.63
-        //                 ]
+        //                 [ "0.31075", "2379.63" ]
         //             ]
         //         }
         //     }
         //
+        // orderbook10
+        //
+        //     {
+        //         "topic": "orderbook10@PERP_SOL_USDT",
+        //         "ts": 1762308368653,
+        //         "data": {
+        //             "ts": 1762308368647,
+        //             "bids": [
+        //                 [ "155.31", "216.24" ]
+        //             ],
+        //             "asks": [
+        //                 [ "155.32", "310.66" ]
+        //             ],
+        //             "s": "PERP_SOL_USDT"
+        //         }
+        //     }
+        //
         const data = this.safeDict (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const topic = this.safeString (message, 'topic');
         if (topic === undefined) {
             return;
         }
-        const method = this.safeString (topic.split ('@'), 1);
-        if (method === 'orderbookupdate') {
+        const name = this.safeString (topic.split ('@'), 0);
+        if (name === 'orderbookupdate') {
             if (!(symbol in this.orderbooks)) {
                 return;
             }
             const orderbook = this.orderbooks[symbol];
-            const timestamp = this.safeInteger (orderbook, 'timestamp');
-            if (timestamp === undefined) {
+            // the nonce is only set once the rest snapshot has been applied, it is the
+            // portable "snapshot ready" marker - orderbook['timestamp'] is a typed field
+            // in the go/c# ports, so a fresh book reports 0 instead of undefined there
+            const nonce = this.safeInteger (orderbook, 'nonce');
+            if (nonce === undefined) {
                 orderbook.cache.push (message);
             } else {
                 try {
-                    const ts = this.safeInteger (message, 'ts');
+                    const ts = this.safeInteger (data, 'ts');
                     if (ts === undefined) {
                         return;
                     }
-                    if (ts > timestamp) {
+                    if (ts > nonce) {
                         this.handleOrderBookMessage (client, message, orderbook);
                         client.resolve (orderbook, topic);
                     }
                 } catch (e) {
                     delete this.orderbooks[symbol];
-                    if (topic !== undefined) {
-                        delete client.subscriptions[topic];
-                    }
+                    delete client.subscriptions[topic];
                     client.reject (e, topic);
                 }
             }
@@ -251,7 +331,7 @@ export default class woo extends wooRest {
                 this.orderbooks[symbol] = this.orderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
-            const timestamp = this.safeInteger (message, 'ts');
+            const timestamp = this.safeInteger (data, 'ts');
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
             orderbook.reset (snapshot);
             client.resolve (orderbook, topic);
@@ -274,11 +354,12 @@ export default class woo extends wooRest {
 
     async fetchOrderBookSnapshot (client: Client, message: any, subscription: any) {
         const symbol = this.safeString (subscription, 'symbol');
-        const messageHash = this.safeString (message, 'topic');
+        // the v3 subscribe confirmation does not carry the topic, take it from the subscription
+        const messageHash = this.safeString (subscription, 'topic');
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
-            const params = this.safeValue (subscription, 'params');
+            const params = this.safeDict (subscription, 'params');
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
@@ -286,14 +367,17 @@ export default class woo extends wooRest {
             }
             const orderbook = this.safeValue (this.orderbooks, symbol);
             orderbook.reset (snapshot);
+            orderbook['nonce'] = this.safeInteger (snapshot, 'timestamp');
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
                 const messageItem = messages[i];
-                const ts = this.safeInteger (messageItem, 'ts');
+                const itemData = this.safeDict (messageItem, 'data');
+                const ts = this.safeInteger (itemData, 'ts');
                 if (ts === undefined) {
                     continue;
                 }
-                if (ts < orderbook['timestamp']) {
+                const currentNonce = this.safeInteger (orderbook, 'nonce');
+                if ((currentNonce !== undefined) && (ts <= currentNonce)) {
                     continue;
                 } else {
                     this.handleOrderBookMessage (client, messageItem, orderbook);
@@ -313,17 +397,18 @@ export default class woo extends wooRest {
 
     handleOrderBookMessage (client: Client, message: any, orderbook: any) {
         const data = this.safeDict (message, 'data');
-        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
-        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
-        const timestamp = this.safeInteger (message, 'ts');
+        this.handleDeltas (orderbook['asks'], this.safeList (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeList (data, 'bids', []));
+        const timestamp = this.safeInteger (data, 'ts');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['nonce'] = timestamp;
         return orderbook;
     }
 
     override handleDelta (bookside: any, delta: any) {
-        const price = this.safeFloat2 (delta, 'price', 0);
-        const amount = this.safeFloat2 (delta, 'quantity', 1);
+        const price = this.safeFloat (delta, 0);
+        const amount = this.safeFloat (delta, 1);
         bookside.store (price, amount);
     }
 
@@ -337,6 +422,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TICKER
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -345,22 +431,17 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const name = 'ticker';
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = market['id'] + '@' + name;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        return await this.watchPublic (topic, message);
+        const topic = 'ticker@' + market['id'];
+        return await this.watchPublic (topic, topic, params);
     }
 
     /**
      * @method
      * @name woo#unWatchTicker
      * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Unsubscribe
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -369,47 +450,49 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let method: Str = undefined;
-        [ method, params ] = this.handleOptionAndParams (params, 'watchTicker', 'method', 'ticker');
         const market = this.market (symbol);
-        const subHash = market['id'] + '@' + method;
-        const topic = 'ticker';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        const subHash = 'ticker@' + market['id'];
+        return await this.unwatchPublic ([ subHash ], 'ticker', [ market['symbol'] ], params);
     }
 
     parseWsTicker (ticker: Dict, market: Market = undefined) {
         //
         //     {
-        //         "symbol": "PERP_BTC_USDT",
-        //         "open": 19441.5,
-        //         "close": 20147.07,
-        //         "high": 20761.87,
-        //         "low": 19320.54,
-        //         "volume": 2481.103,
-        //         "amount": 50037935.0286,
-        //         "count": 3689
+        //         "s": "SPOT_WOO_USDT",
+        //         "o": "0.16112",
+        //         "c": "0.32206",
+        //         "h": "0.33000",
+        //         "l": "0.14251",
+        //         "v": "89040821.98",
+        //         "a": "22493062.21",
+        //         "q": "89040821.98",
+        //         "u": "22493062.21",
+        //         "cnt": 15442,
+        //         "ts": 1614152260000,
+        //         "tts": 1614152250000
         //     }
         //
+        const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (undefined, market),
-            'timestamp': undefined,
-            'datetime': undefined,
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
+            'symbol': this.safeSymbol (this.safeString (ticker, 's'), market),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString (ticker, 'open'),
-            'close': this.safeString (ticker, 'close'),
-            'last': undefined,
+            'open': this.safeString (ticker, 'o'),
+            'close': this.safeString (ticker, 'c'),
+            'last': this.safeString (ticker, 'c'),
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': this.safeString (ticker, 'amount'),
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'a'),
             'info': ticker,
         }, market);
     }
@@ -417,28 +500,27 @@ export default class woo extends wooRest {
     handleTicker (client: Client, message: any) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@ticker",
-        //         "ts": 1657120017000,
+        //         "topic": "ticker@SPOT_WOO_USDT",
+        //         "ts": 1614152270000,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
-        //             "open": 19441.5,
-        //             "close": 20147.07,
-        //             "high": 20761.87,
-        //             "low": 19320.54,
-        //             "volume": 2481.103,
-        //             "amount": 50037935.0286,
-        //             "count": 3689
+        //             "s": "SPOT_WOO_USDT",
+        //             "o": "0.16112",
+        //             "c": "0.32206",
+        //             "h": "0.33000",
+        //             "l": "0.14251",
+        //             "v": "89040821.98",
+        //             "a": "22493062.21",
+        //             "cnt": 15442,
+        //             "ts": 1614152260000
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
-        const marketId = this.safeString (data, 'symbol');
+        const data = this.safeDict (message, 'data', {});
+        const topic = this.safeString (message, 'topic');
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
-        const timestamp = this.safeInteger (message, 'ts');
-        data['date'] = timestamp;
-        const ticker = this.parseWsTicker (data, market);
-        ticker['symbol'] = market['symbol'];
+        // the envelope timestamp is only a fallback, the payload carries its own
+        const ticker = this.parseWsTicker (this.extend ({ 'ts': this.safeInteger (message, 'ts') }, data), market);
         this.tickers[market['symbol']] = ticker;
         client.resolve (ticker, topic);
         return message;
@@ -447,9 +529,9 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchTickers
-     * @see https://docs.woox.io/#24h-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TICKER
+     * @param {string[]} symbols unified symbols of the markets to fetch the ticker for, required, maximum 20 symbols per call
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -458,88 +540,58 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const name = 'tickers';
-        const topic = name;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() requires a symbols argument, the woox v3 websocket api does not support watching all tickers at once');
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 20) {
+            throw new ArgumentsRequired (this.id + ' watchTickers() supports a maximum of 20 symbols per call');
+        }
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            topics.push ('ticker@' + market['id']);
+        }
+        const ticker = await this.watchPublicMultiple (topics, topics, params);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     /**
      * @method
      * @name woo#unWatchTickers
-     * @see https://docs.woox.io/#24h-tickers
      * @description stops watching a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @param {string[]} symbols unified symbol of the market to stop fetching the ticker for
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Unsubscribe
+     * @param {string[]} symbols unified symbols of the markets to stop fetching the ticker for, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols !== undefined) {
-            throw new NotSupported (this.id + ' unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once');
+        symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchTickers() requires a symbols argument');
         }
-        const topic = 'ticker';
-        const subHash = 'tickers';
-        return await this.unwatchPublic (subHash, undefined, topic, params);
-    }
-
-    handleTickers (client: Client, message: any) {
-        //
-        //     {
-        //         "topic":"tickers",
-        //         "ts":1618820615000,
-        //         "data":[
-        //             {
-        //                 "symbol":"SPOT_OKB_USDT",
-        //                 "open":16.297,
-        //                 "close":17.183,
-        //                 "high":24.707,
-        //                 "low":11.997,
-        //                 "volume":0,
-        //                 "amount":0,
-        //                 "count":0
-        //             },
-        //             {
-        //                 "symbol":"SPOT_XRP_USDT",
-        //                 "open":1.3515,
-        //                 "close":1.43794,
-        //                 "high":1.96674,
-        //                 "low":0.39264,
-        //                 "volume":750127.1,
-        //                 "amount":985440.5122,
-        //                 "count":396
-        //             },
-        //         ...
-        //         ]
-        //     }
-        //
-        const topic = this.safeValue (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const timestamp = this.safeInteger (message, 'ts');
-        const result: List = [];
-        for (let i = 0; i < data.length; i++) {
-            const marketId = this.safeString (data[i], 'symbol');
-            const market = this.safeMarket (marketId);
-            const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
-            this.tickers[market['symbol']] = ticker;
-            result.push (ticker);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            topics.push ('ticker@' + market['id']);
         }
-        client.resolve (result, topic);
+        return await this.unwatchPublic (topics, 'ticker', symbols, params);
     }
 
     /**
      * @method
      * @name woo#watchBidsAsks
-     * @see https://docs.woox.io/#bbos
      * @description watches best bid & ask for symbols
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/BBO
+     * @param {string[]} symbols unified symbols of the markets to fetch the bid ask for, required, maximum 20 symbols per call
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -548,16 +600,23 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols);
-        const name = 'bbos';
-        const topic = name;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const bidsasks = await this.watchPublic (topic, message);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks() requires a symbols argument, the woox v3 websocket api does not support watching all bids and asks at once');
+        }
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 20) {
+            throw new ArgumentsRequired (this.id + ' watchBidsAsks() supports a maximum of 20 symbols per call');
+        }
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            topics.push ('bbo@' + market['id']);
+        }
+        const ticker = await this.watchPublicMultiple (topics, topics, params);
         if (this.newUpdates) {
-            return bidsasks;
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
@@ -565,9 +624,9 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#unWatchBidsAsks
-     * @see https://docs.woox.io/#bbos
      * @description unWatches best bid & ask for symbols
-     * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for (not used by woo)
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Unsubscribe
+     * @param {string[]} symbols unified symbols of the markets to stop fetching the bid ask for, required
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
@@ -575,54 +634,47 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if (symbols !== undefined) {
-            throw new NotSupported (this.id + ' unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once');
+        symbols = this.marketSymbols (symbols);
+        if (symbols === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchBidsAsks() requires a symbols argument');
         }
-        const subHash = 'bbos';
-        const topic = 'bidsasks';
-        return await this.unwatchPublic (subHash, undefined, topic, params);
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const market = this.market (symbols[i]);
+            topics.push ('bbo@' + market['id']);
+        }
+        return await this.unwatchPublic (topics, 'bidsasks', symbols, params);
     }
 
     handleBidAsk (client: Client, message: any) {
         //
         //     {
-        //         "topic": "bbos",
-        //         "ts": 1618822376000,
-        //         "data": [
-        //             {
-        //                 "symbol": "SPOT_FIL_USDT",
-        //                 "ask": 159.0318,
-        //                 "askSize": 370.43,
-        //                 "bid": 158.9158,
-        //                 "bidSize": 16
-        //             }
-        //         ]
+        //         "topic": "bbo@SPOT_BTC_USDT",
+        //         "ts": 1618820361552,
+        //         "data": {
+        //             "s": "SPOT_BTC_USDT",
+        //             "ap": "42598.2",
+        //             "aq": "1.05",
+        //             "bp": "42598.1",
+        //             "bq": "2.01",
+        //             "ts": 1618820361540
+        //         }
         //     }
         //
         const topic = this.safeString (message, 'topic');
-        const data = this.safeList (message, 'data', []);
-        const timestamp = this.safeInteger (message, 'ts');
-        const result: Dict = {};
-        for (let i = 0; i < data.length; i++) {
-            const ticker = this.safeDict (data, i);
-            if (ticker === undefined) {
-                continue;
-            }
-            ticker['ts'] = timestamp;
-            const parsedTicker = this.parseWsBidAsk (ticker);
-            const symbol = parsedTicker['symbol'];
-            if (symbol !== undefined) {
-                this.bidsasks[symbol] = parsedTicker;
-            }
-            if (symbol !== undefined) {
-                result[symbol] = parsedTicker;
-            }
+        const data = this.safeDict (message, 'data', {});
+        // the envelope timestamp is only a fallback, the payload carries its own
+        const parsedTicker = this.parseWsBidAsk (this.extend ({ 'ts': this.safeInteger (message, 'ts') }, data));
+        const symbol = parsedTicker['symbol'];
+        if (symbol === undefined) {
+            return;
         }
-        client.resolve (result, topic);
+        this.bidsasks[symbol] = parsedTicker;
+        client.resolve (parsedTicker, topic);
     }
 
     parseWsBidAsk (ticker: any, market: Market = undefined) {
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString (ticker, 's');
         market = this.safeMarket (marketId, market);
         const symbol = this.safeString (market, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
@@ -630,10 +682,10 @@ export default class woo extends wooRest {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'ask': this.safeString (ticker, 'ask'),
-            'askVolume': this.safeString (ticker, 'askSize'),
-            'bid': this.safeString (ticker, 'bid'),
-            'bidVolume': this.safeString (ticker, 'bidSize'),
+            'ask': this.safeString (ticker, 'ap'),
+            'askVolume': this.safeString (ticker, 'aq'),
+            'bid': this.safeString (ticker, 'bp'),
+            'bidVolume': this.safeString (ticker, 'bq'),
             'info': ticker,
         }, market);
     }
@@ -642,7 +694,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.woox.io/#k-line
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/KLINE
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -654,19 +706,13 @@ export default class woo extends wooRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        if ((timeframe !== '1m') && (timeframe !== '5m') && (timeframe !== '15m') && (timeframe !== '30m') && (timeframe !== '1h') && (timeframe !== '1d') && (timeframe !== '1w') && (timeframe !== '1M')) {
-            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M');
+        const supportedTimeframes = [ '1m', '3m', '5m', '15m', '30m', '1h', '2h', '4h', '6h', '12h', '1d', '3d', '1w', '1M' ];
+        if (!this.inArray (timeframe, supportedTimeframes)) {
+            throw new ExchangeError (this.id + ' watchOHLCV timeframe argument must be 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, 1d, 3d, 1w or 1M');
         }
         const market = this.market (symbol);
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const ohlcv = await this.watchPublic (topic, message);
+        const topic = 'kline@' + market['id'] + '@' + timeframe;
+        const ohlcv = await this.watchPublic (topic, topic, params);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (market['symbol'], limit);
         }
@@ -677,11 +723,10 @@ export default class woo extends wooRest {
      * @method
      * @name woo#unWatchOHLCV
      * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.woox.io/#k-line
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Unsubscribe
      * @param {string} symbol unified symbol of the market
      * @param {string} timeframe the length of time each candle represents
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
@@ -689,47 +734,48 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const topic = 'ohlcv';
-        const name = 'kline';
-        const subHash = market['id'] + '@' + name + '_' + interval;
+        const subHash = 'kline@' + market['id'] + '@' + timeframe;
         params['symbolsAndTimeframes'] = [ [ market['symbol'], timeframe ] ];
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        return await this.unwatchPublic ([ subHash ], 'ohlcv', [ market['symbol'] ], params);
     }
 
     handleOHLCV (client: Client, message: any) {
         //
         //     {
-        //         "topic":"SPOT_BTC_USDT@kline_1m",
-        //         "ts":1618822432146,
-        //         "data":{
-        //             "symbol":"SPOT_BTC_USDT",
-        //             "type":"1m",
-        //             "open":56948.97,
-        //             "close":56891.76,
-        //             "high":56948.97,
-        //             "low":56889.06,
-        //             "volume":44.00947568,
-        //             "amount":2504584.9,
-        //             "startTime":1618822380000,
-        //             "endTime":1618822440000
+        //         "topic": "kline@SPOT_BTC_USDT@1m",
+        //         "ts": 1618822432146,
+        //         "data": {
+        //             "s": "SPOT_BTC_USDT",
+        //             "t": "1m",
+        //             "o": "56948.97",
+        //             "c": "56891.76",
+        //             "h": "56948.97",
+        //             "l": "56889.06",
+        //             "v": "44.00947568",
+        //             "a": "2504584.9",
+        //             "st": 1618822380000,
+        //             "et": 1618822440000,
+        //             "ts": 1614152260000
         //         }
         //     }
         //
-        const data = this.safeValue (message, 'data');
-        const topic = this.safeValue (message, 'topic');
-        const marketId = this.safeString (data, 'symbol');
+        const data = this.safeDict (message, 'data', {});
+        const topic = this.safeString (message, 'topic');
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const interval = this.safeString (data, 'type');
-        const timeframe = this.findTimeframe (interval);
+        const interval = this.safeString (data, 't');
+        let timeframe = this.findTimeframe (interval);
+        if (timeframe === undefined) {
+            timeframe = interval;
+        }
         const parsed = [
-            this.safeInteger (data, 'startTime'),
-            this.safeFloat (data, 'open'),
-            this.safeFloat (data, 'high'),
-            this.safeFloat (data, 'low'),
-            this.safeFloat (data, 'close'),
-            this.safeFloat (data, 'volume'),
+            this.safeInteger (data, 'st'),
+            this.safeFloat (data, 'o'),
+            this.safeFloat (data, 'h'),
+            this.safeFloat (data, 'l'),
+            this.safeFloat (data, 'c'),
+            this.safeFloat (data, 'v'),
         ];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
@@ -748,7 +794,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://docs.woox.io/#trade
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/TRADE
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -761,13 +807,8 @@ export default class woo extends wooRest {
         }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = market['id'] + '@trade';
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const trades = await this.watchPublic (topic, message);
+        const topic = 'trade@' + market['id'];
+        const trades = await this.watchPublic (topic, topic, params);
         if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
@@ -777,43 +818,44 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#unWatchTrades
-     * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.woox.io/#trade
-     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @description unWatches information on multiple trades made in a market
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/Unsubscribe
+     * @param {string} symbol unified market symbol of the market trades were made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async unWatchTrades (symbol: string, params = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const topic = 'trades';
-        const subHash = market['id'] + '@trade';
-        return await this.unwatchPublic (subHash, market['symbol'], topic, params);
+        const subHash = 'trade@' + market['id'];
+        return await this.unwatchPublic ([ subHash ], 'trades', [ market['symbol'] ], params);
     }
 
     handleTrade (client: Client, message: any) {
         //
-        // {
-        //     "topic":"SPOT_ADA_USDT@trade",
-        //     "ts":1618820361552,
-        //     "data":{
-        //         "symbol":"SPOT_ADA_USDT",
-        //         "price":1.27988,
-        //         "size":300,
-        //         "side":"BUY",
-        //         "source":0
+        //     {
+        //         "topic": "trade@SPOT_ADA_USDT",
+        //         "ts": 1618820361552,
+        //         "data": {
+        //             "s": "SPOT_ADA_USDT",
+        //             "px": "1.27988",
+        //             "sx": "300",
+        //             "sd": "BUY",
+        //             "src": 0,
+        //             "rpi": false,
+        //             "ts": 1618820361540
+        //         }
         //     }
-        // }
         //
         const topic = this.safeString (message, 'topic');
-        const timestamp = this.safeInteger (message, 'ts');
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
+        // the envelope timestamp is only a fallback, the payload carries its own
+        const trade = this.parseWsTrade (this.extend ({ 'ts': this.safeInteger (message, 'ts') }, data), market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -826,68 +868,72 @@ export default class woo extends wooRest {
 
     override parseWsTrade (trade: any, market: Market = undefined) {
         //
-        //     {
-        //         "symbol":"SPOT_ADA_USDT",
-        //         "timestamp":1618820361552,
-        //         "price":1.27988,
-        //         "size":300,
-        //         "side":"BUY",
-        //         "source":0
-        //     }
-        // private trade
-        //    {
-        //     "msgType": 0,  // execution report
-        //     "symbol": "SPOT_BTC_USDT",
-        //     "clientOrderId": 0,
-        //     "orderId": 54774393,
-        //     "type": "MARKET",
-        //     "side": "BUY",
-        //     "quantity": 0.0,
-        //     "price": 0.0,
-        //     "tradeId": 56201985,
-        //     "executedPrice": 23534.06,
-        //     "executedQuantity": 0.00040791,
-        //     "fee": 2.1E-7,
-        //     "feeAsset": "BTC",
-        //     "totalExecutedQuantity": 0.00040791,
-        //     "avgPrice": 23534.06,
-        //     "status": "FILLED",
-        //     "reason": "",
-        //     "orderTag": "default",
-        //     "totalFee": 2.1E-7,
-        //     "feeCurrency": "BTC",
-        //     "totalRebate": 0,
-        //     "rebateCurrency": "USDT",
-        //     "visible": 0.0,
-        //     "timestamp": 1675406261689,
-        //     "reduceOnly": false,
-        //     "maker": false
-        //   }
+        // public trade
         //
-        const marketId = this.safeString (trade, 'symbol');
+        //     {
+        //         "s": "SPOT_ADA_USDT",
+        //         "px": "1.27988",
+        //         "sx": "300",
+        //         "sd": "BUY",
+        //         "src": 0,
+        //         "rpi": false,
+        //         "ts": 1618820361540
+        //     }
+        //
+        // private executionreport
+        //
+        //     {
+        //         "mt": 0,
+        //         "s": "SPOT_BTC_USDT",
+        //         "cid": "0",
+        //         "oid": 54774393,
+        //         "t": "MARKET",
+        //         "sd": "BUY",
+        //         "ps": "BOTH",
+        //         "sx": "0.0",
+        //         "px": "0.0",
+        //         "tid": 56201985,
+        //         "esx": "0.00040791",
+        //         "epx": "23534.06",
+        //         "f": "2.1E-7",
+        //         "fa": "BTC",
+        //         "tesx": "0.00040791",
+        //         "aepx": "23534.06",
+        //         "ss": "FILLED",
+        //         "rs": "",
+        //         "tg": "default",
+        //         "tf": "2.1E-7",
+        //         "tfc": "BTC",
+        //         "vsx": "0.0",
+        //         "ts": 1675406261689,
+        //         "ro": false,
+        //         "mk": false
+        //     }
+        //
+        const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'executedPrice', 'price');
-        const amount = this.safeString2 (trade, 'executedQuantity', 'size');
+        const price = this.safeString2 (trade, 'epx', 'px');
+        const amount = this.safeString2 (trade, 'esx', 'sx');
         const cost = Precise.stringMul (price, amount);
-        const side = this.safeStringLower (trade, 'side');
-        const timestamp = this.safeInteger (trade, 'timestamp');
-        const maker = this.safeBool (trade, 'maker');
+        const side = this.safeStringLower (trade, 'sd');
+        const timestamp = this.safeInteger (trade, 'ts');
+        const maker = this.safeBool2 (trade, 'mk', 'im'); // algo reports spell it 'im'
         let takerOrMaker: Str = undefined;
         if (maker !== undefined) {
-            takerOrMaker = maker ? 'maker' : 'taker';
+            takerOrMaker = (maker) ? 'maker' : 'taker';
         }
-        const type = this.safeStringLower (trade, 'type');
+        const type = this.safeStringLower (trade, 't');
         let fee: Fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCost = this.safeNumber (trade, 'f');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
+                'currency': this.safeCurrencyCode (this.safeString2 (trade, 'fa', 'tfc')),
             };
         }
         return this.safeTrade ({
-            'id': this.safeString (trade, 'tradeId'),
+            'id': this.safeString (trade, 'tid'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
@@ -895,7 +941,7 @@ export default class woo extends wooRest {
             'price': price,
             'amount': amount,
             'cost': cost,
-            'order': this.safeString (trade, 'orderId'),
+            'order': this.safeString2 (trade, 'oid', 'aid'), // algo reports carry the algo order id
             'takerOrMaker': takerOrMaker,
             'type': type,
             'fee': fee,
@@ -903,71 +949,80 @@ export default class woo extends wooRest {
         }, market);
     }
 
-    checkRequiredUid (error = true) {
-        if (!this.uid) {
-            if (error) {
-                throw new AuthenticationError (this.id + ' requires `uid` credential (woox calls it `application_id`)');
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
-        const client = this.client (url);
-        const messageHash = 'authenticated';
-        const event = 'auth';
-        const future = client.reusableFuture (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
-            const ts = this.nonce ().toString ();
-            const auth = '|' + ts;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
-            const request: Dict = {
-                'event': event,
-                'params': {
-                    'apikey': this.apiKey,
-                    'sign': signature,
-                    'timestamp': ts,
-                },
-            };
-            const message = this.extend (request, params);
-            this.watch (url, messageHash, message, messageHash, message);
+        const now = this.milliseconds ();
+        const expires = this.safeInteger (this.options, 'listenKeyExpires', 0);
+        let listenKey = this.safeString (this.options, 'listenKey');
+        if ((listenKey !== undefined) && (now < expires)) {
+            return listenKey;
         }
-        return await future;
+        const request: Dict = {
+            'type': 'WEBSOCKET',
+        };
+        const response = await this.v3PrivatePostAccountListenKey (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1754400000000,
+        //         "data": {
+        //             "authKey": "l2sfBIAWDzPYaLXAGSyu6EqSMSlnholsm3aYYq0P0RIJLmNPBOVBjm2vDvYPFEjA",
+        //             "expiredTime": 1754486400000
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        listenKey = this.safeString (data, 'authKey');
+        this.options['listenKey'] = listenKey;
+        // creating a new listen key immediately expires the previous one,
+        // and there is no keep-alive endpoint, so reuse this key until its
+        // real expiry and only mint a new one after that or after an
+        // authentication failure
+        const expiredTime = this.safeInteger (data, 'expiredTime'); // in milliseconds, now + 24 hours
+        if (expiredTime !== undefined) {
+            this.options['listenKeyExpires'] = expiredTime - 60000; // 1 minute of safety margin
+        } else {
+            this.options['listenKeyExpires'] = now + 86340000; // 24 hours minus 1 minute of safety margin
+        }
+        return listenKey;
     }
 
-    async watchPrivate (messageHash: any, message: any, params = {}) {
-        await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+    async watchPrivate (messageHash: any, topic: string, params = {}) {
+        const listenKey = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'] + '?key=' + listenKey;
         const requestId = this.requestId (url);
-        const subscribe: Dict = {
-            'id': requestId,
+        const request: Dict = {
+            'id': requestId.toString (),
+            'cmd': 'SUBSCRIBE',
+            'params': [ topic ],
         };
-        const request = this.extend (subscribe, message);
-        return await this.watch (url, messageHash, request, messageHash, subscribe);
+        const subscription: Dict = {
+            'id': requestId.toString (),
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), topic, subscription);
     }
 
-    async watchPrivateMultiple (messageHashes: any, message: any, params = {}) {
-        await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+    async watchPrivateMultiple (messageHashes: any, topics: string[], params = {}) {
+        const listenKey = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'] + '?key=' + listenKey;
         const requestId = this.requestId (url);
-        const subscribe: Dict = {
-            'id': requestId,
+        const request: Dict = {
+            'id': requestId.toString (),
+            'cmd': 'SUBSCRIBE',
+            'params': topics,
         };
-        const request = this.extend (subscribe, message);
-        return await this.watchMultiple (url, messageHashes, request, messageHashes, subscribe);
+        const subscription: Dict = {
+            'id': requestId.toString (),
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, params), topics, subscription);
     }
 
     /**
      * @method
      * @name woo#watchOrders
-     * @see https://docs.woox.io/#executionreport
-     * @see https://docs.woox.io/#algoexecutionreportv2
      * @description watches information on multiple orders made by the user
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/private/Execution_report
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/private/Algo_execution_report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -980,7 +1035,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
         if (symbol !== undefined) {
@@ -988,12 +1043,7 @@ export default class woo extends wooRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const orders = await this.watchPrivate (messageHash, message);
+        const orders = await this.watchPrivate (messageHash, topic, params);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1003,9 +1053,9 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchMyTrades
-     * @see https://docs.woox.io/#executionreport
-     * @see https://docs.woox.io/#algoexecutionreportv2
      * @description watches information on multiple trades made by the user
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/private/Execution_report
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/private/Algo_execution_report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1018,7 +1068,7 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreportv2' : 'executionreport';
+        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
         params = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -1026,12 +1076,7 @@ export default class woo extends wooRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        const trades = await this.watchPrivate (messageHash, message);
+        const trades = await this.watchPrivate (messageHash, topic, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1040,96 +1085,105 @@ export default class woo extends wooRest {
 
     override parseWsOrder (order: any, market: Market = undefined) {
         //
-        //     {
-        //         "symbol": "PERP_BTC_USDT",
-        //         "clientOrderId": 0,
-        //         "orderId": 52952826,
-        //         "type": "LIMIT",
-        //         "side": "SELL",
-        //         "quantity": 0.01,
-        //         "price": 22000,
-        //         "tradeId": 0,
-        //         "executedPrice": 0,
-        //         "executedQuantity": 0,
-        //         "fee": 0,
-        //         "feeAsset": "USDT",
-        //         "totalExecutedQuantity": 0,
-        //         "status": "NEW",
-        //         "reason": '',
-        //         "orderTag": "default",
-        //         "totalFee": 0,
-        //         "visible": 0.01,
-        //         "timestamp": 1657515556798,
-        //         "reduceOnly": false,
-        //         "maker": false
-        //     }
-        //     {
-        //      "symbol": "SPOT_BTC_USDT",
-        //      "rootAlgoOrderId": 2573778,
-        //      "parentAlgoOrderId": 0,
-        //      "algoOrderId": 2573778,
-        //      "clientOrderId": 0,
-        //      "orderTag": "default",
-        //      "algoType": "STOP_LOSS",
-        //      "side": "SELL",
-        //      "quantity": 0.00011,
-        //      "triggerPrice": 98566.67,
-        //      "triggerStatus": "USELESS",
-        //      "price": 0,
-        //      "type": "MARKET",
-        //      "triggerTradePrice": 0,
-        //      "triggerTime": 0,
-        //      "tradeId": 0,
-        //      "executedPrice": 0,
-        //      "executedQuantity": 0,
-        //      "fee": 0,
-        //      "reason": "",
-        //      "feeAsset": "",
-        //      "totalExecutedQuantity": 0,
-        //      "averageExecutedPrice": 0,
-        //      "totalFee": 0,
-        //      "timestamp": 1761030467426,
-        //      "visibleQuantity": 0,
-        //      "reduceOnly": false,
-        //      "triggerPriceType": "MARKET_PRICE",
-        //      "positionSide": "BOTH",
-        //      "feeCurrency": "",
-        //      "totalRebate": 0.0,
-        //      "rebateCurrency": "",
-        //      "triggered": false,
-        //      "maker": false,
-        //      "activated": false,
-        //      "isTriggered": false,
-        //      "isMaker": false,
-        //      "isActivated": false,
-        //      "rootAlgoStatus": "NEW",
-        //      "algoStatus": "NEW"
-        // }
+        // executionreport
         //
-        const orderId = this.safeString2 (order, 'orderId', 'algoOrderId');
-        const marketId = this.safeString (order, 'symbol');
-        market = this.market (marketId);
+        //     {
+        //         "mt": 0,
+        //         "s": "PERP_BTC_USDT",
+        //         "cid": "0",
+        //         "oid": 52952826,
+        //         "t": "LIMIT",
+        //         "sd": "SELL",
+        //         "ps": "BOTH",
+        //         "sx": "0.01",
+        //         "px": "22000",
+        //         "tid": 0,
+        //         "esx": "0",
+        //         "epx": "0",
+        //         "f": "0",
+        //         "fa": "USDT",
+        //         "tesx": "0",
+        //         "aepx": "0",
+        //         "ss": "NEW",
+        //         "rs": "",
+        //         "tg": "default",
+        //         "tf": "0",
+        //         "tfc": "USDT",
+        //         "vsx": "0.01",
+        //         "ts": 1657515556798,
+        //         "ro": false,
+        //         "mk": false,
+        //         "lv": 10,
+        //         "m": "CROSS"
+        //     }
+        //
+        // algoexecutionreport (single item)
+        //
+        //     {
+        //         "s": "SPOT_BTC_USDT",
+        //         "raid": 2573778,
+        //         "paid": 0,
+        //         "aid": 2573778,
+        //         "caid": "0",
+        //         "tg": "default",
+        //         "at": "STOP_LOSS",
+        //         "sd": "SELL",
+        //         "sx": "0.00011",
+        //         "trp": "98566.67",
+        //         "tss": "USELESS",
+        //         "px": "0",
+        //         "t": "MARKET",
+        //         "tpx": "0",
+        //         "tt": 0,
+        //         "tid": 0,
+        //         "epx": "0",
+        //         "esx": "0",
+        //         "f": "0",
+        //         "rs": "",
+        //         "fa": "",
+        //         "tesx": "0",
+        //         "aepx": "0",
+        //         "tf": "0",
+        //         "ts": 1761030467426,
+        //         "vsx": "0",
+        //         "ro": false,
+        //         "trpt": "MARKET_PRICE",
+        //         "ps": "BOTH",
+        //         "tfc": "",
+        //         "it": false,
+        //         "im": false,
+        //         "ia": false,
+        //         "ras": "NEW",
+        //         "as": "NEW"
+        //     }
+        //
+        const orderId = this.safeString2 (order, 'oid', 'aid');
+        const marketId = this.safeString (order, 's');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (order, 'timestamp');
+        const timestamp = this.safeInteger (order, 'ts');
         const fee = {
-            'cost': this.safeString (order, 'totalFee'),
-            'currency': this.safeString (order, 'feeAsset'),
+            'cost': this.safeString (order, 'tf'),
+            'currency': this.safeCurrencyCode (this.safeString2 (order, 'tfc', 'fa')),
         };
-        const priceString = this.safeString (order, 'price');
-        let price = this.safeNumber (order, 'price');
-        const avgPrice = this.safeNumber (order, 'avgPrice');
+        const priceString = this.safeString (order, 'px');
+        let price = this.safeNumber (order, 'px');
+        const avgPrice = this.omitZero (this.safeString (order, 'aepx'));
         if (Precise.stringEq (priceString, '0') && (avgPrice !== undefined)) {
-            price = avgPrice;
+            price = this.parseNumber (avgPrice);
         }
-        const amount = this.safeString (order, 'quantity');
-        const side = this.safeStringLower (order, 'side');
-        const type = this.safeStringLower (order, 'type');
-        const filled = this.safeString2 (order, 'totalExecutedQuantity', 'executed');
-        const rawStatus = this.safeString2 (order, 'status', 'algoStatus');
+        const amount = this.safeString (order, 'sx');
+        const side = this.safeStringLower (order, 'sd');
+        const type = this.safeStringLower (order, 't');
+        const filled = this.safeString (order, 'tesx');
+        const rawStatus = this.safeString2 (order, 'ss', 'as');
         const status = this.parseOrderStatus (rawStatus);
-        const trades = undefined;
-        const clientOrderId = this.safeString (order, 'clientOrderId');
-        const triggerPrice = this.safeString (order, 'triggerPrice');
+        const clientOrderId = this.omitZero (this.safeString2 (order, 'cid', 'caid'));
+        const triggerPrice = this.safeNumber (order, 'trp');
+        let postOnly: Bool = undefined;
+        if (type !== undefined) {
+            postOnly = (type === 'post_only');
+        }
         return this.safeOrder ({
             'info': order,
             'symbol': symbol,
@@ -1139,13 +1193,13 @@ export default class woo extends wooRest {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': timestamp,
             'type': type,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': this.parseTimeInForce (type),
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': triggerPrice,
             'triggerPrice': triggerPrice,
-            'reduceOnly': this.safeBool (order, 'reduceOnly'),
+            'reduceOnly': this.safeBool (order, 'ro'),
             'amount': amount,
             'cost': undefined,
             'average': avgPrice,
@@ -1153,8 +1207,8 @@ export default class woo extends wooRest {
             'remaining': undefined,
             'status': status,
             'fee': fee,
-            'trades': trades,
-        });
+            'trades': undefined,
+        }, market);
     }
 
     handleOrderUpdate (client: Client, message: any) {
@@ -1163,37 +1217,36 @@ export default class woo extends wooRest {
         //         "topic": "executionreport",
         //         "ts": 1657515556799,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
-        //             "clientOrderId": 0,
-        //             "orderId": 52952826,
-        //             "type": "LIMIT",
-        //             "side": "SELL",
-        //             "quantity": 0.01,
-        //             "price": 22000,
-        //             "tradeId": 0,
-        //             "executedPrice": 0,
-        //             "executedQuantity": 0,
-        //             "fee": 0,
-        //             "feeAsset": "USDT",
-        //             "totalExecutedQuantity": 0,
-        //             "status": "NEW",
-        //             "reason": '',
-        //             "orderTag": "default",
-        //             "totalFee": 0,
-        //             "visible": 0.01,
-        //             "timestamp": 1657515556799,
-        //             "reduceOnly": false,
-        //             "maker": false
+        //             "mt": 0,
+        //             "s": "PERP_BTC_USDT",
+        //             "cid": "0",
+        //             "oid": 52952826,
+        //             "t": "LIMIT",
+        //             "sd": "SELL",
+        //             "sx": "0.01",
+        //             "px": "22000",
+        //             "tid": 0,
+        //             "esx": "0",
+        //             "epx": "0",
+        //             "f": "0",
+        //             "fa": "USDT",
+        //             "tesx": "0",
+        //             "ss": "NEW",
+        //             "ts": 1657515556799,
+        //             "ro": false,
+        //             "mk": false
         //         }
         //     }
+        //
+        // algoexecutionreport pushes an array of reports in "data"
         //
         const topic = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         if (Array.isArray (data)) {
-            // algoexecutionreportv2
+            // algoexecutionreport
             for (let i = 0; i < data.length; i++) {
                 const order = data[i];
-                const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+                const tradeId = this.omitZero (this.safeString (order, 'tid'));
                 if (tradeId !== undefined) {
                     this.handleMyTrade (client, order);
                 }
@@ -1201,7 +1254,12 @@ export default class woo extends wooRest {
             }
         } else {
             // executionreport
-            const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
+            const messageType = this.safeInteger (data, 'mt', 0);
+            if (messageType !== 0) {
+                // 1, 2 and 3 are edit-reject, cancel-reject and cancel-all-reject notices
+                return;
+            }
+            const tradeId = this.omitZero (this.safeString (data, 'tid'));
             if (tradeId !== undefined) {
                 this.handleMyTrade (client, data);
             }
@@ -1219,18 +1277,18 @@ export default class woo extends wooRest {
                 this.orders = new ArrayCacheBySymbolById (limit);
             }
             const cachedOrders = this.orders;
-            const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-            const order = this.safeValue (orders, orderId);
+            const orders = this.safeDict (cachedOrders.hashmap, symbol, {});
+            const order = this.safeDict (orders, orderId);
             if (order !== undefined) {
-                const fee = this.safeValue (order, 'fee');
+                const fee = this.safeValue (order, 'fee'); // assigned into the typed Fee field
                 if (fee !== undefined) {
                     parsed['fee'] = fee;
                 }
-                const fees = this.safeValue (order, 'fees');
+                const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
                     (parsed as Dict)['fees'] = fees;
                 }
-                parsed['trades'] = this.safeValue (order, 'trades');
+                parsed['trades'] = this.safeValue (order, 'trades'); // assigned into the typed Trade[] field
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
@@ -1243,34 +1301,29 @@ export default class woo extends wooRest {
 
     handleMyTrade (client: Client, message: any) {
         //
-        //    {
-        //     "msgType": 0,  // execution report
-        //     "symbol": "SPOT_BTC_USDT",
-        //     "clientOrderId": 0,
-        //     "orderId": 54774393,
-        //     "type": "MARKET",
-        //     "side": "BUY",
-        //     "quantity": 0.0,
-        //     "price": 0.0,
-        //     "tradeId": 56201985,
-        //     "executedPrice": 23534.06,
-        //     "executedQuantity": 0.00040791,
-        //     "fee": 2.1E-7,
-        //     "feeAsset": "BTC",
-        //     "totalExecutedQuantity": 0.00040791,
-        //     "avgPrice": 23534.06,
-        //     "status": "FILLED",
-        //     "reason": "",
-        //     "orderTag": "default",
-        //     "totalFee": 2.1E-7,
-        //     "feeCurrency": "BTC",
-        //     "totalRebate": 0,
-        //     "rebateCurrency": "USDT",
-        //     "visible": 0.0,
-        //     "timestamp": 1675406261689,
-        //     "reduceOnly": false,
-        //     "maker": false
-        //   }
+        //     {
+        //         "mt": 0,
+        //         "s": "SPOT_BTC_USDT",
+        //         "cid": "0",
+        //         "oid": 54774393,
+        //         "t": "MARKET",
+        //         "sd": "BUY",
+        //         "sx": "0.0",
+        //         "px": "0.0",
+        //         "tid": 56201985,
+        //         "esx": "0.00040791",
+        //         "epx": "23534.06",
+        //         "f": "2.1E-7",
+        //         "fa": "BTC",
+        //         "tesx": "0.00040791",
+        //         "aepx": "23534.06",
+        //         "ss": "FILLED",
+        //         "tf": "2.1E-7",
+        //         "tfc": "BTC",
+        //         "ts": 1675406261689,
+        //         "ro": false,
+        //         "mk": false
+        //     }
         //
         let myTrades = this.myTrades;
         if (myTrades === undefined) {
@@ -1279,6 +1332,7 @@ export default class woo extends wooRest {
         }
         const trade = this.parseWsTrade (message);
         myTrades.append (trade);
+        this.myTrades = myTrades;
         let messageHash = 'myTrades:' + trade['symbol'];
         client.resolve (myTrades, messageHash);
         messageHash = 'myTrades';
@@ -1288,8 +1342,8 @@ export default class woo extends wooRest {
     /**
      * @method
      * @name woo#watchPositions
-     * @see https://docs.woox.io/#position-push
      * @description watch all open positions
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/private/Position
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum number of positions to fetch
@@ -1302,21 +1356,16 @@ export default class woo extends wooRest {
         }
         const messageHashes: string[] = [];
         symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
-            if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
-            }
+        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
             for (let i = 0; i < symbols.length; i++) {
-                if (symbols === undefined) {
-                    throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
-                }
                 const symbol = symbols[i];
                 messageHashes.push ('positions::' + symbol);
             }
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.uid;
+        const listenKey = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'] + '?key=' + listenKey;
         const client = this.client (url);
         this.setPositionsCache (client, symbols);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
@@ -1325,18 +1374,15 @@ export default class woo extends wooRest {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
         }
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': 'position',
-        };
-        const newPositions = await this.watchPrivateMultiple (messageHashes, request, params);
+        const topics = [ 'position' ];
+        const newPositions = await this.watchPrivateMultiple (messageHashes, topics, params);
         if (this.newUpdates) {
             return newPositions;
         }
         return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
         if (fetchPositionsSnapshot) {
             const messageHash = 'fetchPositionsSnapshot';
@@ -1368,48 +1414,120 @@ export default class woo extends wooRest {
         }
     }
 
+    parseWsPosition (position: Dict, market: Market = undefined) {
+        //
+        //     {
+        //         "s": "PERP_BTC_USDT",
+        //         "h": "1",
+        //         "plq": "0.0002",
+        //         "psq": "0.0",
+        //         "aop": "50100.0",
+        //         "pnl": "-1.55902",
+        //         "roi": "-0.0054",
+        //         "fee": "0.218",
+        //         "sp": "49000",
+        //         "mp": "50000",
+        //         "ot": 1677814653001,
+        //         "aq": 1,
+        //         "lv": 10,
+        //         "m": "ISOLATED",
+        //         "ps": "BOTH",
+        //         "it": "USDT",
+        //         "ia": "1000",
+        //         "il": "10",
+        //         "is": "10",
+        //         "ver": 93454,
+        //         "ts": 1677814653001
+        //     }
+        //
+        const marketId = this.safeString (position, 's');
+        market = this.safeMarket (marketId, market);
+        let size = this.safeString (position, 'h');
+        let side: Str = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else {
+            side = 'short';
+        }
+        const markPrice = this.safeString (position, 'mp');
+        const entryPrice = this.safeString (position, 'aop');
+        const priceDifference = Precise.stringSub (markPrice, entryPrice);
+        const unrealisedPnl = Precise.stringMul (priceDifference, size);
+        size = Precise.stringAbs (size);
+        const notional = Precise.stringMul (size, markPrice);
+        const timestamp = this.safeInteger (position, 'ts');
+        const positionSide = this.safeString (position, 'ps'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
+        return this.safePosition ({
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastUpdateTimestamp': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'maintenanceMargin': undefined,
+            'maintenanceMarginPercentage': undefined,
+            'entryPrice': this.parseNumber (entryPrice),
+            'notional': this.parseNumber (notional),
+            'leverage': this.safeNumber (position, 'lv'),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'marginRatio': undefined,
+            'liquidationPrice': undefined,
+            'markPrice': this.parseNumber (markPrice),
+            'lastPrice': undefined,
+            'collateral': undefined,
+            'marginMode': this.safeStringLower (position, 'm'),
+            'side': side,
+            'percentage': undefined,
+            'hedged': positionSide !== 'BOTH',
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+        });
+    }
+
     handlePositions (client: any, message: any) {
         //
-        //    {
-        //        "topic":"position",
-        //        "ts":1705292345255,
-        //        "data":{
-        //           "positions":{
-        //              "PERP_LTC_USDT":{
-        //                 "holding":1,
-        //                 "pendingLongQty":0,
-        //                 "pendingShortQty":0,
-        //                 "averageOpenPrice":71.53,
-        //                 "pnl24H":0,
-        //                 "fee24H":0.07153,
-        //                 "settlePrice":71.53,
-        //                 "markPrice":71.32098452065145,
-        //                 "version":7886,
-        //                 "openingTime":1705292304267,
-        //                 "pnl24HPercentage":0,
-        //                 "adlQuantile":1,
-        //                 "positionSide":"BOTH"
-        //              }
-        //           }
-        //        }
-        //    }
+        //     {
+        //         "topic": "position",
+        //         "ts": 1677814655101,
+        //         "data": {
+        //             "positions": [
+        //                 {
+        //                     "s": "PERP_BTC_USDT",
+        //                     "h": "1",
+        //                     "plq": "0.0002",
+        //                     "psq": "0.0",
+        //                     "aop": "50100.0",
+        //                     "pnl": "-1.55902",
+        //                     "mp": "50000",
+        //                     "ot": 1677814653001,
+        //                     "aq": 1,
+        //                     "lv": 10,
+        //                     "m": "ISOLATED",
+        //                     "ps": "BOTH",
+        //                     "ver": 93454,
+        //                     "ts": 1677814653001
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        const data = this.safeValue (message, 'data', {});
-        const rawPositions = this.safeValue (data, 'positions', {});
-        const postitionsIds = Object.keys (rawPositions);
+        const data = this.safeDict (message, 'data', {});
+        const rawPositions = this.safeList (data, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
         const cache = this.positions;
         const newPositions: List = [];
-        for (let i = 0; i < postitionsIds.length; i++) {
-            const marketId = postitionsIds[i];
-            const market = this.safeMarket (marketId);
-            const rawPosition = rawPositions[marketId];
-            const position = this.parsePosition (rawPosition, market);
+        for (let i = 0; i < rawPositions.length; i++) {
+            const rawPosition = rawPositions[i];
+            const position = this.parseWsPosition (rawPosition);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
+            const messageHash = 'positions::' + position['symbol'];
             client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');
@@ -1417,9 +1535,9 @@ export default class woo extends wooRest {
 
     /**
      * @method
-     * @see https://docs.woox.io/#balance
      * @name woo#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/private/Balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1428,61 +1546,52 @@ export default class woo extends wooRest {
             await this.loadMarkets ();
         }
         const topic = 'balance';
-        const messageHash = topic;
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        return await this.watchPrivate (messageHash, message);
+        return await this.watchPrivate (topic, topic, params);
     }
 
     handleBalance (client: any, message: any) {
         //
-        //   {
-        //       "topic": "balance",
-        //       "ts": 1695716888789,
-        //       "data": {
-        //          "balances": {
-        //             "USDT": {
-        //                "holding": 266.56059176,
-        //                "frozen": 0,
-        //                "interest": 0,
-        //                "pendingShortQty": 0,
-        //                "pendingExposure": 0,
-        //                "pendingLongQty": 0,
-        //                "pendingLongExposure": 0,
-        //                "version": 37,
-        //                "staked": 0,
-        //                "unbonding": 0,
-        //                "vault": 0,
-        //                "averageOpenPrice": 0,
-        //                "pnl24H": 0,
-        //                "fee24H": 0,
-        //                "markPrice": 1,
-        //                "pnl24HPercentage": 0
-        //             }
-        //          }
+        //     {
+        //         "topic": "balance",
+        //         "ts": 1695716888789,
+        //         "data": {
+        //             "balances": [
+        //                 {
+        //                     "t": "USDT",
+        //                     "h": "266.56059176",
+        //                     "f": "0",
+        //                     "i": "0",
+        //                     "psq": "0",
+        //                     "plq": "0",
+        //                     "s": "0",
+        //                     "u": "0",
+        //                     "v": "0",
+        //                     "aop": "0",
+        //                     "pnl": "0",
+        //                     "fee": "0",
+        //                     "mp": "1",
+        //                     "ver": 37,
+        //                     "ts": 1695716888789
+        //                 }
+        //             ]
+        //         }
+        //     }
         //
-        //    }
-        //
-        const data = this.safeValue (message, 'data');
-        const balances = this.safeValue (data, 'balances');
-        const keys = Object.keys (balances);
+        const data = this.safeDict (message, 'data', {});
+        const balances = this.safeList (data, 'balances', []);
         const ts = this.safeInteger (message, 'ts');
         this.balance['info'] = data;
         this.balance['timestamp'] = ts;
         this.balance['datetime'] = this.iso8601 (ts);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const value = balances[key];
-            const code = this.safeCurrencyCode (key);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 't'));
             let account = this.account ();
             if ((code !== undefined) && (code in this.balance)) {
                 account = this.balance[code];
             }
-            const total = this.safeString (value, 'holding');
-            const used = this.safeString (value, 'frozen');
+            const total = this.safeString (balance, 'h');
+            const used = this.safeString (balance, 'f');
             account['total'] = total;
             account['used'] = used;
             account['free'] = Precise.stringSub (total, used);
@@ -1498,7 +1607,7 @@ export default class woo extends wooRest {
      * @method
      * @name woo#watchFundingRate
      * @description watch the current funding rate
-     * @see https://docs.woox.io/#estfundingrate
+     * @see https://developer.woox.io/api-reference/endpoint/websocket/FUNDING_RATE
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1509,29 +1618,60 @@ export default class woo extends wooRest {
         }
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = market['id'] + '@estfundingrate';
-        const request: Dict = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        return await this.watchPublic (topic, message);
+        const topic = 'estfundingrate@' + market['id'];
+        return await this.watchPublic (topic, topic, params);
+    }
+
+    parseWsFundingRate (fundingRate: any, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "s": "PERP_BTC_USDT",
+        //         "r": "0.0001",
+        //         "ft": 1618820360000,
+        //         "ts": 1618820200000
+        //     }
+        //
+        const marketId = this.safeString (fundingRate, 's');
+        market = this.safeMarket (marketId, market);
+        const nextFundingTimestamp = this.safeInteger (fundingRate, 'ft');
+        const timestamp = this.safeInteger (fundingRate, 'ts');
+        return {
+            'info': fundingRate,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': this.parseNumber ('0'),
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'fundingRate': this.safeNumber (fundingRate, 'r'),
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': undefined,
+        } as FundingRate;
     }
 
     handleFundingRate (client: Client, message: any) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@estfundingrate",
-        //         "ts": 1771484159016,
+        //         "topic": "estfundingrate@PERP_BTC_USDT",
+        //         "ts": 1618820361552,
         //         "data": {
-        //             "symbol": "PERP_BTC_USDT",
-        //             "fundingRate": 0.0001,
-        //             "fundingTs": 1771488000000
+        //             "s": "PERP_BTC_USDT",
+        //             "r": "0.0001",
+        //             "ft": 1618820360000,
+        //             "ts": 1618820200000
         //         }
         //     }
         //
         const data = this.safeDict (message, 'data', {});
-        const fundingRate = this.parseFundingRate (data);
+        const fundingRate = this.parseWsFundingRate (data);
         const symbol = fundingRate['symbol'];
         if (symbol !== undefined) {
             this.fundingRates[symbol] = fundingRate;
@@ -1542,7 +1682,13 @@ export default class woo extends wooRest {
 
     handleErrorMessage (client: Client, message: any): Bool {
         //
-        // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
+        //     {
+        //         "id": "1",
+        //         "cmd": "SUBSCRIBE",
+        //         "success": false,
+        //         "time": 1710780997216,
+        //         "message": "Auth is needed."
+        //     }
         //
         if (!('success' in message)) {
             return false;
@@ -1551,23 +1697,21 @@ export default class woo extends wooRest {
         if (success) {
             return false;
         }
-        const errorMessage = this.safeString (message, 'errorMsg');
+        const errorMessage = this.safeString2 (message, 'message', 'errorMsg');
         try {
+            const feedback = this.id + ' ' + this.json (message);
             if (errorMessage !== undefined) {
-                const feedback = this.id + ' ' + this.json (message);
-                this.throwExactlyMatchedException (this.exceptions['exact'], errorMessage, feedback);
+                this.throwExactlyMatchedException (this.exceptions['ws']['exact'], errorMessage, feedback);
             }
-            return false;
+            throw new ExchangeError (feedback);
         } catch (error) {
             if (error instanceof AuthenticationError) {
-                const messageHash = 'authenticated';
-                client.reject (error, messageHash);
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-            } else {
-                client.reject (error);
+                // the cached listen key is dead or expired, drop it so that
+                // the next watchPrivate call mints a fresh one
+                this.options['listenKey'] = undefined;
+                this.options['listenKeyExpires'] = 0;
             }
+            client.reject (error);
             return true;
         }
     }
@@ -1576,91 +1720,80 @@ export default class woo extends wooRest {
         //
         //     {
         //         "id": "2",
-        //         "event": "unsubscribe",
+        //         "cmd": "UN_SUBSCRIBE",
         //         "success": true,
-        //         "ts": 1759568478343,
-        //         "data": "SPOT_BTC_USDT@orderbook"
+        //         "time": 1759568478343,
+        //         "data": [ "orderbook10@SPOT_BTC_USDT" ]
         //     }
         //
-        const subscribeHash = this.safeString (message, 'data');
-        const unsubscribeHash = 'unsubscribe::' + subscribeHash;
-        const subscription = this.safeDict (client.subscriptions, unsubscribeHash, {});
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
-        const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
-        for (let i = 0; i < subMessageHashes.length; i++) {
-            const subHash = subMessageHashes[i];
-            const unsubHash = unsubMessageHashes[i];
-            this.cleanUnsubscription (client, subHash, unsubHash);
+        const topics = this.safeList (message, 'data', []);
+        for (let i = 0; i < topics.length; i++) {
+            const topic = topics[i];
+            const unsubHash = 'unsubscribe::' + topic;
+            const subscription = this.safeDict (client.subscriptions, unsubHash);
+            if (subscription === undefined) {
+                continue;
+            }
+            const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+            const unsubMessageHashes = this.safeList (subscription, 'unsubMessageHashes', []);
+            for (let j = 0; j < unsubMessageHashes.length; j++) {
+                if (unsubMessageHashes[j] === unsubHash) {
+                    this.cleanUnsubscription (client, subMessageHashes[j], unsubHash);
+                }
+            }
+            this.cleanCache (subscription);
         }
-        this.cleanCache (subscription);
     }
 
     override handleMessage (client: Client, message: any) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const methods: Dict = {
-            'ping': this.handlePing,
-            'pong': this.handlePong,
-            'subscribe': this.handleSubscribe,
-            'unsubscribe': this.handleUnSubscription,
-            'orderbook': this.handleOrderBook,
-            'orderbookupdate': this.handleOrderBook,
-            'ticker': this.handleTicker,
-            'tickers': this.handleTickers,
-            'kline': this.handleOHLCV,
-            'auth': this.handleAuth,
-            'executionreport': this.handleOrderUpdate,
-            'algoexecutionreportv2': this.handleOrderUpdate,
-            'trade': this.handleTrade,
-            'balance': this.handleBalance,
-            'position': this.handlePositions,
-            'bbos': this.handleBidAsk,
-            'estfundingrate': this.handleFundingRate,
-        };
-        const event = this.safeString (message, 'event');
-        let method = this.safeValue (methods, event);
-        if (method !== undefined) {
-            method.call (this, client, message);
+        const cmd = this.safeString (message, 'cmd');
+        if (cmd !== undefined) {
+            if (cmd === 'PING') {
+                this.handlePing (client, message);
+            } else if (cmd === 'PONG') {
+                this.handlePong (client, message);
+            } else if (cmd === 'SUBSCRIBE') {
+                this.handleSubscribe (client, message);
+            } else if (cmd === 'UN_SUBSCRIBE') {
+                this.handleUnSubscription (client, message);
+            }
             return;
         }
         const topic = this.safeString (message, 'topic');
         if (topic !== undefined) {
-            method = this.safeValue (methods, topic);
+            const methods: Dict = {
+                'ticker': this.handleTicker,
+                'orderbook10': this.handleOrderBook,
+                'orderbookupdate': this.handleOrderBook,
+                'kline': this.handleOHLCV,
+                'trade': this.handleTrade,
+                'bbo': this.handleBidAsk,
+                'estfundingrate': this.handleFundingRate,
+                'executionreport': this.handleOrderUpdate,
+                'algoexecutionreport': this.handleOrderUpdate,
+                'balance': this.handleBalance,
+                'position': this.handlePositions,
+            };
+            const name = this.safeString (topic.split ('@'), 0);
+            const method = this.safeValue (methods, name);
             if (method !== undefined) {
                 method.call (this, client, message);
-                return;
-            }
-            const splitTopic = topic.split ('@');
-            const splitLength = splitTopic.length;
-            if (splitLength === 2) {
-                const name = this.safeString (splitTopic, 1);
-                if (name === undefined) {
-                    return;
-                }
-                method = this.safeValue (methods, name);
-                if (method !== undefined) {
-                    method.call (this, client, message);
-                    return;
-                }
-                const splitName = name.split ('_');
-                const splitNameLength = splitTopic.length;
-                if (splitNameLength === 2) {
-                    method = this.safeValue (methods, this.safeString (splitName, 0));
-                    if (method !== undefined) {
-                        method.call (this, client, message);
-                    }
-                }
             }
         }
     }
 
     override ping (client: Client) {
-        return { 'event': 'ping' };
+        return { 'cmd': 'PING', 'ts': this.milliseconds () };
     }
 
     async pong (client: Client, message: any) {
-        await client.send ({ 'event': 'pong' });
+        //
+        //     { "cmd": "PING", "ts": 1750641291182 }
+        //
+        await client.send ({ 'cmd': 'PONG', 'ts': this.milliseconds () });
     }
 
     handlePing (client: Client, message: any) {
@@ -1669,7 +1802,7 @@ export default class woo extends wooRest {
 
     handlePong (client: Client, message: any) {
         //
-        // { event: "pong", ts: 1657117026090 }
+        //     { "cmd": "PONG", "success": true, "time": 1750641291322 }
         //
         client.lastPong = this.milliseconds ();
         return message;
@@ -1679,9 +1812,10 @@ export default class woo extends wooRest {
         //
         //     {
         //         "id": "666888",
-        //         "event": "subscribe",
+        //         "cmd": "SUBSCRIBE",
         //         "success": true,
-        //         "ts": 1657117712212
+        //         "time": 1657117712212,
+        //         "data": [ "orderbookupdate@SPOT_BTC_USDT@50" ]
         //     }
         //
         const id = this.safeString (message, 'id');
@@ -1692,29 +1826,5 @@ export default class woo extends wooRest {
             method.call (this, client, message, subscription);
         }
         return message;
-    }
-
-    handleAuth (client: Client, message: any) {
-        //
-        //     {
-        //         "event": "auth",
-        //         "success": true,
-        //         "ts": 1657463158812
-        //     }
-        //
-        const messageHash = 'authenticated';
-        const success = this.safeValue (message, 'success');
-        if (success) {
-            // client.resolve (message, messageHash);
-            const future = this.safeValue (client.futures, 'authenticated');
-            future.resolve (true);
-        } else {
-            const error = new AuthenticationError (this.json (message));
-            client.reject (error, messageHash);
-            // allows further authentication attempts
-            if (messageHash in client.subscriptions) {
-                delete client.subscriptions['authenticated'];
-            }
-        }
     }
 }
