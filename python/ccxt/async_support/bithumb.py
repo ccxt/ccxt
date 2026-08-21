@@ -279,7 +279,6 @@ class bithumb(Exchange, ImplicitAPI):
                 },
             },
             'commonCurrencies': {
-                'ALT': 'ArchLoot',
                 'FTC': 'FTC2',
                 'SOC': 'Soda Coin',
             },
