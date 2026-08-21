@@ -433,6 +433,50 @@
                 }
             }
         ],
+        "fetchLastPrices": [
+            {
+                "description": "market state last price",
+                "method": "fetchLastPrices",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ],
+                "httpResponse": {
+                    "markets": [
+                        {
+                            "id": 1,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "lst": 642517
+                            }
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/AUSD:AUSD": {
+                        "symbol": "BTC/AUSD:AUSD",
+                        "timestamp": 1787037820000,
+                        "datetime": "2026-08-18T07:23:40.000Z",
+                        "price": 64251.7,
+                        "side": null,
+                        "info": {
+                            "id": 1,
+                            "state": {
+                                "at": {
+                                    "b": 97001267,
+                                    "t": 1787037820000
+                                },
+                                "lst": 642517
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchFundingRates": [
             {
                 "description": "current funding rates",

@@ -3,7 +3,7 @@
 import Exchange from './abstract/perpl.js';
 import { BadRequest, BadSymbol, NotSupported, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
-import type { Currencies, CurrencyInterface, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, Market, NullableDict, OHLCV, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, CurrencyInterface, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -39,13 +39,17 @@ export default class perpl extends Exchange {
                 'editOrder': false,
                 'editOrderWs': false,
                 'fetchBalance': false,
+                'fetchBidsAsks': 'emulated',
                 'fetchCurrencies': true,
                 'fetchCurrenciesWs': false,
+                'fetchFundingIntervals': 'emulated',
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchL2OrderBook': false,
+                'fetchLastPrices': true,
                 'fetchMarkets': true,
+                'fetchMarkPrices': 'emulated',
                 'fetchMyTrades': false,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': false,
@@ -511,6 +515,19 @@ export default class perpl extends Exchange {
         return this.parseFundingRates (markets, symbols);
     }
 
+    /**
+     * @method
+     * @name perpl#fetchFundingIntervals
+     * @description fetch the funding rate interval for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    override async fetchFundingIntervals (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
+        return await this.fetchFundingRates (symbols, params);
+    }
+
     override parseFundingRate (info: any, market: Market = undefined): FundingRate {
         //
         //     {
@@ -848,6 +865,88 @@ export default class perpl extends Exchange {
             throw new BadSymbol (this.id + ' fetchTicker() ticker not found for ' + symbol);
         }
         return ticker as Ticker;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchMarkPrices
+     * @description fetches mark prices for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the mark prices for, all market mark prices are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return await this.fetchTickers (symbols, params);
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices for, all market last prices are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of last price structures
+     */
+    override async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV1PubContext (params);
+        //
+        //     {
+        //         "markets": [
+        //             {
+        //                 "id": 1,
+        //                 "state": {
+        //                     "at": { "b": 97001267, "t": 1787037820000 },
+        //                     "lst": 642517
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const markets = this.safeList (response, 'markets', []);
+        return this.parseLastPrices (markets, symbols);
+    }
+
+    override parseLastPrice (info: any, market: Market = undefined): LastPrice {
+        //
+        //     {
+        //         "id": 1,
+        //         "state": {
+        //             "at": { "b": 97001267, "t": 1787037820000 },
+        //             "lst": 642517
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (info, 'id');
+        market = this.safeMarket (marketId, market);
+        const state = this.safeDict (info, 'state', {});
+        const at = this.safeDict (state, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const pricePrecision = this.numberToString (market['precision']['price']);
+        return {
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'price': this.parseNumber (Precise.stringMul (this.safeString (state, 'lst'), pricePrecision)),
+            'side': undefined,
+            'info': info,
+        } as LastPrice;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchBidsAsks
+     * @description fetches the bid and ask price and volume for multiple markets
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1pubcontext
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        return await this.fetchTickers (symbols, params);
     }
 
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {

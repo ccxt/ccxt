@@ -81,6 +81,54 @@
                 ]
             }
         ],
+        "fetchFundingIntervals": [
+            {
+                "description": "fetch funding intervals",
+                "method": "fetchFundingIntervals",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchMarkPrices": [
+            {
+                "description": "fetch mark prices",
+                "method": "fetchMarkPrices",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchLastPrices": [
+            {
+                "description": "fetch last prices",
+                "method": "fetchLastPrices",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "fetch bids and asks",
+                "method": "fetchBidsAsks",
+                "url": "https://app.perpl.xyz/api/v1/pub/context",
+                "input": [
+                    [
+                        "BTC/AUSD:AUSD"
+                    ]
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "fetch a current funding rate",
