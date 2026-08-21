@@ -4139,24 +4139,51 @@ export default class phemex extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const collateral = this.safeString2 (position, 'positionMargin', 'positionMarginRv');
-        const notionalString = this.safeString2 (position, 'value', 'valueRv');
-        const maintenanceMarginPercentageString = this.safeString2 (position, 'maintMarginReq', 'maintMarginReqRr');
+        // the coin-settled contract websocket channel only carries the scaled Ev/Ep/Er variants
+        let collateral = this.safeString2 (position, 'positionMargin', 'positionMarginRv');
+        if (collateral === undefined) {
+            collateral = this.fromEv (this.safeString (position, 'positionMarginEv'), market);
+        }
+        let notionalString = this.safeString2 (position, 'value', 'valueRv');
+        if (notionalString === undefined) {
+            notionalString = this.fromEv (this.safeString (position, 'valueEv'), market);
+        }
+        let maintenanceMarginPercentageString = this.safeString2 (position, 'maintMarginReq', 'maintMarginReqRr');
+        if (maintenanceMarginPercentageString === undefined) {
+            maintenanceMarginPercentageString = this.fromEr (this.safeString (position, 'maintMarginReqEr'), market);
+        }
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const initialMarginString = this.safeString2 (position, 'assignedPosBalance', 'assignedPosBalanceRv');
+        let initialMarginString = this.safeString2 (position, 'assignedPosBalance', 'assignedPosBalanceRv');
+        if (initialMarginString === undefined) {
+            initialMarginString = this.fromEv (this.safeString (position, 'assignedPosBalanceEv'), market);
+        }
         const initialMarginPercentageString = Precise.stringDiv (initialMarginString, notionalString);
-        const liquidationPrice = this.safeNumber2 (position, 'liquidationPrice', 'liquidationPriceRp');
-        const markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
+        let liquidationPriceString = this.safeString2 (position, 'liquidationPrice', 'liquidationPriceRp');
+        if (liquidationPriceString === undefined) {
+            liquidationPriceString = this.fromEp (this.safeString (position, 'liquidationPriceEp'), market);
+        }
+        let markPriceString = this.safeString2 (position, 'markPrice', 'markPriceRp');
+        if (markPriceString === undefined) {
+            markPriceString = this.fromEp (this.safeString (position, 'markPriceEp'), market);
+        }
         const contracts = this.safeStringN (position, [ 'size', 'sizeRq', 'closedSizeRq' ]);
         const contractSize = this.safeValue (market, 'contractSize');
         const contractSizeString = this.numberToString (contractSize);
-        const leverage = this.parseNumber (Precise.stringAbs ((this.safeString2 (position, 'leverage', 'leverageRr'))));
-        const entryPriceString = this.safeStringN (position, [ 'avgEntryPrice', 'avgEntryPriceRp', 'openPrice' ]);
+        let leverageString = this.safeString2 (position, 'leverage', 'leverageRr');
+        if (leverageString === undefined) {
+            leverageString = this.fromEr (this.safeString (position, 'leverageEr'), market);
+        }
+        const leverage = this.parseNumber (Precise.stringAbs (leverageString));
+        let entryPriceString = this.safeStringN (position, [ 'avgEntryPrice', 'avgEntryPriceRp', 'openPrice' ]);
+        if (entryPriceString === undefined) {
+            entryPriceString = this.fromEp (this.safeString (position, 'avgEntryPriceEp'), market);
+        }
         const rawSide = this.safeString (position, 'side');
         let side: Str = undefined;
-        if (rawSide !== undefined) {
-            const isLong = (rawSide === 'Buy' || rawSide === '1');
-            side = isLong ? 'long' : 'short';
+        if ((rawSide === 'Buy') || (rawSide === '1')) {
+            side = 'long';
+        } else if ((rawSide === 'Sell') || (rawSide === '2')) {
+            side = 'short';
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
@@ -4179,7 +4206,17 @@ export default class phemex extends Exchange {
         }
         const unrealizedPnl = Precise.stringMul (Precise.stringMul (priceDiff, contracts), contractSizeString);
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
-        const apiUnrealizedPnl = this.safeString (position, 'unRealisedPnlRv', unrealizedPnl);
+        let apiUnrealizedPnl = this.safeString2 (position, 'unRealisedPnlRv', 'unrealisedPnlRv');
+        if (apiUnrealizedPnl === undefined) {
+            apiUnrealizedPnl = this.fromEv (this.safeString (position, 'unrealisedPnlEv'), market);
+        }
+        if (apiUnrealizedPnl === undefined) {
+            apiUnrealizedPnl = unrealizedPnl;
+        }
+        let realizedPnlString = this.safeString2 (position, 'curTermRealisedPnlRv', 'realizedPnlRv');
+        if (realizedPnlString === undefined) {
+            realizedPnlString = this.fromEv (this.safeString (position, 'curTermRealisedPnlEv'), market);
+        }
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         const isCross = this.safeValue (position, 'crossMargin');
         const timestamp = this.safeInteger (position, 'openedTimeNs');
@@ -4190,10 +4227,10 @@ export default class phemex extends Exchange {
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
-            'realizedPnl': this.safeNumber2 (position, 'curTermRealisedPnlRv', 'realizedPnlRv'),
+            'realizedPnl': this.parseNumber (realizedPnlString),
             'unrealizedPnl': this.parseNumber (apiUnrealizedPnl),
             'leverage': leverage,
-            'liquidationPrice': liquidationPrice,
+            'liquidationPrice': this.parseNumber (liquidationPriceString),
             'collateral': this.parseNumber (collateral),
             'notional': this.parseNumber (notionalString),
             'markPrice': this.parseNumber (markPriceString), // markPrice lags a bit ¯\_(ツ)_/¯
