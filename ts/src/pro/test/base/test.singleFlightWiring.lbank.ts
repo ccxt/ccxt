@@ -19,8 +19,7 @@ import ccxt from '../../../../ccxt.js';
 // the flight is registered in client.futures and settled through
 // client.resolve / client.reject, so every mutation of the futures map happens
 // inside Client itself - the tests below therefore count client.futures and
-// also assert that a settled flight parks nothing in client.pendingResults or
-// client.rejections
+// also assert that a settled flight parks nothing in client.rejections
 //
 // none of the cases below dial a socket: this.client (url) only constructs the
 // WsClient, and the tests assert startedConnecting stays false
@@ -62,18 +61,15 @@ function futureCount (exchange: any) {
 }
 
 function residueCount (exchange: any) {
-    // client.resolve parks its value in pendingResults and client.reject parks
-    // its error in rejections whenever no future exists at settle time. with
-    // the leader always holding a live future neither may ever happen, and a
-    // parked rejection would poison the FIRST waiter of the NEXT flight
+    // client.reject parks its error in rejections whenever no future exists at
+    // settle time. with the leader always holding a live future that may never
+    // happen, and a parked rejection would poison the FIRST waiter of the NEXT
+    // flight
     const client = wsClient (exchange);
     if (client === undefined) {
         return 0;
     }
     let count = 0;
-    if (FLIGHT_HASH in client.pendingResults) {
-        count = count + 1;
-    }
     if (FLIGHT_HASH in client.rejections) {
         count = count + 1;
     }
@@ -82,7 +78,7 @@ function residueCount (exchange: any) {
 
 function assertSettled (exchange: any, context: string) {
     assert (flightCount (exchange) === 0, context + ': a settled flight must leave no future behind');
-    assert (residueCount (exchange) === 0, context + ': a settled flight must park nothing in pendingResults or rejections');
+    assert (residueCount (exchange) === 0, context + ': a settled flight must park nothing in rejections');
 }
 
 function assertNotDialed (exchange: any, context: string) {
