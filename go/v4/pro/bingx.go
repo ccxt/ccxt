@@ -1812,16 +1812,28 @@ func (this *BingxCore) Authenticate(optionalArgs ...any) <-chan any {
 		var lastAuthenticatedTime any = this.SafeInteger(this.Options, "lastAuthenticatedTime", 0)
 		var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 3600000) // 1 hour
 		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)) {
-			// single-flight leader election, see #29393: racing fetches mint
+			// single-flight leader election on a never-dialed client, see
+			// https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
 			// different keys and the key rides the private url, so losers
-			// connect their watchers to an orphaned stream
+			// connect their watchers to an orphaned stream. client.futures is
+			// the registry: client.future () is the atomic check-and-insert
+			// and client.resolve () / client.reject () settle and remove the
+			// entry under the same lock in every port
+			var messageHash any = "authenticate"
+			var client any = this.Client("authenticationFlights")
+			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+				// a flight is already in progress - wake when the leader
+				// settles it: the listenKey is then in the bucket
 
-			isLeader := (<-this.SingleFlightAcquire("authenticate"))
-			ccxt.PanicOnError(isLeader)
-			if !ccxt.IsTrue(isLeader) {
+				retRes146816 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+				ccxt.PanicOnError(retRes146816)
 
 				return nil
 			}
+			// reusableFuture (), not future () - the two match in
+			// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
+			// that the trailing suspension point below would panic on
+			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 			{
 				func(this *BingxCore) (ret_ any) {
@@ -1832,9 +1844,11 @@ func (this *BingxCore) Authenticate(optionalArgs ...any) <-chan any {
 							}
 							ret_ = func(this *BingxCore) any {
 								// catch block:
-								this.SingleFlightReject("authenticate", e)
-								panic(e)
-
+								// reject the flight - waiters throw and the next caller re-leads.
+								// no rethrow here, the trailing suspension point rethrows to this
+								// caller AND attaches the handler an alone leader needs
+								client.(ccxt.ClientInterface).Reject(e, messageHash)
+								return nil
 							}(this)
 						}
 					}()
@@ -1849,11 +1863,16 @@ func (this *BingxCore) Authenticate(optionalArgs ...any) <-chan any {
 					ccxt.AddElementToObject(this.Options, "listenKey", listenKey)
 					ccxt.AddElementToObject(this.Options, "lastAuthenticatedTime", time)
 					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, params)
-					this.SingleFlightResolve("authenticate", listenKey)
+					// settle the flight: client.resolve () removes the future from
+					// client.futures and wakes every waiter
+					client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 					return nil
 				}(this)
 
 			}
+
+			retRes149512 := <-future.(*ccxt.Future).Await()
+			ccxt.PanicOnError(retRes149512)
 		}
 		return nil
 	}()
@@ -1883,17 +1902,17 @@ func (this *BingxCore) Pong(client any, message any) <-chan any {
 				// try block:
 				if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
 
-					retRes149416 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-					ccxt.PanicOnError(retRes149416)
+					retRes151116 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+					ccxt.PanicOnError(retRes151116)
 				} else {
 					var ping any = this.SafeString(message, "ping")
 					var time any = this.SafeString(message, "time")
 
-					retRes149816 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+					retRes151516 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 						"pong": ping,
 						"time": time,
 					}))
-					ccxt.PanicOnError(retRes149816)
+					ccxt.PanicOnError(retRes151516)
 				}
 				return nil
 			}(this)

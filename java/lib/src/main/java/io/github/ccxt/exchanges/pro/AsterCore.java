@@ -1572,18 +1572,28 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
-                // single-flight leader election on the exchange-level flight map:
-                // concurrent watch calls on a cold instance each passed the
-                // staleness check and fetched their own listenKey (last write
-                // wins, earlier keys orphan) - now one leader fetches per type
-                // and waiters wake when the flight settles, see #29393
-                Object flightHash = Helpers.add("authenticate:", type);
-                Object isLeader = (this.singleFlightAcquire(flightHash)).join();
-                if (!Helpers.isTrue(isLeader))
+                // single-flight leader election on a never-dialed client, see
+                // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+                // calls on a cold instance each passed the staleness check and
+                // fetched their own listenKey (last write wins, earlier keys
+                // orphan) - now one leader fetches per type and waiters wake when
+                // the flight settles. client.futures is the registry:
+                // client.future () is the atomic check-and-insert and
+                // client.resolve () / client.reject () settle and remove the entry
+                // under the same lock in every port
+                Object messageHash = Helpers.add("authenticate:", type);
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    // the leader settled the flight: the listenKey is in the bucket
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
                     return null;
                 }
+                // reusableFuture (), not future () - the two match in
+                // js/py/php/cs/java, but go's Client.Future () yields a channel
+                // that the trailing suspension point below would panic on
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
                     Object response = new java.util.HashMap<String, Object>() {{}};
@@ -1606,12 +1616,17 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                         put( "type", finalType );
                     }}, parameters);
                     this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
-                    this.singleFlightResolve(flightHash, listenKey);
+                    // settle the flight: client.resolve () removes the future from
+                    // client.futures and wakes every waiter
+                    client.resolve(listenKey, messageHash);
                 } catch(Exception e)
                 {
-                    this.singleFlightReject(flightHash, e);
-                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
+                    // reject the flight - waiters throw and the next caller re-leads.
+                    // no rethrow here, the trailing suspension point rethrows to this
+                    // caller AND attaches the handler an alone leader needs
+                    client.reject(e, messageHash);
                 }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });

@@ -1022,16 +1022,22 @@ func (this *BithumbCore) CreateOrder(symbol any, typeVar any, side any, amount a
 			"payment_currency": GetValue(market, "quote"),
 			"units":            amount,
 		}
-		var method any = "privatePostTradePlace"
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "limit")) {
 			AddElementToObject(request, "price", price)
 			AddElementToObject(request, "type", Ternary(IsTrue((IsEqual(side, "buy"))), "bid", "ask"))
-		} else {
-			method = Add("privatePostTradeMarket", this.Capitalize(side))
-		}
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostTradePlace(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(side, "buy")) {
+
+			response = (<-this.PrivatePostTradeMarketBuy(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivatePostTradeMarketSell(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 		var id any = this.SafeString(response, "order_id")
 		if IsTrue(IsEqual(id, nil)) {
 			panic(InvalidOrder(Add(this.Id, " createOrder() did not return an order id")))
@@ -1074,8 +1080,8 @@ func (this *BithumbCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91212 := (<-this.LoadMarkets())
-			PanicOnError(retRes91212)
+			retRes91412 := (<-this.LoadMarkets())
+			PanicOnError(retRes91412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1261,8 +1267,8 @@ func (this *BithumbCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes107612 := (<-this.LoadMarkets())
-			PanicOnError(retRes107612)
+			retRes107812 := (<-this.LoadMarkets())
+			PanicOnError(retRes107812)
 		}
 		var market any = this.Market(symbol)
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1369,9 +1375,9 @@ func (this *BithumbCore) CancelUnifiedOrder(order any, optionalArgs ...any) <-ch
 			"side": GetValue(order, "side"),
 		}
 
-		retRes115515 := (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
-		PanicOnError(retRes115515)
-		ch <- retRes115515
+		retRes115715 := (<-this.CancelOrder(GetValue(order, "id"), GetValue(order, "symbol"), this.Extend(request, params)))
+		PanicOnError(retRes115715)
+		ch <- retRes115715
 		return nil
 
 	}()
@@ -1405,8 +1411,8 @@ func (this *BithumbCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes117412 := (<-this.LoadMarkets())
-			PanicOnError(retRes117412)
+			retRes117612 := (<-this.LoadMarkets())
+			PanicOnError(retRes117612)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
