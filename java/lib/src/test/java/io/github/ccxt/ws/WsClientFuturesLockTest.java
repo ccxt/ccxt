@@ -18,17 +18,9 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Regressions for the torn compound check-then-act in the WsClient futures
- * settle path.
- *
- * WsClient is genuinely multi-threaded: the message pump runs on a virtual
- * single-thread executor, the ping loop on its own virtual thread, and watch()
- * callers arrive on whatever thread invoked them. future(), resolve() and
- * reject() each perform a compound check-then-act across the futures /
- * rejections maps, so per-map ConcurrentHashMap atomicity is not sufficient —
- * the pair must be mutated under one monitor.
- *
- * These tests never connect, so they need no network access.
+ * WsClient futures/rejections lock: concurrent future() must join one flight,
+ * reject-all/close must settle registered futures, and a retained rejection
+ * must fail the next consumer. Tests never connect.
  */
 class WsClientFuturesLockTest {
 
@@ -53,12 +45,7 @@ class WsClientFuturesLockTest {
         return (Map<String, Object>) client.futures;
     }
 
-    /**
-     * Single-flight parity: concurrent callers for one hash must join ONE
-     * flight (the same Future instance), and one resolve must settle all of
-     * them. This is what makes the `client.futures`-registered authenticate()
-     * of #29992-#30000 collapse N concurrent logins into one.
-     */
+    /** Concurrent future() calls for one hash share one Future; one resolve settles all. */
     @Test
     @Timeout(value = 60, unit = TimeUnit.SECONDS)
     void testConcurrentFutureCallsJoinOneFlight() throws Exception {
@@ -100,12 +87,7 @@ class WsClientFuturesLockTest {
         client.close();
     }
 
-    /**
-     * A rejection queued with no waiter is retained in rejections and must
-     * fail the next future() fast; a later resolve clears the retained error
-     * so a recovered stream does not poison the next consumer
-     * (ts Client.ts:177,199; cs Client.cs:149,172).
-     */
+    /** A no-waiter reject is retained and fails the next future(); a later resolve clears it. */
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void testRetainedRejectionFailsNextConsumerAndResolveClearsIt() throws Exception {
@@ -117,8 +99,7 @@ class WsClientFuturesLockTest {
                 "a post-error consumer must observe the retained rejection");
         assertThrows(ExecutionException.class, () -> afterError.getFuture().get(1, TimeUnit.SECONDS));
 
-        // the stream recovered: the retained error is gone, so the next
-        // consumer registers a fresh pending future instead of failing
+        // Retained error is gone; the next consumer registers a fresh pending future.
         client.resolve("fresh", HASH);
         Future afterRecovery = client.future(HASH);
         assertFalse(afterRecovery.isDone(),
@@ -129,11 +110,7 @@ class WsClientFuturesLockTest {
         client.close();
     }
 
-    /**
-     * reject-all and close() must settle registered futures: a registered
-     * future must end up rejected, never left pending in a map nobody will
-     * walk again.
-     */
+    /** reject-all and close() must reject registered futures and drain the map. */
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void testRejectAllAndCloseSettleRegisteredFutures() throws Exception {
@@ -153,12 +130,7 @@ class WsClientFuturesLockTest {
         assertFalse(futuresOf(b).containsKey(HASH), "close() must drain the futures map");
     }
 
-    /**
-     * reject() racing future() must not strand a consumer either: every
-     * consumer must end up either rejected (error delivered) or holding a
-     * registered future the later close() will settle — never blocked on a
-     * future that no map still references.
-     */
+    /** future() racing reject() must not leave a consumer on a future no map references. */
     @Test
     @Timeout(value = 120, unit = TimeUnit.SECONDS)
     void testFutureRacingRejectNeverStrandsAConsumer() throws Exception {
@@ -185,9 +157,7 @@ class WsClientFuturesLockTest {
                             rejected.incrementAndGet();
                             return;
                         } catch (TimeoutException te) {
-                            // legal only if the error landed before this consumer
-                            // registered: the future must still be in the map so a
-                            // later reject/close can settle it
+                            // Timeout is legal if the error landed first: future still in the map.
                             if (futuresOf(client).containsKey(hash)) {
                                 pendingButRegistered.incrementAndGet();
                             } else {

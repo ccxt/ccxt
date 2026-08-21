@@ -104,38 +104,9 @@ public class WsClient {
     // Guards atomic complete-then-replace of `connected` and ping-thread bookkeeping.
     private final Object connectedLock = new Object();
     /**
-     * Guards the futures / rejections pair.
-     *
-     * Java is the only port besides go and c# whose Client is genuinely
-     * multi-threaded — the message pump runs on `messageExecutor` (a virtual
-     * single-thread executor, see below), the ping loop on its own virtual
-     * thread, and `watch()` callers on whatever thread they came from. The
-     * per-map atomicity a ConcurrentHashMap gives is not enough: future(),
-     * resolve() and reject() each perform a compound check-then-act across
-     * two maps. future() drains a retained rejection while registering the
-     * consumer, resolve() removes the future while clearing a retained
-     * rejection, and reject() removes the future or retains the error — each
-     * is a compound check-then-act across the two maps that per-map
-     * ConcurrentHashMap atomicity cannot make atomic.
-     *
-     * This is the java cousin of the go lost wakeup fixed in #29719 and of the
-     * c# one fixed in #29772 (cs/ccxt/ws/Client.cs:25-30,
-     * go/v4/exchange_client.go:53). The ts, python and php lanes ride
-     * single-threaded event loops and need no monitor.
-     *
-     * Lock ordering: futuresSync is a LEAF monitor — no code path holding it
-     * ever acquires connectedLock (every block below does map bookkeeping
-     * only). The reverse nesting is possible: onError() completes `connected`
-     * while holding connectedLock and a continuation running inline there may
-     * call future()/resolve(). Because the leaf direction is never taken, the
-     * two monitors cannot invert and cannot deadlock.
-     * Future.resolve()/reject() complete a CompletableFuture, which may run
-     * awaiter continuations inline on this thread — those are user callbacks
-     * that can re-enter the client (e.g. call future() again), so every
-     * settlement happens AFTER the monitor is released, exactly like
-     * cs/ccxt/ws/Client.cs:113-123. Re-entering future() from such a
-     * continuation is safe for the same reason: the caller no longer holds
-     * futuresSync, and it is reentrant anyway.
+     * Guards the futures / rejections pair. ConcurrentHashMap is per-map only;
+     * future/resolve/reject are a compound check-then-act across both maps.
+     * Settle after releasing: CompletableFuture may run continuations inline.
      */
     private final Object futuresSync = new Object();
     private volatile Thread pingThread;
@@ -210,13 +181,7 @@ public class WsClient {
     /**
      * Get or create a Future for a messageHash.
      * A rejection queued before the future existed fails it fast.
-     *
-     * The map reads/writes run under futuresSync so a concurrent resolve()
-     * or reject() cannot interleave between the futures insert and the
-     * rejections drain — see the futuresSync javadoc. Settlement happens
-     * outside the monitor
-     * (parity with cs/ccxt/ws/Client.cs:113-123) because completing a
-     * CompletableFuture may run awaiter continuations inline on this thread.
+     * Mutate under futuresSync; settle outside so continuations can re-enter.
      */
     public Future future(String messageHash) {
         Future f;
@@ -238,8 +203,7 @@ public class WsClient {
     /**
      * Resolve a specific future by messageHash.
      * Removes it from the map so the next watch() call creates a fresh one.
-     * With no consumer future the value is dropped, matching the pre-monitor
-     * behaviour.
+     * With no consumer future the value is dropped.
      */
     public void resolve(Object content, Object messageHash2) {
         if (messageHash2 == null) {
@@ -276,8 +240,7 @@ public class WsClient {
                 f.reject(error);
             }
         } else {
-            // Reject all pending futures — drain under the monitor, settle
-            // outside it so continuations cannot re-enter while we hold it.
+            // Drain under the monitor; settle outside so continuations cannot re-enter.
             var settled = new java.util.ArrayList<Future>();
             synchronized (futuresSync) {
                 for (String key : new java.util.ArrayList<>(futuresMap().keySet())) {
@@ -697,12 +660,8 @@ public class WsClient {
             pt.interrupt();
         }
 
-        // Drain under futuresSync so a concurrent resolve()/future() cannot
-        // slip a fresh future into the map after we walked past it, then
-        // settle outside the monitor (same discipline as reject(error, null)).
-        // Prefer the typed closeReason (set by Exchange.close()) over a bare
-        // RuntimeException, so consumers can `catch (ExchangeClosedByUser)` and
-        // tell deliberate shutdown from a remote-side disconnect.
+        // Drain under futuresSync, then settle outside the monitor.
+        // Prefer closeReason (ExchangeClosedByUser) over a bare RuntimeException.
         Throwable rejectionReason = (this.closeReason != null)
                 ? this.closeReason
                 : new io.github.ccxt.errors.ExchangeClosedByUser("Connection closed by the user");
