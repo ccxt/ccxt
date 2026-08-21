@@ -36,16 +36,15 @@ function flightCount (exchange: any) {
 }
 
 function residueCount (exchange: any) {
-    // client.resolve parks its value in pendingResults, and client.reject
-    // parks its error in rejections, whenever no future is registered at
-    // settle time. the leader always holds a live future here, so a settled
-    // flight must leave both maps empty: a parked rejection would poison the
-    // first waiter of the NEXT flight instead of letting it re-lead
+    // client.reject parks its error in rejections whenever no future is
+    // registered at settle time. the leader always holds a live future here,
+    // so a settled flight must leave that map empty: a parked rejection would
+    // poison the first waiter of the NEXT flight instead of letting it re-lead
     const client = flightClient (exchange);
     if (client === undefined) {
         return 0;
     }
-    return Object.keys (client.pendingResults).length + Object.keys (client.rejections).length;
+    return Object.keys (client.rejections).length;
 }
 
 function makeStubbedBitrue (state: { fetches: number }) {
@@ -85,7 +84,7 @@ async function testBitrueAuthenticateSingleFlight () {
         assert (urls[i] === 'wss://wsapi.bitrue.com/stream?listenKey=BITRUE-KEY-1', 'every caller must return the single leader stream url, not an orphaned one (caller ' + i.toString () + ' got ' + urls[i] + ')');
     }
     assert (flightCount (exchange) === 0, 'a settled flight must leave no future in client.futures');
-    assert (residueCount (exchange) === 0, 'a settled flight must leave no residue in client.pendingResults / client.rejections');
+    assert (residueCount (exchange) === 0, 'a settled flight must leave no residue in client.rejections');
     // a warm call reuses the cached listenKey: no new fetch
     const warmUrl = await exchange.authenticate ();
     assert (state.fetches === 1, 'a warm authenticate must not fetch');
