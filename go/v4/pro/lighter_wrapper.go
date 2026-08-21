@@ -608,6 +608,122 @@ func (this *Lighter) UnWatchOrders(options ...ccxt.UnWatchOrdersOptions) (any, e
 	return res, nil
 }
 
+/**
+ * @method
+ * @name lighter#createOrderWs
+ * @description create a trade order
+ * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+ * @param {string} symbol unified symbol of the market to create an order in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} amount how much of currency you want to trade in units of base currency
+ * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+ * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+ * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+ * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+ * @param {int} [params.nonce] nonce for the account
+ * @param {int} [params.apiKeyIndex] apiKeyIndex
+ * @param {int} [params.accountIndex] accountIndex
+ * @param {int} [params.orderExpiry] orderExpiry
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Lighter) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWsOptions) (ccxt.Order, error) {
+
+	opts := ccxt.CreateOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CreateOrderWs(symbol, typeVar, side, amount, price, params)
+	if ccxt.IsError(res) {
+		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewOrder(res), nil
+}
+
+/**
+ * @method
+ * @name lighter#cancelOrderWs
+ * @description cancel multiple orders
+ * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+ * @param {string} id order id
+ * @param {string} [symbol] unified market symbol, default is undefined
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.accountIndex] account index
+ * @param {string} [params.apiKeyIndex] api key index
+ * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Lighter) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error) {
+
+	opts := ccxt.CancelOrderWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CancelOrderWs(id, symbol, params)
+	if ccxt.IsError(res) {
+		return ccxt.Order{}, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewOrder(res), nil
+}
+
+/**
+ * @method
+ * @name lighter#cancelAllOrdersWs
+ * @description cancel all open orders in a market
+ * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+ * @param {string} [symbol] unified market symbol of the market to cancel orders in
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.accountIndex] account index
+ * @param {string} [params.apiKeyIndex] api key index
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Lighter) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error) {
+
+	opts := ccxt.CancelAllOrdersWsOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.CancelAllOrdersWs(symbol, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return ccxt.NewOrderArray(res), nil
+}
+
 // missing typed methods from base
 // nolint
 func (this *Lighter) LoadMarkets(params ...any) (map[string]ccxt.MarketInterface, error) {
@@ -1006,14 +1122,8 @@ func (this *Lighter) Transfer(code string, amount float64, fromAccount string, t
 func (this *Lighter) Withdraw(code string, amount float64, address string, options ...ccxt.WithdrawOptions) (ccxt.Transaction, error) {
 	return this.exchangeTyped.Withdraw(code, amount, address, options...)
 }
-func (this *Lighter) CancelAllOrdersWs(options ...ccxt.CancelAllOrdersWsOptions) ([]ccxt.Order, error) {
-	return this.exchangeTyped.CancelAllOrdersWs(options...)
-}
 func (this *Lighter) CancelOrdersWs(ids []string, options ...ccxt.CancelOrdersWsOptions) ([]ccxt.Order, error) {
 	return this.exchangeTyped.CancelOrdersWs(ids, options...)
-}
-func (this *Lighter) CancelOrderWs(id string, options ...ccxt.CancelOrderWsOptions) (ccxt.Order, error) {
-	return this.exchangeTyped.CancelOrderWs(id, options...)
 }
 func (this *Lighter) CreateLimitBuyOrderWs(symbol string, amount float64, price float64, options ...ccxt.CreateLimitBuyOrderWsOptions) (ccxt.Order, error) {
 	return this.exchangeTyped.CreateLimitBuyOrderWs(symbol, amount, price, options...)
@@ -1041,9 +1151,6 @@ func (this *Lighter) CreateOrdersWs(orders []ccxt.OrderRequest, options ...ccxt.
 }
 func (this *Lighter) CreateOrderWithTakeProfitAndStopLossWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWithTakeProfitAndStopLossWsOptions) (ccxt.Order, error) {
 	return this.exchangeTyped.CreateOrderWithTakeProfitAndStopLossWs(symbol, typeVar, side, amount, options...)
-}
-func (this *Lighter) CreateOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreateOrderWsOptions) (ccxt.Order, error) {
-	return this.exchangeTyped.CreateOrderWs(symbol, typeVar, side, amount, options...)
 }
 func (this *Lighter) CreatePostOnlyOrderWs(symbol string, typeVar string, side string, amount float64, options ...ccxt.CreatePostOnlyOrderWsOptions) (ccxt.Order, error) {
 	return this.exchangeTyped.CreatePostOnlyOrderWs(symbol, typeVar, side, amount, options...)

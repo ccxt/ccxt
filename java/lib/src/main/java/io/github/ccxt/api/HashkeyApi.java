@@ -353,9 +353,9 @@ public class HashkeyApi extends Exchange
      * Calls the privateGetApiV1Account endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1Account (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1Account (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiV1Account", optionalArgs);
     }

@@ -2183,7 +2183,11 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscriptionHash);
                 }
             }
-            ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            Object subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
+            if (Helpers.isTrue(!Helpers.isEqual(subscriptionMsg, null)))
+            {
+                ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
+            }
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             var error = new InvalidNonce(Helpers.add(this.id, " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);

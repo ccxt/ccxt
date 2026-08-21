@@ -42,7 +42,8 @@ public class FoxbitCore extends FoxbitApi
                 put( "createMarketBuyOrder", true );
                 put( "createMarketSellOrder", true );
                 put( "createOrder", true );
-                put( "fecthOrderBook", true );
+                put( "createOrders", true );
+                put( "editOrder", true );
                 put( "fetchBalance", true );
                 put( "fetchCanceledOrders", true );
                 put( "fetchClosedOrders", true );
@@ -56,7 +57,10 @@ public class FoxbitCore extends FoxbitApi
                 put( "fetchOHLCV", true );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );
+                put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
+                put( "fetchOrdersByStatus", true );
+                put( "fetchStatus", true );
                 put( "fetchTicker", true );
                 put( "fetchTickers", true );
                 put( "fetchTrades", true );
@@ -2523,6 +2527,8 @@ public class FoxbitCore extends FoxbitApi
         }
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
+            put( "X-FB-CLIENT", "ccxt" );
+            put( "X-FB-CLIENT-VERSION", FoxbitCore.this.getCcxtVersion() );
         }};
         if (Helpers.isTrue(Helpers.isEqual(urlPath, "private")))
         {

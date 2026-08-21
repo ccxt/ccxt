@@ -35,6 +35,7 @@ public class OkxCore extends OkxApi
                 put( "future", true );
                 put( "option", true );
                 put( "addMargin", true );
+                put( "borrowCrossMargin", true );
                 put( "cancelAllOrders", false );
                 put( "cancelAllOrdersAfter", true );
                 put( "cancelOrder", true );
@@ -124,6 +125,7 @@ public class OkxCore extends OkxApi
                 put( "fetchOrderTrades", true );
                 put( "fetchPosition", true );
                 put( "fetchPositionHistory", "emulated" );
+                put( "fetchPositionMode", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsForSymbol", true );
                 put( "fetchPositionsHistory", true );
@@ -639,6 +641,33 @@ public class OkxCore extends OkxApi
                         put( "asset/convert/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", Helpers.divide(5, 3) );
                         }} );
+                        put( "fiat/deposit-payment-methods", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/withdrawal-payment-methods", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/deposit-order-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/deposit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/withdrawal-order-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/buy-sell/currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
+                        put( "fiat/buy-sell/currency-pair", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
+                        put( "fiat/buy-sell/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
                         put( "account/instruments", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -1141,6 +1170,18 @@ public class OkxCore extends OkxApi
                         }} );
                         put( "asset/convert/trade", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "fiat/create-withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/cancel-withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "fiat/buy-sell/quote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "fiat/buy-sell/trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
                         }} );
                         put( "account/bills-history-archive", new java.util.HashMap<String, Object>() {{
                             put( "cost", 72000 );
@@ -3400,7 +3441,7 @@ public class OkxCore extends OkxApi
             symbols = this.marketSymbols(symbols);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
@@ -3643,7 +3684,7 @@ public class OkxCore extends OkxApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market, null);
+        Object res = this.handleMarketTypeAndParams("fetchOHLCV", market);
         Object type = Helpers.GetValue(res, 0);
         Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(type, "spot"))))) ? 5 : 6;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
@@ -9091,7 +9132,7 @@ public class OkxCore extends OkxApi
         return new java.util.HashMap<String, Object>() {{
             put( "currency", OkxCore.this.safeCurrencyCode(ccy) );
             put( "rate", OkxCore.this.safeNumber2(info, "interestRate", "rate") );
-            put( "period", 86400000 );
+            put( "period", 3600000 );
             put( "timestamp", timestamp );
             put( "datetime", OkxCore.this.iso8601(timestamp) );
             put( "info", info );
@@ -9123,6 +9164,8 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(borrowRateHistories, code, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
                 Object borrowRateStructure = this.parseBorrowRate(item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                Helpers.addElementToObject(borrowRateStructure, "period", 31536000000L);
                 Object borrrowRateCode = Helpers.GetValue(borrowRateHistories, code);
                 ((java.util.List<Object>)borrrowRateCode).add(borrowRateStructure);
             }

@@ -182,13 +182,13 @@ abstract class bitrue extends \ccxt\Exchange {
         return $this->request('depth', array('fapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapi_v1_public_get_ticker($params = array()) {
         return $this->request('ticker', array('fapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function fapi_v1_public_get_klines($params = array()) {
         return $this->request('klines', array('fapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
@@ -302,13 +302,13 @@ abstract class bitrue extends \ccxt\Exchange {
         return $this->request('depth', array('dapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function dapi_v1_public_get_ticker($params = array()) {
         return $this->request('ticker', array('dapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function dapi_v1_public_get_klines($params = array()) {
         return $this->request('klines', array('dapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
@@ -590,13 +590,13 @@ abstract class bitrue extends \ccxt\Exchange {
         return $this->request('depth', array('fapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function fapiV1PublicGetTicker($params = array()) {
         return $this->request('ticker', array('fapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function fapiV1PublicGetKlines($params = array()) {
         return $this->request('klines', array('fapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
@@ -710,13 +710,13 @@ abstract class bitrue extends \ccxt\Exchange {
         return $this->request('depth', array('dapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>|list<mixed>
      */
     public function dapiV1PublicGetTicker($params = array()) {
         return $this->request('ticker', array('dapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));
     }
     /**
-     * @return array<string, mixed>
+     * @return list<mixed>
      */
     public function dapiV1PublicGetKlines($params = array()) {
         return $this->request('klines', array('dapi', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 0.24));

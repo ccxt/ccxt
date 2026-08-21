@@ -2283,7 +2283,7 @@ func (this *MexcCore) HandleUnsubscriptions(client any, messageHashes any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var subMessageHash any = ccxt.Replace(messageHash, "unsubscribe:", "")
-		this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "ticker"), 0)) {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
 			if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(symbol, "unsubscribe"), 0)) {
@@ -2303,7 +2303,8 @@ func (this *MexcCore) HandleUnsubscriptions(client any, messageHashes any) {
 		} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "candles"), 0)) {
 			var splitHashes any = ccxt.Split(messageHash, ":")
 			var symbol any = this.SafeString(splitHashes, 2)
-			if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(splitHashes), 4)) {
+			var splitHashesLength any = ccxt.GetArrayLength(splitHashes) // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+			if ccxt.IsTrue(ccxt.IsGreaterThan(splitHashesLength, 4)) {
 				symbol = ccxt.Add(symbol, ccxt.Add(":", this.SafeString(splitHashes, 3)))
 			}
 			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((ccxt.InOp(this.Ohlcvs, symbol)))) {
@@ -2350,8 +2351,8 @@ func (this *MexcCore) Authenticate(subscriptionHash any, optionalArgs ...any) <-
 		var isFetching any = this.SafeBool(this.Options, "listenKeyFetching", false)
 		if ccxt.IsTrue(isFetching) {
 
-			retRes203212 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes203212)
+			retRes203312 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes203312)
 
 			ch <- this.SafeString(this.Options, "listenKey")
 			return nil
@@ -2437,8 +2438,8 @@ func (this *MexcCore) KeepAliveListenKey(listenKey any, optionalArgs ...any) <-c
 				}()
 				// try block:
 
-				retRes206712 := (<-this.SpotPrivatePutUserDataStream(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes206712)
+				retRes206812 := (<-this.SpotPrivatePutUserDataStream(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes206812)
 				var listenKeyRefreshRate any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1200000)
 				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, listenKey, params)
 				return nil

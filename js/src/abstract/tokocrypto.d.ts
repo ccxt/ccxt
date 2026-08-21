@@ -7,8 +7,8 @@ interface Exchange {
     binanceGetTrades(params?: {}): Promise<List>;
     binanceGetAggTrades(params?: {}): Promise<List>;
     binanceGetHistoricalTrades(params?: {}): Promise<List>;
-    binanceGetKlines(params?: {}): Promise<Dict>;
-    binanceGetTicker24hr(params?: {}): Promise<List>;
+    binanceGetKlines(params?: {}): Promise<List>;
+    binanceGetTicker24hr(params?: {}): Promise<Dict | List>;
     binanceGetTickerPrice(params?: {}): Promise<Dict>;
     binanceGetTickerBookTicker(params?: {}): Promise<List>;
     binanceGetExchangeInfo(params?: {}): Promise<Dict>;

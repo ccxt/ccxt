@@ -40,6 +40,7 @@ public partial class hashkey : Exchange
                 { "createMarketOrderWithCost", false },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
+                { "createOrders", true },
                 { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -86,6 +87,7 @@ public partial class hashkey : Exchange
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
                 { "fetchIsolatedPositions", false },
+                { "fetchLastPrices", true },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
                 { "fetchLeverages", false },
@@ -1817,6 +1819,12 @@ public partial class hashkey : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         object last = this.safeString(ticker, "c");
+        object baseVolume = this.safeString(ticker, "v");
+        if (isTrue(isTrue(getValue(market, "contract")) && isTrue((!isEqual(getValue(market, "contractSize"), null)))))
+        {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(getValue(market, "contractSize")));
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1835,7 +1843,7 @@ public partial class hashkey : Exchange
             { "change", null },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "v") },
+            { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString(ticker, "qv") },
             { "info", ticker },
         }, market);
@@ -1881,7 +1889,7 @@ public partial class hashkey : Exchange
             { "symbol", getValue(market, "symbol") },
             { "timestamp", null },
             { "datetime", null },
-            { "price", this.safeNumber(entry, "p") },
+            { "price", this.safeNumberOmitZero(entry, "p") },
             { "side", null },
             { "info", entry },
         };

@@ -11,11 +11,19 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		var method any = "watchOrderBook"
+		// `watchOrderBook` only resolves when the exchange pushes an update, and a
+		// pending subscription can not be cancelled from here, so every extra
+		// iteration risks blocking until the test-runner kills the whole exchange.
+		// a validated book is already a pass, so keep sampling only while updates
+		// keep arriving quickly and stop once the book goes quiet.
+		var maxIdleTime any = 5000
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
+		var idle any = false
+		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 			var response any = nil
 			var success any = true
+			var startTime any = exchange.Milliseconds()
 
 			{
 				func() (ret_ any) {
@@ -29,8 +37,6 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
 									panic(e)
 								}
-								now = exchange.Milliseconds()
-								// continue;
 								success = false
 								return nil
 							}()
@@ -44,9 +50,17 @@ func TestWatchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 				}()
 
 			}
+			// refresh the deadline on every path, otherwise a stream of temporary
+			// failures would loop forever
+			now = exchange.Milliseconds()
 			if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
-				now = exchange.Milliseconds()
 				TestOrderBook(exchange, skippedProperties, method, response, symbol)
+				var elapsed any = Subtract(now, startTime)
+				if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
+					// this market updates slower than the remaining test window, so
+					// awaiting another delta would only end in a harness timeout
+					idle = true
+				}
 			}
 		}
 

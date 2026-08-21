@@ -39,8 +39,8 @@ func (this *WeexCore) Describe() any {
 			"unWatchMyTrades":            true,
 			"unWatchOHLCV":               true,
 			"unWatchOHLCVForSymbols":     true,
-			"unWatchOrderBook":           false,
-			"unWatchOrderBookForSymbols": false,
+			"unWatchOrderBook":           true,
+			"unWatchOrderBookForSymbols": true,
 			"unWatchOrders":              true,
 			"unWatchPositions":           true,
 			"unWatchTicker":              true,
@@ -2356,7 +2356,7 @@ func (this *WeexCore) HandlePositions(client any, message any) {
 		cache.(ccxt.Appender).Append(position)
 		ccxt.AppendToArray(&newPositions, position)
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "positions::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -2424,7 +2424,7 @@ func (this *WeexCore) HandleSubscriptionStatus(client any, message any) any {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 			var unSubHash any = this.SafeString(messageHashes, i)
 			var subHash any = this.SafeString(subHashes, i)
-			this.CleanUnsubscription(client.(*ccxt.Client), subHash, unSubHash, subHashIsPrefix)
+			this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, subHashIsPrefix)
 		}
 		this.CleanCache(subscription)
 	}

@@ -1,11 +1,10 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
+_List = list[object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
-    public_get_public_currency = publicGetPublicCurrency = Entry[_List]('public/currency', 'public', 'GET', {'cost': 10})
+    public_get_public_currency = publicGetPublicCurrency = Entry[_Dict]('public/currency', 'public', 'GET', {'cost': 10})
     public_get_public_currency_currency = publicGetPublicCurrencyCurrency = Entry[_Dict]('public/currency/{currency}', 'public', 'GET', {'cost': 10})
     public_get_public_symbol = publicGetPublicSymbol = Entry[_Dict]('public/symbol', 'public', 'GET', {'cost': 10})
     public_get_public_symbol_symbol = publicGetPublicSymbolSymbol = Entry[_Dict]('public/symbol/{symbol}', 'public', 'GET', {'cost': 10})

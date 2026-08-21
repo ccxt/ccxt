@@ -1,12 +1,11 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
+_Dict = dict[str, object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     www_get_order_fetchmarkets = wwwGetOrderFetchMarkets = Entry[_List]('order/fetchMarkets', 'www', 'GET', {'cost': 1})
-    www_get_order_fetchtickers = wwwGetOrderFetchTickers = Entry[_List]('order/fetchTickers', 'www', 'GET', {'cost': 1})
+    www_get_order_fetchtickers = wwwGetOrderFetchTickers = Entry[_Dict]('order/fetchTickers', 'www', 'GET', {'cost': 1})
     www_get_order_fetchorderbook = wwwGetOrderFetchOrderbook = Entry[_Dict]('order/fetchOrderbook', 'www', 'GET', {'cost': 1})
     www_get_order_gettickerwithvolume = wwwGetOrderGetTickerWithVolume = Entry[_Dict]('order/getTickerWithVolume', 'www', 'GET', {'cost': 1})
     www_get_exchangedata_ohlc = wwwGetExchangeDataOhlc = Entry[_List]('exchangeData/ohlc', 'www', 'GET', {'cost': 1})

@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_v1_public_api_limits = publicGetV1PublicApiLimits = Entry[_Dict]('v1/public/api_limits', 'public', 'GET', {'cost': 1})

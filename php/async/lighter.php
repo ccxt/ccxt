@@ -383,36 +383,38 @@ class lighter extends Exchange {
     }
 
     public function load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
-        return Async\async(function () use ($chainId, $privateKey, $apiKeyIndex, $accountIndex, $params) {
-            $this->init_auth_object($accountIndex, $apiKeyIndex);
-            $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
-            $signer = $this->safe_value($cachedAuths, 'signer');
-            if ($signer !== null) {
-                return $signer;
-            }
-            $libraryPath = null;
-            list($libraryPath, $params) = $this->handle_option_and_params($params, 'loadAccount', 'libraryPath');
-            $lighterPrivateKeyIsSet = ($privateKey !== null) && ($privateKey !== '');
-            if ($lighterPrivateKeyIsSet && ($libraryPath !== null) && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
-                // load lighter library, and create lighter client
-                $signer = Async\await($this->load_lighter_library($libraryPath, $chainId, $privateKey, $this->parse_to_int($apiKeyIndex), $this->parse_to_int($accountIndex), true));
-                $this->options['auths'][$accountIndex][$apiKeyIndex]['signer'] = $signer;
-                return $signer;
-            }
-            $privateKeyIsSet = ($this->privateKey !== null) && ($this->privateKey !== '');
-            if ($privateKeyIsSet && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
-                if (strlen($this->privateKey) > 66) {
-                    throw new NotSupported($this->id . ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
-                }
-                // load lighter library without creating lighter client
-                $signer = Async\await($this->load_lighter_library($libraryPath, $chainId, '', $this->parse_to_int($apiKeyIndex), $this->parse_to_int($accountIndex), false));
-                $this->options['auths'][$accountIndex][$apiKeyIndex]['signer'] = $signer;
-                $res = Async\await($this->change_api_key());
-                Async\await($this->handle_builder_fee_approval($this->parse_to_int($accountIndex), $this->parse_to_int($apiKeyIndex)));
-                return $res;
-            }
+        return Async\async(self::do_load_account(...))($chainId, $privateKey, $apiKeyIndex, $accountIndex, $params);
+    }
+
+    private function do_load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
+        $this->init_auth_object($accountIndex, $apiKeyIndex);
+        $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
+        $signer = $this->safe_value($cachedAuths, 'signer');
+        if ($signer !== null) {
             return $signer;
-        })();
+        }
+        $libraryPath = null;
+        list($libraryPath, $params) = $this->handle_option_and_params($params, 'loadAccount', 'libraryPath');
+        $lighterPrivateKeyIsSet = ($privateKey !== null) && ($privateKey !== '');
+        if ($lighterPrivateKeyIsSet && ($libraryPath !== null) && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
+            // load lighter library, and create lighter client
+            $signer = Async\await($this->load_lighter_library($libraryPath, $chainId, $privateKey, $this->parse_to_int($apiKeyIndex), $this->parse_to_int($accountIndex), true));
+            $this->options['auths'][$accountIndex][$apiKeyIndex]['signer'] = $signer;
+            return $signer;
+        }
+        $privateKeyIsSet = ($this->privateKey !== null) && ($this->privateKey !== '');
+        if ($privateKeyIsSet && ($apiKeyIndex !== null) && ($accountIndex !== null)) {
+            if (strlen($this->privateKey) > 66) {
+                throw new NotSupported($this->id . ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
+            }
+            // load lighter library without creating lighter client
+            $signer = Async\await($this->load_lighter_library($libraryPath, $chainId, '', $this->parse_to_int($apiKeyIndex), $this->parse_to_int($accountIndex), false));
+            $this->options['auths'][$accountIndex][$apiKeyIndex]['signer'] = $signer;
+            $res = Async\await($this->change_api_key());
+            Async\await($this->handle_builder_fee_approval($this->parse_to_int($accountIndex), $this->parse_to_int($apiKeyIndex)));
+            return $res;
+        }
+        return $signer;
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
@@ -449,30 +451,32 @@ class lighter extends Exchange {
     }
 
     public function pre_load_lighter_library($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {boolean} true if the $signer was loaded, false otherwise
-             */
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'loadAccount', 'accountIndex', 'account_index'));
-            if ($accountIndex === null) {
-                throw new ArgumentsRequired($this->id . ' requires $accountIndex or account_index');
-            }
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $this->init_auth_object($strAccountIndex, $strApiKeyIndex);
-            $signer = $this->safe_dict($this->options['auths'][$strAccountIndex][$strApiKeyIndex], 'signer');
-            if ($signer !== null) {
-                return true;
-            }
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex));
-            Async\await($this->handle_builder_fee_approval($accountIndex, $apiKeyIndex));
-            return ($signer !== null);
-        })();
+        return Async\async(self::do_pre_load_lighter_library(...))($params);
+    }
+
+    private function do_pre_load_lighter_library($params = array()) {
+        /**
+         * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true if the $signer was loaded, false otherwise
+         */
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'loadAccount', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'loadAccount', 'accountIndex', 'account_index'));
+        if ($accountIndex === null) {
+            throw new ArgumentsRequired($this->id . ' requires $accountIndex or account_index');
+        }
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $this->init_auth_object($strAccountIndex, $strApiKeyIndex);
+        $signer = $this->safe_dict($this->options['auths'][$strAccountIndex][$strApiKeyIndex], 'signer');
+        if ($signer !== null) {
+            return true;
+        }
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex));
+        Async\await($this->handle_builder_fee_approval($accountIndex, $apiKeyIndex));
+        return ($signer !== null);
     }
 
     public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
@@ -487,80 +491,84 @@ class lighter extends Exchange {
     }
 
     public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): PromiseInterface {
-        return Async\async(function () use ($params, $methodName1, $optionName1, $optionName2, $defaultValue) {
-            $accountIndex = null;
-            list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
-            if ($accountIndex === null) {
-                $walletAddress = $this->walletAddress;
-                if ($this->privateKey !== null) {
-                    if (strlen($this->privateKey) > 66) {
-                        throw new NotSupported($this->id . ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
-                    }
-                    $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
+        return Async\async(self::do_handle_account_index(...))($params, $methodName1, $optionName1, $optionName2, $defaultValue);
+    }
+
+    private function do_handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null) {
+        $accountIndex = null;
+        list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
+        if ($accountIndex === null) {
+            $walletAddress = $this->walletAddress;
+            if ($this->privateKey !== null) {
+                if (strlen($this->privateKey) > 66) {
+                    throw new NotSupported($this->id . ' after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
                 }
-                if ($walletAddress === null || $walletAddress === '') {
-                    throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch $accountIndex-> Alternatively set privateKey in credentials to enable automatic $walletAddress detection.');
-                }
-                $res = Async\await($this->publicGetAccountsByL1Address(array( 'l1_address' => $walletAddress )));
-                //
-                // {
-                //     "code" => 200,
-                //     "l1_address" => "0xaaaabbbb....ccccdddd",
-                //     "sub_accounts" => array(
-                //         {
-                //             "code" => 0,
-                //             "account_type" => 0,
-                //             "index" => 666666,
-                //             "l1_address" => "0xaaaabbbb....ccccdddd",
-                //             "cancel_all_time" => 0,
-                //             "total_order_count" => 0,
-                //             "total_isolated_order_count" => 0,
-                //             "pending_order_count" => 0,
-                //             "available_balance" => "",
-                //             "status" => 0,
-                //             "collateral" => "40",
-                //             "transaction_time" => 0,
-                //             "account_trading_mode" => 0
-                //         }
-                //     )
-                // }
-                //
-                $subAccounts = $this->safe_list($res, 'sub_accounts');
-                if ((gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
-                    $account = $this->safe_dict($subAccounts, 0);
-                    if ($account === null) {
-                        throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . ' or ' . $optionName2 . ' parameter');
-                    }
-                    $accountIndex = $account['index'];
-                    $this->options['accountIndex'] = $accountIndex;
-                }
+                $walletAddress = $this->eth_get_address_from_private_key($this->privateKey);
             }
-            return array( $this->parse_to_int($accountIndex), $params );
-        })();
+            if ($walletAddress === null || $walletAddress === '') {
+                throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch $accountIndex-> Alternatively set privateKey in credentials to enable automatic $walletAddress detection.');
+            }
+            $res = Async\await($this->publicGetAccountsByL1Address(array( 'l1_address' => $walletAddress )));
+            //
+            // {
+            //     "code" => 200,
+            //     "l1_address" => "0xaaaabbbb....ccccdddd",
+            //     "sub_accounts" => array(
+            //         {
+            //             "code" => 0,
+            //             "account_type" => 0,
+            //             "index" => 666666,
+            //             "l1_address" => "0xaaaabbbb....ccccdddd",
+            //             "cancel_all_time" => 0,
+            //             "total_order_count" => 0,
+            //             "total_isolated_order_count" => 0,
+            //             "pending_order_count" => 0,
+            //             "available_balance" => "",
+            //             "status" => 0,
+            //             "collateral" => "40",
+            //             "transaction_time" => 0,
+            //             "account_trading_mode" => 0
+            //         }
+            //     )
+            // }
+            //
+            $subAccounts = $this->safe_list($res, 'sub_accounts');
+            if ((gettype($subAccounts) === 'array' && array_keys($subAccounts) === array_keys(array_keys($subAccounts)))) {
+                $account = $this->safe_dict($subAccounts, 0);
+                if ($account === null) {
+                    throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . ' or ' . $optionName2 . ' parameter');
+                }
+                $accountIndex = $account['index'];
+                $this->options['accountIndex'] = $accountIndex;
+            }
+        }
+        return array( $this->parse_to_int($accountIndex), $params );
     }
 
     public function create_sub_account(string $name, $params = array()) {
-        return Async\async(function () use ($name, $params) {
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'createSubAccount', 'accountIndex', 'account_index'));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            list($txType, $txInfo) = $this->lighter_sign_create_sub_account($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            return Async\await($this->publicPostSendTx($request));
-        })();
+        return Async\async(self::do_create_sub_account(...))($name, $params);
+    }
+
+    private function do_create_sub_account(string $name, $params = array()) {
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'createSubAccount', 'accountIndex', 'account_index'));
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        list($txType, $txInfo) = $this->lighter_sign_create_sub_account($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        return Async\await($this->publicPostSendTx($request));
     }
 
     public function create_auth($params = array()) {
@@ -642,86 +650,92 @@ class lighter extends Exchange {
     }
 
     public function handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex) {
-        return Async\async(function () use ($accountIndex, $apiKeyIndex) {
-            $buildFee = $this->safe_bool($this->options, 'builderFee', true);
-            if (!$buildFee) {
-                return false;
-            }
-            $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
-            if ($approvedBuilderFee) {
-                return true;
-            }
-            try {
-                $builder = $this->safe_integer($this->options, 'integratorAccountIndex', 718718);
-                $takerFeeRate = $this->safe_integer($this->options, 'integratorTakerFee', 1000);
-                $makerFeeRate = $this->safe_integer($this->options, 'integratorMakerFee', 1000);
-                Async\await($this->approve_builder_fee($builder, $takerFeeRate, $makerFeeRate, $accountIndex, $apiKeyIndex));
-                $this->options['approvedBuilderFee'] = true;
-            } catch (Exception $e) {
-                $this->options['builderFee'] = false;
-            }
+        return Async\async(self::do_handle_builder_fee_approval(...))($accountIndex, $apiKeyIndex);
+    }
+
+    private function do_handle_builder_fee_approval(float $accountIndex, float $apiKeyIndex) {
+        $buildFee = $this->safe_bool($this->options, 'builderFee', true);
+        if (!$buildFee) {
+            return false;
+        }
+        $approvedBuilderFee = $this->safe_bool($this->options, 'approvedBuilderFee', false);
+        if ($approvedBuilderFee) {
             return true;
-        })();
+        }
+        try {
+            $builder = $this->safe_integer($this->options, 'integratorAccountIndex', 718718);
+            $takerFeeRate = $this->safe_integer($this->options, 'integratorTakerFee', 1000);
+            $makerFeeRate = $this->safe_integer($this->options, 'integratorMakerFee', 1000);
+            Async\await($this->approve_builder_fee($builder, $takerFeeRate, $makerFeeRate, $accountIndex, $apiKeyIndex));
+            $this->options['approvedBuilderFee'] = true;
+        } catch (Exception $e) {
+            $this->options['builderFee'] = false;
+        }
+        return true;
     }
 
     public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()) {
-        return Async\async(function () use ($builder, $takerFeeRate, $makerFeeRate, $accountIndex, $apiKeyIndex, $params) {
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false ))));
-            $expiry = $this->milliseconds() + 365 * 864000;
-            $signRaw = array(
-                'integrator_account_index' => $builder,
-                'integrator_taker_fee' => $takerFeeRate,
-                'integrator_maker_fee' => $makerFeeRate,
-                'approval_expiry' => $expiry,
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo, $messageToSign) = $this->lighter_sign_approve_integrator($signer, $this->extend($signRaw, $params));
-            $newTxInfo = $this->sign_l1_and_prepare_tx_info($txInfo, $messageToSign, $this->privateKey);
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $newTxInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $response;
-        })();
+        return Async\async(self::do_approve_builder_fee(...))($builder, $takerFeeRate, $makerFeeRate, $accountIndex, $apiKeyIndex, $params);
+    }
+
+    private function do_approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()) {
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false ))));
+        $expiry = $this->milliseconds() + 365 * 864000;
+        $signRaw = array(
+            'integrator_account_index' => $builder,
+            'integrator_taker_fee' => $takerFeeRate,
+            'integrator_maker_fee' => $makerFeeRate,
+            'approval_expiry' => $expiry,
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo, $messageToSign) = $this->lighter_sign_approve_integrator($signer, $this->extend($signRaw, $params));
+        $newTxInfo = $this->sign_l1_and_prepare_tx_info($txInfo, $messageToSign, $this->privateKey);
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $newTxInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $response;
     }
 
     public function change_api_key($params = array()) {
-        return Async\async(function () use ($params) {
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'changeApiKey', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signerNotLoad = $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'];
-            list($privateKey, $publicKey) = $this->lighter_generate_api_key($signerNotLoad);
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false ))));
-            $signRaw = array(
-                'pubkey' => $this->encode($publicKey),
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            // create lighter client
-            $signer = $this->lighter_create_client($signerNotLoad, $this->options['chainId'], $privateKey, $apiKeyIndex, $accountIndex);
-            list($txType, $txInfo, $messageToSign) = $this->lighter_sign_change_pubkey($signer, $this->extend($signRaw, $params));
-            $newTxInfo = $this->sign_l1_and_prepare_tx_info($txInfo, $messageToSign, $this->privateKey);
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $newTxInfo,
-            );
-            Async\await($this->publicPostSendTx($request));
-            $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'] = $privateKey;
-            $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'] = $signer; // reassign $signer in go
-            Async\await($this->handle_builder_fee_approval($accountIndex, $apiKeyIndex));
-            return $signer;
-        })();
+        return Async\async(self::do_change_api_key(...))($params);
+    }
+
+    private function do_change_api_key($params = array()) {
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'changeApiKey', 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signerNotLoad = $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'];
+        list($privateKey, $publicKey) = $this->lighter_generate_api_key($signerNotLoad);
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $this->extend($params, array( 'skipNonce' => false ))));
+        $signRaw = array(
+            'pubkey' => $this->encode($publicKey),
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        // create lighter client
+        $signer = $this->lighter_create_client($signerNotLoad, $this->options['chainId'], $privateKey, $apiKeyIndex, $accountIndex);
+        list($txType, $txInfo, $messageToSign) = $this->lighter_sign_change_pubkey($signer, $this->extend($signRaw, $params));
+        $newTxInfo = $this->sign_l1_and_prepare_tx_info($txInfo, $messageToSign, $this->privateKey);
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $newTxInfo,
+        );
+        Async\await($this->publicPostSendTx($request));
+        $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'] = $privateKey;
+        $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'] = $signer; // reassign $signer in go
+        Async\await($this->handle_builder_fee_approval($accountIndex, $apiKeyIndex));
+        return $signer;
     }
 
     public function set_sandbox_mode(bool $enable) {
@@ -802,6 +816,7 @@ class lighter extends Exchange {
         }
         if ($postOnly) {
             $timeInForceNum = 2;
+            $orderExpiry = -1;
         } else {
             if (!$isMarketOrder) {
                 if ($timeInForce === 'ioc') {
@@ -894,434 +909,456 @@ class lighter extends Exchange {
     }
 
     public function fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()) {
-        return Async\async(function () use ($accountIndex, $apiKeyIndex, $params) {
-            if (($accountIndex === null) || ($apiKeyIndex === null)) {
-                throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
-            }
-            if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
-                return $this->safe_integer($params, 'nonce');
-            }
-            $nonceInOptions = $this->safe_integer($this->options, 'nonce');
-            if ($nonceInOptions !== null) {
-                return $nonceInOptions;
-            }
-            // avoid $skipNonce for l1 operations
-            $skipNonce = true;
-            list($skipNonce, $params) = $this->handle_option_and_params($params, 'fetchNonce', 'skipNonce', true);
-            if ($skipNonce) {
-                return $this->milliseconds();
-            }
-            $response = Async\await($this->publicGetNextNonce(array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex )));
-            return $this->safe_integer($response, 'nonce');
-        })();
+        return Async\async(self::do_fetch_nonce(...))($accountIndex, $apiKeyIndex, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade $order
-             * @param {string} $symbol unified $symbol of the $market to create an $order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
-             * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
-             * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
-             * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
-             * @param {int} [$params->nonce] nonce for the account
-             * @param {int} [$params->apiKeyIndex] $apiKeyIndex
-             * @param {int} [$params->accountIndex] $accountIndex
-             * @param {int} [$params->orderExpiry] orderExpiry
-             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'createOrder', 'accountIndex', 'account_index'));
-            $params['accountIndex'] = $accountIndex;
-            $market = $this->market($symbol);
-            $groupingType = null;
-            list($groupingType, $params) = $this->handle_option_and_params($params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
-            $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            // for php
-            $totalOrderRequests = count($orderRequests);
-            $apiKeyIndex = null;
-            $order = null;
-            if ($totalOrderRequests > 0) {
-                $order = $orderRequests[0];
-                $apiKeyIndex = $order['api_key_index'];
-            }
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            // the nonce could be updated
-            if ($this->safe_integer($order, 'nonce') === null) {
-                $order['nonce'] = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex));
-            }
-            $txType = null;
-            if ($totalOrderRequests < 2) {
-                list($txType, $txInfo) = $this->lighter_sign_create_order($signer, $order);
-            } else {
-                $signingPayload = array(
-                    'grouping_type' => $groupingType,
-                    'orders' => $orderRequests,
-                    'nonce' => $order['nonce'],
-                    'api_key_index' => $apiKeyIndex,
-                    'account_index' => $accountIndex,
-                );
-                if ($this->safe_bool($this->options, 'builderFee', true)) {
-                    $signingPayload['integrator_account_index'] = $order['integrator_account_index'];
-                    $signingPayload['integrator_taker_fee'] = $order['integrator_taker_fee'];
-                    $signingPayload['integrator_maker_fee'] = $order['integrator_maker_fee'];
-                }
-                list($txType, $txInfo) = $this->lighter_sign_create_grouped_orders($signer, $signingPayload);
-            }
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            //
-            // {
-            //     "code" => 200,
-            //     "message" => "array(\"ratelimit\" => \"didn't use volume quota\")",
-            //     "tx_hash" => "txhash",
-            //     "predicted_execution_time_ms" => 1766088500120
-            // }
-            //
-            return $this->parse_order($this->deep_extend($response, $order), $market);
-        })();
+    private function do_fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()) {
+        if (($accountIndex === null) || ($apiKeyIndex === null)) {
+            throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
+        }
+        if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
+            return $this->safe_integer($params, 'nonce');
+        }
+        $nonceInOptions = $this->safe_integer($this->options, 'nonce');
+        if ($nonceInOptions !== null) {
+            return $nonceInOptions;
+        }
+        // avoid $skipNonce for l1 operations
+        $skipNonce = true;
+        list($skipNonce, $params) = $this->handle_option_and_params($params, 'fetchNonce', 'skipNonce', true);
+        if ($skipNonce) {
+            return $this->milliseconds();
+        }
+        $response = Async\await($this->publicGetNextNonce(array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex )));
+        return $this->safe_integer($response, 'nonce');
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * cancels an order and places a new order
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'editOrder', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'editOrder', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $market = $this->market($symbol);
-            $marketInfo = $this->safe_dict($market, 'info', array());
-            $amountScale = $this->pow('10', $marketInfo['size_decimals']);
-            $priceScale = $this->pow('10', $marketInfo['price_decimals']);
-            $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-            $amountStr = null;
-            $priceStr = $this->price_to_precision($symbol, $price);
-            $triggerPriceStr = '0'; // default is 0
-            if ($triggerPrice !== null) {
-                $amountStr = $this->number_to_string($amount);
-                $triggerPriceStr = $this->price_to_precision($symbol, $triggerPrice);
-            } else {
-                $amountStr = $this->amount_to_precision($symbol, $amount);
-            }
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'market_index' => $this->parse_to_int($market['id']),
-                'index' => $this->parse_to_int($id),
-                'base_amount' => $this->parse_to_int(Precise::string_mul($amountStr, $amountScale)),
-                'price' => $this->parse_to_int(Precise::string_mul($priceStr, $priceScale)),
-                'trigger_price' => $this->parse_to_int(Precise::string_mul($triggerPriceStr, $priceScale)),
-                'nonce' => $nonce,
+    public function sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_sign_and_create_order(...))($method, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
+        $params['accountIndex'] = $accountIndex;
+        $market = $this->market($symbol);
+        $groupingType = null;
+        list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+        $totalOrderRequests = count($orderRequests);
+        $apiKeyIndex = null;
+        $order = null;
+        if ($totalOrderRequests > 0) {
+            $order = $orderRequests[0];
+            $apiKeyIndex = $order['api_key_index'];
+        }
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        // the nonce could be updated
+        if ($this->safe_integer($order, 'nonce') === null) {
+            $order['nonce'] = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex));
+        }
+        $txType = null;
+        if ($totalOrderRequests < 2) {
+            list($txType, $txInfo) = $this->lighter_sign_create_order($signer, $order);
+        } else {
+            $signingPayload = array(
+                'grouping_type' => $groupingType,
+                'orders' => $orderRequests,
+                'nonce' => $order['nonce'],
                 'api_key_index' => $apiKeyIndex,
                 'account_index' => $accountIndex,
             );
             if ($this->safe_bool($this->options, 'builderFee', true)) {
-                $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
-                $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
-                $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+                $signingPayload['integrator_account_index'] = $order['integrator_account_index'];
+                $signingPayload['integrator_taker_fee'] = $order['integrator_taker_fee'];
+                $signingPayload['integrator_maker_fee'] = $order['integrator_maker_fee'];
             }
-            list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $this->parse_order($response, $market);
-        })();
+            list($txType, $txInfo) = $this->lighter_sign_create_grouped_orders($signer, $signingPayload);
+        }
+        return array( $txType, $txInfo, $order, $market );
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
+         * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
+         * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
+         * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
+         * @param {int} [$params->nonce] nonce for the account
+         * @param {int} [$params->apiKeyIndex] apiKeyIndex
+         * @param {int} [$params->accountIndex] accountIndex
+         * @param {int} [$params->orderExpiry] orderExpiry
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         */
+        list($txType, $txInfo, $order, $market) = Async\await($this->sign_and_create_order('createOrder', $symbol, $type, $side, $amount, $price, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        //
+        // {
+        //     "code" => 200,
+        //     "message" => "array(\"ratelimit\" => \"didn't use volume quota\")",
+        //     "tx_hash" => "txhash",
+        //     "predicted_execution_time_ms" => 1766088500120
+        // }
+        //
+        return $this->parse_order($this->deep_extend($response, $order), $market);
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * cancels an order and places a new order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'editOrder', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'editOrder', 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $market = $this->market($symbol);
+        $marketInfo = $this->safe_dict($market, 'info', array());
+        $amountScale = $this->pow('10', $marketInfo['size_decimals']);
+        $priceScale = $this->pow('10', $marketInfo['price_decimals']);
+        $triggerPrice = $this->safe_string_n($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        $amountStr = null;
+        $priceStr = $this->price_to_precision($symbol, $price);
+        $triggerPriceStr = '0'; // default is 0
+        if ($triggerPrice !== null) {
+            $amountStr = $this->number_to_string($amount);
+            $triggerPriceStr = $this->price_to_precision($symbol, $triggerPrice);
+        } else {
+            $amountStr = $this->amount_to_precision($symbol, $amount);
+        }
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'market_index' => $this->parse_to_int($market['id']),
+            'index' => $this->parse_to_int($id),
+            'base_amount' => $this->parse_to_int(Precise::string_mul($amountStr, $amountScale)),
+            'price' => $this->parse_to_int(Precise::string_mul($priceStr, $priceScale)),
+            'trigger_price' => $this->parse_to_int(Precise::string_mul($triggerPriceStr, $priceScale)),
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        if ($this->safe_bool($this->options, 'builderFee', true)) {
+            $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
+            $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
+            $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+        }
+        list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_status($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * the latest known information on the availability of the exchange API
-             *
-             * @see https://apidocs.lighter.xyz/reference/status
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
-             */
-            $response = Async\await($this->rootGet($params));
-            //
-            //     {
-            //         "status" => "1",
-            //         "network_id" => "1",
-            //         "timestamp" => "1717777777"
-            //     }
-            //
-            $status = $this->safe_string($response, 'status');
-            return array(
-                'status' => ($status === '200') ? 'ok' : 'error', // if there's no Errors, $status = 'ok'
-                'updated' => null,
-                'eta' => null,
-                'url' => null,
-                'info' => $response,
-            );
-        })();
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://apidocs.lighter.xyz/reference/status
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
+         */
+        $response = Async\await($this->rootGet($params));
+        //
+        //     {
+        //         "status" => "1",
+        //         "network_id" => "1",
+        //         "timestamp" => "1717777777"
+        //     }
+        //
+        $status = $this->safe_string($response, 'status');
+        return array(
+            'status' => ($status === '200') ? 'ok' : 'error', // if there's no Errors, $status = 'ok'
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://apidocs.lighter.xyz/reference/status
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->rootGet($params));
-            //
-            //     {
-            //         "status" => "1",
-            //         "network_id" => "1",
-            //         "timestamp" => "1717777777"
-            //     }
-            //
-            return $this->safe_timestamp($response, 'timestamp');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://apidocs.lighter.xyz/reference/status
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->rootGet($params));
+        //
+        //     {
+        //         "status" => "1",
+        //         "network_id" => "1",
+        //         "timestamp" => "1717777777"
+        //     }
+        //
+        return $this->safe_timestamp($response, 'timestamp');
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all $markets for lighter
-             *
-             * @see https://apidocs.lighter.xyz/reference/orderbookdetails
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing $market data
-             */
-            $response = Async\await($this->publicGetOrderBookDetails($params));
-            //
-            //    {
-            //        "code" => "200",
-            //        "message" => "string",
-            //        "order_book_details" => array(
-            //            {
-            //                "symbol" => "ETH",
-            //                "market_id" => 0,
-            //                "market_type" => "perp",
-            //                "base_asset_id" => 0,
-            //                "quote_asset_id" => 0,
-            //                "status" => "active",
-            //                "taker_fee" => "0.0001",
-            //                "maker_fee" => "0.0000",
-            //                "liquidation_fee" => "0.01",
-            //                "min_base_amount" => "0.01",
-            //                "min_quote_amount" => "0.1",
-            //                "supported_size_decimals" => "4",
-            //                "supported_price_decimals" => "4",
-            //                "supported_quote_decimals" => "4",
-            //                "order_quote_limit" => "281474976.710655",
-            //                "size_decimals" => "4",
-            //                "price_decimals" => "4",
-            //                "quote_multiplier" => "10000",
-            //                "default_initial_margin_fraction" => "100",
-            //                "min_initial_margin_fraction" => "100",
-            //                "maintenance_margin_fraction" => "50",
-            //                "closeout_margin_fraction" => "100",
-            //                "last_trade_price" => "3024.66",
-            //                "daily_trades_count" => "68",
-            //                "daily_base_token_volume" => "235.25",
-            //                "daily_quote_token_volume" => "93566.25",
-            //                "daily_price_low" => "3014.66",
-            //                "daily_price_high" => "3024.66",
-            //                "daily_price_change" => "3.66",
-            //                "open_interest" => "93.0",
-            //                "daily_chart" => "array(1640995200:3024.66)",
-            //                "market_config" => array(
-            //                    "market_margin_mode" => 0,
-            //                    "insurance_fund_account_index" => 281474976710655,
-            //                    "liquidation_mode" => 0,
-            //                    "force_reduce_only" => false,
-            //                    "funding_fee_discounts_enabled" => true,
-            //                    "trading_hours" => "",
-            //                    "hidden" => true
-            //                ),
-            //                "strategy_index" => 0
-            //            }
-            //        ),
-            //        "spot_order_book_details" => array(
-            //            {
-            //                "symbol" => "ETH/USDC",
-            //                "market_id" => 2048,
-            //                "market_type" => "spot",
-            //                "base_asset_id" => 1,
-            //                "quote_asset_id" => 3,
-            //                "status" => "active",
-            //                "taker_fee" => "0.0000",
-            //                "maker_fee" => "0.0000",
-            //                "liquidation_fee" => "0.0000",
-            //                "min_base_amount" => "0.0001",
-            //                "min_quote_amount" => "0.000001",
-            //                "order_quote_limit" => "2500000.000000",
-            //                "supported_size_decimals" => 4,
-            //                "supported_price_decimals" => 2,
-            //                "supported_quote_decimals" => 6,
-            //                "size_decimals" => 4,
-            //                "price_decimals" => 2,
-            //                "last_trade_price" => 2731.79,
-            //                "daily_trades_count" => 126993,
-            //                "daily_base_token_volume" => 1203.0962,
-            //                "daily_quote_token_volume" => 3516374.947553,
-            //                "daily_price_low" => 2717.47,
-            //                "daily_price_high" => 3044.21,
-            //                "daily_price_change" => -10.2389493724579,
-            //                "daily_chart" => "array(1640995200:3024.66)"
-            //            }
-            //        )
-            //    }
-            //
-            $spotMarkets = $this->safe_list($response, 'spot_order_book_details', array());
-            $swapMarkets = $this->safe_list($response, 'order_book_details', array());
-            $markets = $this->array_concat($spotMarkets, $swapMarkets);
-            $result = array();
-            for ($i = 0; $i < count($markets); $i++) {
-                $market = $markets[$i];
-                $id = $this->safe_string($market, 'market_id');
-                $type = $this->safe_string($market, 'market_type');
-                $type = ($type === 'perp') ? 'swap' : $type;
-                $baseId = $this->safe_string($market, 'symbol');
-                if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
-                    $baseId = explode('/', $baseId)[0];
-                }
-                $quoteId = 'USDC';
-                $settleId = ($type === 'swap') ? 'USDC' : null;
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $settle = $this->safe_currency_code($settleId);
-                $symbol = $base . '/' . $quote;
-                if ($settle !== null) {
-                    $symbol = $symbol . ':' . $settle;
-                }
-                $amountDecimals = $this->safe_string_2($market, 'size_decimals', 'supported_size_decimals');
-                $priceDecimals = $this->safe_string_2($market, 'price_decimals', 'supported_price_decimals');
-                $amountPrecision = ($amountDecimals === null) ? null : $this->parse_number($this->parse_precision($amountDecimals));
-                $pricePrecision = ($priceDecimals === null) ? null : $this->parse_number($this->parse_precision($priceDecimals));
-                $quoteMultiplier = $this->safe_number($market, 'quote_multiplier');
-                $result[] = array(
-                    'id' => $id,
-                    'symbol' => $symbol,
-                    'base' => $base,
-                    'quote' => $quote,
-                    'settle' => $settle,
-                    'baseId' => $baseId,
-                    'quoteId' => $quoteId,
-                    'settleId' => $settleId,
-                    'type' => $type,
-                    'spot' => $type === 'spot',
-                    'margin' => false,
-                    'swap' => $type === 'swap',
-                    'future' => false,
-                    'option' => false,
-                    'active' => $this->safe_string($market, 'status') === 'active',
-                    'contract' => $type === 'swap',
-                    'linear' => ($type === 'swap') ? true : null,
-                    'inverse' => ($type === 'swap') ? false : null,
-                    'taker' => $this->safe_number($market, 'taker_fee'),
-                    'maker' => $this->safe_number($market, 'maker_fee'),
-                    'contractSize' => $quoteMultiplier,
-                    'expiry' => null,
-                    'expiryDatetime' => null,
-                    'strike' => null,
-                    'optionType' => null,
-                    'precision' => array(
-                        'amount' => $amountPrecision,
-                        'price' => $pricePrecision,
-                    ),
-                    'limits' => array(
-                        'leverage' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'amount' => array(
-                            'min' => $this->safe_number($market, 'min_base_amount'),
-                            'max' => null,
-                        ),
-                        'price' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'cost' => array(
-                            'min' => $this->safe_number($market, 'min_quote_amount'),
-                            'max' => $this->safe_number($market, 'order_quote_limit'),
-                        ),
-                    ),
-                    'created' => null,
-                    'info' => $market,
-                );
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all $markets for lighter
+         *
+         * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing $market data
+         */
+        $response = Async\await($this->publicGetOrderBookDetails($params));
+        //
+        //    {
+        //        "code" => "200",
+        //        "message" => "string",
+        //        "order_book_details" => array(
+        //            {
+        //                "symbol" => "ETH",
+        //                "market_id" => 0,
+        //                "market_type" => "perp",
+        //                "base_asset_id" => 0,
+        //                "quote_asset_id" => 0,
+        //                "status" => "active",
+        //                "taker_fee" => "0.0001",
+        //                "maker_fee" => "0.0000",
+        //                "liquidation_fee" => "0.01",
+        //                "min_base_amount" => "0.01",
+        //                "min_quote_amount" => "0.1",
+        //                "supported_size_decimals" => "4",
+        //                "supported_price_decimals" => "4",
+        //                "supported_quote_decimals" => "4",
+        //                "order_quote_limit" => "281474976.710655",
+        //                "size_decimals" => "4",
+        //                "price_decimals" => "4",
+        //                "quote_multiplier" => "10000",
+        //                "default_initial_margin_fraction" => "100",
+        //                "min_initial_margin_fraction" => "100",
+        //                "maintenance_margin_fraction" => "50",
+        //                "closeout_margin_fraction" => "100",
+        //                "last_trade_price" => "3024.66",
+        //                "daily_trades_count" => "68",
+        //                "daily_base_token_volume" => "235.25",
+        //                "daily_quote_token_volume" => "93566.25",
+        //                "daily_price_low" => "3014.66",
+        //                "daily_price_high" => "3024.66",
+        //                "daily_price_change" => "3.66",
+        //                "open_interest" => "93.0",
+        //                "daily_chart" => "array(1640995200:3024.66)",
+        //                "market_config" => array(
+        //                    "market_margin_mode" => 0,
+        //                    "insurance_fund_account_index" => 281474976710655,
+        //                    "liquidation_mode" => 0,
+        //                    "force_reduce_only" => false,
+        //                    "funding_fee_discounts_enabled" => true,
+        //                    "trading_hours" => "",
+        //                    "hidden" => true
+        //                ),
+        //                "strategy_index" => 0
+        //            }
+        //        ),
+        //        "spot_order_book_details" => array(
+        //            {
+        //                "symbol" => "ETH/USDC",
+        //                "market_id" => 2048,
+        //                "market_type" => "spot",
+        //                "base_asset_id" => 1,
+        //                "quote_asset_id" => 3,
+        //                "status" => "active",
+        //                "taker_fee" => "0.0000",
+        //                "maker_fee" => "0.0000",
+        //                "liquidation_fee" => "0.0000",
+        //                "min_base_amount" => "0.0001",
+        //                "min_quote_amount" => "0.000001",
+        //                "order_quote_limit" => "2500000.000000",
+        //                "supported_size_decimals" => 4,
+        //                "supported_price_decimals" => 2,
+        //                "supported_quote_decimals" => 6,
+        //                "size_decimals" => 4,
+        //                "price_decimals" => 2,
+        //                "last_trade_price" => 2731.79,
+        //                "daily_trades_count" => 126993,
+        //                "daily_base_token_volume" => 1203.0962,
+        //                "daily_quote_token_volume" => 3516374.947553,
+        //                "daily_price_low" => 2717.47,
+        //                "daily_price_high" => 3044.21,
+        //                "daily_price_change" => -10.2389493724579,
+        //                "daily_chart" => "array(1640995200:3024.66)"
+        //            }
+        //        )
+        //    }
+        //
+        $spotMarkets = $this->safe_list($response, 'spot_order_book_details', array());
+        $swapMarkets = $this->safe_list($response, 'order_book_details', array());
+        $markets = $this->array_concat($spotMarkets, $swapMarkets);
+        $result = array();
+        for ($i = 0; $i < count($markets); $i++) {
+            $market = $markets[$i];
+            $id = $this->safe_string($market, 'market_id');
+            $type = $this->safe_string($market, 'market_type');
+            $type = ($type === 'perp') ? 'swap' : $type;
+            $baseId = $this->safe_string($market, 'symbol');
+            if ($baseId !== null && mb_strpos($baseId, '/') !== -1) {
+                $baseId = explode('/', $baseId)[0];
             }
-            return $result;
-        })();
+            $quoteId = 'USDC';
+            $settleId = ($type === 'swap') ? 'USDC' : null;
+            $base = $this->safe_currency_code($baseId);
+            $quote = $this->safe_currency_code($quoteId);
+            $settle = $this->safe_currency_code($settleId);
+            $symbol = $base . '/' . $quote;
+            if ($settle !== null) {
+                $symbol = $symbol . ':' . $settle;
+            }
+            $amountDecimals = $this->safe_string_2($market, 'size_decimals', 'supported_size_decimals');
+            $priceDecimals = $this->safe_string_2($market, 'price_decimals', 'supported_price_decimals');
+            $amountPrecision = ($amountDecimals === null) ? null : $this->parse_number($this->parse_precision($amountDecimals));
+            $pricePrecision = ($priceDecimals === null) ? null : $this->parse_number($this->parse_precision($priceDecimals));
+            $quoteMultiplier = $this->safe_number($market, 'quote_multiplier');
+            $result[] = array(
+                'id' => $id,
+                'symbol' => $symbol,
+                'base' => $base,
+                'quote' => $quote,
+                'settle' => $settle,
+                'baseId' => $baseId,
+                'quoteId' => $quoteId,
+                'settleId' => $settleId,
+                'type' => $type,
+                'spot' => $type === 'spot',
+                'margin' => false,
+                'swap' => $type === 'swap',
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_string($market, 'status') === 'active',
+                'contract' => $type === 'swap',
+                'linear' => ($type === 'swap') ? true : null,
+                'inverse' => ($type === 'swap') ? false : null,
+                'taker' => $this->safe_number($market, 'taker_fee'),
+                'maker' => $this->safe_number($market, 'maker_fee'),
+                'contractSize' => $quoteMultiplier,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $amountPrecision,
+                    'price' => $pricePrecision,
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_base_amount'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_quote_amount'),
+                        'max' => $this->safe_number($market, 'order_quote_limit'),
+                    ),
+                ),
+                'created' => null,
+                'info' => $market,
+            );
+        }
+        return $result;
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             *
-             * @see https://apidocs.lighter.xyz/reference/assetdetails
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->publicGetAssetDetails($params));
-            if ($this->check_required_credentials(false)) {
-                Async\await($this->pre_load_lighter_library());
-            }
-            //
-            //     {
-            //         "code" => 200,
-            //         "asset_details" => array(
-            //             {
-            //                 "asset_id" => 3,
-            //                 "symbol" => "USDC",
-            //                 "l1_decimals" => 6,
-            //                 "decimals" => 6,
-            //                 "min_transfer_amount" => "1.000000",
-            //                 "min_withdrawal_amount" => "1.000000",
-            //                 "margin_mode" => "enabled",
-            //                 "index_price" => "1.000000",
-            //                 "l1_address" => "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'asset_details', array());
-            return $this->parse_currencies($data);
-        })();
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://apidocs.lighter.xyz/reference/assetdetails
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->publicGetAssetDetails($params));
+        if ($this->check_required_credentials(false)) {
+            Async\await($this->pre_load_lighter_library());
+        }
+        //
+        //     {
+        //         "code" => 200,
+        //         "asset_details" => array(
+        //             {
+        //                 "asset_id" => 3,
+        //                 "symbol" => "USDC",
+        //                 "l1_decimals" => 6,
+        //                 "decimals" => 6,
+        //                 "min_transfer_amount" => "1.000000",
+        //                 "min_withdrawal_amount" => "1.000000",
+        //                 "margin_mode" => "enabled",
+        //                 "index_price" => "1.000000",
+        //                 "l1_address" => "0x95Fd23d5110f9D89A4b0B7d63D78F5B5Ea5074D1"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'asset_details', array());
+        return $this->parse_currencies($data);
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -1361,64 +1398,66 @@ class lighter extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://apidocs.lighter.xyz/reference/orderbookorders
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market_id' => $market['id'],
-                'limit' => 100,
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 100);
-            }
-            $response = Async\await($this->publicGetOrderBookOrders($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "total_asks" => 1,
-            //         "asks" => array(
-            //             {
-            //                 "order_index" => 281475565888172,
-            //                 "order_id" => "281475565888172",
-            //                 "owner_account_index" => 134436,
-            //                 "initial_base_amount" => "0.2000",
-            //                 "remaining_base_amount" => "0.2000",
-            //                 "price" => "3430.00",
-            //                 "order_expiry" => 1765419046808
-            //             }
-            //         ),
-            //         "total_bids" => 1,
-            //         "bids" => array(
-            //             {
-            //                 "order_index" => 562949401225099,
-            //                 "order_id" => "562949401225099",
-            //                 "owner_account_index" => 314236,
-            //                 "initial_base_amount" => "1.7361",
-            //                 "remaining_base_amount" => "1.3237",
-            //                 "price" => "3429.80",
-            //                 "order_expiry" => 1765419047587
-            //             }
-            //         )
-            //     }
-            //
-            $result = $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'remaining_base_amount');
-            return $result;
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://apidocs.lighter.xyz/reference/orderbookorders
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market_id' => $market['id'],
+            'limit' => 100,
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 100);
+        }
+        $response = Async\await($this->publicGetOrderBookOrders($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "total_asks" => 1,
+        //         "asks" => array(
+        //             {
+        //                 "order_index" => 281475565888172,
+        //                 "order_id" => "281475565888172",
+        //                 "owner_account_index" => 134436,
+        //                 "initial_base_amount" => "0.2000",
+        //                 "remaining_base_amount" => "0.2000",
+        //                 "price" => "3430.00",
+        //                 "order_expiry" => 1765419046808
+        //             }
+        //         ),
+        //         "total_bids" => 1,
+        //         "bids" => array(
+        //             {
+        //                 "order_index" => 562949401225099,
+        //                 "order_id" => "562949401225099",
+        //                 "owner_account_index" => 314236,
+        //                 "initial_base_amount" => "1.7361",
+        //                 "remaining_base_amount" => "1.3237",
+        //                 "price" => "3429.80",
+        //                 "order_expiry" => 1765419047587
+        //             }
+        //         )
+        //     }
+        //
+        $result = $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'remaining_base_amount');
+        return $result;
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1520,100 +1559,104 @@ class lighter extends Exchange {
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://apidocs.lighter.xyz/reference/orderbookdetails
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTicker() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market_id' => $market['id'],
-            );
-            $response = Async\await($this->publicGetOrderBookDetails($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "order_book_details" => array(
-            //             {
-            //                 "symbol" => "ETH",
-            //                 "market_id" => 0,
-            //                 "status" => "active",
-            //                 "taker_fee" => "0.0000",
-            //                 "maker_fee" => "0.0000",
-            //                 "liquidation_fee" => "1.0000",
-            //                 "min_base_amount" => "0.0050",
-            //                 "min_quote_amount" => "10.000000",
-            //                 "order_quote_limit" => "",
-            //                 "supported_size_decimals" => 4,
-            //                 "supported_price_decimals" => 2,
-            //                 "supported_quote_decimals" => 6,
-            //                 "size_decimals" => 4,
-            //                 "price_decimals" => 2,
-            //                 "quote_multiplier" => 1,
-            //                 "default_initial_margin_fraction" => 500,
-            //                 "min_initial_margin_fraction" => 200,
-            //                 "maintenance_margin_fraction" => 120,
-            //                 "closeout_margin_fraction" => 80,
-            //                 "last_trade_price" => 3550.69,
-            //                 "daily_trades_count" => 1197349,
-            //                 "daily_base_token_volume" => 481297.3509,
-            //                 "daily_quote_token_volume" => 1671431095.263844,
-            //                 "daily_price_low" => 3402.41,
-            //                 "daily_price_high" => 3571.45,
-            //                 "daily_price_change" => 0.5294300840859545,
-            //                 "open_interest" => 39559.3278,
-            //                 "daily_chart" => array(),
-            //                 "market_config" => {
-            //                     "market_margin_mode" => 0,
-            //                     "insurance_fund_account_index" => 281474976710655,
-            //                     "liquidation_mode" => 0,
-            //                     "force_reduce_only" => false,
-            //                     "trading_hours" => ""
-            //                 }
-            //             }
-            //         )
-            //     }
-            //
-            $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
-            $swapTickers = $this->safe_list($response, 'order_book_details', array());
-            $tickers = $this->array_concat($spotTickers, $swapTickers);
-            $first = $this->safe_dict($tickers, 0, array());
-            return $this->parse_ticker($first, $market);
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
+    }
+
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTicker() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market_id' => $market['id'],
+        );
+        $response = Async\await($this->publicGetOrderBookDetails($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "order_book_details" => array(
+        //             {
+        //                 "symbol" => "ETH",
+        //                 "market_id" => 0,
+        //                 "status" => "active",
+        //                 "taker_fee" => "0.0000",
+        //                 "maker_fee" => "0.0000",
+        //                 "liquidation_fee" => "1.0000",
+        //                 "min_base_amount" => "0.0050",
+        //                 "min_quote_amount" => "10.000000",
+        //                 "order_quote_limit" => "",
+        //                 "supported_size_decimals" => 4,
+        //                 "supported_price_decimals" => 2,
+        //                 "supported_quote_decimals" => 6,
+        //                 "size_decimals" => 4,
+        //                 "price_decimals" => 2,
+        //                 "quote_multiplier" => 1,
+        //                 "default_initial_margin_fraction" => 500,
+        //                 "min_initial_margin_fraction" => 200,
+        //                 "maintenance_margin_fraction" => 120,
+        //                 "closeout_margin_fraction" => 80,
+        //                 "last_trade_price" => 3550.69,
+        //                 "daily_trades_count" => 1197349,
+        //                 "daily_base_token_volume" => 481297.3509,
+        //                 "daily_quote_token_volume" => 1671431095.263844,
+        //                 "daily_price_low" => 3402.41,
+        //                 "daily_price_high" => 3571.45,
+        //                 "daily_price_change" => 0.5294300840859545,
+        //                 "open_interest" => 39559.3278,
+        //                 "daily_chart" => array(),
+        //                 "market_config" => {
+        //                     "market_margin_mode" => 0,
+        //                     "insurance_fund_account_index" => 281474976710655,
+        //                     "liquidation_mode" => 0,
+        //                     "force_reduce_only" => false,
+        //                     "trading_hours" => ""
+        //                 }
+        //             }
+        //         )
+        //     }
+        //
+        $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
+        $swapTickers = $this->safe_list($response, 'order_book_details', array());
+        $tickers = $this->array_concat($spotTickers, $swapTickers);
+        $first = $this->safe_dict($tickers, 0, array());
+        return $this->parse_ticker($first, $market);
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             *
-             * @see https://apidocs.lighter.xyz/reference/orderbookdetails
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetOrderBookDetails($params));
-            $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
-            $swapTickers = $this->safe_list($response, 'order_book_details', array());
-            $tickers = $this->array_concat($spotTickers, $swapTickers);
-            return $this->parse_tickers($tickers, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://apidocs.lighter.xyz/reference/orderbookdetails
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = Async\await($this->publicGetOrderBookDetails($params));
+        $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
+        $swapTickers = $this->safe_list($response, 'order_book_details', array());
+        $tickers = $this->array_concat($spotTickers, $swapTickers);
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
@@ -1644,84 +1687,86 @@ class lighter extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://apidocs.lighter.xyz/reference/candles
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $until = $this->safe_integer($params, 'until');
-            $params = $this->omit($params, array( 'until' ));
-            $now = $this->milliseconds();
-            $startTs = null;
-            $endTs = null;
-            if ($since !== null) {
-                $startTs = $since;
-                if ($until !== null) {
-                    $endTs = $until;
-                } elseif ($limit !== null) {
-                    $duration = $this->parse_timeframe($timeframe);
-                    $endTs = $this->sum($since, $duration * $limit * 1000);
-                } else {
-                    $endTs = $now;
-                }
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
+    }
+
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://apidocs.lighter.xyz/reference/candles
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, array( 'until' ));
+        $now = $this->milliseconds();
+        $startTs = null;
+        $endTs = null;
+        if ($since !== null) {
+            $startTs = $since;
+            if ($until !== null) {
+                $endTs = $until;
+            } elseif ($limit !== null) {
+                $duration = $this->parse_timeframe($timeframe);
+                $endTs = $this->sum($since, $duration * $limit * 1000);
             } else {
-                $endTs = ($until !== null) ? $until : $now;
-                $defaultLimit = 100;
-                if ($limit !== null) {
-                    $startTs = $endTs - $this->parse_timeframe($timeframe) * 1000 * $limit;
-                } else {
-                    $startTs = $endTs - $this->parse_timeframe($timeframe) * 1000 * $defaultLimit;
-                }
+                $endTs = $now;
             }
-            $request = array(
-                'market_id' => $market['id'],
-                'count_back' => 0,
-                'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-                'start_timestamp' => $startTs,
-                'end_timestamp' => $endTs,
-            );
-            $response = Async\await($this->publicGetCandles($this->extend($request, $params)));
-            //
-            // {
-            //     "code" => 200,
-            //     "r" => "1m",
-            //     "c" => array(
-            //         {
-            //             "t" => 1767700500000,
-            //             "o" => 3236.86,
-            //             "h" => 3237.78,
-            //             "l" => 3235.36,
-            //             "c" => 3235.39,
-            //             "v" => 55.1632,
-            //             "V" => 178530.793575,
-            //             "i" => 779870452,
-            //             "C" => "string",
-            //             "H" => "string",
-            //             "L" => "string",
-            //             "O" => "string"
-            //         }
-            //     )
-            // }
-            //
-            $ohlcvs = $this->safe_list($response, 'c', array());
-            return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-        })();
+        } else {
+            $endTs = ($until !== null) ? $until : $now;
+            $defaultLimit = 100;
+            if ($limit !== null) {
+                $startTs = $endTs - $this->parse_timeframe($timeframe) * 1000 * $limit;
+            } else {
+                $startTs = $endTs - $this->parse_timeframe($timeframe) * 1000 * $defaultLimit;
+            }
+        }
+        $request = array(
+            'market_id' => $market['id'],
+            'count_back' => 0,
+            'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+            'start_timestamp' => $startTs,
+            'end_timestamp' => $endTs,
+        );
+        $response = Async\await($this->publicGetCandles($this->extend($request, $params)));
+        //
+        // {
+        //     "code" => 200,
+        //     "r" => "1m",
+        //     "c" => array(
+        //         {
+        //             "t" => 1767700500000,
+        //             "o" => 3236.86,
+        //             "h" => 3237.78,
+        //             "l" => 3235.36,
+        //             "c" => 3235.39,
+        //             "v" => 55.1632,
+        //             "V" => 178530.793575,
+        //             "i" => 779870452,
+        //             "C" => "string",
+        //             "H" => "string",
+        //             "L" => "string",
+        //             "O" => "string"
+        //         }
+        //     )
+        // }
+        //
+        $ohlcvs = $this->safe_list($response, 'c', array());
+        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
     public function parse_funding_rate(mixed $contract, ?array $market = null): array {
@@ -1757,247 +1802,255 @@ class lighter extends Exchange {
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the current funding rate for multiple $symbols
-             *
-             * @see https://apidocs.lighter.xyz/reference/funding-rates
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the $exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_funding_rates(...))($symbols, $params);
+    }
+
+    private function do_fetch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the current funding rate for multiple $symbols
+         *
+         * @see https://apidocs.lighter.xyz/reference/funding-rates
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the $exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->publicGetFundingRates($this->extend($params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "funding_rates" => array(
+        //             {
+        //                 "market_id" => 0,
+        //                 "exchange" => "lighter",
+        //                 "symbol" => "ETH",
+        //                 "rate" => 0.00009599999999999999
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'funding_rates', array());
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $exchange = $this->safe_string($data[$i], 'exchange');
+            if ($exchange === 'lighter') {
+                $result[] = $data[$i];
             }
-            $response = Async\await($this->publicGetFundingRates($this->extend($params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "funding_rates" => array(
-            //             {
-            //                 "market_id" => 0,
-            //                 "exchange" => "lighter",
-            //                 "symbol" => "ETH",
-            //                 "rate" => 0.00009599999999999999
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'funding_rates', array());
-            $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $exchange = $this->safe_string($data[$i], 'exchange');
-                if ($exchange === 'lighter') {
-                    $result[] = $data[$i];
-                }
-            }
-            return $this->parse_funding_rates($result, $symbols);
-        })();
+        }
+        return $this->parse_funding_rates($result, $symbols);
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for $balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://apidocs.lighter.xyz/reference/account-1
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->by] fetch $balance by 'index' or 'l1_address', defaults to 'index'
-             * @param {string} [$params->value] fetch $balance value, $account index or l1 address
-             * @param {string} [$params->type] 'spot', 'swap', default is 'swap'
-             * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchBalance', 'accountIndex', 'account_index'));
-            $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $request = array(
-                'by' => $this->safe_string($params, 'by', 'index'),
-                'value' => $accountIndex,
-            );
-            $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "200",
-            //         "total" => "1",
-            //         "accounts" => array(
-            //             {
-            //                 "code" => "0",
-            //                 "account_type" => "0",
-            //                 "index" => "1077",
-            //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-            //                 "cancel_all_time" => "0",
-            //                 "total_order_count" => "1",
-            //                 "total_isolated_order_count" => "0",
-            //                 "pending_order_count" => "0",
-            //                 "available_balance" => "7996.489834",
-            //                 "status" => "1",
-            //                 "collateral" => "9000.000000",
-            //                 "account_index" => "1077",
-            //                 "name" => "",
-            //                 "description" => "",
-            //                 "can_invite" => true,
-            //                 "referral_points_percentage" => "",
-            //                 "positions" => array(),
-            //                 "assets" => array(
-            //                     array(
-            //                         "symbol" => "ETH",
-            //                         "asset_id" => "1",
-            //                         "balance" => "3.00000000",
-            //                         "locked_balance" => "0.00000000"
-            //                     ),
-            //                     {
-            //                         "symbol" => "USDC",
-            //                         "asset_id" => "3",
-            //                         "balance" => "1000.000000",
-            //                         "locked_balance" => "0.000000"
-            //                     }
-            //                 ),
-            //                 "total_asset_value" => "9536.789088",
-            //                 "cross_asset_value" => "9536.789088",
-            //                 "shares" => array()
-            //             }
-            //         )
-            //     }
-            //
-            $result = array( 'info' => $response );
-            $accounts = $this->safe_list($response, 'accounts', array());
-            for ($i = 0; $i < count($accounts); $i++) {
-                $account = $accounts[$i];
-                if ($type === 'spot') {
-                    $assets = $this->safe_list($account, 'assets', array());
-                    for ($j = 0; $j < count($assets); $j++) {
-                        $asset = $assets[$j];
-                        $codeId = $this->safe_string($asset, 'symbol');
-                        $code = $this->safe_currency_code($codeId);
-                        $balance = $this->safe_dict($result, $code, $this->account());
-                        $balance['total'] = Precise::string_add($balance['total'], $this->safe_string($asset, 'balance'));
-                        $balance['used'] = Precise::string_add($balance['used'], $this->safe_string($asset, 'locked_balance'));
-                        if ($code !== null) {
-                            $result[$code] = $balance;
-                        }
+        return Async\async(self::do_fetch_balance(...))($params);
+    }
+
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://apidocs.lighter.xyz/reference/account-1
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->by] fetch $balance by 'index' or 'l1_address', defaults to 'index'
+         * @param {string} [$params->value] fetch $balance value, $account index or l1 address
+         * @param {string} [$params->type] 'spot', 'swap', default is 'swap'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchBalance', 'accountIndex', 'account_index'));
+        $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
+        $type = $this->safe_string($params, 'type', $defaultType);
+        $request = array(
+            'by' => $this->safe_string($params, 'by', 'index'),
+            'value' => $accountIndex,
+        );
+        $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "200",
+        //         "total" => "1",
+        //         "accounts" => array(
+        //             {
+        //                 "code" => "0",
+        //                 "account_type" => "0",
+        //                 "index" => "1077",
+        //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time" => "0",
+        //                 "total_order_count" => "1",
+        //                 "total_isolated_order_count" => "0",
+        //                 "pending_order_count" => "0",
+        //                 "available_balance" => "7996.489834",
+        //                 "status" => "1",
+        //                 "collateral" => "9000.000000",
+        //                 "account_index" => "1077",
+        //                 "name" => "",
+        //                 "description" => "",
+        //                 "can_invite" => true,
+        //                 "referral_points_percentage" => "",
+        //                 "positions" => array(),
+        //                 "assets" => array(
+        //                     array(
+        //                         "symbol" => "ETH",
+        //                         "asset_id" => "1",
+        //                         "balance" => "3.00000000",
+        //                         "locked_balance" => "0.00000000"
+        //                     ),
+        //                     {
+        //                         "symbol" => "USDC",
+        //                         "asset_id" => "3",
+        //                         "balance" => "1000.000000",
+        //                         "locked_balance" => "0.000000"
+        //                     }
+        //                 ),
+        //                 "total_asset_value" => "9536.789088",
+        //                 "cross_asset_value" => "9536.789088",
+        //                 "shares" => array()
+        //             }
+        //         )
+        //     }
+        //
+        $result = array( 'info' => $response );
+        $accounts = $this->safe_list($response, 'accounts', array());
+        for ($i = 0; $i < count($accounts); $i++) {
+            $account = $accounts[$i];
+            if ($type === 'spot') {
+                $assets = $this->safe_list($account, 'assets', array());
+                for ($j = 0; $j < count($assets); $j++) {
+                    $asset = $assets[$j];
+                    $codeId = $this->safe_string($asset, 'symbol');
+                    $code = $this->safe_currency_code($codeId);
+                    $balance = $this->safe_dict($result, $code, $this->account());
+                    $balance['total'] = Precise::string_add($balance['total'], $this->safe_string($asset, 'balance'));
+                    $balance['used'] = Precise::string_add($balance['used'], $this->safe_string($asset, 'locked_balance'));
+                    if ($code !== null) {
+                        $result[$code] = $balance;
                     }
-                } else {
-                    $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
-                    $perpTotal = $this->safe_string($perpBalance, 'total', '0');
-                    $perpFree = $this->safe_string($perpBalance, 'free', '0');
-                    $perpUSDCTotal = $this->safe_string($account, 'collateral', '0');
-                    $perpUSDCFree = $this->safe_string($account, 'available_balance', '0');
-                    $perpBalance['total'] = Precise::string_add($perpTotal, $perpUSDCTotal);
-                    $perpBalance['free'] = Precise::string_add($perpFree, $perpUSDCFree);
-                    $result['USDC'] = $perpBalance;
                 }
+            } else {
+                $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
+                $perpTotal = $this->safe_string($perpBalance, 'total', '0');
+                $perpFree = $this->safe_string($perpBalance, 'free', '0');
+                $perpUSDCTotal = $this->safe_string($account, 'collateral', '0');
+                $perpUSDCFree = $this->safe_string($account, 'available_balance', '0');
+                $perpBalance['total'] = Precise::string_add($perpTotal, $perpUSDCTotal);
+                $perpBalance['free'] = Precise::string_add($perpFree, $perpUSDCFree);
+                $result['USDC'] = $perpBalance;
             }
-            return $this->safe_balance($result);
-        })();
+        }
+        return $this->safe_balance($result);
     }
 
     public function fetch_position(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch data on an open position
-             *
-             * @see https://apidocs.lighter.xyz/reference/account-1
-             *
-             * @param {string} $symbol unified market $symbol of the market the position is held in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->by] fetch balance by 'index' or 'l1_address', defaults to 'index'
-             * @param {string} [$params->value] fetch balance value, account index or l1 address
-             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
-            return $this->safe_dict($positions, 0, array());
-        })();
+        return Async\async(self::do_fetch_position(...))($symbol, $params);
+    }
+
+    private function do_fetch_position(string $symbol, $params = array()) {
+        /**
+         * fetch data on an open position
+         *
+         * @see https://apidocs.lighter.xyz/reference/account-1
+         *
+         * @param {string} $symbol unified market $symbol of the market the position is held in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+         * @param {string} [$params->value] fetch balance value, account index or l1 address
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
+        return $this->safe_dict($positions, 0, array());
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open $positions
-             *
-             * @see https://apidocs.lighter.xyz/reference/account-1
-             *
-             * @param {string[]} [$symbols] list of unified market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->by] fetch balance by 'index' or 'l1_address', defaults to 'index'
-             * @param {string} [$params->value] fetch balance value, $account index or l1 address
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open $positions
+         *
+         * @see https://apidocs.lighter.xyz/reference/account-1
+         *
+         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+         * @param {string} [$params->value] fetch balance value, $account index or l1 address
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchPositions', 'accountIndex', 'account_index'));
+        $request = array(
+            'by' => $this->safe_string($params, 'by', 'index'),
+            'value' => $accountIndex,
+        );
+        $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "total" => 2,
+        //         "accounts" => array(
+        //             {
+        //                 "code" => 0,
+        //                 "account_type" => 0,
+        //                 "index" => 1077,
+        //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time" => 0,
+        //                 "total_order_count" => 0,
+        //                 "total_isolated_order_count" => 0,
+        //                 "pending_order_count" => 0,
+        //                 "available_balance" => "12582.743947",
+        //                 "status" => 1,
+        //                 "collateral" => "9100.242706",
+        //                 "account_index" => 1077,
+        //                 "name" => "",
+        //                 "description" => "",
+        //                 "can_invite" => true,
+        //                 "referral_points_percentage" => "",
+        //                 "positions" => array(
+        //                     {
+        //                         "market_id" => 0,
+        //                         "symbol" => "ETH",
+        //                         "initial_margin_fraction" => "5.00",
+        //                         "open_order_count" => 0,
+        //                         "pending_order_count" => 0,
+        //                         "position_tied_order_count" => 0,
+        //                         "sign" => 1,
+        //                         "position" => "18.0193",
+        //                         "avg_entry_price" => "2669.84",
+        //                         "position_value" => "54306.566340",
+        //                         "unrealized_pnl" => "6197.829558",
+        //                         "realized_pnl" => "0.000000",
+        //                         "liquidation_price" => "2191.1107231380406",
+        //                         "margin_mode" => 0,
+        //                         "allocated_margin" => "0.000000"
+        //                     }
+        //                 ),
+        //                 "assets" => array(),
+        //                 "total_asset_value" => "15298.072264000002",
+        //                 "cross_asset_value" => "15298.072264000002",
+        //                 "shares" => array()
+        //             }
+        //         )
+        //     }
+        //
+        $allPositions = array();
+        $accounts = $this->safe_list($response, 'accounts', array());
+        for ($i = 0; $i < count($accounts); $i++) {
+            $account = $accounts[$i];
+            $positions = $this->safe_list($account, 'positions', array());
+            for ($j = 0; $j < count($positions); $j++) {
+                $allPositions[] = $positions[$j];
             }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchPositions', 'accountIndex', 'account_index'));
-            $request = array(
-                'by' => $this->safe_string($params, 'by', 'index'),
-                'value' => $accountIndex,
-            );
-            $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "total" => 2,
-            //         "accounts" => array(
-            //             {
-            //                 "code" => 0,
-            //                 "account_type" => 0,
-            //                 "index" => 1077,
-            //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-            //                 "cancel_all_time" => 0,
-            //                 "total_order_count" => 0,
-            //                 "total_isolated_order_count" => 0,
-            //                 "pending_order_count" => 0,
-            //                 "available_balance" => "12582.743947",
-            //                 "status" => 1,
-            //                 "collateral" => "9100.242706",
-            //                 "account_index" => 1077,
-            //                 "name" => "",
-            //                 "description" => "",
-            //                 "can_invite" => true,
-            //                 "referral_points_percentage" => "",
-            //                 "positions" => array(
-            //                     {
-            //                         "market_id" => 0,
-            //                         "symbol" => "ETH",
-            //                         "initial_margin_fraction" => "5.00",
-            //                         "open_order_count" => 0,
-            //                         "pending_order_count" => 0,
-            //                         "position_tied_order_count" => 0,
-            //                         "sign" => 1,
-            //                         "position" => "18.0193",
-            //                         "avg_entry_price" => "2669.84",
-            //                         "position_value" => "54306.566340",
-            //                         "unrealized_pnl" => "6197.829558",
-            //                         "realized_pnl" => "0.000000",
-            //                         "liquidation_price" => "2191.1107231380406",
-            //                         "margin_mode" => 0,
-            //                         "allocated_margin" => "0.000000"
-            //                     }
-            //                 ),
-            //                 "assets" => array(),
-            //                 "total_asset_value" => "15298.072264000002",
-            //                 "cross_asset_value" => "15298.072264000002",
-            //                 "shares" => array()
-            //             }
-            //         )
-            //     }
-            //
-            $allPositions = array();
-            $accounts = $this->safe_list($response, 'accounts', array());
-            for ($i = 0; $i < count($accounts); $i++) {
-                $account = $accounts[$i];
-                $positions = $this->safe_list($account, 'positions', array());
-                for ($j = 0; $j < count($positions); $j++) {
-                    $allPositions[] = $positions[$j];
-                }
-            }
-            return $this->parse_positions($allPositions, $symbols);
-        })();
+        }
+        return $this->parse_positions($allPositions, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2068,61 +2121,63 @@ class lighter extends Exchange {
     }
 
     public function fetch_accounts($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch all the $accounts associated with a profile
-             *
-             * @see https://apidocs.lighter.xyz/reference/account-1
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->by] fetch balance by 'index' or 'l1_address', defaults to 'index'
-             * @param {string} [$params->value] fetch balance value, account index or l1 address
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$accounts-structure account structures~ indexed by the account type
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchAccounts', 'accountIndex', 'account_index'));
-            $request = array(
-                'by' => $this->safe_string($params, 'by', 'index'),
-                'value' => $accountIndex,
-            );
-            $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "200",
-            //         "total" => "1",
-            //         "accounts" => array(
-            //             {
-            //                 "code" => "0",
-            //                 "account_type" => "0",
-            //                 "index" => "1077",
-            //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-            //                 "cancel_all_time" => "0",
-            //                 "total_order_count" => "1",
-            //                 "total_isolated_order_count" => "0",
-            //                 "pending_order_count" => "0",
-            //                 "available_balance" => "7996.489834",
-            //                 "status" => "1",
-            //                 "collateral" => "9000.000000",
-            //                 "account_index" => "1077",
-            //                 "name" => "",
-            //                 "description" => "",
-            //                 "can_invite" => true,
-            //                 "referral_points_percentage" => "",
-            //                 "positions" => array(),
-            //                 "assets" => array(),
-            //                 "total_asset_value" => "9536.789088",
-            //                 "cross_asset_value" => "9536.789088",
-            //                 "shares" => array()
-            //             }
-            //         )
-            //     }
-            //
-            $accounts = $this->safe_list($response, 'accounts', array());
-            return $this->parse_accounts($accounts, $params);
-        })();
+        return Async\async(self::do_fetch_accounts(...))($params);
+    }
+
+    private function do_fetch_accounts($params = array()) {
+        /**
+         * fetch all the $accounts associated with a profile
+         *
+         * @see https://apidocs.lighter.xyz/reference/account-1
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->by] fetch balance by 'index' or 'l1_address', defaults to 'index'
+         * @param {string} [$params->value] fetch balance value, account index or l1 address
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$accounts-structure account structures~ indexed by the account type
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchAccounts', 'accountIndex', 'account_index'));
+        $request = array(
+            'by' => $this->safe_string($params, 'by', 'index'),
+            'value' => $accountIndex,
+        );
+        $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "200",
+        //         "total" => "1",
+        //         "accounts" => array(
+        //             {
+        //                 "code" => "0",
+        //                 "account_type" => "0",
+        //                 "index" => "1077",
+        //                 "l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "cancel_all_time" => "0",
+        //                 "total_order_count" => "1",
+        //                 "total_isolated_order_count" => "0",
+        //                 "pending_order_count" => "0",
+        //                 "available_balance" => "7996.489834",
+        //                 "status" => "1",
+        //                 "collateral" => "9000.000000",
+        //                 "account_index" => "1077",
+        //                 "name" => "",
+        //                 "description" => "",
+        //                 "can_invite" => true,
+        //                 "referral_points_percentage" => "",
+        //                 "positions" => array(),
+        //                 "assets" => array(),
+        //                 "total_asset_value" => "9536.789088",
+        //                 "cross_asset_value" => "9536.789088",
+        //                 "shares" => array()
+        //             }
+        //         )
+        //     }
+        //
+        $accounts = $this->safe_list($response, 'accounts', array());
+        return $this->parse_accounts($accounts, $params);
     }
 
     public function parse_account(mixed $account) {
@@ -2161,167 +2216,171 @@ class lighter extends Exchange {
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://apidocs.lighter.xyz/reference/accountactiveorders
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchOpenOrders', 'accountIndex', 'account_index'));
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index');
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $market = $this->market($symbol);
-            $request = array(
-                'market_id' => $market['id'],
-                'account_index' => $accountIndex,
-            );
-            $response = Async\await($this->privateGetAccountActiveOrders($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "orders" => array(
-            //             {
-            //                 "order_index" => 281474977354074,
-            //                 "client_order_index" => 0,
-            //                 "order_id" => "281474977354074",
-            //                 "client_order_id" => "0",
-            //                 "market_index" => 0,
-            //                 "owner_account_index" => 1077,
-            //                 "initial_base_amount" => "36.0386",
-            //                 "price" => "2221.60",
-            //                 "nonce" => 643418,
-            //                 "remaining_base_amount" => "0.0000",
-            //                 "is_ask" => true,
-            //                 "base_size" => 0,
-            //                 "base_price" => 222160,
-            //                 "filled_base_amount" => "0.0000",
-            //                 "filled_quote_amount" => "0.000000",
-            //                 "side" => "",
-            //                 "type" => "market",
-            //                 "time_in_force" => "immediate-or-cancel",
-            //                 "reduce_only" => false,
-            //                 "trigger_price" => "0.00",
-            //                 "order_expiry" => 0,
-            //                 "status" => "canceled-margin-not-allowed",
-            //                 "trigger_status" => "na",
-            //                 "trigger_time" => 0,
-            //                 "parent_order_index" => 0,
-            //                 "parent_order_id" => "0",
-            //                 "to_trigger_order_id_0" => "0",
-            //                 "to_trigger_order_id_1" => "0",
-            //                 "to_cancel_order_id_0" => "0",
-            //                 "block_height" => 102202,
-            //                 "timestamp" => 1766387932,
-            //                 "created_at" => 1766387932,
-            //                 "updated_at" => 1766387932
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'orders', array());
-            return $this->parse_orders($data, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://apidocs.lighter.xyz/reference/accountactiveorders
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchOpenOrders', 'accountIndex', 'account_index'));
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchOpenOrders', 'apiKeyIndex', 'api_key_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $market = $this->market($symbol);
+        $request = array(
+            'market_id' => $market['id'],
+            'account_index' => $accountIndex,
+        );
+        $response = Async\await($this->privateGetAccountActiveOrders($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "orders" => array(
+        //             {
+        //                 "order_index" => 281474977354074,
+        //                 "client_order_index" => 0,
+        //                 "order_id" => "281474977354074",
+        //                 "client_order_id" => "0",
+        //                 "market_index" => 0,
+        //                 "owner_account_index" => 1077,
+        //                 "initial_base_amount" => "36.0386",
+        //                 "price" => "2221.60",
+        //                 "nonce" => 643418,
+        //                 "remaining_base_amount" => "0.0000",
+        //                 "is_ask" => true,
+        //                 "base_size" => 0,
+        //                 "base_price" => 222160,
+        //                 "filled_base_amount" => "0.0000",
+        //                 "filled_quote_amount" => "0.000000",
+        //                 "side" => "",
+        //                 "type" => "market",
+        //                 "time_in_force" => "immediate-or-cancel",
+        //                 "reduce_only" => false,
+        //                 "trigger_price" => "0.00",
+        //                 "order_expiry" => 0,
+        //                 "status" => "canceled-margin-not-allowed",
+        //                 "trigger_status" => "na",
+        //                 "trigger_time" => 0,
+        //                 "parent_order_index" => 0,
+        //                 "parent_order_id" => "0",
+        //                 "to_trigger_order_id_0" => "0",
+        //                 "to_trigger_order_id_1" => "0",
+        //                 "to_cancel_order_id_0" => "0",
+        //                 "block_height" => 102202,
+        //                 "timestamp" => 1766387932,
+        //                 "created_at" => 1766387932,
+        //                 "updated_at" => 1766387932
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'orders', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently closed orders
-             *
-             * @see https://apidocs.lighter.xyz/reference/accountinactiveorders
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch open orders for
-             * @param {int} [$limit] the maximum number of open orders structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchClosedOrders', 'accountIndex', 'account_index'));
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index');
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $market = $this->market($symbol);
-            $request = array(
-                'market_id' => $market['id'],
-                'account_index' => $accountIndex,
-                'limit' => 100, // required, max 100
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 100);
-            }
-            $response = Async\await($this->privateGetAccountInactiveOrders($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "orders" => array(
-            //             {
-            //                 "order_index" => 281474977354074,
-            //                 "client_order_index" => 0,
-            //                 "order_id" => "281474977354074",
-            //                 "client_order_id" => "0",
-            //                 "market_index" => 0,
-            //                 "owner_account_index" => 1077,
-            //                 "initial_base_amount" => "36.0386",
-            //                 "price" => "2221.60",
-            //                 "nonce" => 643418,
-            //                 "remaining_base_amount" => "0.0000",
-            //                 "is_ask" => true,
-            //                 "base_size" => 0,
-            //                 "base_price" => 222160,
-            //                 "filled_base_amount" => "0.0000",
-            //                 "filled_quote_amount" => "0.000000",
-            //                 "side" => "",
-            //                 "type" => "market",
-            //                 "time_in_force" => "immediate-or-cancel",
-            //                 "reduce_only" => false,
-            //                 "trigger_price" => "0.00",
-            //                 "order_expiry" => 0,
-            //                 "status" => "canceled-margin-not-allowed",
-            //                 "trigger_status" => "na",
-            //                 "trigger_time" => 0,
-            //                 "parent_order_index" => 0,
-            //                 "parent_order_id" => "0",
-            //                 "to_trigger_order_id_0" => "0",
-            //                 "to_trigger_order_id_1" => "0",
-            //                 "to_cancel_order_id_0" => "0",
-            //                 "block_height" => 102202,
-            //                 "timestamp" => 1766387932,
-            //                 "created_at" => 1766387932,
-            //                 "updated_at" => 1766387932
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'orders', array());
-            return $this->parse_orders($data, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently closed orders
+         *
+         * @see https://apidocs.lighter.xyz/reference/accountinactiveorders
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open orders for
+         * @param {int} [$limit] the maximum number of open orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchClosedOrders', 'accountIndex', 'account_index'));
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchClosedOrders', 'apiKeyIndex', 'api_key_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $market = $this->market($symbol);
+        $request = array(
+            'market_id' => $market['id'],
+            'account_index' => $accountIndex,
+            'limit' => 100, // required, max 100
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 100);
+        }
+        $response = Async\await($this->privateGetAccountInactiveOrders($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "orders" => array(
+        //             {
+        //                 "order_index" => 281474977354074,
+        //                 "client_order_index" => 0,
+        //                 "order_id" => "281474977354074",
+        //                 "client_order_id" => "0",
+        //                 "market_index" => 0,
+        //                 "owner_account_index" => 1077,
+        //                 "initial_base_amount" => "36.0386",
+        //                 "price" => "2221.60",
+        //                 "nonce" => 643418,
+        //                 "remaining_base_amount" => "0.0000",
+        //                 "is_ask" => true,
+        //                 "base_size" => 0,
+        //                 "base_price" => 222160,
+        //                 "filled_base_amount" => "0.0000",
+        //                 "filled_quote_amount" => "0.000000",
+        //                 "side" => "",
+        //                 "type" => "market",
+        //                 "time_in_force" => "immediate-or-cancel",
+        //                 "reduce_only" => false,
+        //                 "trigger_price" => "0.00",
+        //                 "order_expiry" => 0,
+        //                 "status" => "canceled-margin-not-allowed",
+        //                 "trigger_status" => "na",
+        //                 "trigger_time" => 0,
+        //                 "parent_order_index" => 0,
+        //                 "parent_order_id" => "0",
+        //                 "to_trigger_order_id_0" => "0",
+        //                 "to_trigger_order_id_1" => "0",
+        //                 "to_cancel_order_id_0" => "0",
+        //                 "block_height" => 102202,
+        //                 "timestamp" => 1766387932,
+        //                 "created_at" => 1766387932,
+        //                 "updated_at" => 1766387932
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'orders', array());
+        return $this->parse_orders($data, $market, $since, $limit);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2512,136 +2571,140 @@ class lighter extends Exchange {
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer $currency internally between wallets on the same account
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount account to transfer from (spot, perp)
-             * @param {string} $toAccount account to transfer to (spot, perp)
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->toAccountIndex] to account index, defaults to fromAccountIndex
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @param {string} [$params->memo] hex encoding $memo
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'transfer', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'transfer', 'accountIndex', 'account_index'));
-            $toAccountIndex = null;
-            list($toAccountIndex, $params) = $this->handle_option_and_params_2($params, 'transfer', 'toAccountIndex', 'to_account_index', $accountIndex);
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $currency = $this->currency($code);
-            if ($currency['code'] === 'USDC') {
-                $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '6'), $this->currency_to_precision($code, $amount)));
-            } elseif ($currency['code'] === 'ETH') {
-                $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '8'), $this->currency_to_precision($code, $amount)));
-            } else {
-                throw new ExchangeError($this->id . ' transfer() only supports USDC and ETH transfers');
-            }
-            $fromRouteType = ($fromAccount === 'perp') ? 0 : 1; // 0 => perp, 1 => spot
-            $toRouteType = ($toAccount === 'perp') ? 0 : 1;
-            $memo = $this->safe_string($params, 'memo', '0x000000000000000000000000000000');
-            $params = $this->omit($params, array( 'memo' ));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'to_account_index' => $toAccountIndex,
-                'asset_index' => $this->parse_to_int($currency['id']),
-                'from_route_type' => $fromRouteType,
-                'to_route_type' => $toRouteType,
-                'amount' => $amount,
-                'usdc_fee' => 0,
-                'memo' => $memo,
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo) = $this->lighter_sign_transfer($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $this->parse_transfer($response);
-        })();
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from (spot, perp)
+         * @param {string} $toAccount account to transfer to (spot, perp)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->toAccountIndex] to account index, defaults to fromAccountIndex
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @param {string} [$params->memo] hex encoding $memo
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'transfer', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'transfer', 'accountIndex', 'account_index'));
+        $toAccountIndex = null;
+        list($toAccountIndex, $params) = $this->handle_option_and_params_2($params, 'transfer', 'toAccountIndex', 'to_account_index', $accountIndex);
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $currency = $this->currency($code);
+        if ($currency['code'] === 'USDC') {
+            $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '6'), $this->currency_to_precision($code, $amount)));
+        } elseif ($currency['code'] === 'ETH') {
+            $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '8'), $this->currency_to_precision($code, $amount)));
+        } else {
+            throw new ExchangeError($this->id . ' transfer() only supports USDC and ETH transfers');
+        }
+        $fromRouteType = ($fromAccount === 'perp') ? 0 : 1; // 0 => perp, 1 => spot
+        $toRouteType = ($toAccount === 'perp') ? 0 : 1;
+        $memo = $this->safe_string($params, 'memo', '0x000000000000000000000000000000');
+        $params = $this->omit($params, array( 'memo' ));
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'to_account_index' => $toAccountIndex,
+            'asset_index' => $this->parse_to_int($currency['id']),
+            'from_route_type' => $fromRouteType,
+            'to_route_type' => $toRouteType,
+            'amount' => $amount,
+            'usdc_fee' => 0,
+            'memo' => $memo,
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_transfer($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $this->parse_transfer($response);
     }
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch a history of internal transfers made on an account
-             *
-             * @see https://apidocs.lighter.xyz/reference/transfer_history
-             *
-             * @param {string} $code unified $currency $code of the $currency transferred
-             * @param {int} [$since] the earliest time in ms to fetch transfers for
-             * @param {int} [$limit] the maximum number of  transfers structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchTransfers', 'accountIndex', 'account_index'));
-            $request = array(
-                'account_index' => $accountIndex,
-            );
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchTransfers', 'apiKeyIndex', 'api_key_index');
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-            }
-            $response = Async\await($this->privateGetTransferHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "transfers" => array(
-            //             {
-            //                 "id" => "3085014",
-            //                 "asset_id" => 3,
-            //                 "amount" => "11.000000",
-            //                 "fee" => "0.000000",
-            //                 "timestamp" => 1766387292752,
-            //                 "type" => "L2TransferOutflow",
-            //                 "from_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-            //                 "to_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
-            //                 "from_account_index" => 1077,
-            //                 "to_account_index" => 281474976710608,
-            //                 "from_route" => "spot",
-            //                 "to_route" => "spot",
-            //                 "tx_hash" => "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
-            //             }
-            //         ),
-            //         "cursor" => "eyJpbmRleCI6MzA4NDkxNX0="
-            //     }
-            //
-            $rows = $this->safe_list($response, 'transfers', array());
-            $cursor = $this->safe_string($response, 'cursor');
-            $first = $this->safe_dict($rows, 0);
-            if (($first !== null) && ($cursor !== null)) {
-                $rows[0]['cursor'] = $cursor;
-            }
-            return $this->parse_transfers($rows, $currency, $since, $limit, $params);
-        })();
+        return Async\async(self::do_fetch_transfers(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch a history of internal transfers made on an account
+         *
+         * @see https://apidocs.lighter.xyz/reference/transfer_history
+         *
+         * @param {string} $code unified $currency $code of the $currency transferred
+         * @param {int} [$since] the earliest time in ms to fetch transfers for
+         * @param {int} [$limit] the maximum number of  transfers structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_cursor('fetchTransfers', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchTransfers', 'accountIndex', 'account_index'));
+        $request = array(
+            'account_index' => $accountIndex,
+        );
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchTransfers', 'apiKeyIndex', 'api_key_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
+        $response = Async\await($this->privateGetTransferHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "transfers" => array(
+        //             {
+        //                 "id" => "3085014",
+        //                 "asset_id" => 3,
+        //                 "amount" => "11.000000",
+        //                 "fee" => "0.000000",
+        //                 "timestamp" => 1766387292752,
+        //                 "type" => "L2TransferOutflow",
+        //                 "from_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "to_l1_address" => "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A",
+        //                 "from_account_index" => 1077,
+        //                 "to_account_index" => 281474976710608,
+        //                 "from_route" => "spot",
+        //                 "to_route" => "spot",
+        //                 "tx_hash" => "d8e96178273d0938f9ede556edffc0aab8def9ec70c46a65791905291a2f5792af18625406102c80"
+        //             }
+        //         ),
+        //         "cursor" => "eyJpbmRleCI6MzA4NDkxNX0="
+        //     }
+        //
+        $rows = $this->safe_list($response, 'transfers', array());
+        $cursor = $this->safe_string($response, 'cursor');
+        $first = $this->safe_dict($rows, 0);
+        if (($first !== null) && ($cursor !== null)) {
+            $rows[0]['cursor'] = $cursor;
+        }
+        return $this->parse_transfers($rows, $currency, $since, $limit, $params);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2681,141 +2744,145 @@ class lighter extends Exchange {
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://apidocs.lighter.xyz/reference/deposit_history
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposits structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->address] l1_address
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
-            }
-            $address = null;
-            list($address, $params) = $this->handle_option_and_params_2($params, 'fetchDeposits', 'address', 'l1_address');
-            if ($address === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchDeposits', 'accountIndex', 'account_index'));
-            $request = array(
-                'account_index' => $accountIndex,
-                'l1_address' => $address,
-            );
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchDeposits', 'apiKeyIndex', 'api_key_index');
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['coin'] = $currency['id'];
-            }
-            $response = Async\await($this->privateGetDepositHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "deposits" => array(
-            //             {
-            //                 "id" => "2901843",
-            //                 "asset_id" => 5,
-            //                 "amount" => "100000.0",
-            //                 "timestamp" => 1766112729741,
-            //                 "status" => "completed",
-            //                 "l1_tx_hash" => "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
-            //             }
-            //         ),
-            //         "cursor" => "eyJpbmRleCI6MjkwMTg0MH0="
-            //     }
-            //
-            $data = $this->safe_list($response, 'deposits', array());
-            $cursor = $this->safe_string($response, 'cursor');
-            $first = $this->safe_dict($data, 0);
-            if (($first !== null) && ($cursor !== null)) {
-                $data[0]['cursor'] = $cursor;
-            }
-            return $this->parse_transactions($data, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://apidocs.lighter.xyz/reference/deposit_history
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->address] l1_address
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_cursor('fetchDeposits', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
+        }
+        $address = null;
+        list($address, $params) = $this->handle_option_and_params_2($params, 'fetchDeposits', 'address', 'l1_address');
+        if ($address === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires an $address parameter');
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchDeposits', 'accountIndex', 'account_index'));
+        $request = array(
+            'account_index' => $accountIndex,
+            'l1_address' => $address,
+        );
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchDeposits', 'apiKeyIndex', 'api_key_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        $response = Async\await($this->privateGetDepositHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "deposits" => array(
+        //             {
+        //                 "id" => "2901843",
+        //                 "asset_id" => 5,
+        //                 "amount" => "100000.0",
+        //                 "timestamp" => 1766112729741,
+        //                 "status" => "completed",
+        //                 "l1_tx_hash" => "0xa24d83d58e1fd72b2a44a12d1ec766fb061fa0b806de2fed940b5d8ecd50744d"
+        //             }
+        //         ),
+        //         "cursor" => "eyJpbmRleCI6MjkwMTg0MH0="
+        //     }
+        //
+        $data = $this->safe_list($response, 'deposits', array());
+        $cursor = $this->safe_string($response, 'cursor');
+        $first = $this->safe_dict($data, 0);
+        if (($first !== null) && ($cursor !== null)) {
+            $data[0]['cursor'] = $cursor;
+        }
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://apidocs.lighter.xyz/reference/withdraw_history
-             *
-             * @param {string} [$code] unified $currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchWithdrawals', 'accountIndex', 'account_index'));
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'account_index' => $accountIndex,
-            );
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index');
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $currency = null;
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['coin'] = $currency['id'];
-            }
-            $response = Async\await($this->privateGetWithdrawHistory($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => "200",
-            //         "message" => "string",
-            //         "withdraws" => array(
-            //             {
-            //                 "id" => "string",
-            //                 "amount" => "0.1",
-            //                 "timestamp" => "1640995200",
-            //                 "status" => "failed",
-            //                 "type" => "secure",
-            //                 "l1_tx_hash" => "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
-            //             }
-            //         ),
-            //         "cursor" => "string"
-            //     }
-            //
-            $data = $this->safe_list($response, 'withdraws', array());
-            $cursor = $this->safe_string($response, 'cursor');
-            $first = $this->safe_dict($data, 0);
-            if (($first !== null) && ($cursor !== null)) {
-                $data[0]['cursor'] = $cursor;
-            }
-            return $this->parse_transactions($data, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://apidocs.lighter.xyz/reference/withdraw_history
+         *
+         * @param {string} [$code] unified $currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_cursor('fetchWithdrawals', $code, $since, $limit, $params, 'cursor', 'cursor', null, 50));
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchWithdrawals', 'accountIndex', 'account_index'));
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'account_index' => $accountIndex,
+        );
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchWithdrawals', 'apiKeyIndex', 'api_key_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        $response = Async\await($this->privateGetWithdrawHistory($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => "200",
+        //         "message" => "string",
+        //         "withdraws" => array(
+        //             {
+        //                 "id" => "string",
+        //                 "amount" => "0.1",
+        //                 "timestamp" => "1640995200",
+        //                 "status" => "failed",
+        //                 "type" => "secure",
+        //                 "l1_tx_hash" => "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+        //             }
+        //         ),
+        //         "cursor" => "string"
+        //     }
+        //
+        $data = $this->safe_list($response, 'withdraws', array());
+        $cursor = $this->safe_string($response, 'cursor');
+        $first = $this->safe_dict($data, 0);
+        if (($first !== null) && ($cursor !== null)) {
+            $data[0]['cursor'] = $cursor;
+        }
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2883,150 +2950,154 @@ class lighter extends Exchange {
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} [$tag]
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @param {int} [$params->routeType] wallet type, 0 => perp, 1 => spot, default is 0
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'withdraw', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'withdraw', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $currency = $this->currency($code);
-            if ($currency['code'] === 'USDC') {
-                $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '6'), $this->currency_to_precision($code, $amount)));
-            } elseif ($currency['code'] === 'ETH') {
-                $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '8'), $this->currency_to_precision($code, $amount)));
-            } else {
-                throw new ExchangeError($this->id . ' withdraw() only supports USDC and ETH transfers');
-            }
-            $routeType = $this->safe_integer($params, 'routeType', 0); // 0 => perp, 1 => spot
-            $params = $this->omit($params, 'routeType');
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'asset_index' => $this->parse_to_int($currency['id']),
-                'route_type' => $routeType,
-                'amount' => $amount,
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo) = $this->lighter_sign_withdraw($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $this->parse_transaction($response);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} [$tag]
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @param {int} [$params->routeType] wallet type, 0 => perp, 1 => spot, default is 0
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'withdraw', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'withdraw', 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $currency = $this->currency($code);
+        if ($currency['code'] === 'USDC') {
+            $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '6'), $this->currency_to_precision($code, $amount)));
+        } elseif ($currency['code'] === 'ETH') {
+            $amount = $this->parse_to_int(Precise::string_mul($this->pow('10', '8'), $this->currency_to_precision($code, $amount)));
+        } else {
+            throw new ExchangeError($this->id . ' withdraw() only supports USDC and ETH transfers');
+        }
+        $routeType = $this->safe_integer($params, 'routeType', 0); // 0 => perp, 1 => spot
+        $params = $this->omit($params, 'routeType');
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'asset_index' => $this->parse_to_int($currency['id']),
+            'route_type' => $routeType,
+            'amount' => $amount,
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_withdraw($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $this->parse_transaction($response);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://apidocs.lighter.xyz/reference/trades
-             *
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trades structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, 50));
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchMyTrades', 'accountIndex', 'account_index'));
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index');
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $request = array(
-                'sort_by' => 'timestamp',
-                'limit' => 100,
-                'account_index' => $accountIndex,
-            );
-            if ($limit !== null) {
-                $request['limit'] = min($limit, 100);
-            }
-            $until = null;
-            list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
-            if ($until !== null) {
-                $request['from'] = $until;
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['market_id'] = $market['id'];
-            }
-            $response = Async\await($this->privateGetTrades($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 200,
-            //         "trades" => array(
-            //             {
-            //                 "trade_id" => 17609,
-            //                 "tx_hash" => "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
-            //                 "type" => "trade",
-            //                 "market_id" => 0,
-            //                 "size" => "10.2304",
-            //                 "price" => "2958.75",
-            //                 "usd_amount" => "30269.196000",
-            //                 "ask_id" => 281474977339869,
-            //                 "bid_id" => 562949952870533,
-            //                 "ask_client_id" => 0,
-            //                 "bid_client_id" => 0,
-            //                 "ask_account_id" => 20,
-            //                 "bid_account_id" => 1077,
-            //                 "is_maker_ask" => true,
-            //                 "block_height" => 102070,
-            //                 "timestamp" => 1766386112741,
-            //                 "taker_position_size_before" => "0.0000",
-            //                 "taker_entry_quote_before" => "0.000000",
-            //                 "taker_position_sign_changed" => true,
-            //                 "maker_position_size_before" => "-1856.8547",
-            //                 "maker_entry_quote_before" => "5491685.069325",
-            //                 "maker_initial_margin_fraction_before" => 500
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_list($response, 'trades', array());
-            for ($i = 0; $i < count($data); $i++) {
-                $data[$i]['account_index'] = $accountIndex;
-            }
-            $nextCursor = $this->safe_string($response, 'next_cursor');
-            $first = $this->safe_dict($data, 0);
-            if (($first !== null) && ($nextCursor !== null)) {
-                $data[0]['next_cursor'] = $nextCursor;
-            }
-            return $this->parse_trades($data, $market, $since, $limit, $params);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://apidocs.lighter.xyz/reference/trades
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trades structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_cursor('fetchMyTrades', $symbol, $since, $limit, $params, 'next_cursor', 'cursor', null, 50));
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchMyTrades', 'accountIndex', 'account_index'));
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'fetchMyTrades', 'apiKeyIndex', 'api_key_index');
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $request = array(
+            'sort_by' => 'timestamp',
+            'limit' => 100,
+            'account_index' => $accountIndex,
+        );
+        if ($limit !== null) {
+            $request['limit'] = min($limit, 100);
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
+        if ($until !== null) {
+            $request['from'] = $until;
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['market_id'] = $market['id'];
+        }
+        $response = Async\await($this->privateGetTrades($this->extend($request, $params)));
+        //
+        //     {
+        //         "code" => 200,
+        //         "trades" => array(
+        //             {
+        //                 "trade_id" => 17609,
+        //                 "tx_hash" => "99ffeaa3899fbaa51043840ddf762fd18c182a33b5125092105bee57af11fab04edf5fd90e969abd",
+        //                 "type" => "trade",
+        //                 "market_id" => 0,
+        //                 "size" => "10.2304",
+        //                 "price" => "2958.75",
+        //                 "usd_amount" => "30269.196000",
+        //                 "ask_id" => 281474977339869,
+        //                 "bid_id" => 562949952870533,
+        //                 "ask_client_id" => 0,
+        //                 "bid_client_id" => 0,
+        //                 "ask_account_id" => 20,
+        //                 "bid_account_id" => 1077,
+        //                 "is_maker_ask" => true,
+        //                 "block_height" => 102070,
+        //                 "timestamp" => 1766386112741,
+        //                 "taker_position_size_before" => "0.0000",
+        //                 "taker_entry_quote_before" => "0.000000",
+        //                 "taker_position_sign_changed" => true,
+        //                 "maker_position_size_before" => "-1856.8547",
+        //                 "maker_entry_quote_before" => "5491685.069325",
+        //                 "maker_initial_margin_fraction_before" => 500
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'trades', array());
+        for ($i = 0; $i < count($data); $i++) {
+            $data[$i]['account_index'] = $accountIndex;
+        }
+        $nextCursor = $this->safe_string($response, 'next_cursor');
+        $first = $this->safe_dict($data, 0);
+        if (($first !== null) && ($nextCursor !== null)) {
+            $data[0]['next_cursor'] = $nextCursor;
+        }
+        return $this->parse_trades($data, $market, $since, $limit, $params);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -3097,299 +3168,335 @@ class lighter extends Exchange {
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a market
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @param {string} [$params->marginMode] margin mode, 'cross' or 'isolated'
-             * @return {array} response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'marginMode', 'margin_mode');
-            if ($marginMode === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires an $marginMode parameter');
-            }
-            return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
-        })();
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
+    }
+
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a market
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @param {string} [$params->marginMode] margin mode, 'cross' or 'isolated'
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_option_and_params_2($params, 'setLeverage', 'marginMode', 'margin_mode');
+        if ($marginMode === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires an $marginMode parameter');
+        }
+        return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($marginMode, $symbol, $params) {
-            /**
-             * set margin mode to 'cross' or 'isolated'
-             * @param {string} $marginMode 'cross' or 'isolated'
-             * @param {string} $symbol unified market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @param {int} [$params->leverage] required $leverage
-             * @return {array} response from the exchange
-             */
-            if ($marginMode === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $marginMode parameter');
-            }
-            $leverage = null;
-            list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
-            if ($leverage === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
-            }
-            return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
-        })();
+        return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
+    }
+
+    private function do_set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @param {int} [$params->leverage] required $leverage
+         * @return {array} response from the exchange
+         */
+        if ($marginMode === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $marginMode parameter');
+        }
+        $leverage = null;
+        list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
+        if ($leverage === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
+        }
+        return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
     }
 
     public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $marginMode, $symbol, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
-                throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires a $marginMode parameter that must be either cross or isolated');
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'modifyLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' modifyLeverageAndMarginMode() requires a $symbol argument');
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $market = $this->market($symbol);
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'market_index' => $this->parse_to_int($market['id']),
-                'initial_margin_fraction' => $this->parse_to_int(10000 / $leverage),
-                'margin_mode' => ($marginMode === 'cross') ? 0 : 1, // 0 => CROSS, 1 => ISOLATED
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo) = $this->lighter_sign_update_leverage($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            return Async\await($this->publicPostSendTx($request));
-        })();
+        return Async\async(self::do_modify_leverage_and_margin_mode(...))($leverage, $marginMode, $symbol, $params);
+    }
+
+    private function do_modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
+            throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires a $marginMode parameter that must be either cross or isolated');
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'modifyLeverageAndMarginMode', 'apiKeyIndex', 'api_key_index');
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' modifyLeverageAndMarginMode() requires a $symbol argument');
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'modifyLeverageAndMarginMode', 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $market = $this->market($symbol);
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'market_index' => $this->parse_to_int($market['id']),
+            'initial_margin_fraction' => $this->parse_to_int(10000 / $leverage),
+            'margin_mode' => ($marginMode === 'cross') ? 0 : 1, // 0 => CROSS, 1 => ISOLATED
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_update_leverage($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        return Async\await($this->publicPostSendTx($request));
+    }
+
+    public function sign_and_cancel_order(string $method, string $id, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_sign_and_cancel_order(...))($method, $id, $symbol, $params);
+    }
+
+    private function do_sign_and_cancel_order(string $method, string $id, ?string $symbol = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires a $symbol argument');
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
+        $market = $this->market($symbol);
+        $clientOrderId = $this->safe_string_2($params, 'client_order_index', 'clientOrderId');
+        $params = $this->omit($params, array( 'client_order_index', 'clientOrderId' ));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'market_index' => $this->parse_to_int($market['id']),
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        if ($clientOrderId !== null) {
+            $signRaw['order_index'] = $this->parse_to_int($clientOrderId);
+        } elseif ($id !== null) {
+            $signRaw['order_index'] = $this->parse_to_int($id);
+        } else {
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires order $id or client order id');
+        }
+        list($txType, $txInfo) = $this->lighter_sign_cancel_order($signer, $this->extend($signRaw, $params));
+        return array( $txType, $txInfo, $market );
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $clientOrderId = $this->safe_string_2($params, 'client_order_index', 'clientOrderId');
-            $params = $this->omit($params, array( 'client_order_index', 'clientOrderId' ));
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'cancelOrder', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'market_index' => $this->parse_to_int($market['id']),
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            if ($clientOrderId !== null) {
-                $signRaw['order_index'] = $this->parse_to_int($clientOrderId);
-            } elseif ($id !== null) {
-                $signRaw['order_index'] = $this->parse_to_int($id);
-            } else {
-                throw new ArgumentsRequired($this->id . ' cancelOrder requires order $id or client order id');
-            }
-            list($txType, $txInfo) = $this->lighter_sign_cancel_order($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        list($txType, $txInfo, $market) = Async\await($this->sign_and_cancel_order('cancelOrder', $id, $symbol, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $this->parse_order($response, $market);
+    }
+
+    public function sign_and_cancel_all_orders(string $method, ?string $symbol = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_sign_and_cancel_all_orders(...))($method, $symbol, $params);
+    }
+
+    private function do_sign_and_cancel_all_orders(string $method, ?string $symbol = null, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, $method, 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'time_in_force' => 0, // 0 => IMMEDIATE 1 => SCHEDULED 2 => ABORT
+            'time' => 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
+        return array( $txType, $txInfo );
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders
-             * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'cancelAllOrders', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'time_in_force' => 0, // 0 => IMMEDIATE 1 => SCHEDULED 2 => ABORT
-                'time' => 0, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $this->parse_orders(array( $response ));
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders
+         * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        list($txType, $txInfo) = Async\await($this->sign_and_cancel_all_orders('cancelAllOrdersWs', $symbol, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $this->parse_orders(array( $response ));
     }
 
     public function cancel_all_orders_after(?int $timeout, $params = array()) {
-        return Async\async(function () use ($timeout, $params) {
-            /**
-             * dead man's switch, cancel all orders after the given $timeout
-             * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} the api result
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if (($timeout < 300000) || ($timeout > 1296000000)) {
-                throw new BadRequest($this->id . ' $timeout should be between 5 minutes and 15 days.');
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'cancelAllOrdersAfter', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'time_in_force' => 1, // 0 => IMMEDIATE 1 => SCHEDULED 2 => ABORT
-                'time' => $this->milliseconds() . $timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $response;
-        })();
+        return Async\async(self::do_cancel_all_orders_after(...))($timeout, $params);
+    }
+
+    private function do_cancel_all_orders_after(?int $timeout, $params = array()) {
+        /**
+         * dead man's switch, cancel all orders after the given $timeout
+         * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} the api result
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if (($timeout < 300000) || ($timeout > 1296000000)) {
+            throw new BadRequest($this->id . ' $timeout should be between 5 minutes and 15 days.');
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'cancelAllOrdersAfter', 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'time_in_force' => 1, // 0 => IMMEDIATE 1 => SCHEDULED 2 => ABORT
+            'time' => $this->milliseconds() . $timeout, // if time_in_force is not IMMEDIATE, set the timestamp_ms here
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $response;
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * add margin
-             * @param {string} $symbol unified market $symbol
-             * @param {float} $amount amount of margin to add
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
-             */
-            $request = array(
-                'direction' => 1,
-            );
-            return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_add_margin(...))($symbol, $amount, $params);
+    }
+
+    private function do_add_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * add margin
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         */
+        $request = array(
+            'direction' => 1,
+        );
+        return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
     }
 
     public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * remove margin from a position
-             * @param {string} $symbol unified market $symbol
-             * @param {float} $amount the $amount of margin to remove
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
-             */
-            $request = array(
-                'direction' => 0,
-            );
-            return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_reduce_margin(...))($symbol, $amount, $params);
+    }
+
+    private function do_reduce_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * remove margin from a position
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount the $amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         */
+        $request = array(
+            'direction' => 0,
+        );
+        return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
     }
 
     public function set_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            /**
-             * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
-             * @param {string} $symbol unified $market $symbol of the $market to set margin in
-             * @param {float} $amount the $amount to set the margin to
-             * @param {array} [$params] parameters specific to the exchange API endpoint
-             * @param {string} [$params->accountIndex] account index
-             * @param {string} [$params->apiKeyIndex] api key index
-             * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $apiKeyIndex = null;
-            list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'setMargin', 'apiKeyIndex', 'api_key_index');
-            $direction = $this->safe_integer($params, 'direction'); // 1 increase margin 0 decrease margin
-            if ($direction === null) {
-                throw new ArgumentsRequired($this->id . ' setMargin() requires a $direction parameter either 1 (increase margin) or 0 (decrease margin)');
-            }
-            if (!$this->in_array($direction, array( 0, 1 ))) {
-                throw new ArgumentsRequired($this->id . ' setMargin() requires a $direction parameter either 1 (increase margin) or 0 (decrease margin)');
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setMargin() requires a $symbol argument');
-            }
-            $accountIndex = null;
-            list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'setMargin', 'accountIndex', 'account_index'));
-            $strAccountIndex = $this->number_to_string($accountIndex);
-            $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
-            $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
-            $market = $this->market($symbol);
-            $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
-            $signRaw = array(
-                'market_index' => $this->parse_to_int($market['id']),
-                'usdc_amount' => $this->parse_to_int(Precise::string_mul($this->pow('10', '6'), $this->currency_to_precision('USDC', $amount))),
-                'direction' => $direction,
-                'nonce' => $nonce,
-                'api_key_index' => $apiKeyIndex,
-                'account_index' => $accountIndex,
-            );
-            list($txType, $txInfo) = $this->lighter_sign_update_margin($signer, $this->extend($signRaw, $params));
-            $request = array(
-                'tx_type' => $txType,
-                'tx_info' => $txInfo,
-            );
-            $response = Async\await($this->publicPostSendTx($request));
-            return $this->parse_margin_modification($response, $market);
-        })();
+        return Async\async(self::do_set_margin(...))($symbol, $amount, $params);
+    }
+
+    private function do_set_margin(string $symbol, float $amount, $params = array()) {
+        /**
+         * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @param {string} $symbol unified $market $symbol of the $market to set margin in
+         * @param {float} $amount the $amount to set the margin to
+         * @param {array} [$params] parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'setMargin', 'apiKeyIndex', 'api_key_index');
+        $direction = $this->safe_integer($params, 'direction'); // 1 increase margin 0 decrease margin
+        if ($direction === null) {
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a $direction parameter either 1 (increase margin) or 0 (decrease margin)');
+        }
+        if (!$this->in_array($direction, array( 0, 1 ))) {
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a $direction parameter either 1 (increase margin) or 0 (decrease margin)');
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a $symbol argument');
+        }
+        $accountIndex = null;
+        list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'setMargin', 'accountIndex', 'account_index'));
+        $strAccountIndex = $this->number_to_string($accountIndex);
+        $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
+        $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params));
+        $market = $this->market($symbol);
+        $nonce = Async\await($this->fetch_nonce($accountIndex, $apiKeyIndex, $params));
+        $signRaw = array(
+            'market_index' => $this->parse_to_int($market['id']),
+            'usdc_amount' => $this->parse_to_int(Precise::string_mul($this->pow('10', '6'), $this->currency_to_precision('USDC', $amount))),
+            'direction' => $direction,
+            'nonce' => $nonce,
+            'api_key_index' => $apiKeyIndex,
+            'account_index' => $accountIndex,
+        );
+        list($txType, $txInfo) = $this->lighter_sign_update_margin($signer, $this->extend($signRaw, $params));
+        $request = array(
+            'tx_type' => $txType,
+            'tx_info' => $txInfo,
+        );
+        $response = Async\await($this->publicPostSendTx($request));
+        return $this->parse_margin_modification($response, $market);
     }
 
     public function parse_margin_modification(array $data, ?array $market = null): array {

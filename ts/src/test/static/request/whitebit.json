@@ -44,7 +44,7 @@
                     100,
                     0.09
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/new", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "price": "0.09" }
             },
             {
                 "description": "Spot market buy",
@@ -56,7 +56,7 @@
                     "buy",
                     100
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/stock_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/stock_market", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32" }
             },
             {
                 "description": "Swap limit buy",
@@ -69,7 +69,7 @@
                     100,
                     0.09
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/collateral/limit\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/collateral/limit", "nonce": "1701937579352", "market": "DOGE_PERP", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "price": "0.09" }
             },
             {
                 "description": "Swap market buy",
@@ -81,7 +81,7 @@
                     "buy",
                     100
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/collateral/market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/collateral/market", "nonce": "1701937579352", "market": "DOGE_PERP", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32" }
             },
             {
                 "description": "Spot market buy spot order",
@@ -97,7 +97,7 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/stop_market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/stop_market", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "activation_price": "0.08" }
             },
             {
                 "description": "Spot limit buy spot order",
@@ -113,7 +113,7 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/stop_limit\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\",\"price\":\"0.07\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/stop_limit", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "activation_price": "0.08", "price": "0.07" }
             },
             {
                 "description": "Swap market buy spot order",
@@ -129,7 +129,7 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/collateral/trigger-market\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"activation_price\":\"0.08\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/collateral/trigger-market", "nonce": "1701937579352", "market": "DOGE_PERP", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "activation_price": "0.08" }
             },
             {
                 "description": "market buy +cost",
@@ -145,7 +145,7 @@
                     "cost": 7.1
                   }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/market\",\"nonce\":\"1716315544734\",\"market\":\"BTC_USDT\",\"side\":\"buy\",\"amount\":\"7.1\",\"clientOrderId\":\"ccxt014ab638a4a5883b\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/market", "nonce": "1716315544734", "market": "BTC_USDT", "side": "buy", "amount": "7.1", "clientOrderId": "ccxt014ab638a4a5883b" }
             },
             {
                 "description": "Spot limit buy IOC",
@@ -161,7 +161,7 @@
                         "timeInForce": "IOC"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"ioc\":true,\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/new", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "ioc": true, "price": "0.09" }
             },
             {
                 "description": "Spot limit buy postOnly",
@@ -177,7 +177,7 @@
                         "postOnly": true
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"postOnly\":true,\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/new", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "postOnly": true, "price": "0.09" }
             },
             {
                 "description": "Spot limit buy timeInForce PO",
@@ -193,7 +193,7 @@
                         "timeInForce": "PO"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/new\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"postOnly\":true,\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/new", "nonce": "1701937579352", "market": "DOGE_USDT", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "postOnly": true, "price": "0.09" }
             },
             {
                 "description": "Swap limit buy IOC",
@@ -209,7 +209,7 @@
                         "timeInForce": "IOC"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/collateral/limit\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"side\":\"buy\",\"amount\":\"100\",\"clientOrderId\":\"ccxt79f2861ea4fbae32\",\"ioc\":true,\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/collateral/limit", "nonce": "1701937579352", "market": "DOGE_PERP", "side": "buy", "amount": "100", "clientOrderId": "ccxt79f2861ea4fbae32", "ioc": true, "price": "0.09" }
             }
         ],
         "editOrder": [
@@ -225,7 +225,7 @@
                     100,
                     0.09
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"orderId\":\"123456789\",\"amount\":\"100\",\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/modify", "nonce": "1701937579352", "market": "DOGE_USDT", "orderId": "123456789", "amount": "100", "price": "0.09" }
             },
             {
                 "description": "Swap limit buy",
@@ -239,7 +239,7 @@
                     100,
                     0.09
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"orderId\":\"123456789\",\"amount\":\"100\",\"price\":\"0.09\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/modify", "nonce": "1701937579352", "market": "DOGE_PERP", "orderId": "123456789", "amount": "100", "price": "0.09" }
             },
             {
                 "description": "Spot market buy spot order",
@@ -256,7 +256,7 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"orderId\":\"123456789\",\"total\":\"100\",\"activation_price\":\"0.08\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/modify", "nonce": "1701937579352", "market": "DOGE_USDT", "orderId": "123456789", "total": "100", "activation_price": "0.08" }
             },
             {
                 "description": "Spot limit buy spot order",
@@ -273,7 +273,7 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_USDT\",\"orderId\":\"123456789\",\"amount\":\"100\",\"activation_price\":\"0.08\",\"price\":\"0.07\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/modify", "nonce": "1701937579352", "market": "DOGE_USDT", "orderId": "123456789", "amount": "100", "activation_price": "0.08", "price": "0.07" }
             },
             {
                 "description": "Swap market buy spot order",
@@ -290,7 +290,7 @@
                         "triggerPrice": "0.08"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/modify\",\"nonce\":\"1701937579352\",\"market\":\"DOGE_PERP\",\"orderId\":\"123456789\",\"total\":\"100\",\"activation_price\":\"0.08\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/modify", "nonce": "1701937579352", "market": "DOGE_PERP", "orderId": "123456789", "total": "100", "activation_price": "0.08" }
             }
         ],
         "cancelAllOrders": [
@@ -301,7 +301,7 @@
                 "input": [
                     "BTC/USDT"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/cancel/all\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"type\":[\"spot\"]}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/cancel/all", "nonce": "1701937579352", "market": "BTC_USDT", "type": [ "spot" ] }
             },
             {
                 "description": "cancel all orders - margin",
@@ -313,7 +313,7 @@
                         "isMargin": true
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/cancel/all\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"type\":[\"margin\"]}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/cancel/all", "nonce": "1701937579352", "market": "BTC_USDT", "type": [ "margin" ] }
             },
             {
                 "description": "cancel all orders - swap",
@@ -322,7 +322,7 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/cancel/all\",\"nonce\":\"1701937579352\",\"market\":\"BTC_PERP\",\"type\":[\"futures\"]}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/cancel/all", "nonce": "1701937579352", "market": "BTC_PERP", "type": [ "futures" ] }
             }
         ],
         "cancelAllOrdersAfter": [
@@ -336,7 +336,7 @@
                         "symbol": "BTC/USDT"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/kill-switch\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"timeout\":\"10\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/kill-switch", "nonce": "1701937579352", "market": "BTC_USDT", "timeout": "10" }
             },
             {
                 "description": "Close cancel all orders after",
@@ -348,7 +348,7 @@
                         "symbol": "BTC/USDT"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/order/kill-switch\",\"nonce\":\"1701937579352\",\"market\":\"BTC_USDT\",\"timeout\":\"null\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/order/kill-switch", "nonce": "1701937579352", "market": "BTC_USDT", "timeout": "null" }
             }
         ],
         "fetchBalance": [
@@ -357,7 +357,7 @@
                 "method": "fetchBalance",
                 "url": "https://whitebit.com/api/v4/trade-account/balance",
                 "input": [],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/trade-account/balance\",\"nonce\":\"1701937579352\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/trade-account/balance", "nonce": "1701937579352" }
             },
             {
                 "description": "Fetch Balance - main",
@@ -368,7 +368,7 @@
                         "account": "main"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/main-account/balance\",\"nonce\":\"1701937579352\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/main-account/balance", "nonce": "1701937579352" }
             },
             {
                 "description": "Fetch Balance - trade",
@@ -379,7 +379,7 @@
                         "type": "swap"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/collateral-account/balance\",\"nonce\":\"1701937579352\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/collateral-account/balance", "nonce": "1701937579352" }
             }
         ],
         "fetchDepositAddress": [
@@ -395,7 +395,7 @@
                         "uniqueId": "uniqueId"
                     }
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/main-account/fiat-deposit-url\",\"nonce\":\"1701937579352\",\"ticker\":\"USD\",\"provider\":\"provider\",\"amount\":10,\"uniqueId\":\"uniqueId\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/main-account/fiat-deposit-url", "nonce": "1701937579352", "ticker": "USD", "provider": "provider", "amount": 10, "uniqueId": "uniqueId" }
             },
             {
                 "description": "Fetch Deposit Address",
@@ -404,7 +404,7 @@
                 "input": [
                     "BTC"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/main-account/address\",\"nonce\":\"1701937579352\",\"ticker\":\"BTC\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/main-account/address", "nonce": "1701937579352", "ticker": "BTC" }
             }
         ],
         "fetchTime": [
@@ -557,7 +557,7 @@
                 "input": [
                   "USDT"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/main-account/history\",\"nonce\":\"1714156110333\",\"ticker\":\"USDT\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/main-account/history", "nonce": "1714156110333", "ticker": "USDT" }
             }
         ],
         "fetchConvertQuote": [
@@ -570,7 +570,7 @@
                   "BTC",
                   4
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/convert/estimate\",\"nonce\":\"1741090361848\",\"from\":\"USDT\",\"to\":\"BTC\",\"amount\":\"4\",\"direction\":\"from\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/convert/estimate", "nonce": "1741090361848", "from": "USDT", "to": "BTC", "amount": "4", "direction": "from" }
             }
         ],
         "createConvertTrade": [
@@ -584,7 +584,7 @@
                   "BTC",
                   4
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/convert/confirm\",\"nonce\":\"1741090765791\",\"quoteId\":\"1741105\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/convert/confirm", "nonce": "1741090765791", "quoteId": "1741105" }
             }
         ],
         "fetchConvertTradeHistory": [
@@ -595,7 +595,7 @@
                 "input": [
                   "USDT"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/convert/history\",\"nonce\":\"1741091766098\",\"fromTicker\":\"USDT\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/convert/history", "nonce": "1741091766098", "fromTicker": "USDT" }
             }
         ],
         "fetchPosition": [
@@ -606,7 +606,7 @@
                 "input": [
                   "BTC/USDT:USDT"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/collateral-account/positions/open\",\"nonce\":\"1741942553974\",\"symbol\":\"BTC_PERP\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/collateral-account/positions/open", "nonce": "1741942553974", "symbol": "BTC_PERP" }
             }
         ],
         "fetchPositions": [
@@ -615,7 +615,7 @@
                 "method": "fetchPositions",
                 "url": "https://whitebit.com/api/v4/collateral-account/positions/open",
                 "input": [],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/collateral-account/positions/open\",\"nonce\":\"1741942599785\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/collateral-account/positions/open", "nonce": "1741942599785" }
             }
         ],
         "fetchPositionHistory": [
@@ -626,7 +626,316 @@
                 "input": [
                   "BTC/USDT:USDT"
                 ],
-                "output": "{\"nonceWindow\": false,\"request\":\"/api/v4/collateral-account/positions/history\",\"nonce\":\"1741942635403\",\"market\":\"BTC_PERP\"}"
+                "output": { "nonceWindow": false, "request": "/api/v4/collateral-account/positions/history", "nonce": "1741942635403", "market": "BTC_PERP" }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder active order",
+                "method": "fetchOrder",
+                "url": "https://whitebit.com/api/v4/orders",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": { "request": "/api/v4/orders", "nonce": "1786350578192", "nonceWindow": false, "orderId": "2560087414918", "market": "DOGE_PERP" }
+            },
+            {
+                "description": "fetchOrder executed order via history",
+                "method": "fetchOrder",
+                "url": "https://whitebit.com/api/v4/trade-account/order/history",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT",
+                    {
+                        "checkActive": false
+                    }
+                ],
+                "output": { "request": "/api/v4/trade-account/order/history", "nonce": "1786350664917", "nonceWindow": false, "orderId": "2558095898746", "market": "DOGE_PERP" }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder swap limit",
+                "method": "cancelOrder",
+                "url": "https://whitebit.com/api/v4/order/cancel",
+                "input": [
+                    "2560087414918",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": { "request": "/api/v4/order/cancel", "nonce": "1786350578388", "nonceWindow": false, "market": "DOGE_PERP", "orderId": 2560087414918 }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders swap with limit",
+                "method": "fetchOpenOrders",
+                "url": "https://whitebit.com/api/v4/orders",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": { "request": "/api/v4/orders", "nonce": "1786454925790", "nonceWindow": false, "market": "DOGE_PERP", "limit": 2 }
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders swap with limit",
+                "method": "fetchClosedOrders",
+                "url": "https://whitebit.com/api/v4/trade-account/order/history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": { "request": "/api/v4/trade-account/order/history", "nonce": "1786454926329", "nonceWindow": false, "market": "DOGE_PERP", "limit": 2 }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades swap with symbol",
+                "method": "fetchMyTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/executed-history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": { "request": "/api/v4/trade-account/executed-history", "nonce": "1786484584444", "nonceWindow": false, "market": "DOGE_PERP" }
+            },
+            {
+                "description": "fetchMyTrades all symbols",
+                "method": "fetchMyTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/executed-history",
+                "input": [
+                    null,
+                    null,
+                    2
+                ],
+                "output": { "request": "/api/v4/trade-account/executed-history", "nonce": "1786484584570", "nonceWindow": false }
+            }
+        ],
+        "fetchOrderTrades": [
+            {
+                "description": "fetchOrderTrades by executed order id",
+                "method": "fetchOrderTrades",
+                "url": "https://whitebit.com/api/v4/trade-account/order",
+                "input": [
+                    "2558095898746",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": { "request": "/api/v4/trade-account/order", "nonce": "1786484584696", "nonceWindow": false, "orderId": 2558095898746, "market": "DOGE_PERP" }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits USDT with limit",
+                "method": "fetchDeposits",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": { "request": "/api/v4/main-account/history", "nonce": "1786637757003", "nonceWindow": false, "transactionMethod": 1, "limit": 2, "offset": 0, "ticker": "USDT" }
+            }
+        ],
+        "fetchDeposit": [
+            {
+                "description": "fetchDeposit by uniqueId",
+                "method": "fetchDeposit",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "5593377049",
+                    "USDT"
+                ],
+                "output": { "request": "/api/v4/main-account/history", "nonce": "1786637757003", "nonceWindow": false, "transactionMethod": 1, "uniqueId": "5593377049", "limit": 1, "offset": 0, "ticker": "USDT" }
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetchTransactions USDT with limit",
+                "method": "fetchTransactions",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": { "request": "/api/v4/main-account/history", "nonce": "1786637757319", "nonceWindow": false, "ticker": "USDT", "limit": 2 }
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals USDT with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://whitebit.com/api/v4/main-account/history",
+                "input": [
+                    "USDT",
+                    null,
+                    2
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/history",
+                    "nonce": "1786645149548",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "limit": 2,
+                    "transactionMethod": "2"
+                }
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetchFundingHistory swap with limit",
+                "method": "fetchFundingHistory",
+                "url": "https://whitebit.com/api/v4/collateral-account/funding-history",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    null,
+                    2
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/funding-history",
+                    "nonce": "1786645149703",
+                    "nonceWindow": false,
+                    "market": "DOGE_PERP",
+                    "limit": 2
+                }
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer USDT from collateral to spot",
+                "method": "transfer",
+                "url": "https://whitebit.com/api/v4/main-account/transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "margin",
+                    "spot"
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/transfer",
+                    "nonce": "1786650935076",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "amount": "1",
+                    "from": "collateral",
+                    "to": "spot"
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetchAccounts sub-account list",
+                "method": "fetchAccounts",
+                "url": "https://whitebit.com/api/v4/sub-account/list",
+                "input": [],
+                "output": {
+                    "request": "/api/v4/sub-account/list",
+                    "nonce": "1786650973437",
+                    "nonceWindow": false
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "createDepositAddress USDT on TRC20",
+                "method": "createDepositAddress",
+                "url": "https://whitebit.com/api/v4/main-account/create-new-address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/create-new-address",
+                    "nonce": "1786653783376",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "network": "TRC20"
+                }
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus public ping",
+                "method": "fetchStatus",
+                "url": "https://whitebit.com/api/v4/public/ping",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchBorrowInterest": [
+            {
+                "description": "fetchBorrowInterest with symbol",
+                "method": "fetchBorrowInterest",
+                "url": "https://whitebit.com/api/v4/collateral-account/positions/open",
+                "input": [
+                    null,
+                    "DOGE/USDT:USDT"
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/positions/open",
+                    "nonce": "1786656245070",
+                    "nonceWindow": false,
+                    "market": "DOGE_PERP"
+                }
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage account-wide",
+                "method": "setLeverage",
+                "url": "https://whitebit.com/api/v4/collateral-account/leverage",
+                "input": [
+                    5
+                ],
+                "output": {
+                    "request": "/api/v4/collateral-account/leverage",
+                    "nonce": "1786656245319",
+                    "nonceWindow": false,
+                    "leverage": 5
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw USDT on TRC20 (request only, never live-tested)",
+                "method": "withdraw",
+                "url": "https://whitebit.com/api/v4/main-account/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                    null,
+                    {
+                        "uniqueId": "ccxt-test-withdraw-0001",
+                        "network": "TRC20"
+                    }
+                ],
+                "output": {
+                    "request": "/api/v4/main-account/withdraw",
+                    "nonce": "1786656245400",
+                    "nonceWindow": false,
+                    "ticker": "USDT",
+                    "amount": "5",
+                    "address": "TQMbNLpgvJ4hPtR3HXi5zccc2mL2n9PURD",
+                    "uniqueId": "ccxt-test-withdraw-0001",
+                    "network": "TRC20"
+                }
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees public assets",
+                "method": "fetchTradingFees",
+                "url": "https://whitebit.com/api/v4/public/assets",
+                "input": [],
+                "output": null
             }
         ]
     }

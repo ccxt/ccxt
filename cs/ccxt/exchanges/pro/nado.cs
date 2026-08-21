@@ -1922,7 +1922,11 @@ public partial class nado : ccxt.nado
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscriptionHash);
                 }
             }
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            object subscriptionMsg = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
+            if (isTrue(!isEqual(subscriptionMsg, null)))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
+            }
             ((IDictionary<string,object>)this.orderbooks).Remove((string)symbol);
             var error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
             ((WebSocketClient)client).reject(error, messageHash);

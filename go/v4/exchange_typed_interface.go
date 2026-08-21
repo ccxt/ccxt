@@ -313,6 +313,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "btcturk":
 		itf := NewBtcturk(options)
 		return itf
+	case "btse":
+		itf := NewBtse(options)
+		return itf
 	case "bullish":
 		itf := NewBullish(options)
 		return itf
@@ -378,9 +381,6 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 		return itf
 	case "dydx":
 		itf := NewDydx(options)
-		return itf
-	case "exmo":
-		itf := NewExmo(options)
 		return itf
 	case "extended":
 		itf := NewExtended(options)

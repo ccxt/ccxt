@@ -1,5 +1,5 @@
 import Exchange from './abstract/weex.js';
-import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
+import type { Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRate, FundingRateHistory, FundingRates, LastPrice, LastPrices, LedgerEntry, Int, int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TransferEntry, Position, TradingFeeInterface, MarginMode, MarginModes, Leverage, Leverages, MarginModification, Status, PositionModeInfo } from './base/types.js';
 /**
  * @class weex
  * @augments Exchange
@@ -73,6 +73,38 @@ export default class weex extends Exchange {
      */
     fetchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name weex#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of lastprice structures
+     */
+    fetchLastPrices(symbols?: Strings, params?: {}): Promise<LastPrices>;
+    parseLastPrice(entry: any, market?: Market): LastPrice;
+    /**
+     * @method
+     * @name weex#fetchMarkPrice
+     * @description fetches mark price for the market
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+     * @param {string} symbol unified symbol of the market to fetch the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
+     * @name weex#fetchMarkPrices
+     * @description fetches mark prices for multiple markets
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    fetchMarkPrices(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
      * @method
      * @name weex#fetchOrderBook
@@ -200,9 +232,10 @@ export default class weex extends Exchange {
      * @name weex#fetchBalance
      * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     fetchBalance(params?: {}): Promise<Balances>;
@@ -230,6 +263,7 @@ export default class weex extends Exchange {
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -263,6 +297,7 @@ export default class weex extends Exchange {
      * @description helper method for creating contract orders
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -271,17 +306,20 @@ export default class weex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
      * @param {string} [params.takeProfit.triggerPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.takeProfit.price] not supported, the attached take profit always executes at market price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
      * @param {string} [params.stopLoss.triggerPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.stopLoss.price] not supported, the attached stop loss always executes at market price
+     * @param {float} [params.stopLossPrice] price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.stopLossPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {float} [params.takeProfitPrice] price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.triggerPrice] the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createContractOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -366,6 +404,7 @@ export default class weex extends Exchange {
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -381,6 +420,7 @@ export default class weex extends Exchange {
      * @description fetches information on multiple canceled orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -409,6 +449,7 @@ export default class weex extends Exchange {
      * @name weex#fetchCanceledAndClosedOrders
      * @description fetches information on multiple closed and canceled orders made by the user
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} [symbol] unified market symbol of the market orders were made in (required for spot orders)
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -476,6 +517,7 @@ export default class weex extends Exchange {
      * @name weex#fetchPositions
      * @description fetch all open positions
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+     * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -657,6 +699,25 @@ export default class weex extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     addMargin(symbol: string, amount: number, params?: {}): Promise<MarginModification>;
+    /**
+     * @method
+     * @ignore
+     * @name weex#toSandboxMarketId
+     * @description get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+     * @param {object} market a unified market structure
+     * @returns {string} the market id for the request
+     */
+    toSandboxMarketId(market: Market): Str;
+    /**
+     * @method
+     * @ignore
+     * @name weex#fromSandboxMarketId
+     * @description convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+     * @param {string} [marketId] a market id from an exchange response
+     * @returns {string} the live market id
+     */
+    fromSandboxMarketId(marketId: Str): Str;
+    setSandboxMode(enable: boolean): void;
     sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;

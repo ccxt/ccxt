@@ -85,7 +85,7 @@ public class KucoinCore extends KucoinApi
                 put( "fetchL3OrderBook", true );
                 put( "fetchLedger", true );
                 put( "fetchLeverage", true );
-                put( "fetchLeverageTiers", false );
+                put( "fetchLeverageTiers", true );
                 put( "fetchMarginAdjustmentHistory", false );
                 put( "fetchMarginMode", true );
                 put( "fetchMarketLeverageTiers", true );
@@ -3464,7 +3464,7 @@ public class KucoinCore extends KucoinApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", KucoinCore.this.safeString(ticker, "priceChg") );
-            put( "percentage", KucoinCore.this.safeString(ticker, "priceChgPct") );
+            put( "percentage", Precise.stringMul(KucoinCore.this.safeString(ticker, "priceChgPct"), "100") );
             put( "average", null );
             put( "baseVolume", KucoinCore.this.safeString(ticker, "volumeOf24h") );
             put( "quoteVolume", KucoinCore.this.safeString(ticker, "turnoverOf24h") );
@@ -5998,7 +5998,7 @@ public class KucoinCore extends KucoinApi
             useSync = ((java.util.List<Object>) useSyncparametersVariable).get(0);
             parameters = ((java.util.List<Object>) useSyncparametersVariable).get(1);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
@@ -6224,12 +6224,12 @@ public class KucoinCore extends KucoinApi
             Object market = this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             Object accountMode = "unified";
-            var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "accountMode", accountMode);
+            var accountModeparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "accountMode", accountMode);
             accountMode = ((java.util.List<Object>) accountModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountModeparametersVariable).get(1);
             Helpers.addElementToObject(request, "accountMode", accountMode);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object isUnified = (Helpers.isEqual(accountMode, "unified"));
@@ -6298,7 +6298,7 @@ public class KucoinCore extends KucoinApi
             {
                 market = this.market(symbol);
             }
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "spot"))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
@@ -12522,6 +12522,7 @@ public class KucoinCore extends KucoinApi
                 //                 "mmr": "0.007",
                 //                 "maintenanceMargin": "0.128086",
                 //                 "creationTime": 1774469753178000000
+                //                 "updateTime": 1774469753178000000
                 //             }
                 //         ]
                 //     }
@@ -12863,6 +12864,7 @@ public class KucoinCore extends KucoinApi
         //         "mmr": "0.007",
         //         "maintenanceMargin": "0.128086",
         //         "creationTime": 1774469753178000000
+        //         "updateTime": 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -12932,7 +12934,13 @@ public class KucoinCore extends KucoinApi
         Object lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (Helpers.isTrue(Helpers.isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            if (Helpers.isTrue(Helpers.inOp(position, "closingTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            } else if (Helpers.isTrue(Helpers.inOp(position, "updateTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
+            }
         }
         final Object finalMarket = market;
         final Object finalTimestamp = timestamp;
@@ -13059,7 +13067,7 @@ public class KucoinCore extends KucoinApi
                 parameters = ((java.util.List<Object>) accountModeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "accountMode", accountMode);
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Object isUnified = (Helpers.isEqual(accountMode, "unified"));

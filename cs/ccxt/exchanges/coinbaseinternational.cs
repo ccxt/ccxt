@@ -58,6 +58,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposits", true },
+                { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
@@ -103,6 +104,7 @@ public partial class coinbaseinternational : Exchange
                 { "setMargin", true },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
+                { "transfer", true },
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -921,11 +923,14 @@ public partial class coinbaseinternational : Exchange
             parameters = ((IList<object>)networkIdparametersVariable)[1];
             ((IDictionary<string,object>)request)["network_arn_id"] = networkId;
         }
-        if (isTrue(isEqual(method, null)))
+        object response = null;
+        if (isTrue(isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId")))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " method is required")) ;
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PrivatePostTransfersAddress(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -2631,11 +2636,14 @@ public partial class coinbaseinternational : Exchange
             { "network_arn_id", networkId },
             { "nonce", this.nonce() },
         };
-        if (isTrue(isEqual(method, null)))
+        object response = null;
+        if (isTrue(isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " method is required")) ;
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PrivatePostTransfersWithdraw(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

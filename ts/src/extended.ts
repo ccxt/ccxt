@@ -226,7 +226,7 @@ export default class extended extends Exchange {
                         'post': {
                             'user/order': { 'cost': 1 } as Endpoint<Dict>,
                             'user/order/massCancel': { 'cost': 1 } as Endpoint<Dict>,
-                            'user/deadmanswitch': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/deadmanswitch': { 'cost': 1 } as Endpoint<string>,
                             'user/bridge/quote': { 'cost': 1 } as Endpoint<Dict>,
                             'user/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
                             'user/transfer': { 'cost': 1 } as Endpoint<Dict>,
@@ -3071,12 +3071,16 @@ export default class extended extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the api result
      */
-    override async cancelAllOrdersAfter (timeout: Int, params = {}) {
+    override async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Dict> {
         await this.loadMarkets ();
         const request: Dict = {
             'countdownTime': ((timeout as number) > 0) ? this.parseToInt ((timeout as number) / 1000) : 0,
         };
-        return await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
+        const response = await this.v1PrivatePostUserDeadmanswitch (this.extend (request, params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return { 'info': response };
     }
 
     /**

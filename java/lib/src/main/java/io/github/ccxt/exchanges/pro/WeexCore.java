@@ -39,8 +39,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 put( "unWatchMyTrades", true );
                 put( "unWatchOHLCV", true );
                 put( "unWatchOHLCVForSymbols", true );
-                put( "unWatchOrderBook", false );
-                put( "unWatchOrderBookForSymbols", false );
+                put( "unWatchOrderBook", true );
+                put( "unWatchOrderBookForSymbols", true );
                 put( "unWatchOrders", true );
                 put( "unWatchPositions", true );
                 put( "unWatchTicker", true );

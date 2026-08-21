@@ -631,7 +631,7 @@
         "subType": "linear",
         "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.001,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -707,7 +707,7 @@
         "subType": "linear",
         "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.01,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -783,7 +783,7 @@
         "subType": "linear",
         "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.1,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -859,7 +859,7 @@
         "subType": "linear",
         "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 10,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -935,7 +935,7 @@
         "subType": "linear",
         "taker": 0.00055,
         "maker": 0.0001,
-        "contractSize": 0.1,
+        "contractSize": 1,
         "expiry": null,
         "expiryDatetime": null,
         "strike": null,
@@ -1138,5 +1138,80 @@
         },
         "tierBased": false,
         "percentage": true
+    },
+    "PEPE/USDT:USDT": {
+        "id": "PEPE_PERP",
+        "lowercaseId": "pepe_perp",
+        "symbol": "PEPE/USDT:USDT",
+        "base": "PEPE",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "PEPE",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": null,
+        "taker": 0.00055,
+        "maker": 0.0001,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 1000000,
+            "price": 1e-09
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": 1000000,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 5,
+                "max": 1000000000000
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "name": "PEPE_PERP",
+            "stock": "PEPE",
+            "money": "USDT",
+            "stockPrec": "-6",
+            "moneyPrec": "9",
+            "feePrec": "6",
+            "makerFee": "0.01",
+            "takerFee": "0.055",
+            "minAmount": "1000000",
+            "minTotal": "5",
+            "tradesEnabled": true,
+            "type": "futures",
+            "isCollateral": true,
+            "maxTotal": "1000000000000",
+            "isTradFiFutures": false,
+            "delistedAt": null
+        }
     }
 }

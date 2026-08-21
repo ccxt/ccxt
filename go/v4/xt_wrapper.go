@@ -411,6 +411,7 @@ func (this *Xt) CreateMarketBuyOrderWithCost(symbol string, cost float64, option
  * @see https://doc.xt.com/docs/futures/Order/Create%20Orders
  * @see https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/CreateStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/CreateTrack
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -424,6 +425,10 @@ func (this *Xt) CreateMarketBuyOrderWithCost(symbol string, cost float64, option
  * @param {float} [params.stopPrice] alias for triggerPrice
  * @param {float} [params.stopLoss] price to set a stop-loss on an open position
  * @param {float} [params.takeProfit] price to set a take-profit on an open position
+ * @param {float} [params.trailingPercent] the percent to trail away from the current market price, swap markets only
+ * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price, swap markets only
+ * @param {float} [params.trailingTriggerPrice] the price to activate a trailing order, swap markets only
+ * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -458,11 +463,13 @@ func (this *Xt) CreateOrder(symbol string, typeVar string, side string, amount f
  * @see https://doc.xt.com/docs/futures/Order/see-orders-by-id
  * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId
  * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId
+ * @see https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the order is a trailing order or not
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
@@ -496,11 +503,13 @@ func (this *Xt) FetchOrder(id string, options ...FetchOrderOptions) (Order, erro
  * @see https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders
  * @see https://doc.xt.com/docs/futures/Order/see-order-history
  * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory
+ * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
+ * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
@@ -578,12 +587,14 @@ func (this *Xt) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOp
  * @see https://doc.xt.com/docs/futures/Order/see-orders
  * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/getTrackList
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
@@ -628,12 +639,14 @@ func (this *Xt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, err
  * @see https://doc.xt.com/docs/futures/Order/see-orders
  * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
@@ -678,12 +691,14 @@ func (this *Xt) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order,
  * @see https://doc.xt.com/docs/futures/Order/see-orders
  * @see https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/SeeStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive
  * @param {string} [symbol] unified market symbol of the market the orders were made in
  * @param {int} [since] timestamp in ms of the earliest order
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
@@ -728,11 +743,13 @@ func (this *Xt) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Or
  * @see https://doc.xt.com/docs/futures/Order/cancel-orders
  * @see https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/CancelStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack
  * @param {string} id order id
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the order is a trailing order or not
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
@@ -767,10 +784,12 @@ func (this *Xt) CancelOrder(id string, options ...CancelOrderOptions) (Order, er
  * @see https://doc.xt.com/docs/futures/Order/cancel-all-orders
  * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders
  * @see https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit
+ * @see https://doc.xt.com/docs/futures/Entrust/CancelAllTrack
  * @param {string} [symbol] unified market symbol of the market to cancel orders in
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] if the order is a trigger order or not
  * @param {bool} [params.stopLossTakeProfit] if the order is a stop-loss or take-profit order
+ * @param {bool} [params.trailing] if the orders are trailing orders or not
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func (this *Xt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
@@ -1259,6 +1278,51 @@ func (this *Xt) FetchOpenInterest(symbol string, options ...FetchOpenInterestOpt
 
 /**
  * @method
+ * @name xt#fetchTradingFee
+ * @description fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
+ */
+func (this *Xt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
+
+	opts := FetchTradingFeeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchTradingFee(symbol, params)
+	if IsError(res) {
+		return TradingFeeInterface{}, CreateReturnError(res)
+	}
+	return NewTradingFeeInterface(res), nil
+}
+
+/**
+ * @method
+ * @name xt#fetchTradingFees
+ * @description fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+ * @see https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] 'linear' (default) or 'inverse'
+ * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol
+ */
+func (this *Xt) FetchTradingFees(params ...any) (TradingFees, error) {
+	res := <-this.Core.FetchTradingFees(params...)
+	if IsError(res) {
+		return TradingFees{}, CreateReturnError(res)
+	}
+	return NewTradingFees(res), nil
+}
+
+/**
+ * @method
  * @name xt#fetchFundingHistory
  * @description fetch the funding history
  * @see https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information
@@ -1359,6 +1423,52 @@ func (this *Xt) FetchPositions(options ...FetchPositionsOptions) ([]Position, er
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchPositions(symbols, params)
+	if IsError(res) {
+		return nil, CreateReturnError(res)
+	}
+	return NewPositionArray(res), nil
+}
+
+/**
+ * @method
+ * @name xt#fetchPositionsHistory
+ * @description fetches historical closed positions
+ * @see https://doc.xt.com/docs/futures/Entrust/GetPositionHistory
+ * @param {string[]} [symbols] unified market symbols, all closed positions are returned if not assigned
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum amount of records to fetch, default=10
+ * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest position to fetch
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+ */
+func (this *Xt) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
+
+	opts := FetchPositionsHistoryOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
+
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.FetchPositionsHistory(symbols, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
@@ -1723,9 +1833,6 @@ func (this *Xt) FetchPositionMode(options ...FetchPositionModeOptions) (Position
 func (this *Xt) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)
 }
-func (this *Xt) FetchPositionsHistory(options ...FetchPositionsHistoryOptions) ([]Position, error) {
-	return this.exchangeTyped.FetchPositionsHistory(options...)
-}
 func (this *Xt) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionsRisk(options...)
 }
@@ -1734,12 +1841,6 @@ func (this *Xt) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumInd
 }
 func (this *Xt) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
-}
-func (this *Xt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
-	return this.exchangeTyped.FetchTradingFee(symbol, options...)
-}
-func (this *Xt) FetchTradingFees(params ...any) (TradingFees, error) {
-	return this.exchangeTyped.FetchTradingFees(params...)
 }
 func (this *Xt) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)

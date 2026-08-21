@@ -1576,6 +1576,60 @@ abstract class binanceus extends \ccxt\async\binance {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function sapi_get_equity_market_exchangeinfo($params = array()) {
+        return $this->request('equity/market/exchangeInfo', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_market_tokenized_assets($params = array()) {
+        return $this->request('equity/market/tokenized-assets', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_market_quote($params = array()) {
+        return $this->request('equity/market/quote', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function sapi_get_equity_order_open_orders($params = array()) {
+        return $this->request('equity/order/open-orders', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_order_history($params = array()) {
+        return $this->request('equity/order/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_order_detail($params = array()) {
+        return $this->request('equity/order/detail', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_trade_history($params = array()) {
+        return $this->request('equity/trade/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_tokenized_convert_status($params = array()) {
+        return $this->request('equity/tokenized/convert-status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_get_equity_tokenized_history($params = array()) {
+        return $this->request('equity/tokenized/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function sapi_get_asset_assetdistributionhistory($params = array()) {
         return $this->request('asset/assetDistributionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2506,6 +2560,48 @@ abstract class binanceus extends \ccxt\async\binance {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function sapi_post_equity_order_place($params = array()) {
+        return $this->request('equity/order/place', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_post_equity_order_cancel($params = array()) {
+        return $this->request('equity/order/cancel', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_post_equity_order_cancel_all($params = array()) {
+        return $this->request('equity/order/cancel-all', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_post_equity_tokenized_mint($params = array()) {
+        return $this->request('equity/tokenized/mint', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_post_equity_tokenized_redeem($params = array()) {
+        return $this->request('equity/tokenized/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_post_equity_account_disclaimer($params = array()) {
+        return $this->request('equity/account/disclaimer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapi_post_equity_listenkey($params = array()) {
+        return $this->request('equity/listenKey', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function sapi_post_otc_quotes($params = array()) {
         return $this->request('otc/quotes', 'sapi', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -2906,7 +3002,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndexKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function dapipublic_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -3338,13 +3434,13 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapipublic_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapipublic_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
@@ -3668,7 +3764,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('feeBurn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function fapiprivate_get_symbolconfig($params = array()) {
         return $this->request('symbolConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
@@ -3854,13 +3950,13 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function fapiprivate_delete_algoopenorders($params = array()) {
         return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapipublicv2_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -4232,7 +4328,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('uiKlines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function public_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -4250,7 +4346,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function public_get_ticker_price($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
@@ -4328,7 +4424,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('allOrders', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function private_get_account($params = array()) {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 10));
@@ -6640,6 +6736,60 @@ abstract class binanceus extends \ccxt\async\binance {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function sapiGetEquityMarketExchangeInfo($params = array()) {
+        return $this->request('equity/market/exchangeInfo', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityMarketTokenizedAssets($params = array()) {
+        return $this->request('equity/market/tokenized-assets', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityMarketQuote($params = array()) {
+        return $this->request('equity/market/quote', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function sapiGetEquityOrderOpenOrders($params = array()) {
+        return $this->request('equity/order/open-orders', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityOrderHistory($params = array()) {
+        return $this->request('equity/order/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityOrderDetail($params = array()) {
+        return $this->request('equity/order/detail', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityTradeHistory($params = array()) {
+        return $this->request('equity/trade/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityTokenizedConvertStatus($params = array()) {
+        return $this->request('equity/tokenized/convert-status', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiGetEquityTokenizedHistory($params = array()) {
+        return $this->request('equity/tokenized/history', 'sapi', 'GET', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function sapiGetAssetAssetDistributionHistory($params = array()) {
         return $this->request('asset/assetDistributionHistory', 'sapi', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -7570,6 +7720,48 @@ abstract class binanceus extends \ccxt\async\binance {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function sapiPostEquityOrderPlace($params = array()) {
+        return $this->request('equity/order/place', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPostEquityOrderCancel($params = array()) {
+        return $this->request('equity/order/cancel', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPostEquityOrderCancelAll($params = array()) {
+        return $this->request('equity/order/cancel-all', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPostEquityTokenizedMint($params = array()) {
+        return $this->request('equity/tokenized/mint', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPostEquityTokenizedRedeem($params = array()) {
+        return $this->request('equity/tokenized/redeem', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPostEquityAccountDisclaimer($params = array()) {
+        return $this->request('equity/account/disclaimer', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function sapiPostEquityListenKey($params = array()) {
+        return $this->request('equity/listenKey', 'sapi', 'POST', $params, null, null, array("cost" => 0.1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function sapiPostOtcQuotes($params = array()) {
         return $this->request('otc/quotes', 'sapi', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -7970,7 +8162,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndexKlines', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "byLimit" => [[99, 1], [499, 2], [1000, 5], [10000, 10]]));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function dapiPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'dapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -8402,13 +8594,13 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('premiumIndex', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapiPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapiPublicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'fapiPublic', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
@@ -8732,7 +8924,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('feeBurn', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function fapiPrivateGetSymbolConfig($params = array()) {
         return $this->request('symbolConfig', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 5));
@@ -8918,13 +9110,13 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('algoOrder', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function fapiPrivateDeleteAlgoOpenOrders($params = array()) {
         return $this->request('algoOpenOrders', 'fapiPrivate', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function fapiPublicV2GetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'fapiPublicV2', 'GET', $params, null, null, array("cost" => 0));
@@ -9296,7 +9488,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('uiKlines', 'public', 'GET', $params, null, null, array("cost" => 0.4));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function publicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
@@ -9314,7 +9506,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('ticker/tradingDay', 'public', 'GET', $params, null, null, array("cost" => 0.8));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function publicGetTickerPrice($params = array()) {
         return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 2));
@@ -9392,7 +9584,7 @@ abstract class binanceus extends \ccxt\async\binance {
         return $this->request('allOrders', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function privateGetAccount($params = array()) {
         return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 10));

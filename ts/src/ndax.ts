@@ -170,7 +170,7 @@ export default class ndax extends Exchange {
                         'Authenticate2FA': { 'cost': 1 } as Endpoint<Dict>,
                         'AuthenticateUser': { 'cost': 1 } as Endpoint<Dict>,
                         'EnableXP2FA': { 'cost': 1 } as Endpoint<Dict>,
-                        'GetL2Snapshot': { 'cost': 1 } as Endpoint<Dict>,
+                        'GetL2Snapshot': { 'cost': 1 } as Endpoint<List>,
                         'GetLevel1': { 'cost': 1 } as Endpoint<Dict>,
                         'GetValidate2FARequiredEndpoints': { 'cost': 1 } as Endpoint<List>,
                         'LogOut': { 'cost': 1 } as Endpoint<Dict>,

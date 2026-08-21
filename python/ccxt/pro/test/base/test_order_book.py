@@ -343,3 +343,74 @@ def test_ws_order_book():
     reset_book.reset(order_book_input)
     reset_book.limit()
     assert equals(reset_book, order_book_target)
+    # --------------------------------------------------------------------------------------------------------------------
+    # regression for the php phantom index desync under limit, the corruption
+    # sequence was a reset with a snapshot, a depth trim via limit, then
+    # deltas landing on and beyond the trimmed tail, which produced rows
+    # holding only an amount and stale levels in php before the fix, see
+    # https://github.com/ccxt/ccxt/pull/29603 and
+    # https://github.com/ccxt/ccxt/issues/26967
+    desync_book = OrderBook({}, 3)
+    desync_book.reset(order_book_input)
+    desync_book.limit()
+    desync_bids = desync_book['bids']
+    desync_asks = desync_book['asks']
+    # a delta beyond the trimmed tail must reinsert cleanly
+    desync_bids.store_array([6.4, 14])
+    # a delta on a surviving level must update that level in place
+    desync_asks.store_array([11.1, 7])
+    # a delete on a surviving level must remove exactly that level
+    desync_bids.store_array([9.1, 0])
+    desync_book.limit()
+    desync_target = {
+        'bids': [[10, 10], [8.2, 12], [6.4, 14]],
+        'asks': [[11.1, 7], [12.2, 14], [13.3, 13]],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 69,
+        'symbol': None,
+    }
+    assert equals(desync_book, desync_target)
+    # every row must be a well formed price and amount pair, the php
+    # corruption produced rows holding only an amount
+    desync_sides = [desync_book['bids'], desync_book['asks']]
+    for i in range(0, len(desync_sides)):
+        side = desync_sides[i]
+        for k in range(0, len(side)):
+            row = side[k]
+            assert len(row) >= 2
+            assert row[0] is not None
+    # --------------------------------------------------------------------------------------------------------------------
+    # indexed sides must clean their hashmap when limit trims rows away: a
+    # delta arriving later for a trimmed id previously threw in js and looped
+    # in php while python handled it, an update of a trimmed id must reinsert
+    # cleanly and a delete of a trimmed id must be a no op
+    trim_indexed_input = {
+        'bids': [[10, 1, 'x'], [9, 1, 'y'], [8, 1, 'z'], [7, 1, 'w'], [6, 1, 'v']],
+        'asks': [[11, 1, 'a'], [12, 1, 'b'], [13, 1, 'c'], [14, 1, 'd'], [15, 1, 'e']],
+        'timestamp': 1574827239000,
+        'nonce': 70,
+        'symbol': None,
+    }
+    trim_indexed_target = {
+        'bids': [[10, 1, 'x'], [9, 1, 'y'], [8, 1, 'z']],
+        'asks': [[11, 1, 'a'], [12, 1, 'b'], [13, 1, 'c']],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 70,
+        'symbol': None,
+    }
+    trim_indexed_book = IndexedOrderBook(trim_indexed_input, 3)
+    trim_indexed_book.limit()
+    trim_asks = trim_indexed_book['asks']
+    trim_bids = trim_indexed_book['bids']
+    # update of a trimmed id reinserts cleanly
+    trim_asks.store_array([15, 2, 'e'])
+    trim_bids.store_array([7, 2, 'w'])
+    # delete of a trimmed id is a no op, on both sides via ids that were
+    # trimmed and never reinserted (d on asks, v on bids); the final limit
+    # below also re-trims the reinserted w, exercising the cleanup twice
+    trim_asks.store_array([14, 0, 'd'])
+    trim_bids.store_array([6, 0, 'v'])
+    trim_indexed_book.limit()
+    assert equals(trim_indexed_book, trim_indexed_target)

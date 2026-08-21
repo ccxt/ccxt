@@ -85,6 +85,8 @@ jobs:
         run: npm run request-tests
       - name: Response tests
         run: npm run response-tests
+      - name: Ws tests
+        run: npm run ws-tests
       - name: CommonJs tests
         run: npm run commonjs-test
       - name: Package Test

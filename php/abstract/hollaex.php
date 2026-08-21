@@ -38,7 +38,7 @@ abstract class hollaex extends \ccxt\Exchange {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function public_get_tickers($params = array()) {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -212,7 +212,7 @@ abstract class hollaex extends \ccxt\Exchange {
         return $this->request('ticker', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return list<mixed>
+     * @return array<string, mixed>
      */
     public function publicGetTickers($params = array()) {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 1));

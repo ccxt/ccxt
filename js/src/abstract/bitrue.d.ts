@@ -30,8 +30,8 @@ interface Exchange {
     fapiV1PublicGetTime(params?: {}): Promise<Dict>;
     fapiV1PublicGetContracts(params?: {}): Promise<List>;
     fapiV1PublicGetDepth(params?: {}): Promise<Dict>;
-    fapiV1PublicGetTicker(params?: {}): Promise<List>;
-    fapiV1PublicGetKlines(params?: {}): Promise<Dict>;
+    fapiV1PublicGetTicker(params?: {}): Promise<Dict | List>;
+    fapiV1PublicGetKlines(params?: {}): Promise<List>;
     fapiV2PrivateGetMyTrades(params?: {}): Promise<Dict>;
     fapiV2PrivateGetOpenOrders(params?: {}): Promise<Dict>;
     fapiV2PrivateGetOrder(params?: {}): Promise<Dict>;
@@ -50,8 +50,8 @@ interface Exchange {
     dapiV1PublicGetTime(params?: {}): Promise<Dict>;
     dapiV1PublicGetContracts(params?: {}): Promise<List>;
     dapiV1PublicGetDepth(params?: {}): Promise<Dict>;
-    dapiV1PublicGetTicker(params?: {}): Promise<List>;
-    dapiV1PublicGetKlines(params?: {}): Promise<Dict>;
+    dapiV1PublicGetTicker(params?: {}): Promise<Dict | List>;
+    dapiV1PublicGetKlines(params?: {}): Promise<List>;
     dapiV2PrivateGetMyTrades(params?: {}): Promise<Dict>;
     dapiV2PrivateGetOpenOrders(params?: {}): Promise<Dict>;
     dapiV2PrivateGetOrder(params?: {}): Promise<Dict>;

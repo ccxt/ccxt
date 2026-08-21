@@ -225,6 +225,32 @@ class Transpiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in their own namespace/subfolder in every language
     isPrediction = false;
+    // Awaiting async-PHP methods are always emitted as a hybrid pair instead of one method
+    // whose whole body sits inside `Async\async(function () use (...) { ... })()`:
+    //
+    //     public function fetch_time($params = array()): PromiseInterface {
+    //         return Async\async(self::do_fetch_time(...))($params);
+    //     }
+    //     private function do_fetch_time($params) {
+    //         $response = Async\await($this->publicGetTime($params));
+    //         ...
+    //     }
+    //
+    // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
+    // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
+    // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
+    // the body non-overridable (stubs and bodies are always emitted as a pair).
+    //
+    // Async\async() stays on the public edge, so public signatures still return
+    // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
+    // capture list and one indentation level go away. `self::` (not `$this->`) is required:
+    // a subclass override that does `Async\await(parent::fetch_time($params))` would
+    // otherwise late-bind straight back into its own do_* body and recurse forever.
+    //
+    // set by transpileJavaScriptToPHP() whenever it leaves an awaiting body flat; read back
+    // immediately by transpileJavaScriptToPythonAndPHP() so the caller splits exactly the
+    // same set of methods that previously got a nested closure
+    phpAsyncBodyWasFlattened = false;
 
     baseMethodsList!: any[];
 
@@ -424,8 +450,8 @@ class Transpiler {
             [ /this\./g, 'self.' ],
             [ /([^a-zA-Z\'])this([^a-zA-Z])/g, '$1self$2' ],
             [ /\[\s*([^\]]+)\s\]\s=/g, '$1 =' ],
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1List[List[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
-            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1List[$2]' ],  // typed variable with list type
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]\[\]/g, '$1list[list[$2]]' ],  // typed variables with double list type (must precede the single-list rule)
+            [ /((?:let|const|var) \w+\: )([0-9a-zA-Z]+)\[\]/g, '$1list[$2]' ],  // typed variable with list type
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\[\s*([^\]]+)\s\]/g, '$1$2' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s\{\s*([^\}]+)\s\}\s\=\s([^\;]+)/g, '$1$2 = (lambda $2: ($2))(**$3)' ],
             [ /(^|[^a-zA-Z0-9_])(?:let|const|var)\s/g, '$1' ],
@@ -731,7 +757,9 @@ class Transpiler {
             // the `?? ''` on the key preserves the pre-php-8.5 implicit null-to-'' offset
             // coercion - unified code checks `key in obj` with nullable keys (silent in js),
             // and php 8.5 deprecates a literal null key in array_key_exists
-            [ /\(([^\s\(]+)\sin\s([^\)]+)\)/g, '(is_array($2) && array_key_exists($1 ?? \'\', $2))' ],
+            // [^\)\n] - never cross a line: legit (x in y) expressions are single-line, and a
+            // paren inside a preceding comment must not arm this rule across the boundary
+            [ /\(([^\s\(]+)\sin\s([^\)\n]+)\)/g, '(is_array($2) && array_key_exists($1 ?? \'\', $2))' ],
             [ /([^\s]+)\.join\s*\(\s*([^\)]+?)\s*\)/g, 'implode($2, $1)' ],
             [ 'new ccxt\\.', 'new \\ccxt\\' ], // a special case for test_exchange_datetime_functions.php (and for other files, maybe)
             [ /Math\.(max|min)\s*\(/g, '$1(' ],
@@ -949,9 +977,26 @@ class Transpiler {
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPythonBaseMethods ()
         methods = methods.concat (baseMethods)
+        // the rename can only fire where the body literally contains `.<method>` followed by
+        // a non-identifier char, so index the dotted names once and skip the methods that
+        // cannot possibly occur — that avoids building and running ~1.5k regexes per class.
+        // names that are not plain identifiers (Object.prototype stringifications that reach
+        // getBaseMethods) are interpolated as regex source, so they are never skipped, and
+        // every dotted name a replacement introduces is added back to the index.
+        const dottedNames = new Set<string> ()
+        for (const dotted of bodyAsString.matchAll (/\.([A-Za-z0-9_]+)/g)) {
+            dottedNames.add (dotted[1])
+        }
         for (let method of methods) {
+            if (/^[A-Za-z0-9_]+$/.test (method) && !dottedNames.has (method)) {
+                continue
+            }
             const regex = new RegExp ('(self|super\\([^)]+\\))\\.(' + method + ')([^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => (p1 + '.' + unCamelCase (p2) + p3))
+            bodyAsString = bodyAsString.replace (regex, (match: any, p1: string, p2: string, p3: string) => {
+                const renamed = unCamelCase (p2)
+                dottedNames.add (renamed)
+                return p1 + '.' + renamed + p3
+            })
         }
 
         header.push ("\n\n" + this.createPythonClassDeclaration (className, baseClass))
@@ -1007,25 +1052,25 @@ class Transpiler {
             libraries.push ('from ccxt' + wsAsyncString + '.base.ws.order_book_side import ' + uniqueSides.join (', '))
         }
         const matchObject = {
-            'Account': /-> (?:List\[)?Account/,
-            'Any': /(?:->|:) (?:List\[)?Any/,
+            'Account': /-> (?:[Ll]ist\[)?Account/,
+            'Any': /(?:->|:) (?:[Ll]ist\[)?Any/,
             'ADL': /-> ADL:/,
             'BalanceAccount': /-> BalanceAccount:/,
             'Balances': /-> Balances:/,
             'BorrowInterest': /-> BorrowInterest:/,
-            'Bool': /(: (?:List\[)?Bool =)|(-> Bool:)/,
+            'Bool': /(: (?:[Ll]ist\[)?Bool =)|(-> Bool:)/,
             'Conversion': /-> Conversion:/,
             'CrossBorrowRate': /-> CrossBorrowRate:/,
             'CrossBorrowRates': /-> CrossBorrowRates:/,
             'Currencies': /-> Currencies:/,
             'Currency': /(-> Currency:|: Currency)/,
-            'CurrencyInterface': /(?:->|:) (?:List\[)?CurrencyInterface\b/,
-            'DepositAddress': /-> (?:List\[)?DepositAddress/,
+            'CurrencyInterface': /(?:->|:) (?:[Ll]ist\[)?CurrencyInterface\b/,
+            'DepositAddress': /-> (?:[Ll]ist\[)?DepositAddress/,
             'FundingHistory': /\[FundingHistory/,
             'Greeks': /-> Greeks:/,
             'IndexType': /: IndexType/,
             'NullableIndexType': /: NullableIndexType/,
-            'Int': /(: (?:List\[)?Int\b)|(-> Int:)/,
+            'Int': /(: (?:[Ll]ist\[)?Int\b)|(-> Int:)/,
             'IsolatedBorrowRate': /-> IsolatedBorrowRate:/,
             'IsolatedBorrowRates': /-> IsolatedBorrowRates:/,
             'LastPrice': /-> LastPrice:/,
@@ -1033,10 +1078,10 @@ class Transpiler {
             'LedgerEntry': /-> LedgerEntry:/,
             'Leverage': /-> Leverage:/,
             'Leverages': /-> Leverages:/,
-            'LeverageTier': /-> (?:List\[)?LeverageTier/,
+            'LeverageTier': /-> (?:[Ll]ist\[)?LeverageTier/,
             'LeverageTiers': /-> LeverageTiers:/,
-            'Liquidation': /-> (?:List\[)?Liquidation/,
-            'LongShortRatio': /-> (?:List\[)?LongShortRatio/,
+            'Liquidation': /-> (?:[Ll]ist\[)?Liquidation/,
+            'LongShortRatio': /-> (?:[Ll]ist\[)?LongShortRatio/,
             'MarginMode': /-> MarginMode:/,
             'MarginModes': /-> MarginModes:/,
             'MarginModification': /-> MarginModification:/,
@@ -1045,20 +1090,20 @@ class Transpiler {
             // 'MarketInterface': /-> MarketInterface:/,
             'MarketMarginModes': /-> MarketMarginModes:/,
             'MarketType': /: MarketType/,
-            'Num': /(: (?:List\[)?Num\b)|(-> Num:)/,
+            'Num': /(: (?:[Ll]ist\[)?Num\b)|(-> Num:)/,
             'Option': /-> Option:/,
             'OptionChain': /-> OptionChain:/,
-            'Order': /-> (?:List\[)?Order\]?:/,
+            'Order': /-> (?:[Ll]ist\[)?Order\]?:/,
             'OrderBook': /-> OrderBook:/,
-            'OrderRequest': /: (?:List\[)?OrderRequest/,
-            'CancellationRequest': /: (?:List\[)?CancellationRequest/,
+            'OrderRequest': /: (?:[Ll]ist\[)?OrderRequest/,
+            'CancellationRequest': /: (?:[Ll]ist\[)?CancellationRequest/,
             'OrderSide': /: OrderSide/,
             'OrderType': /: OrderType/,
-            'Position': /-> (?:List\[)?Position/,
+            'Position': /-> (?:[Ll]ist\[)?Position/,
             'PositionModeInfo': /-> PositionModeInfo:/,
             'Status': /-> Status:/,
-            'Str': /(: (?:List\[)?Str\b)|(-> Str:)/,
-            'Strings': /: (?:List\[)?Strings =/,
+            'Str': /(: (?:[Ll]ist\[)?Str\b)|(-> Str:)/,
+            'Strings': /: (?:[Ll]ist\[)?Strings =/,
             'SubType': /: SubType/,
             'Ticker': /-> Ticker:/,
             'Tickers': /-> Tickers:/,
@@ -1067,28 +1112,28 @@ class Transpiler {
             'FundingRates': /-> FundingRates:/,
             'OrderBooks': /-> OrderBooks:/,
             'OpenInterests': /-> OpenInterests:/,
-            'Trade': /-> (?:List\[)?Trade/,
+            'Trade': /-> (?:[Ll]ist\[)?Trade/,
             'TradingFeeInterface': /-> TradingFeeInterface:/,
             'TradingFees': /-> TradingFees:/,
             'DepositWithdrawFee': /-> DepositWithdrawFee:/,
             'DepositWithdrawFees': /-> DepositWithdrawFees:/,
-            'Transaction': /-> (?:List\[)?Transaction/,
-            'FundingRateHistory': /-> (?:List\[)?FundingRateHistory/,
-            'MarketInterface': /-> (?:List\[)?MarketInterface/,
+            'Transaction': /-> (?:[Ll]ist\[)?Transaction/,
+            'FundingRateHistory': /-> (?:[Ll]ist\[)?FundingRateHistory/,
+            'MarketInterface': /-> (?:[Ll]ist\[)?MarketInterface/,
             'TransferEntry': /-> TransferEntry:/,
-            'PredictionEvent': /-> (?:List\[)?PredictionEvent/,
-            'PredictionOutcome': /: (?:List\[)?PredictionOutcome/,
-            'fetchEventsParams': /: (?:List\[)?fetchEventsParams\b/,
-            'PredictionTicker': /-> (?:List\[)?PredictionTicker\b/,
-            'PredictionTickers': /-> (?:List\[)?PredictionTickers\b/,
-            'PredictionOrder': /-> (?:List\[)?PredictionOrder\b/,
-            'PredictionOrderBook': /-> (?:List\[)?PredictionOrderBook\b/,
-            'PredictionTrade': /-> (?:List\[)?PredictionTrade\b/,
-            'PredictionPosition': /-> (?:List\[)?PredictionPosition\b/,
-            'PredictionOpenInterest': /-> (?:List\[)?PredictionOpenInterest\b/,
-            'PredictionTradingFee': /-> (?:List\[)?PredictionTradingFee\b/,
-            'PredictionSettlement': /-> (?:List\[)?PredictionSettlement\b/,
-            'PredictionOrderRequest': /: (?:List\[)?PredictionOrderRequest\b/,
+            'PredictionEvent': /-> (?:[Ll]ist\[)?PredictionEvent/,
+            'PredictionOutcome': /: (?:[Ll]ist\[)?PredictionOutcome/,
+            'fetchEventsParams': /: (?:[Ll]ist\[)?fetchEventsParams\b/,
+            'PredictionTicker': /-> (?:[Ll]ist\[)?PredictionTicker\b/,
+            'PredictionTickers': /-> (?:[Ll]ist\[)?PredictionTickers\b/,
+            'PredictionOrder': /-> (?:[Ll]ist\[)?PredictionOrder\b/,
+            'PredictionOrderBook': /-> (?:[Ll]ist\[)?PredictionOrderBook\b/,
+            'PredictionTrade': /-> (?:[Ll]ist\[)?PredictionTrade\b/,
+            'PredictionPosition': /-> (?:[Ll]ist\[)?PredictionPosition\b/,
+            'PredictionOpenInterest': /-> (?:[Ll]ist\[)?PredictionOpenInterest\b/,
+            'PredictionTradingFee': /-> (?:[Ll]ist\[)?PredictionTradingFee\b/,
+            'PredictionSettlement': /-> (?:[Ll]ist\[)?PredictionSettlement\b/,
+            'PredictionOrderRequest': /: (?:[Ll]ist\[)?PredictionOrderRequest\b/,
         }
         const matches: string[] = []
         let match
@@ -1103,12 +1148,7 @@ class Transpiler {
         if (bodyAsString.match (/: Client/)) {
             libraries.push ('from ccxt.async_support.base.ws.client import Client')
         }
-        if (bodyAsString.match (/[\s(]Optional\[/)) {
-            libraries.push ('from typing import Optional')
-        }
-        if (bodyAsString.match (/[\s\[(]List\[/)) {
-            libraries.push ('from typing import List')
-        }
+        // list[] / X | None are builtins on the Python 3.10 floor; do not import typing
 
         const errorImports: string[] = []
 
@@ -1175,6 +1215,7 @@ class Transpiler {
                 features[feature] = value
             }
         }
+        this.autoSetExchangeHas (code, features);
         let keys = Object.keys (features)
         keys.sort ((a, b) => a.localeCompare (b))
         const allKeys = Object.keys (sortingOrder).concat (keys)
@@ -1187,6 +1228,64 @@ class Transpiler {
             return false
         }
         return code.replace (capabilitiesObjectRegex, result)
+    }
+
+    autoSetExchangeHas (code: string, features: dict) {
+        // check unified methods and autofill the .has tree
+        const baseExchange = this.getBaseClass ()
+        const defaultDescribe = baseExchange.describe ();
+        const defaultHas = defaultDescribe.has;
+        const exclusions = [ 'privateAPI', 'publicAPI', 'spot', 'swap', 'future', 'option', 'margin', 'sandbox', 'CORS', 'WS' ];
+        const derivedMethods = [
+            // ohlcv-related
+            'fetchMarkOHLCV',
+            'fetchPremiumOHLCV',
+            'fetchPremiumIndexOHLCV',
+            'fetchIndexOHLCV',
+            // order-related
+            'createTrailingAmountOrder',
+            'createTrailingAmountOrderWs',
+            'createTrailingPercentOrder',
+            'createTrailingPercentOrderWs',
+            'createMarketOrderWithCost',
+            'createMarketOrderWithCostWs',
+            'createLimitOrder',
+            'createMarketOrder',
+            'createLimitBuyOrder',
+            'createMarketBuyOrder',
+            'createMarketBuyOrderWithCost',
+            'createMarketBuyOrderWithCostWs',
+            'createMarketSellOrder',
+            'createLimitSellOrder',
+            'createMarketSellOrderWithCost',
+            'createMarketSellOrderWithCostWs',
+            'createTriggerOrder',
+            'createTriggerOrderWs',
+            'createStopLossOrder',
+            'createStopLossOrderWs',
+            'createTakeProfitOrder',
+            'createTakeProfitOrderWs',
+            'createOrderWithTakeProfitAndStopLoss',
+            'createOrderWithTakeProfitAndStopLossWs',
+            'createPostOnlyOrder',
+            'createPostOnlyOrderWs',
+            'createReduceOnlyOrder',
+            'createReduceOnlyOrderWs',
+            'createStopOrder',
+            'createStopOrderWs',
+            'createStopLimitOrder',
+            'createStopLimitOrderWs',
+            'createStopMarketOrder',
+            'createStopMarketOrderWs',
+        ];
+        for (const methodName of Object.keys (defaultHas)) {
+            // if code contains unified method definition, then it should be true
+            if (code.includes ('\n    async ' + methodName + ' (')) {
+                if (!(methodName in features) || (!features[methodName].startsWith ('true,') && !features[methodName].startsWith ('\'emulated\','))) {
+                    features[methodName] = 'true,';
+                }
+            }
+        }
     }
 
     // ------------------------------------------------------------------------
@@ -1300,22 +1399,43 @@ class Transpiler {
         const baseMethods = this.getPHPBaseMethods ()
         methods = methods.concat (baseMethods)
 
-        for (let method of methods) {
-            let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('$this->' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        // same index-then-skip gate as createPythonClass: a rename can only fire where the
+        // body literally contains `$this-><method>` / `parent::<method>`, so the methods that
+        // occur in neither form are skipped instead of compiling and running two regexes each
+        const thisNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/\$this->([A-Za-z0-9_]+)/g)) {
+            thisNames.add (named[1])
+        }
+        const parentNames = new Set<string> ()
+        for (const named of bodyAsString.matchAll (/parent::([A-Za-z0-9_]+)/g)) {
+            parentNames.add (named[1])
+        }
 
-            regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
-            bodyAsString = bodyAsString.replace (regex,
-                (match: any, p1: string, p2: string) => {
-                    return ((p2 === '(') ?
-                        ('parent::' + unCamelCase (p1) + p2) : // support direct php calls
-                        ("array($this, '" + unCamelCase (p1) + "')" + p2)) // as well as passing instance methods as callables
-                })
+        for (let method of methods) {
+            const plain = /^[A-Za-z0-9_]+$/.test (method)
+            if (!plain || thisNames.has (method)) {
+                let regex = new RegExp ('\\$this->(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        thisNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('$this->' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
+
+            if (!plain || parentNames.has (method)) {
+                const regex = new RegExp ('parent::(' + method + ')\\s?(\\(|[^a-zA-Z0-9_])', 'g')
+                bodyAsString = bodyAsString.replace (regex,
+                    (match: any, p1: string, p2: string) => {
+                        const renamed = unCamelCase (p1)
+                        parentNames.add (renamed)
+                        return ((p2 === '(') ?
+                            ('parent::' + renamed + p2) : // support direct php calls
+                            ("array($this, '" + renamed + "')" + p2)) // as well as passing instance methods as callables
+                    })
+            }
         }
 
         header.push ("\n" + this.createPHPClassDeclaration (className, baseClass))
@@ -1391,6 +1511,54 @@ class Transpiler {
 
     // ------------------------------------------------------------------------
 
+    // splits a rendered PHP parameter list into its individual parameters, ignoring
+    // commas nested inside defaults like `array(1, 2)` or `'a,b'`
+    splitPHPParameterList (phpArgs: string) {
+        const parts: string[] = []
+        let depth = 0
+        let quote = ''
+        let current = ''
+        for (let i = 0; i < phpArgs.length; i++) {
+            const char = phpArgs[i]
+            if (quote) {
+                if ((char === quote) && (phpArgs[i - 1] !== '\\')) {
+                    quote = ''
+                }
+            } else if ((char === "'") || (char === '"')) {
+                quote = char
+            } else if ((char === '(') || (char === '[')) {
+                depth++
+            } else if ((char === ')') || (char === ']')) {
+                depth--
+            } else if ((char === ',') && (depth === 0)) {
+                parts.push (current)
+                current = ''
+                continue
+            }
+            current += char
+        }
+        if (current.trim ().length) {
+            parts.push (current)
+        }
+        return parts
+    }
+
+    // turns a rendered PHP parameter list (`string $symbol, $params = array()`) into the
+    // argument expressions used to forward it to another method (`$symbol, $params`),
+    // preserving by-reference and variadic markers
+    phpParameterForwardingList (phpArgs: string) {
+        if (!phpArgs || !phpArgs.trim ().length) {
+            return ''
+        }
+        return this.splitPHPParameterList (phpArgs).map ((part) => {
+            const match = part.match (/(\.\.\.)?\s*&?\s*(\$\w+)/)
+            if (!match) {
+                throw new Error ('phpParameterForwardingList: could not parse PHP parameter "' + part + '"')
+            }
+            return (match[1] || '') + match[2]
+        }).join (', ')
+    }
+
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
@@ -1458,10 +1626,18 @@ class Transpiler {
         // the variable only gets its "$" from phpVariablesRegexes below, so handle it here.
         const noSpaceBeforeDynamicNewParen = [ /new (\$[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])*) \(/g, 'new $1(' ]
         let phpBody = this.regexAll (js, phpRegexes.concat (phpVariablesRegexes).concat (variablePropertiesRegexes).concat ([ noSpaceBeforeCallParen, noSpaceBeforeDynamicNewParen ]))
-        // indent async php
+        // indent async php — awaiting bodies stay flat here on purpose: the caller
+        // (transpileMethodsToAllLanguages) emits a thin public stub
+        // `return Async\async(self::do_<name>(...))($args);` and re-homes this flat
+        // body into `private function do_<name> (...)`. Async\async() stays on the
+        // public edge, so the method still returns a PromiseInterface and Promise\all
+        // still overlaps, but the `function () use (...)` closure and its extra
+        // indentation level disappear from every awaiting method.
+        if (async) {
+            this.phpAsyncBodyWasFlattened = false
+        }
         if (async && js.indexOf (' await ') > -1) {
-            const closure = variables && variables.length ? ' use (' + variables.map ((x: any) => '$' + x).join (', ') + ')': '';
-            phpBody = '        return Async\\async(function ()' + closure + ' {\n    ' +  phpBody.replace (/\n/g, '\n    ') + '\n        })();'
+            this.phpAsyncBodyWasFlattened = true
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -1486,15 +1662,18 @@ class Transpiler {
 
         let phpAsyncBody  = ''
         let phpBody = ''
+        let phpAsyncBodyIsFlatAwait = false
 
         if (this.buildPHP) {
             // transpile JS → Async PHP
             phpAsyncBody = this.transpileJavaScriptToPHP (args, true)
+            // read the flag before the sync pass below clobbers nothing but keeps intent obvious
+            phpAsyncBodyIsFlatAwait = this.phpAsyncBodyWasFlattened
             // transpile JS -> Sync PHP
             phpBody = this.transpileAsyncPHPToSyncPHP (this.transpileJavaScriptToPHP (args, false))
         }
 
-        return { python3Body, python2Body, phpBody, phpAsyncBody }
+        return { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait }
     }
 
     //-----------------------------------------------------------------------------
@@ -1954,16 +2133,16 @@ class Transpiler {
             const pythonTypes: dict = {
                 'string': 'str',
                 'number': 'float',
-                'any': 'Any',
-                'unknown': 'Any',
+                'any': 'object',
+                'unknown': 'object',
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict',
                 'NullableDict': 'dict',
-                'List': 'List[Any]',
-                'NullableList': 'List[Any]'
+                'List': 'list',
+                'NullableList': 'list'
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
@@ -1977,7 +2156,7 @@ class Transpiler {
                     type = type.slice (0, -2)
                     count++
                 }
-                return 'List['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
+                return 'list['.repeat (count) + (pythonTypes[type] ?? type) + ']'.repeat (count)
             }
 
             if (this.buildPHP) {
@@ -2122,7 +2301,7 @@ class Transpiler {
             let js = lines.slice (1, -1).join ("\n")
 
             // transpile everything
-            let { python3Body, python2Body, phpBody, phpAsyncBody } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
+            let { python3Body, python2Body, phpBody, phpAsyncBody, phpAsyncBodyIsFlatAwait } = this.transpileJavaScriptToPythonAndPHP ({ js, className, variables, removeEmptyLines: true })
 
             if (this.buildPython) {
                 // compile the final Python code for the method signature
@@ -2153,7 +2332,23 @@ class Transpiler {
                 php.push ('    ' + '}')
 
                 phpAsync.push ('');
-                phpAsync.push (asyncPhpSignature);
+                if (phpAsyncBodyIsFlatAwait) {
+                    // hybrid async: thin public stub keeps the PromiseInterface contract and the
+                    // Async\async() edge; the flat body moves into a private `do_<name>` helper
+                    // (PSR-12 / snake_case; no closure, no `use (...)`, one indent level less).
+                    const forwardedArgs = this.phpParameterForwardingList (phpArgs)
+                    const doMethod = 'do_' + method
+                    phpAsync.push (asyncPhpSignature);
+                    phpAsync.push ('        return Async\\async(self::' + doMethod + '(...))(' + forwardedArgs + ');');
+                    phpAsync.push ('    ' + '}')
+                    phpAsync.push ('');
+                    // the body helper is intentionally untyped on the return: after
+                    // `Async\await(...)` it yields the resolved value, not a promise, so the
+                    // public method's `: PromiseInterface` must not be repeated here.
+                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
+                } else {
+                    phpAsync.push (asyncPhpSignature);
+                }
                 phpAsync.push (phpAsyncBody);
                 phpAsync.push ('    ' + '}')
             }

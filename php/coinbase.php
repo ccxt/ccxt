@@ -127,6 +127,7 @@ class coinbase extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => false,
@@ -912,7 +913,14 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $params));
+        } elseif ($method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            $response = $this->v2PrivateGetAccountsAccountIdWithdrawals($this->extend($request, $params));
+        } else {
+            $response = $this->v2PrivateGetAccountsAccountIdDeposits($this->extend($request, $params));
+        }
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
@@ -954,7 +962,7 @@ class coinbase extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $currencyType = null;
-        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'currencyType');
+        list($currencyType, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'currencyType');
         if ($currencyType === 'crypto') {
             $results = $this->fetch_transactions_with_method('v2PrivateGetAccountsAccountIdTransactions', $code, $since, $limit, $params);
             return $this->filter_by_array($results, 'type', 'deposit', false);

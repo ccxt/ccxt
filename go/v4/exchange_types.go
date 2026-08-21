@@ -93,6 +93,7 @@ type MarketInterface struct {
 	Swap           *bool
 	Future         *bool
 	Option         *bool
+	Stock          *bool
 	Contract       *bool
 	Settle         *string
 	SettleId       *string
@@ -165,6 +166,7 @@ func NewMarketInterface(data any) MarketInterface {
 		Swap:           SafeBoolTyped(m, "swap"),
 		Future:         SafeBoolTyped(m, "future"),
 		Option:         SafeBoolTyped(m, "option"),
+		Stock:          SafeBoolTyped(m, "stock"),
 		Contract:       SafeBoolTyped(m, "contract"),
 		Settle:         SafeStringTyped(m, "settle"),
 		SettleId:       SafeStringTyped(m, "settleId"),

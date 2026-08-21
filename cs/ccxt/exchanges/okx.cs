@@ -23,6 +23,7 @@ public partial class okx : Exchange
                 { "future", true },
                 { "option", true },
                 { "addMargin", true },
+                { "borrowCrossMargin", true },
                 { "cancelAllOrders", false },
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
@@ -112,6 +113,7 @@ public partial class okx : Exchange
                 { "fetchOrderTrades", true },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", "emulated" },
+                { "fetchPositionMode", true },
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", true },
                 { "fetchPositionsHistory", true },
@@ -627,6 +629,33 @@ public partial class okx : Exchange
                         { "asset/convert/history", new Dictionary<string, object>() {
                             { "cost", divide(5, 3) },
                         } },
+                        { "fiat/deposit-payment-methods", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/withdrawal-payment-methods", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/deposit-order-history", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/deposit", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/withdrawal-order-history", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/withdrawal", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/buy-sell/currencies", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
+                        { "fiat/buy-sell/currency-pair", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
+                        { "fiat/buy-sell/history", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
                         { "account/instruments", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -1129,6 +1158,18 @@ public partial class okx : Exchange
                         } },
                         { "asset/convert/trade", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "fiat/create-withdrawal", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/cancel-withdrawal", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "fiat/buy-sell/quote", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "fiat/buy-sell/trade", new Dictionary<string, object>() {
+                            { "cost", 50 },
                         } },
                         { "account/bills-history-archive", new Dictionary<string, object>() {
                             { "cost", 72000 },
@@ -3302,7 +3343,7 @@ public partial class okx : Exchange
         symbols = this.marketSymbols(symbols);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters, "swap");
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -8634,7 +8675,7 @@ public partial class okx : Exchange
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(ccy) },
             { "rate", this.safeNumber2(info, "interestRate", "rate") },
-            { "period", 86400000 },
+            { "period", 3600000 },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", info },
@@ -8666,6 +8707,8 @@ public partial class okx : Exchange
                     ((IDictionary<string,object>)borrowRateHistories)[(string)code] = new List<object>() {};
                 }
                 object borrowRateStructure = this.parseBorrowRate(item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                ((IDictionary<string,object>)borrowRateStructure)["period"] = 31536000000;
                 object borrrowRateCode = getValue(borrowRateHistories, code);
                 ((IList<object>)borrrowRateCode).Add(borrowRateStructure);
             }

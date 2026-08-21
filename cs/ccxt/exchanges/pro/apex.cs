@@ -444,9 +444,9 @@ public partial class apex : ccxt.apex
         object messageHashes = new List<object>() {};
         object url = this.getWsPublicUrl();
         object topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue((IList<string>)(symbols), i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object topic = add(add("instrumentInfo", ".H."), getValue(market, "id2"));
             ((IList<object>)topics).Add(topic);
@@ -712,7 +712,7 @@ public partial class apex : ccxt.apex
         if (!isTrue(this.isEmpty(symbols)))
         {
             symbols = this.marketSymbols(symbols);
-            messageHash = add("::", String.Join(",", ((IList<object>)(IList<string>)(symbols)).ToArray()));
+            messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object url = this.getWsPrivateUrl();
         messageHash = add("positions", messageHash);

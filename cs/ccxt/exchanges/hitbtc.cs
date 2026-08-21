@@ -23,7 +23,7 @@ public partial class hitbtc : Exchange
                 { "addMargin", true },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
-                { "closePosition", false },
+                { "closePosition", true },
                 { "createDepositAddress", true },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },

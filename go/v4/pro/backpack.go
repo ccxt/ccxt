@@ -145,7 +145,7 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var subMessageHash any = ccxt.Replace(messageHash, "unsubscribe:", "")
-		this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
+		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "ticker"), 0)) {
 			var symbol any = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
 			if ccxt.IsTrue(ccxt.InOp(this.Tickers, symbol)) {

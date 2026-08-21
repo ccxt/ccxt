@@ -514,7 +514,7 @@ func (this *BitgetCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
 		var market any = this.Market(ccxt.GetValue(symbols, 0))
 		var instType any = nil
 		var uta any = nil
-		utaparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "uta", false)
+		utaparamsVariable := this.HandleOptionAndParams(params, "watchBidsAsks", "uta", false)
 		uta = ccxt.GetValue(utaparamsVariable, 0)
 		params = ccxt.GetValue(utaparamsVariable, 1)
 		instTypeparamsVariable := this.GetInstType("watchBidsAsks", market, uta, params)
@@ -1731,7 +1731,7 @@ func (this *BitgetCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), ccxt.Add(instType, ":positions::"))
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(instType, ":positions::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -3362,7 +3362,7 @@ func (this *BitgetCore) HandleOHLCVUnSubscription(client any, message any) {
 			ccxt.Remove(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 		}
 	}
-	this.CleanUnsubscription(client.(*ccxt.Client), subMessageHash, messageHash)
+	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 }
 func (this *BitgetCore) HandleUnSubscriptionStatus(client any, message any) any {
 	//

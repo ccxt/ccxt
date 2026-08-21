@@ -73,7 +73,7 @@ public partial class kucoin : Exchange
                 { "fetchL3OrderBook", true },
                 { "fetchLedger", true },
                 { "fetchLeverage", true },
-                { "fetchLeverageTiers", false },
+                { "fetchLeverageTiers", true },
                 { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", true },
                 { "fetchMarketLeverageTiers", true },
@@ -3371,7 +3371,7 @@ public partial class kucoin : Exchange
             { "last", last },
             { "previousClose", null },
             { "change", this.safeString(ticker, "priceChg") },
-            { "percentage", this.safeString(ticker, "priceChgPct") },
+            { "percentage", Precise.stringMul(this.safeString(ticker, "priceChgPct"), "100") },
             { "average", null },
             { "baseVolume", this.safeString(ticker, "volumeOf24h") },
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
@@ -5736,7 +5736,7 @@ public partial class kucoin : Exchange
         useSync = ((IList<object>)useSyncparametersVariable)[0];
         parameters = ((IList<object>)useSyncparametersVariable)[1];
         object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object tradeType = this.safeString(parameters, "tradeType"); // keep it for backward compatibility
@@ -5948,12 +5948,12 @@ public partial class kucoin : Exchange
         object market = this.market(symbol);
         ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         object accountMode = "unified";
-        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "accountMode", accountMode);
+        var accountModeparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "accountMode", accountMode);
         accountMode = ((IList<object>)accountModeparametersVariable)[0];
         parameters = ((IList<object>)accountModeparametersVariable)[1];
         ((IDictionary<string,object>)request)["accountMode"] = accountMode;
         object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+        var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object isUnified = (isEqual(accountMode, "unified"));
@@ -6016,7 +6016,7 @@ public partial class kucoin : Exchange
         {
             market = this.market(symbol);
         }
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isTrue((isEqual(marketType, "spot"))) || isTrue((isEqual(marketType, "margin")))))
@@ -11847,6 +11847,7 @@ public partial class kucoin : Exchange
             //                 "mmr": "0.007",
             //                 "maintenanceMargin": "0.128086",
             //                 "creationTime": 1774469753178000000
+            //                 "updateTime": 1774469753178000000
             //             }
             //         ]
             //     }
@@ -12172,6 +12173,7 @@ public partial class kucoin : Exchange
         //         "mmr": "0.007",
         //         "maintenanceMargin": "0.128086",
         //         "creationTime": 1774469753178000000
+        //         "updateTime": 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -12240,7 +12242,13 @@ public partial class kucoin : Exchange
         object lastUpdateTimestamp = this.safeInteger(position, "closeTime");
         if (isTrue(isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            if (isTrue(inOp(position, "closingTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "closingTime", 0.000001);
+            } else if (isTrue(inOp(position, "updateTime")))
+            {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, "updateTime", 0.000001);
+            }
         }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
@@ -12354,7 +12362,7 @@ public partial class kucoin : Exchange
             parameters = ((IList<object>)accountModeparametersVariable)[1];
             ((IDictionary<string,object>)request)["accountMode"] = accountMode;
             object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+            var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrders", parameters);
             marginMode = ((IList<object>)marginModeparametersVariable)[0];
             parameters = ((IList<object>)marginModeparametersVariable)[1];
             object isUnified = (isEqual(accountMode, "unified"));

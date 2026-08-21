@@ -598,6 +598,22 @@ function concat (a: any[] | undefined = undefined, b: any[] | undefined = undefi
     }
 }
 
+function assertDictionaryResponse (exchange: Exchange, method: string, response: any, hint: Str = undefined) {
+    // php cannot distinguish an empty dict from an empty list, both are a plain array
+    // there, so an empty array response is shape indeterminate and accepted, observed
+    // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    let isEmptyArrayResponse = false;
+    if (Array.isArray (response)) {
+        const responseLength = response.length;
+        isEmptyArrayResponse = (responseLength === 0);
+    }
+    let hintText = '';
+    if (hint !== undefined) {
+        hintText = ' ' + hint;
+    }
+    assert (exchange.isDictionary (response) || isEmptyArrayResponse, exchange.id + ' ' + method + hintText + ' must return a dict. ' + exchange.json (response));
+}
+
 function assertNonEmtpyArray (exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint: Str = undefined) {
     let logText = logTemplate (exchange, method, entry);
     if (hint !== undefined) {
@@ -712,6 +728,7 @@ export default {
     removeProxyOptions,
     setProxyOptions,
     assertNonEmtpyArray,
+    assertDictionaryResponse,
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,

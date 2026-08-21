@@ -95,6 +95,7 @@ func (this *CoinmateCore) Describe() any {
 			"fetchSettlementHistory":                 false,
 			"fetchTicker":                            true,
 			"fetchTickers":                           true,
+			"fetchTime":                              true,
 			"fetchTrades":                            true,
 			"fetchTradingFee":                        true,
 			"fetchTradingFees":                       false,
@@ -302,6 +303,15 @@ func (this *CoinmateCore) Describe() any {
 						"cost": 1,
 					},
 					"unconfirmedAdaDeposits": map[string]any{
+						"cost": 1,
+					},
+					"daiWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"daiDepositAddresses": map[string]any{
+						"cost": 1,
+					},
+					"unconfirmedDaiDeposits": map[string]any{
 						"cost": 1,
 					},
 					"solWithdrawal": map[string]any{
@@ -602,8 +612,8 @@ func (this *CoinmateCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes47112 := (<-this.LoadMarkets())
-			PanicOnError(retRes47112)
+			retRes47512 := (<-this.LoadMarkets())
+			PanicOnError(retRes47512)
 		}
 
 		response := (<-this.PrivatePostBalances(params))
@@ -637,8 +647,8 @@ func (this *CoinmateCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes48912 := (<-this.LoadMarkets())
-			PanicOnError(retRes48912)
+			retRes49312 := (<-this.LoadMarkets())
+			PanicOnError(retRes49312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -676,8 +686,8 @@ func (this *CoinmateCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes51312 := (<-this.LoadMarkets())
-			PanicOnError(retRes51312)
+			retRes51712 := (<-this.LoadMarkets())
+			PanicOnError(retRes51712)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -732,8 +742,8 @@ func (this *CoinmateCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55212 := (<-this.LoadMarkets())
-			PanicOnError(retRes55212)
+			retRes55612 := (<-this.LoadMarkets())
+			PanicOnError(retRes55612)
 		}
 		symbols = this.MarketSymbols(symbols)
 
@@ -841,8 +851,8 @@ func (this *CoinmateCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes63912 := (<-this.LoadMarkets())
-			PanicOnError(retRes63912)
+			retRes64312 := (<-this.LoadMarkets())
+			PanicOnError(retRes64312)
 		}
 		var request any = map[string]any{
 			"limit": 1000,
@@ -986,8 +996,8 @@ func (this *CoinmateCore) Withdraw(code any, amount any, address any, optionalAr
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes76512 := (<-this.LoadMarkets())
-			PanicOnError(retRes76512)
+			retRes76912 := (<-this.LoadMarkets())
+			PanicOnError(retRes76912)
 		}
 		var currency any = this.Currency(code)
 		var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
@@ -1004,9 +1014,47 @@ func (this *CoinmateCore) Withdraw(code any, amount any, address any, optionalAr
 		if IsTrue(!IsEqual(tag, nil)) {
 			AddElementToObject(request, "destinationTag", tag)
 		}
+		var requestParams any = this.Extend(request, params)
+		var response any = nil
+		if IsTrue(IsEqual(method, "privatePostBitcoinWithdrawal")) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostBitcoinWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostLitecoinWithdrawal")) {
+
+			response = (<-this.PrivatePostLitecoinWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostBitcoinCashWithdrawal")) {
+
+			response = (<-this.PrivatePostBitcoinCashWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostEthereumWithdrawal")) {
+
+			response = (<-this.PrivatePostEthereumWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostRippleWithdrawal")) {
+
+			response = (<-this.PrivatePostRippleWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostDashWithdrawal")) {
+
+			response = (<-this.PrivatePostDashWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostDaiWithdrawal")) {
+
+			response = (<-this.PrivatePostDaiWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostAdaWithdrawal")) {
+
+			response = (<-this.PrivatePostAdaWithdrawal(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostSolWithdrawal")) {
+
+			response = (<-this.PrivatePostSolWithdrawal(requestParams))
+			PanicOnError(response)
+		} else {
+			panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not support the "), method), " method")))
+		}
 		//
 		//     {
 		//         "error": false,
@@ -1061,8 +1109,8 @@ func (this *CoinmateCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81912 := (<-this.LoadMarkets())
-			PanicOnError(retRes81912)
+			retRes84512 := (<-this.LoadMarkets())
+			PanicOnError(retRes84512)
 		}
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = 1000
@@ -1178,8 +1226,8 @@ func (this *CoinmateCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes91612 := (<-this.LoadMarkets())
-			PanicOnError(retRes91612)
+			retRes94212 := (<-this.LoadMarkets())
+			PanicOnError(retRes94212)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1232,8 +1280,8 @@ func (this *CoinmateCore) FetchTradingFee(symbol any, optionalArgs ...any) <-cha
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes95512 := (<-this.LoadMarkets())
-			PanicOnError(retRes95512)
+			retRes98112 := (<-this.LoadMarkets())
+			PanicOnError(retRes98112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1337,8 +1385,8 @@ func (this *CoinmateCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes101812 := (<-this.LoadMarkets())
-			PanicOnError(retRes101812)
+			retRes104412 := (<-this.LoadMarkets())
+			PanicOnError(retRes104412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1491,8 +1539,8 @@ func (this *CoinmateCore) CreateOrder(symbol any, typeVar any, side any, amount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes115612 := (<-this.LoadMarkets())
-			PanicOnError(retRes115612)
+			retRes118212 := (<-this.LoadMarkets())
+			PanicOnError(retRes118212)
 		}
 		var method any = Add("privatePost", this.Capitalize(side))
 		var market any = this.Market(symbol)
@@ -1511,9 +1559,27 @@ func (this *CoinmateCore) CreateOrder(symbol any, typeVar any, side any, amount 
 			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 			method = Add(method, this.Capitalize(typeVar))
 		}
+		var requestParams any = this.Extend(request, params)
+		var response any = nil
+		if IsTrue(IsEqual(method, "privatePostBuyInstant")) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostBuyInstant(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostSellInstant")) {
+
+			response = (<-this.PrivatePostSellInstant(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostBuyLimit")) {
+
+			response = (<-this.PrivatePostBuyLimit(requestParams))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "privatePostSellLimit")) {
+
+			response = (<-this.PrivatePostSellLimit(requestParams))
+			PanicOnError(response)
+		} else {
+			panic(InvalidOrder(Add(Add(this.Id, " createOrder() does not support order type "), typeVar)))
+		}
 		var id any = this.SafeString(response, "data")
 
 		ch <- this.SafeOrder(map[string]any{
@@ -1548,8 +1614,8 @@ func (this *CoinmateCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes119612 := (<-this.LoadMarkets())
-			PanicOnError(retRes119612)
+			retRes123412 := (<-this.LoadMarkets())
+			PanicOnError(retRes123412)
 		}
 		var request any = map[string]any{
 			"orderId": id,

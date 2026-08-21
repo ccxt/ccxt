@@ -92,6 +92,7 @@ public class PhemexCore extends PhemexApi
                 put( "fetchOrderBook", true );
                 put( "fetchOrders", true );
                 put( "fetchPositionADLRank", true );
+                put( "fetchPositionHistory", true );
                 put( "fetchPositions", true );
                 put( "fetchPositionsADLRank", true );
                 put( "fetchPositionsRisk", false );
@@ -1566,6 +1567,10 @@ public class PhemexCore extends PhemexApi
 
     public Object toEn(Object n, Object scale)
     {
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(n, null))) || Helpers.isTrue((Helpers.isEqual(scale, null)))))
+        {
+            return null;
+        }
         Object stringN = this.numberToString(n);
         var precise = new Precise(((String)stringN));
         precise.decimals = Helpers.subtract(precise.decimals, scale);
@@ -1581,7 +1586,7 @@ public class PhemexCore extends PhemexApi
         {
             return amount;
         }
-        return this.toEn(amount, Helpers.GetValue(market, "valueScale"));
+        return this.toEn(amount, this.safeInteger(market, "valueScale"));
     }
 
     public Object toEp(Object price, Object... optionalArgs)
@@ -1591,7 +1596,7 @@ public class PhemexCore extends PhemexApi
         {
             return price;
         }
-        return this.toEn(price, this.safeValue(market, "priceScale"));
+        return this.toEn(price, this.safeInteger(market, "priceScale"));
     }
 
     public Object fromEn(Object en, Object scale)
@@ -3253,10 +3258,10 @@ public class PhemexCore extends PhemexApi
                 Helpers.addElementToObject(request, "posSide", posSide);
                 if (Helpers.isTrue(isStableSettled))
                 {
-                    Helpers.addElementToObject(request, "orderQtyRq", amount);
+                    Helpers.addElementToObject(request, "orderQtyRq", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Helpers.addElementToObject(request, "orderQty", this.parseToInt(amount));
+                    Helpers.addElementToObject(request, "orderQty", this.parseToInt(this.amountToPrecision(symbol, amount)));
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
                 {
@@ -4527,7 +4532,7 @@ public class PhemexCore extends PhemexApi
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
@@ -6473,7 +6478,7 @@ final Object finalI = i;
 
     /**
      * @method
-     * @name phemex#fetchPositionADLRank
+     * @name phemex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -6481,7 +6486,7 @@ final Object finalI = i;
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchPositionsADLRank(Object... optionalArgs)

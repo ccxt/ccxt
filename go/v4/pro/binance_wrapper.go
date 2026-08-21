@@ -526,11 +526,13 @@ func (this *Binance) WatchTrades(symbol string, options ...ccxt.WatchTradesOptio
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
  * @param {string} symbol unified symbol of the market to fetch ccxt.OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.stock] set to true to use stocks market streams
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
@@ -575,10 +577,12 @@ func (this *Binance) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#klines
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Kline-Candlestick-Streams
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#kline-stream
  * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch ccxt.OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.stock] set to true to use stocks market streams
  * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
@@ -768,8 +772,10 @@ func (this *Binance) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOpt
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-ccxt.Market-Mini-ccxt.Tickers-Stream
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-ccxt.Market-Mini-ccxt.Tickers-Stream
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-ccxt.Ticker-Streams
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.stock] set to true to use the stocks aggregated price stream
  * @param {string} [params.name] stream to use can be ticker or miniTicker
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
@@ -865,8 +871,10 @@ func (this *Binance) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (cc
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-ccxt.Market-Mini-ccxt.Tickers-Stream
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-ccxt.Market-Mini-ccxt.Tickers-Stream
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Individual-Symbol-ccxt.Ticker-Streams
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#price-stream
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.stock] set to true to use the stocks price stream
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Binance) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
@@ -994,6 +1002,40 @@ func (this *Binance) UnWatchMarkPrice(symbol string, options ...ccxt.UnWatchMark
 
 /**
  * @method
+ * @name binance#unWatchBidsAsks
+ * @description unWatches best bid & ask for symbols
+ * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-book-ticker-streams
+ * @see https://developers.binance.com/docs/derivatives/options-trading/websocket-market-streams/Bookticker
+ * @param {string[]} [symbols] unified symbols
+ * @param {object} [params] extra parameters
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
+
+	opts := ccxt.UnWatchBidsAsksOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.UnWatchBidsAsks(symbols, params)
+	if ccxt.IsError(res) {
+		return nil, ccxt.CreateReturnError(res)
+	}
+	return res, nil
+}
+
+/**
+ * @method
  * @name binance#unWatchTicker
  * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
  * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-streams#individual-symbol-mini-ticker-stream
@@ -1032,8 +1074,10 @@ func (this *Binance) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerO
  * @see https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/market-data-requests#symbol-order-book-ticker
  * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-ccxt.Tickers-Stream
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-ccxt.Tickers-Stream
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/market-streams#quote-stream
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.stock] set to true to use stocks quote streams
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Binance) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {
@@ -1504,10 +1548,12 @@ func (this *Binance) FetchOpenOrdersWs(options ...ccxt.FetchOpenOrdersWsOptions)
  * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-ccxt.Order-Update
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-ccxt.Order-Update
  * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Algo-ccxt.Order-Update
+ * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/ws-streams/user-streams#order-report-stream
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.stock] set to true to use stocks user data streams
  * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for spot margin
  * @param {boolean} [params.portfolioMargin] set to true if you would like to watch portfolio margin account orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2201,9 +2247,6 @@ func (this *Binance) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error)
 }
 func (this *Binance) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) ([]ccxt.Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
-}
-func (this *Binance) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {
-	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
 func (this *Binance) UnWatchMyTrades(options ...ccxt.UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)

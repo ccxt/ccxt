@@ -30,7 +30,8 @@ public partial class foxbit : Exchange
                 { "createMarketBuyOrder", true },
                 { "createMarketSellOrder", true },
                 { "createOrder", true },
-                { "fecthOrderBook", true },
+                { "createOrders", true },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
@@ -44,7 +45,10 @@ public partial class foxbit : Exchange
                 { "fetchOHLCV", true },
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
+                { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchOrdersByStatus", true },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTrades", true },
@@ -2288,6 +2292,8 @@ public partial class foxbit : Exchange
         }
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
+            { "X-FB-CLIENT", "ccxt" },
+            { "X-FB-CLIENT-VERSION", this.getCcxtVersion() },
         };
         if (isTrue(isEqual(urlPath, "private")))
         {

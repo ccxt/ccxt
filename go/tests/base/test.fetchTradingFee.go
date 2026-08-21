@@ -14,7 +14,7 @@ func TestFetchTradingFee(exchange ccxt.ICoreExchange, skippedProperties any, sym
 
 		fee := (<-exchange.FetchTradingFee(symbol))
 		PanicOnError(fee)
-		Assert(exchange.IsDictionary(fee), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dict. "), exchange.Json(fee)))
+		AssertDictionaryResponse(exchange, method, fee, symbol)
 		TestTradingFee(exchange, skippedProperties, method, symbol, fee)
 
 		ch <- true

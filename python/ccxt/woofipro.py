@@ -5,12 +5,12 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woofipro import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, FundingRate, FundingRates, Trade, TradingFees, Transaction
-from typing import List
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, Int, LedgerEntry, Leverage, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, OpenInterests, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import NotSupported
@@ -22,7 +22,7 @@ from ccxt.base.precise import Precise
 
 class woofipro(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(woofipro, self).describe(), {
             'id': 'woofipro',
             'name': 'WOOFI PRO',
@@ -39,7 +39,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': False,
+                'addMargin': True,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
                 'borrowMargin': False,
@@ -56,6 +56,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'createMarketOrderWithCost': False,
                 'createMarketSellOrderWithCost': False,
                 'createOrder': True,
+                'createOrders': True,
                 'createOrderWithTakeProfitAndStopLoss': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': False,
@@ -66,6 +67,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'createTrailingAmountOrder': False,
                 'createTrailingPercentOrder': False,
                 'createTriggerOrder': True,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchAllGreeks': False,
                 'fetchBalance': True,
@@ -99,12 +101,15 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchLedger': True,
                 'fetchLeverage': True,
                 'fetchMarginAdjustmentHistory': False,
-                'fetchMarginMode': False,
+                'fetchMarginMode': True,
+                'fetchMarginModes': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': True,
                 'fetchOpenOrder': False,
                 'fetchOpenOrders': True,
                 'fetchOption': False,
@@ -118,8 +123,8 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
@@ -128,11 +133,12 @@ class woofipro(Exchange, ImplicitAPI):
                 'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
                 'setLeverage': True,
                 'setMargin': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': True,  # exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs: https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -262,6 +268,7 @@ class woofipro(Exchange, ImplicitAPI):
                             'broker/user_info': {'cost': 10},
                             'orderbook/{symbol}': {'cost': 1},
                             'kline': {'cost': 1},
+                            'client/margin_modes': {'cost': 1},
                         },
                         'post': {
                             'orderly_key': {'cost': 1},
@@ -277,6 +284,8 @@ class woofipro(Exchange, ImplicitAPI):
                             'notification/inbox/mark_read': {'cost': 60},
                             'notification/inbox/mark_read_all': {'cost': 60},
                             'client/leverage': {'cost': 120},
+                            'client/margin_mode': {'cost': 1},
+                            'position_margin': {'cost': 1},
                             'client/maintenance_config': {'cost': 60},
                             'delegate_signer': {'cost': 10},
                             'delegate_orderly_key': {'cost': 10},
@@ -601,7 +610,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for woofipro
 
@@ -756,7 +765,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': token,
         })
 
-    def parse_token_and_fee_temp(self, item: Any, feeTokenKey: Any, feeAmountKey: Any):
+    def parse_token_and_fee_temp(self, item: object, feeTokenKey: object, feeAmountKey: object):
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:
@@ -831,7 +840,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': trade,
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -871,7 +880,7 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_trades(rows, market, since, limit)
 
-    def parse_funding_rate(self, fundingRate: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
         #
         #         {
         #             "symbol":"PERP_AAVE_USDT",
@@ -912,7 +921,7 @@ class woofipro(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(millisecondsInterval),
         }
 
-    def parse_funding_interval(self, interval: Any):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -1004,6 +1013,253 @@ class woofipro(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rates(rows, symbols)
 
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "sum_unitary_funding": 26522.3,
+        #         "est_funding_rate": 0.0001,
+        #         "last_funding_rate": 0.00010041,
+        #         "next_funding_time": 1786032000000,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        #
+        marketId = self.safe_string(ticker, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(ticker, 'timestamp')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, '24h_high'),
+            'low': self.safe_string(ticker, '24h_low'),
+            'bid': None,
+            'bidVolume': None,
+            'ask': None,
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, '24h_open'),
+            'close': self.safe_string(ticker, '24h_close'),
+            'last': self.safe_string(ticker, '24h_close'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, '24h_volume'),
+            'quoteVolume': self.safe_string(ticker, '24h_amount'),
+            'indexPrice': self.safe_string(ticker, 'index_price'),
+            'markPrice': self.safe_string(ticker, 'mark_price'),
+            'info': ticker,
+        }, market)
+
+    def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "sum_unitary_funding": 26522.3,
+        #         "est_funding_rate": 0.0001,
+        #         "last_funding_rate": 0.00010041,
+        #         "next_funding_time": 1786032000000,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data['timestamp'] = self.safe_integer(response, 'timestamp')
+        return self.parse_ticker(data, market)
+
+    def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "index_price": 64185.4,
+        #             "mark_price": 64171.0,
+        #             "sum_unitary_funding": 26522.3,
+        #             "est_funding_rate": 0.0001,
+        #             "last_funding_rate": 0.00010041,
+        #             "next_funding_time": 1786032000000,
+        #             "open_interest": 110.64612,
+        #             "24h_open": 64105.6,
+        #             "24h_close": 64180.0,
+        #             "24h_high": 64941.0,
+        #             "24h_low": 63837.6,
+        #             "24h_volume": 102.2817,
+        #             "24h_amount": 6595662.199482
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            ticker = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_ticker(ticker))
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    def parse_open_interest(self, interest: object, market: Market = None) -> OpenInterest:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "open_interest": 110.64612,
+        #         "24h_open": 64105.6,
+        #         "24h_close": 64180.0,
+        #         "24h_high": 64941.0,
+        #         "24h_low": 63837.6,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        #
+        marketId = self.safe_string(interest, 'symbol')
+        market = self.safe_market(marketId, market)
+        timestamp = self.safe_integer(interest, 'timestamp')
+        amount = self.safe_number_2(interest, 'open_interest', 'openInterest')
+        return self.safe_open_interest({
+            'symbol': market['symbol'],
+            'openInterestAmount': amount,
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }, market)
+
+    def fetch_open_interest(self, symbol: str, params={}) -> OpenInterest:
+        """
+        retrieves the open interest of a contract trading pair
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+
+        :param str symbol: unified CCXT market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.v1PublicGetPublicFuturesSymbol(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "index_price": 64185.4,
+        #         "mark_price": 64171.0,
+        #         "open_interest": 110.64612,
+        #         "24h_volume": 102.2817,
+        #         "24h_amount": 6595662.199482
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        data['timestamp'] = self.safe_integer(response, 'timestamp')
+        return self.parse_open_interest(data, market)
+
+    def fetch_open_interests(self, symbols: Strings = None, params={}) -> OpenInterests:
+        """
+        retrieves the open interest for a list of contract trading pairs
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+
+        :param str[] [symbols]: a list of unified CCXT market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v1PublicGetPublicFutures(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1786022130191,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "index_price": 64185.4,
+        #             "mark_price": 64171.0,
+        #             "open_interest": 110.64612,
+        #             "24h_volume": 102.2817,
+        #             "24h_amount": 6595662.199482
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        timestamp = self.safe_integer(response, 'timestamp')
+        result = []
+        for i in range(0, len(rows)):
+            row = rows[i]
+            marketId = self.safe_string(row, 'symbol', '')
+            if (self.markets_by_id is None) or not (marketId in self.markets_by_id):
+                continue  # the endpoint returns entries for markets missing from public/info, e.g. pre-TGE symbols
+            interest = self.extend({'timestamp': timestamp}, row)
+            result.append(self.parse_open_interest(interest))
+        return self.filter_by_array(result, 'symbol', symbols)
+
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches historical funding rate prices
@@ -1069,7 +1325,7 @@ class woofipro(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: object, market: Market = None):
         #
         # {
         #         "symbol": "PERP_ETH_USDC",
@@ -1259,7 +1515,7 @@ class woofipro(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         return [
             self.safe_integer(ohlcv, 'start_timestamp'),
             self.safe_number(ohlcv, 'open'),
@@ -1269,7 +1525,7 @@ class woofipro(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
 
         https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
@@ -1624,7 +1880,7 @@ class woofipro(Exchange, ImplicitAPI):
         order['type'] = type
         return order
 
-    def create_orders(self, orders: List[OrderRequest], params={}):
+    def create_orders(self, orders: list[OrderRequest], params={}):
         """
         *contract only* create a list of trade orders
 
@@ -1828,7 +2084,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.extend(self.parse_order(data), extendParams)
 
-    def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders
 
@@ -1983,7 +2239,7 @@ class woofipro(Exchange, ImplicitAPI):
         parsedOrders = {} if (orders is None) else orders
         return self.parse_order(parsedOrders, market)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2067,7 +2323,7 @@ class woofipro(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'rows')
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2090,7 +2346,7 @@ class woofipro(Exchange, ImplicitAPI):
         extendedParams = self.extend(params, {'status': 'INCOMPLETE'})
         return self.fetch_orders(symbol, since, limit, extendedParams)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2223,7 +2479,7 @@ class woofipro(Exchange, ImplicitAPI):
         trades = self.safe_list(data, 'rows', [])
         return self.parse_trades(trades, market, since, limit, params)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
         }
@@ -2268,7 +2524,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_balance(data)
 
-    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> Any:
+    def get_asset_history_rows(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> object:
         if self.markets is None:
             self.load_markets()
         request = {}
@@ -2340,14 +2596,14 @@ class woofipro(Exchange, ImplicitAPI):
             'info': item,
         }, currency)
 
-    def parse_ledger_entry_type(self, type: Any):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'BALANCE': 'transaction',  # Funds moved in/out wallet
             'COLLATERAL': 'transfer',  # Funds moved between portfolios
         }
         return self.safe_string(types, type, type)
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -2407,7 +2663,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2424,7 +2680,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2441,7 +2697,7 @@ class woofipro(Exchange, ImplicitAPI):
         }
         return self.fetch_deposits_withdrawals(code, since, limit, self.extend(request, params))
 
-    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch history of deposits and withdrawals
 
@@ -2487,17 +2743,17 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.safe_number(data, 'withdraw_nonce')
 
-    def hash_message(self, message: Any):
+    def hash_message(self, message: object):
         return '0x' + self.hash(message, 'keccak', 'hex')
 
-    def sign_hash(self, hash: Any, privateKey: Any):
+    def sign_hash(self, hash: object, privateKey: object):
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: Any, privateKey: Any):
+    def sign_message(self, message: object, privateKey: object):
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
@@ -2577,6 +2833,182 @@ class woofipro(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
+
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
+        #
+        #     {
+        #         "symbol": "PERP_BTC_USDC",
+        #         "default_margin_mode": "CROSS"
+        #     }
+        #
+        marketId = self.safe_string(marginMode, 'symbol')
+        market = self.safe_market(marketId, market)
+        return {
+            'info': marginMode,
+            'symbol': market['symbol'],
+            'marginMode': self.safe_string_lower(marginMode, 'default_margin_mode'),
+        }
+
+    def fetch_margin_modes(self, symbols: Strings = None, params={}) -> MarginModes:
+        """
+        fetches the set margin mode of every contract market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+
+        :param str[] [symbols]: a list of unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        response = self.v1PrivateGetClientMarginModes(params)
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989,
+        #     "data": {
+        #         "rows": [{
+        #             "symbol": "PERP_BTC_USDC",
+        #             "default_margin_mode": "CROSS"
+        #         }]
+        #     }
+        # }
+        #
+        data = self.safe_dict(response, 'data', {})
+        rows = self.safe_list(data, 'rows', [])
+        return self.parse_margin_modes(rows, symbols, 'symbol')
+
+    def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+        """
+        fetches the set margin mode of a contract market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+
+        :param str symbol: unified symbol of the market
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        marginModes = self.fetch_margin_modes([market['symbol']], params)
+        marginMode = self.safe_dict(marginModes, market['symbol'])
+        if marginMode is None:
+            raise BadSymbol(self.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol'])
+        return marginMode
+
+    def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+        """
+        set margin mode to 'cross' or 'isolated' for a market
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        if self.markets is None:
+            self.load_markets()
+        marginMode = marginMode.lower()
+        if marginMode != 'cross' and marginMode != 'isolated':
+            raise BadRequest(self.id + ' setMarginMode() marginMode must be either cross or isolated')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'default_margin_mode': marginMode.upper(),
+        }
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989
+        # }
+        #
+        return self.v1PrivatePostClientMarginMode(self.extend(request, params))
+
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
+        #
+        #     {
+        #         "success": True,
+        #         "timestamp": 1702989203989
+        #     }
+        #
+        timestamp = self.safe_integer(data, 'timestamp')
+        success = self.safe_bool(data, 'success', False)
+        return {
+            'info': data,
+            'symbol': self.safe_string(market, 'symbol'),
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': None,
+            'code': self.safe_string(market, 'settle'),
+            'status': 'ok' if (success) else 'failed',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
+    def modify_margin_helper(self, symbol: str, amount: object, type: str, params={}) -> MarginModification:
+        """
+ @ignore
+        add or reduce isolated position margin
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add or reduce
+        :param str type: 'ADD' or 'REDUCE'
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'amount': self.number_to_string(amount),
+            'type': type,
+        }
+        response = self.v1PrivatePostPositionMargin(self.extend(request, params))
+        #
+        # {
+        #     "success": True,
+        #     "timestamp": 1702989203989
+        # }
+        #
+        modification = self.parse_margin_modification(response, market)
+        modification['type'] = 'add' if (type == 'ADD') else 'reduce'
+        modification['amount'] = self.parse_number(self.number_to_string(amount))
+        return modification
+
+    def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        add margin to an isolated position
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=add-margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, 'ADD', params)
+
+    def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        remove margin from an isolated position
+
+        https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=reduce-margin-structure>`
+        """
+        return self.modify_margin_helper(symbol, amount, 'REDUCE', params)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         leverageValue = self.safe_integer(leverage, 'max_leverage')
@@ -2767,7 +3199,7 @@ class woofipro(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_position(data, market)
 
-    def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2825,7 +3257,7 @@ class woofipro(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, section='public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         version = section[0]
         access = section[1]
         pathWithParams = self.implode_params(path, params)
@@ -2880,7 +3312,7 @@ class woofipro(Exchange, ImplicitAPI):
             headers['orderly-signature'] = self.urlencode_base64(self.base64_to_binary(signature))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None  # fallback to default error handler
         #

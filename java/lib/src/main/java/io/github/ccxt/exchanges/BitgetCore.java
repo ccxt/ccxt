@@ -3319,9 +3319,30 @@ public class BitgetCore extends BitgetApi
                 Object isBorrowable = this.safeBool(firstData, "isBorrowable");
                 if (Helpers.isTrue(Helpers.isTrue(fetchMargins) && Helpers.isTrue(!Helpers.isEqual(isBorrowable, null))))
                 {
-                    Object keysList = Helpers.objectKeys(this.indexBy(data, "symbol"));
-                    Helpers.addElementToObject(this.options, "crossMarginPairsData", keysList);
-                    Helpers.addElementToObject(this.options, "isolatedMarginPairsData", keysList);
+                    // cross and isolated availability are per-symbol - a coin can be listed by
+                    // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                    // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                    // fail with bitget error 50001 "coin does not support cross"
+                    Object crossKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    Object isolatedKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(data)); j++)
+                    {
+                        Object entry = this.safeDict(data, j, new java.util.HashMap<String, Object>() {{}});
+                        Object entrySymbol = this.safeString(entry, "symbol");
+                        Object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
+                        if (Helpers.isTrue(Helpers.isTrue(entryBorrowable) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
+                        {
+                            ((java.util.List<Object>)crossKeys).add(entrySymbol);
+                        }
+                        Object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                        Object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                        if (Helpers.isTrue(Helpers.isTrue(entryBorrowable) && Helpers.isTrue((Helpers.isTrue(isolatedBase) || Helpers.isTrue(isolatedQuote)))))
+                        {
+                            ((java.util.List<Object>)isolatedKeys).add(entrySymbol);
+                        }
+                    }
+                    Helpers.addElementToObject(this.options, "crossMarginPairsData", crossKeys);
+                    Helpers.addElementToObject(this.options, "isolatedMarginPairsData", isolatedKeys);
                 } else
                 {
                     markets = this.arrayConcat(markets, data);
@@ -4878,14 +4899,9 @@ final Object finalMinNotional = minNotional;
         {
             marketType = "spot";
         }
-        Object percentage = this.safeString(ticker, "price24hPcnt");
-        if (Helpers.isTrue(Helpers.isEqual(percentage, null)))
-        {
-            Object change24h = this.safeString(ticker, "change24h");
-            percentage = Precise.stringMul(change24h, "100");
-        }
+        // both fields are ratios, and a ticker reports (change/open) * 100
+        Object percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
         final Object finalMarketType = marketType;
-        final Object finalPercentage = percentage;
         final Object finalMarkPrice = markPrice;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, finalMarketType) );
@@ -4903,7 +4919,7 @@ final Object finalMinNotional = minNotional;
             put( "last", close );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", finalPercentage );
+            put( "percentage", percentage );
             put( "average", null );
             put( "baseVolume", BitgetCore.this.safeString2(ticker, "baseVolume", "volume24h") );
             put( "quoteVolume", BitgetCore.this.safeString2(ticker, "quoteVolume", "turnover24h") );
@@ -11728,7 +11744,7 @@ final Object finalMinNotional = minNotional;
                 if (Helpers.isTrue(Helpers.isEqual(productType, "SPOT")))
                 {
                     Object marginMode = null;
-                    var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTrades", parameters);
+                    var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
                     marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))

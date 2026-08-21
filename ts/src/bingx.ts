@@ -63,6 +63,7 @@ export default class bingx extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
@@ -101,7 +102,7 @@ export default class bingx extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
-                'fetchPositionHistory': false,
+                'fetchPositionHistory': true,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsHistory': true,
@@ -122,6 +123,7 @@ export default class bingx extends Exchange {
                 'setMarginMode': true,
                 'setPositionMode': true,
                 'transfer': true,
+                'withdraw': true,
             },
             'hostname': 'bingx.com',
             'urls': {
@@ -5007,9 +5009,9 @@ export default class bingx extends Exchange {
         let subType: Str = undefined;
         let standard: Bool = undefined;
         let response: Dict;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchClosedOrders', market, params);
-        [ standard, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'standard', false);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchCanceledAndClosedOrders', market, params);
+        [ standard, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'standard', false);
         if (standard) {
             response = await this.contractV1PrivateGetAllOrders (this.extend (request, params));
         } else if (type === 'spot') {

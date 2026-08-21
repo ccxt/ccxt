@@ -63,7 +63,7 @@ func (this *AsterCore) Describe() any {
 			"createMarketSellOrder":                false,
 			"createMarketSellOrderWithCost":        false,
 			"createOrder":                          true,
-			"createOrders":                         false,
+			"createOrders":                         true,
 			"createOrderWithTakeProfitAndStopLoss": false,
 			"createPostOnlyOrder":                  false,
 			"createReduceOnlyOrder":                false,
@@ -78,7 +78,7 @@ func (this *AsterCore) Describe() any {
 			"editOrders":                           false,
 			"fetchAccounts":                        nil,
 			"fetchBalance":                         true,
-			"fetchBidsAsks":                        false,
+			"fetchBidsAsks":                        true,
 			"fetchBorrowInterest":                  false,
 			"fetchBorrowRateHistories":             false,
 			"fetchBorrowRateHistory":               false,
@@ -112,7 +112,7 @@ func (this *AsterCore) Describe() any {
 			"fetchIsolatedBorrowRate":              "emulated",
 			"fetchIsolatedBorrowRates":             false,
 			"fetchL3OrderBook":                     false,
-			"fetchLastPrices":                      false,
+			"fetchLastPrices":                      true,
 			"fetchLedger":                          true,
 			"fetchLedgerEntry":                     false,
 			"fetchLeverage":                        "emulated",
@@ -1760,7 +1760,7 @@ func (this *AsterCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
 		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(!IsEqual(since, nil)) {

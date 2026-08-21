@@ -1,8 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
-_List = List[PythonAny]
 
 class ImplicitAPI:
     public_get_feeschedules = publicGetFeeschedules = Entry[_Dict]('feeschedules', 'public', 'GET', {'cost': 1})
@@ -12,7 +10,7 @@ class ImplicitAPI:
     public_get_history = publicGetHistory = Entry[_Dict]('history', 'public', 'GET', {'cost': 1})
     public_get_historicalfundingrates = publicGetHistoricalfundingrates = Entry[_Dict]('historicalfundingrates', 'public', 'GET', {'cost': 1})
     private_get_feeschedules_volumes = privateGetFeeschedulesVolumes = Entry[_Dict]('feeschedules/volumes', 'private', 'GET', {'cost': 1})
-    private_get_openpositions = privateGetOpenpositions = Entry[_List]('openpositions', 'private', 'GET', {'cost': 1})
+    private_get_openpositions = privateGetOpenpositions = Entry[_Dict]('openpositions', 'private', 'GET', {'cost': 1})
     private_get_notifications = privateGetNotifications = Entry[_Dict]('notifications', 'private', 'GET', {'cost': 1})
     private_get_accounts = privateGetAccounts = Entry[_Dict]('accounts', 'private', 'GET', {'cost': 1})
     private_get_openorders = privateGetOpenorders = Entry[_Dict]('openorders', 'private', 'GET', {'cost': 1})

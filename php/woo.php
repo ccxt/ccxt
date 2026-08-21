@@ -50,6 +50,7 @@ class woo extends Exchange {
                 'createTrailingAmountOrder' => true,
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => false,
@@ -105,7 +106,7 @@ class woo extends Exchange {
                 'fetchTransactions' => 'emulated',
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => false,
+                'reduceMargin' => true,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
@@ -140,7 +141,8 @@ class woo extends Exchange {
                 ),
                 'www' => 'https://woox.io/',
                 'doc' => array(
-                    'https://docs.woox.io/',
+                    'https://developer.woox.io/',
+                    'https://docs.woox.io/', // legacy v1 api reference
                 ),
                 'fees' => array(
                     'https://support.woox.io/hc/en-001/articles/4404611795353--Trading-Fees',
@@ -220,14 +222,7 @@ class woo extends Exchange {
                             'order' => array( 'cost' => 1 ),
                             'client/order' => array( 'cost' => 1 ),
                             'orders' => array( 'cost' => 1 ),
-                            'asset/withdraw' => array( 'cost' => 120 ),  // implemented in ccxt, disabled on the exchange side https://docx.woo.io/wootrade-documents/#cancel-withdraw-request
-                        ),
-                    ),
-                ),
-                'v2' => array(
-                    'private' => array(
-                        'get' => array(
-                            'client/holding' => array( 'cost' => 1 ),
+                            'asset/withdraw' => array( 'cost' => 120 ), // cancel a pending withdrawal, undocumented but alive 2026-08
                         ),
                     ),
                 ),
@@ -339,23 +334,24 @@ class woo extends Exchange {
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'sandboxMode' => false,
                 'createMarketBuyOrderRequiresPrice' => true,
-                // these network aliases require manual mapping here
-                'network-aliases-for-tokens' => array(
-                    'HT' => 'ERC20',
-                    'OMG' => 'ERC20',
-                    'UATOM' => 'ATOM',
-                    'ZRX' => 'ZRX',
-                ),
                 'networks' => array(
-                    'TRX' => 'TRON',
-                    'TRC20' => 'TRON',
+                    'TRX' => 'TRX', // WOO X renamed the network id from TRON to TRX
+                    'TRC20' => 'TRX',
                     'ERC20' => 'ETH',
                     'BEP20' => 'BSC',
                     'ARBITRUM' => 'Arbitrum',
+                    'BASE' => 'BASE',
+                    'AVAXC' => 'AVAXC',
+                    'OP' => 'OP',
+                    'OPTIMISM' => 'OP',
+                    'MATIC' => 'MATIC',
+                    'SONIC' => 'S',
+                    'HYPEREVM' => 'HyperEVM',
                 ),
                 'networksById' => array(
                     'TRX' => 'TRC20',
                     'TRON' => 'TRC20',
+                    'OP' => 'OP',
                 ),
                 // override defaultNetworkCodePriorities for a specific currency
                 'defaultNetworkCodeForCurrencies' => array(
@@ -1561,27 +1557,27 @@ class woo extends Exchange {
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         /**
-         * edit a trade order
+         * edit a trade $order
          *
-         * @see https://docs.woox.io/#edit-order
-         * @see https://docs.woox.io/#edit-order-by-client_order_id
-         * @see https://docs.woox.io/#edit-algo-order
-         * @see https://docs.woox.io/#edit-algo-order-by-client_order_id
+         * @see https://developer.woox.io/api-reference/endpoint/trading/edit_order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order
          *
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $id $order $id
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] client $order $id of the $order to edit, used instead of the $id argument
+         * @param {boolean} [$params->trigger] whether the $order is a trigger/algo $order, set to true to edit an algo $order without passing trigger parameters
+         * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
          * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
          * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
-         * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing $order, default uses the $price argument
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1621,38 +1617,42 @@ class woo extends Exchange {
                 $request['callbackRate'] = $convertedTrailingPercent;
             }
         }
-        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
-        $isConditional = $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
+        $isTrigger = $this->safe_bool_2($params, 'trigger', 'stop', false);
+        $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id', 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent', 'trigger', 'stop' ));
+        $isConditional = $isTrigger || $isTrailing || ($triggerPrice !== null) || ($this->safe_value($params, 'childOrders') !== null);
         $response = null;
-        if ($isByClientOrder) {
-            $request['client_order_id'] = $clientOrderIdExchangeSpecific;
-            if ($isConditional) {
-                $response = $this->v3PrivatePutAlgoOrderClientClientOrderId($this->extend($request, $params));
+        if ($isConditional) {
+            if ($isByClientOrder) {
+                $request['clientAlgoOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
-                $response = $this->v3PrivatePutOrderClientClientOrderId($this->extend($request, $params));
+                $request['algoOrderId'] = $id;
             }
+            $response = $this->v3PrivatePutTradeAlgoOrder($this->extend($request, $params));
         } else {
-            $request['oid'] = $id;
-            if ($isConditional) {
-                $response = $this->v3PrivatePutAlgoOrderOid($this->extend($request, $params));
+            if ($isByClientOrder) {
+                $request['clientOrderId'] = $clientOrderIdExchangeSpecific;
             } else {
-                $response = $this->v3PrivatePutOrderOid($this->extend($request, $params));
+                $request['orderId'] = $id;
             }
+            $response = $this->v3PrivatePutTradeOrder($this->extend($request, $params));
         }
         //
         //     {
-        //         "code" => 0,
-        //         "data" => array(
-        //             "status" => "string",
-        //             "success" => true
-        //         ),
-        //         "message" => "string",
         //         "success" => true,
-        //         "timestamp" => 0
+        //         "data" => array(
+        //             "status" => "EDIT_SENT"
+        //         ),
+        //         "timestamp" => 1786038156772
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        $order = $this->extend($response, $data);
+        if ($isByClientOrder) {
+            $order['clientOrderId'] = $clientOrderIdExchangeSpecific;
+        } else {
+            $order['orderId'] = $id;
+        }
+        return $this->parse_order($order, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
@@ -1724,13 +1724,13 @@ class woo extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order
+         * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol
          * @see https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders
          *
          * cancel all open orders in a $market
-         * @param {string} [$symbol] unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol, cancels orders in all markets when omitted
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
+         * @param {boolean} [$params->trigger] set to true to cancel only trigger/algo orders
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
@@ -1747,7 +1747,8 @@ class woo extends Exchange {
         if ($trigger) {
             $response = $this->v3PrivateDeleteTradeAlgoOrders($params);
         } else {
-            $response = $this->v3PrivateDeleteTradeOrders($this->extend($request, $params));
+            // cancels both regular and algo orders
+            $response = $this->v3PrivateDeleteTradeAllOrders($this->extend($request, $params));
         }
         //
         //     {
@@ -2206,7 +2207,7 @@ class woo extends Exchange {
         $orderType = $this->safe_string_lower($order, 'type');
         $status = $this->safe_value_2($order, 'status', 'algoStatus');
         $side = $this->safe_string_lower($order, 'side');
-        $filled = $this->omit_zero($this->safe_value_2($order, 'executed', 'totalExecutedQuantity'));
+        $filled = $this->safe_string_2($order, 'executed', 'totalExecutedQuantity');
         $average = $this->omit_zero($this->safe_string($order, 'averageExecutedPrice'));
         // $remaining = Precise::string_sub($cost, $filled);
         $fee = $this->safe_number($order, 'totalFee');
@@ -2221,6 +2222,10 @@ class woo extends Exchange {
                 $lastUpdateTimestamp = $this->safe_integer($order, 'updatedTime'); // regular orders
             }
         }
+        $postOnly = null;
+        if ($orderType !== null) {
+            $postOnly = ($orderType === 'post_only');
+        }
         return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
@@ -2232,7 +2237,7 @@ class woo extends Exchange {
             'symbol' => $symbol,
             'type' => $orderType,
             'timeInForce' => $this->parse_time_in_force($orderType),
-            'postOnly' => null, // TO_DO
+            'postOnly' => $postOnly,
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
             'side' => $side,
             'price' => $price,
@@ -2242,7 +2247,7 @@ class woo extends Exchange {
             'average' => $average,
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => null, // TO_DO
+            'remaining' => null, // computed by safeOrder from $amount minus $filled
             'cost' => $cost,
             'trades' => null,
             'fee' => array(
@@ -2258,6 +2263,7 @@ class woo extends Exchange {
             $statuses = array(
                 'NEW' => 'open',
                 'FILLED' => 'closed',
+                'EDIT_SENT' => 'open',
                 'CANCEL_SENT' => 'canceled',
                 'CANCEL_ALL_SENT' => 'canceled',
                 'CANCELLED' => 'canceled',
@@ -2707,7 +2713,7 @@ class woo extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_deposit_address($data, $currency);
+        return $this->parse_deposit_address($this->extend($data, array( 'network' => $this->safe_string($request, 'network') )), $currency);
     }
 
     public function get_dedicated_network_id(mixed $currency, array $params): mixed {
@@ -2726,10 +2732,11 @@ class woo extends Exchange {
     public function parse_deposit_address(mixed $depositEntry, ?array $currency = null): array {
         $address = $this->safe_string($depositEntry, 'address');
         $this->check_address($address);
+        $networkId = $this->safe_string($depositEntry, 'network');
         return array(
             'info' => $depositEntry,
             'currency' => $this->safe_string($currency, 'code'),
-            'network' => null,
+            'network' => $this->network_id_to_code($networkId, $this->safe_string($currency, 'code')),
             'address' => $address,
             'tag' => $this->safe_string($depositEntry, 'extra'),
         );
@@ -3008,7 +3015,7 @@ class woo extends Exchange {
         );
     }
 
-    public function parse_transaction_status(?string $status) {
+    public function parse_transaction_status(?string $status): ?string {
         $statuses = array(
             'NEW' => 'pending',
             'CONFIRMING' => 'pending',
@@ -3189,20 +3196,9 @@ class woo extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $this->safe_string($fromAccount, 'applicationId'),
             'toAccount' => $this->safe_string($toAccount, 'applicationId'),
-            'status' => $this->parse_transfer_status($this->safe_string($transfer, 'status', $status)),
+            'status' => $this->parse_transaction_status($this->safe_string($transfer, 'status', $status)),
             'info' => $transfer,
         );
-    }
-
-    public function parse_transfer_status(?string $status): ?string {
-        $statuses = array(
-            'NEW' => 'pending',
-            'CONFIRMING' => 'pending',
-            'PROCESSING' => 'pending',
-            'COMPLETED' => 'ok',
-            'CANCELED' => 'canceled',
-        );
-        return $this->safe_string($statuses, $status, $status);
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
@@ -3937,7 +3933,7 @@ class woo extends Exchange {
         } elseif ($this->safe_bool($market, 'swap')) {
             $request['symbol'] = $this->safe_string($market, 'id');
             $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params, 'cross');
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
             $request['marginMode'] = $this->encode_margin_mode($marginMode);
             return $this->v3PrivatePutFuturesLeverage($this->extend($request, $params));
         } else {
@@ -4050,14 +4046,23 @@ class woo extends Exchange {
          *
          * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
-         * @param {string[]} [$symbols] list of unified market $symbols
+         * @param {string[]} [$symbols] list of unified $market $symbols, the exchange filters server-side when exactly one symbol is provided
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->v3PrivateGetFuturesPositions($params);
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = $this->v3PrivateGetFuturesPositions($this->extend($request, $params));
         //
         //     {
         //         "success" => true,
@@ -4502,7 +4507,7 @@ class woo extends Exchange {
          *
          * @see https://developer.woox.io/api-reference/endpoint/futures/get_positions
          *
-         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {string[]} [$symbols] a list of unified $market $symbols, the exchange filters server-side when exactly one symbol is provided
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
@@ -4510,7 +4515,15 @@ class woo extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
-        $response = $this->v3PrivateGetFuturesPositions($params);
+        $request = array();
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = $this->v3PrivateGetFuturesPositions($this->extend($request, $params));
         //
         //     {
         //         "success" => true,

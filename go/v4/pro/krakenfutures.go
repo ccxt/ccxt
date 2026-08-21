@@ -526,10 +526,19 @@ func (this *KrakenfuturesCore) HandlePositions(client any, message any) {
 	//    }
 	//
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
-		this.Positions = ccxt.NewArrayCacheBySymbolById()
+		// krakenfutures positions carry no id (parseWsPosition always sets
+		// 'id': undefined), so key by symbol + side instead of by-id, see
+		// https://github.com/ccxt/ccxt/issues/29709
+		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var rawPositions any = this.SafeValue(message, "positions", []any{})
+	var rawPositions any = this.SafeList(message, "positions")
+	if ccxt.IsTrue(ccxt.IsEqual(rawPositions, nil)) {
+		// an open_positions frame without the positions key is malformed
+		// do not resolve with a fabricated empty list (the caller cannot
+		// distinguish it from a genuinely flat account)
+		return
+	}
 	var newPositions any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
@@ -540,7 +549,7 @@ func (this *KrakenfuturesCore) HandlePositions(client any, message any) {
 		ccxt.AppendToArray(&newPositions, position)
 		cache.(ccxt.Appender).Append(position)
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "positions::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")
@@ -637,8 +646,8 @@ func (this *KrakenfuturesCore) WatchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes43412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes43412)
+			retRes44312 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes44312)
 		}
 		var name any = "open_orders"
 		var messageHash any = "orders"
@@ -686,8 +695,8 @@ func (this *KrakenfuturesCore) WatchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes46212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes46212)
+			retRes47112 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes47112)
 		}
 		var name any = "fills"
 		var messageHash any = "myTrades"
@@ -727,8 +736,8 @@ func (this *KrakenfuturesCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes48812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes48812)
+			retRes49712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes49712)
 		}
 		var name any = "balances"
 		var messageHash any = name
@@ -743,9 +752,9 @@ func (this *KrakenfuturesCore) WatchBalance(optionalArgs ...any) <-chan any {
 			messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
 		}
 
-		retRes50015 := (<-this.SubscribePrivate(name, messageHash, params))
-		ccxt.PanicOnError(retRes50015)
-		ch <- retRes50015
+		retRes50915 := (<-this.SubscribePrivate(name, messageHash, params))
+		ccxt.PanicOnError(retRes50915)
+		ch <- retRes50915
 		return nil
 
 	}()
@@ -1016,8 +1025,8 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 			if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
 				ccxt.AddElementToObject(previousOrder, "trades", []any{})
 			}
-			retRes76716 := ccxt.GetValue(previousOrder, "trades")
-			ccxt.AppendToArray(&retRes76716, trade)
+			retRes77616 := ccxt.GetValue(previousOrder, "trades")
+			ccxt.AppendToArray(&retRes77616, trade)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
 			var totalCost any = "0"
 			var totalAmount any = "0"
@@ -1058,12 +1067,25 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 	} else {
 		var isCancel any = this.SafeValue(message, "is_cancel")
 		if ccxt.IsTrue(isCancel) {
+			// Kraken documents is_cancel as "fully filled, cancelled, or
+			// rejected". Derive unified status from `reason` instead of
+			// mapping every removal to canceled. Preserve reason on info
+			// so consumers can tell a user cancel from liquidation, etc.
+			var reason any = this.SafeString(message, "reason")
+			var status any = "canceled"
+			if ccxt.IsTrue(ccxt.IsEqual(reason, "full_fill")) {
+				status = "closed"
+			}
 			// get order without symbol
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 				var currentOrder any = ccxt.GetValue(orders, i)
 				if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(currentOrder, "id"), ccxt.GetValue(message, "order_id"))) {
+					var info any = this.Extend(this.SafeDict(currentOrder, "info", map[string]any{}), map[string]any{
+						"reason": reason,
+					})
 					ccxt.AddElementToObject(orders, i, this.Extend(currentOrder, map[string]any{
-						"status": "canceled",
+						"status": status,
+						"info":   info,
 					}))
 					client.(ccxt.ClientInterface).Resolve(orders, "orders")
 					client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", ccxt.GetValue(currentOrder, "symbol")))
@@ -1812,8 +1834,8 @@ func (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes155612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes155612)
+			retRes157812 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes157812)
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		// symbols are required
@@ -1838,9 +1860,9 @@ func (this *KrakenfuturesCore) WatchMultiHelper(unifiedName any, channelName any
 			}
 		}
 
-		retRes158015 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-		ccxt.PanicOnError(retRes158015)
-		ch <- retRes158015
+		retRes160215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
+		ccxt.PanicOnError(retRes160215)
+		ch <- retRes160215
 		return nil
 
 	}()

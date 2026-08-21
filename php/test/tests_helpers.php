@@ -404,3 +404,80 @@ function set_fetch_response($exchange, $data) {
     $exchange->fetch_result = $data;
     return $exchange;
 }
+
+class FakeWsConnection {
+    // transport stub used by the static ws tests: everything above the socket
+    // (subscriptions, futures, caches, message routing) runs unmodified
+    public $sent_messages = array();
+    public function send($message) {
+        // record the outgoing frame so the test can assert it
+        $this->sent_messages[] = json_decode($message, true);
+        return null;
+    }
+    public function close($code = 1000, $reason = '') {
+        return null;
+    }
+    public function on($event, $listener) {
+        return null;
+    }
+    public function removeListener($event, $listener) {
+        return null;
+    }
+}
+
+function setup_ws_mock_transport($exchange, $url) {
+    // put the ws client for the given url into an "already connected" state
+    // with a transport stub, so watch* methods never open a real socket
+    $client = $exchange->client($url);
+    $client->connecting = true;
+    $client->connection = new FakeWsConnection();
+    $client->connected->resolve($url);
+    return $exchange;
+}
+
+function inject_ws_message($exchange, $url, $message) {
+    // feed one already-json-parsed frame into the exchange's ws message
+    // handler - the same entry point the real transport invokes
+    $client = $exchange->client($url);
+    $exchange->handle_message($client, $message);
+}
+
+function get_ws_sent_messages($exchange, $url) {
+    // the frames the exchange sent over the mocked transport, already parsed
+    $client = $exchange->client($url);
+    return $client->connection->sent_messages;
+}
+
+function ws_client_has_pending_futures($exchange, $url) {
+    // whether the watch flow is currently awaiting a message - the frame
+    // injector polls this instead of relying on a fixed head-start sleep
+    $client = $exchange->client($url);
+    return count($client->futures) > 0;
+}
+
+$ws_completed_tests = array();
+
+function mark_ws_test_completed($exchange, $url) {
+    // the watch side of a static ws test flags completion here so the frame
+    // injector's rejection loop knows it can stop
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    $ws_completed_tests[spl_object_id($client)] = true;
+}
+
+function is_ws_test_completed($exchange, $url) {
+    global $ws_completed_tests;
+    $client = $exchange->client($url);
+    return isset($ws_completed_tests[spl_object_id($client)]);
+}
+
+function reject_pending_ws_futures($exchange, $url) {
+    // reject any futures the injected frames did not resolve, so a broken
+    // fixture fails the test instead of hanging it; resolved futures are
+    // already removed from the futures dict, so only pending ones remain
+    $client = $exchange->client($url);
+    $message_hashes = array_keys($client->futures);
+    foreach ($message_hashes as $message_hash) {
+        $client->reject(new \ccxt\ExchangeError('static ws test: the injected messages did not resolve the watch future'), $message_hash);
+    }
+}

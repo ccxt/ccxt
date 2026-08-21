@@ -65,7 +65,7 @@ public class WeexCore extends WeexApi
                 put( "createTakeProfitOrder", true );
                 put( "createTrailingAmountOrder", false );
                 put( "createTrailingPercentOrder", false );
-                put( "createTriggerOrder", false );
+                put( "createTriggerOrder", true );
                 put( "deposit", false );
                 put( "editOrder", false );
                 put( "editOrders", false );
@@ -112,7 +112,7 @@ public class WeexCore extends WeexApi
                 put( "fetchIsolatedPositions", false );
                 put( "fetchL2OrderBook", false );
                 put( "fetchL3OrderBook", false );
-                put( "fetchLastPrices", false );
+                put( "fetchLastPrices", true );
                 put( "fetchLedger", true );
                 put( "fetchLedgerEntry", false );
                 put( "fetchLeverage", true );
@@ -127,7 +127,8 @@ public class WeexCore extends WeexApi
                 put( "fetchMarketLeverageTiers", false );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", true );
-                put( "fetchMarkPrices", false );
+                put( "fetchMarkPrice", true );
+                put( "fetchMarkPrices", true );
                 put( "fetchMyLiquidations", false );
                 put( "fetchMySettlementHistory", false );
                 put( "fetchMyTrades", true );
@@ -181,7 +182,7 @@ public class WeexCore extends WeexApi
                 put( "reduceMargin", true );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
-                put( "sandbox", false );
+                put( "sandbox", true );
                 put( "setLeverage", true );
                 put( "setMargin", false );
                 put( "setMarginMode", true );
@@ -193,6 +194,12 @@ public class WeexCore extends WeexApi
             put( "urls", new java.util.HashMap<String, Object>() {{
                 put( "logo", "https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c" );
                 put( "api", new java.util.HashMap<String, Object>() {{
+                    put( "public", "https://api-spot.weex.com" );
+                    put( "private", "https://api-spot.weex.com" );
+                    put( "contract", "https://api-contract.weex.com" );
+                    put( "contractPrivate", "https://api-contract.weex.com" );
+                }} );
+                put( "test", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api-spot.weex.com" );
                     put( "private", "https://api-spot.weex.com" );
                     put( "contract", "https://api-contract.weex.com" );
@@ -401,6 +408,15 @@ public class WeexCore extends WeexApi
                         put( "capi/v3/allAlgoOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
+                        put( "capi/v3/sim/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/sim/position/allPosition", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
+                        put( "capi/v3/sim/order/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "capi/v3/account/income", new java.util.HashMap<String, Object>() {{
@@ -434,6 +450,9 @@ public class WeexCore extends WeexApi
                             put( "cost", 5 );
                         }} );
                         put( "capi/v3/modifyTpSlOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "capi/v3/sim/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
@@ -695,10 +714,10 @@ public class WeexCore extends WeexApi
                     }} );
                 }} );
                 put( "forDerivs", new java.util.HashMap<String, Object>() {{
-                    put( "sandbox", false );
+                    put( "sandbox", true );
                     put( "createOrder", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", true );
-                        put( "triggerPrice", false );
+                        put( "triggerPrice", true );
                         put( "triggerPriceType", null );
                         put( "triggerDirection", false );
                         put( "stopLossPrice", true );
@@ -1359,10 +1378,14 @@ public class WeexCore extends WeexApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -1377,7 +1400,16 @@ public class WeexCore extends WeexApi
             {
                 response = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
             }
-            return this.parseTickers(response, symbols);
+            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
+            {
+                Object rawTicker = Helpers.GetValue(response, i);
+                // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
+                Object marketId = this.safeString(rawTicker, "symbol");
+                Object tickerMarket = this.safeMarket(marketId, null, null, marketType);
+                ((java.util.List<Object>)results).add(this.parseTicker(rawTicker, tickerMarket));
+            }
+            return this.filterByArrayTickers(results, "symbol", symbols);
         });
 
     }
@@ -1422,12 +1454,34 @@ public class WeexCore extends WeexApi
         //         "indexPrice": "2082.75"
         //     }
         //
+        // fetchMarkPrice (markPrice or indexPrice is copied from the raw 'price' field by fetchMarkPrice before parsing, depending on the requested priceType)
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.18",
+        //         "markPrice": "1929.18",
+        //         "time": 1786347445044
+        //     }
+        //
+        // fetchMarkPrices
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "markPrice": "1929.88",
+        //         "indexPrice": "1930.15",
+        //         "forecastFundingRate": "0.00003489",
+        //         "lastFundingRate": "0.00004879",
+        //         "interestRate": "0.001",
+        //         "nextFundingTime": 1786348800000,
+        //         "time": 1786347284100,
+        //         "collectCycle": 480
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "symbol");
         Object markPrice = this.safeString(ticker, "markPrice");
         Object marketType = "spot";
-        if (Helpers.isTrue(!Helpers.isEqual(markPrice, null)))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(markPrice, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "contract"))))))
         {
+            // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
@@ -1459,6 +1513,170 @@ public class WeexCore extends WeexApi
             put( "indexPrice", WeexCore.this.safeString(ticker, "indexPrice") );
             put( "info", ticker );
         }}, market);
+    }
+
+    /**
+     * @method
+     * @name weex#fetchLastPrices
+     * @description fetches the last price for multiple markets
+     * @see https://www.weex.com/api-doc/spot/MarketDataAPI/GetTickerInfo
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices for, all spot markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of lastprice structures
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchLastPrices(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols, null, true, true);
+            Object market = this.getMarketFromSymbols(symbols);
+            Object type = null;
+            var typeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+            type = ((java.util.List<Object>) typeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
+            }
+            Object response = (this.publicGetApiV3MarketTickerPrice(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "symbol": "ETHUSDT",
+            //             "price": "1929.67"
+            //         }
+            //     ]
+            //
+            return this.parseLastPrices(response, symbols);
+        });
+
+    }
+
+    public Object parseLastPrice(Object entry, Object... optionalArgs)
+    {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "price": "1929.67"
+        //     }
+        //
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object marketId = this.safeString(entry, "symbol");
+        market = this.safeMarket(marketId, market, null, "spot");
+        final Object finalMarket = market;
+        return new java.util.HashMap<String, Object>() {{
+            put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "price", WeexCore.this.safeNumberOmitZero(entry, "price") );
+            put( "side", null );
+            put( "info", entry );
+        }};
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMarkPrice
+     * @description fetches mark price for the market
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetSymbolPrice
+     * @param {string} symbol unified symbol of the market to fetch the mark price for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(Object symbol, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object market = this.market(symbol);
+            if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrice() supports contract markets only")) ;
+            }
+            Object priceType = null;
+            var priceTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkPrice", "priceType", "MARK");
+            priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) priceTypeparametersVariable).get(1); // the endpoint defaults to INDEX
+            final Object finalPriceType = priceType;
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "symbol", Helpers.GetValue(market, "id") );
+                put( "priceType", finalPriceType );
+            }};
+            Object response = (this.contractGetCapiV3MarketSymbolPrice(this.extend(request, parameters))).join();
+            //
+            //     {
+            //         "symbol": "ETHUSDT",
+            //         "price": "1929.18",
+            //         "time": 1786347445044
+            //     }
+            //
+            // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
+            Object ticker = this.extend(new java.util.HashMap<String, Object>() {{}}, response);
+            if (Helpers.isTrue(Helpers.isEqual(priceType, "INDEX")))
+            {
+                Helpers.addElementToObject(ticker, "indexPrice", this.safeString(ticker, "price"));
+            } else
+            {
+                Helpers.addElementToObject(ticker, "markPrice", this.safeString(ticker, "price"));
+            }
+            return this.parseTicker(ticker, market);
+        });
+
+    }
+
+    /**
+     * @method
+     * @name weex#fetchMarkPrices
+     * @description fetches mark prices for multiple markets
+     * @see https://www.weex.com/api-doc/contract/Market_API/GetCurrentFundingRate
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the mark prices for, all contract markets are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbols = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            symbols = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
+            Object response = (this.contractGetCapiV3MarketPremiumIndex(parameters)).join();
+            //
+            //     [
+            //         {
+            //             "symbol": "ETHUSDT",
+            //             "markPrice": "1929.88",
+            //             "indexPrice": "1930.15",
+            //             "forecastFundingRate": "0.00003489",
+            //             "lastFundingRate": "0.00004879",
+            //             "interestRate": "0.001",
+            //             "nextFundingTime": 1786348800000,
+            //             "time": 1786347284100,
+            //             "collectCycle": 480
+            //         }
+            //     ]
+            //
+            return this.parseTickers(response, symbols);
+        });
+
     }
 
     /**
@@ -2132,9 +2350,10 @@ public class WeexCore extends WeexApi
      * @name weex#fetchBalance
      * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAccountBalance // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetAccountBalance // contract in sandbox mode
      * @description query for balance and get the amount of funds available for trading or funds locked in positions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot')
+     * @param {string} [params.type] 'spot' or 'swap' (default is 'spot', in sandbox mode only 'swap' is available and is used by default)
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchBalance(Object... optionalArgs)
@@ -2143,13 +2362,23 @@ public class WeexCore extends WeexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            Object requestedType = this.safeString(parameters, "type");
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            if (Helpers.isTrue(Helpers.isTrue(sandboxMode) && Helpers.isTrue((Helpers.isEqual(requestedType, null)))))
+            {
+                type = "swap"; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
+            }
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
+                if (Helpers.isTrue(sandboxMode))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " fetchBalance() only supports the swap account in sandbox mode, use params[\"type\"] = \"swap\"")) ;
+                }
                 //
                 //     {
                 //         "makerCommission": 0,
@@ -2182,7 +2411,7 @@ public class WeexCore extends WeexApi
                 //
                 //     [
                 //         {
-                //             "asset": "USDT",
+                //             "asset": "USDT", // SUSDT in sandbox mode
                 //             "balance": "20.00000000",
                 //             "availableBalance": "20.00000000",
                 //             "frozen": "0",
@@ -2190,7 +2419,13 @@ public class WeexCore extends WeexApi
                 //         }
                 //     ]
                 //
-                response = (this.contractPrivateGetCapiV3AccountBalance(parameters)).join();
+                if (Helpers.isTrue(sandboxMode))
+                {
+                    response = (this.contractPrivateGetCapiV3SimBalance(parameters)).join();
+                } else
+                {
+                    response = (this.contractPrivateGetCapiV3AccountBalance(parameters)).join();
+                }
             }
             return this.parseBalance(response);
         });
@@ -2202,12 +2437,17 @@ public class WeexCore extends WeexApi
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
+        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Object balances = this.safeList(response, "balances", response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object entry = this.safeDict(balances, i);
-            Object id = this.safeString(entry, "asset");
-            Object code = this.safeCurrencyCode(id);
+            Object currencyId = this.safeString(entry, "asset");
+            if (Helpers.isTrue(Helpers.isTrue(sandboxMode) && Helpers.isTrue((Helpers.isEqual(currencyId, "SUSDT")))))
+            {
+                currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
+            }
+            Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(entry, "availableBalance", "free"));
             Helpers.addElementToObject(account, "used", this.safeString2(entry, "frozen", "locked"));
@@ -2327,6 +2567,7 @@ public class WeexCore extends WeexApi
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder // contract
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder // contract trigger
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceTpSlOrder // contract take profit / stop loss
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // contract in sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -2353,6 +2594,11 @@ public class WeexCore extends WeexApi
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             } else
             {
+                Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                if (Helpers.isTrue(sandboxMode))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() only supports swap markets in sandbox mode")) ;
+                }
                 return (this.createSpotOrder(symbol, type, side, amount, price, parameters)).join();
             }
         });
@@ -2452,6 +2698,7 @@ public class WeexCore extends WeexApi
      * @description helper method for creating contract orders
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlaceOrder
      * @see https://www.weex.com/api-doc/contract/Transaction_API/PlacePendingOrder
+     * @see https://www.weex.com/api-doc/contract/demo/PlaceOrder // sandbox mode
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
@@ -2460,17 +2707,20 @@ public class WeexCore extends WeexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] client order id
      * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered
+     * @param {float} [params.takeProfit.triggerPrice] The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
      * @param {string} [params.takeProfit.triggerPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.takeProfit.price] not supported, the attached take profit always executes at market price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered
+     * @param {float} [params.stopLoss.triggerPrice] The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
      * @param {string} [params.stopLoss.triggerPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
+     * @param {float} [params.stopLoss.price] not supported, the attached stop loss always executes at market price
+     * @param {float} [params.stopLossPrice] price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.stopLossPriceType] The type of the trigger price for the stop loss order, either 'last' or 'mark' (default is 'last')
-     * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
+     * @param {float} [params.takeProfitPrice] price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
      * @param {string} [params.takeProfitPriceType] The type of the trigger price for the take profit order, either 'last' or 'mark' (default is 'last')
+     * @param {float} [params.triggerPrice] the price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
      * @param {bool} [params.reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
-     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
+     * @param {string} [params.timeInForce] GTC, IOC, or FOK (default is GTC for limit orders, not supported for trigger orders)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createContractOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
@@ -2487,10 +2737,18 @@ public class WeexCore extends WeexApi
             Object market = this.market(symbol);
             Object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
             Object triggerPrice = this.safeString(request, "triggerPrice");
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
+                if (Helpers.isTrue(sandboxMode))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support stopLossPrice or takeProfitPrice orders in sandbox mode")) ;
+                }
                 response = (this.contractPrivatePostCapiV3AlgoOrder(request)).join();
+            } else if (Helpers.isTrue(sandboxMode))
+            {
+                response = (this.contractPrivatePostCapiV3SimOrder(request)).join();
             } else
             {
                 response = (this.contractPrivatePostCapiV3Order(request)).join();
@@ -2524,7 +2782,7 @@ public class WeexCore extends WeexApi
         final Object finalSide = side;
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
-            put( "symbol", Helpers.GetValue(market, "id") );
+            put( "symbol", WeexCore.this.toSandboxMarketId(market) );
             put( "side", ((String)finalSide).toUpperCase() );
             put( "quantity", WeexCore.this.amountToPrecision(symbol, amount) );
             put( "type", ((String)finalType).toUpperCase() );
@@ -2539,12 +2797,13 @@ public class WeexCore extends WeexApi
         var stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(1);
         var takeProfitPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(2);
         var query = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPricequeryVariable).get(3);
-        if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
-        {
-            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the triggerPrice parameter")) ;
-        }
+        Object isTrigger = (!Helpers.isEqual(triggerPrice, null));
         Object isStopLoss = (!Helpers.isEqual(stopLossPrice, null));
         Object isTakeProfit = (!Helpers.isEqual(takeProfitPrice, null));
+        if (Helpers.isTrue(Helpers.isTrue(isTrigger) && Helpers.isTrue((Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))))
+        {
+            throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
+        }
         Object reduceOnly = this.safeBool(query, "reduceOnly");
         if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
         {
@@ -2567,6 +2826,15 @@ public class WeexCore extends WeexApi
         Object hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
         Object stopLoss = this.safeDict(parameters, "stopLoss");
         Object hasStopLoss = (!Helpers.isEqual(stopLoss, null));
+        // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
+        if (Helpers.isTrue(Helpers.isTrue(hasTakeProfit) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(takeProfit, "price"), null)))))
+        {
+            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the takeProfit params, the attached take profit executes at market price")) ;
+        }
+        if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) && Helpers.isTrue((!Helpers.isEqual(this.safeNumber(stopLoss, "price"), null)))))
+        {
+            throw new NotSupported((String)Helpers.add(this.id, " createOrder() does not support the price field inside the stopLoss params, the attached stop loss executes at market price")) ;
+        }
         Object timeInForce = this.safeString(parameters, "timeInForce");
         Object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -2575,7 +2843,48 @@ public class WeexCore extends WeexApi
             clientOrderId = Helpers.add(Helpers.add(partner, "-"), this.uuid22());
         }
         Object callerMethodName = this.safeString(parameters, "callerMethodName");
-        if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
+        if (Helpers.isTrue(isTrigger))
+        {
+            // entry conditional order, triggers a regular order when the trigger price is reached
+            if (Helpers.isTrue(Helpers.isEqual(callerMethodName, "createOrders")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " createOrders() does not support trigger orders")) ;
+            }
+            if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
+            {
+                throw new BadRequest((String)Helpers.add(this.id, " createOrder() cannot use the timeInForce parameter with trigger orders")) ;
+            }
+            Helpers.addElementToObject(request, "clientAlgoId", clientOrderId);
+            Helpers.addElementToObject(parameters, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
+            if (Helpers.isTrue(isMarketOrder))
+            {
+                Helpers.addElementToObject(parameters, "type", "STOP_MARKET");
+            } else
+            {
+                Helpers.addElementToObject(parameters, "type", "STOP");
+            }
+            // conditional orders attach take profit / stop loss through the preset* fields instead of tpTriggerPrice/slTriggerPrice
+            if (Helpers.isTrue(hasStopLoss))
+            {
+                Object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+                Helpers.addElementToObject(request, "presetStopLossPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
+                Object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
+                if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
+                {
+                    Helpers.addElementToObject(parameters, "SlWorkingType", this.encodeTriggerPriceType(stopLossPriceType));
+                }
+            }
+            if (Helpers.isTrue(hasTakeProfit))
+            {
+                Object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+                Helpers.addElementToObject(request, "presetTakeProfitPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
+                Object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
+                if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
+                {
+                    Helpers.addElementToObject(parameters, "TpWorkingType", this.encodeTriggerPriceType(takeProfitPriceType));
+                }
+            }
+        } else if (Helpers.isTrue(Helpers.isTrue(isStopLoss) || Helpers.isTrue(isTakeProfit)))
         {
             if (Helpers.isTrue(Helpers.isEqual(callerMethodName, "createOrders")))
             {
@@ -2636,7 +2945,7 @@ public class WeexCore extends WeexApi
             Helpers.addElementToObject(request, "newClientOrderId", clientOrderId);
             if (Helpers.isTrue(hasStopLoss))
             {
-                Object stopLossTriggerPrice = this.safeNumber(stopLoss, "triggerPrice");
+                Object stopLossTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "slTriggerPrice", this.priceToPrecision(symbol, stopLossTriggerPrice));
                 Object stopLossPriceType = this.safeString(stopLoss, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPriceType, null)))
@@ -2646,7 +2955,7 @@ public class WeexCore extends WeexApi
             }
             if (Helpers.isTrue(hasTakeProfit))
             {
-                Object takeProfitTriggerPrice = this.safeNumber(takeProfit, "triggerPrice");
+                Object takeProfitTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
                 Helpers.addElementToObject(request, "tpTriggerPrice", this.priceToPrecision(symbol, takeProfitTriggerPrice));
                 Object takeProfitPriceType = this.safeString(takeProfit, "triggerPriceType");
                 if (Helpers.isTrue(!Helpers.isEqual(takeProfitPriceType, null)))
@@ -3148,6 +3457,7 @@ public class WeexCore extends WeexApi
      * @description fetches information on multiple closed orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3201,6 +3511,7 @@ public class WeexCore extends WeexApi
      * @description fetches information on multiple canceled orders made by the user
      * @see https://www.weex.com/api-doc/spot/orderApi/HistoryOrders // spot
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3337,6 +3648,7 @@ public class WeexCore extends WeexApi
      * @name weex#fetchCanceledAndClosedOrders
      * @description fetches information on multiple closed and canceled orders made by the user
      * @see https://www.weex.com/api-doc/contract/Transaction_API/GetOrderHistory // contract
+     * @see https://www.weex.com/api-doc/contract/demo/GetOrderHistory // contract in sandbox mode
      * @param {string} [symbol] unified market symbol of the market orders were made in (required for spot orders)
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3365,7 +3677,7 @@ public class WeexCore extends WeexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3373,18 +3685,18 @@ public class WeexCore extends WeexApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() does not support spot markets. Use fetchOrders() instead and filter by status \"canceled\" or \"closed\"")) ;
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object maxLimit = 1000;
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, maxLimit)).join();
+                return (this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, maxLimit)).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
+                Helpers.addElementToObject(request, "symbol", this.toSandboxMarketId(market));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -3397,7 +3709,15 @@ public class WeexCore extends WeexApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters))).join();
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Object response = null;
+            if (Helpers.isTrue(sandboxMode))
+            {
+                response = (this.contractPrivateGetCapiV3SimOrderHistory(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.contractPrivateGetCapiV3OrderHistory(this.extend(request, parameters))).join();
+            }
             //
             //     [
             //         {
@@ -3538,23 +3858,38 @@ public class WeexCore extends WeexApi
         }
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            Object marketId = this.safeString(order, "symbol");
+            Object marketId = this.fromSandboxMarketId(this.safeString(order, "symbol"));
             Object positionSide = this.safeString(order, "positionSide");
             Object marketType = ((Helpers.isTrue((Helpers.isEqual(positionSide, null))))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
         Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactTime", "time", "createTime")));
-        Object rawStatus = this.safeStringLower(order, "status");
+        Object rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         Object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         Object rawType = this.safeStringUpper2(order, "type", "orderType");
+        Object isReduceOnly = this.safeBool(order, "reduceOnly");
+        // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
+        Object isEntryTrigger = !Helpers.isTrue((this.safeBool(order, "reduceOnly", true)));
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT_MARKET")) || Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT"))))
+        if (!Helpers.isTrue(isEntryTrigger))
         {
-            takeProfitPrice = triggerPrice;
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "STOP_LOSS")) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP"))) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP_MARKET"))))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT_MARKET")) || Helpers.isTrue(Helpers.isEqual(rawType, "TAKE_PROFIT"))))
+            {
+                takeProfitPrice = triggerPrice;
+            } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(rawType, "STOP_LOSS")) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP"))) || Helpers.isTrue(Helpers.isEqual(rawType, "STOP_MARKET"))))
+            {
+                stopLossPrice = triggerPrice;
+            }
+        }
+        if (Helpers.isTrue(Helpers.isEqual(takeProfitPrice, null)))
         {
-            stopLossPrice = triggerPrice;
+            takeProfitPrice = this.omitZero(this.safeString(order, "tpTriggerPrice")); // attached take profit of a regular or conditional order
+        }
+        if (Helpers.isTrue(Helpers.isEqual(stopLossPrice, null)))
+        {
+            stopLossPrice = this.omitZero(this.safeString(order, "slTriggerPrice")); // attached stop loss of a regular or conditional order
         }
         final Object finalMarket = market;
         final Object finalRawType = rawType;
@@ -3567,7 +3902,7 @@ public class WeexCore extends WeexApi
             put( "type", WeexCore.this.parseOrderType(finalRawType) );
             put( "timeInForce", WeexCore.this.safeString(order, "timeInForce") );
             put( "postOnly", null );
-            put( "reduceOnly", WeexCore.this.safeBool(order, "reduceOnly") );
+            put( "reduceOnly", isReduceOnly );
             put( "side", WeexCore.this.safeStringLower(order, "side") );
             put( "amount", WeexCore.this.safeString2(order, "origQty", "quantity") );
             put( "price", WeexCore.this.safeString(order, "price") );
@@ -4022,6 +4357,7 @@ public class WeexCore extends WeexApi
      * @name weex#fetchPositions
      * @description fetch all open positions
      * @see https://www.weex.com/api-doc/contract/Account_API/GetAllPositions
+     * @see https://www.weex.com/api-doc/contract/demo/GetAllPositions // sandbox mode
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -4038,7 +4374,15 @@ public class WeexCore extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters)).join();
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Object response = null;
+            if (Helpers.isTrue(sandboxMode))
+            {
+                response = (this.contractPrivateGetCapiV3SimPositionAllPosition(parameters)).join();
+            } else
+            {
+                response = (this.contractPrivateGetCapiV3AccountPositionAllPosition(parameters)).join();
+            }
             return this.parsePositions(response, symbols);
         });
 
@@ -4086,6 +4430,12 @@ public class WeexCore extends WeexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            if (Helpers.isTrue(sandboxMode))
+            {
+                // the demo trading API does not provide a single-position endpoint
+                return (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -4167,7 +4517,7 @@ public class WeexCore extends WeexApi
         {
             this.handleOrderOrPositionError(errorCode, errorMessage, position);
         }
-        Object marketId = this.safeString2(position, "symbol", "coinId"); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
+        Object marketId = this.fromSandboxMarketId(this.safeString2(position, "symbol", "coinId")); // coinId might be used in testnet: https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         market = this.safeMarket(marketId, market, null, "contract");
         Object timestamp = this.safeInteger(position, "createdTime");
         Object marginType = this.safeString2(position, "marginType", "marginMode");
@@ -4826,6 +5176,59 @@ public class WeexCore extends WeexApi
 
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name weex#toSandboxMarketId
+     * @description get the market id to send in a request, converting to the demo-trading market id (e.g. BTCSUSDT) when sandbox mode is enabled, only valid for USDT-margined linear markets which is all the demo environment provides
+     * @param {object} market a unified market structure
+     * @returns {string} the market id for the request
+     */
+    public Object toSandboxMarketId(Object market)
+    {
+        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        Object baseId = this.safeString(market, "baseId");
+        if (Helpers.isTrue(Helpers.isTrue(sandboxMode) && Helpers.isTrue((!Helpers.isEqual(baseId, null)))))
+        {
+            // demo trading only has USDT-margined linear markets quoted in the demo asset SUSDT (e.g. BTCSUSDT), revisit if weex ever adds a non-USDT settle
+            return Helpers.add(baseId, "SUSDT");
+        }
+        return this.safeString(market, "id");
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name weex#fromSandboxMarketId
+     * @description convert a demo-trading market id (e.g. BTCSUSDT) from a response back into the live market id (e.g. BTCUSDT) when sandbox mode is enabled
+     * @param {string} [marketId] a market id from an exchange response
+     * @returns {string} the live market id
+     */
+    public Object fromSandboxMarketId(Object marketId)
+    {
+        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        if (Helpers.isTrue(!Helpers.isTrue(sandboxMode) || Helpers.isTrue((Helpers.isEqual(marketId, null)))))
+        {
+            return marketId;
+        }
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
+        {
+            return marketId;  // a live market id, not a demo one
+        }
+        if (Helpers.isTrue(((String)marketId).endsWith(((String)"SUSDT"))))
+        {
+            Object baseLength = Helpers.subtract(((String)marketId).length(), 5);
+            return Helpers.add(Helpers.slice(marketId, 0, baseLength), "USDT");
+        }
+        return marketId;
+    }
+
+    public void setSandboxMode(Object enable)
+    {
+        super.setSandboxMode(enable);
+        Helpers.addElementToObject(this.options, "sandboxMode", enable);
+    }
+
     public Object sign(Object path, Object... optionalArgs)
     {
         Object api = Helpers.getArg(optionalArgs, 0, "public");
@@ -4845,6 +5248,11 @@ public class WeexCore extends WeexApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "private"))) || Helpers.isTrue((Helpers.isEqual(api, "contractPrivate")))))
         {
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            if (Helpers.isTrue(Helpers.isTrue(sandboxMode) && Helpers.isTrue((!Helpers.isEqual(Helpers.getIndexOf(path, "capi/v3/sim/"), 0)))))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
+            }
             this.checkRequiredCredentials();
             Object timestamp = this.numberToString(this.nonce());
             Object payload = Helpers.add(Helpers.add(Helpers.add(timestamp, method), "/"), endpoint);

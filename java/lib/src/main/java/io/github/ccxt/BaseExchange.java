@@ -42,6 +42,53 @@ import java.lang.reflect.Constructor;
 
 public class BaseExchange {
 
+    private java.util.Map<String, long[]> wsBackoffState = new java.util.HashMap<>();
+
+    // exponential reconnect backoff with rng-free jitter, mirrors ts/src/base/Exchange.ts
+    // calculateWsBackoffDelay, see https://github.com/ccxt/ccxt/issues/23525
+    public int calculateWsBackoffDelay(Object url) {
+        String urlKey = url.toString();
+        long base = 1000L;
+        long factor = 2L;
+        long maxDelay = 60000L;
+        long stableAfter = 30000L;
+        Object wsOptions = Helpers.GetValue(this.options, "ws");
+        Object backoff = (wsOptions == null) ? null : Helpers.GetValue(wsOptions, "backoff");
+        if (backoff != null) {
+            Object value = Helpers.GetValue(backoff, "base");
+            if (value != null) { base = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "factor");
+            if (value != null) { factor = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "max");
+            if (value != null) { maxDelay = Helpers.toInt64(value); }
+            value = Helpers.GetValue(backoff, "stableAfter");
+            if (value != null) { stableAfter = Helpers.toInt64(value); }
+        }
+        long now = this.milliseconds();
+        long attempts = 0L;
+        long lastAttempt = 0L;
+        long[] state = this.wsBackoffState.get(urlKey);
+        if (state != null) {
+            attempts = state[0];
+            lastAttempt = state[1];
+        }
+        if ((lastAttempt > 0L) && ((now - lastAttempt) > stableAfter)) {
+            attempts = 0L; // the previous connection was healthy long enough, start fresh
+        }
+        this.wsBackoffState.put(urlKey, new long[] { attempts + 1L, now });
+        if (attempts == 0L) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        long delay = base;
+        long capped = Math.min(attempts, 20L); // overflow guard
+        for (long i = 1L; i < capped; i++) {
+            delay = delay * factor;
+        }
+        long jitterMillis = now % 1000L; // rng-free jitter
+        long jittered = (long) (delay * (0.8 + (jitterMillis / 2500.0))); // 0.8x .. 1.2x
+        return (int) Math.min(jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
+
     // Virtual thread executor for non-blocking async operations.
     // Virtual threads park at zero cost on .join(), enabling hundreds of concurrent
     // requests without exhausting platform threads.
@@ -782,6 +829,11 @@ public class BaseExchange {
         return String.valueOf(exc);
     }
 
+    public Object isDictionary(Object value)
+    {
+        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
+    }
+
     public Object ethGetAddressFromPrivateKey(Object privateKey) {
         try {
             String cleanKey = (String) this.remove0xPrefix(privateKey);
@@ -1159,6 +1211,11 @@ public class BaseExchange {
         return Strings.uuid();
     }
 
+    // returns the version of the ccxt library, e.g. "4.5.71"
+    public String getCcxtVersion() {
+        return Version.VERSION;
+    }
+
     // =======================
     // Time
     // =======================
@@ -1238,6 +1295,15 @@ public class BaseExchange {
     //     return Misc.parseTimeframe(timeframe);
     // }
     // ----- END OF WRAPPERS ----- //
+    // when true, sleep() blocks the calling thread and returns an already
+    // completed future instead of a delayed one. joining an incomplete future
+    // inside a ForkJoinPool worker lets the pool "help" by stealing another
+    // queued task onto the same stack (helpAsyncBlocker) — in the static ws
+    // test harness that can bury the frame injector beneath a watch task that
+    // only the injector itself can release, deadlocking the run. the test
+    // runner flips this flag so injector sleeps can never be steal points.
+    public static volatile boolean syncSleep = false;
+
     public CompletableFuture<Object> sleep(Object milliseconds) {
         long ms;
         if (milliseconds instanceof Integer) {
@@ -1250,6 +1316,14 @@ public class BaseExchange {
             ms = ((Double) milliseconds).longValue();
         } else {
             throw new IllegalArgumentException("milliseconds must be Integer, Long, Double, or String");
+        }
+        if (syncSleep) {
+            try {
+                Thread.sleep(ms);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return CompletableFuture.completedFuture(null);
         }
         return CompletableFuture.supplyAsync(() -> null,
                 CompletableFuture.delayedExecutor(ms, java.util.concurrent.TimeUnit.MILLISECONDS));
@@ -1721,7 +1795,12 @@ public class BaseExchange {
         io.github.ccxt.ws.Future future = client.future(messageHash);
 
         if (client.subscriptionsMap().putIfAbsent(subscribeHash, subscription != null ? subscription : true) == null) {
-            client.connect(0).thenAccept(connected -> {
+            int backoffDelay = 0;
+            if (!client.startedConnecting.get()) {
+                // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+                backoffDelay = this.calculateWsBackoffDelay(url);
+            }
+            client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
@@ -1764,7 +1843,12 @@ public class BaseExchange {
         }
 
         if (subscribeHashes2 == null || !missingSubscriptions.isEmpty()) {
-            client.connect(0).thenAccept(connected -> {
+            int backoffDelay = 0;
+            if (!client.startedConnecting.get()) {
+                // count real dials only, see https://github.com/ccxt/ccxt/pull/29627
+                backoffDelay = this.calculateWsBackoffDelay(url);
+            }
+            client.connect(backoffDelay).thenAccept(connected -> {
                 if (message != null) {
                     try {
                         client.send(message);
@@ -3797,6 +3881,7 @@ public Object describe()
                 put( "swap", null );
                 put( "future", null );
                 put( "option", null );
+                put( "index", null );
                 put( "addMargin", null );
                 put( "borrowCrossMargin", null );
                 put( "borrowIsolatedMargin", null );
@@ -4302,11 +4387,6 @@ public Object describe()
             return value;
         }
         return defaultValue;
-    }
-
-    public Object isDictionary(Object value)
-    {
-        return Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue(((value instanceof java.util.Map)))) && !Helpers.isTrue(Helpers.isArray(value));
     }
 
     public Object safeList2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)

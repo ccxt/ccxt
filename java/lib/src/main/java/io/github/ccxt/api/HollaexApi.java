@@ -78,9 +78,9 @@ public class HollaexApi extends Exchange
      * Calls the publicGetTickers endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickers (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickers (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickers", optionalArgs);
     }

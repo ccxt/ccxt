@@ -1,8 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict, List
+_List = list[object]
 
-_List = List[PythonAny]
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_conf_config = publicGetConfConfig = Entry[_List]('conf/{config}', 'public', 'GET', {'cost': 2.7})
@@ -34,7 +32,7 @@ class ImplicitAPI:
     public_get_conf_pub_fees = publicGetConfPubFees = Entry[_List]('conf/pub:fees', 'public', 'GET', {'cost': 2.7})
     public_get_platform_status = publicGetPlatformStatus = Entry[_List]('platform/status', 'public', 'GET', {'cost': 8})
     public_get_tickers = publicGetTickers = Entry[_List]('tickers', 'public', 'GET', {'cost': 2.7})
-    public_get_ticker_symbol = publicGetTickerSymbol = Entry[_Dict]('ticker/{symbol}', 'public', 'GET', {'cost': 2.7})
+    public_get_ticker_symbol = publicGetTickerSymbol = Entry[_List]('ticker/{symbol}', 'public', 'GET', {'cost': 2.7})
     public_get_tickers_hist = publicGetTickersHist = Entry[_List]('tickers/hist', 'public', 'GET', {'cost': 2.7})
     public_get_trades_symbol_hist = publicGetTradesSymbolHist = Entry[_List]('trades/{symbol}/hist', 'public', 'GET', {'cost': 2.7})
     public_get_book_symbol_precision = publicGetBookSymbolPrecision = Entry[_List]('book/{symbol}/{precision}', 'public', 'GET', {'cost': 1})

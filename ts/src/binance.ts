@@ -547,6 +547,17 @@ export default class binance extends Exchange {
                         'accumulator/product/list': { 'cost': 0.1 } as Endpoint<Dict>,
                         'accumulator/product/position/list': { 'cost': 0.1 } as Endpoint<Dict>,
                         'accumulator/product/sum-holding': { 'cost': 0.1 } as Endpoint<Dict>,
+                        // tokenized equities public
+                        'equity/market/exchangeInfo': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/market/tokenized-assets': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/market/quote': { 'cost': 0.1 } as Endpoint<Dict>,
+                        // tokenized equities private
+                        'equity/order/open-orders': { 'cost': 0.1 } as Endpoint<List>,
+                        'equity/order/history': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/order/detail': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/trade/history': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/tokenized/convert-status': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/tokenized/history': { 'cost': 0.1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'asset/dust': { 'cost': 0.06667 } as Endpoint<Dict>, // Weight(UID): 10 => cost = 0.006667 * 10 = 0.06667
@@ -687,6 +698,14 @@ export default class binance extends Exchange {
                         'dci/product/auto_compound/edit': { 'cost': 0.1 } as Endpoint<Dict>,
                         // discount buy
                         'accumulator/product/subscribe': { 'cost': 0.1 } as Endpoint<Dict>,
+                        // tokenized equities
+                        'equity/order/place': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/order/cancel': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/order/cancel-all': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/tokenized/mint': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/tokenized/redeem': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/account/disclaimer': { 'cost': 0.1 } as Endpoint<Dict>,
+                        'equity/listenKey': { 'cost': 0.1 } as Endpoint<Dict>,
                     },
                     'put': {
                         'userDataStream': { 'cost': 0.1 } as Endpoint<Dict>,
@@ -759,7 +778,7 @@ export default class binance extends Exchange {
                         'indexPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'markPriceKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
                         'premiumIndexKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'ticker/bookTicker': { 'cost': 2, 'noSymbol': 5 } as Endpoint<List>,
                         'constituents': { 'cost': 2 } as Endpoint<Dict>,
@@ -853,8 +872,8 @@ export default class binance extends Exchange {
                         'fundingRate': { 'cost': 1 } as Endpoint<List>,
                         'fundingInfo': { 'cost': 1 } as Endpoint<List>,
                         'premiumIndex': { 'cost': 1 } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
-                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
+                        'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict | List>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'openInterest': { 'cost': 1 } as Endpoint<Dict>,
                         'indexInfo': { 'cost': 1 } as Endpoint<List>,
@@ -917,7 +936,7 @@ export default class binance extends Exchange {
                         'trade/asyn': { 'cost': 1000 } as Endpoint<Dict>,
                         'trade/asyn/id': { 'cost': 10 } as Endpoint<Dict>,
                         'feeBurn': { 'cost': 1 } as Endpoint<Dict>,
-                        'symbolConfig': { 'cost': 5 } as Endpoint<Dict>,
+                        'symbolConfig': { 'cost': 5 } as Endpoint<List>,
                         'accountConfig': { 'cost': 5 } as Endpoint<Dict>,
                         'convert/orderStatus': { 'cost': 5 } as Endpoint<Dict>,
                         // conditional orders
@@ -958,12 +977,12 @@ export default class binance extends Exchange {
                         'listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         // conditional orders
                         'algoOrder': { 'cost': 1 } as Endpoint<Dict>,
-                        'algoOpenOrders': { 'cost': 1 } as Endpoint<List>,
+                        'algoOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'fapiPublicV2': {
                     'get': {
-                        'ticker/price': { 'cost': 0 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 0 } as Endpoint<Dict | List>,
                     },
                 },
                 'fapiPrivateV2': {
@@ -1056,10 +1075,10 @@ export default class binance extends Exchange {
                         'historicalTrades': { 'cost': 2 } as Endpoint<List>, // Weight(IP): 10 => cost = 0.2 * 10 = 2
                         'klines': { 'cost': 0.4 } as Endpoint<List>,
                         'uiKlines': { 'cost': 0.4 } as Endpoint<List>,
-                        'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<Dict | List>,
                         'ticker': { 'cost': 0.4, 'noSymbol': 16 } as Endpoint<List>,
                         'ticker/tradingDay': { 'cost': 0.8 } as Endpoint<Dict>,
-                        'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<List>,
+                        'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<Dict | List>,
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<List>,
                         'exchangeInfo': { 'cost': 4 } as Endpoint<Dict>, // Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'avgPrice': { 'cost': 0.4 } as Endpoint<Dict>,
@@ -1082,7 +1101,7 @@ export default class binance extends Exchange {
                         'order': { 'cost': 0.8 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 1.2, 'noSymbol': 16 } as Endpoint<List>,
                         'allOrders': { 'cost': 4 } as Endpoint<List>,
-                        'account': { 'cost': 4 } as Endpoint<List>,
+                        'account': { 'cost': 4 } as Endpoint<Dict>,
                         'myTrades': { 'cost': 4 } as Endpoint<List>,
                         'rateLimit/order': { 'cost': 8 } as Endpoint<List>, // Weight(IP): 40 => cost = 0.2 * 40 = 8
                         'myPreventedMatches': { 'cost': 4 } as Endpoint<List>, // Weight(IP): 20 => cost = 0.2 * 20 = 4
@@ -1328,6 +1347,7 @@ export default class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
+                        'stock',
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': false,
@@ -2931,6 +2951,147 @@ export default class binance extends Exchange {
 
     /**
      * @method
+     * @name binance#mintTokenizedAsset
+     * @ignore
+     * @description mint a tokenized asset from an underlying equity holding
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-mint
+     * @param {string} underlyingAsset underlying asset to mint into tokenized asset, ex. AAPL
+     * @param {string} underlyingAssetAmount quantity of the underlying asset to mint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @returns {object} the response from the exchange
+     */
+    mintTokenizedAsset (underlyingAsset: string, underlyingAssetAmount: string, params = {}): any {
+        const request: Dict = {
+            'underlyingAsset': underlyingAsset,
+            'underlyingAssetAmount': underlyingAssetAmount,
+            'timestamp': this.milliseconds (),
+        };
+        const response = this.sapiPostEquityTokenizedRedeem (this.extend (request, params));
+        //
+        //     {
+        //         "issuerRequestId": "mint-20260505-8f3b9e1a2d3c4b5a",
+        //         "status": "P"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name binance#redeemTokenizedAsset
+     * @ignore
+     * @description redeem a tokenized stock asset for the underlying asset
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-redeem
+     * @param {string} tokenizedAsset tokenized asset to redeem, the onchain token identifier not the equity ticker ex. AAPLB
+     * @param {string} tokenizedAssetAmount quantity of the tokenized asset to redeem
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @returns {object} the response from the exchange
+     */
+    redeemTokenizedAsset (tokenizedAsset: string, tokenizedAssetAmount: string, params = {}): any {
+        const request: Dict = {
+            'tokenizedAsset': tokenizedAsset,
+            'tokenizedAssetAmount': tokenizedAssetAmount,
+            'timestamp': this.milliseconds (),
+        };
+        const response = this.sapiPostEquityTokenizedRedeem (this.extend (request, params));
+        //
+        //     {
+        //         "issuerRequestId": "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //         "status": "P"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name binance#tokenizedConvertStatus
+     * @ignore
+     * @description check the status of redeeming or minting between a tokenized stock asset and the underlying asset
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-convert-status
+     * @param {string} issuerRequestId the issuerRequestId returned from redeemTokenizedAsset or mintTokenizedAsset
+     * @param {string} convertType either MINT or REDEEM
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @returns {object} the response from the exchange
+     */
+    tokenizedConvertStatus (issuerRequestId: string, convertType: string, params = {}): any {
+        const request: Dict = {
+            'issuerRequestId': issuerRequestId,
+            'convertType': convertType,
+            'timestamp': this.milliseconds (),
+        };
+        const response = this.sapiGetEquityTokenizedConvertStatus (this.extend (request, params));
+        //
+        //     {
+        //         "underlyingAsset": "AAPL",
+        //         "underlyingAssetAmount": "0.0576724",
+        //         "tokenizedAsset": "AAPLB",
+        //         "tokenizedAssetAmount": "0.0576724",
+        //         "issuerRequestId": "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //         "convertType": "REDEEM",
+        //         "status": "S",
+        //         "createdAt": 1785986980000,
+        //         "updatedAt": 1785986980000
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
+     * @name binance#tokenizedConvertHistory
+     * @ignore
+     * @description check the history of redeeming or minting between a tokenized stock asset and the underlying asset
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/tokenized#tokenized-convert-history
+     * @param {int} [since] timestamp in ms of the earliest conversion to fetch
+     * @param {int} [limit] the maximum amount of conversions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.recvWindow] cannot be greater than 60000
+     * @param {int} [params.endTime] timestamp in ms of the latest conversion to fetch
+     * @param {int} [params.lastTradeTokenId] last record id from the previous page
+     * @returns {object} the response from the exchange
+     */
+    tokenizedConvertHistory (since: Int = undefined, limit: Int = undefined, params = {}): any {
+        let request: Dict = {
+            'timestamp': this.milliseconds (),
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const response = this.sapiGetEquityTokenizedHistory (this.extend (request, params));
+        //
+        //     {
+        //         "rows": [
+        //             {
+        //                 "underlyingAsset": "AAPL",
+        //                 "underlyingAssetAmount": "0.0576724",
+        //                 "tokenizedAsset": "AAPLB",
+        //                 "tokenizedAssetAmount": "0.0576724",
+        //                 "issuerRequestId": "d9a01aa5-c8b0-46bb-bc58-43b7e122ec20",
+        //                 "convertType": "REDEEM",
+        //                 "status": "S",
+        //                 "createdAt": "1785986980000",
+        //                 "updatedAt": "1785986980000"
+        //             }
+        //         ],
+        //         "hasMore": true,
+        //         "nextLastId": "5167862022496942848"
+        //     }
+        //
+        return response;
+    }
+
+    /**
+     * @method
      * @name binance#enableDemoTrading
      * @description enables or disables demo trading mode
      * @see https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd
@@ -3238,12 +3399,13 @@ export default class binance extends Exchange {
      * @method
      * @name binance#fetchMarkets
      * @description retrieves data on all markets for binance
-     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information           // spot
-     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information     // swap
-     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information     // future
-     * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                             // option
-     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                           // cross margin
-     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                       // isolated margin
+     * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/general-endpoints#exchange-information               // spot
+     * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Exchange-Information         // swap
+     * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Exchange-Information         // future
+     * @see https://developers.binance.com/docs/derivatives/option/market-data/Exchange-Information                                 // option
+     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Cross-Margin-Pairs                               // cross margin
+     * @see https://developers.binance.com/docs/margin_trading/market-data/Get-All-Isolated-Margin-Symbol                           // isolated margin
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#exchange-info   // tokenized stocks
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -3290,6 +3452,10 @@ export default class binance extends Exchange {
                 promisesRaw.push (this.dapiPublicGetExchangeInfo (params));
             } else if (marketType === 'option') {
                 promisesRaw.push (this.eapiPublicGetExchangeInfo (params));
+            } else if (marketType === 'stock') {
+                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
+                    promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
+                }
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
@@ -3530,6 +3696,31 @@ export default class binance extends Exchange {
         //         ]
         //     }
         //
+        // spot tokenized equities
+        //
+        //     {
+        //         "timezone": "UTC",
+        //         "symbols": [
+        //             {
+        //                 "symbol": "A",
+        //                 "tradability": "BUY_SELL",
+        //                 "tradabilityUpdateTime": 1778468796000,
+        //                 "overnightSupported": true,
+        //                 "fractionable": true,
+        //                 "fractionableEh": true,
+        //                 "extendedSession": true,
+        //                 "maxNumOrders": 200,
+        //                 "stepSize": "0.000000001",
+        //                 "multiplierUp": "1.1000",
+        //                 "multiplierDown": "0.9000",
+        //                 "maxQty": "1000000.000000000",
+        //                 "minNotional": "5.00000000",
+        //                 "maxNotional": "1000000.00000000",
+        //                 "listingTime": 1778468966000
+        //             },
+        //         ]
+        //     }
+        //
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
@@ -3553,7 +3744,12 @@ export default class binance extends Exchange {
         const optionBase = this.safeString (optionParts, 0);
         const lowercaseId = this.safeStringLower (market, 'symbol');
         const baseId = this.safeString (market, 'baseAsset', optionBase);
-        const quoteId = this.safeString (market, 'quoteAsset');
+        let quoteId = this.safeString (market, 'quoteAsset');
+        let stock = false;
+        if ('tradability' in market) {
+            quoteId = 'USDC';
+            stock = true;
+        }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const contractType = this.safeString (market, 'contractType');
@@ -3636,6 +3832,12 @@ export default class binance extends Exchange {
         if (strike !== undefined) {
             parsedStrike = this.parseToNumeric (strike);
         }
+        const tradability = this.safeString (market, 'tradability');
+        if (tradability !== undefined) {
+            if (tradability !== 'NONE') {
+                active = true;
+            }
+        }
         const entry: Dict = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3653,6 +3855,7 @@ export default class binance extends Exchange {
             'swap': swap,
             'future': future,
             'option': option,
+            'stock': stock,
             'active': active,
             'contract': contract,
             'linear': linear,
@@ -3684,13 +3887,17 @@ export default class binance extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
-                    'max': undefined,
+                    'min': this.safeNumber (market, 'minNotional'),
+                    'max': this.safeNumber (market, 'maxNotional'),
                 },
             },
             'info': market,
-            'created': this.safeInteger (market, 'onboardDate'), // present in inverse & linear apis
+            'created': this.safeInteger2 (market, 'onboardDate', 'listingTime'),
         };
+        const stepSize = this.safeNumber (market, 'stepSize');
+        if (stepSize !== undefined) {
+            entry['precision']['amount'] = stepSize;
+        }
         if ('PRICE_FILTER' in filtersByType) {
             const filter = this.safeDict (filtersByType, 'PRICE_FILTER', {});
             // PRICE_FILTER reports zero values for maxPrice
@@ -4365,6 +4572,16 @@ export default class binance extends Exchange {
         //         "time":"1673899278514"
         //     }
         //
+        // fetchTicker: tokenized equities
+        //
+        //     {
+        //         "symbol": "AAPL",
+        //         "bidPrice": "339.51",
+        //         "askPrice": "339.6",
+        //         "bidSize": 45,
+        //         "askSize": 90
+        //     }
+        //
         const timestamp = this.safeInteger2 (ticker, 'closeTime', 'time');
         let marketType: Str = undefined;
         if (('time' in ticker)) {
@@ -4395,9 +4612,9 @@ export default class binance extends Exchange {
             'high': this.safeString2 (ticker, 'highPrice', 'high'),
             'low': this.safeString2 (ticker, 'lowPrice', 'low'),
             'bid': this.safeString (ticker, 'bidPrice'),
-            'bidVolume': this.safeString (ticker, 'bidQty'),
+            'bidVolume': this.safeString2 (ticker, 'bidQty', 'bidSize'),
             'ask': this.safeString (ticker, 'askPrice'),
-            'askVolume': this.safeString (ticker, 'askQty'),
+            'askVolume': this.safeString2 (ticker, 'askQty', 'askSize'),
             'vwap': wAvg,
             'open': this.safeString2 (ticker, 'openPrice', 'open'),
             'close': last,
@@ -4449,6 +4666,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics   // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                           // option
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
@@ -4470,12 +4688,17 @@ export default class binance extends Exchange {
         } else if (market['inverse']) {
             response = await this.dapiPublicGetTicker24hr (this.extend (request, params));
         } else {
-            const rolling = this.safeBool (params, 'rolling', false);
-            params = this.omit (params, 'rolling');
-            if (rolling) {
-                response = await this.publicGetTicker (this.extend (request, params));
+            const stock = this.safeBool (market, 'stock', false);
+            if (stock) {
+                response = await this.sapiGetEquityMarketQuote (this.extend (request, params));
             } else {
-                response = await this.publicGetTicker24hr (this.extend (request, params));
+                const rolling = this.safeBool (params, 'rolling', false);
+                params = this.omit (params, 'rolling');
+                if (rolling) {
+                    response = await this.publicGetTicker (this.extend (request, params));
+                } else {
+                    response = await this.publicGetTicker24hr (this.extend (request, params));
+                }
             }
         }
         if (Array.isArray (response)) {
@@ -4495,6 +4718,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
+     * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4511,7 +4735,9 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         let response: NullableDict = undefined;
-        if (this.isLinear (type, subType)) {
+        if (type === 'option') {
+            response = await this.eapiPublicGetTicker (params);
+        } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetTickerBookTicker (params);
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker (params);
@@ -4705,6 +4931,7 @@ export default class binance extends Exchange {
      * @description fetches mark price for the market
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4723,7 +4950,9 @@ export default class binance extends Exchange {
             'symbol': market['id'],
         };
         let response: Dict | undefined = undefined;
-        if (this.isLinear (type, subType)) {
+        if (market['option']) {
+            response = await this.eapiPublicGetMark (this.extend (request, params));
+        } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (this.extend (request, params));
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetPremiumIndex (this.extend (request, params));
@@ -4745,6 +4974,7 @@ export default class binance extends Exchange {
      * @description fetches mark prices for multiple markets
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Index-Price-and-Mark-Price
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+     * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/Option-Mark-Price
      * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
@@ -4761,7 +4991,9 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarkPrices', market, params, 'linear');
         let response: NullableDict = undefined;
-        if (this.isLinear (type, subType)) {
+        if (type === 'option') {
+            response = await this.eapiPublicGetMark (params);
+        } else if (this.isLinear (type, subType)) {
             response = await this.fapiPublicGetPremiumIndex (params);
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetPremiumIndex (params);
@@ -5172,7 +5404,23 @@ export default class binance extends Exchange {
         //         "isBestMatch": true
         //     }
         //
-        const timestamp = this.safeInteger2 (trade, 'T', 'time');
+        // fetchMyTrades: tokenized equities
+        //
+        //     {
+        //         "executionId": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+        //         "orderId": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+        //         "symbol": "AAPL",
+        //         "quote": "USDC",
+        //         "side": "BUY",
+        //         "orderType": "MARKET",
+        //         "price": "309.16",
+        //         "qty": "0.0576724",
+        //         "total": "17.83",
+        //         "executionAt": 1785936600545,
+        //         "updatedAt": 1785936601012
+        //     }
+        //
+        const timestamp = this.safeIntegerN (trade, [ 'T', 'time', 'executionAt' ]);
         let amount = this.safeString2 (trade, 'q', 'qty');
         amount = this.safeString (trade, 'quantity', amount);
         const marketId = this.safeString (trade, 'symbol');
@@ -5228,14 +5476,14 @@ export default class binance extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'id': this.safeStringN (trade, [ 't', 'a', 'tradeId', 'id' ]),
+            'id': this.safeStringN (trade, [ 't', 'a', 'tradeId', 'id', 'executionId' ]),
             'order': this.safeString (trade, 'orderId'),
-            'type': this.safeStringLower (trade, 'type'),
+            'type': this.safeStringLower2 (trade, 'type', 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': this.safeString2 (trade, 'p', 'price'),
             'amount': amount,
-            'cost': this.safeString2 (trade, 'quoteQty', 'baseQty'),
+            'cost': this.safeStringN (trade, [ 'quoteQty', 'baseQty', 'total' ]),
             'fee': fee,
         }, market);
     }
@@ -5862,6 +6110,8 @@ export default class binance extends Exchange {
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
             'EXPIRED_IN_MATCH': 'expired',
+            'S': 'ok', // success for creating order and canceling order
+            'F': 'rejected',
         };
         return this.safeString (statuses, status, status);
     }
@@ -6409,6 +6659,80 @@ export default class binance extends Exchange {
         //         "msg": "success"
         //     }
         //
+        // createOrder: tokenized equities
+        //
+        //     {
+        //         "status": "S",
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4"
+        //     }
+        //
+        // cancelOrder: tokenized equities
+        //
+        //     {
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "status": "S"
+        //     }
+        //
+        // fetchOpenOrders: tokenized equities
+        //
+        //     {
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "symbol": "AAPL",
+        //         "quoteAsset": "USDC",
+        //         "side": "BUY",
+        //         "orderType": "LIMIT",
+        //         "limitPrice": "290",
+        //         "qty": "0.05",
+        //         "filledQty": "0",
+        //         "filledNotional": "0",
+        //         "totalCost": "14.67",
+        //         "filledPercent": "0",
+        //         "status": "NEW",
+        //         "session": "24H",
+        //         "createdAt": 1785924334509,
+        //         "updatedAt": 1785924334514
+        //     }
+        //
+        // fetchOrders: tokenized equities
+        //
+        //     {
+        //         "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
+        //         "symbol": "AAPL",
+        //         "quote": "USDC",
+        //         "side": "BUY",
+        //         "orderType": "LIMIT",
+        //         "limitPrice": "290",
+        //         "qty": "0.05",
+        //         "filledQty": "0",
+        //         "filledTotal": "0",
+        //         "fee": "0",
+        //         "session": "24H",
+        //         "status": "CANCELED",
+        //         "createdAt": 1785925755841,
+        //         "updatedAt": 1785925792975
+        //     }
+        //
+        // fetchOrder: tokenized equities
+        //
+        //     {
+        //         "orderId": "edf82072-9f42-4d47-b09e-602c8f1b35c9",
+        //         "symbol": "AAPL",
+        //         "quote": "USDC",
+        //         "side": "BUY",
+        //         "orderType": "LIMIT",
+        //         "limitPrice": "290",
+        //         "qty": "0.05",
+        //         "filledQty": "0",
+        //         "filledTotal": "0",
+        //         "session": "24H",
+        //         "status": "NEW",
+        //         "createdAt": 1785924334509,
+        //         "updatedAt": 1785924334514,
+        //         "clientOrderId": "x-TKT5PX2F989bcdc4d06c430e92b8f4",
+        //         "trades": []
+        //     }
+        //
         const code = this.safeString (order, 'code');
         if (code !== undefined) {
             // cancelOrders/createOrders might have a partial success
@@ -6422,11 +6746,11 @@ export default class binance extends Exchange {
         const isContract = ('positionSide' in order) || ('cumQuote' in order);
         const marketType = isContract ? 'contract' : 'spot';
         const symbol = this.safeSymbol (marketId, market, undefined, marketType);
-        const filled = this.safeString (order, 'executedQty', '0');
-        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime' ]); // order of the keys matters here
+        const filled = this.safeString2 (order, 'executedQty', 'filledQty', '0');
+        const timestamp = this.safeIntegerN (order, [ 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' ]); // order of the keys matters here
         let lastTradeTimestamp: Int = undefined;
-        if (('transactTime' in order) || ('updateTime' in order)) {
-            const timestampValue = this.safeInteger2 (order, 'updateTime', 'transactTime');
+        if (('transactTime' in order) || ('updateTime' in order) || ('updatedAt' in order)) {
+            const timestampValue = this.safeIntegerN (order, [ 'updateTime', 'transactTime', 'updatedAt' ]);
             if (status === 'open') {
                 if (Precise.stringGt (filled, '0')) {
                     lastTradeTimestamp = timestampValue;
@@ -6435,10 +6759,10 @@ export default class binance extends Exchange {
                 lastTradeTimestamp = timestampValue;
             }
         }
-        const lastUpdateTimestamp = this.safeInteger2 (order, 'transactTime', 'updateTime');
-        const average = this.safeString (order, 'avgPrice');
-        const price = this.safeString (order, 'price');
-        const amount = this.safeString2 (order, 'origQty', 'quantity');
+        const lastUpdateTimestamp = this.safeIntegerN (order, [ 'transactTime', 'updateTime', 'updatedAt' ]);
+        const average = this.safeString2 (order, 'avgPrice', 'avgFilledPrice');
+        const price = this.safeString2 (order, 'price', 'limitPrice');
+        const amount = this.safeStringN (order, [ 'origQty', 'quantity', 'qty' ]);
         // - Spot/Margin market: cummulativeQuoteQty
         // - Futures market: cumQuote.
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
@@ -6446,7 +6770,7 @@ export default class binance extends Exchange {
         cost = this.safeString (order, 'cumBase', cost);
         const type = this.safeStringLower2 (order, 'type', 'orderType');
         const side = this.safeStringLower (order, 'side');
-        const fills = this.safeList (order, 'fills', []);
+        const fills = this.safeList2 (order, 'fills', 'trades', []);
         let timeInForce = this.safeString (order, 'timeInForce');
         if (timeInForce === 'GTX') {
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
@@ -6459,7 +6783,7 @@ export default class binance extends Exchange {
         let fee: Fee = undefined;
         if (feeCost !== undefined) {
             fee = {
-                'currency': this.safeString (order, 'quoteAsset'),
+                'currency': this.safeString2 (order, 'quoteAsset', 'quote'),
                 'cost': feeCost,
                 'rate': undefined,
             };
@@ -6591,6 +6915,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-UM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/New-CM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Algo-Order
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#place-equity-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
      * @param {string} side 'buy' or 'sell'
@@ -6613,6 +6938,7 @@ export default class binance extends Exchange {
      * @param {string} [params.positionSide] *swap and portfolio margin only* "BOTH" for one-way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {bool} [params.hedged] *swap and portfolio margin only* true for hedged mode, false for one way mode, default is false
      * @param {string} [params.clientOrderId] the clientOrderId of the order
+     * @param {string} [params.tradingSession] *stock only* required for limit orders, RTH, EXTENDED or 24H, default is 24H
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -6635,6 +6961,7 @@ export default class binance extends Exchange {
         const isConditional = (triggerPrice !== undefined) || isTrailingPercentOrder || isStopLoss || isTakeProfit;
         const sor = this.safeBool2 (params, 'sor', 'SOR', false);
         const test = this.safeBool (params, 'test', false);
+        const stock = this.safeBool (market, 'stock', false);
         params = this.omit (params, [ 'sor', 'SOR', 'test' ]);
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
@@ -6686,7 +7013,9 @@ export default class binance extends Exchange {
                 response = await this.sapiPostMarginOrder (request);
             }
         } else {
-            if (test) {
+            if (stock) {
+                response = await this.sapiPostEquityOrderPlace (request);
+            } else if (test) {
                 response = await this.privatePostOrderTest (request);
             } else {
                 response = await this.privatePostOrder (request);
@@ -6698,6 +7027,19 @@ export default class binance extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @ignore
+     * @name binance#createOrderRequest
+     * @description helper function to build the request
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much you want to trade in units of the base currency
+     * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} request to be sent to the exchange
+     */
     createOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params = {}) {
         if (type === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a type argument');
@@ -6705,24 +7047,9 @@ export default class binance extends Exchange {
         if (side === undefined) {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
-        /**
-         * @method
-         * @ignore
-         * @name binance#createOrderRequest
-         * @description helper function to build the request
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} request to be sent to the exchange
-         */
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrderRequest() requires a side argument');
-        }
         const market = this.market (symbol);
         const marketType = this.safeString (params, 'type', market['type']);
+        const stock = this.safeBool (market, 'stock', false);
         const clientOrderId = this.safeStringN (params, [ 'clientAlgoId', 'newClientOrderId', 'clientOrderId' ]);
         const initialUppercaseType = type.toUpperCase ();
         const isMarketOrder = initialUppercaseType === 'MARKET';
@@ -6819,7 +7146,10 @@ export default class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         } else {
-            const validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
+            let validOrderTypes = this.safeList (market['info'], 'orderTypes', []);
+            if (stock) {
+                validOrderTypes = [ 'LIMIT', 'MARKET' ];
+            }
             if (!this.inArray (uppercaseType, validOrderTypes)) {
                 if (initialUppercaseType !== uppercaseType) {
                     throw new InvalidOrder (this.id + ' triggerPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
@@ -6831,6 +7161,8 @@ export default class binance extends Exchange {
         let clientOrderIdRequest = isPortfolioMarginConditional ? 'newClientStrategyId' : 'newClientOrderId';
         if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
             clientOrderIdRequest = 'clientAlgoId';
+        } else if (stock) {
+            clientOrderIdRequest = 'clientOrderId';
         }
         if (clientOrderId === undefined) {
             const broker = this.safeDict (this.options, 'broker', {});
@@ -6867,13 +7199,16 @@ export default class binance extends Exchange {
             }
         }
         // handle newOrderRespType response type
-        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin) {
+        if (((marketType === 'spot') || (marketType === 'margin')) && !isPortfolioMargin && !stock) {
             request['newOrderRespType'] = this.safeString (this.options['newOrderRespType'], type, 'FULL'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-        } else {
+        } else if (!stock) {
             // swap, futures and options
             request['newOrderRespType'] = 'RESULT';  // "ACK", "RESULT", default "ACK"
         }
-        const typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
+        let typeRequest = isPortfolioMarginConditional ? 'strategyType' : 'type';
+        if (stock) {
+            typeRequest = 'orderType';
+        }
         request[typeRequest] = uppercaseType;
         // additional required fields depending on the order type
         const closePosition = this.safeBool (params, 'closePosition', false);
@@ -6902,11 +7237,41 @@ export default class binance extends Exchange {
         //     TRAILING_STOP_MARKET callbackRate
         //
         if (uppercaseType === 'MARKET') {
-            if (market['spot']) {
-                const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
+            if (stock) {
+                if (upperCaseSide === 'BUY') {
+                    const precision = this.safeValue (market['precision'], 'price');
+                    const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
+                    let notional: Str = undefined;
+                    if (quoteOrderQtyNew !== undefined) {
+                        notional = quoteOrderQtyNew;
+                    } else if (price !== undefined) {
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        notional = Precise.stringMul (amountString, priceString);
+                    } else {
+                        notional = this.numberToString (amount);
+                    }
+                    if (precision === undefined) {
+                        request['notional'] = notional;
+                    } else {
+                        request['notional'] = this.decimalToPrecision (notional, TRUNCATE, precision, this.precisionMode);
+                    }
+                } else {
+                    // Redeem stock to underlying using sapiPostEquityTokenizedRedeem or call redeemTokenizedAsset (tokenizedAsset, tokenizedAssetAmount, params)
+                    // Poll sapiGetEquityTokenizedConvertStatus with the returned issuerRequestId and convertType REDEEM until status is S or call tokenizedConvertStatus (issuerRequestId, convertType, params)
+                    // Then you can place a sell order
+                    const marketAmountPrecision = this.safeString (market['precision'], 'amount');
+                    if (marketAmountPrecision !== undefined) {
+                        request['quantity'] = this.amountToPrecision (symbol, amount);
+                    } else {
+                        request['quantity'] = this.parseToNumeric (amount);
+                    }
+                }
+            } else if (market['spot']) {
+                const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true) as Bool;
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
-                    const precision = market['precision']['price'];
+                    const precision = this.safeValue (market['precision'], 'price');
                     if (quoteOrderQtyNew !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
@@ -6924,6 +7289,10 @@ export default class binance extends Exchange {
                 quantityIsRequired = true;
             }
         } else if (uppercaseType === 'LIMIT') {
+            if (stock) {
+                const tradingSession = this.safeString (params, 'tradingSession', '24H');
+                request['tradingSession'] = tradingSession;
+            }
             priceIsRequired = true;
             timeInForceIsRequired = true;
             quantityIsRequired = true;
@@ -7120,51 +7489,65 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-UM-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-CM-Order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-Algo-Order
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-detail
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch a trigger or conditional order
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        const request: Dict = {};
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+            if (!stock) {
+                request['symbol'] = market['id'];
+            }
+        } else {
+            throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrder', market, params);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrder', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrder', 'papi', 'portfolioMargin', false);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        const isOptionType = type === 'option';
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
+        const isLinearSwapConditional = isLinearType && (market !== undefined) && market['swap'] && isConditional && !isPortfolioMargin;
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
-            if (market['option']) {
+            if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (isLinearSwapConditional) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 request['origClientOrderId'] = clientOrderId;
             }
-        } else if (market['linear'] && market['swap'] && isConditional && !isPortfolioMargin) {
+        } else if (isLinearSwapConditional) {
             request['algoId'] = id;
         } else {
             request['orderId'] = id;
         }
-        params = this.omit (params, [ 'type', 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
+        params = this.omit (params, [ 'clientOrderId', 'origClientOrderId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
         let response: NullableDict = undefined;
-        if (market['option']) {
+        if (isOptionType) {
             response = await this.eapiPrivateGetOrder (this.extend (request, params));
-        } else if (market['linear']) {
+        } else if (isLinearType) {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmOrder (this.extend (request, params));
             } else {
@@ -7174,7 +7557,7 @@ export default class binance extends Exchange {
                     response = await this.fapiPrivateGetOrder (this.extend (request, params));
                 }
             }
-        } else if (market['inverse']) {
+        } else if (isInverseType) {
             if (isPortfolioMargin) {
                 response = await this.papiGetCmOrder (this.extend (request, params));
             } else {
@@ -7189,6 +7572,8 @@ export default class binance extends Exchange {
                 }
                 response = await this.sapiGetMarginOrder (this.extend (request, params));
             }
+        } else if (stock) {
+            response = await this.sapiGetEquityOrderDetail (this.extend (request, params));
         } else {
             response = await this.privateGetOrder (this.extend (request, params));
         }
@@ -7212,6 +7597,7 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Query-All-Algo-Orders
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -7221,12 +7607,10 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7235,29 +7619,59 @@ export default class binance extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
-        const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', market['type']);
-        const type = this.safeString (params, 'type', defaultType);
+        const request: Dict = {};
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+            request['symbol'] = market['id'];
+        } else if (!stock) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchOrders', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
-        params = this.omit (params, [ 'stop', 'trigger', 'conditional', 'type' ]);
-        let request: Dict = {
-            'symbol': market['id'],
-        };
-        [ request, params ] = this.handleUntilOption ('endTime', request, params);
+        const isOptionType = type === 'option';
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
+        let until = this.safeIntegerN (params, [ 'until', 'till', 'endTime' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'conditional', 'until', 'till', 'endTime' ]);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            if (stock) {
+                limit = Math.min (limit, 100); // max 100
+                request['size'] = limit;
+            } else {
+                request['limit'] = limit;
+            }
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        if (stock) {
+            if (until === undefined) {
+                until = this.milliseconds ();
+                request['endTime'] = until;
+            }
+            if (since === undefined) {
+                const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                request['startTime'] = until - oneWeek;
+            }
         }
         let response: NullableDict = undefined;
-        if (market['option']) {
+        if (isOptionType) {
             response = await this.eapiPrivateGetHistoryOrders (this.extend (request, params));
-        } else if (market['linear']) {
+        } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiGetUmConditionalAllOrders (this.extend (request, params));
@@ -7271,7 +7685,7 @@ export default class binance extends Exchange {
                     response = await this.fapiPrivateGetAllOrders (this.extend (request, params));
                 }
             }
-        } else if (market['inverse']) {
+        } else if (isInverseType) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiGetCmConditionalAllOrders (this.extend (request, params));
@@ -7289,6 +7703,8 @@ export default class binance extends Exchange {
                     request['isIsolated'] = true;
                 }
                 response = await this.sapiGetMarginAllOrders (this.extend (request, params));
+            } else if (stock) {
+                response = await this.sapiGetEquityOrderHistory (this.extend (request, params));
             } else {
                 response = await this.privateGetAllOrders (this.extend (request, params));
             }
@@ -7473,6 +7889,36 @@ export default class binance extends Exchange {
         //         },
         //     ]
         //
+        // stock
+        //
+        //     {
+        //         "page": 1,
+        //         "size": 20,
+        //         "total": 2,
+        //         "rows": [
+        //             {
+        //                 "orderId": "1ef94d47-0c95-4785-9834-37376312834e",
+        //                 "symbol": "AAPL",
+        //                 "quote": "USDC",
+        //                 "side": "BUY",
+        //                 "orderType": "LIMIT",
+        //                 "limitPrice": "290",
+        //                 "qty": "0.05",
+        //                 "filledQty": "0",
+        //                 "filledTotal": "0",
+        //                 "fee": "0",
+        //                 "session": "24H",
+        //                 "status": "CANCELED",
+        //                 "createdAt": 1785925755841,
+        //                 "updatedAt": 1785925792975
+        //             },
+        //         ]
+        //     }
+        //
+        if (stock) {
+            const result = this.safeList (response, 'rows', []);
+            return this.parseOrders (result, market, since, limit);
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -7490,13 +7936,15 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-Current-CM-Open-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Algo-Open-Orders
-     * @param {string} symbol unified market symbol
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#current-open-orders
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch open orders in the portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account conditional orders
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -7512,25 +7960,25 @@ export default class binance extends Exchange {
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchOpenOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            const marketType = ('type' in market) ? market['type'] : defaultType;
-            type = this.safeString (params, 'type', marketType);
-        } else {
+            stock = this.safeBool (market, 'stock', false);
+            if (!stock) {
+                request['symbol'] = market['id'];
+            }
+        } else if (!stock) {
             const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol');
             const optValue = this.safeBool (this.options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
             if (optValue || (optValue === undefined && warnWithoutSymbol)) {
                 throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
-            } else {
-                const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-                type = this.safeString (params, 'type', defaultType);
             }
         }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params, 'spot');
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
-        params = this.omit (params, [ 'type', 'stop', 'trigger', 'conditional' ]);
+        params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         let response: NullableDict = undefined;
         if (type === 'option') {
             if (since !== undefined) {
@@ -7580,6 +8028,8 @@ export default class binance extends Exchange {
                 }
                 response = await this.sapiGetMarginOpenOrders (this.extend (request, params));
             }
+        } else if (stock) {
+            response = await this.sapiGetEquityOrderOpenOrders (this.extend (request, params));
         } else {
             response = await this.privateGetOpenOrders (this.extend (request, params));
         }
@@ -7816,18 +8266,30 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (symbol === undefined) {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+        } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
+        }
+        if (stock) {
+            params['stock'] = true;
+            params['orderStatus'] = 'FILLED';
         }
         const orders = await this.fetchOrders (symbol, since, undefined, params);
         const filteredOrders = this.filterBy (orders, 'status', 'closed');
@@ -7847,18 +8309,30 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (symbol === undefined) {
+    override async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledOrders', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+        } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires a symbol argument');
+        }
+        if (stock) {
+            params['stock'] = true;
+            params['orderStatus'] = 'CANCELED';
         }
         const orders = await this.fetchOrders (symbol, since, undefined, params);
         const filteredOrders = this.filterBy (orders, 'status', 'canceled');
@@ -7878,18 +8352,30 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-UM-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Conditional-Orders
-     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-order-history
+     * @param {string} [symbol] unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        if (symbol === undefined) {
+    override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchCanceledAndClosedOrders', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+        } else if (!stock) {
             throw new ArgumentsRequired (this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
+        }
+        if (stock) {
+            params['stock'] = true;
+            params['orderStatus'] = 'FILLED,CANCELED';
         }
         const orders = await this.fetchOrders (symbol, since, undefined, params);
         const canceledOrders = this.filterBy (orders, 'status', 'canceled');
@@ -7914,36 +8400,50 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-CM-Conditional-Order
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-Order
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-Algo-Order
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-equity-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel an order in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to cancel a portfolio margin account conditional order
+     * @param {boolean} [params.stock] set to true if you would like to cancel a tokenized stock order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
+        const request: Dict = {};
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+            if (!stock) {
+                request['symbol'] = market['id'];
+            }
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelOrder', market, params);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelOrder', params);
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelOrder', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const isOptionType = type === 'option';
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
+        const isSwapConditional = (market !== undefined) && market['swap'] && isConditional && !isPortfolioMargin;
         const clientOrderId = this.safeStringN (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'clientAlgoId' ]);
         if (clientOrderId !== undefined) {
-            if (market['option']) {
+            if (isOptionType) {
                 request['clientOrderId'] = clientOrderId;
-            } else if (market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (isSwapConditional) {
                 request['clientAlgoId'] = clientOrderId;
             } else {
                 if (isPortfolioMargin && isConditional) {
@@ -7955,17 +8455,17 @@ export default class binance extends Exchange {
         } else {
             if (isPortfolioMargin && isConditional) {
                 request['strategyId'] = id;
-            } else if (market['swap'] && isConditional && !isPortfolioMargin) {
+            } else if (isSwapConditional) {
                 request['algoId'] = id;
             } else {
                 request['orderId'] = id;
             }
         }
-        params = this.omit (params, [ 'type', 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
+        params = this.omit (params, [ 'origClientOrderId', 'clientOrderId', 'newClientStrategyId', 'stop', 'trigger', 'conditional', 'clientAlgoId' ]);
         let response: NullableDict = undefined;
-        if (market['option']) {
+        if (isOptionType) {
             response = await this.eapiPrivateDeleteOrder (this.extend (request, params));
-        } else if (market['linear']) {
+        } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteUmConditionalOrder (this.extend (request, params));
@@ -7979,7 +8479,7 @@ export default class binance extends Exchange {
                     response = await this.fapiPrivateDeleteOrder (this.extend (request, params));
                 }
             }
-        } else if (market['inverse']) {
+        } else if (isInverseType) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteCmConditionalOrder (this.extend (request, params));
@@ -8002,6 +8502,8 @@ export default class binance extends Exchange {
                 }
                 response = await this.sapiDeleteMarginOrder (this.extend (request, params));
             }
+        } else if (stock) {
+            response = await this.sapiPostEquityOrderCancel (this.extend (request, params));
         } else {
             response = await this.privateDeleteOrder (this.extend (request, params));
         }
@@ -8026,33 +8528,47 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-All-CM-Open-Conditional-Orders
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Cancel-Margin-Account-All-Open-Orders-on-a-Symbol
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Cancel-All-Algo-Open-Orders
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#cancel-all-equity-orders
      * @param {string} symbol unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @param {boolean} [params.portfolioMargin] set to true if you would like to cancel orders in a portfolio margin account
      * @param {boolean} [params.trigger] set to true if you would like to cancel portfolio margin account conditional orders
+     * @param {boolean} [params.stock] set to true if you would like to cancel tokenized stock orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const request: Dict = {};
+        let market: Market = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'stock', false);
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
+            if (!stock) {
+                request['symbol'] = market['id'];
+            }
+        } else {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+        }
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'cancelAllOrders', 'papi', 'portfolioMargin', false);
         const isConditional = this.safeBoolN (params, [ 'stop', 'trigger', 'conditional' ]);
-        const type = this.safeString (params, 'type', market['type']);
-        params = this.omit (params, [ 'type', 'stop', 'trigger', 'conditional' ]);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params, 'spot');
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        const isOptionType = type === 'option';
+        const isLinearType = this.isLinear (type, subType);
+        const isInverseType = this.isInverse (type, subType);
+        params = this.omit (params, [ 'stop', 'trigger', 'conditional' ]);
         let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('cancelAllOrders', params);
         let response: NullableDict = undefined;
-        if (market['option']) {
+        if (isOptionType) {
             response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, params));
             //
             //    {
@@ -8060,7 +8576,7 @@ export default class binance extends Exchange {
             //        "msg": "success"
             //    }
             //
-        } else if (market['linear']) {
+        } else if (isLinearType) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, params));
@@ -8098,7 +8614,7 @@ export default class binance extends Exchange {
                     //
                 }
             }
-        } else if (market['inverse']) {
+        } else if (isInverseType) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteCmConditionalAllOpenOrders (this.extend (request, params));
@@ -8157,6 +8673,13 @@ export default class binance extends Exchange {
                 //    ]
                 //
             }
+        } else if (stock) {
+            response = await this.sapiPostEquityOrderCancelAll (this.extend (request, params));
+            //
+            //     {
+            //         "success": true
+            //     }
+            //
         } else {
             response = await this.privateDeleteOpenOrders (this.extend (request, params));
             //
@@ -8318,13 +8841,15 @@ export default class binance extends Exchange {
      * @see https://developers.binance.com/docs/derivatives/option/trade/Account-Trade-List
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/UM-Account-Trade-List
      * @see https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
-     * @param {string} symbol unified market symbol
+     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/trade#equity-trade-history
+     * @param {string} [symbol] unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
+     * @param {boolean} [params.stock] set to true if you would like to fetch tokenized stock trades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -8340,11 +8865,17 @@ export default class binance extends Exchange {
         let market: Market = undefined;
         let type: Str = undefined;
         let marginMode: Str = undefined;
+        let stock = undefined;
+        [ stock, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'stock', false);
         if (symbol !== undefined) {
             market = this.market (symbol);
+            stock = this.safeBool (market, 'stock', false);
             request['symbol'] = market['id'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (!stock && (type !== 'option') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         let endTime = this.safeInteger2 (params, 'until', 'endTime');
         if (since !== undefined) {
             const startTime = since;
@@ -8370,19 +8901,31 @@ export default class binance extends Exchange {
             if ((type === 'option') || this.safeBool (market, 'contract')) {
                 limit = Math.min (limit, 1000); // above 1000, returns error
             }
-            request['limit'] = limit;
+            if (stock) {
+                limit = Math.min (limit, 100); // max 100
+                request['size'] = limit;
+            } else {
+                request['limit'] = limit;
+            }
         }
         let response: NullableDict | NullableList = undefined;
         if (type === 'option') {
             response = await this.eapiPrivateGetUserTrades (this.extend (request, params));
         } else {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-            }
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
             let isPortfolioMargin: Bool = undefined;
             [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'fetchMyTrades', 'papi', 'portfolioMargin', false);
-            if (type === 'spot' || type === 'margin') {
+            if (stock) {
+                if (endTime === undefined) {
+                    endTime = this.milliseconds ();
+                    request['endTime'] = endTime;
+                }
+                if (since === undefined) {
+                    const oneWeek = 7 * 24 * 60 * 60 * 1000;
+                    request['startTime'] = endTime - oneWeek;
+                }
+                response = await this.sapiGetEquityTradeHistory (this.extend (request, params));
+            } else if (type === 'spot' || type === 'margin') {
                 if (isPortfolioMargin) {
                     response = await this.papiGetMarginMyTrades (this.extend (request, params));
                 } else if ((type === 'margin') || (marginMode !== undefined)) {
@@ -8536,9 +9079,36 @@ export default class binance extends Exchange {
         //         }
         //     ]
         //
+        // tokenized equities
+        //
+        //     {
+        //         "page": 1,
+        //         "size": 20,
+        //         "total": 1,
+        //         "rows": [
+        //             {
+        //                 "executionId": "cc942eb9-eaa0-47e7-8273-2a9bc10c5741",
+        //                 "orderId": "ef66a86f-202b-4b41-b15c-e1c90f975f17",
+        //                 "symbol": "AAPL",
+        //                 "quote": "USDC",
+        //                 "side": "BUY",
+        //                 "orderType": "MARKET",
+        //                 "price": "309.16",
+        //                 "qty": "0.0576724",
+        //                 "total": "17.83",
+        //                 "executionAt": 1785936600545,
+        //                 "updatedAt": 1785936601012
+        //             }
+        //         ]
+        //     }
         let responseList: List = [];
         if (response !== undefined) {
-            responseList = this.toArray (response);
+            if (stock) {
+                const rows = this.safeList (response, 'rows', []);
+                responseList = rows;
+            } else {
+                responseList = this.toArray (response);
+            }
         }
         return this.parseTrades (responseList, market, since, limit);
     }

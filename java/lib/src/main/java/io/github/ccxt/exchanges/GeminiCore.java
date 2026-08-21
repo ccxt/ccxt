@@ -67,6 +67,7 @@ public class GeminiCore extends GeminiApi
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMyTrades", true );
                 put( "fetchOHLCV", true );
+                put( "fetchOpenInterest", true );
                 put( "fetchOpenInterestHistory", false );
                 put( "fetchOpenOrders", true );
                 put( "fetchOrder", true );

@@ -23,7 +23,7 @@
                   "buy",
                   10
                 ],
-                "output": "{\"book\":\"xrp_usdt\",\"side\":\"buy\",\"type\":\"market\",\"major\":\"10\"}"
+                "output": { "book": "xrp_usdt", "side": "buy", "type": "market", "major": "10" }
             },
             {
                 "description": "market sell order",
@@ -35,7 +35,7 @@
                   "sell",
                   10
                 ],
-                "output": "{\"book\":\"xrp_usdt\",\"side\":\"sell\",\"type\":\"market\",\"major\":\"10\"}"
+                "output": { "book": "xrp_usdt", "side": "sell", "type": "market", "major": "10" }
             },
             {
                 "description": "limit buy order",
@@ -48,7 +48,7 @@
                   10,
                   0.4
                 ],
-                "output": "{\"book\":\"xrp_usdt\",\"side\":\"buy\",\"type\":\"limit\",\"major\":\"10\",\"price\":\"0.4\"}"
+                "output": { "book": "xrp_usdt", "side": "buy", "type": "limit", "major": "10", "price": "0.4" }
             }
         ],
         "cancelOrder": [

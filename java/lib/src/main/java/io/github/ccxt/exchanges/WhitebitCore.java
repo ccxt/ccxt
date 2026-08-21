@@ -40,7 +40,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "createConvertTrade", true );
                 put( "createDepositAddress", true );
                 put( "createMarketBuyOrderWithCost", true );
-                put( "createMarketOrderWithCost", false );
+                put( "createMarketOrderWithCost", true );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
                 put( "createPostOnlyOrder", true );
@@ -51,6 +51,7 @@ public class WhitebitCore extends WhitebitApi
                 put( "editOrder", true );
                 put( "fetchAccounts", true );
                 put( "fetchBalance", true );
+                put( "fetchBorrowInterest", true );
                 put( "fetchBorrowRateHistories", false );
                 put( "fetchBorrowRateHistory", false );
                 put( "fetchClosedOrders", true );
@@ -733,7 +734,6 @@ public class WhitebitCore extends WhitebitApi
         Object margin = Helpers.isTrue(isCollateral) && !Helpers.isTrue(swap);
         Object contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        Object contractSize = amountPrecision;
         Object linear = null;
         Object inverse = null;
         if (Helpers.isTrue(swap))
@@ -784,7 +784,7 @@ public class WhitebitCore extends WhitebitApi
             put( "inverse", finalInverse );
             put( "taker", WhitebitCore.this.parseNumber(taker) );
             put( "maker", WhitebitCore.this.parseNumber(maker) );
-            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : contractSize );
+            put( "contractSize", ((Helpers.isTrue(isSpot))) ? null : WhitebitCore.this.parseNumber("1") );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1790,6 +1790,7 @@ public class WhitebitCore extends WhitebitApi
             // Extract control parameters from params
             Object checkActive = this.safeBool(parameters, "checkActive", true);
             Object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("checkActive", "checkExecuted")));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -2914,10 +2915,6 @@ public class WhitebitCore extends WhitebitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(Helpers.isEqual(timeout, null)))
-            {
-                throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-            }
             if (Helpers.isTrue(isBiggerThanZero))
             {
                 Helpers.addElementToObject(request, "timeout", this.numberToString(Helpers.divide(timeout, 1000)));
@@ -3508,22 +3505,31 @@ public class WhitebitCore extends WhitebitApi
             // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
             Object response = (this.v4PrivatePostMainAccountHistory(this.extend(request, parameters))).join();
             //
-            //     [
-            //         {
-            //             "id": 123456789,                    // Transaction ID
-            //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
-            //             "ticker": "BTC",                    // Currency ticker
-            //             "amount": "0.001",                  // Transaction amount
-            //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-            //             "memo": "",                         // Memo/tag (if required)
-            //             "network": "BTC",                   // Network name
-            //             "fee": "0.0005",                    // Transaction fee
-            //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
-            //             "timestamp": 1641051917,            // Transaction timestamp
-            //             "txid": "abc123def456..."           // Transaction hash
-            //         },
-            //         { ... }                                 // More transactions (deposits and withdrawals)
-            //     ]
+            //     {
+            //         "records": [
+            //             {
+            //                 "address": "TDepositAddressExample1111111111111",
+            //                 "uniqueId": null,
+            //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+            //                 "createdAt": 1786182572,
+            //                 "currency": "Tether US",
+            //                 "ticker": "USDT",
+            //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+            //                 "amount": "20.723117",
+            //                 "description": null,
+            //                 "memo": null,
+            //                 "fee": "0",
+            //                 "status": 3,
+            //                 "network": "TRC20",
+            //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+            //                 "details": { "partial": null },
+            //                 "centralized": false
+            //             }
+            //         ],
+            //         "total": 1,
+            //         "limit": 100,
+            //         "offset": 0
+            //     }
             //
             Object records = this.safeList(response, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(records, currency, since, limit);
@@ -3710,37 +3716,38 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            // Fetch sub-accounts
+            Object response = (this.v4PrivatePostSubAccountList(parameters)).join();
             //
-            //     [
-            //         {
-            //             "id": "12345",
-            //             "name": "SubAccount1",
-            //             "status": "active",
-            //             "permissions": ["trade", "withdraw"]
-            //         }
-            //     ]
+            //     {
+            //         "offset": 0,
+            //         "limit": 100,
+            //         "data": [
+            //             {
+            //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+            //                 "alias": "trading_bot",
+            //                 "userId": "u-12345",
+            //                 "email": "s***@example.com",
+            //                 "status": "active",
+            //                 "color": "#FF5733",
+            //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+            //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+            //             }
+            //         ]
+            //     }
             //
-            Object subAccounts = (this.v4PrivatePostSubAccountList(parameters)).join();
-            if (Helpers.isTrue(Helpers.isTrue(subAccounts) && Helpers.isTrue(Helpers.isArray(subAccounts))))
+            Object subAccounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
             {
-                for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subAccounts)); i++)
-                {
-                    Object subAccount = this.safeValue(subAccounts, i);
-                    Object accountId = this.safeString(subAccount, "id");
-                    Object accountName = this.safeString(subAccount, "name");
-                    if (Helpers.isTrue(accountId))
-                    {
-    final Object finalAccountName = accountName;
-                                            ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
-                            put( "id", accountId );
-                            put( "type", "subaccount" );
-                            put( "name", Helpers.isTrue(finalAccountName) || Helpers.isTrue(Helpers.add("SubAccount ", accountId)) );
-                            put( "code", null );
-                            put( "info", subAccount );
-                        }});
-                    }
-                }
+                Object subAccount = this.safeDict(subAccounts, i, new java.util.HashMap<String, Object>() {{}});
+                Object accountId = this.safeString(subAccount, "id");
+                Object accountName = this.safeString(subAccount, "alias");
+                ((java.util.List<Object>)accounts).add(new java.util.HashMap<String, Object>() {{
+                    put( "id", accountId );
+                    put( "type", "subaccount" );
+                    put( "name", accountName );
+                    put( "code", null );
+                    put( "info", subAccount );
+                }});
             }
             return accounts;
         });
@@ -4466,12 +4473,12 @@ public class WhitebitCore extends WhitebitApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", since);
+                Helpers.addElementToObject(request, "limit", limit);
             }
             var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v4PrivatePostCollateralAccountFundingHistory(request)).join();
+            Object response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "records": [

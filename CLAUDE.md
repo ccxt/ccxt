@@ -116,6 +116,7 @@ C#: only `cs/ccxt/base/Exchange.BaseMethods.cs` and the type files `cs/ccxt/base
 | Structure validators | `ts/src/test/Exchange/base/test.<structure>.ts` | yes | unified return structure changed |
 | Static request | `ts/src/test/static/request/<exchange>.json` | yes | exchange request URL/body changed |
 | Static response | `ts/src/test/static/response/<exchange>.json` | yes | exchange response parsing changed |
+| Static WS | `ts/src/test/static/ws/<exchange>.json` | yes | ws message handling / watch* parsing changed — replays canned frames into `handleMessage` via a mocked transport and asserts the watch result (`npm run ws-tests-<lang>`, entry needs the exact client `url`) |
 | ID tests | `api` block | yes | new endpoints added |
 | Live | real exchange | NO | smoke-check before merge; never primary gate |
 

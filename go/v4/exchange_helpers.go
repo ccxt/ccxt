@@ -404,6 +404,16 @@ func GetValue(collection any, key any) any {
 		if obs, ok := collection.(IOrderBookSide); ok {
 			return (obs.GetData())[keyNum]
 		}
+		// the ws caches extend Array in typescript too, so the transpiled code
+		// indexes them positionally (cache[0]); without this the struct-reflect
+		// fallback below panics on the non-string key
+		if cache, ok := collection.(IArrayCache); ok {
+			data := cache.ToArray()
+			if keyNum >= 0 && keyNum < len(data) {
+				return data[keyNum]
+			}
+			return nil
+		}
 	}
 
 	// this is needed in checkRequiredCredentials or alike
@@ -1391,6 +1401,15 @@ func IsDictionary(v any) bool {
 		return true
 	case map[any]any:
 		return true
+	case OrderBookInterface:
+		// live ws orderbooks are dictionaries in every other runtime — js
+		// objects, python dicts, java WsOrderBook extends AbstractMap
+		// (https://github.com/ccxt/ccxt/pull/29594), C# OrderBook implements
+		// IDictionary — and the shared structure test asserts
+		// isDictionary(entry) on them; the native go check introduced in
+		// https://github.com/ccxt/ccxt/pull/29704 must agree or every ws
+		// orderbook live test fails with "entry is not a dict"
+		return true
 	default:
 		return false
 	}
@@ -1730,6 +1749,12 @@ func IsArray(v any) bool {
 	}
 	switch v.(type) {
 	case []any, [][]any:
+		return true
+	case IOrderBookSide:
+		// js parity: orderbook sides are Array subclasses, so isArray is true;
+		// GetArrayLength and SafeValue already special-case IOrderBookSide, this
+		// predicate was the missing piece failing every ws orderbook structure
+		// assert in the Go test lane
 		return true
 	case []map[string]any:
 		return true
@@ -2610,17 +2635,13 @@ func Remove(dict any, key any) {
 		delete(v, keyStr)
 		return
 	case *sync.Map:
-		// Check if the key exists in sync.Map
-		if _, exists := v.Load(keyStr); !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the sync.Map", keyStr))
-		}
-		// Remove the key from the sync.Map
+		// the javascript delete statement is a no-op on a missing key and
+		// never throws, mirror that semantic instead of panicking, concurrent
+		// transpiled deletes of the same key raced here and panicked the loser
 		v.Delete(keyStr)
 		return
 	case map[string]any:
-		if _, exists := v[keyStr]; !exists {
-			panic(fmt.Sprintf("key '%s' does not exist in the map", keyStr))
-		}
+		// the javascript delete statement is a no-op on a missing key
 		delete(v, keyStr)
 		return
 	default:
@@ -2636,6 +2657,10 @@ func Capitalize(s string) string {
 	firstLetter := strings.ToUpper(string(s[0]))
 	// Combine the uppercase first letter with the rest of the string
 	return firstLetter + s[1:]
+}
+
+func (this *BaseExchange) IsDictionary(value any) any {
+	return IsDictionary(value)
 }
 
 func SetDefaults(p any) {

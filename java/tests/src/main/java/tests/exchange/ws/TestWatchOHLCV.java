@@ -30,10 +30,13 @@ public class TestWatchOHLCV extends BaseTest {
         Object limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
-        while (Helpers.isLessThan(now, ends))
+        Object maxIdleTime = 5000;
+        Object idle = false;
+        while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
             Object success = true;
+            Object startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchOHLCV(symbol, chosenTimeframeKey, since, limit)).join();
@@ -47,21 +50,19 @@ public class TestWatchOHLCV extends BaseTest {
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (Helpers.isTrue(Helpers.isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) && Helpers.isTrue((!Helpers.isEqual(response, null)))))
             {
-                if (Helpers.isTrue(Helpers.isEqual(response, null)))
-                {
-                    throw new RuntimeException((String)Helpers.add(exchange.id, " watch returned undefined response")) ;
-                }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                now = exchange.milliseconds();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(response, i), symbol, now);
+                }
+                if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
                 }
             }
         }

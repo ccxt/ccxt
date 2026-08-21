@@ -236,9 +236,9 @@ public partial class deribit : ccxt.deribit
             await this.authenticate();
         }
         object channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue((IList<string>)(symbols), i));
+            object market = this.market(getValue(symbols, i));
             ((IList<object>)channels).Add(add(add(add("ticker.", getValue(market, "id")), "."), interval));
         }
         object message = new Dictionary<string, object>() {
@@ -320,9 +320,9 @@ public partial class deribit : ccxt.deribit
         symbols = this.marketSymbols(symbols, null, false);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue((IList<string>)(symbols), i));
+            object market = this.market(getValue(symbols, i));
             ((IList<object>)channels).Add(add("quote.", getValue(market, "id")));
         }
         object message = new Dictionary<string, object>() {

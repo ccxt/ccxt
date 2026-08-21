@@ -47,10 +47,11 @@ class lbank extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
+                'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => true,
                 'fetchIndexOHLCV' => false,
@@ -77,8 +78,10 @@ class lbank extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => true,
                 'fetchTransactionFees' => true,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => false,
                 'setLeverage' => false,
                 'setMarginMode' => false,
@@ -689,8 +692,12 @@ class lbank extends Exchange {
                         'max' => $this->safe_number($market, 'maxOrderVolume'),
                     ),
                     'price' => array(
-                        'min' => $this->safe_number($market, 'priceLimitLowerValue'),
-                        'max' => $this->safe_number($market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every $symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min' => null,
+                        'max' => null,
                     ),
                     'cost' => array(
                         'min' => $this->safe_number($market, 'minOrderCost'),

@@ -215,6 +215,7 @@ public struct Market
 
     public Int64? created;
 
+    public bool? stock;
     public Market(object market2)
     {
         var market = (Dictionary<string, object>)market2;
@@ -251,6 +252,7 @@ public struct Market
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
         marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
+        stock = market.ContainsKey("stock") && market["stock"] != null ? (bool)market["stock"] : null;
     }
 }
 
@@ -1852,6 +1854,7 @@ public struct MarketInterface
     public Precision? precision;
     public MarketMarginModes? marginModes;
 
+    public bool? stock;
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1888,6 +1891,7 @@ public struct MarketInterface
         marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
         limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
 
+        stock = Exchange.SafeValue(market, "stock") != null ? (bool)Exchange.SafeValue(market, "stock") : null;
     }
 
 }

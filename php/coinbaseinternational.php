@@ -61,6 +61,7 @@ class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
@@ -106,6 +107,7 @@ class coinbaseinternational extends Exchange {
                 'setMargin' => true,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'urls' => array(
@@ -802,10 +804,12 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            $response = $this->v1PrivatePostTransfersCreateCounterpartyId($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersAddress($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -2338,10 +2342,12 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            $response = $this->v1PrivatePostTransfersWithdrawCounterparty($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersWithdraw($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

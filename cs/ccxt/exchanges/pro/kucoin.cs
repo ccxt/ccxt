@@ -583,7 +583,7 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols, null, false, true);
         object messageHash = "uta:ticker";
         object messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = this.safeString(symbols, i);
             object market = this.market(symbol);
@@ -861,21 +861,21 @@ public partial class kucoin : ccxt.kucoin
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false, true, false);
-        object length = getArrayLength((IList<string>)(symbols));
+        object length = getArrayLength(symbols);
         if (isTrue(isGreaterThan(length, 100)))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() accepts a maximum of 100 symbols")) ;
         }
         object messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength((IList<string>)(symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue((IList<string>)(symbols), i);
+            object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             ((IList<object>)messageHashes).Add(add("bidask@", getValue(market, "symbol")));
         }
         object url = await this.negotiate(false, isFuturesChannel);
         object marketIds = this.marketIds(symbols);
-        object joined = String.Join(",", ((IList<object>)(IList<string>)(marketIds)).ToArray());
+        object joined = String.Join(",", ((IList<object>)marketIds).ToArray());
         object requestId = ((object)this.requestId()).ToString();
         object request = new Dictionary<string, object>() {
             { "id", requestId },
@@ -1681,7 +1681,7 @@ public partial class kucoin : ccxt.kucoin
         var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isTrue(isEqual(getIndexOf(method, "Depth"), -1)))
+        if (isTrue(isLessThan(getIndexOf(method, "Depth"), 0)))
         {
             if (isTrue(isTrue((isEqual(limit, 5))) || isTrue((isEqual(limit, 50)))))
             {
@@ -1749,7 +1749,7 @@ public partial class kucoin : ccxt.kucoin
         var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        if (isTrue(isEqual(getIndexOf(method, "Depth"), -1)))
+        if (isTrue(isLessThan(getIndexOf(method, "Depth"), 0)))
         {
             if (isTrue(isTrue((isEqual(limit, 5))) || isTrue((isEqual(limit, 50)))))
             {

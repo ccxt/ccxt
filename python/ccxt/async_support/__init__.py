@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.71'
+__version__ = '4.5.75'
 
 # -----------------------------------------------------------------------------
 
@@ -95,6 +95,7 @@ from ccxt.async_support.blofin import blofin                                    
 from ccxt.async_support.btcbox import btcbox                                    # noqa: F401
 from ccxt.async_support.btcmarkets import btcmarkets                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
+from ccxt.async_support.btse import btse                                        # noqa: F401
 from ccxt.async_support.bullish import bullish                                  # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bybiteu import bybiteu                                  # noqa: F401
@@ -117,7 +118,6 @@ from ccxt.async_support.deribit import deribit                                  
 from ccxt.async_support.derive import derive                                    # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
 from ccxt.async_support.dydx import dydx                                        # noqa: F401
-from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.extended import extended                                # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
 from ccxt.async_support.foxbit import foxbit                                    # noqa: F401
@@ -200,6 +200,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'btse',
     'bullish',
     'bybit',
     'bybiteu',
@@ -222,7 +223,6 @@ exchanges = [
     'derive',
     'digifinex',
     'dydx',
-    'exmo',
     'extended',
     'fmfwio',
     'foxbit',

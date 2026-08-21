@@ -32,7 +32,7 @@ public class BullishCore extends BullishApi
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", true );
-                put( "option", false );
+                put( "option", true );
                 put( "addMargin", false );
                 put( "borrowMargin", false );
                 put( "cancelAllOrders", true );
@@ -1149,7 +1149,7 @@ public class BullishCore extends BullishApi
             }
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1559,6 +1559,10 @@ public class BullishCore extends BullishApi
             var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", 3);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "fetchOHLCV"))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchFundingRateHistory")))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchTrades")))))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " safeDeterministicCall() does not support the "), method), " method")) ;
+            }
             Object errors = 0;
             parameters = this.omit(parameters, "until");
             // the exchange returns the most recent data, so we do not need to pass until into paginated calls
@@ -1567,12 +1571,15 @@ public class BullishCore extends BullishApi
             {
                 try
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(timeframe) && Helpers.isTrue(!Helpers.isEqual(method, "fetchFundingRateHistory"))))
+                    if (Helpers.isTrue(Helpers.isEqual(method, "fetchOHLCV")))
                     {
-                        return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, timeframe, since, limit, parameters })).join();
+                        return (this.fetchOHLCV(((String)symbol), timeframe, since, limit, parameters)).join();
+                    } else if (Helpers.isTrue(Helpers.isEqual(method, "fetchFundingRateHistory")))
+                    {
+                        return (this.fetchFundingRateHistory(symbol, since, limit, parameters)).join();
                     } else
                     {
-                        return ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, limit, parameters })).join();
+                        return (this.fetchTrades(((String)symbol), since, limit, parameters)).join();
                     }
                 } catch(Exception e)
                 {
@@ -2731,7 +2738,7 @@ public class BullishCore extends BullishApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object tradingAccountId = null;
-            var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "tradingAccountId");
+            var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
             tradingAccountId = ((java.util.List<Object>) tradingAccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tradingAccountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)))

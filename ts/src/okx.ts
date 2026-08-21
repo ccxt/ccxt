@@ -32,6 +32,7 @@ export default class okx extends Exchange {
                 'future': true,
                 'option': true,
                 'addMargin': true,
+                'borrowCrossMargin': true,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -121,6 +122,7 @@ export default class okx extends Exchange {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': true,
@@ -357,6 +359,16 @@ export default class okx extends Exchange {
                         'asset/convert/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/convert/currency-pair': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/convert/history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        // fiat
+                        'fiat/deposit-payment-methods': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/withdrawal-payment-methods': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/deposit-order-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/deposit': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/withdrawal-order-history': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/currency-pair': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/history': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         // account
                         'account/instruments': { 'cost': 1 } as Endpoint<Dict>,
                         'account/balance': { 'cost': 2 } as Endpoint<Dict>,
@@ -538,6 +550,11 @@ export default class okx extends Exchange {
                         'asset/monthly-statement': { 'cost': 1296000 } as Endpoint<Dict>, // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote': { 'cost': 50 } as Endpoint<Dict>,
                         'asset/convert/trade': { 'cost': 1 } as Endpoint<Dict>,
+                        // fiat
+                        'fiat/create-withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/cancel-withdrawal': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'fiat/buy-sell/quote': { 'cost': 50 } as Endpoint<Dict>,
+                        'fiat/buy-sell/trade': { 'cost': 50 } as Endpoint<Dict>,
                         // account
                         'account/bills-history-archive': { 'cost': 72000 } as Endpoint<Dict>, // 12 req/day
                         'account/set-position-mode': { 'cost': 4 } as Endpoint<Dict>,
@@ -2408,7 +2425,7 @@ export default class okx extends Exchange {
         symbols = this.marketSymbols (symbols);
         const market = this.getMarketFromSymbols (symbols);
         let marketType: Str = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params, 'swap');
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarkPrices', market, params, 'swap');
         const request: Dict = {
             'instType': this.convertToInstrumentType (marketType),
         };
@@ -7345,7 +7362,7 @@ export default class okx extends Exchange {
         return {
             'currency': this.safeCurrencyCode (ccy),
             'rate': this.safeNumber2 (info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': info,
@@ -7373,6 +7390,8 @@ export default class okx extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000;
                 const borrrowRateCode = borrowRateHistories[code];
                 borrrowRateCode.push (borrowRateStructure);
             }

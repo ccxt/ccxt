@@ -2025,9 +2025,27 @@ class bitget extends Exchange {
             $firstData = $this->safe_dict($data, 0, array());
             $isBorrowable = $this->safe_bool($firstData, 'isBorrowable');
             if ($fetchMargins && $isBorrowable !== null) {
-                $keysList = is_array($this->index_by($data, 'symbol')) ? array_keys($this->index_by($data, 'symbol')) : array();
-                $this->options['crossMarginPairsData'] = $keysList;
-                $this->options['isolatedMarginPairsData'] = $keysList;
+                // cross and isolated availability are per-$symbol - a coin can be listed by
+                // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
+                // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
+                // fail with bitget error 50001 "coin does not support cross"
+                $crossKeys = array();
+                $isolatedKeys = array();
+                for ($j = 0; $j < count($data); $j++) {
+                    $entry = $this->safe_dict($data, $j, array());
+                    $entrySymbol = $this->safe_string($entry, 'symbol');
+                    $entryBorrowable = $this->safe_bool($entry, 'isBorrowable', true);
+                    if ($entryBorrowable && $this->safe_bool($entry, 'isCrossBorrowable', true)) {
+                        $crossKeys[] = $entrySymbol;
+                    }
+                    $isolatedBase = $this->safe_bool($entry, 'isIsolatedBaseBorrowable', true);
+                    $isolatedQuote = $this->safe_bool_2($entry, 'isIsolatedQuotedBorrowable', 'isIsolatedQuoteBorrowable', true);
+                    if ($entryBorrowable && ($isolatedBase || $isolatedQuote)) {
+                        $isolatedKeys[] = $entrySymbol;
+                    }
+                }
+                $this->options['crossMarginPairsData'] = $crossKeys;
+                $this->options['isolatedMarginPairsData'] = $isolatedKeys;
             } else {
                 $markets = $this->array_concat($markets, $data);
             }
@@ -3368,11 +3386,8 @@ class bitget extends Exchange {
         } else {
             $marketType = 'spot';
         }
-        $percentage = $this->safe_string($ticker, 'price24hPcnt');
-        if ($percentage === null) {
-            $change24h = $this->safe_string($ticker, 'change24h');
-            $percentage = Precise::string_mul($change24h, '100');
-        }
+        // both fields are ratios, and a $ticker reports (change/open) * 100
+        $percentage = Precise::string_mul($this->safe_string_2($ticker, 'price24hPcnt', 'change24h'), '100');
         return $this->safe_ticker(array(
             'symbol' => $this->safe_symbol($marketId, $market, null, $marketType),
             'timestamp' => $timestamp,
@@ -9277,7 +9292,7 @@ class bitget extends Exchange {
         if ($uta) {
             if ($productType === 'SPOT') {
                 $marginMode = null;
-                list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchTrades', $params);
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params);
                 if ($marginMode !== null) {
                     $productType = 'MARGIN';
                 }

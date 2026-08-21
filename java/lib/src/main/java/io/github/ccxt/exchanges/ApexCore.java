@@ -128,7 +128,7 @@ public class ApexCore extends ApexApi
                 put( "setLeverage", true );
                 put( "setMarginMode", false );
                 put( "setPositionMode", false );
-                put( "transfer", false );
+                put( "transfer", true );
                 put( "withdraw", false );
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{

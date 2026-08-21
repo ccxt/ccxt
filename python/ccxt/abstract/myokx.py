@@ -1,7 +1,6 @@
 from ccxt.base.types import Entry
-from typing import Any as PythonAny, Dict
+_Dict = dict[str, object]
 
-_Dict = Dict[str, PythonAny]
 
 class ImplicitAPI:
     public_get_market_tickers = publicGetMarketTickers = Entry[_Dict]('market/tickers', 'public', 'GET', {'cost': 1})
@@ -150,6 +149,15 @@ class ImplicitAPI:
     private_get_asset_convert_currencies = privateGetAssetConvertCurrencies = Entry[_Dict]('asset/convert/currencies', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_convert_currency_pair = privateGetAssetConvertCurrencyPair = Entry[_Dict]('asset/convert/currency-pair', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_asset_convert_history = privateGetAssetConvertHistory = Entry[_Dict]('asset/convert/history', 'private', 'GET', {'cost': 1.6666666666666667})
+    private_get_fiat_deposit_payment_methods = privateGetFiatDepositPaymentMethods = Entry[_Dict]('fiat/deposit-payment-methods', 'private', 'GET', {'cost': 3.3333333333333335})
+    private_get_fiat_withdrawal_payment_methods = privateGetFiatWithdrawalPaymentMethods = Entry[_Dict]('fiat/withdrawal-payment-methods', 'private', 'GET', {'cost': 3.3333333333333335})
+    private_get_fiat_deposit_order_history = privateGetFiatDepositOrderHistory = Entry[_Dict]('fiat/deposit-order-history', 'private', 'GET', {'cost': 3.3333333333333335})
+    private_get_fiat_deposit = privateGetFiatDeposit = Entry[_Dict]('fiat/deposit', 'private', 'GET', {'cost': 3.3333333333333335})
+    private_get_fiat_withdrawal_order_history = privateGetFiatWithdrawalOrderHistory = Entry[_Dict]('fiat/withdrawal-order-history', 'private', 'GET', {'cost': 3.3333333333333335})
+    private_get_fiat_withdrawal = privateGetFiatWithdrawal = Entry[_Dict]('fiat/withdrawal', 'private', 'GET', {'cost': 3.3333333333333335})
+    private_get_fiat_buy_sell_currencies = privateGetFiatBuySellCurrencies = Entry[_Dict]('fiat/buy-sell/currencies', 'private', 'GET', {'cost': 1.6666666666666667})
+    private_get_fiat_buy_sell_currency_pair = privateGetFiatBuySellCurrencyPair = Entry[_Dict]('fiat/buy-sell/currency-pair', 'private', 'GET', {'cost': 1.6666666666666667})
+    private_get_fiat_buy_sell_history = privateGetFiatBuySellHistory = Entry[_Dict]('fiat/buy-sell/history', 'private', 'GET', {'cost': 1.6666666666666667})
     private_get_account_instruments = privateGetAccountInstruments = Entry[_Dict]('account/instruments', 'private', 'GET', {'cost': 1})
     private_get_account_balance = privateGetAccountBalance = Entry[_Dict]('account/balance', 'private', 'GET', {'cost': 2})
     private_get_account_positions = privateGetAccountPositions = Entry[_Dict]('account/positions', 'private', 'GET', {'cost': 2})
@@ -317,6 +325,10 @@ class ImplicitAPI:
     private_post_asset_monthly_statement = privatePostAssetMonthlyStatement = Entry[_Dict]('asset/monthly-statement', 'private', 'POST', {'cost': 1296000})
     private_post_asset_convert_estimate_quote = privatePostAssetConvertEstimateQuote = Entry[_Dict]('asset/convert/estimate-quote', 'private', 'POST', {'cost': 50})
     private_post_asset_convert_trade = privatePostAssetConvertTrade = Entry[_Dict]('asset/convert/trade', 'private', 'POST', {'cost': 1})
+    private_post_fiat_create_withdrawal = privatePostFiatCreateWithdrawal = Entry[_Dict]('fiat/create-withdrawal', 'private', 'POST', {'cost': 3.3333333333333335})
+    private_post_fiat_cancel_withdrawal = privatePostFiatCancelWithdrawal = Entry[_Dict]('fiat/cancel-withdrawal', 'private', 'POST', {'cost': 3.3333333333333335})
+    private_post_fiat_buy_sell_quote = privatePostFiatBuySellQuote = Entry[_Dict]('fiat/buy-sell/quote', 'private', 'POST', {'cost': 50})
+    private_post_fiat_buy_sell_trade = privatePostFiatBuySellTrade = Entry[_Dict]('fiat/buy-sell/trade', 'private', 'POST', {'cost': 50})
     private_post_account_bills_history_archive = privatePostAccountBillsHistoryArchive = Entry[_Dict]('account/bills-history-archive', 'private', 'POST', {'cost': 72000})
     private_post_account_set_position_mode = privatePostAccountSetPositionMode = Entry[_Dict]('account/set-position-mode', 'private', 'POST', {'cost': 4})
     private_post_account_set_leverage = privatePostAccountSetLeverage = Entry[_Dict]('account/set-leverage', 'private', 'POST', {'cost': 1})

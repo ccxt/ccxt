@@ -12,521 +12,521 @@ public partial class kalshi : PredictionExchange
     public kalshi (object args = null): base(args) {}
 
     /// <summary>Calls the kalshiPublicGetEvents endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetEvents (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetEvents (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetEvents",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetEvents",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetEventsMultivariate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetEventsMultivariate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetEventsMultivariate (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetEventsMultivariate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetEventsMultivariate",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetEventsFeeChanges endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetEventsFeeChanges (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetEventsFeeChanges (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetEventsFeeChanges",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetEventsFeeChanges",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetEventsEventTicker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetEventsEventTicker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetEventsEventTicker (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetEventsEventTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetEventsEventTicker",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetEventsEventTickerMetadata endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetEventsEventTickerMetadata (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetEventsEventTickerMetadata (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetEventsEventTickerMetadata",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetEventsEventTickerMetadata",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSeries endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSeries (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSeries (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSeries",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSeries",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSeriesFeeChanges endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSeriesFeeChanges (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSeriesFeeChanges (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSeriesFeeChanges",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSeriesFeeChanges",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSeriesSeriesTicker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSeriesSeriesTicker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSeriesSeriesTicker (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSeriesSeriesTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSeriesSeriesTicker",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSeriesSeriesTickerEventsTickerCandlesticks",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSeriesSeriesTickerEventsTickerForecastPercentileHistory",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMarkets (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMarkets",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMarketsTrades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMarketsTrades (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMarketsTrades (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMarketsTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMarketsTrades",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMarketsOrderbooks endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMarketsOrderbooks (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMarketsOrderbooks (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMarketsOrderbooks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMarketsOrderbooks",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMarketsCandlesticks endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMarketsCandlesticks (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMarketsCandlesticks (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMarketsCandlesticks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMarketsCandlesticks",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMarketsTicker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMarketsTicker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMarketsTicker (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMarketsTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMarketsTicker",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMarketsTickerOrderbook endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMarketsTickerOrderbook (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMarketsTickerOrderbook (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMarketsTickerOrderbook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMarketsTickerOrderbook",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetExchangeStatus endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetExchangeStatus (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetExchangeStatus (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetExchangeStatus",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetExchangeStatus",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetExchangeSchedule endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetExchangeSchedule (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetExchangeSchedule (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetExchangeSchedule",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetExchangeSchedule",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetExchangeAnnouncements endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetExchangeAnnouncements (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetExchangeAnnouncements (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetExchangeAnnouncements",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetExchangeAnnouncements",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetExchangeUserDataTimestamp endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetExchangeUserDataTimestamp (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetExchangeUserDataTimestamp (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetExchangeUserDataTimestamp",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetExchangeUserDataTimestamp",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMilestones endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMilestones (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMilestones (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMilestones",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMilestones",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMilestonesMilestoneId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMilestonesMilestoneId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMilestonesMilestoneId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMilestonesMilestoneId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMilestonesMilestoneId",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetStructuredTargets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetStructuredTargets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetStructuredTargets (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetStructuredTargets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetStructuredTargets",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetStructuredTargetsStructuredTargetId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetStructuredTargetsStructuredTargetId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetStructuredTargetsStructuredTargetId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetStructuredTargetsStructuredTargetId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetStructuredTargetsStructuredTargetId",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSearchFiltersBySport endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSearchFiltersBySport (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSearchFiltersBySport (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSearchFiltersBySport",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSearchFiltersBySport",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetSearchTagsByCategories endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetSearchTagsByCategories (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetSearchTagsByCategories (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetSearchTagsByCategories",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetSearchTagsByCategories",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetLiveDataBatch endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetLiveDataBatch (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetLiveDataBatch (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetLiveDataBatch",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetLiveDataBatch",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetLiveDataMilestoneMilestoneId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetLiveDataMilestoneMilestoneId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetLiveDataMilestoneMilestoneId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetLiveDataMilestoneMilestoneId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetLiveDataMilestoneMilestoneId",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetHistoricalMarkets endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetHistoricalMarkets (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetHistoricalMarkets (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetHistoricalMarkets",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetHistoricalMarkets",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetHistoricalMarketsTickerCandlesticks endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetHistoricalMarketsTickerCandlesticks (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetHistoricalMarketsTickerCandlesticks (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetHistoricalMarketsTickerCandlesticks",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetHistoricalMarketsTickerCandlesticks",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetHistoricalTrades endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetHistoricalTrades (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetHistoricalTrades (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetHistoricalTrades",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetHistoricalTrades",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetHistoricalCutoffTimestamps endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetHistoricalCutoffTimestamps (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetHistoricalCutoffTimestamps (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetHistoricalCutoffTimestamps",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetHistoricalCutoffTimestamps",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMultivariateEventCollections endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMultivariateEventCollections (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMultivariateEventCollections (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMultivariateEventCollections",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMultivariateEventCollections",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMultivariateEventCollectionsCollectionTicker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMultivariateEventCollectionsCollectionTicker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMultivariateEventCollectionsCollectionTicker (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMultivariateEventCollectionsCollectionTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMultivariateEventCollectionsCollectionTicker",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetMultivariateEventCollectionsCollectionTickerLookup",parameters);
     }
 
     /// <summary>Calls the kalshiPublicGetIncentivePrograms endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPublicGetIncentivePrograms (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPublicGetIncentivePrograms (object parameters = null)
     {
-        return await this.callAsync ("kalshiPublicGetIncentivePrograms",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPublicGetIncentivePrograms",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioBalance endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioBalance (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioBalance",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioOrders (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioOrders",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioOrdersOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioOrdersOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioOrdersOrderId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioOrdersOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioOrdersOrderId",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioOrdersOrderIdQueuePosition",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioOrdersQueuePositions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioOrdersQueuePositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioOrdersQueuePositions (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioOrdersQueuePositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioOrdersQueuePositions",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioPositions endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioPositions (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioPositions (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioPositions",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioPositions",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioFills endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioFills (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioFills (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioFills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioFills",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioSettlements endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioSettlements (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioSettlements (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioSettlements",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioSettlements",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioDeposits endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioDeposits (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioDeposits (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioDeposits",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioDeposits",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioWithdrawals endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioWithdrawals (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioWithdrawals (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioWithdrawals",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioWithdrawals",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioOrderGroups endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioOrderGroups (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioOrderGroups (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioOrderGroups",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioOrderGroups",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioOrderGroupsOrderGroupId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioOrderGroupsOrderGroupId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioOrderGroupsOrderGroupId",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioSummaryTotalRestingOrderValue",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioSubaccountsBalances endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioSubaccountsBalances (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioSubaccountsBalances (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioSubaccountsBalances",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioSubaccountsBalances",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioSubaccountsNetting endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioSubaccountsNetting (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioSubaccountsNetting (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioSubaccountsNetting",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioSubaccountsNetting",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetPortfolioSubaccountsTransfers endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetPortfolioSubaccountsTransfers (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetPortfolioSubaccountsTransfers (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetPortfolioSubaccountsTransfers",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetPortfolioSubaccountsTransfers",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetHistoricalFills endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetHistoricalFills (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetHistoricalFills (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetHistoricalFills",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetHistoricalFills",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateGetHistoricalOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateGetHistoricalOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateGetHistoricalOrders (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateGetHistoricalOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateGetHistoricalOrders",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioOrders (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioOrders",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioEventsOrders endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioEventsOrders (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioEventsOrders (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioEventsOrders",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioEventsOrders",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioOrdersBatched endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioOrdersBatched (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioOrdersBatched (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioOrdersBatched",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioOrdersBatched",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioOrdersOrderIdAmend endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioOrdersOrderIdAmend (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioOrdersOrderIdAmend (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioOrdersOrderIdAmend",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioOrdersOrderIdAmend",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioOrdersOrderIdDecrease endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioOrdersOrderIdDecrease (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioOrdersOrderIdDecrease (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioOrdersOrderIdDecrease",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioOrdersOrderIdDecrease",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioOrderGroupsCreate endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioOrderGroupsCreate (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioOrderGroupsCreate (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioOrderGroupsCreate",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioOrderGroupsCreate",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioSubaccounts endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioSubaccounts (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioSubaccounts (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioSubaccounts",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioSubaccounts",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostPortfolioSubaccountsTransfer endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostPortfolioSubaccountsTransfer (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostPortfolioSubaccountsTransfer (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostPortfolioSubaccountsTransfer",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostPortfolioSubaccountsTransfer",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePostMultivariateEventCollectionsCollectionTicker endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePostMultivariateEventCollectionsCollectionTicker (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePostMultivariateEventCollectionsCollectionTicker",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdReset",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdTrigger",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePutPortfolioOrderGroupsOrderGroupIdLimit",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePutPortfolioSubaccountsNetting endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePutPortfolioSubaccountsNetting (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePutPortfolioSubaccountsNetting (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePutPortfolioSubaccountsNetting",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePutPortfolioSubaccountsNetting",parameters);
     }
 
     /// <summary>Calls the kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivatePutMultivariateEventCollectionsCollectionTickerLookup",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateDeletePortfolioOrdersOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateDeletePortfolioOrdersOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateDeletePortfolioOrdersOrderId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateDeletePortfolioOrdersOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateDeletePortfolioOrdersOrderId",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateDeletePortfolioOrdersBatched endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateDeletePortfolioOrdersBatched (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateDeletePortfolioOrdersBatched (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateDeletePortfolioOrdersBatched",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateDeletePortfolioOrdersBatched",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateDeletePortfolioEventsOrdersOrderId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateDeletePortfolioEventsOrdersOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateDeletePortfolioEventsOrdersOrderId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateDeletePortfolioEventsOrdersOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateDeletePortfolioEventsOrdersOrderId",parameters);
     }
 
     /// <summary>Calls the kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId (object parameters = null)
     {
-        return await this.callAsync ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("kalshiPrivateDeletePortfolioOrderGroupsOrderGroupId",parameters);
     }
 
     /// <summary>Calls the electionsPublicGetSearchSeries endpoint.</summary>
-    /// <returns>a JSON object (runtime type: Dictionary<string, object>)</returns>
-    public async Task<object> electionsPublicGetSearchSeries (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> electionsPublicGetSearchSeries (object parameters = null)
     {
-        return await this.callAsync ("electionsPublicGetSearchSeries",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("electionsPublicGetSearchSeries",parameters);
     }
 
 }

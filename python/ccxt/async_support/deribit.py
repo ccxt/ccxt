@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.deribit import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Greeks, Int, Market, Num, Option, OptionChain, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -27,7 +26,7 @@ from ccxt.base.precise import Precise
 
 class deribit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(deribit, self).describe(), {
             'id': 'deribit',
             'name': 'Deribit',
@@ -682,7 +681,7 @@ class deribit(Exchange, ImplicitAPI):
             'networks': None,
         })
 
-    def code_from_options(self, methodName: Any, params={}):
+    def code_from_options(self, methodName: object, params={}):
         defaultCode = self.safe_value(self.options, 'code', 'BTC')
         options = self.safe_value(self.options, methodName, {})
         code = self.safe_value(options, 'code', defaultCode)
@@ -721,7 +720,7 @@ class deribit(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -770,7 +769,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', [])
         return self.parse_accounts(result)
 
-    def parse_account(self, account: Any):
+    def parse_account(self, account: object):
         #
         #      {
         #          "username": "someusername_1",
@@ -792,7 +791,7 @@ class deribit(Exchange, ImplicitAPI):
             'code': None,
         }
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for deribit
 
@@ -1027,7 +1026,7 @@ class deribit(Exchange, ImplicitAPI):
                 })
         return result
 
-    def parse_balance(self, balance: Any) -> Balances:
+    def parse_balance(self, balance: object) -> Balances:
         result = {
             'info': balance,
         }
@@ -1272,8 +1271,8 @@ class deribit(Exchange, ImplicitAPI):
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': None,
-            'quoteVolume': self.safe_string(stats, 'volume'),
+            'baseVolume': self.safe_string(stats, 'volume'),
+            'quoteVolume': self.safe_string_2(stats, 'volume_notional', 'volume_usd'),
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'indexPrice': self.safe_string(ticker, 'index_price'),
             'info': ticker,
@@ -1408,7 +1407,7 @@ class deribit(Exchange, ImplicitAPI):
                 tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1562,7 +1561,7 @@ class deribit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://docs.deribit.com/#public-get_last_trades_by_instrument
@@ -1824,7 +1823,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         return self.safe_string(timeInForces, timeInForce, timeInForce)
 
-    def parse_order_type(self, orderType: Any):
+    def parse_order_type(self, orderType: object):
         orderTypes = {
             'stop_limit': 'limit',
             'take_limit': 'limit',
@@ -2234,7 +2233,7 @@ class deribit(Exchange, ImplicitAPI):
             }),
         ]
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -2264,7 +2263,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_orders(result, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -2431,7 +2430,7 @@ class deribit(Exchange, ImplicitAPI):
         trades = self.safe_list(result, 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2478,7 +2477,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_list(result, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2717,7 +2716,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_position(result)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2804,7 +2803,7 @@ class deribit(Exchange, ImplicitAPI):
         #
         return self.parse_volatility_history(response)
 
-    def parse_volatility_history(self, volatility: Any):
+    def parse_volatility_history(self, volatility: object):
         #
         #     {
         #         "jsonrpc": "2.0",
@@ -2832,7 +2831,7 @@ class deribit(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -3014,7 +3013,7 @@ class deribit(Exchange, ImplicitAPI):
         response = await self.privateGetWithdraw(self.extend(request, params))
         return self.parse_transaction(response, currency)
 
-    def parse_deposit_withdraw_fee(self, fee: Any, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    {
         #      "withdrawal_priorities": [],
@@ -3183,7 +3182,7 @@ class deribit(Exchange, ImplicitAPI):
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, since, limit)
 
-    def parse_funding_rate(self, contract: Any, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
         #
         #   {
         #       "jsonrpc":"2.0",
@@ -3287,7 +3286,7 @@ class deribit(Exchange, ImplicitAPI):
         settlementsWithCursor = self.add_pagination_cursor_to_result(cursor, settlements)
         return self.parse_liquidations(settlementsWithCursor, market, since, limit)
 
-    def add_pagination_cursor_to_result(self, cursor: Any, data: Any):
+    def add_pagination_cursor_to_result(self, cursor: object, data: object):
         if cursor is not None:
             dataLength = len(data)
             if dataLength > 0:
@@ -3355,7 +3354,7 @@ class deribit(Exchange, ImplicitAPI):
         settlements = self.safe_list(result, 'settlements', [])
         return self.parse_liquidations(settlements, market, since, limit)
 
-    def parse_liquidation(self, liquidation: Any, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None):
         #
         #     {
         #         "type": "bankruptcy",
@@ -3723,7 +3722,7 @@ class deribit(Exchange, ImplicitAPI):
         data = self.safe_dict(result, 0, {})
         return self.parse_open_interest(data, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "high": 93099.5,
@@ -3769,7 +3768,7 @@ class deribit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
             if params:
@@ -3790,7 +3789,7 @@ class deribit(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None  # fallback to default error handler
         #

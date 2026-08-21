@@ -1572,21 +1572,61 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
-                Object response = new java.util.HashMap<String, Object>() {{}};
-                if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+                // single-flight leader election on a never-dialed client, see
+                // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+                // calls on a cold instance each passed the staleness check and
+                // fetched their own listenKey (last write wins, earlier keys
+                // orphan) - now one leader fetches per type and waiters wake when
+                // the flight settles. client.futures is the registry:
+                // client.future () is the atomic check-and-insert and
+                // client.resolve () / client.reject () settle and remove the entry
+                // under the same lock in every port
+                Object messageHash = Helpers.add("authenticate:", type);
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
-                    response = (this.sapiPrivatePostV3ListenKey(parameters)).join();
-                } else
-                {
-                    response = (this.fapiPrivatePostV3ListenKey(parameters)).join();
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey is then in the bucket
+                    client.future((String)messageHash).getFuture().join();
+                    return null;
                 }
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, this.safeString(response, "listenKey"));
-                Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
-                final Object finalType = type;
-                parameters = this.extend(new java.util.HashMap<String, Object>() {{
-                    put( "type", finalType );
-                }}, parameters);
-                this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                // reusableFuture (), not future () - the two match in
+                // js/py/php/cs/java, but go's Client.Future () yields a channel
+                // that the trailing suspension point below would panic on
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    Object response = new java.util.HashMap<String, Object>() {{}};
+                    if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
+                    {
+                        response = (this.sapiPrivatePostV3ListenKey(parameters)).join();
+                    } else
+                    {
+                        response = (this.fapiPrivatePostV3ListenKey(parameters)).join();
+                    }
+                    Object listenKey = this.safeString(response, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "listenKey"), type, listenKey);
+                    Helpers.addElementToObject(Helpers.GetValue(this.options, "lastAuthenticatedTime"), type, time);
+                    final Object finalType = type;
+                    parameters = this.extend(new java.util.HashMap<String, Object>() {{
+                        put( "type", finalType );
+                    }}, parameters);
+                    this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
+                    // settle the flight: client.resolve () removes the future from
+                    // client.futures and wakes every waiter
+                    client.resolve(listenKey, messageHash);
+                } catch(Exception e)
+                {
+                    // reject the flight - waiters throw and the next caller re-leads.
+                    // no rethrow here, the trailing suspension point rethrows to this
+                    // caller AND attaches the handler an alone leader needs
+                    client.reject(e, messageHash);
+                }
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             return null;
         });
@@ -2151,7 +2191,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object messageHash = "myTrades";
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();

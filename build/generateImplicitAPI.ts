@@ -378,7 +378,7 @@ function pythonReturnType (exchange: string, method: string): string {
     if (mapped.length === 1) {
         return mapped[0];
     }
-    return 'Union[' + mapped.join (', ') + ']';
+    return mapped.join (' | ');
 }
 
 // the Python aliases one generated module actually uses, so a module that only
@@ -397,51 +397,27 @@ function pythonUsedAliases (exchange: string): string[] {
     return used;
 }
 
-// whether any endpoint on this exchange needs a multi-member return (Union[...])
-function pythonNeedsUnion (exchange: string): boolean {
-    const methods = storedCamelCaseMethods[exchange] || [];
-    for (const method of methods) {
-        if (returnTypeMembers (exchange, method).length > 1) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // storedPyMethods[exchange][1] is the alias block, left empty by createPyHeader
 // for the same reason the TypeScript import line is: the set of shapes an
 // exchange answers with is only known after generateImplicitMethodNames ran.
-// Import only the typing names the aliases/unions actually reference — ruff F401
-// fails the Python qa gate on unused List/Union when a module is Dict-only.
+// Aliases are builtins (list/dict/object) — no typing import.
 function finalizePythonAliases (exchange: string) {
     const aliases = pythonUsedAliases (exchange);
-    const needsUnion = pythonNeedsUnion (exchange);
-    if (!aliases.length && !needsUnion) {
+    if (!aliases.length) {
         storedPyMethods[exchange][1] = '';
         return;
     }
     const spelled: Dict = {
-        '_Dict': 'Dict[str, PythonAny]',
-        '_List': 'List[PythonAny]',
-        '_Any': 'PythonAny',
+        '_Dict': 'dict[str, object]',
+        '_List': 'list[object]',
+        '_Any': 'object',
     };
-    // build the import from the names that appear in the alias RHS or in
-    // Entry[Union[...]] constructions; never import a name that is not used
-    const typingNames: string[] = [ 'Any as PythonAny' ];
-    if (aliases.includes ('_Dict')) {
-        typingNames.push ('Dict');
-    }
-    if (aliases.includes ('_List')) {
-        typingNames.push ('List');
-    }
-    if (needsUnion) {
-        typingNames.push ('Union');
-    }
-    const lines = [ 'from typing import ' + typingNames.join (', '), '' ];
+    // builtins on the Python 3.10 floor — no typing import
+    const lines: string[] = [];
     for (const alias of aliases) {
         lines.push (alias + ' = ' + spelled[alias]);
     }
-    storedPyMethods[exchange][1] = lines.join ('\n');
+    storedPyMethods[exchange][1] = lines.join ('\n') + '\n';
 }
 
 // a one-line prose description of the decoded body, for the languages whose
@@ -792,21 +768,35 @@ function createImplicitMethodsCSharp(){
         const methodNames = storedCamelCaseMethods[exchange];
 
         const methods =  methodNames.map(method=> {
-            // Signature stays Task<object>: Task<T> is reified/invariant, and a
-            // hard is-T filter in callAsync silently dropped real JSON bodies
-            // whenever the declared leaf shape disagreed with the fixture
-            // (STATIC_RESPONSE emptied balances/tickers). Shape is documented
-            // on <returns>; callers that want Task<T> can call callAsync<T>
-            // directly. (Java keeps a typed Future via erasure — different.)
+            // The declared shape lands on the signature, because callAsync is
+            // generic and JsonHelper.Deserialize builds exactly the runtime
+            // types spelled in CSHARP_RETURN_TYPES (Dictionary<string, object>
+            // for a JSON object, List<object> for a JSON array) — the narrowing
+            // is a fact about the decoded body, not a hint.
+            //
+            // Task<T> is invariant, so `Task<Dictionary<string, object>> is
+            // Task<object>` is false: every reflective/dynamic await site has
+            // to normalize through Exchange.AsTaskOfObject (callDynamically,
+            // callDynamicallyAsync, PromiseAll, spawn, and the test harness's
+            // callExchangeMethodDynamically all do). And callAsync<T> never
+            // answers default(T) for a non-null body it could not narrow — a
+            // silent null there is what emptied parseBalance/parseTicker
+            // results under STATIC_RESPONSE; it raises instead, naming the
+            // endpoint and both shapes.
+            //
+            // A union shape has no honest narrowing (the least upper bound of
+            // Dict/List/string is object itself), so those endpoints keep
+            // object and say so in the doc comment.
+            const returns = csharpReturnType (exchange, method);
             const shape = isUnionShape (exchange, method)
                 ? `${proseReturnShape (exchange, method)}, so this endpoint keeps object`
                 : proseReturnShape (exchange, method);
             return [
                 `${IDEN}/// <summary>Calls the ${method} endpoint.</summary>`,
-                `${IDEN}/// <returns>${shape} (runtime type: ${csharpReturnType (exchange, method)})</returns>`,
-                `${IDEN}public async Task<object> ${method} (object parameters = null)`,
+                `${IDEN}/// <returns>${shape}</returns>`,
+                `${IDEN}public async Task<${returns}> ${method} (object parameters = null)`,
                 `${IDEN}{`,
-                `${IDEN}${IDEN}return await this.callAsync ("${method}",parameters);`,
+                `${IDEN}${IDEN}return await this.callAsync<${returns}> ("${method}",parameters);`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')

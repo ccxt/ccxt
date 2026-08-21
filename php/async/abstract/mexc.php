@@ -68,7 +68,7 @@ abstract class mexc extends \ccxt\async\Exchange {
         return $this->request('aggTrades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function spot_public_get_klines($params = array()) {
         return $this->request('klines', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -80,7 +80,7 @@ abstract class mexc extends \ccxt\async\Exchange {
         return $this->request('avgPrice', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function spot_public_get_ticker_24hr($params = array()) {
         return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 25));
@@ -128,7 +128,7 @@ abstract class mexc extends \ccxt\async\Exchange {
         return $this->request('openOrders', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function spot_private_get_allorders($params = array()) {
         return $this->request('allOrders', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));
@@ -1496,7 +1496,7 @@ abstract class mexc extends \ccxt\async\Exchange {
         return $this->request('aggTrades', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function spotPublicGetKlines($params = array()) {
         return $this->request('klines', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -1508,7 +1508,7 @@ abstract class mexc extends \ccxt\async\Exchange {
         return $this->request('avgPrice', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<list<mixed>>
+     * @return \React\Promise\PromiseInterface<array<string, mixed>|list<mixed>>
      */
     public function spotPublicGetTicker24hr($params = array()) {
         return $this->request('ticker/24hr', array('spot', 'public'), 'GET', $params, null, null, array("cost" => 25));
@@ -1556,7 +1556,7 @@ abstract class mexc extends \ccxt\async\Exchange {
         return $this->request('openOrders', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 3));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function spotPrivateGetAllOrders($params = array()) {
         return $this->request('allOrders', array('spot', 'private'), 'GET', $params, null, null, array("cost" => 10));

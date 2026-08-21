@@ -878,6 +878,8 @@ func (this *WhitebitCore) ParseWsOrderType(status any) any {
  * @see https://docs.whitebit.com/private/websocket/#balance-margin
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+ * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+ * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *WhitebitCore) WatchBalance(optionalArgs ...any) <-chan any {
@@ -889,8 +891,8 @@ func (this *WhitebitCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes74712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes74712)
+			retRes74912 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes74912)
 		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
@@ -905,17 +907,70 @@ func (this *WhitebitCore) WatchBalance(optionalArgs ...any) <-chan any {
 			method = "balanceMargin_subscribe"
 			messageHash = ccxt.Add(messageHash, "margin")
 		}
-		var currencies any = ccxt.ObjectKeys(this.Currencies)
+		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+		var client any = this.Client(url)
+		this.SetBalanceCache(client, typeVar, messageHash)
+		var fetchBalanceSnapshot any = nil
+		var awaitBalanceSnapshot any = nil
+		fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+		fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
+		params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
+		awaitBalanceSnapshotparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "awaitBalanceSnapshot", true)
+		awaitBalanceSnapshot = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 0)
+		params = ccxt.GetValue(awaitBalanceSnapshotparamsVariable, 1)
+		if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
 
-		retRes76115 := (<-this.WatchPrivate(messageHash, method, currencies, params))
-		ccxt.PanicOnError(retRes76115)
-		ch <- retRes76115
+			retRes77012 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+			ccxt.PanicOnError(retRes77012)
+		}
+
+		retRes77415 := (<-this.WatchPrivate(messageHash, method, []any{}, params))
+		ccxt.PanicOnError(retRes77415)
+		// an empty params array subscribes to updates for all assets,
+		// listing all tickers explicitly is rejected with "invalid argument"
+		ch <- retRes77415
 		return nil
 
 	}()
 	return ch
 }
+func (this *WhitebitCore) SetBalanceCache(client any, typeVar any, subscriptionHash any) {
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
+		return
+	}
+	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
+	if ccxt.IsTrue(fetchBalanceSnapshot) {
+		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
+		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
+			client.(ccxt.ClientInterface).Future(messageHash)
+			this.Spawn(this.LoadBalanceSnapshot, client, messageHash, typeVar, subscriptionHash)
+		}
+	}
+}
+func (this *WhitebitCore) LoadBalanceSnapshot(client any, messageHash any, typeVar any, subscriptionHash any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ccxt.ReturnPanicError(ch)
+
+		response := (<-this.FetchBalance(map[string]any{
+			"type": typeVar,
+		}))
+		ccxt.PanicOnError(response)
+		this.Balance = this.Extend(response, this.Balance)
+		// don't remove the future from the .futures cache
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+			future.(*ccxt.Future).Resolve()
+			client.(ccxt.ClientInterface).Resolve(this.Balance, subscriptionHash)
+		}
+		return nil
+	}()
+	return ch
+}
 func (this *WhitebitCore) HandleBalance(client any, message any) {
+	//
+	// spot
 	//
 	//   {
 	//       "method":"balanceSpot_update",
@@ -924,7 +979,27 @@ func (this *WhitebitCore) HandleBalance(client any, message any) {
 	//             "LTC":{
 	//                "available":"0.16587",
 	//                "freeze":"0"
+	//             },
+	//             "BTC":{
+	//                "available":"0.005",
+	//                "freeze":"0.001"
 	//             }
+	//          }
+	//       ],
+	//       "id":null
+	//   }
+	//
+	// margin
+	//
+	//   {
+	//       "method":"balanceMargin_update",
+	//       "params":[
+	//          {
+	//             "a":"USDT",         // asset
+	//             "B":"0.00538073",   // total balance
+	//             "b":"0",            // borrowed
+	//             "av":"0.00538073",  // available without borrowing
+	//             "ab":"28.43739825"  // available with borrowing
 	//          }
 	//       ],
 	//       "id":null
@@ -934,18 +1009,35 @@ func (this *WhitebitCore) HandleBalance(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(method, nil)) {
 		return
 	}
-	var data any = this.SafeValue(message, "params")
-	var balanceDict any = this.SafeValue(data, 0)
-	ccxt.AddElementToObject(this.Balance, "info", balanceDict)
-	var keys any = ccxt.ObjectKeys(balanceDict)
-	var currencyId any = this.SafeValue(keys, 0)
-	var rawBalance any = this.SafeValue(balanceDict, currencyId)
-	var code any = this.SafeCurrencyCode(currencyId)
-	var account any = this.Account()
-	ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
-	ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
-	if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
-		ccxt.AddElementToObject(this.Balance, code, account)
+	var isMargin any = (ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(method, "Margin"), 0))
+	var data any = this.SafeList(message, "params", []any{})
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
+		var balanceDict any = this.SafeDict(data, i, map[string]any{})
+		ccxt.AddElementToObject(this.Balance, "info", balanceDict)
+		if ccxt.IsTrue(isMargin) {
+			var currencyId any = this.SafeString(balanceDict, "a")
+			var code any = this.SafeCurrencyCode(currencyId)
+			var account any = this.Account()
+			ccxt.AddElementToObject(account, "free", this.SafeString(balanceDict, "av"))
+			ccxt.AddElementToObject(account, "total", this.SafeString(balanceDict, "B"))
+			ccxt.AddElementToObject(account, "debt", this.SafeString(balanceDict, "b"))
+			if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+				ccxt.AddElementToObject(this.Balance, code, account)
+			}
+		} else {
+			var keys any = ccxt.ObjectKeys(balanceDict)
+			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(keys)); j++ {
+				var currencyId any = ccxt.GetValue(keys, j)
+				var rawBalance any = this.SafeDict(balanceDict, currencyId, map[string]any{})
+				var code any = this.SafeCurrencyCode(currencyId)
+				var account any = this.Account()
+				ccxt.AddElementToObject(account, "free", this.SafeString(rawBalance, "available"))
+				ccxt.AddElementToObject(account, "used", this.SafeString(rawBalance, "freeze"))
+				if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+					ccxt.AddElementToObject(this.Balance, code, account)
+				}
+			}
+		}
 	}
 	this.Balance = this.SafeBalance(this.Balance)
 	var messageHash any = "wallet:"
@@ -974,9 +1066,9 @@ func (this *WhitebitCore) WatchPublic(messageHash any, method any, optionalArgs 
 		}
 		var message any = this.Extend(request, params)
 
-		retRes81515 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes81515)
-		ch <- retRes81515
+		retRes89215 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes89215)
+		ch <- retRes89215
 		return nil
 
 	}()
@@ -993,8 +1085,8 @@ func (this *WhitebitCore) WatchMultipleSubscription(messageHash any, method any,
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes82012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes82012)
+			retRes89712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes89712)
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		var id any = this.Nonce()
@@ -1019,9 +1111,9 @@ func (this *WhitebitCore) WatchMultipleSubscription(messageHash any, method any,
 			}
 			var message any = this.Extend(request, params)
 
-			retRes84419 := (<-this.Watch(url, messageHash, message, method, subscription))
-			ccxt.PanicOnError(retRes84419)
-			ch <- retRes84419
+			retRes92119 := (<-this.Watch(url, messageHash, message, method, subscription))
+			ccxt.PanicOnError(retRes92119)
+			ch <- retRes92119
 			return nil
 		} else {
 			var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
@@ -1037,10 +1129,10 @@ func (this *WhitebitCore) WatchMultipleSubscription(messageHash any, method any,
 			}
 			if ccxt.IsTrue(hasSymbolSubscription) {
 
-				retRes85923 := (<-this.Watch(url, messageHash, request, method, subscription))
-				ccxt.PanicOnError(retRes85923)
+				retRes93623 := (<-this.Watch(url, messageHash, request, method, subscription))
+				ccxt.PanicOnError(retRes93623)
 				// already subscribed to this market(s)
-				ch <- retRes85923
+				ch <- retRes93623
 				return nil
 			} else {
 				// resubscribe
@@ -1058,9 +1150,9 @@ func (this *WhitebitCore) WatchMultipleSubscription(messageHash any, method any,
 					ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), method)
 				}
 
-				retRes87523 := (<-this.Watch(url, messageHash, resubRequest, method, subscription))
-				ccxt.PanicOnError(retRes87523)
-				ch <- retRes87523
+				retRes95223 := (<-this.Watch(url, messageHash, resubRequest, method, subscription))
+				ccxt.PanicOnError(retRes95223)
+				ch <- retRes95223
 				return nil
 			}
 		}
@@ -1079,8 +1171,8 @@ func (this *WhitebitCore) WatchPrivate(messageHash any, method any, optionalArgs
 		_ = params
 		this.CheckRequiredCredentials()
 
-		retRes8828 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes8828)
+		retRes9598 := (<-this.Authenticate())
+		ccxt.PanicOnError(retRes9598)
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		var id any = this.Nonce()
 		var request any = map[string]any{
@@ -1090,9 +1182,9 @@ func (this *WhitebitCore) WatchPrivate(messageHash any, method any, optionalArgs
 		}
 		var message any = this.Extend(request, params)
 
-		retRes89115 := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(retRes89115)
-		ch <- retRes89115
+		retRes96815 := (<-this.Watch(url, messageHash, message, messageHash))
+		ccxt.PanicOnError(retRes96815)
+		ch <- retRes96815
 		return nil
 
 	}()
@@ -1107,59 +1199,120 @@ func (this *WhitebitCore) Authenticate(optionalArgs ...any) <-chan any {
 		_ = params
 		this.CheckRequiredCredentials()
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-		var messageHash any = "authenticated"
 		var client any = this.Client(url)
-		var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+		var subscribeHash any = "authenticated"
+		// handleAuthenticate () resolves the handshake future with 1, so 1 is
+		// the authorized sentinel authenticate () has always returned - every
+		// path below hands back that same value
+		var authorized any = 1
+		// single-flight leader election, see
+		// https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+		// subscriptions['authenticated'], which watch () only registers once
+		// the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
+		// every concurrent cold caller used to pass that gate, burn a
+		// rate-limited private REST call for its own websocket_token and push
+		// its own authorize frame down the shared socket. the flight is
+		// registered in client.futures on the very client that carries the
+		// handshake, under a key that is not one of the exchange's own
+		// messageHashes, and is settled through client.resolve () /
+		// client.reject () so every write to that map goes through the
+		// client's own accessors
+		var messageHash any = "authenticateFlight"
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader settles
+			// it, the socket is authorized by then. the flight gate is
+			// checked before the subscriptions one because watch () registers
+			// subscriptions['authenticated'] immediately, long before the
+			// venue acks the authorize frame
 
-			authToken := (<-this.V4PrivatePostProfileWebsocketToken())
-			ccxt.PanicOnError(authToken)
-			//
-			//   {
-			//       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
-			//   }
-			//
-			var token any = this.SafeString(authToken, "websocket_token")
-			var id any = this.Nonce()
-			var request any = map[string]any{
-				"id":     id,
-				"method": "authorize",
-				"params": []any{token, "public"},
-			}
-			var subscription any = map[string]any{
-				"id":     id,
-				"method": this.HandleAuthenticate,
-			}
+			retRes99912 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes99912)
 
-			{
-				func(this *WhitebitCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *WhitebitCore) any {
-								// catch block:
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-								future.(*ccxt.Future).Reject(e)
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-
-					retRes92316 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-					ccxt.PanicOnError(retRes92316)
-					return nil
-				}(this)
-
-			}
+			ch <- authorized
+			return nil
 		}
+		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+		if ccxt.IsTrue(!ccxt.IsEqual(authenticated, nil)) {
 
-		retRes92915 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes92915)
-		ch <- retRes92915
+			// a previous flight already completed the handshake on the client
+			ch <- authorized
+			return nil
+		}
+		// register the flight BEFORE the first await, so a caller arriving
+		// during the fetch or the authorize round-trip finds it and waits
+		// instead of re-leading, and so client.reject () below always has a
+		// waiter and can never park the error in client.rejections
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *WhitebitCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *WhitebitCore) any {
+							// catch block:
+							// drop the handshake state so the next caller can retry: watch ()
+							// registers subscriptions['authenticated'] before it connects and
+							// parks a rejected future under the same key when the dial fails,
+							// and either one left behind would make every later authenticate ()
+							// replay that failure. the stale future is settled through
+							// client.reject () - guarded, so it always has a waiter and the
+							// error is never parked in client.rejections
+							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+							}
+							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subscribeHash)) {
+								client.(ccxt.ClientInterface).Reject(e, subscribeHash)
+							}
+							// reject the flight - the leader and every waiter throw and the
+							// next caller re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				authToken := (<-this.V4PrivatePostProfileWebsocketToken())
+				ccxt.PanicOnError(authToken)
+				//
+				//   {
+				//       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
+				//   }
+				//
+				var token any = this.SafeString(authToken, "websocket_token")
+				if ccxt.IsTrue(ccxt.IsEqual(token, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty websocket_token")))
+				}
+				var id any = this.Nonce()
+				var request any = map[string]any{
+					"id":     id,
+					"method": "authorize",
+					"params": []any{token, "public"},
+				}
+				var subscription any = map[string]any{
+					"id":     id,
+					"method": this.HandleAuthenticate,
+				}
+
+				retRes103812 := (<-this.Watch(url, subscribeHash, request, subscribeHash, subscription))
+				ccxt.PanicOnError(retRes103812)
+				// settle the flight and wake every waiter - resolve () also drops
+				// the registry entry, so a later cold call can re-lead
+				client.(ccxt.ClientInterface).Resolve(authorized, messageHash)
+				return nil
+			}(this)
+
+		}
+		// rethrows the failure to the leader and attaches the handler that
+		// keeps an alone-leader rejection from crashing the process
+
+		retRes10628 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes10628)
+
+		ch <- authorized
 		return nil
 
 	}()

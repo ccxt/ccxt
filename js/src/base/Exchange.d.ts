@@ -315,6 +315,13 @@ export declare class BaseExchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion(): string;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -471,6 +478,7 @@ export declare class BaseExchange {
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
     client(url: Str): WsClient;
+    calculateWsBackoffDelay(url: string): number;
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
     watch(url: Str, messageHash: Str, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
@@ -483,6 +491,7 @@ export declare class BaseExchange {
     arraySlice(array: any, first: any, second?: Int): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
+    isDictionary(value: any): boolean;
     exceptionMessage(exc: any, includeStack?: boolean): string;
     fixStringifiedJsonMembers(content: string): string;
     ethAbiEncode(types: any, args: any): Uint8Array<ArrayBufferLike>;
@@ -548,7 +557,6 @@ export declare class BaseExchange {
     safeDict2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: Dictionary<any>): Dictionary<any> | undefined;
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue: any[]): any[];
     safeListN(dictionaryOrList: any, keys: NullableIndexType[], defaultValue?: any[]): any[] | undefined;
-    isDictionary(value: any): boolean;
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue: any[]): any[];
     safeList2(dictionaryOrList: any, key1: NullableIndexType, key2: string, defaultValue?: any[]): any[] | undefined;
     safeList(dictionaryOrList: any, key: NullableIndexType, defaultValue: any[]): any[];

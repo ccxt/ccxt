@@ -32,6 +32,7 @@ class okx extends okx$1["default"] {
                 'future': true,
                 'option': true,
                 'addMargin': true,
+                'borrowCrossMargin': true,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -121,6 +122,7 @@ class okx extends okx$1["default"] {
                 'fetchOrderTrades': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': 'emulated',
+                'fetchPositionMode': true,
                 'fetchPositions': true,
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': true,
@@ -357,6 +359,16 @@ class okx extends okx$1["default"] {
                         'asset/convert/currencies': { 'cost': 5 / 3 },
                         'asset/convert/currency-pair': { 'cost': 5 / 3 },
                         'asset/convert/history': { 'cost': 5 / 3 },
+                        // fiat
+                        'fiat/deposit-payment-methods': { 'cost': 10 / 3 },
+                        'fiat/withdrawal-payment-methods': { 'cost': 10 / 3 },
+                        'fiat/deposit-order-history': { 'cost': 10 / 3 },
+                        'fiat/deposit': { 'cost': 10 / 3 },
+                        'fiat/withdrawal-order-history': { 'cost': 10 / 3 },
+                        'fiat/withdrawal': { 'cost': 10 / 3 },
+                        'fiat/buy-sell/currencies': { 'cost': 5 / 3 },
+                        'fiat/buy-sell/currency-pair': { 'cost': 5 / 3 },
+                        'fiat/buy-sell/history': { 'cost': 5 / 3 },
                         // account
                         'account/instruments': { 'cost': 1 },
                         'account/balance': { 'cost': 2 },
@@ -538,6 +550,11 @@ class okx extends okx$1["default"] {
                         'asset/monthly-statement': { 'cost': 1296000 }, // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote': { 'cost': 50 },
                         'asset/convert/trade': { 'cost': 1 },
+                        // fiat
+                        'fiat/create-withdrawal': { 'cost': 10 / 3 },
+                        'fiat/cancel-withdrawal': { 'cost': 10 / 3 },
+                        'fiat/buy-sell/quote': { 'cost': 50 },
+                        'fiat/buy-sell/trade': { 'cost': 50 },
                         // account
                         'account/bills-history-archive': { 'cost': 72000 }, // 12 req/day
                         'account/set-position-mode': { 'cost': 4 },
@@ -2397,7 +2414,7 @@ class okx extends okx$1["default"] {
         symbols = this.marketSymbols(symbols);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
-        [marketType, params] = this.handleMarketTypeAndParams('fetchTickers', market, params, 'swap');
+        [marketType, params] = this.handleMarketTypeAndParams('fetchMarkPrices', market, params, 'swap');
         const request = {
             'instType': this.convertToInstrumentType(marketType),
         };
@@ -7357,7 +7374,7 @@ class okx extends okx$1["default"] {
         return {
             'currency': this.safeCurrencyCode(ccy),
             'rate': this.safeNumber2(info, 'interestRate', 'rate'),
-            'period': 86400000,
+            'period': 3600000, // GET /api/v5/account/interest-rate returns the hourly borrowing interest rate
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': info,
@@ -7384,6 +7401,8 @@ class okx extends okx$1["default"] {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate(item);
+                // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+                borrowRateStructure['period'] = 31536000000;
                 const borrrowRateCode = borrowRateHistories[code];
                 borrrowRateCode.push(borrowRateStructure);
             }

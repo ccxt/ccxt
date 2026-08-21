@@ -80,6 +80,7 @@ public partial class phemex : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPositionADLRank", true },
+                { "fetchPositionHistory", true },
                 { "fetchPositions", true },
                 { "fetchPositionsADLRank", true },
                 { "fetchPositionsRisk", false },
@@ -1522,6 +1523,10 @@ public partial class phemex : Exchange
 
     public virtual object toEn(object n, object scale)
     {
+        if (isTrue(isTrue((isEqual(n, null))) || isTrue((isEqual(scale, null)))))
+        {
+            return null;
+        }
         object stringN = this.numberToString(n);
         var precise = new Precise(((string)stringN));
         precise.decimals = subtract(precise.decimals, scale);
@@ -1536,7 +1541,7 @@ public partial class phemex : Exchange
         {
             return amount;
         }
-        return this.toEn(amount, getValue(market, "valueScale"));
+        return this.toEn(amount, this.safeInteger(market, "valueScale"));
     }
 
     public virtual object toEp(object price, object market = null)
@@ -1545,7 +1550,7 @@ public partial class phemex : Exchange
         {
             return price;
         }
-        return this.toEn(price, this.safeValue(market, "priceScale"));
+        return this.toEn(price, this.safeInteger(market, "priceScale"));
     }
 
     public virtual object fromEn(object en, object scale)
@@ -3132,10 +3137,10 @@ public partial class phemex : Exchange
             ((IDictionary<string,object>)request)["posSide"] = posSide;
             if (isTrue(isStableSettled))
             {
-                ((IDictionary<string,object>)request)["orderQtyRq"] = amount;
+                ((IDictionary<string,object>)request)["orderQtyRq"] = this.amountToPrecision(symbol, amount);
             } else
             {
-                ((IDictionary<string,object>)request)["orderQty"] = this.parseToInt(amount);
+                ((IDictionary<string,object>)request)["orderQty"] = this.parseToInt(this.amountToPrecision(symbol, amount));
             }
             if (isTrue(!isEqual(triggerPrice, null)))
             {
@@ -4320,7 +4325,7 @@ public partial class phemex : Exchange
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
@@ -6128,7 +6133,7 @@ public partial class phemex : Exchange
 
     /**
      * @method
-     * @name phemex#fetchPositionADLRank
+     * @name phemex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -6136,7 +6141,7 @@ public partial class phemex : Exchange
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)

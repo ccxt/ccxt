@@ -6,8 +6,7 @@
 from ccxt.async_support.base.prediction_exchange import PredictionExchange
 from ccxt.abstract.prediction.hyperliquid import ImplicitAPI
 import asyncio
-from ccxt.base.types import Any, Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
-from typing import List
+from ccxt.base.types import Balances, Int, Market, Num, Str, Strings, PredictionEvent, fetchEventsParams, PredictionTicker, PredictionTickers, PredictionOrder, PredictionOrderBook, PredictionTrade, PredictionPosition
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
@@ -19,7 +18,7 @@ from ccxt.base.precise import Precise
 
 class hyperliquid(PredictionExchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'id': 'hyperliquid',
             'name': 'Hyperliquid',
@@ -317,7 +316,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             return self.shorten_slug(name) + '_' + str(outcomeId)
         return 'OUTCOME_' + str(outcomeId)
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         Retrieves all Hyperliquid outcome markets from outcomeMeta.
  Each binary outcome becomes one CCXT prediction market with two outcomes: YES and NO.
@@ -746,7 +745,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orderbook = self.parse_order_book({'bids': bids, 'asks': asks}, self.safe_string(outcomeObj, 'outcome', outcome), timestamp)
         return self.safe_prediction_order_book(orderbook, outcomeObj)
 
-    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, outcome: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches candlestick OHLCV data for an outcome market
 
@@ -808,7 +807,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             candles = response
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         """
  @ignore
         parses a single hyperliquid candle object into a CCXT OHLCV tuple
@@ -881,7 +880,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 result[coin] = account
         return self.safe_balance(result)
 
-    async def fetch_positions(self, outcomes: Strings = None, params={}) -> List[PredictionPosition]:
+    async def fetch_positions(self, outcomes: Strings = None, params={}) -> list[PredictionPosition]:
         """
         fetches the user's outcome positions; outcome positions are spot token balances under the "+<encoding>" coin form(size and entry notional), the value/entry/mark price/pnl are computed from the current mid prices
 
@@ -1223,7 +1222,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orders = await self.cancel_orders([id], outcome, params)
         return self.safe_dict(orders, 0)
 
-    async def cancel_orders(self, ids: List[str], outcome: Str = None, params={}) -> List[PredictionOrder]:
+    async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels multiple open orders
 
@@ -1304,7 +1303,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             orders.append(self.safe_prediction_order(order))
         return orders
 
-    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches currently open orders for the user
 
@@ -1339,7 +1338,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         return self.filter_by_outcome_since_limit(parsed, outcomeHandle, since, limit)
 
-    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
+    async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
         fetches all historical orders for the user
 
@@ -1528,7 +1527,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         tifLower = timeInForce.lower() if timeInForce else None
         return self.safe_string(statuses, tifLower, timeInForce)
 
-    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches the most recent public trades for an outcome
 
@@ -1556,7 +1555,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             trades = self.to_array(response)
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
-    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
+    async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
         fetches the authenticated user's fill history
 
@@ -1665,7 +1664,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'fee': feeObject,
         }, resolvedMarket)
 
-    async def fetch_events(self, params: fetchEventsParams = {}) -> List[PredictionEvent]:
+    async def fetch_events(self, params: fetchEventsParams = {}) -> list[PredictionEvent]:
         """
         Groups outcome markets by their underlying(e.g. BTC_ABOVE_78213) into event structures. Each event contains both the YES and NO markets.
         :param dict [params]: extra parameters
@@ -1743,7 +1742,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         # so getEvent() resolves these events by any of the three keys
         return self.apply_event_fetch_params(events, params, queries)
 
-    def parse_event(self, raw: dict) -> Any:
+    def parse_event(self, raw: dict) -> object:
         """
  @ignore
         parses a grouped set of outcome markets into a unified prediction event object
@@ -1804,7 +1803,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'info': raw,
         })
 
-    def amount_to_precision(self, outcome: Str, amount: Any) -> str:
+    def amount_to_precision(self, outcome: Str, amount: object) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'amount', 0.0001)
         # Convert precision to decimal places
@@ -1815,7 +1814,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(amount, 1, decimals, 2, self.paddingMode)
 
-    def price_to_precision(self, outcome: Str, price: Any) -> str:
+    def price_to_precision(self, outcome: Str, price: object) -> str:
         market = self.market(outcome)
         prec = self.safe_number(self.safe_dict(market, 'precision', {}), 'price', 0.0001)
         decimals = 4
@@ -1825,7 +1824,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             decimals = self.precision_from_string(self.number_to_string(prec))
         return self.decimal_to_precision(price, 1, decimals, 2, self.paddingMode)
 
-    def hash_message(self, message: Any) -> str:
+    def hash_message(self, message: object) -> str:
         return '0x' + self.hash(message, 'keccak', 'hex')
 
     def sign_hash(self, hash: str, privateKey: str) -> dict:
@@ -1842,17 +1841,17 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             'v': self.sum(27, signature['v']),  # ecrecover needs v in {27,28}, self.ecdsareturns the raw {0,1} recovery id
         }
 
-    def sign_message(self, message: Any, privateKey: str) -> dict:
+    def sign_message(self, message: object, privateKey: str) -> dict:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    def construct_phantom_agent(self, hash: Any, isTestnet=True) -> dict:
+    def construct_phantom_agent(self, hash: object, isTestnet=True) -> dict:
         source = 'b' if isTestnet else 'a'
         return {
             'source': source,
             'connectionId': hash,
         }
 
-    def action_hash(self, action: dict, vaultAddress: Str, nonce: float) -> Any:
+    def action_hash(self, action: dict, vaultAddress: Str, nonce: float) -> object:
         dataBinary = self.packb(action)
         dataHex = self.binary_to_base16(dataBinary)
         data = dataHex
@@ -1909,7 +1908,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         return self.sign_user_signed_action(messageTypes, message)
 
-    async def approve_builder_fee(self, builder: str, maxFeeRate: str) -> Any:
+    async def approve_builder_fee(self, builder: str, maxFeeRate: str) -> object:
         """
  @ignore
         approves the builder for the given max fee rate, required before orders can carry a builder attribution
@@ -1942,7 +1941,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         }
         return await self.privatePostExchange(request)
 
-    async def initialize_client(self) -> Any:
+    async def initialize_client(self) -> object:
         # createOrder/createOrders call self before trading; load markets so the order builder can
         # resolve the outcome's market and precision. loading them also keeps self method genuinely
         # async for the PHP and typed transpilers, which mishandle an async body that never suspends
@@ -1963,7 +1962,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             self.options['builderFee'] = False  # disable builder fee if an error occurs
         return None
 
-    def handle_public_address(self, methodName: str, params: dict) -> Any:
+    def handle_public_address(self, methodName: str, params: dict) -> object:
         userAux = None
         userAux, params = self.handle_option_and_params_2(params, methodName, 'user', 'subAccountAddress')
         user = userAux
@@ -1982,7 +1981,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             normalized = normalized[2:]
         return normalized.lower()
 
-    def sign(self, path: Any, api: Any = 'public', method='POST', params={}, headers: Any = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='POST', params={}, headers: object = None, body: object = None):
         apiGroup = api[0] if isinstance(api, list) else api
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         baseUrl: str
@@ -1998,7 +1997,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None
         status = self.safe_string(response, 'status', '')
@@ -2021,7 +2020,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise ExchangeError(feedback)
         return None
 
-    def calculate_rate_limiter_cost(self, api: Any, method: Any, path: Any, params: Any, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
         if ('byType' in config) and ('type' in params):
             type = params['type']
             byType = config['byType']

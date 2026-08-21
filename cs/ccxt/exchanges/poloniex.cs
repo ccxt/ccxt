@@ -493,8 +493,8 @@ public partial class poloniex : Exchange
                 { "networks", new Dictionary<string, object>() {
                     { "BEP20", "BSC" },
                     { "ERC20", "ETH" },
-                    { "TRC20", "TRON" },
-                    { "TRX", "TRON" },
+                    { "TRC20", "TRX" },
+                    { "TRX", "TRX" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "TRX", "TRC20" },
@@ -710,10 +710,10 @@ public partial class poloniex : Exchange
                     { "21356", typeof(BadRequest) },
                     { "21721", typeof(InsufficientFunds) },
                     { "24101", typeof(BadSymbol) },
-                    { "24102", typeof(InvalidOrder) },
-                    { "24103", typeof(InvalidOrder) },
-                    { "24104", typeof(InvalidOrder) },
-                    { "24105", typeof(InvalidOrder) },
+                    { "24102", typeof(BadRequest) },
+                    { "24103", typeof(BadRequest) },
+                    { "24104", typeof(BadRequest) },
+                    { "24105", typeof(BadRequest) },
                     { "25020", typeof(InvalidOrder) },
                     { "25000", typeof(InvalidOrder) },
                     { "25001", typeof(InvalidOrder) },
@@ -735,6 +735,44 @@ public partial class poloniex : Exchange
                     { "25017", typeof(ExchangeError) },
                     { "25018", typeof(BadRequest) },
                     { "25019", typeof(BadSymbol) },
+                    { "820181", typeof(BadRequest) },
+                    { "820201", typeof(BadRequest) },
+                    { "830111", typeof(BadRequest) },
+                    { "250", typeof(DuplicateOrderId) },
+                    { "400", typeof(BadRequest) },
+                    { "403", typeof(PermissionDenied) },
+                    { "404", typeof(BadRequest) },
+                    { "429", typeof(RateLimitExceeded) },
+                    { "503", typeof(ExchangeNotAvailable) },
+                    { "1000", typeof(AuthenticationError) },
+                    { "1001", typeof(ExchangeError) },
+                    { "1002", typeof(OnMaintenance) },
+                    { "1003", typeof(AccountSuspended) },
+                    { "10000", typeof(MarketClosed) },
+                    { "10001", typeof(BadSymbol) },
+                    { "10002", typeof(InvalidOrder) },
+                    { "10003", typeof(InvalidOrder) },
+                    { "10004", typeof(InvalidOrder) },
+                    { "10005", typeof(MarketClosed) },
+                    { "10006", typeof(OperationRejected) },
+                    { "10007", typeof(OperationRejected) },
+                    { "10008", typeof(AccountSuspended) },
+                    { "10009", typeof(OperationRejected) },
+                    { "10010", typeof(InvalidOrder) },
+                    { "10011", typeof(InvalidOrder) },
+                    { "10012", typeof(InvalidOrder) },
+                    { "10013", typeof(InvalidOrder) },
+                    { "10014", typeof(BadRequest) },
+                    { "10015", typeof(OperationRejected) },
+                    { "10016", typeof(BadRequest) },
+                    { "10017", typeof(BadRequest) },
+                    { "10018", typeof(OperationRejected) },
+                    { "10019", typeof(OperationRejected) },
+                    { "11003", typeof(BadRequest) },
+                    { "11004", typeof(OperationRejected) },
+                    { "11008", typeof(OrderNotFound) },
+                    { "12004", typeof(PermissionDenied) },
+                    { "21001", typeof(OperationRejected) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
@@ -837,10 +875,6 @@ public partial class poloniex : Exchange
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(getValue(market, "contract")))
         {
-            if (isTrue(this.inArray(timeframe, new List<object>() {"10m", "1M"})))
-            {
-                throw new NotSupported ((string)add(add(add(add(add(this.id, " "), timeframe), " "), getValue(market, "type")), " fetchOHLCV is not supported")) ;
-            }
             object responseRaw = await this.swapPublicGetV3MarketCandles(this.extend(request, parameters));
             //
             //     {
@@ -1249,6 +1283,12 @@ public partial class poloniex : Exchange
         object timestamp = this.safeInteger2(ticker, "ts", "cT");
         object marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
+        object baseVolume = this.safeString2(ticker, "quantity", "qty");
+        if (isTrue(isTrue(getValue(market, "contract")) && isTrue((!isEqual(getValue(market, "contractSize"), null)))))
+        {
+            // 'quantity' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(getValue(market, "contractSize")));
+        }
         object relativeChange = this.safeString2(ticker, "dailyChange", "dc");
         object percentage = Precise.stringMul(relativeChange, "100");
         return this.safeTicker(new Dictionary<string, object>() {
@@ -1269,7 +1309,7 @@ public partial class poloniex : Exchange
             { "change", null },
             { "percentage", percentage },
             { "average", null },
-            { "baseVolume", this.safeString2(ticker, "quantity", "qty") },
+            { "baseVolume", baseVolume },
             { "quoteVolume", this.safeString2(ticker, "amount", "amt") },
             { "markPrice", this.safeString2(ticker, "markPrice", "mPx") },
             { "indexPrice", this.safeString(ticker, "iPx") },
@@ -2271,6 +2311,7 @@ public partial class poloniex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -2403,11 +2444,13 @@ public partial class poloniex : Exchange
             object priceKey = ((bool) isTrue(getValue(market, "spot"))) ? "price" : "px";
             ((IDictionary<string,object>)request)[(string)priceKey] = this.priceToPrecision(symbol, price);
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
-            ((IDictionary<string,object>)request)["clientOrderId"] = clientOrderId;
-            parameters = this.omit(parameters, "clientOrderId");
+            // the futures v3 api silently ignores the spot key and generates its own id
+            object clientOrderIdKey = ((bool) isTrue(getValue(market, "spot"))) ? "clientOrderId" : "clOrdId";
+            ((IDictionary<string,object>)request)[(string)clientOrderIdKey] = clientOrderId;
+            parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
         }
         // remember the timestamp before issuing the request
         return new List<object>() {request, parameters};
@@ -2427,6 +2470,7 @@ public partial class poloniex : Exchange
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+     * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -4151,10 +4195,9 @@ public partial class poloniex : Exchange
         object responseCode = this.safeString(response, "code");
         if (isTrue(isTrue((!isEqual(responseCode, null))) && isTrue((!isEqual(responseCode, "200")))))
         {
-            object codeInner = getValue(response, "code");
-            object message = this.safeString(response, "message");
+            object message = this.safeString2(response, "message", "msg");
             object feedback = add(add(this.id, " "), body);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), codeInner, feedback);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), responseCode, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)feedback) ;
         }

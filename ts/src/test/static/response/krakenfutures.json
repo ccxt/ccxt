@@ -3,6 +3,528 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchLedger": [
+            {
+                "description": "fetch ledger: cash legs parsed, position-size legs (asset == contract) filtered out",
+                "method": "fetchLedger",
+                "input": [],
+                "httpResponse": {
+                    "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
+                    "logs": [
+                        {
+                            "asset": "usd",
+                            "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+                            "contract": "pf_dogeusd",
+                            "date": "2026-08-11T19:55:24.251Z",
+                            "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                            "fee": 0.0035,
+                            "funding_rate": 1.129880786375e-06,
+                            "id": 9,
+                            "info": "futures trade",
+                            "margin_account": "flex",
+                            "mark_price": 0.07091471613,
+                            "new_balance": 0,
+                            "old_balance": 0.0077,
+                            "realized_funding": null,
+                            "realized_pnl": -0.0042,
+                            "trade_price": 0.070914
+                        },
+                        {
+                            "asset": "pf_dogeusd",
+                            "booking_uid": "628c1448-0c16-4b32-8de8-bd7fa44c81aa",
+                            "contract": "pf_dogeusd",
+                            "date": "2026-08-11T19:55:24.251Z",
+                            "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                            "fee": null,
+                            "funding_rate": null,
+                            "id": 6,
+                            "info": "futures trade",
+                            "margin_account": "flex",
+                            "mark_price": 0.07091471613,
+                            "new_balance": 0,
+                            "old_balance": 100,
+                            "realized_funding": null,
+                            "realized_pnl": null,
+                            "trade_price": 0.070914
+                        },
+                        {
+                            "asset": "usdt",
+                            "booking_uid": "36e3bc00-fc06-428c-b152-fd62b259f4ee",
+                            "contract": null,
+                            "date": "2026-08-11T19:55:24.251Z",
+                            "execution": null,
+                            "fee": null,
+                            "funding_rate": null,
+                            "id": 7,
+                            "info": "conversion",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_balance": 24.98878873,
+                            "old_balance": 24.9964965,
+                            "realized_funding": null,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": 0
+                        },
+                        {
+                            "asset": "usd",
+                            "booking_uid": "72d0ea87-19b6-45c4-b7d0-1d69bc9f2c88",
+                            "contract": "pf_xrpusd",
+                            "date": "2026-08-10T16:00:00.000Z",
+                            "execution": null,
+                            "fee": null,
+                            "funding_rate": 5.44e-06,
+                            "id": 2,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": 1.01013,
+                            "new_balance": 1068.0355,
+                            "old_balance": 1068.0239,
+                            "realized_funding": 0.0116,
+                            "realized_pnl": null,
+                            "trade_price": null
+                        },
+                        {
+                            "asset": "usdt",
+                            "booking_uid": "9571a1b8-2dec-4e07-a24c-d5a411d69987",
+                            "contract": null,
+                            "date": "2026-08-11T19:47:59.088Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": null,
+                            "id": 1,
+                            "info": "cross-exchange transfer",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_balance": 25,
+                            "old_balance": 0,
+                            "realized_funding": null,
+                            "realized_pnl": null,
+                            "trade_price": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "2",
+                        "timestamp": 1786377600000,
+                        "datetime": "2026-08-10T16:00:00.000Z",
+                        "direction": "in",
+                        "account": "flex",
+                        "referenceId": "72d0ea87-19b6-45c4-b7d0-1d69bc9f2c88",
+                        "referenceAccount": null,
+                        "type": "fee",
+                        "currency": "USD",
+                        "amount": 0.0116,
+                        "before": 1068.0239,
+                        "after": 1068.0355,
+                        "status": "ok",
+                        "fee": {
+                            "cost": null,
+                            "currency": "USD"
+                        },
+                        "info": {
+                            "asset": "usd",
+                            "booking_uid": "72d0ea87-19b6-45c4-b7d0-1d69bc9f2c88",
+                            "contract": "pf_xrpusd",
+                            "date": "2026-08-10T16:00:00.000Z",
+                            "execution": null,
+                            "fee": null,
+                            "funding_rate": 5.44e-06,
+                            "id": 2,
+                            "info": "funding rate change",
+                            "margin_account": "flex",
+                            "mark_price": 1.01013,
+                            "new_balance": 1068.0355,
+                            "old_balance": 1068.0239,
+                            "realized_funding": 0.0116,
+                            "realized_pnl": null,
+                            "trade_price": null
+                        }
+                    },
+                    {
+                        "id": "1",
+                        "timestamp": 1786477679088,
+                        "datetime": "2026-08-11T19:47:59.088Z",
+                        "direction": "in",
+                        "account": "flex",
+                        "referenceId": "9571a1b8-2dec-4e07-a24c-d5a411d69987",
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "amount": 25,
+                        "before": 0,
+                        "after": 25,
+                        "status": "ok",
+                        "fee": {
+                            "cost": 0,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "asset": "usdt",
+                            "booking_uid": "9571a1b8-2dec-4e07-a24c-d5a411d69987",
+                            "contract": null,
+                            "date": "2026-08-11T19:47:59.088Z",
+                            "execution": null,
+                            "fee": 0,
+                            "funding_rate": null,
+                            "id": 1,
+                            "info": "cross-exchange transfer",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_balance": 25,
+                            "old_balance": 0,
+                            "realized_funding": null,
+                            "realized_pnl": null,
+                            "trade_price": null
+                        }
+                    },
+                    {
+                        "id": "9",
+                        "timestamp": 1786478124251,
+                        "datetime": "2026-08-11T19:55:24.251Z",
+                        "direction": "out",
+                        "account": "flex",
+                        "referenceId": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "USD",
+                        "amount": 0.0042,
+                        "before": 0.0077,
+                        "after": 0,
+                        "status": "ok",
+                        "fee": {
+                            "cost": 0.0035,
+                            "currency": "USD"
+                        },
+                        "info": {
+                            "asset": "usd",
+                            "booking_uid": "10ca244e-1b73-4467-8c3c-74539c7ae677",
+                            "contract": "pf_dogeusd",
+                            "date": "2026-08-11T19:55:24.251Z",
+                            "execution": "a59b8e24-89d8-4553-a084-b2de96dba5d3",
+                            "fee": 0.0035,
+                            "funding_rate": 1.129880786375e-06,
+                            "id": 9,
+                            "info": "futures trade",
+                            "margin_account": "flex",
+                            "mark_price": 0.07091471613,
+                            "new_balance": 0,
+                            "old_balance": 0.0077,
+                            "realized_funding": null,
+                            "realized_pnl": -0.0042,
+                            "trade_price": 0.070914
+                        }
+                    },
+                    {
+                        "id": "7",
+                        "timestamp": 1786478124251,
+                        "datetime": "2026-08-11T19:55:24.251Z",
+                        "direction": "out",
+                        "account": "flex",
+                        "referenceId": "36e3bc00-fc06-428c-b152-fd62b259f4ee",
+                        "referenceAccount": null,
+                        "type": "trade",
+                        "currency": "USDT",
+                        "amount": 0.00770777,
+                        "before": 24.9964965,
+                        "after": 24.98878873,
+                        "status": "ok",
+                        "fee": {
+                            "cost": null,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "asset": "usdt",
+                            "booking_uid": "36e3bc00-fc06-428c-b152-fd62b259f4ee",
+                            "contract": null,
+                            "date": "2026-08-11T19:55:24.251Z",
+                            "execution": null,
+                            "fee": null,
+                            "funding_rate": null,
+                            "id": 7,
+                            "info": "conversion",
+                            "margin_account": "flex",
+                            "mark_price": null,
+                            "new_balance": 24.98878873,
+                            "old_balance": 24.9964965,
+                            "realized_funding": null,
+                            "realized_pnl": null,
+                            "trade_price": null,
+                            "conversion_spread_percentage": 0
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees resolving the 30-day volume tier (single mocked body serves both the public feeschedules call and the private volumes call)",
+                "method": "fetchTradingFees",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "serverTime": "2026-08-11T13:08:44Z",
+                    "feeSchedules": [
+                        {
+                            "uid": "abb50ea3-4fc9-401c-8d83-518610b16d8c",
+                            "name": "PGB Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        {
+                            "uid": "483158cd-ff99-4c0a-865b-290844f60ee9",
+                            "name": "MTF Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                }
+                            ]
+                        },
+                        {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        }
+                    ],
+                    "volumesByFeeSchedule": {
+                        "97ae0cc8-2964-43ea-91e9-d8e720b02b19": 7500000,
+                        "483158cd-ff99-4c0a-865b-290844f60ee9": 0
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USD:BTC": {
+                        "info": {
+                            "uid": "483158cd-ff99-4c0a-865b-290844f60ee9",
+                            "name": "MTF Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                }
+                            ]
+                        },
+                        "symbol": "BTC/USD:BTC",
+                        "maker": 0.0002,
+                        "taker": 0.0005,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "BTC/USD:USD": {
+                        "info": {
+                            "uid": "abb50ea3-4fc9-401c-8d83-518610b16d8c",
+                            "name": "PGB Fee Schedule",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "BTC/USD:USD",
+                        "maker": 0.0002,
+                        "taker": 0.0005,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "DOGE/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "DOGE/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "ETH/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "ETH/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "FTM/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "FTM/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "LTC/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "LTC/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    },
+                    "PEPE/USD:USD": {
+                        "info": {
+                            "uid": "97ae0cc8-2964-43ea-91e9-d8e720b02b19",
+                            "name": "MTF Linear Rebate Fees",
+                            "tiers": [
+                                {
+                                    "makerFee": 0.02,
+                                    "takerFee": 0.05,
+                                    "usdVolume": 0
+                                },
+                                {
+                                    "makerFee": 0.0175,
+                                    "takerFee": 0.045,
+                                    "usdVolume": 5000000
+                                },
+                                {
+                                    "makerFee": 0.015,
+                                    "takerFee": 0.04,
+                                    "usdVolume": 10000000
+                                }
+                            ]
+                        },
+                        "symbol": "PEPE/USD:USD",
+                        "maker": 0.000175,
+                        "taker": 0.00045,
+                        "percentage": true,
+                        "tierBased": true
+                    }
+                }
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "user trades",
@@ -108,6 +630,118 @@
                                 "rate": 0.00075
                             }
                         ]
+                    }
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "open positions, regression test for #29710 (must not silently return [] when openPositions is present)",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "openPositions": [
+                        {
+                            "side": "long",
+                            "symbol": "PF_LTCUSD",
+                            "price": "68.54",
+                            "fillTime": "2024-02-06T22:24:34.849Z",
+                            "size": "0.1",
+                            "unrealizedPnl": "-0.08",
+                            "unrealizedFunding": "-0.001878596918214635"
+                        }
+                    ],
+                    "serverTime": "2024-02-06T22:25:22.290Z"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "side": "long",
+                            "symbol": "PF_LTCUSD",
+                            "price": "68.54",
+                            "fillTime": "2024-02-06T22:24:34.849Z",
+                            "size": "0.1",
+                            "unrealizedPnl": "-0.08",
+                            "unrealizedFunding": "-0.001878596918214635"
+                        },
+                        "symbol": "LTC/USD:USD",
+                        "timestamp": 1707258274849,
+                        "datetime": "2024-02-06T22:24:34.849Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 68.54,
+                        "notional": null,
+                        "leverage": null,
+                        "unrealizedPnl": -0.08,
+                        "contracts": 0.1,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "collateral": null,
+                        "marginType": "cross",
+                        "side": "long",
+                        "percentage": null
+                    }
+                ]
+            },
+            {
+                "description": "open positions with isolated margin, regression test for #29933",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "result": "success",
+                    "openPositions": [
+                        {
+                            "side": "long",
+                            "symbol": "PF_LTCUSD",
+                            "price": "68.54",
+                            "fillTime": "2024-02-06T22:24:34.849Z",
+                            "size": "0.1",
+                            "unrealizedPnl": "12.34",
+                            "unrealizedFunding": "-0.001878596918214635",
+                            "pnlCurrency": "USD",
+                            "maxFixedLeverage": "1.0"
+                        }
+                    ],
+                    "serverTime": "2024-02-06T22:25:22.290Z"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "side": "long",
+                            "symbol": "PF_LTCUSD",
+                            "price": "68.54",
+                            "fillTime": "2024-02-06T22:24:34.849Z",
+                            "size": "0.1",
+                            "unrealizedPnl": "12.34",
+                            "unrealizedFunding": "-0.001878596918214635",
+                            "pnlCurrency": "USD",
+                            "maxFixedLeverage": "1.0"
+                        },
+                        "symbol": "LTC/USD:USD",
+                        "timestamp": 1707258274849,
+                        "datetime": "2024-02-06T22:24:34.849Z",
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "entryPrice": 68.54,
+                        "notional": null,
+                        "leverage": 1,
+                        "unrealizedPnl": 12.34,
+                        "contracts": 0.1,
+                        "contractSize": 1,
+                        "marginRatio": null,
+                        "liquidationPrice": null,
+                        "markPrice": null,
+                        "collateral": null,
+                        "marginType": "isolated",
+                        "side": "long",
+                        "percentage": null
                     }
                 ]
             }
@@ -1369,13 +2003,13 @@
                         "amount": null,
                         "cost": 0.003023203083667145,
                         "fee": {
-                            "currency": "USD",
+                            "currency": "BTC",
                             "cost": 0.0000022674023127503585,
                             "rate": 0.00075
                         },
                         "fees": [
                             {
-                                "currency": "USD",
+                                "currency": "BTC",
                                 "cost": 0.0000022674023127503585,
                                 "rate": 0.00075
                             }

@@ -20,7 +20,7 @@ public partial class bullish : Exchange
                 { "margin", false },
                 { "swap", true },
                 { "future", true },
-                { "option", false },
+                { "option", true },
                 { "addMargin", false },
                 { "borrowMargin", false },
                 { "cancelAllOrders", true },
@@ -1093,7 +1093,7 @@ public partial class bullish : Exchange
         }
         object maxLimit = 100;
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
@@ -1467,6 +1467,10 @@ public partial class bullish : Exchange
         var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", 3);
         maxRetries = ((IList<object>)maxRetriesparametersVariable)[0];
         parameters = ((IList<object>)maxRetriesparametersVariable)[1];
+        if (isTrue(isTrue(isTrue((!isEqual(method, "fetchOHLCV"))) && isTrue((!isEqual(method, "fetchFundingRateHistory")))) && isTrue((!isEqual(method, "fetchTrades")))))
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " safeDeterministicCall() does not support the "), method), " method")) ;
+        }
         object errors = 0;
         parameters = this.omit(parameters, "until");
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
@@ -1475,12 +1479,15 @@ public partial class bullish : Exchange
         {
             try
             {
-                if (isTrue(isTrue(timeframe) && isTrue(!isEqual(method, "fetchFundingRateHistory"))))
+                if (isTrue(isEqual(method, "fetchOHLCV")))
                 {
-                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, timeframe, since, limit, parameters }));
+                    return await this.fetchOHLCV(((string)symbol), timeframe, since, limit, parameters);
+                } else if (isTrue(isEqual(method, "fetchFundingRateHistory")))
+                {
+                    return await this.fetchFundingRateHistory(symbol, since, limit, parameters);
                 } else
                 {
-                    return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
+                    return await this.fetchTrades(((string)symbol), since, limit, parameters);
                 }
             } catch(Exception e)
             {
@@ -2525,7 +2532,7 @@ public partial class bullish : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object tradingAccountId = null;
-        var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "tradingAccountId");
+        var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
         tradingAccountId = ((IList<object>)tradingAccountIdparametersVariable)[0];
         parameters = ((IList<object>)tradingAccountIdparametersVariable)[1];
         if (isTrue(isEqual(tradingAccountId, null)))

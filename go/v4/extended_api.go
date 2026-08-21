@@ -212,7 +212,7 @@ func (this *ExtendedCore) V1PrivatePostUserOrderMassCancel(args ...any) <-chan a
 	return this.callEndpointAsync("v1PrivatePostUserOrderMassCancel", args...)
 }
 
-// V1PrivatePostUserDeadmanswitch returns a channel that yields a JSON object.
+// V1PrivatePostUserDeadmanswitch returns a channel that yields a JSON scalar.
 func (this *ExtendedCore) V1PrivatePostUserDeadmanswitch(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserDeadmanswitch", args...)
 }

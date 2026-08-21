@@ -5,8 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.luno import ImplicitAPI
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
-from typing import List
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, DepositWithdrawFee
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -32,7 +31,7 @@ from ccxt.base.precise import Precise
 
 class luno(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
             'name': 'Luno',
@@ -238,10 +237,51 @@ class luno(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
+                    # Luno prices by PAIR CATEGORY 30-day volume tier:
+                    # crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
+                    # ladder, and the maker side is a charge in one category and a rebate
+                    # in another at the same tier. A single scalar cannot represent that,
+                    # so per-market 'taker'/'maker' are set in fetchMarkets where the
+                    # published schedule has been verified. The values below are the
+                    # exchange-wide fallback: crypto/fiat at the entry tier, which is the
+                    # dearest cell in the table and therefore the safe direction to quote
+                    # for a caller who cannot reach the authenticated fetchTradingFee.
                     'tierBased': True,  # based on volume from your primary currency(not the same for everyone)
                     'percentage': True,
-                    'taker': self.parse_number('0.001'),
-                    'maker': self.parse_number('0'),
+                    'taker': self.parse_number('0.006'),
+                    'maker': self.parse_number('0.004'),
+                    'tiers': {
+                        'taker': [
+                            [self.parse_number('0'), self.parse_number('0.006')],
+                            [self.parse_number('20000'), self.parse_number('0.005')],
+                            [self.parse_number('200000'), self.parse_number('0.004')],
+                            [self.parse_number('1000000'), self.parse_number('0.003')],
+                            [self.parse_number('2000000'), self.parse_number('0.002')],
+                            [self.parse_number('5000000'), self.parse_number('0.0015')],
+                            [self.parse_number('10000000'), self.parse_number('0.001')],
+                            [self.parse_number('20000000'), self.parse_number('0.0009')],
+                            [self.parse_number('40000000'), self.parse_number('0.0008')],
+                            [self.parse_number('80000000'), self.parse_number('0.0007')],
+                            [self.parse_number('120000000'), self.parse_number('0.0006')],
+                            [self.parse_number('160000000'), self.parse_number('0.0005')],
+                            [self.parse_number('300000000'), self.parse_number('0.0005')],
+                        ],
+                        'maker': [
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('20000'), self.parse_number('0.003')],
+                            [self.parse_number('200000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.001')],
+                            [self.parse_number('2000000'), self.parse_number('0.0008')],
+                            [self.parse_number('5000000'), self.parse_number('0.0006')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('20000000'), self.parse_number('0')],
+                            [self.parse_number('40000000'), self.parse_number('-0.0001')],
+                            [self.parse_number('80000000'), self.parse_number('-0.0001')],
+                            [self.parse_number('120000000'), self.parse_number('-0.0002')],
+                            [self.parse_number('160000000'), self.parse_number('-0.0002')],
+                            [self.parse_number('300000000'), self.parse_number('-0.0002')],
+                        ],
+                    },
                 },
             },
             'exceptions': {
@@ -509,7 +549,7 @@ class luno(Exchange, ImplicitAPI):
             'info': rawCurrency,
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for luno
 
@@ -548,9 +588,35 @@ class luno(Exchange, ImplicitAPI):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'trading_status')
+            # Luno's published schedule is categorical, not a single pair. Entry-tier
+            # rates below are read from Luno's own Help Centre fee article for the ZAR
+            # market; markets quoted in other fiat currencies are left on the
+            # exchange-wide default until their schedules are verified the same way.
+            fiats = ['ZAR']
+            # live-but-unverified counters, kept on the exchange-wide default; the market
+            # list is geo-filtered so self is a superset of any one region's view, and
+            # ZARU is Luno's tokenized rand("ZAR Universal"), not fiat, but equally unverified
+            unverifiedQuotes = ['MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU']
+            stablecoins = ['USDT', 'USDC']
+            taker = None
+            maker = None
+            if self.in_array(quote, fiats):
+                if self.in_array(base, stablecoins):
+                    taker = self.parse_number('0.002')
+                    maker = self.parse_number('-0.0001')  # a rebate, not a charge
+                else:
+                    taker = self.parse_number('0.006')
+                    maker = self.parse_number('0.004')
+            elif not self.in_array(quote, unverifiedQuotes):
+                # stablecoin-quoted(BTC/USDT) and crypto-quoted(ETH/BTC, SOL/ADA) books
+                # are both in Luno's crypto/crypto column
+                taker = self.parse_number('0.001')
+                maker = self.parse_number('0.0008')
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
+                'taker': taker,
+                'maker': maker,
                 'base': base,
                 'quote': quote,
                 'settle': None,
@@ -599,7 +665,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_accounts(self, params={}) -> List[Account]:
+    def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -624,7 +690,7 @@ class luno(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         wallets = self.safe_value(response, 'balance', [])
         result = {
             'info': response,
@@ -811,7 +877,7 @@ class luno(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -825,7 +891,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state(None, symbol, since, limit, params)
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -839,7 +905,7 @@ class luno(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_by_state('PENDING', symbol, since, limit, params)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -1028,7 +1094,7 @@ class luno(Exchange, ImplicitAPI):
             },
         }, market)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1110,7 +1176,7 @@ class luno(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(response, 'candles', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         # {
         #     "timestamp": 1664055240000,
         #     "open": "19612.65",
@@ -1280,7 +1346,7 @@ class luno(Exchange, ImplicitAPI):
             'info': response,
         })
 
-    def fetch_ledger_by_entries(self, code: Str = None, entry: Any = None, limit: Int = None, params={}):
+    def fetch_ledger_by_entries(self, code: Str = None, entry: object = None, limit: Int = None, params={}):
         # by default without entry number or limit number, return most recent entry
         if entry is None:
             entry = -1
@@ -1293,7 +1359,7 @@ class luno(Exchange, ImplicitAPI):
         }
         return self.fetch_ledger(code, since, limit, self.extend(request, params))
 
-    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -1342,7 +1408,7 @@ class luno(Exchange, ImplicitAPI):
         entries = self.safe_value(response, 'transactions', [])
         return self.parse_ledger(entries, currency, since, limit)
 
-    def parse_ledger_comment(self, comment: Any):
+    def parse_ledger_comment(self, comment: object):
         words = comment.split(' ')
         types = {
             'Withdrawal': 'fee',
@@ -1371,7 +1437,7 @@ class luno(Exchange, ImplicitAPI):
             'referenceId': referenceId,
         }
 
-    def parse_ledger_entry(self, entry: Any, currency: Currency = None) -> LedgerEntry:
+    def parse_ledger_entry(self, entry: object, currency: Currency = None) -> LedgerEntry:
         # details = self.safe_value(entry, 'details', {})
         id = self.safe_string(entry, 'row_index')
         account_id = self.safe_string(entry, 'account_id')
@@ -1505,7 +1571,7 @@ class luno(Exchange, ImplicitAPI):
         #
         return self.parse_deposit_address(response, currency)
 
-    def parse_deposit_address(self, depositAddress: Any, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "account_id": "string",
@@ -1567,7 +1633,7 @@ class luno(Exchange, ImplicitAPI):
         result['withdraw']['percentage'] = False
         return self.assign_default_deposit_withdraw_fees(result, currency)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if query:
@@ -1580,7 +1646,7 @@ class luno(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         error = self.safe_value(response, 'error')

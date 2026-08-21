@@ -100,9 +100,9 @@ public class BitvavoApi extends Exchange
      * Calls the publicGetTicker24h endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON array
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTicker24h (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker24h (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTicker24h", optionalArgs);
     }
@@ -232,9 +232,9 @@ public class BitvavoApi extends Exchange
      * Calls the privateGetBalance endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetBalance (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetBalance (Object... optionalArgs)
     {
         return this.callAsync ("privateGetBalance", optionalArgs);
     }

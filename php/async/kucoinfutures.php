@@ -29,6 +29,7 @@ class kucoinfutures extends kucoin {
                 'future' => true,
                 'option' => null,
                 'fetchBidsAsks' => true,
+                'transfer' => true,
             ),
             'options' => array(
                 'fetchMarkets' => array(
@@ -42,90 +43,94 @@ class kucoinfutures extends kucoin {
     }
 
     public function fetch_bids_asks(?array $symbols = null, $params = array()) {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches the bid and ask price and volume for multiple markets
-             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            $request = array(
-                'method' => 'futuresPublicGetAllTickers',
-            );
-            return Async\await($this->fetch_tickers($symbols, $this->extend($request, $params)));
-        })();
+        return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
+    }
+
+    private function do_fetch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        $request = array(
+            'method' => 'futuresPublicGetAllTickers',
+        );
+        return Async\await($this->fetch_tickers($symbols, $this->extend($request, $params)));
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer $currency internally between wallets on the same account
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount account to transfer from
-             * @param {string} $toAccount account to transfer to
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $amountToPrecision = $this->currency_to_precision($code, $amount);
-            $request = array(
-                'currency' => $this->safe_string($currency, 'id'),
-                'amount' => $amountToPrecision,
-            );
-            $toAccountString = $this->parse_transfer_type($toAccount);
-            $response = null;
-            if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
-                $request['recAccountType'] = $toAccountString;
-                $response = Async\await($this->futuresPrivatePostTransferOut($this->extend($request, $params)));
-                //
-                //     {
-                //         "code" => "200000",
-                //         "data" => {
-                //             "applyId" => "6738754373ceee00011ec3f8",
-                //             "bizNo" => "6738754373ceee00011ec3f7",
-                //             "payAccountType" => "CONTRACT",
-                //             "payTag" => "DEFAULT",
-                //             "remark" => "",
-                //             "recAccountType" => "MAIN",
-                //             "recTag" => "DEFAULT",
-                //             "recRemark" => "",
-                //             "recSystem" => "KUCOIN",
-                //             "status" => "PROCESSING",
-                //             "currency" => "USDT",
-                //             "amount" => "5",
-                //             "fee" => "0",
-                //             "sn" => 1519769124846692,
-                //             "reason" => "",
-                //             "createdAt" => 1731753283000,
-                //             "updatedAt" => 1731753283000
-                //         }
-                //     }
-                //
-            } elseif ($toAccount === 'future' || $toAccount === 'swap' || $toAccount === 'contract') {
-                $request['payAccountType'] = $this->parse_transfer_type($fromAccount);
-                $response = Async\await($this->futuresPrivatePostTransferIn($this->extend($request, $params)));
-                //
-                //    {
-                //        "code" => "200000",
-                //        "data" => {
-                //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out $request ID
-                //        }
-                //    }
-                //
-            } else {
-                throw new BadRequest($this->id . ' transfer() only supports transfers between future/swap, spot and funding accounts');
-            }
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->extend($this->parse_transfer($data, $currency), array(
-                'amount' => $this->parse_number($amountToPrecision),
-                'fromAccount' => $fromAccount,
-                'toAccount' => $toAccount,
-            ));
-        })();
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount account to transfer from
+         * @param {string} $toAccount account to transfer to
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $amountToPrecision = $this->currency_to_precision($code, $amount);
+        $request = array(
+            'currency' => $this->safe_string($currency, 'id'),
+            'amount' => $amountToPrecision,
+        );
+        $toAccountString = $this->parse_transfer_type($toAccount);
+        $response = null;
+        if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
+            $request['recAccountType'] = $toAccountString;
+            $response = Async\await($this->futuresPrivatePostTransferOut($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => "200000",
+            //         "data" => {
+            //             "applyId" => "6738754373ceee00011ec3f8",
+            //             "bizNo" => "6738754373ceee00011ec3f7",
+            //             "payAccountType" => "CONTRACT",
+            //             "payTag" => "DEFAULT",
+            //             "remark" => "",
+            //             "recAccountType" => "MAIN",
+            //             "recTag" => "DEFAULT",
+            //             "recRemark" => "",
+            //             "recSystem" => "KUCOIN",
+            //             "status" => "PROCESSING",
+            //             "currency" => "USDT",
+            //             "amount" => "5",
+            //             "fee" => "0",
+            //             "sn" => 1519769124846692,
+            //             "reason" => "",
+            //             "createdAt" => 1731753283000,
+            //             "updatedAt" => 1731753283000
+            //         }
+            //     }
+            //
+        } elseif ($toAccount === 'future' || $toAccount === 'swap' || $toAccount === 'contract') {
+            $request['payAccountType'] = $this->parse_transfer_type($fromAccount);
+            $response = Async\await($this->futuresPrivatePostTransferIn($this->extend($request, $params)));
+            //
+            //    {
+            //        "code" => "200000",
+            //        "data" => {
+            //            "applyId" => "5bffb63303aa675e8bbe18f9" // Transfer-out $request ID
+            //        }
+            //    }
+            //
+        } else {
+            throw new BadRequest($this->id . ' transfer() only supports transfers between future/swap, spot and funding accounts');
+        }
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->extend($this->parse_transfer($data, $currency), array(
+            'amount' => $this->parse_number($amountToPrecision),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+        ));
     }
 
     public function parse_transfer_type(mixed $transferType) {

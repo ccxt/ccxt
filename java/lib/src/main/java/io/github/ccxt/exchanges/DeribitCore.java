@@ -1651,8 +1651,8 @@ public class DeribitCore extends DeribitApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", null );
-            put( "quoteVolume", DeribitCore.this.safeString(stats, "volume") );
+            put( "baseVolume", DeribitCore.this.safeString(stats, "volume") );
+            put( "quoteVolume", DeribitCore.this.safeString2(stats, "volume_notional", "volume_usd") );
             put( "markPrice", DeribitCore.this.safeString(ticker, "mark_price") );
             put( "indexPrice", DeribitCore.this.safeString(ticker, "index_price") );
             put( "info", ticker );
@@ -4159,7 +4159,7 @@ public class DeribitCore extends DeribitApi
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation", null)).join();
+                return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();
             }
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))

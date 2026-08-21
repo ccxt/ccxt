@@ -490,6 +490,12 @@ abstract class woofipro extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v1_private_get_client_margin_modes($params = array()) {
+        return $this->request('client/margin_modes', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1_private_post_orderly_key($params = array()) {
         return $this->request('orderly_key', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -564,6 +570,18 @@ abstract class woofipro extends \ccxt\Exchange {
      */
     public function v1_private_post_client_leverage($params = array()) {
         return $this->request('client/leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_client_margin_mode($params = array()) {
+        return $this->request('client/margin_mode', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1_private_post_position_margin($params = array()) {
+        return $this->request('position_margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -1180,6 +1198,12 @@ abstract class woofipro extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function v1PrivateGetClientMarginModes($params = array()) {
+        return $this->request('client/margin_modes', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function v1PrivatePostOrderlyKey($params = array()) {
         return $this->request('orderly_key', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1254,6 +1278,18 @@ abstract class woofipro extends \ccxt\Exchange {
      */
     public function v1PrivatePostClientLeverage($params = array()) {
         return $this->request('client/leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostClientMarginMode($params = array()) {
+        return $this->request('client/margin_mode', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function v1PrivatePostPositionMargin($params = array()) {
+        return $this->request('position_margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

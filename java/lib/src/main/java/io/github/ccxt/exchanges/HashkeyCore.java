@@ -52,6 +52,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "createMarketOrderWithCost", false );
                 put( "createMarketSellOrderWithCost", false );
                 put( "createOrder", true );
+                put( "createOrders", true );
                 put( "createOrderWithTakeProfitAndStopLoss", false );
                 put( "createReduceOnlyOrder", true );
                 put( "createStopLimitOrder", true );
@@ -98,6 +99,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "fetchIsolatedBorrowRate", false );
                 put( "fetchIsolatedBorrowRates", false );
                 put( "fetchIsolatedPositions", false );
+                put( "fetchLastPrices", true );
                 put( "fetchLedger", true );
                 put( "fetchLeverage", true );
                 put( "fetchLeverages", false );
@@ -1912,6 +1914,13 @@ public class HashkeyCore extends HashkeyApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object last = this.safeString(ticker, "c");
+        Object baseVolume = this.safeString(ticker, "v");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "contract")) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
+        {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
+        }
+        final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1930,7 +1939,7 @@ public class HashkeyCore extends HashkeyApi
             put( "change", null );
             put( "percentage", null );
             put( "average", null );
-            put( "baseVolume", HashkeyCore.this.safeString(ticker, "v") );
+            put( "baseVolume", finalBaseVolume );
             put( "quoteVolume", HashkeyCore.this.safeString(ticker, "qv") );
             put( "info", ticker );
         }}, market);
@@ -1984,7 +1993,7 @@ public class HashkeyCore extends HashkeyApi
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
             put( "timestamp", null );
             put( "datetime", null );
-            put( "price", HashkeyCore.this.safeNumber(entry, "p") );
+            put( "price", HashkeyCore.this.safeNumberOmitZero(entry, "p") );
             put( "side", null );
             put( "info", entry );
         }};

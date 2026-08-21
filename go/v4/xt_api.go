@@ -402,6 +402,21 @@ func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustProfitList(args ...any) 
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustProfitList", args...)
 }
 
+// PrivateLinearGetFutureTradeV1EntrustTrackDetail returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustTrackDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustTrackDetail", args...)
+}
+
+// PrivateLinearGetFutureTradeV1EntrustTrackList returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustTrackList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustTrackList", args...)
+}
+
+// PrivateLinearGetFutureTradeV1EntrustTrackListHistory returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearGetFutureTradeV1EntrustTrackListHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureTradeV1EntrustTrackListHistory", args...)
+}
+
 // PrivateLinearGetFutureTradeV1OrderDetail returns a channel that yields a JSON object.
 func (this *XtCore) PrivateLinearGetFutureTradeV1OrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderDetail", args...)
@@ -415,6 +430,11 @@ func (this *XtCore) PrivateLinearGetFutureTradeV1OrderList(args ...any) <-chan a
 // PrivateLinearGetFutureTradeV1OrderListHistory returns a channel that yields a JSON object.
 func (this *XtCore) PrivateLinearGetFutureTradeV1OrderListHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearGetFutureTradeV1OrderListHistory", args...)
+}
+
+// PrivateLinearGetFutureTradeV1PositionListHistory returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearGetFutureTradeV1PositionListHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureTradeV1PositionListHistory", args...)
 }
 
 // PrivateLinearGetFutureTradeV1OrderTradeList returns a channel that yields a JSON object.
@@ -462,6 +482,11 @@ func (this *XtCore) PrivateLinearGetFutureUserV1PositionList(args ...any) <-chan
 	return this.callEndpointAsync("privateLinearGetFutureUserV1PositionList", args...)
 }
 
+// PrivateLinearGetFutureUserV1UserStepRate returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearGetFutureUserV1UserStepRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearGetFutureUserV1UserStepRate", args...)
+}
+
 // PrivateLinearGetFutureUserV1UserCollectionList returns a channel that yields a JSON object.
 func (this *XtCore) PrivateLinearGetFutureUserV1UserCollectionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearGetFutureUserV1UserCollectionList", args...)
@@ -482,6 +507,11 @@ func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelAllProfitStop(arg
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelAllProfitStop", args...)
 }
 
+// PrivateLinearPostFutureTradeV1EntrustCancelAllTrack returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelAllTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelAllTrack", args...)
+}
+
 // PrivateLinearPostFutureTradeV1EntrustCancelPlan returns a channel that yields a JSON object.
 func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelPlan", args...)
@@ -497,9 +527,19 @@ func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreatePlan(args ...any)
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreatePlan", args...)
 }
 
+// PrivateLinearPostFutureTradeV1EntrustCancelTrack returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCancelTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCancelTrack", args...)
+}
+
 // PrivateLinearPostFutureTradeV1EntrustCreateProfit returns a channel that yields a JSON object.
 func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreateProfit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreateProfit", args...)
+}
+
+// PrivateLinearPostFutureTradeV1EntrustCreateTrack returns a channel that yields a JSON object.
+func (this *XtCore) PrivateLinearPostFutureTradeV1EntrustCreateTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateLinearPostFutureTradeV1EntrustCreateTrack", args...)
 }
 
 // PrivateLinearPostFutureTradeV1EntrustUpdateProfitStop returns a channel that yields a JSON object.
@@ -597,6 +637,21 @@ func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustProfitList(args ...any)
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustProfitList", args...)
 }
 
+// PrivateInverseGetFutureTradeV1EntrustTrackDetail returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustTrackDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustTrackDetail", args...)
+}
+
+// PrivateInverseGetFutureTradeV1EntrustTrackList returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustTrackList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustTrackList", args...)
+}
+
+// PrivateInverseGetFutureTradeV1EntrustTrackListHistory returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInverseGetFutureTradeV1EntrustTrackListHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureTradeV1EntrustTrackListHistory", args...)
+}
+
 // PrivateInverseGetFutureTradeV1OrderDetail returns a channel that yields a JSON object.
 func (this *XtCore) PrivateInverseGetFutureTradeV1OrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderDetail", args...)
@@ -610,6 +665,11 @@ func (this *XtCore) PrivateInverseGetFutureTradeV1OrderList(args ...any) <-chan 
 // PrivateInverseGetFutureTradeV1OrderListHistory returns a channel that yields a JSON object.
 func (this *XtCore) PrivateInverseGetFutureTradeV1OrderListHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInverseGetFutureTradeV1OrderListHistory", args...)
+}
+
+// PrivateInverseGetFutureTradeV1PositionListHistory returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInverseGetFutureTradeV1PositionListHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureTradeV1PositionListHistory", args...)
 }
 
 // PrivateInverseGetFutureTradeV1OrderTradeList returns a channel that yields a JSON object.
@@ -657,6 +717,11 @@ func (this *XtCore) PrivateInverseGetFutureUserV1PositionList(args ...any) <-cha
 	return this.callEndpointAsync("privateInverseGetFutureUserV1PositionList", args...)
 }
 
+// PrivateInverseGetFutureUserV1UserStepRate returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInverseGetFutureUserV1UserStepRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInverseGetFutureUserV1UserStepRate", args...)
+}
+
 // PrivateInverseGetFutureUserV1UserCollectionList returns a channel that yields a JSON object.
 func (this *XtCore) PrivateInverseGetFutureUserV1UserCollectionList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInverseGetFutureUserV1UserCollectionList", args...)
@@ -677,6 +742,11 @@ func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelAllProfitStop(ar
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelAllProfitStop", args...)
 }
 
+// PrivateInversePostFutureTradeV1EntrustCancelAllTrack returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelAllTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelAllTrack", args...)
+}
+
 // PrivateInversePostFutureTradeV1EntrustCancelPlan returns a channel that yields a JSON object.
 func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelPlan(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelPlan", args...)
@@ -692,9 +762,19 @@ func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreatePlan(args ...any
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreatePlan", args...)
 }
 
+// PrivateInversePostFutureTradeV1EntrustCancelTrack returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCancelTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCancelTrack", args...)
+}
+
 // PrivateInversePostFutureTradeV1EntrustCreateProfit returns a channel that yields a JSON object.
 func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreateProfit(args ...any) <-chan any {
 	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreateProfit", args...)
+}
+
+// PrivateInversePostFutureTradeV1EntrustCreateTrack returns a channel that yields a JSON object.
+func (this *XtCore) PrivateInversePostFutureTradeV1EntrustCreateTrack(args ...any) <-chan any {
+	return this.callEndpointAsync("privateInversePostFutureTradeV1EntrustCreateTrack", args...)
 }
 
 // PrivateInversePostFutureTradeV1EntrustUpdateProfitStop returns a channel that yields a JSON object.

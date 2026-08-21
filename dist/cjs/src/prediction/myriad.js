@@ -35,6 +35,7 @@ class myriad extends myriad$1["default"] {
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
+                'createMarketBuyOrderWithCost': true,
                 'createOrder': true,
                 'createOrders': true,
                 'editOrder': true,

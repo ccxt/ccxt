@@ -580,7 +580,7 @@
                     "percentage": 0.1728727420196816,
                     "average": 69596,
                     "baseVolume": 3.815852502,
-                    "quoteVolume": 105,
+                    "quoteVolume": 266648.0962596106,
                     "indexPrice": null,
                     "markPrice": null
                 }
@@ -758,7 +758,7 @@
                         "percentage": 0.2277394526918878,
                         "average": 69615,
                         "baseVolume": 3.815852502,
-                        "quoteVolume": 105,
+                        "quoteVolume": 266648.0962596106,
                         "indexPrice": null,
                         "markPrice": null
                     },
@@ -827,7 +827,7 @@
                         "percentage": 2.4551244597609827,
                         "average": 69.82,
                         "baseVolume": 4.187812253,
-                        "quoteVolume": 19,
+                        "quoteVolume": 294.20521522878016,
                         "indexPrice": null,
                         "markPrice": null
                     }

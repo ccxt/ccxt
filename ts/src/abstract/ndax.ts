@@ -13,7 +13,7 @@ interface Exchange {
     publicGetAuthenticate2FA (params?: {}): Promise<Dict>;
     publicGetAuthenticateUser (params?: {}): Promise<Dict>;
     publicGetEnableXP2FA (params?: {}): Promise<Dict>;
-    publicGetGetL2Snapshot (params?: {}): Promise<Dict>;
+    publicGetGetL2Snapshot (params?: {}): Promise<List>;
     publicGetGetLevel1 (params?: {}): Promise<Dict>;
     publicGetGetValidate2FARequiredEndpoints (params?: {}): Promise<List>;
     publicGetLogOut (params?: {}): Promise<Dict>;

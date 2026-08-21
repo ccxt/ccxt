@@ -19,8 +19,10 @@ class testMainClass {
     public $id_tests = false;
     public $request_tests_failed = false;
     public $response_tests_failed = false;
+    public $static_ws_tests_failed = false;
     public $request_tests = false;
     public $ws_tests = false;
+    public $static_ws_tests = false;
     public $response_tests = false;
     public $prediction_tests = false;
     public $info = false;
@@ -52,6 +54,7 @@ class testMainClass {
         $this->sandbox = get_cli_arg_value('--sandbox');
         $this->load_keys = get_cli_arg_value('--loadKeys');
         $this->ws_tests = get_cli_arg_value('--ws');
+        $this->static_ws_tests = get_cli_arg_value('--wsTests');
         // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
         $this->prediction_tests = get_cli_arg_value('--prediction');
         $this->lang = get_lang();
@@ -77,6 +80,10 @@ class testMainClass {
         }
         if ($this->response_tests) {
             $this->run_static_response_tests($exchange_id, $symbol_argv);
+            return true;
+        }
+        if ($this->static_ws_tests) {
+            $this->run_static_ws_tests($exchange_id, $symbol_argv);
             return true;
         }
         if ($this->request_tests) {
@@ -623,6 +630,102 @@ class testMainClass {
         return $symbol;
     }
 
+    public function get_ticker_volume($exchange, $ticker) {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        $quote_volume = $exchange->safe_number($ticker, 'quoteVolume');
+        if ($quote_volume !== null) {
+            return $quote_volume;
+        }
+        $base_volume = $exchange->safe_number($ticker, 'baseVolume');
+        if ($base_volume === null) {
+            return 0;
+        }
+        $last = $exchange->safe_number($ticker, 'last');
+        if ($last !== null) {
+            return $base_volume * $last;
+        }
+        return $base_volume;
+    }
+
+    public function get_most_active_symbols($exchange, $default_symbols) {
+        // `watch*` methods only resolve when the exchange pushes an update, so a
+        // thinly traded market makes the ws tests hang until the harness timeout
+        // kills them. the 24h volume is our proxy for "how often does this book
+        // change", so rank the markets by it and watch the busiest ones instead.
+        // the ranking is restricted to markets sharing the type/quote/settle of
+        // the statically chosen symbol, which keeps the volumes comparable (quote
+        // volumes denominated in different quote currencies are not) and keeps a
+        // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        $default_symbol = $default_symbols[0];
+        $default_market = $exchange->safe_dict($exchange->markets, $default_symbol);
+        if ($default_market === null) {
+            return $default_symbols;
+        }
+        // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+        // works around a venue-specific quirk), so never rank around it
+        $is_spot = $exchange->safe_bool($default_market, 'spot', false);
+        $preferred_key = ($is_spot) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+        $preferred_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, $preferred_key);
+        if ($preferred_symbol !== null) {
+            return $default_symbols;
+        }
+        if (!$exchange->safe_bool($exchange->has, 'fetchTickers', false)) {
+            return $default_symbols;
+        }
+        $tickers = null;
+        try {
+            // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+            // the statically typed ports (c#/go/java), same as the other call sites
+            $tickers = call_exchange_method_dynamically($exchange, 'fetchTickers', []);
+        } catch(\Throwable $e) {
+            // choosing a symbol must never fail the run, keep the static choice
+            $tickers = null;
+        }
+        if ($tickers === null) {
+            return $default_symbols;
+        }
+        $market_type = $exchange->safe_string($default_market, 'type');
+        $quote = $exchange->safe_string($default_market, 'quote');
+        $settle = $exchange->safe_string($default_market, 'settle');
+        $candidates = [];
+        $ticker_symbols = is_array($tickers) ? array_keys($tickers) : array();
+        for ($i = 0; $i < count($ticker_symbols); $i++) {
+            $ticker_symbol = $ticker_symbols[$i];
+            $market = $exchange->safe_dict($exchange->markets, $ticker_symbol);
+            if ($market !== null) {
+                // exchanges keep returning tickers for delisted markets, and those
+                // never push a websocket update at all, so skip inactive markets
+                $is_active = $exchange->safe_bool($market, 'active', true);
+                $same_type = $exchange->safe_string($market, 'type') === $market_type;
+                $same_quote = $exchange->safe_string($market, 'quote') === $quote;
+                $same_settle = $exchange->safe_string($market, 'settle') === $settle;
+                if ($is_active && $same_type && $same_quote && $same_settle) {
+                    $ticker = $exchange->safe_dict($tickers, $ticker_symbol, array());
+                    $volume = $this->get_ticker_volume($exchange, $ticker);
+                    if ($volume > 0) {
+                        $entry = array();
+                        $entry['symbol'] = $ticker_symbol;
+                        $entry['volume'] = $volume;
+                        $candidates[] = $entry;
+                    }
+                }
+            }
+        }
+        $ranked = $exchange->sort_by($candidates, 'volume', true);
+        $ranked_length = count($ranked);
+        if ($ranked_length === 0) {
+            return $default_symbols;
+        }
+        $result = [$exchange->safe_string($ranked[0], 'symbol')];
+        if ($ranked_length > 1) {
+            $result[] = $exchange->safe_string($ranked[1], 'symbol');
+        }
+        return $result;
+    }
+
     public function test_exchange($exchange, $provided_symbol = null) {
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
@@ -657,6 +760,17 @@ class testMainClass {
                 if ($primary_symbol !== null) {
                     $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
                     $swap_symbols = [$primary_symbol, $secondary_symbol];
+                }
+            }
+            // ws tests subscribe with `watch*`, which only resolves on an update,
+            // so re-target them at the most actively traded markets to avoid the
+            // harness timing out on a quiet book. rest tests keep the static choice.
+            if ($this->ws_tests) {
+                if ($spot_symbols !== null) {
+                    $spot_symbols = $this->get_most_active_symbols($exchange, $spot_symbols);
+                }
+                if ($swap_symbols !== null) {
+                    $swap_symbols = $this->get_most_active_symbols($exchange, $swap_symbols);
                 }
             }
         }
@@ -1027,7 +1141,11 @@ class testMainClass {
         return true;
     }
 
-    public function run_private_tests($exchange, $symbol) {
+    public function run_private_tests($exchange, $symbols) {
+        // mirrors runPublicTests: the caller always passes the selected symbols as an array
+        // (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        // on the primary symbol per market type
+        $symbol = $symbols[0];
         if (!$exchange->check_required_credentials(false)) {
             dump('[INFO] Skipping private tests', 'Keys not found');
             return true;
@@ -1585,7 +1703,191 @@ class testMainClass {
         return true;
     }
 
-    public function init_offline_exchange($exchange_name) {
+    public function inject_ws_messages($exchange, $url, $messages, $sequential = false) {
+        // before every frame, wait until the watch flow is actually awaiting
+        // something — a fixed head-start sleep is not enough on slow ci
+        // runners and the frame's resolution would be dropped
+        for ($i = 0; $i < count($messages); $i++) {
+            $waited = 0;
+            while (!ws_client_has_pending_futures($exchange, $url) && ($waited < 5000)) {
+                $exchange->sleep(50);
+                $waited = $waited + 50;
+            }
+            inject_ws_message($exchange, $url, $messages[$i]);
+            // threaded runtimes resolve futures on another thread — wait for
+            // the consumed frame to settle so the pending check above does not
+            // observe a stale future and burn the next frame early; frames
+            // that resolve nothing (e.g. subscribe acks) fall through on the
+            // timeout
+            $settled = 0;
+            while (ws_client_has_pending_futures($exchange, $url) && ($settled < 500)) {
+                $exchange->sleep(20);
+                $settled = $settled + 20;
+            }
+        }
+        $exchange->sleep(50);
+        if ($sequential) {
+            // a watch call of a sequence can register its future after every
+            // frame was already consumed — keep rejecting until the watch side
+            // reports completion (the rejections force it to finish). the time
+            // bound is a backstop for threaded runtimes where this task can be
+            // executed inline on a stack that blocks the watch side (forkjoin
+            // work stealing): give up eventually so the stack unwinds instead
+            // of deadlocking
+            $waited_done = 0;
+            while (!is_ws_test_completed($exchange, $url) && ($waited_done < 30000)) {
+                reject_pending_ws_futures($exchange, $url);
+                $exchange->sleep(50);
+                $waited_done = $waited_done + 50;
+            }
+        }
+        // reject anything still pending so a wrong fixture fails fast
+        // instead of hanging the test run forever
+        reject_pending_ws_futures($exchange, $url);
+        return true;  // c# methods used with promiseAll need to return something
+    }
+
+    public function watch_and_assert_sequence($exchange, $url, $method, $input, $skip_keys, $expected_results) {
+        try {
+            for ($i = 0; $i < count($expected_results); $i++) {
+                $result = call_exchange_method_dynamically($exchange, $method, $input);
+                // ws structures can be live typed objects (e.g. orderbooks) in some
+                // runtimes — roundtrip through json so the deep-compare sees plain
+                // dicts in every language
+                $unified_result = json_parse(json_stringify($result));
+                $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $expected_results[$i]);
+            }
+        } catch(\Throwable $e) {
+            // let the injector's rejection loop exit before the caller reports
+            // — the explicit try/catch also keeps the java transpilation
+            // compilable (checked exceptions)
+            mark_ws_test_completed($exchange, $url);
+            throw $e;
+        }
+        mark_ws_test_completed($exchange, $url);
+        return true;  // c# methods used with promiseAll need to return something
+    }
+
+    public function assert_ws_sent_messages($exchange, $url, $data) {
+        // the ws analog of the static request tests: assert the frames the
+        // watch method sent over the mocked transport (subscribe requests etc)
+        $expected_sent = $exchange->safe_list($data, 'sentMessages');
+        if ($expected_sent === null) {
+            return;
+        }
+        // ids/signatures/timestamps inside outgoing frames can be volatile —
+        // exclude them per entry without touching the response skipKeys
+        $sent_skip_keys = $exchange->safe_list($data, 'sentSkipKeys', []);
+        $sent_messages = get_ws_sent_messages($exchange, $url);
+        $sent_length = count($sent_messages);
+        $expected_length = count($expected_sent);
+        assert($sent_length === $expected_length, 'sent ws messages count mismatch: sent ' . ((string) $sent_length) . ', expected ' . ((string) $expected_length) . ' ' . json_stringify($sent_messages));
+        for ($i = 0; $i < $expected_length; $i++) {
+            $unified_sent = json_parse(json_stringify($sent_messages[$i]));
+            $this->assert_static_response_output($exchange, $sent_skip_keys, $unified_sent, $expected_sent[$i]);
+        }
+    }
+
+    public function test_ws_statically($exchange, $method, $skip_keys, $data) {
+        $url = $exchange->safe_string($data, 'url');
+        setup_ws_mock_transport($exchange, $url);
+        $http_response = $exchange->safe_value($data, 'httpResponse');
+        if ($http_response !== null) {
+            // some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            set_fetch_response($exchange, $http_response);
+        }
+        if ($this->info) {
+            dump('[INFO] STATIC WS TEST:', $method, ':', $data['description']);
+        }
+        try {
+            $messages = $exchange->safe_list($data, 'messages', []);
+            $input = $this->sanitize_data_input($data['input']);
+            $expected_results = $exchange->safe_list($data, 'parsedResponses');
+            if ($expected_results !== null) {
+                // 'parsedResponses' asserts one result per successive watch
+                // resolution (e.g. an order going from open to closed)
+                // start the injector before the watch side: it must never sit
+                // queued while the watch chain blocks on a join — a forkjoin
+                // worker could execute it inline on the blocked stack and the
+                // rejection loop would then wait on the very watch side it is
+                // buried on top of
+                $promises = [$this->inject_ws_messages($exchange, $url, $messages, true), $this->watch_and_assert_sequence($exchange, $url, $method, $input, $skip_keys, $expected_results)];
+                ($promises);
+                $this->assert_ws_sent_messages($exchange, $url, $data);
+            } else {
+                // 'parsedResponse' asserts the final state after every frame
+                // was replayed — live structures like orderbooks keep updating
+                // after the first resolution, so serialize only at the end
+                $promises = [call_exchange_method_dynamically($exchange, $method, $input), $this->inject_ws_messages($exchange, $url, $messages)];
+                $results = ($promises);
+                $unified_result = json_parse(json_stringify($results[0]));
+                $this->assert_static_response_output($exchange, $skip_keys, $unified_result, $data['parsedResponse']);
+                $this->assert_ws_sent_messages($exchange, $url, $data);
+            }
+        } catch(\Throwable $e) {
+            $this->static_ws_tests_failed = true;
+            $error_message = '[' . $this->lang . '][STATIC_WS]' . '[' . $exchange->id . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . exception_message($e);
+            dump('[TEST_FAILURE]' . $error_message);
+        }
+        set_fetch_response($exchange, null); // reset state
+        return true;
+    }
+
+    public function test_exchange_ws_statically($exchange_name, $exchange_data, $test_name = null) {
+        $global_options = $exchange_data['options'] === null ? array() : $exchange_data['options'];
+        $methods = $exchange_data['methods'] === null ? array() : $exchange_data['methods'];
+        $methods_names = is_array($methods) ? array_keys($methods) : array();
+        for ($i = 0; $i < count($methods_names); $i++) {
+            $method = $methods_names[$i];
+            $results = $methods[$method];
+            for ($j = 0; $j < count($results); $j++) {
+                $result = $results[$j];
+                $description = $result['description'];
+                if (($test_name !== null) && ($test_name !== $description)) {
+                    continue;
+                }
+                // a fresh exchange per entry: ws caches (trades, orderbooks,
+                // ohlcvs) and request-id counters survive between watch calls
+                // and would leak state across entries otherwise
+                $exchange = $this->init_offline_exchange($exchange_name, true);
+                $is_disabled = $exchange->safe_bool($result, 'disabled', false);
+                if ($is_disabled) {
+                    continue;
+                }
+                $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                if ($disabled_string !== '') {
+                    continue;
+                }
+                $is_disabled_c_sharp = $exchange->safe_string($result, 'disabledCS');
+                if (($is_disabled_c_sharp !== null) && ($this->lang === 'C#')) {
+                    continue;
+                }
+                $is_disabled_go = $exchange->safe_string($result, 'disabledGO');
+                if (($is_disabled_go !== null) && ($this->lang === 'GO')) {
+                    continue;
+                }
+                $is_disabled_java = $exchange->safe_string($result, 'disabledJava');
+                if (($is_disabled_java !== null) && ($this->lang === 'java')) {
+                    continue;
+                }
+                $is_disabled_php = $exchange->safe_string($result, 'disabledPHP');
+                if (($is_disabled_php !== null) && ($this->lang === 'PHP')) {
+                    continue;
+                }
+                $exchange->extend_exchange_options($global_options);
+                $test_exchange_options = $exchange->safe_value($result, 'options', array());
+                $exchange->extend_exchange_options($test_exchange_options);
+                $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
+                $this->test_ws_statically($exchange, $method, $skip_keys, $result);
+                if (!is_sync()) {
+                    close($exchange);
+                }
+            }
+        }
+        return true;  // in c# methods that will be used with promiseAll need to return something
+    }
+
+    public function init_offline_exchange($exchange_name, $is_ws = false) {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
         // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
@@ -1667,7 +1969,7 @@ class testMainClass {
             $options['apiKey'] = '';
             $options['secret'] = '';
         }
-        $exchange = init_exchange($exchange_name, $options);
+        $exchange = init_exchange($exchange_name, $options, $is_ws);
         if ($currencies !== null) {
             $exchange->currencies = $currencies;
         }
@@ -1930,6 +2232,8 @@ class testMainClass {
             $sum = $exchange->sum($sum, $number_of_tests);
             if ($type === 'request') {
                 $promises[] = $this->test_exchange_request_statically($exchange_name, $exchange_data, $test_name);
+            } elseif ($type === 'ws') {
+                $promises[] = $this->test_exchange_ws_statically($exchange_name, $exchange_data, $test_name);
             } else {
                 $promises[] = $this->test_exchange_response_statically($exchange_name, $exchange_data, $test_name);
             }
@@ -1939,13 +2243,15 @@ class testMainClass {
         } catch(\Throwable $e) {
             if ($type === 'request') {
                 $this->request_tests_failed = true;
+            } elseif ($type === 'ws') {
+                $this->static_ws_tests_failed = true;
             } else {
                 $this->response_tests_failed = true;
             }
             $error_message = '[' . $this->lang . '][STATIC_REQUEST]' . exception_message($e);
             dump('[TEST_FAILURE]' . $error_message);
         }
-        if ($this->request_tests_failed || $this->response_tests_failed) {
+        if ($this->request_tests_failed || $this->response_tests_failed || $this->static_ws_tests_failed) {
             exit_script(1);
         } else {
             $prefix = (is_sync()) ? '[SYNC]' : '';
@@ -1962,11 +2268,24 @@ class testMainClass {
         return true;
     }
 
+    public function run_static_ws_tests($exchange_name = null, $test = null) {
+        //  -----------------------------------------------------------------------------
+        //  --- static ws tests: replay canned frames into the ws message handlers ------
+        //  -----------------------------------------------------------------------------
+        if (is_sync()) {
+            // watch methods are async-only, there is nothing to test in the
+            // synchronous python/php flavours
+            return true;
+        }
+        $this->run_static_tests('ws', $exchange_name, $test);
+        return true;
+    }
+
     public function run_broker_id_tests() {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_xt(), $this->test_paradex(), $this->test_hashkey(), $this->test_cryptomus(), $this->test_derive(), $this->test_mode_trade(), $this->test_backpack(), $this->test_toobit(), $this->test_weex(), $this->test_foxbit()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -2654,5 +2973,24 @@ class testMainClass {
         }
         $client_order_id = $request['newClientOrderId'];
         assert(str_starts_with($client_order_id, $id), 'weex - newClientOrderId: ' . $client_order_id . ' for swap order does not start with id: ' . $id);
+    }
+
+    public function test_foxbit() {
+        $exchange = $this->init_offline_exchange('foxbit');
+        $req_headers = array();
+        $id = 'ccxt';
+        try {
+            $exchange->create_order('BTC/BRL', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers ? $exchange->last_request_headers : array();
+        }
+        assert($req_headers['X-FB-CLIENT'] === $id, 'foxbit - id: ' . $id . ' not in headers.');
+        $version = $exchange->get_ccxt_version();
+        assert($req_headers['X-FB-CLIENT-VERSION'] === $version, 'foxbit - version: ' . $version . ' not in headers.');
+        if (!is_sync()) {
+            close($exchange);
+        }
+        return true;
     }
 }

@@ -112,8 +112,8 @@ export default class tokocrypto extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -179,8 +179,8 @@ export default class tokocrypto extends Exchange {
                         'trades': { 'cost': 1 } as Endpoint<List>,
                         'aggTrades': { 'cost': 1 } as Endpoint<List>,
                         'historicalTrades': { 'cost': 5 } as Endpoint<List>,
-                        'klines': { 'cost': 1 } as Endpoint<Dict>,
-                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        'klines': { 'cost': 1 } as Endpoint<List>,
+                        'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
@@ -1307,6 +1307,12 @@ export default class tokocrypto extends Exchange {
             await this.loadMarkets ();
         }
         const response = await this.binanceGetTicker24hr (params);
+        if (!Array.isArray (response)) {
+            // a user-supplied symbol param makes the endpoint answer a single
+            // ticker object, the unified fetchTickers contract returns a
+            // symbol-keyed dict either way
+            return this.parseTickers ([ response ], symbols);
+        }
         return this.parseTickers (response, symbols);
     }
 
@@ -1454,17 +1460,33 @@ export default class tokocrypto extends Exchange {
             response = await this.publicGetOpenV1MarketKlines (this.extend (request, params));
         }
         //
+        // binanceGetKlines
+        //
         //     [
         //         [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
         //         [1591478580000,"0.02499600","0.02500900","0.02499400","0.02500300","21.34700000",1591478639999,"0.53370468",24,"7.53800000","0.18850725","0"],
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
+        // publicGetOpenV1MarketKlines
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "Success",
+        //         "data": {
+        //             "list": [
+        //                 [1591478520000,"0.02501300","0.02501800","0.02500000","0.02500000","22.19000000",1591478579999,"0.55490906",40,"10.92900000","0.27336462","0"],
+        //             ]
+        //         },
+        //         "timestamp": 1659492212507
+        //     }
+        //
         let data: List = [];
         if (Array.isArray (response)) {
             data = response;
         } else {
-            data = this.safeList (response, 'data', []);
+            const responseData = this.safeDict (response, 'data', {});
+            data = this.safeList (responseData, 'list', []);
         }
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }

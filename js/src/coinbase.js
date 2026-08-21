@@ -152,6 +152,7 @@ export default class coinbase extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
@@ -928,7 +929,16 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
+        }
+        else if (method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, params));
+        }
+        else {
+            response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, params));
+        }
         return this.parseTransactions(response['data'], undefined, since, limit);
     }
     /**
@@ -968,7 +978,7 @@ export default class coinbase extends Exchange {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         let currencyType = undefined;
-        [currencyType, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'currencyType');
+        [currencyType, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'currencyType');
         if (currencyType === 'crypto') {
             const results = await this.fetchTransactionsWithMethod('v2PrivateGetAccountsAccountIdTransactions', code, since, limit, params);
             return this.filterByArray(results, 'type', 'deposit', false);

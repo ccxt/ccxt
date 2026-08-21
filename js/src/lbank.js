@@ -56,10 +56,11 @@ export default class lbank extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
@@ -86,8 +87,10 @@ export default class lbank extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -696,8 +699,12 @@ export default class lbank extends Exchange {
                         'max': this.safeNumber(market, 'maxOrderVolume'),
                     },
                     'price': {
-                        'min': this.safeNumber(market, 'priceLimitLowerValue'),
-                        'max': this.safeNumber(market, 'priceLimitUpperValue'),
+                        // priceLimitLowerValue and priceLimitUpperValue are
+                        // deviation ratios around the mark price, observed live
+                        // near 0.2 on nearly every symbol and asymmetric on some,
+                        // they are not absolute price bounds so they stay in info
+                        'min': undefined,
+                        'max': undefined,
                     },
                     'cost': {
                         'min': this.safeNumber(market, 'minOrderCost'),

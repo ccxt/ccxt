@@ -42,7 +42,8 @@ export default class foxbit extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
-                'fecthOrderBook': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -56,7 +57,10 @@ export default class foxbit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -2040,6 +2044,8 @@ export default class foxbit extends Exchange {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();

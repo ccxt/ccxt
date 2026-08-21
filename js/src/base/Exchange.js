@@ -57,7 +57,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.71'; }
+    static { this.ccxtVersion = '4.5.75'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -395,6 +395,16 @@ export class BaseExchange {
     encodeURIComponent(...args) {
         // @ts-expect-error
         return encodeURIComponent(...args);
+    }
+    /**
+     * @method
+     * @name Exchange#getCcxtVersion
+     * @description returns the version of the ccxt library, e.g. "4.5.54", or "unknown" when the version constant is not initialized (e.g. when an exchange module is imported directly, bypassing the ccxt entry point)
+     * @returns {string} the semver version of the ccxt library, or "unknown" when unavailable
+     */
+    getCcxtVersion() {
+        const staticVersion = Exchange.ccxtVersion;
+        return (staticVersion === undefined) ? 'unknown' : staticVersion;
     }
     throttle(cost = undefined) {
         return this.throttler.throttle(cost);
@@ -1407,6 +1417,45 @@ export class BaseExchange {
         }
         return this.clients[url];
     }
+    calculateWsBackoffDelay(url) {
+        // exponential reconnect backoff with rng-free jitter, verified behaviorally,
+        // replaces the long-standing hardcoded 0, see https://github.com/ccxt/ccxt/issues/23525
+        const wsOptions = this.safeDict(this.options, 'ws', {});
+        const backoff = this.safeDict(wsOptions, 'backoff', {});
+        const base = this.safeInteger(backoff, 'base', 1000);
+        const factor = this.safeInteger(backoff, 'factor', 2);
+        const maxDelay = this.safeInteger(backoff, 'max', 60000);
+        const stableAfter = this.safeInteger(backoff, 'stableAfter', 30000);
+        let state = this.safeDict(wsOptions, 'backoffState');
+        if (state === undefined) {
+            state = {};
+        }
+        const nowMillis = this.milliseconds();
+        const urlState = this.safeDict(state, url, {});
+        const lastAttempt = this.safeInteger(urlState, 'lastAttempt', 0);
+        let attempts = this.safeInteger(urlState, 'attempts', 0);
+        if ((lastAttempt > 0) && ((nowMillis - lastAttempt) > stableAfter)) {
+            attempts = 0; // the previous connection was healthy long enough, start fresh
+        }
+        urlState['attempts'] = attempts + 1;
+        urlState['lastAttempt'] = nowMillis;
+        state[url] = urlState;
+        // write back unconditionally - transpiled php copies arrays by value, so
+        // mutations only persist through an explicit re-assignment into options
+        wsOptions['backoffState'] = state;
+        this.options['ws'] = wsOptions;
+        if (attempts === 0) {
+            return 0; // first dial or recovered, connect immediately
+        }
+        let delay = base;
+        const capped = Math.min(attempts, 20); // overflow guard
+        for (let i = 1; i < capped; i++) {
+            delay = delay * factor;
+        }
+        const jitterMillis = nowMillis % 1000; // rng-free jitter, transpile-safe
+        const jittered = this.parseToInt(delay * (0.8 + (jitterMillis / 2500))); // 0.8x .. 1.2x
+        return Math.min(jittered, maxDelay); // the ceiling holds regardless of jitter
+    }
     watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
@@ -1428,9 +1477,8 @@ export class BaseExchange {
         if (url === undefined) {
             throw new ArgumentsRequired(this.id + ' watchMultiple() requires a url argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client(url);
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1459,6 +1507,12 @@ export class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!clientExisted) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
+        }
         const connected = client.connect(backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
@@ -1527,9 +1581,8 @@ export class BaseExchange {
         if (messageHash === undefined) {
             throw new ArgumentsRequired(this.id + ' watch() requires a messageHash argument');
         }
+        const clientExisted = (url in this.clients);
         const client = this.client(url);
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1555,6 +1608,12 @@ export class BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
+        let backoffDelay = 0;
+        if (!clientExisted) {
+            // count real dials only - re-entrant watch calls for live or in-flight
+            // connections must not touch the backoff state, see https://github.com/ccxt/ccxt/pull/29627
+            backoffDelay = this.calculateWsBackoffDelay(url);
+        }
         const connected = client.connect(backoffDelay);
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
@@ -1652,6 +1711,9 @@ export class BaseExchange {
     }
     setProperty(obj, property, defaultValue = undefined) {
         obj[property] = defaultValue;
+    }
+    isDictionary(value) {
+        return (value !== undefined) && (value !== null) && (typeof value === 'object') && !Array.isArray(value);
     }
     exceptionMessage(exc, includeStack = true) {
         const message = '[' + exc.constructor.name + '] ' + (!includeStack ? exc.message : exc.stack);
@@ -2195,6 +2257,7 @@ export class BaseExchange {
                 'swap': undefined,
                 'future': undefined,
                 'option': undefined,
+                'index': undefined,
                 'addMargin': undefined,
                 'borrowCrossMargin': undefined,
                 'borrowIsolatedMargin': undefined,
@@ -2651,9 +2714,6 @@ export class BaseExchange {
             return value;
         }
         return defaultValue;
-    }
-    isDictionary(value) {
-        return (value !== undefined) && (typeof value === 'object') && !Array.isArray(value);
     }
     safeList2(dictionaryOrList, key1, key2, defaultValue = undefined) {
         /**

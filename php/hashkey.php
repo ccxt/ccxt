@@ -43,6 +43,7 @@ class hashkey extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => false,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -89,6 +90,7 @@ class hashkey extends Exchange {
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
                 'fetchIsolatedPositions' => false,
+                'fetchLastPrices' => true,
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchLeverages' => false,
@@ -1699,6 +1701,11 @@ class hashkey extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
         $last = $this->safe_string($ticker, 'c');
+        $baseVolume = $this->safe_string($ticker, 'v');
+        if ($market['contract'] && ($market['contractSize'] !== null)) {
+            // 'v' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -1717,7 +1724,7 @@ class hashkey extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'v'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),
             'info' => $ticker,
         ), $market);
@@ -1759,7 +1766,9 @@ class hashkey extends Exchange {
             'symbol' => $market['symbol'],
             'timestamp' => null,
             'datetime' => null,
-            'price' => $this->safe_number($entry, 'p'),
+            // dormant listings carry a literal zero price meaning never traded,
+            // the zero is omitted so the structure reports no price instead
+            'price' => $this->safe_number_omit_zero($entry, 'p'),
             'side' => null,
             'info' => $entry,
         );

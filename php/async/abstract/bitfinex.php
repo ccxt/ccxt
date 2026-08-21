@@ -182,7 +182,7 @@ abstract class bitfinex extends \ccxt\async\Exchange {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 2.7));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_ticker_symbol($params = array()) {
         return $this->request('ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 2.7));
@@ -998,7 +998,7 @@ abstract class bitfinex extends \ccxt\async\Exchange {
         return $this->request('tickers', 'public', 'GET', $params, null, null, array("cost" => 2.7));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetTickerSymbol($params = array()) {
         return $this->request('ticker/{symbol}', 'public', 'GET', $params, null, null, array("cost" => 2.7));

@@ -28,7 +28,7 @@ public partial class whitebit : Exchange
                 { "createConvertTrade", true },
                 { "createDepositAddress", true },
                 { "createMarketBuyOrderWithCost", true },
-                { "createMarketOrderWithCost", false },
+                { "createMarketOrderWithCost", true },
                 { "createMarketSellOrderWithCost", false },
                 { "createOrder", true },
                 { "createPostOnlyOrder", true },
@@ -39,6 +39,7 @@ public partial class whitebit : Exchange
                 { "editOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -716,7 +717,6 @@ public partial class whitebit : Exchange
         object margin = isTrue(isCollateral) && !isTrue(swap);
         object contract = false;
         object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
-        object contractSize = amountPrecision;
         object linear = null;
         object inverse = null;
         if (isTrue(swap))
@@ -758,7 +758,7 @@ public partial class whitebit : Exchange
             { "inverse", inverse },
             { "taker", this.parseNumber(taker) },
             { "maker", this.parseNumber(maker) },
-            { "contractSize", ((bool) isTrue(isSpot)) ? null : contractSize },
+            { "contractSize", ((bool) isTrue(isSpot)) ? null : this.parseNumber("1") },
             { "expiry", null },
             { "expiryDatetime", null },
             { "strike", null },
@@ -1708,6 +1708,7 @@ public partial class whitebit : Exchange
         // Extract control parameters from params
         object checkActive = this.safeBool(parameters, "checkActive", true);
         object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        parameters = this.omit(parameters, new List<object>() {"checkActive", "checkExecuted"});
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
@@ -2729,10 +2730,6 @@ public partial class whitebit : Exchange
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        if (isTrue(isEqual(timeout, null)))
-        {
-            throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
-        }
         if (isTrue(isBiggerThanZero))
         {
             ((IDictionary<string,object>)request)["timeout"] = this.numberToString(divide(timeout, 1000));
@@ -3267,22 +3264,31 @@ public partial class whitebit : Exchange
         // Do not filter by transactionMethod to get all transactions (deposits and withdrawals)
         object response = await this.v4PrivatePostMainAccountHistory(this.extend(request, parameters));
         //
-        //     [
-        //         {
-        //             "id": 123456789,                    // Transaction ID
-        //             "method": "1",                      // Method: 1=deposit, 2=withdrawal
-        //             "ticker": "BTC",                    // Currency ticker
-        //             "amount": "0.001",                  // Transaction amount
-        //             "address": "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa", // Transaction address
-        //             "memo": "",                         // Memo/tag (if required)
-        //             "network": "BTC",                   // Network name
-        //             "fee": "0.0005",                    // Transaction fee
-        //             "status": "1",                      // Status: 0=pending, 1=completed, 2=failed
-        //             "timestamp": 1641051917,            // Transaction timestamp
-        //             "txid": "abc123def456..."           // Transaction hash
-        //         },
-        //         { ... }                                 // More transactions (deposits and withdrawals)
-        //     ]
+        //     {
+        //         "records": [
+        //             {
+        //                 "address": "TDepositAddressExample1111111111111",
+        //                 "uniqueId": null,
+        //                 "transactionId": "11111111-2222-3333-4444-555555555555",
+        //                 "createdAt": 1786182572,
+        //                 "currency": "Tether US",
+        //                 "ticker": "USDT",
+        //                 "method": 1,                    // 1 = deposit, 2 = withdraw
+        //                 "amount": "20.723117",
+        //                 "description": null,
+        //                 "memo": null,
+        //                 "fee": "0",
+        //                 "status": 3,
+        //                 "network": "TRC20",
+        //                 "transactionHash": "a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2",
+        //                 "details": { "partial": null },
+        //                 "centralized": false
+        //             }
+        //         ],
+        //         "total": 1,
+        //         "limit": 100,
+        //         "offset": 0
+        //     }
         //
         object records = this.safeList(response, "records", new List<object>() {});
         return this.parseTransactions(records, currency, since, limit);
@@ -3452,36 +3458,38 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         object accounts = new List<object>() {};
-        // Fetch sub-accounts
+        object response = await this.v4PrivatePostSubAccountList(parameters);
         //
-        //     [
-        //         {
-        //             "id": "12345",
-        //             "name": "SubAccount1",
-        //             "status": "active",
-        //             "permissions": ["trade", "withdraw"]
-        //         }
-        //     ]
+        //     {
+        //         "offset": 0,
+        //         "limit": 100,
+        //         "data": [
+        //             {
+        //                 "id": "8e667b4a-0b71-4988-8af5-9474dbfaeb51",
+        //                 "alias": "trading_bot",
+        //                 "userId": "u-12345",
+        //                 "email": "s***@example.com",
+        //                 "status": "active",
+        //                 "color": "#FF5733",
+        //                 "kyc": { "shareKyc": false, "kycStatus": "verified" },
+        //                 "permissions": { "spotEnabled": true, "collateralEnabled": false }
+        //             }
+        //         ]
+        //     }
         //
-        object subAccounts = await this.v4PrivatePostSubAccountList(parameters);
-        if (isTrue(isTrue(subAccounts) && isTrue(((subAccounts is IList<object>) || (subAccounts.GetType().IsGenericType && subAccounts.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        object subAccounts = this.safeList(response, "data", new List<object>() {});
+        for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
-            {
-                object subAccount = this.safeValue(subAccounts, i);
-                object accountId = this.safeString(subAccount, "id");
-                object accountName = this.safeString(subAccount, "name");
-                if (isTrue(accountId))
-                {
-                    ((IList<object>)accounts).Add(new Dictionary<string, object>() {
-                        { "id", accountId },
-                        { "type", "subaccount" },
-                        { "name", isTrue(accountName) || isTrue(add("SubAccount ", accountId)) },
-                        { "code", null },
-                        { "info", subAccount },
-                    });
-                }
-            }
+            object subAccount = this.safeDict(subAccounts, i, new Dictionary<string, object>() {});
+            object accountId = this.safeString(subAccount, "id");
+            object accountName = this.safeString(subAccount, "alias");
+            ((IList<object>)accounts).Add(new Dictionary<string, object>() {
+                { "id", accountId },
+                { "type", "subaccount" },
+                { "name", accountName },
+                { "code", null },
+                { "info", subAccount },
+            });
         }
         return accounts;
     }
@@ -4140,12 +4148,12 @@ public partial class whitebit : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = since;
+            ((IDictionary<string,object>)request)["limit"] = limit;
         }
         var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = await this.v4PrivatePostCollateralAccountFundingHistory(request);
+        object response = await this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters));
         //
         //     {
         //         "records": [

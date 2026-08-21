@@ -26,9 +26,12 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
         $limit = 10;
         $duration = $exchange->parse_timeframe($chosen_timeframe_key);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
-        while ($now < $ends) {
+        $max_idle_time = 5000;
+        $idle = false;
+        while (($now < $ends) && !$idle) {
             $response = null;
             $success = true;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_ohlcv($symbol, $chosen_timeframe_key, $since, $limit));
                 if ($response === null) {
@@ -38,18 +41,16 @@ function test_watch_ohlcv($exchange, $skipped_properties, $symbol) {
                 if (!is_temporary_failure($e)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
-                // continue;
                 $success = false;
             }
-            if ($success === true) {
-                if ($response === null) {
-                    throw new Exception($exchange->id . ' watch returned undefined response');
-                }
+            $now = $exchange->milliseconds();
+            if (($success === true) && ($response !== null)) {
                 assert_non_emtpy_array($exchange, $skipped_properties, $method, $response, $symbol);
-                $now = $exchange->milliseconds();
                 for ($i = 0; $i < count($response); $i++) {
                     test_ohlcv($exchange, $skipped_properties, $method, $response[$i], $symbol, $now);
+                }
+                if (($now - $start_time) > $max_idle_time) {
+                    $idle = true;
                 }
             }
         }

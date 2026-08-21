@@ -90,6 +90,7 @@ export default class phemex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPositionADLRank': true,
+                'fetchPositionHistory': true,
                 'fetchPositions': true,
                 'fetchPositionsADLRank': true,
                 'fetchPositionsRisk': false,
@@ -1287,6 +1288,9 @@ export default class phemex extends Exchange {
         return orderbook;
     }
     toEn(n, scale) {
+        if ((n === undefined) || (scale === undefined)) {
+            return undefined;
+        }
         const stringN = this.numberToString(n);
         const precise = new Precise(stringN);
         precise.decimals = precise.decimals - scale;
@@ -1298,13 +1302,13 @@ export default class phemex extends Exchange {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
-        return this.toEn(amount, market['valueScale']);
+        return this.toEn(amount, this.safeInteger(market, 'valueScale'));
     }
     toEp(price, market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn(price, this.safeValue(market, 'priceScale'));
+        return this.toEn(price, this.safeInteger(market, 'priceScale'));
     }
     fromEn(en, scale) {
         if (en === undefined || scale === undefined) {
@@ -2788,10 +2792,10 @@ export default class phemex extends Exchange {
             posSide = this.capitalize(posSide);
             request['posSide'] = posSide;
             if (isStableSettled) {
-                request['orderQtyRq'] = amount;
+                request['orderQtyRq'] = this.amountToPrecision(symbol, amount);
             }
             else {
-                request['orderQty'] = this.parseToInt(amount);
+                request['orderQty'] = this.parseToInt(this.amountToPrecision(symbol, amount));
             }
             if (triggerPrice !== undefined) {
                 const triggerType = this.safeString(params, 'triggerType', 'ByMarkPrice');
@@ -3876,7 +3880,7 @@ export default class phemex extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
@@ -5501,7 +5505,7 @@ export default class phemex extends Exchange {
     }
     /**
      * @method
-     * @name phemex#fetchPositionADLRank
+     * @name phemex#fetchPositionsADLRank
      * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
      * @see https://phemex-docs.github.io/#query-account-positions
      * @see https://phemex-docs.github.io/#query-trading-account-and-positions
@@ -5509,7 +5513,7 @@ export default class phemex extends Exchange {
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.code] the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+     * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank(symbols = undefined, params = {}) {

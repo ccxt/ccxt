@@ -32,7 +32,7 @@ abstract class ndax extends \ccxt\async\Exchange {
         return $this->request('EnableXP2FA', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function public_get_getl2snapshot($params = array()) {
         return $this->request('GetL2Snapshot', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -656,7 +656,7 @@ abstract class ndax extends \ccxt\async\Exchange {
         return $this->request('EnableXP2FA', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function publicGetGetL2Snapshot($params = array()) {
         return $this->request('GetL2Snapshot', 'public', 'GET', $params, null, null, array("cost" => 1));

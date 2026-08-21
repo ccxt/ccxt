@@ -33,7 +33,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 put( "watchOrderBook", true );
                 put( "watchOrderBookForSymbols", true );
                 put( "watchOrders", true );
-                put( "watchPostions", true );
+                put( "watchPositions", true );
                 put( "watchTicker", true );
                 put( "watchTickers", true );
                 put( "watchTrades", true );
@@ -854,7 +854,8 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object messageHash = "positions";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
+                symbols = this.marketSymbols(symbols);
+                messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{

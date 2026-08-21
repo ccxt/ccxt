@@ -37,6 +37,7 @@ public partial class bitstamp : Exchange
                 { "createStopLimitOrder", false },
                 { "createStopMarketOrder", false },
                 { "createStopOrder", false },
+                { "editOrder", true },
                 { "fetchBalance", true },
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRate", false },
@@ -56,8 +57,8 @@ public partial class bitstamp : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
-                { "fetchFundingRate", false },
-                { "fetchFundingRateHistory", false },
+                { "fetchFundingRate", true },
+                { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
                 { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
@@ -1341,54 +1342,52 @@ public partial class bitstamp : Exchange
         //         },
         //     ]
         //
-        ((IDictionary<string,object>)this.options)["_temp_currencies_result"] = new Dictionary<string, object>() {};
-        object result = this.parseCurrencies(response);
-        object finalResult = this.deepExtend(result, getValue(this.options, "_temp_currencies_result"));
-        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_result");
-        return finalResult;
+        return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override object parseCurrencies(object rawCurrencies)
     {
-        object market = rawCurrency;
-        object existing = this.safeDict(this.options, "_temp_currencies_result", new Dictionary<string, object>() {});
-        var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
-        var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
-        var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object description = this.safeString(market, "description");
-        if (isTrue(isEqual(description, null)))
+        // each market row yields two currencies so the accumulation happens
+        // in a local dictionary here instead of a temp key inside this.options
+        // because the shared scratch key raced between concurrent
+        // fetchCurrencies invocations in the multi threaded runtimes
+        object result = new Dictionary<string, object>() {};
+        object arr = this.toArray(rawCurrencies);
+        for (object i = 0; isLessThan(i, getArrayLength(arr)); postFixIncrement(ref i))
         {
-            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing description")) ;
-        }
-        var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
-        var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
-        var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
-        object minimumOrder = this.safeString(market, "minimum_order_value");
-        if (isTrue(isEqual(minimumOrder, null)))
-        {
-            throw new ExchangeError ((string)add(this.id, " parseCurrency() missing minimumOrder")) ;
-        }
-        object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-        object cost = getValue(parts, 0);
-        if (isTrue(isTrue((isEqual(bs, null))) || !isTrue((inOp(existing, bs)))))
-        {
-            object baseDecimals = this.safeInteger(market, "base_decimals");
-            if (isTrue(!isEqual(bs, null)))
+            object market = getValue(arr, i);
+            var baseIdquoteIdVariable = new List<object> {this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")};
+            var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
+            var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
+            object bs = this.safeCurrencyCode(baseId);
+            object quote = this.safeCurrencyCode(quoteId);
+            object description = this.safeString(market, "description");
+            if (isTrue(isEqual(description, null)))
             {
-                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+                throw new ExchangeError ((string)add(this.id, " parseCurrencies() missing description")) ;
+            }
+            var baseDescriptionquoteDescriptionVariable = ((string)description).Split(new [] {((string)" / ")}, StringSplitOptions.None).ToList<object>();
+            var baseDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[0];
+            var quoteDescription = ((IList<object>) baseDescriptionquoteDescriptionVariable)[1];
+            object minimumOrder = this.safeString(market, "minimum_order_value");
+            if (isTrue(isEqual(minimumOrder, null)))
+            {
+                throw new ExchangeError ((string)add(this.id, " parseCurrencies() missing minimumOrder")) ;
+            }
+            object parts = ((string)minimumOrder).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            object cost = getValue(parts, 0);
+            if (isTrue(isTrue((!isEqual(bs, null))) && !isTrue((inOp(result, bs)))))
+            {
+                object baseDecimals = this.safeInteger(market, "base_decimals");
+                ((IDictionary<string,object>)result)[(string)bs] = this.constructCurrencyObject(baseId, bs, baseDescription, baseDecimals, null, market);
+            }
+            if (isTrue(isTrue((!isEqual(quote, null))) && !isTrue((inOp(result, quote)))))
+            {
+                object counterDecimals = this.safeInteger(market, "counter_decimals");
+                ((IDictionary<string,object>)result)[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
             }
         }
-        if (isTrue(isTrue((isEqual(quote, null))) || !isTrue((inOp(existing, quote)))))
-        {
-            object counterDecimals = this.safeInteger(market, "counter_decimals");
-            if (isTrue(!isEqual(quote, null)))
-            {
-                ((IDictionary<string,object>)getValue(this.options, "_temp_currencies_result"))[(string)quote] = this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market);
-            }
-        }
-        return this.safeValue(getValue(this.options, "_temp_currencies_result"), quote);
+        return result;
     }
 
     /**
@@ -2509,19 +2508,24 @@ public partial class bitstamp : Exchange
             await this.loadMarkets();
         }
         object request = new Dictionary<string, object>() {};
-        object method = "privatePostUserTransactions";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["pair"] = getValue(market, "id");
-            method = add(method, "Pair");
         }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            response = await this.privatePostUserTransactionsPair(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostUserTransactions(this.extend(request, parameters));
+        }
         object result = this.filterBy(response, "type", "2");
         return this.parseTrades(result, market, since, limit);
     }
@@ -2923,9 +2927,23 @@ public partial class bitstamp : Exchange
         //        "market": "BTC/USD"
         //    }
         //
-        object id = this.safeString(order, "id");
-        object clientOrderId = this.safeString(order, "client_order_id");
-        object side = this.safeString(order, "type");
+        // editOrder
+        //
+        //    {
+        //        "order_id": 1453282316578816,
+        //        "order_type": "0",
+        //        "market": "BTC/USD",
+        //        "amount": "0.02035278",
+        //        "price": "2100.45",
+        //        "datetime": "2025-10-17T14:23:01.725000Z",
+        //        "orig_order_id": 1453282316578816,
+        //        "orig_client_order_id": "my-original-order-123",
+        //        "status": "Open"
+        //    }
+        //
+        object id = this.safeString2(order, "id", "order_id");
+        object clientOrderId = this.safeString2(order, "client_order_id", "orig_client_order_id");
+        object side = this.safeString2(order, "type", "order_type");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "1")))) ? "sell" : "buy";
@@ -3251,8 +3269,9 @@ public partial class bitstamp : Exchange
             throw new NotSupported ((string)add(add(add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
         }
         object name = this.getCurrencyName(code);
-        object method = add(add("privatePost", this.capitalize(name)), "Address");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+        // through request(), called here directly to avoid dynamic dispatch
+        object response = await this.request(add(name, "_address/"), "private", "POST", parameters);
         object address = this.safeString(response, "address");
         object tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address);
@@ -3295,11 +3314,10 @@ public partial class bitstamp : Exchange
             { "amount", amount },
         };
         object currency = null;
-        object method = null;
+        object response = null;
         if (!isTrue(this.isFiat(code)))
         {
             object name = this.getCurrencyName(code);
-            method = add(add("privatePost", this.capitalize(name)), "Withdrawal");
             if (isTrue(isEqual(code, "XRP")))
             {
                 if (isTrue(!isEqual(tag, null)))
@@ -3314,14 +3332,16 @@ public partial class bitstamp : Exchange
                 }
             }
             ((IDictionary<string,object>)request)["address"] = address;
+            // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+            // route through request(), called here directly to avoid dynamic dispatch
+            response = await this.request(add(name, "_withdrawal/"), "private", "POST", this.extend(request, parameters));
         } else
         {
-            method = "privatePostWithdrawalOpen";
             currency = this.currency(code);
             ((IDictionary<string,object>)request)["iban"] = address;
             ((IDictionary<string,object>)request)["account_currency"] = getValue(currency, "id");
+            response = await this.privatePostWithdrawalOpen(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseTransaction(response, currency);
     }
 

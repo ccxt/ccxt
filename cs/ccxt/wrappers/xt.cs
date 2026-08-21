@@ -266,6 +266,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/Create%20Orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -315,6 +316,30 @@ public partial class xt
     /// float : price to set a take-profit on an open position
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// float : the percent to trail away from the current market price, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingAmount</term>
+    /// <description>
+    /// float : the quote amount to trail away from the current market price, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingTriggerPrice</term>
+    /// <description>
+    /// float : the price to activate a trailing order, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for trailing orders only, default is 'cross'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -344,6 +369,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders-by-id"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -363,6 +389,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the order is a trailing order or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -378,6 +410,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-order-history"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -401,6 +434,12 @@ public partial class xt
     /// <term>params.trigger</term>
     /// <description>
     /// bool : if the order is a trigger order or not
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>
@@ -428,6 +467,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/getTrackList"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -459,6 +499,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -477,6 +523,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -506,6 +553,12 @@ public partial class xt
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
     /// bool : if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>
@@ -526,6 +579,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -557,6 +611,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -575,6 +635,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/cancel-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -594,6 +655,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the order is a trailing order or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -610,6 +677,7 @@ public partial class xt
     /// See <see href="https://doc.xt.com/docs/futures/Order/cancel-all-orders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders"/>  <br/>
     /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -627,6 +695,12 @@ public partial class xt
     /// <term>params.stopLossTakeProfit</term>
     /// <description>
     /// bool : if the order is a stop-loss or take-profit order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
     /// </description>
     /// </item>
     /// </list>
@@ -930,6 +1004,52 @@ public partial class xt
         return new OpenInterest(res);
     }
     /// <summary>
+    /// fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' (default) or 'inverse'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// fetch the funding history
     /// </summary>
     /// <remarks>
@@ -991,6 +1111,40 @@ public partial class xt
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetches historical closed positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetPositionHistory"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=10
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest position to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>

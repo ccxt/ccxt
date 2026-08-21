@@ -102,14 +102,18 @@ export default class whitebit extends whitebitRest {
      * @see https://docs.whitebit.com/private/websocket/#balance-margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+     * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
+    setBalanceCache(client: Client, type: any, subscriptionHash: any): void;
+    loadBalanceSnapshot(client: any, messageHash: any, type: any, subscriptionHash: any): Promise<void>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
     watchMultipleSubscription(messageHash: any, method: any, symbol: any, isNested?: boolean, params?: {}): Promise<any>;
     watchPrivate(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<number>;
     handleAuthenticate(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;

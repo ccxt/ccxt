@@ -30,6 +30,7 @@ public partial class BaseExchange
                 { "swap", null },
                 { "future", null },
                 { "option", null },
+                { "index", null },
                 { "addMargin", null },
                 { "borrowCrossMargin", null },
                 { "borrowIsolatedMargin", null },
@@ -528,11 +529,6 @@ public partial class BaseExchange
             return value;
         }
         return defaultValue;
-    }
-
-    public virtual object isDictionary(object value)
-    {
-        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object safeList2(object dictionaryOrList, object key1, object key2, object defaultValue = null)

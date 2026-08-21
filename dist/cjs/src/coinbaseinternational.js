@@ -67,6 +67,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -112,6 +113,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
                 'setMargin': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
+                'transfer': true,
                 'withdraw': true,
             },
             'urls': {
@@ -797,10 +799,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             [networkId, params] = await this.handleNetworkIdAndParams(code, 'createDepositAddress', params);
             request['network_arn_id'] = networkId;
         }
-        if (method === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1PrivatePostTransfersAddress(this.extend(request, params));
+        }
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -2304,10 +2309,13 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'network_arn_id': networkId,
             'nonce': this.nonce(),
         };
-        if (method === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' method is required');
+        let response = undefined;
+        if (method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
+        else {
+            response = await this.v1PrivatePostTransfersWithdraw(this.extend(request, params));
+        }
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

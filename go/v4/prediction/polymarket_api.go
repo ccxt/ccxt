@@ -582,7 +582,7 @@ func (this *PolymarketCore) DataPublicGetTraded(args ...any) <-chan any {
 	return this.CallEndpointAsync("dataPublicGetTraded", args...)
 }
 
-// DataPublicGetTrades returns a channel that yields a JSON object.
+// DataPublicGetTrades returns a channel that yields a JSON array.
 func (this *PolymarketCore) DataPublicGetTrades(args ...any) <-chan any {
 	return this.CallEndpointAsync("dataPublicGetTrades", args...)
 }

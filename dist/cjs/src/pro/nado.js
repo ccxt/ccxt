@@ -1644,7 +1644,10 @@ class nado extends nado$1["default"] {
                     delete client.subscriptions[subscriptionHash];
                 }
             }
-            delete client.subscriptions[messageHash];
+            const subscriptionMsg = this.safeValue(client.subscriptions, messageHash);
+            if (subscriptionMsg !== undefined) {
+                delete client.subscriptions[messageHash];
+            }
             delete this.orderbooks[symbol];
             const error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
             client.reject(error, messageHash);

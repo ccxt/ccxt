@@ -98,6 +98,7 @@ export default class coinex extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
                 'fetchPositions': true,
@@ -635,6 +636,7 @@ export default class coinex extends Exchange {
                     '3008': RequestTimeout, // Service busy, please try again later.
                     '3109': InsufficientFunds, // {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': InvalidOrder, // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157': BadSymbol, // {"code":3157,"data":{},"message":"Service has been stopped in this market"}
                     '3600': OrderNotFound, // {"code":3600,"data":{},"message":"Order not found"}
                     '3606': InvalidOrder, // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': ExchangeError, // Order cancellation prohibited during the Call Auction period.

@@ -90,6 +90,7 @@ class coinex extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => true,
                 'fetchPositions' => true,
@@ -627,6 +628,7 @@ class coinex extends Exchange {
                     '3008' => '\\ccxt\\RequestTimeout', // Service busy, please try again later.
                     '3109' => '\\ccxt\\InsufficientFunds', // array("code":3109,"data":array(),"message":"balance not enough")
                     '3127' => '\\ccxt\\InvalidOrder', // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157' => '\\ccxt\\BadSymbol', // array("code":3157,"data":array(),"message":"Service has been property_exists($this, stopped) market")
                     '3600' => '\\ccxt\\OrderNotFound', // array("code":3600,"data":array(),"message":"Order not found")
                     '3606' => '\\ccxt\\InvalidOrder', // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610' => '\\ccxt\\ExchangeError', // Order cancellation prohibited during the Call Auction period.

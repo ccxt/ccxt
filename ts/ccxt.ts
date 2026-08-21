@@ -41,7 +41,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.5.71';
+const version = '4.5.75';
 
 //-----------------------------------------------------------------------------
 
@@ -76,6 +76,7 @@ import blofin from  './src/blofin.js'
 import btcbox from  './src/btcbox.js'
 import btcmarkets from  './src/btcmarkets.js'
 import btcturk from  './src/btcturk.js'
+import btse from  './src/btse.js'
 import bullish from  './src/bullish.js'
 import bybit from  './src/bybit.js'
 import bybiteu from  './src/bybiteu.js'
@@ -98,7 +99,6 @@ import deribit from  './src/deribit.js'
 import derive from  './src/derive.js'
 import digifinex from  './src/digifinex.js'
 import dydx from  './src/dydx.js'
-import exmo from  './src/exmo.js'
 import extended from  './src/extended.js'
 import fmfwio from  './src/fmfwio.js'
 import foxbit from  './src/foxbit.js'
@@ -188,7 +188,6 @@ import deepcoinPro from  './src/pro/deepcoin.js'
 import deribitPro from  './src/pro/deribit.js'
 import derivePro from  './src/pro/derive.js'
 import dydxPro from  './src/pro/dydx.js'
-import exmoPro from  './src/pro/exmo.js'
 import extendedPro from  './src/pro/extended.js'
 import gatePro from  './src/pro/gate.js'
 import gateeuPro from  './src/pro/gateeu.js'
@@ -234,6 +233,7 @@ import hyperliquidPrediction from  './src/prediction/hyperliquid.js'
 import kalshiPrediction from  './src/prediction/kalshi.js'
 import limitlessPrediction from  './src/prediction/limitless.js'
 import myriadPrediction from  './src/prediction/myriad.js'
+import opinionPrediction from  './src/prediction/opinion.js'
 import polymarketPrediction from  './src/prediction/polymarket.js'
 
 const exchanges = {
@@ -268,6 +268,7 @@ const exchanges = {
     'btcbox':                 btcbox,
     'btcmarkets':             btcmarkets,
     'btcturk':                btcturk,
+    'btse':                   btse,
     'bullish':                bullish,
     'bybit':                  bybit,
     'bybiteu':                bybiteu,
@@ -290,7 +291,6 @@ const exchanges = {
     'derive':                 derive,
     'digifinex':              digifinex,
     'dydx':                   dydx,
-    'exmo':                   exmo,
     'extended':               extended,
     'fmfwio':                 fmfwio,
     'foxbit':                 foxbit,
@@ -380,7 +380,6 @@ const pro = {
     'deribit':                deribitPro,
     'derive':                 derivePro,
     'dydx':                   dydxPro,
-    'exmo':                   exmoPro,
     'extended':               extendedPro,
     'gate':                   gatePro,
     'gateeu':                 gateeuPro,
@@ -432,6 +431,7 @@ const prediction = {
     'kalshi':                 kalshiPrediction,
     'limitless':              limitlessPrediction,
     'myriad':                 myriadPrediction,
+    'opinion':                opinionPrediction,
     'polymarket':             polymarketPrediction,
 };
 
@@ -630,6 +630,7 @@ export {
     btcbox,
     btcmarkets,
     btcturk,
+    btse,
     bullish,
     bybit,
     bybiteu,
@@ -652,7 +653,6 @@ export {
     derive,
     digifinex,
     dydx,
-    exmo,
     extended,
     fmfwio,
     foxbit,

@@ -49,6 +49,7 @@ class hashkey extends hashkey$1["default"] {
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
+                'createOrders': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': true,
                 'createStopLimitOrder': true,
@@ -95,6 +96,7 @@ class hashkey extends hashkey$1["default"] {
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
                 'fetchIsolatedPositions': false,
+                'fetchLastPrices': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchLeverages': false,
@@ -1694,6 +1696,11 @@ class hashkey extends hashkey$1["default"] {
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];
         const last = this.safeString(ticker, 'c');
+        let baseVolume = this.safeString(ticker, 'v');
+        if (market['contract'] && (market['contractSize'] !== undefined)) {
+            // 'v' counts contracts, and a ticker reports base volume
+            baseVolume = Precise["default"].stringMul(baseVolume, this.numberToString(market['contractSize']));
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1712,7 +1719,7 @@ class hashkey extends hashkey$1["default"] {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
+            'baseVolume': baseVolume,
             'quoteVolume': this.safeString(ticker, 'qv'),
             'info': ticker,
         }, market);
@@ -1752,7 +1759,9 @@ class hashkey extends hashkey$1["default"] {
             'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumber(entry, 'p'),
+            // dormant listings carry a literal zero price meaning never traded,
+            // the zero is omitted so the structure reports no price instead
+            'price': this.safeNumberOmitZero(entry, 'p'),
             'side': undefined,
             'info': entry,
         };

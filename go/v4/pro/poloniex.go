@@ -708,7 +708,7 @@ func (this *PoloniexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan
 		}
 		var watchOrderBookOptions any = this.SafeValue(this.Options, "watchOrderBook")
 		var name any = this.SafeString(watchOrderBookOptions, "name", "book_lv2")
-		nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
+		nameparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "name", name)
 		name = ccxt.GetValue(nameparamsVariable, 0)
 		params = ccxt.GetValue(nameparamsVariable, 1)
 
@@ -1337,7 +1337,7 @@ func (this *PoloniexCore) HandleTicker(client any, message any) any {
 			}
 		}
 	}
-	var messageHashes any = this.FindMessageHashes(client.(*ccxt.Client), "ticker::")
+	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "ticker::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
 		var parts any = ccxt.Split(messageHash, "::")

@@ -342,10 +342,8 @@ public partial class woo
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.woox.io/#edit-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-order-by-client_order_id"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-algo-order"/>  <br/>
-    /// See <see href="https://docs.woox.io/#edit-algo-order-by-client_order_id"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/edit_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/edit_algo_order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -357,6 +355,18 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : client order id of the order to edit, used instead of the id argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trigger</term>
+    /// <description>
+    /// boolean : whether the order is a trigger/algo order, set to true to edit an algo order without passing trigger parameters
     /// </description>
     /// </item>
     /// <item>
@@ -436,13 +446,13 @@ public partial class woo
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_all_order"/>  <br/>
+    /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_orders_by_symbol"/>  <br/>
     /// See <see href="https://developer.woox.io/api-reference/endpoint/trading/cancel_algo_orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
     /// <description>
-    /// string : unified market symbol
+    /// string : unified market symbol, cancels orders in all markets when omitted
     /// </description>
     /// </item>
     /// <item>
@@ -454,7 +464,7 @@ public partial class woo
     /// <item>
     /// <term>params.trigger</term>
     /// <description>
-    /// boolean : whether the order is a trigger/algo order
+    /// boolean : set to true to cancel only trigger/algo orders
     /// </description>
     /// </item>
     /// </list>

@@ -82,7 +82,7 @@ class kucoin extends kucoin$1["default"] {
                 'fetchL3OrderBook': true,
                 'fetchLedger': true,
                 'fetchLeverage': true,
-                'fetchLeverageTiers': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': true,
                 'fetchMarketLeverageTiers': true,
@@ -2871,7 +2871,9 @@ class kucoin extends kucoin$1["default"] {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'priceChg'),
-            'percentage': this.safeString(ticker, 'priceChgPct'),
+            // priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
+            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
+            'percentage': Precise["default"].stringMul(this.safeString(ticker, 'priceChgPct'), '100'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
@@ -4994,7 +4996,7 @@ class kucoin extends kucoin$1["default"] {
         let useSync = false;
         [useSync, params] = this.handleOptionAndParams(params, 'cancelOrder', 'sync', false);
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('createOrder', params);
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
         const isMarginOrder = tradeType === 'MARGIN_TRADE' || marginMode !== undefined;
         if (hf || useSync || isMarginOrder) {
@@ -5204,10 +5206,10 @@ class kucoin extends kucoin$1["default"] {
         const market = this.market(symbol);
         request['symbol'] = market['id'];
         let accountMode = 'unified';
-        [accountMode, params] = this.handleOptionAndParams(params, 'fetchOrder', 'accountMode', accountMode);
+        [accountMode, params] = this.handleOptionAndParams(params, 'cancelOrder', 'accountMode', accountMode);
         request['accountMode'] = accountMode;
         let marginMode = undefined;
-        [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
+        [marginMode, params] = this.handleMarginModeAndParams('cancelOrder', params);
         const isUnified = (accountMode === 'unified');
         const tradeType = this.handleTradeType(market['contract'], marginMode, isUnified, params);
         request['tradeType'] = tradeType;
@@ -5260,7 +5262,7 @@ class kucoin extends kucoin$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        [marketType, params] = this.handleMarketTypeAndParams('cancelOrder', market, params);
+        [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if ((marketType === 'spot') || (marketType === 'margin')) {
             return await this.cancelAllSpotOrders(symbol, params);
         }
@@ -10473,6 +10475,7 @@ class kucoin extends kucoin$1["default"] {
             //                 "mmr": "0.007",
             //                 "maintenanceMargin": "0.128086",
             //                 "creationTime": 1774469753178000000
+            //                 "updateTime": 1774469753178000000
             //             }
             //         ]
             //     }
@@ -10816,6 +10819,7 @@ class kucoin extends kucoin$1["default"] {
         //         "mmr": "0.007",
         //         "maintenanceMargin": "0.128086",
         //         "creationTime": 1774469753178000000
+        //         "updateTime": 1774469753178000000
         //     }
         //
         // uta fetchPositionsHistory
@@ -10877,7 +10881,12 @@ class kucoin extends kucoin$1["default"] {
         }
         let lastUpdateTimestamp = this.safeInteger(position, 'closeTime');
         if (lastUpdateTimestamp === undefined) {
-            lastUpdateTimestamp = this.safeIntegerProduct(position, 'closingTime', 0.000001);
+            if ('closingTime' in position) {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, 'closingTime', 0.000001);
+            }
+            else if ('updateTime' in position) {
+                lastUpdateTimestamp = this.safeIntegerProduct(position, 'updateTime', 0.000001);
+            }
         }
         return this.safePosition({
             'info': position,
@@ -10976,7 +10985,7 @@ class kucoin extends kucoin$1["default"] {
             [accountMode, params] = this.handleOptionAndParams(params, 'cancelOrders', 'accountMode', accountMode);
             request['accountMode'] = accountMode;
             let marginMode = undefined;
-            [marginMode, params] = this.handleMarginModeAndParams('fetchOrder', params);
+            [marginMode, params] = this.handleMarginModeAndParams('cancelOrders', params);
             const isUnified = (accountMode === 'unified');
             const tradeType = this.handleTradeType(isContractMarket, marginMode, isUnified, params);
             request['tradeType'] = tradeType;

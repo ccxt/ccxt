@@ -983,22 +983,84 @@ func (this *BitrueCore) Authenticate(optionalArgs ...any) <-chan any {
 		_ = params
 		var listenKey any = this.SafeValue(this.Options, "listenKey")
 		if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+			// single-flight leader election on a never-dialed client, see
+			// https://github.com/ccxt/ccxt/issues/29393: the key rides the
+			// stream url, so racing fetches mint several listenKeys and the
+			// losers dial '/stream?listenKey=' + an orphaned key whose
+			// subscriptions never deliver. the flight is registered in
+			// client.futures and settled through client.resolve/client.reject,
+			// so every mutation of that map happens under the ws client's own
+			// lock rather than through an unsynchronized map write
+			var messageHash any = "authenticateFlight"
+			var client any = this.Client("authenticationFlights")
+			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+				// a flight is already in progress - wake when the leader
+				// settles it: the listenKey url is then in the options
 
-			response := (<-this.OpenV1PrivatePostPoseidonApiV1ListenKey(params))
-			ccxt.PanicOnError(response)
-			//
-			//     {
-			//         "msg": "succ",
-			//         "code": 200,
-			//         "data": {
-			//             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-			//         }
-			//     }
-			//
-			var data any = this.SafeValue(response, "data", map[string]any{})
-			var key any = this.SafeString(data, "listenKey")
-			ccxt.AddElementToObject(this.Options, "listenKey", key)
-			ccxt.AddElementToObject(this.Options, "listenKeyUrl", ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/stream?listenKey="), key))
+				retRes87016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+				ccxt.PanicOnError(retRes87016)
+
+				ch <- ccxt.GetValue(this.Options, "listenKeyUrl")
+				return nil
+			}
+			// register before the first await, so a concurrent caller entering
+			// authenticate () while this one is inside the fetch sees the flight
+			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+			{
+				func(this *BitrueCore) (ret_ any) {
+					defer func() {
+						if e := recover(); e != nil {
+							if e == "break" {
+								return
+							}
+							ret_ = func(this *BitrueCore) any {
+								// catch block:
+								// reject the flight - all waiters throw and the next caller
+								// re-leads instead of deadlocking on a dead flight
+								client.(ccxt.ClientInterface).Reject(e, messageHash)
+								return nil
+							}(this)
+						}
+					}()
+					// try block:
+
+					response := (<-this.OpenV1PrivatePostPoseidonApiV1ListenKey(params))
+					ccxt.PanicOnError(response)
+					//
+					//     {
+					//         "msg": "succ",
+					//         "code": 200,
+					//         "data": {
+					//             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+					//         }
+					//     }
+					//
+					var data any = this.SafeValue(response, "data", map[string]any{})
+					var key any = this.SafeString(data, "listenKey")
+					if ccxt.IsTrue(ccxt.IsEqual(key, nil)) {
+						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+					}
+					ccxt.AddElementToObject(this.Options, "listenKey", key)
+					ccxt.AddElementToObject(this.Options, "listenKeyUrl", ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/stream?listenKey="), key))
+					client.(ccxt.ClientInterface).Resolve(key, messageHash)
+					return nil
+				}(this)
+
+			}
+			// rethrows to the leader on failure and attaches the handler that
+			// keeps an alone leader's rejection from crashing the process
+
+			retRes90412 := <-future.(*ccxt.Future).Await()
+			ccxt.PanicOnError(retRes90412)
+			// only the leader schedules the keepalive, so a burst of watchers
+			// no longer stacks one refresh timer per racing caller. waiters
+			// early-return above, so this runs once per successful flight.
+			// it also has to stay the LAST statement of the block: master's
+			// build/csharpTranspiler.ts:154 rewrites this.delay with a greedy
+			// /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+			// so any following statement carrying a comma gets swallowed into
+			// a bogus `new object[] {...}` argument
 			var refreshTimeout any = this.SafeInteger(this.Options, "listenKeyRefreshRate", 1800000)
 			this.Delay(refreshTimeout, this.KeepAliveListenKey)
 		}
@@ -1040,8 +1102,8 @@ func (this *BitrueCore) KeepAliveListenKey(optionalArgs ...any) <-chan any {
 				}()
 				// try block:
 
-				retRes88312 := (<-this.OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.Extend(request, params)))
-				ccxt.PanicOnError(retRes88312)
+				retRes92512 := (<-this.OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes92512)
 				return nil
 			}(this)
 
