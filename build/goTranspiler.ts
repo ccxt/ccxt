@@ -2259,6 +2259,22 @@ ${constStatements.join('\n')}
         const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
         const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
 
+        // ast-transpiler wraps a deferred async call as `this.Spawn(this.Method, args).Await()`
+        // so a later Promise.all fans out. On a VIRTUAL base method that wrap is wrong: it
+        // freezes a method value bound to the embedded *BaseExchange*, so the venue override is
+        // lost and the base stub runs instead (`grvt.signIn()` reached BaseExchange.SignIn and
+        // panicked `NotSupported`, failing the Go request tests). Go has no virtual dispatch on
+        // `this`, so these calls have to go back through callInternal / DerivedExchange below,
+        // which resolve against the concrete instance. Undo the wrap before those rewrites run.
+        const virtualByCapitalized: any = {};
+        for (const name of allVirtual) {
+            virtualByCapitalized[capitalize(name)] = name;
+        }
+        baseClass = baseClass.replace(
+            new RegExp(`this\\.Spawn\\(this\\.(${Object.keys(virtualByCapitalized).join('|')})(,[^)]*)?\\)\\.Await\\(\\)`, 'gm'),
+            (_match: any, p1: string, p2: string) => `<-this.callInternal("${virtualByCapitalized[p1]}"${p2 || ''})`
+        );
+
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         // console.log(syncRegex)
         // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
@@ -2403,6 +2419,17 @@ ${constStatements.join('\n')}
         let baseClass = baseFile.content as any;
         const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
         const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
+        // same reason as in the main base pass: `this.Spawn(this.Method, …).Await()` freezes a
+        // method value bound to the embedded base, losing the venue override, so virtual base
+        // methods go back through callInternal / DerivedExchange before the rewrites below.
+        const virtualByCapitalized: any = {};
+        for (const name of allVirtual) {
+            virtualByCapitalized[capitalize(name)] = name;
+        }
+        baseClass = baseClass.replace(
+            new RegExp(`this\\.Spawn\\(this\\.(${Object.keys(virtualByCapitalized).join('|')})(,[^)]*)?\\)\\.Await\\(\\)`, 'gm'),
+            (_match: any, p1: string, p2: string) => `<-this.callInternal("${virtualByCapitalized[p1]}"${p2 || ''})`
+        );
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2})`);
         const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
