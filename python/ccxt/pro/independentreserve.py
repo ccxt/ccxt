@@ -5,16 +5,15 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
 
 
 class independentreserve(ccxt.async_support.independentreserve):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(independentreserve, self).describe(), {
             'has': {
                 'ws': True,
@@ -44,7 +43,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             },
         })
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
@@ -62,7 +61,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         trades = await self.watch(url, messageHash, None, messageHash)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: object):
         #
         #    {
         #        "Channel": "ticker-btc-usd",
@@ -95,7 +94,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         self.trades[symbol] = stored
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade: Any, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #    {
         #        "TradeGuid": "2f316718-0d0b-4e33-a30c-c2c06f3cfb34",
@@ -149,7 +148,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: object):
         #
         #    {
         #        "Channel": "orderbook/1/eth/aud",
@@ -227,7 +226,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         if receivedSnapshot:
             client.resolve(orderbook, messageHash)
 
-    def value_to_checksum(self, value: Any):
+    def value_to_checksum(self, value: object):
         result = format(value, '.8f')
         result = result.replace('.', '')
         # remove leading zeros
@@ -235,15 +234,15 @@ class independentreserve(ccxt.async_support.independentreserve):
         result = self.number_to_string(result)
         return result
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         bidAsk = self.parse_order_book_bid_ask(delta, 'Price', 'Volume')
         bookside.storeArray(bidAsk)
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
-    def handle_heartbeat(self, client: Client, message: Any):
+    def handle_heartbeat(self, client: Client, message: object):
         #
         #    {
         #        "Time": 1676156208182,
@@ -252,7 +251,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_subscriptions(self, client: Client, message: Any):
+    def handle_subscriptions(self, client: Client, message: object):
         #
         #    {
         #        "Data": ["ticker-btc-sgd"],
@@ -262,7 +261,7 @@ class independentreserve(ccxt.async_support.independentreserve):
         #
         return message
 
-    def handle_message(self, client: Client, message: Any):
+    def handle_message(self, client: Client, message: object):
         event = self.safe_string(message, 'Event')
         handlers = {
             'Subscriptions': self.handle_subscriptions,

@@ -97,8 +97,7 @@ export default class toobit extends Exchange {
                     'https://api-docs.toobit.com/',
                 ],
                 'referral': {
-                    'url': 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount': 0.1,
+                    'url': 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 },
                 'fees': 'https://www.toobit.com/fee',
             },
@@ -146,7 +145,7 @@ export default class toobit extends Exchange {
                         'api/v1/subAccount': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/account/subAccount': { 'cost': 5 } as Endpoint<List>,
                         'api/v1/subAccount/list': { 'cost': 5 } as Endpoint<List>,
-                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<Dict>,
+                        'api/v1/futures/accountLeverage': { 'cost': 1 } as Endpoint<List>,
                         'api/v1/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
                         'api/v1/futures/positions': { 'cost': 5 * 1.67 } as Endpoint<List>,
                         'api/v1/futures/historyPositions': { 'cost': 5 } as Endpoint<List>,
@@ -1741,6 +1740,7 @@ export default class toobit extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -1801,12 +1801,11 @@ export default class toobit extends Exchange {
         }
         let cost: Str = undefined;
         [ cost, params ] = this.handleParamString (params, 'cost');
-        if (type === 'market') {
-            if (cost === undefined && side === 'buy') {
+        if (type === 'market' && side === 'buy') {
+            if (cost === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires params["cost"] for market buy order');
-            } else {
-                request['quantity'] = this.costToPrecision (symbol, cost);
             }
+            request['quantity'] = this.costToPrecision (symbol, cost);
         } else {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
@@ -1835,9 +1834,9 @@ export default class toobit extends Exchange {
         let reduceOnly: Bool = undefined;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly');
         if (side === 'buy') {
-            side = reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            side = reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
         } else if (side === 'sell') {
-            side = reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            side = reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         request['side'] = side;
         if (price !== undefined) {
@@ -1964,7 +1963,19 @@ export default class toobit extends Exchange {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const rawType = this.safeString (order, 'type');
-        const rawSideLower = this.safeStringLower (order, 'side');
+        let rawSideLower = this.safeStringLower (order, 'side');
+        let reduceOnly: Bool = undefined;
+        if (rawSideLower !== undefined) {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            const sideParts = rawSideLower.split ('_');
+            const sideSuffix = this.safeString (sideParts, 1);
+            if (sideSuffix !== undefined) {
+                reduceOnly = (sideSuffix === 'close');
+            }
+            rawSideLower = this.safeString (sideParts, 0);
+        }
         let triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         if (triggerPrice === '0.0') {
             triggerPrice = undefined;
@@ -1993,7 +2004,7 @@ export default class toobit extends Exchange {
             'trades': undefined,
             'fee': undefined,
             'marginMode': undefined,
-            'reduceOnly': undefined,
+            'reduceOnly': reduceOnly,
             'leverage': undefined,
             'hedged': undefined,
         }, market);
@@ -3002,7 +3013,7 @@ export default class toobit extends Exchange {
             'coin': currency['id'],
             'address': address,
             'quantity': this.currencyToPrecision (currency['code'], amount),
-            'chainType': networkCode,
+            'chainType': this.networkCodeToId (networkCode, code),
             'clientOrderId': this.milliseconds (),
         };
         if (tag !== undefined) {
@@ -3104,21 +3115,21 @@ export default class toobit extends Exchange {
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        const data = this.safeDict (response, 'data', {});
+        const data = this.safeDict (response, 0, {});
         return this.parseLeverage (data, market);
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marketId = this.safeString (leverage, 'symbol');
+        const marketId = this.safeString2 (leverage, 'symbolId', 'symbol');
         const leverageValue = this.safeInteger (leverage, 'leverage');
-        const marginType = this.safeString (leverage, 'marginType');
-        const marginMode = (marginType === 'crossed') ? 'cross' : 'isolated';
+        const marginType = this.safeStringLower (leverage, 'marginType');
+        const marginMode = (marginType === 'cross') ? 'cross' : 'isolated';
         return {
             'info': leverage,
             'symbol': this.safeSymbol (marketId, market),

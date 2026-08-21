@@ -635,8 +635,11 @@ class NewTranspiler {
             [/(bookside|asks|bids|Side).Store/g, '$1.(IOrderBookSide).Store'],
             [/this.ParseWsBidAsk\(GetValue\(this.Orderbooks, symbol\)/g, 'this.ParseWsBidAsk(UnWrapType(ccxt.GetValue(this.Orderbooks, symbol))'],
             // Clients
-            [/FindMessageHashes\(client/g, 'FindMessageHashes\(client.(*Client)'],
-            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription($1.(*Client),'],
+            // AsClient instead of a hard .(*Client) assertion: the transport hands
+            // generated code either *Client (offline mocks) or *WSClient (live), and
+            // asserting the wrong one panics (e.g. handlePositions during ws static tests)
+            [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
+            [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription(ccxt.AsClient($1),'],
             [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],

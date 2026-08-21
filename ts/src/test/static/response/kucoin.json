@@ -3169,6 +3169,82 @@
                 }
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "contract ticker, whose priceChgPct is a ratio",
+                "method": "fetchTickers",
+                "input": [
+                    null,
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": [
+                        {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 63190,
+                            "bestBidPrice": 63189.9,
+                            "bestBidSize": 1214,
+                            "bestAskPrice": 63190,
+                            "bestAskSize": 3079,
+                            "highPrice": 63362.7,
+                            "lowPrice": 62938.7,
+                            "priceChgPct": 0.0017,
+                            "priceChg": 108.3,
+                            "volumeOf24h": 1252.542,
+                            "turnoverOf24h": 79051949.033,
+                            "markPrice": 63190,
+                            "indexPrice": 63213.08,
+                            "ts": 1786909114532000000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT:USDT": {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786909114532,
+                        "datetime": "2026-08-16T19:38:34.532Z",
+                        "high": 63362.7,
+                        "low": 62938.7,
+                        "bid": 63189.9,
+                        "bidVolume": 1214,
+                        "ask": 63190,
+                        "askVolume": 3079,
+                        "vwap": 63113.212198074,
+                        "open": 63081.7,
+                        "close": 63190,
+                        "last": 63190,
+                        "previousClose": null,
+                        "change": 108.3,
+                        "percentage": 0.17,
+                        "average": 63135.8,
+                        "baseVolume": 1252.542,
+                        "quoteVolume": 79051949.033,
+                        "markPrice": 63190,
+                        "indexPrice": 63213.08,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "lastTradePrice": 63190,
+                            "bestBidPrice": 63189.9,
+                            "bestBidSize": 1214,
+                            "bestAskPrice": 63190,
+                            "bestAskSize": 3079,
+                            "highPrice": 63362.7,
+                            "lowPrice": 62938.7,
+                            "priceChgPct": 0.0017,
+                            "priceChg": 108.3,
+                            "volumeOf24h": 1252.542,
+                            "turnoverOf24h": 79051949.033,
+                            "markPrice": 63190,
+                            "indexPrice": 63213.08,
+                            "ts": 1786909114532000000
+                        }
+                    }
+                }
+            }
+        ],
         "withdraw": [
             {
                 "description": "with networkCode",

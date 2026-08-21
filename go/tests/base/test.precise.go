@@ -109,6 +109,46 @@ func TestPrecise() {
 	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("10", "5"), "15")) // 1010 | 0101 = 1111 = 15
 	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("0", "0"), "0"))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringOr("7", "0"), "7"))
+	// zero divisor
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "0"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("0", "0"), nil))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("0", "5"), "0"))
+	// float precision classics (would fail with binary floats)
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("0.1", "0.2"), "0.3"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringSub("0.3", "0.1"), "0.2"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("0.1", "0.2"), "0.02"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("0.1", "0.3"), "0.03"))
+	// trailing zero reduction
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("10.00", "1.0"), "10"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("1000", "1"), "1000"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("0.500", "20.00"), "10"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("0.0", "0.00"), "0"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("0.000", "0"), "0"))
+	Assert(ccxt.Precise.StringEquals("1.2300", "1.23"))
+	Assert(ccxt.Precise.StringEquals("1000", "1e3"))
+	// scientific notation
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("1.23e2", "1e-2"), "1.23"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("1E8", "2"), "200000000")) // uppercase exponent marker
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("1e2", "1e-2"), "100.01"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAbs("-1.23e-6"), "0.00000123"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringNeg("1.23e-6"), "-0.00000123"))
+	// division truncates toward zero
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("10", "4"), "2.5"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("-10", "4"), "-2.5"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "3", 5), "0.33333"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("-1", "3", 5), "-0.33333"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringDiv("1", "7", 25), "0.1428571428571428571428571"))
+	// comparisons with scientific notation
+	Assert(ccxt.Precise.StringGt("1e3", "999.999"))
+	Assert(!ccxt.IsTrue(ccxt.Precise.StringLt("1e-3", "0.001"))) // equal values, different representation
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMax("1e3", "999.999"), "1000"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMin("999.999", "1e3"), "999.999"))
+	// large integers
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("123456789012345678901234567890", "987654321"), "121932631124828532112482853211126352690"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringAdd("123456789012345678901234567890", "123456789012345678901234567890"), "246913578024691357802469135780"))
+	// positive modulo
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMod("1000000000.123", "7"), "6.123"))
+	Assert(ccxt.IsEqual(ccxt.Precise.StringMod("7.5", "2.5"), "0"))
 	// with undefined arguments
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul(nil, "1"), nil))
 	Assert(ccxt.IsEqual(ccxt.Precise.StringMul("1", nil), nil))

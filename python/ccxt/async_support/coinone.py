@@ -6,8 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
-from typing import List
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -20,7 +19,7 @@ from ccxt.base.precise import Precise
 
 class coinone(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(coinone, self).describe(), {
             'id': 'coinone',
             'name': 'CoinOne',
@@ -365,7 +364,7 @@ class coinone(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for coinone
 
@@ -472,7 +471,7 @@ class coinone(Exchange, ImplicitAPI):
             })
         return result
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
@@ -789,7 +788,7 @@ class coinone(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1037,7 +1036,7 @@ class coinone(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
         :param str symbol: unified market symbol
@@ -1152,7 +1151,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         return self.safe_order(response)
 
-    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses(self, codes: Strings = None, params={}) -> list[DepositAddress]:
         """
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
@@ -1208,7 +1207,7 @@ class coinone(Exchange, ImplicitAPI):
                 result[code] = depositAddress
         return result
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'
@@ -1247,7 +1246,7 @@ class coinone(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None  # fallback to default error handler
         #

@@ -1168,50 +1168,101 @@ func (this *LbankCore) Authenticate(optionalArgs ...any) <-chan any {
 	go func() any {
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
-		// when we implement more private streams, we need to refactor the authentication
-		// to be concurrent-safe and respect the same authentication token
+		// single-flight leader election, see
+		// https://github.com/ccxt/ccxt/issues/29393: both branches below read
+		// the cache, then fetch, then write it back, so concurrent
+		// watchOrders/watchBalance calls on a cold instance each POST
+		// subscribe/get_key, and concurrent callers past the expiry each POST
+		// subscribe/refresh_key - every loser burns rate limit on a
+		// subscribeKey that is immediately overwritten. the flight is parked
+		// on this exchange's own ws client - the same one that carries
+		// subscriptions['authenticated'] - under a key that is not one of its
+		// messageHashes, registered in client.futures before the first fetch
+		// and settled through client.resolve / client.reject so that every
+		// write to the futures map goes through the client itself
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		this.CheckRequiredCredentials()
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		var client any = this.Client(url)
 		var now any = this.Milliseconds()
-		var messageHash any = "authenticated"
-		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-			this.CheckRequiredCredentials()
+		var messageHash any = "authenticateFlight"
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader settles
+			// it: the subscribeKey is then in the bucket
 
-			response := (<-this.SpotPrivatePostSubscribeGetKey(params))
-			ccxt.PanicOnError(response)
-			//
-			// {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
-			//
-			var result any = this.SafeValue(response, "result")
-			if ccxt.IsTrue(!ccxt.IsEqual(result, true)) {
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " failed to get subscribe key")))
-			}
-			ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated", map[string]any{
-				"key":     this.SafeString(response, "data"),
-				"expires": this.Sum(now, 3300000),
-			})
-		} else {
-			var expires any = this.SafeInteger(authenticated, "expires", 0)
-			if ccxt.IsTrue(ccxt.IsLessThan(expires, now)) {
-				var request any = map[string]any{
-					"subscribeKey": ccxt.GetValue(authenticated, "key"),
-				}
+			retRes99212 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes99212)
 
-				response := (<-this.SpotPrivatePostSubscribeRefreshKey(this.Extend(request, params)))
-				ccxt.PanicOnError(response)
-				//
-				//    {"result": "true"}
-				//
-				var result any = this.SafeString(response, "result")
-				if ccxt.IsTrue(!ccxt.IsEqual(result, "true")) {
-					panic(ccxt.ExchangeError(ccxt.Add(this.Id, " failed to refresh the SubscribeKey")))
-				}
-				ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(client, "subscriptions"), "authenticated"), "expires", this.Sum(now, 3300000)) // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
-			}
+			ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
+			return nil
 		}
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *LbankCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *LbankCore) any {
+							// catch block:
+							// reject the flight - all waiters throw and the next caller
+							// re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+				var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated")
+				if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+
+					response := (<-this.SpotPrivatePostSubscribeGetKey(params))
+					ccxt.PanicOnError(response)
+					//
+					// {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
+					//
+					var result any = this.SafeValue(response, "result")
+					if ccxt.IsTrue(!ccxt.IsEqual(result, true)) {
+						panic(ccxt.ExchangeError(ccxt.Add(this.Id, " failed to get subscribe key")))
+					}
+					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated", map[string]any{
+						"key":     this.SafeString(response, "data"),
+						"expires": this.Sum(now, 3300000),
+					})
+				} else {
+					var expires any = this.SafeInteger(authenticated, "expires", 0)
+					if ccxt.IsTrue(ccxt.IsLessThan(expires, now)) {
+						var request any = map[string]any{
+							"subscribeKey": ccxt.GetValue(authenticated, "key"),
+						}
+
+						response := (<-this.SpotPrivatePostSubscribeRefreshKey(this.Extend(request, params)))
+						ccxt.PanicOnError(response)
+						//
+						//    {"result": "true"}
+						//
+						var result any = this.SafeString(response, "result")
+						if ccxt.IsTrue(!ccxt.IsEqual(result, "true")) {
+							panic(ccxt.ExchangeError(ccxt.Add(this.Id, " failed to refresh the SubscribeKey")))
+						}
+						ccxt.AddElementToObject(ccxt.GetValue(ccxt.GetValue(client, "subscriptions"), "authenticated"), "expires", this.Sum(now, 3300000)) // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+					}
+				}
+				// settle the flight through the client so that every write to the
+				// futures map happens inside the base class
+				client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key"), messageHash)
+				return nil
+			}(this)
+
+		}
+		// rethrows a rejected flight to the leader and attaches the handler
+		// that keeps an alone leader from crashing on an unhandled rejection
+
+		retRes10388 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes10388)
 
 		ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 		return nil

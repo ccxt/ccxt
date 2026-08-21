@@ -1400,9 +1400,10 @@ Gets the total amount of unsettled contracts. In other words, the total number o
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified market symbol |
 | timeframe | <code>string</code> | Yes | "5m", 15m, 30m, 1h, 4h, 1d |
-| since | <code>int</code> | No | Not used by Bybit |
+| since | <code>int</code> | No | Timestamp in ms of the earliest open interest to fetch |
 | limit | <code>int</code> | No | The number of open interest structures to return. Max 200, default 50 |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.until | <code>int</code> | No | Timestamp in ms of the latest open interest to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
@@ -1419,12 +1420,13 @@ fetch the rate of interest to borrow a currency for margin trading
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
-**See**: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota  
+**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.vipLevel | <code>string</code> | No | the vip level to fetch the borrow rate for, defaults to 'No VIP' |
 
 
 ```javascript

@@ -398,6 +398,7 @@ func (this *Poloniex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
  * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Poloniex) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -438,6 +439,7 @@ func (this *Poloniex) CreateOrder(symbol string, typeVar string, side string, am
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+ * @param {string} [params.clientOrderId] a unique identifier for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Poloniex) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {

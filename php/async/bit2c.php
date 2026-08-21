@@ -394,7 +394,33 @@ class bit2c extends Exchange {
             'pair' => $market['id'],
         );
         $orderbook = Async\await($this->publicGetExchangesPairOrderbook($this->extend($request, $params)));
-        return $this->parse_order_book($orderbook, $symbol);
+        // the full $orderbook->json snapshot can contain dead orders - rows
+        // published with a zero amount at their $limit price, hours-stable and
+        // sometimes crossing the real $market-> per the api docs the endpoint
+        // contains open orders only, and the venue's own $orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        $rawBids = $this->safe_list($orderbook, 'bids', array());
+        $rawAsks = $this->safe_list($orderbook, 'asks', array());
+        $bids = array();
+        $asks = array();
+        for ($i = 0; $i < count($rawBids); $i++) {
+            $bidRow = $rawBids[$i];
+            $bidAmount = $this->safe_string($bidRow, 1);
+            if (Precise::string_gt($bidAmount, '0')) {
+                $bids[] = $bidRow;
+            }
+        }
+        for ($i = 0; $i < count($rawAsks); $i++) {
+            $askRow = $rawAsks[$i];
+            $askAmount = $this->safe_string($askRow, 1);
+            if (Precise::string_gt($askAmount, '0')) {
+                $asks[] = $askRow;
+            }
+        }
+        $filtered = array( 'bids' => $bids, 'asks' => $asks );
+        return $this->parse_order_book($filtered, $symbol);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -584,22 +610,26 @@ class bit2c extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = 'privatePostOrderAddOrder';
         $market = $this->market($symbol);
         $request = array(
             'Amount' => $amount,
             'Pair' => $market['id'],
         );
+        $response = null;
         if ($type === 'market') {
-            $method .= 'MarketPrice' . $this->capitalize($side);
+            if ($side === 'buy') {
+                $response = Async\await($this->privatePostOrderAddOrderMarketPriceBuy($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostOrderAddOrderMarketPriceSell($this->extend($request, $params)));
+            }
         } else {
             $request['Price'] = $price;
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
             $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
+            $response = Async\await($this->privatePostOrderAddOrder($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         return $this->parse_order($response, $market);
     }
 

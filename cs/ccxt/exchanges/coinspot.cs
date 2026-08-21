@@ -628,7 +628,14 @@ public partial class coinspot : Exchange
             await this.loadMarkets();
         }
         object method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        object response = null;
+        if (isTrue(isTrue((isEqual(method, "private_post_ro_my_balances"))) || isTrue((isEqual(method, "privatePostRoMyBalances")))))
+        {
+            response = await this.privatePostRoMyBalances(parameters);
+        } else
+        {
+            response = await this.privatePostMyBalances(parameters);
+        }
         //
         // read-write api keys
         //

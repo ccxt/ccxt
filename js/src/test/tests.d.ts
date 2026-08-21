@@ -44,6 +44,8 @@ declare class testMainClass {
     getExchangeCode(exchange: any, codes?: Strings): string;
     getMarketsFromExchange(exchange: any, spot?: boolean): Dict;
     getValidSymbol(exchange: any, spot?: boolean): any;
+    getTickerVolume(exchange: any, ticker: any): any;
+    getMostActiveSymbols(exchange: any, defaultSymbols: string[]): Promise<any[]>;
     testExchange(exchange: any, providedSymbol?: undefined): Promise<boolean>;
     runPredictionTests(exchange: any): Promise<boolean>;
     assertPredictionEvents(exchange: any, events: any): boolean;

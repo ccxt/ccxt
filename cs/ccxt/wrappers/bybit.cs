@@ -1949,7 +1949,7 @@ public partial class bybit
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : Not used by Bybit
+    /// int : Timestamp in ms of the earliest open interest to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -1962,6 +1962,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : Exchange specific parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : Timestamp in ms of the latest open interest to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -1984,12 +1990,18 @@ public partial class bybit
     /// fetch the rate of interest to borrow a currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.vipLevel</term>
+    /// <description>
+    /// string : the vip level to fetch the borrow rate for, defaults to 'No VIP'
     /// </description>
     /// </item>
     /// </list>

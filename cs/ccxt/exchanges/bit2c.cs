@@ -435,7 +435,40 @@ public partial class bit2c : Exchange
             { "pair", getValue(market, "id") },
         };
         object orderbook = await this.publicGetExchangesPairOrderbook(this.extend(request, parameters));
-        return this.parseOrderBook(orderbook, symbol);
+        // the full orderbook.json snapshot can contain dead orders - rows
+        // published with a zero amount at their limit price, hours-stable and
+        // sometimes crossing the real market. per the api docs the endpoint
+        // contains open orders only, and the venue's own orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        object rawBids = this.safeList(orderbook, "bids", new List<object>() {});
+        object rawAsks = this.safeList(orderbook, "asks", new List<object>() {});
+        object bids = new List<object>() {};
+        object asks = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        {
+            object bidRow = getValue(rawBids, i);
+            object bidAmount = this.safeString(bidRow, 1);
+            if (isTrue(Precise.stringGt(bidAmount, "0")))
+            {
+                ((IList<object>)bids).Add(bidRow);
+            }
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        {
+            object askRow = getValue(rawAsks, i);
+            object askAmount = this.safeString(askRow, 1);
+            if (isTrue(Precise.stringGt(askAmount, "0")))
+            {
+                ((IList<object>)asks).Add(askRow);
+            }
+        }
+        object filtered = new Dictionary<string, object>() {
+            { "bids", bids },
+            { "asks", asks },
+        };
+        return this.parseOrderBook(filtered, symbol);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -629,15 +662,21 @@ public partial class bit2c : Exchange
         {
             await this.loadMarkets();
         }
-        object method = "privatePostOrderAddOrder";
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "Amount", amount },
             { "Pair", getValue(market, "id") },
         };
+        object response = null;
         if (isTrue(isEqual(type, "market")))
         {
-            method = add(method, add("MarketPrice", this.capitalize(side)));
+            if (isTrue(isEqual(side, "buy")))
+            {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, parameters));
+            }
         } else
         {
             ((IDictionary<string,object>)request)["Price"] = price;
@@ -645,8 +684,8 @@ public partial class bit2c : Exchange
             object priceString = this.numberToString(price);
             ((IDictionary<string,object>)request)["Total"] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
             ((IDictionary<string,object>)request)["IsBid"] = (isEqual(side, "buy"));
+            response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseOrder(response, market);
     }
 

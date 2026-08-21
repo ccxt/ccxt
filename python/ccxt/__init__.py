@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.73'
+__version__ = '4.5.75'
 
 # ----------------------------------------------------------------------------
 
@@ -115,6 +115,7 @@ from ccxt.blofin import blofin                                        # noqa: F4
 from ccxt.btcbox import btcbox                                        # noqa: F401
 from ccxt.btcmarkets import btcmarkets                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
+from ccxt.btse import btse                                            # noqa: F401
 from ccxt.bullish import bullish                                      # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.bybiteu import bybiteu                                      # noqa: F401
@@ -219,6 +220,7 @@ exchanges = [
     'btcbox',
     'btcmarkets',
     'btcturk',
+    'btse',
     'bullish',
     'bybit',
     'bybiteu',

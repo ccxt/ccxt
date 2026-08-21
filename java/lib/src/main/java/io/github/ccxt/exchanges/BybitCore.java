@@ -9097,6 +9097,12 @@ public class BybitCore extends BybitApi
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
+            } else if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                // the endpoint walks backwards from endTime and ignores a lone startTime
+                Object duration = this.parseTimeframe(timeframe);
+                Object requestedLimit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 50 : limit; // exchange default
+                Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, requestedLimit), 1000)));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -9216,9 +9222,10 @@ public class BybitCore extends BybitApi
      * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
      * @param {string} symbol Unified market symbol
      * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-     * @param {int} [since] Not used by Bybit
+     * @param {int} [since] Timestamp in ms of the earliest open interest to fetch
      * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
      * @param {object} [params] Exchange specific parameters
+     * @param {int} [params.until] Timestamp in ms of the latest open interest to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */
@@ -9291,9 +9298,10 @@ public class BybitCore extends BybitApi
      * @method
      * @name bybit#fetchCrossBorrowRate
      * @description fetch the rate of interest to borrow a currency for margin trading
-     * @see https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+     * @see https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.vipLevel] the vip level to fetch the borrow rate for, defaults to 'No VIP'
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
@@ -9308,27 +9316,44 @@ public class BybitCore extends BybitApi
             }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "coin", Helpers.GetValue(currency, "id") );
+                put( "currency", Helpers.GetValue(currency, "id") );
+                put( "vipLevel", "No VIP" );
             }};
-            Object response = (this.privateGetV5SpotCrossMarginTradeLoanInfo(this.extend(request, parameters))).join();
+            Object response = (this.publicGetV5SpotMarginTradeData(this.extend(request, parameters))).join();
             //
-            //    {
-            //         "retCode": "0",
+            //     {
+            //         "retCode": 0,
             //         "retMsg": "success",
             //         "result": {
-            //             "coin": "USDT",
-            //             "interestRate": "0.000107000000",
-            //             "loanAbleAmount": "",
-            //             "maxLoanAmount": "79999.999"
+            //             "vipCoinList": [
+            //                 {
+            //                     "list": [
+            //                         {
+            //                             "borrowable": true,
+            //                             "collateralRatio": "0.98",
+            //                             "currency": "BTC",
+            //                             "hourlyBorrowRate": "0.0000005030430000",
+            //                             "liquidationOrder": "3",
+            //                             "marginCollateral": true,
+            //                             "maxBorrowingAmount": "300"
+            //                         }
+            //                     ],
+            //                     "vipLevel": "No VIP"
+            //                 }
+            //             ]
             //         },
-            //         "retExtInfo": null,
-            //         "time": "1666734490778"
+            //         "retExtInfo": "{}",
+            //         "time": 1786958191900
             //     }
             //
             Object timestamp = this.safeInteger(response, "time");
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Helpers.addElementToObject(data, "timestamp", timestamp);
-            return this.parseBorrowRate(data, currency);
+            Object vipCoinList = this.safeList(data, "vipCoinList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object firstVip = this.safeDict(vipCoinList, 0, new java.util.HashMap<String, Object>() {{}});
+            Object coins = this.safeList(firstVip, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object coin = this.safeDict(coins, 0, new java.util.HashMap<String, Object>() {{}});
+            Helpers.addElementToObject(coin, "timestamp", timestamp);
+            return this.parseBorrowRate(coin, currency);
         });
 
     }
@@ -9336,12 +9361,16 @@ public class BybitCore extends BybitApi
     public Object parseBorrowRate(Object info, Object... optionalArgs)
     {
         //
+        // fetchCrossBorrowRate
         //     {
-        //         "coin": "USDT",
-        //         "interestRate": "0.000107000000",
-        //         "loanAbleAmount": "",
-        //         "maxLoanAmount": "79999.999",
-        //         "timestamp": 1666734490778
+        //         "borrowable": true,
+        //         "collateralRatio": "0.98",
+        //         "currency": "BTC",
+        //         "hourlyBorrowRate": "0.0000005030430000",
+        //         "liquidationOrder": "3",
+        //         "marginCollateral": true,
+        //         "maxBorrowingAmount": "300",
+        //         "timestamp": 1786958191900
         //     }
         //
         // fetchBorrowRateHistory

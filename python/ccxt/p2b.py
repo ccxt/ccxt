@@ -6,8 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.p2b import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
-from typing import List
+from ccxt.base.types import Int, Market, Num, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -18,7 +17,7 @@ from ccxt.base.decimal_to_precision import TICK_SIZE
 
 class p2b(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(p2b, self).describe(), {
             'id': 'p2b',
             'name': 'p2b',
@@ -334,7 +333,7 @@ class p2b(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bigone
 
@@ -520,7 +519,7 @@ class p2b(Exchange, ImplicitAPI):
             self.parse_ticker(result, market)
         )
 
-    def parse_ticker(self, ticker: Any, market: Market = None):
+    def parse_ticker(self, ticker: object, market: Market = None):
         #
         # parseTickers
         #
@@ -794,7 +793,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #    [
         #        1699253400,       # Kline open time
@@ -848,7 +847,7 @@ class p2b(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'result', {})
         return self.parse_balance(result)
 
-    def parse_balance(self, response: Any):
+    def parse_balance(self, response: object):
         #
         #    {
         #        "USDT": {
@@ -1153,7 +1152,7 @@ class p2b(Exchange, ImplicitAPI):
         deals = self.safe_list(result, 'deals', [])
         return self.parse_trades(deals, market, since, limit)
 
-    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user, the time between since and params["untnil"] cannot be longer than 24 hours
 
@@ -1300,7 +1299,7 @@ class p2b(Exchange, ImplicitAPI):
             'trades': None,
         }, market)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':
@@ -1319,7 +1318,7 @@ class p2b(Exchange, ImplicitAPI):
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if response is None:
             return None
         if code == 400:

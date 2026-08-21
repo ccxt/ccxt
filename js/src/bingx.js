@@ -1330,12 +1330,13 @@ export default class bingx extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 100); // avoid API exception "limit should less than 100"
-        }
         let response;
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchTrades', market, params);
+        if (limit !== undefined) {
+            const maxLimit = (marketType === 'spot') ? 500 : 1000;
+            request['limit'] = Math.min(limit, maxLimit);
+        }
         if (marketType === 'spot') {
             response = await this.spotV1PublicGetMarketTrades(this.extend(request, params));
         }

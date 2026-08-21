@@ -383,7 +383,33 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         const orderbook = await this.publicGetExchangesPairOrderbook(this.extend(request, params));
-        return this.parseOrderBook(orderbook, symbol);
+        // the full orderbook.json snapshot can contain dead orders - rows
+        // published with a zero amount at their limit price, hours-stable and
+        // sometimes crossing the real market. per the api docs the endpoint
+        // contains open orders only, and the venue's own orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        const rawBids = this.safeList(orderbook, 'bids', []);
+        const rawAsks = this.safeList(orderbook, 'asks', []);
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidRow = rawBids[i];
+            const bidAmount = this.safeString(bidRow, 1);
+            if (Precise.stringGt(bidAmount, '0')) {
+                bids.push(bidRow);
+            }
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askRow = rawAsks[i];
+            const askAmount = this.safeString(askRow, 1);
+            if (Precise.stringGt(askAmount, '0')) {
+                asks.push(askRow);
+            }
+        }
+        const filtered = { 'bids': bids, 'asks': asks };
+        return this.parseOrderBook(filtered, symbol);
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
@@ -553,14 +579,19 @@ export default class bit2c extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let method = 'privatePostOrderAddOrder';
         const market = this.market(symbol);
         const request = {
             'Amount': amount,
             'Pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'MarketPrice' + this.capitalize(side);
+            if (side === 'buy') {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, params));
+            }
         }
         else {
             request['Price'] = price;
@@ -568,8 +599,8 @@ export default class bit2c extends Exchange {
             const priceString = this.numberToString(price);
             request['Total'] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
             request['IsBid'] = (side === 'buy');
+            response = await this.privatePostOrderAddOrder(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseOrder(response, market);
     }
     /**

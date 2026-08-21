@@ -1735,15 +1735,16 @@ public partial class bingx : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // avoid API exception "limit should less than 100"
-        }
         object response = null;
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            object maxLimit = ((bool) isTrue((isEqual(marketType, "spot")))) ? 500 : 1000;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
+        }
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.spotV1PublicGetMarketTrades(this.extend(request, parameters));

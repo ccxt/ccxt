@@ -92,8 +92,7 @@ class toobit extends Exchange {
                     'https://api-docs.toobit.com/',
                 ),
                 'referral' => array(
-                    'url' => 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount' => 0.1,
+                    'url' => 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 ),
                 'fees' => 'https://www.toobit.com/fee',
             ),
@@ -1737,6 +1736,7 @@ class toobit extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -1796,12 +1796,11 @@ class toobit extends Exchange {
         }
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        if ($type === 'market') {
-            if ($cost === null && $side === 'buy') {
+        if ($type === 'market' && $side === 'buy') {
+            if ($cost === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires $params["cost"] for $market buy order');
-            } else {
-                $request['quantity'] = $this->cost_to_precision($symbol, $cost);
             }
+            $request['quantity'] = $this->cost_to_precision($symbol, $cost);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -1830,9 +1829,9 @@ class toobit extends Exchange {
         $reduceOnly = null;
         list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly');
         if ($side === 'buy') {
-            $side = $reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            $side = $reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
         } elseif ($side === 'sell') {
-            $side = $reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            $side = $reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         $request['side'] = $side;
         if ($price !== null) {
@@ -1960,6 +1959,18 @@ class toobit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'type');
         $rawSideLower = $this->safe_string_lower($order, 'side');
+        $reduceOnly = null;
+        if ($rawSideLower !== null) {
+            // contract orders arrive, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries $reduceOnly, so read
+            // it before discarding it (spot sides have no suffix => null)
+            $sideParts = explode('_', $rawSideLower);
+            $sideSuffix = $this->safe_string($sideParts, 1);
+            if ($sideSuffix !== null) {
+                $reduceOnly = ($sideSuffix === 'close');
+            }
+            $rawSideLower = $this->safe_string($sideParts, 0);
+        }
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         if ($triggerPrice === '0.0') {
             $triggerPrice = null;
@@ -1988,7 +1999,7 @@ class toobit extends Exchange {
             'trades' => null,
             'fee' => null,
             'marginMode' => null,
-            'reduceOnly' => null,
+            'reduceOnly' => $reduceOnly,
             'leverage' => null,
             'hedged' => null,
         ), $market);
@@ -2997,7 +3008,7 @@ class toobit extends Exchange {
             'coin' => $currency['id'],
             'address' => $address,
             'quantity' => $this->currency_to_precision($currency['code'], $amount),
-            'chainType' => $networkCode,
+            'chainType' => $this->network_code_to_id($networkCode, $code),
             'clientOrderId' => $this->milliseconds(),
         );
         if ($tag !== null) {
@@ -3099,21 +3110,21 @@ class toobit extends Exchange {
         //
         // array(
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // )
         //
-        $data = $this->safe_dict($response, 'data', array());
+        $data = $this->safe_dict($response, 0, array());
         return $this->parse_leverage($data, $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
-        $marketId = $this->safe_string($leverage, 'symbol');
+        $marketId = $this->safe_string_2($leverage, 'symbolId', 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
-        $marginType = $this->safe_string($leverage, 'marginType');
-        $marginMode = ($marginType === 'crossed') ? 'cross' : 'isolated';
+        $marginType = $this->safe_string_lower($leverage, 'marginType');
+        $marginMode = ($marginType === 'cross') ? 'cross' : 'isolated';
         return array(
             'info' => $leverage,
             'symbol' => $this->safe_symbol($marketId, $market),

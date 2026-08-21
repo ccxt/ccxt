@@ -8645,7 +8645,7 @@ public partial class gate : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["from"] = since;
+            ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         object response = await this.publicFuturesGetSettleContractStats(this.extend(request, parameters));
         //

@@ -456,7 +456,40 @@ public class Bit2cCore extends Bit2cApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
-            return this.parseOrderBook(orderbook, symbol);
+            // the full orderbook.json snapshot can contain dead orders - rows
+            // published with a zero amount at their limit price, hours-stable and
+            // sometimes crossing the real market. per the api docs the endpoint
+            // contains open orders only, and the venue's own orderbook-top.json ui
+            // feed filters these rows out, so a non-positive amount is a dead order
+            // their full snapshot failed to purge - it is removed here, which also
+            // uncrosses the book. rows are positional price and amount pairs
+            Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
+            {
+                Object bidRow = Helpers.GetValue(rawBids, i);
+                Object bidAmount = this.safeString(bidRow, 1);
+                if (Helpers.isTrue(Precise.stringGt(bidAmount, "0")))
+                {
+                    ((java.util.List<Object>)bids).add(bidRow);
+                }
+            }
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
+            {
+                Object askRow = Helpers.GetValue(rawAsks, i);
+                Object askAmount = this.safeString(askRow, 1);
+                if (Helpers.isTrue(Precise.stringGt(askAmount, "0")))
+                {
+                    ((java.util.List<Object>)asks).add(askRow);
+                }
+            }
+            Object filtered = new java.util.HashMap<String, Object>() {{
+                put( "bids", bids );
+                put( "asks", asks );
+            }};
+            return this.parseOrderBook(filtered, symbol);
         });
 
     }
@@ -676,15 +709,21 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "privatePostOrderAddOrder";
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "Amount", amount );
                 put( "Pair", Helpers.GetValue(market, "id") );
             }};
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
-                method = Helpers.add(method, Helpers.add("MarketPrice", this.capitalize(side)));
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                {
+                    response = (this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, parameters))).join();
+                } else
+                {
+                    response = (this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, parameters))).join();
+                }
             } else
             {
                 Helpers.addElementToObject(request, "Price", price);
@@ -692,8 +731,8 @@ public class Bit2cCore extends Bit2cApi
                 Object priceString = this.numberToString(price);
                 Helpers.addElementToObject(request, "Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 Helpers.addElementToObject(request, "IsBid", (Helpers.isEqual(side, "buy")));
+                response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             return this.parseOrder(response, market);
         });
 

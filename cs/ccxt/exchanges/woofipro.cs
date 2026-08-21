@@ -3507,7 +3507,7 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await ((Task<object>)callDynamically(this, "v1PrivateGetClientMarginModes", new object[] { parameters }));
+        object response = await this.v1PrivateGetClientMarginModes(parameters);
         //
         // {
         //     "success": true,
@@ -3588,7 +3588,7 @@ public partial class woofipro : Exchange
         //     "timestamp": 1702989203989
         // }
         //
-        return await ((Task<object>)callDynamically(this, "v1PrivatePostClientMarginMode", new object[] { this.extend(request, parameters) }));
+        return await this.v1PrivatePostClientMarginMode(this.extend(request, parameters));
     }
 
     public override object parseMarginModification(object data, object market = null)
@@ -3640,7 +3640,7 @@ public partial class woofipro : Exchange
             { "amount", this.numberToString(amount) },
             { "type", type },
         };
-        object response = await ((Task<object>)callDynamically(this, "v1PrivatePostPositionMargin", new object[] { this.extend(request, parameters) }));
+        object response = await this.v1PrivatePostPositionMargin(this.extend(request, parameters));
         //
         // {
         //     "success": true,

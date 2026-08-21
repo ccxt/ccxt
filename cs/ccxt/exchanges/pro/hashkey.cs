@@ -908,16 +908,55 @@ public partial class hashkey : ccxt.hashkey
         {
             return listenKey;
         }
-        object response = await this.privatePostApiV1UserDataStream(parameters);
-        //
-        //    {
-        //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-        //    }
-        //
-        listenKey = this.safeString(response, "listenKey");
-        ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
-        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
-        this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+        // mint their own listenKey and each schedules its own
+        // keepAliveListenKey timer, and the key rides the private url built by
+        // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+        // subscriptions never deliver. the flight is registered in
+        // client.futures and settled through client.resolve () /
+        // ((WebSocketClient)client).reject (), so every mutation of the futures map goes through
+        // the client's own accessors
+        object messageHash = "authenticateFlight";
+        var client = this.client("authenticationFlights");
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future(messageHash);
+            return this.safeString(this.options, "listenKey");
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch below finds it and waits instead of re-leading
+        var future = client.reusableFuture(messageHash);
+        try
+        {
+            object response = await this.privatePostApiV1UserDataStream(parameters);
+            //
+            //    {
+            //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            //    }
+            //
+            listenKey = this.safeString(response, "listenKey");
+            if (isTrue(isEqual(listenKey, null)))
+            {
+                throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+            }
+            ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+            object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
+            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
+            // settle the flight: client.resolve () wakes every waiter and
+            // drops the future from the map
+            callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+        } catch(Exception e)
+        {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            ((WebSocketClient)client).reject(e, messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
         return listenKey;
     }
 

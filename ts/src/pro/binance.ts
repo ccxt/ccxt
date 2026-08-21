@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { ed25519 } from '@noble/curves/ed25519.js';
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Balances, Bool, Dict, Int, Liquidation, List, Market, Num, FeeString, NullableList, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -351,59 +351,6 @@ export default class binance extends binanceRest {
         return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
     }
 
-    async authenticateStock (params: Dict = {}) {
-        const options = this.safeDict (this.options, 'stock', {});
-        const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'stockListenKeyRefreshRate', 1200000);
-        const now = this.milliseconds ();
-        const delay = this.sum (listenKeyRefreshRate, 10000);
-        if ((now - lastAuthenticatedTime) > delay) {
-            const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            const response = await this.sapiPostEquityListenKey (requestParams);
-            const listenKey = this.safeString (response, 'listenKey');
-            this.options['stock'] = this.extend (options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            });
-            this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
-        }
-    }
-
-    async keepAliveStockListenKey (params: Dict = {}) {
-        try {
-            const options = this.safeDict (this.options, 'stock', {});
-            const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
-            const response = await this.sapiPostEquityListenKey (requestParams);
-            const listenKey = this.safeString (response, 'listenKey');
-            const now = this.milliseconds ();
-            this.options['stock'] = this.extend (options, {
-                'listenKey': listenKey,
-                'lastAuthenticatedTime': now,
-            });
-        } catch (error) {
-            const options = this.safeDict (this.options, 'stock', {});
-            this.options['stock'] = this.extend (options, {
-                'listenKey': undefined,
-                'lastAuthenticatedTime': 0,
-            });
-            return;
-        }
-        const clients = Object.values (this.clients);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'stockListenKeyRefreshRate', 1200000);
-        for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
-            const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
-            const subscriptionKeys = Object.keys (clientSubscriptions);
-            for (let j = 0; j < subscriptionKeys.length; j++) {
-                const subscribeType = subscriptionKeys[j];
-                if (subscribeType === 'stock') {
-                    this.delay (listenKeyRefreshRate, this.keepAliveStockListenKey, params);
-                    return;
-                }
-            }
-        }
-    }
-
     /**
      * @method
      * @name binance#watchLiquidations
@@ -455,17 +402,15 @@ export default class binance extends binanceRest {
         if (!this.isEmpty (symbols)) {
             firstMarket = this.getMarketFromSymbols (symbols);
         }
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
+        const resolvedAuth = this.resolveAuthType ('watchLiquidationsForSymbols', firstMarket, params);
+        const type = resolvedAuth[0];
+        params = resolvedAuth[2];
+        // the spot check runs on the RESOLVED type: a spot default combined
+        // with a linear or inverse defaultSubType means the caller wants the
+        // matching derivatives stream, so the rewrite is allowed to route it
+        // there and only a request that still resolves to spot throws
         if (type === 'spot') {
             throw new BadRequest (this.id + ' watchLiquidationsForSymbols is not supported for spot symbols');
-        }
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchLiquidationsForSymbols', firstMarket, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
         }
         if (type === 'option') {
             throw new NotSupported (this.id + ' watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions');
@@ -677,15 +622,13 @@ export default class binance extends binanceRest {
             }
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyLiquidationsForSymbols', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
-        await this.authenticate (params);
+        [ type, subType, params ] = this.resolveAuthType ('watchMyLiquidationsForSymbols', market, params);
+        // hand the resolved type forward: the helper already omitted type and
+        // subType from params, so a bare authenticate would re-derive from
+        // options.defaultType and seed a different bucket than the listenKey
+        // read below indexes - the derive-first shape watchBalance uses
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         const listenKey = this.options[type]['listenKey'];
         const url = this.getPrivateWsUrl (type, listenKey);
         const message = undefined;
@@ -2892,20 +2835,36 @@ export default class binance extends binanceRest {
         if (accountType === marketType) {
             return;
         }
+        // the subscriptions flag is raised before the subscribe request is confirmed,
+        // so a concurrent caller would otherwise return onto an unauthenticated stream
+        const messageHash = 'authenticate:signature:' + marketType;
+        if (messageHash in client.futures) {
+            // another caller is already subscribing, wait for it instead of subscribing again
+            await client.future (messageHash);
+            return;
+        }
+        client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
         client.subscriptions[marketType] = true;
         const requestId = this.requestId (url);
-        const messageHash = requestId.toString ();
+        const requestHash = requestId.toString ();
         const message: Dict = {
-            'id': messageHash,
+            'id': requestHash,
             'method': 'userDataStream.subscribe.signature',
             'params': this.signParams ({}),
         };
         const subscription: Dict = {
-            'id': messageHash,
+            'id': requestHash,
             'method': this.handleUserDataStreamSubscribe,
             'subscription': marketType,
         };
-        await this.watch (url, messageHash, message, messageHash, subscription);
+        try {
+            await this.watch (url, requestHash, message, requestHash, subscription);
+            client.resolve (marketType, messageHash);
+        } catch (e) {
+            delete client.subscriptions[marketType];
+            client.reject (e, messageHash);
+            throw e;
+        }
     }
 
     handleUserDataStreamSubscribe (client: Client, message: any) {
@@ -2927,6 +2886,8 @@ export default class binance extends binanceRest {
         if (subscriptionId === undefined) {
             delete client.subscriptions[accountType];
             client.reject (message, accountType);
+            client.reject (message, messageHash);
+            return;
         }
         client.resolve (message, messageHash);
     }
@@ -2950,57 +2911,80 @@ export default class binance extends binanceRest {
         const time = this.milliseconds ();
         const delay = this.sum (listenTokenRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            // Step 1: Create listenToken via REST API
-            const symbol = this.safeString (params, 'symbol');
-            const isIsolated = this.safeBool (params, 'isIsolated', false);
-            const validity = this.safeInteger (params, 'validity');
-            const request: Dict = {};
-            if (isIsolated) {
-                if (symbol === undefined) {
-                    throw new ArgumentsRequired (this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+            // the future covers the REST create plus the ws subscribe, including the
+            // renewal timer re-entry through renewListenToken, so a concurrent caller
+            // waits for the leader rather than minting a second listenToken
+            const client = this.client (url);
+            const messageHash = 'authenticate:' + marketType + ':listenToken';
+            if (messageHash in client.futures) {
+                // another caller is already fetching, wait for it instead of fetching again
+                await client.future (messageHash);
+                return;
+            }
+            client.future (messageHash); // created ahead of the request below, so concurrent callers can find it
+            try {
+                // Step 1: Create listenToken via REST API
+                const symbol = this.safeString (params, 'symbol');
+                const isIsolated = this.safeBool (params, 'isIsolated', false);
+                const validity = this.safeInteger (params, 'validity');
+                const request: Dict = {};
+                if (isIsolated) {
+                    if (symbol === undefined) {
+                        throw new ArgumentsRequired (this.id + ' ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode');
+                    }
+                    const marketId = this.marketId (symbol);
+                    request['symbol'] = marketId;
+                    request['isIsolated'] = true;
                 }
-                const marketId = this.marketId (symbol);
-                request['symbol'] = marketId;
-                request['isIsolated'] = true;
-            }
-            if (validity !== undefined) {
-                request['validity'] = validity;
-            }
-            const response = await this.sapiPostUserListenToken (request);
-            const listenToken = this.safeString (response, 'token');
-            const expirationTime = this.safeInteger (response, 'expirationTime');
-            // Step 2: Subscribe to user data stream via WebSocket API
-            const requestId = this.requestId (url);
-            const messageHash = requestId.toString ();
-            const message: Dict = {
-                'id': messageHash,
-                'method': 'userDataStream.subscribe.listenToken',
-                'params': {
+                if (validity !== undefined) {
+                    request['validity'] = validity;
+                }
+                const response = await this.sapiPostUserListenToken (request);
+                const listenToken = this.safeString (response, 'token');
+                if (listenToken === undefined) {
+                    throw new AuthenticationError (this.id + ' ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken');
+                }
+                const expirationTime = this.safeInteger (response, 'expirationTime');
+                // Step 2: Subscribe to user data stream via WebSocket API
+                const requestId = this.requestId (url);
+                const requestHash = requestId.toString ();
+                const message: Dict = {
+                    'id': requestHash,
+                    'method': 'userDataStream.subscribe.listenToken',
+                    'params': {
+                        'listenToken': listenToken,
+                    },
+                };
+                const subscription: Dict = {
+                    'id': requestHash,
+                    'method': this.handleUserDataStreamSubscribe,
+                    'subscription': marketType,
+                };
+                await this.watch (url, requestHash, message, requestHash, subscription);
+                this.options[marketType] = this.extend (options, {
                     'listenToken': listenToken,
-                },
-            };
-            const subscription: Dict = {
-                'id': messageHash,
-                'method': this.handleUserDataStreamSubscribe,
-                'subscription': marketType,
-            };
-            this.options[marketType] = this.extend (options, {
-                'listenToken': listenToken,
-                'expirationTime': expirationTime,
-                'lastAuthenticatedTime': time,
-                'symbol': symbol,
-                'isIsolated': isIsolated,
-                'validity': validity,
-            });
-            // Schedule token renewal before expiration
-            if (expirationTime !== undefined) {
-                const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
-                if (renewalTime > 0) {
-                    const extendedParams = this.extend (params, { 'type': marketType });
-                    this.delay (renewalTime, this.renewListenToken, extendedParams);
+                    'expirationTime': expirationTime,
+                    'lastAuthenticatedTime': time,
+                    'symbol': symbol,
+                    'isIsolated': isIsolated,
+                    'validity': validity,
+                });
+                // Schedule token renewal before expiration
+                if (expirationTime !== undefined) {
+                    const renewalTime = expirationTime - time - 60000; // Renew 1 minute before expiration
+                    if (renewalTime > 0) {
+                        const extendedParams = this.extend (params, { 'type': marketType });
+                        this.delay (renewalTime, this.renewListenToken, extendedParams);
+                    }
                 }
+                client.resolve (listenToken, messageHash);
+            } catch (e) {
+                this.options[marketType] = this.extend (options, {
+                    'lastAuthenticatedTime': 0,
+                });
+                client.reject (e, messageHash);
+                throw e;
             }
-            await this.watch (url, messageHash, message, messageHash, subscription);
         }
     }
 
@@ -3025,17 +3009,11 @@ export default class binance extends binanceRest {
 
     async authenticate (params = {}) {
         const time = this.milliseconds ();
-        let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('authenticate', undefined, params);
+        const resolvedAuth = this.resolveAuthType ('authenticate', undefined, params);
+        const type = resolvedAuth[0];
+        params = resolvedAuth[2];
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'authenticate', 'papi', 'portfolioMargin', false);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
         // For spot use WebSocket API signature subscription
         if (type === 'spot') {
             await this.ensureUserDataStreamWsSubscribeSignature ('spot');
@@ -3058,29 +3036,80 @@ export default class binance extends binanceRest {
             return;
         }
         params = this.omit (params, 'symbol');
+        const isStock = (type === 'stock');
         const options = this.safeValue (this.options, type, {});
         const lastAuthenticatedTime = this.safeInteger (options, 'lastAuthenticatedTime', 0);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
         const delay = this.sum (listenKeyRefreshRate, 10000);
         if (time - lastAuthenticatedTime > delay) {
-            let response: Dict;
-            if (isPortfolioMargin) {
-                response = await this.papiPostListenKey (params);
-                params = this.extend (params, { 'portfolioMargin': true });
-            } else if (type === 'future') {
-                response = await this.fapiPrivatePostListenKey (params);
-            } else if (type === 'delivery') {
-                response = await this.dapiPrivatePostListenKey (params);
-            } else if (type === 'option') {
-                response = await this.eapiPrivatePostListenKey (params);
-            } else {
-                response = await this.publicPostUserDataStream (params);
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+            // the flight is registered on a never-dialed client because the
+            // user-data url embeds the listenKey, so no real client exists
+            // before the fetch and no listenKey-free parking url is needed.
+            // client.futures is the registry: client.future () is the atomic
+            // check-and-insert and client.resolve () / client.reject () settle
+            // and remove the entry under the same lock in every port
+            const messageHash = 'authenticate:' + type;
+            const client = this.client ('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future (messageHash);
+                return;
             }
-            this.options[type] = this.extend (options, {
-                'listenKey': this.safeString (response, 'listenKey'),
-                'lastAuthenticatedTime': time,
-            });
-            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture (messageHash);
+            try {
+                let response = undefined;
+                if (isStock) {
+                    const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe' ]) as Dict;
+                    response = await this.sapiPostEquityListenKey (requestParams);
+                } else if (isPortfolioMargin) {
+                    response = await this.papiPostListenKey (params);
+                    params = this.extend (params, { 'portfolioMargin': true });
+                } else if (type === 'future') {
+                    response = await this.fapiPrivatePostListenKey (params);
+                } else if (type === 'delivery') {
+                    response = await this.dapiPrivatePostListenKey (params);
+                } else if (type === 'option') {
+                    response = await this.eapiPrivatePostListenKey (params);
+                } else {
+                    response = await this.publicPostUserDataStream (params);
+                }
+                const listenKey = this.safeString (response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject the flight BEFORE any cache write: a hollow 200
+                    // otherwise caches an empty credential AND stamps
+                    // lastAuthenticatedTime, parking every caller on
+                    // .../ws/undefined with no retry until the staleness
+                    // window reopens - the catch below rejects the flight so
+                    // waiters retry and the next caller re-leads
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options[type] = this.extend (options, {
+                    'listenKey': listenKey,
+                    'lastAuthenticatedTime': time,
+                });
+                // hoisted out of the delay call: the transpilers garble an inline
+                // dict literal nested inside a delay argument
+                let delayParams = params;
+                if (isStock) {
+                    delayParams = this.extend (params, { 'type': 'stock', 'defaultType': 'stock' });
+                }
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve (listenKey, messageHash);
+            } catch (e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                client.reject (e, messageHash);
+            }
+            await future;
         }
     }
 
@@ -3092,9 +3121,14 @@ export default class binance extends binanceRest {
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'keepAliveListenKey', 'papi', 'portfolioMargin', false);
         const subTypeInfo = this.handleSubTypeAndParams ('keepAliveListenKey', undefined, params);
         const subType = subTypeInfo[0];
-        if (type !== 'option') {
+        if (type !== 'option' && type !== 'stock') {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'
+            // which would incorrectly convert type='option' to 'future'.
+            // stock needs the same exemption: with a defaultSubType of 'linear' -
+            // always on binanceusdm, common on mixed instances - isLinear keys off
+            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // below would never run, and the bucket lookup would renew the
+            // FUTURES listen key while the stock key silently expires
             if (this.isLinear (type, subType)) {
                 type = 'future';
             } else if (this.isInverse (type, subType)) {
@@ -3105,17 +3139,26 @@ export default class binance extends binanceRest {
         if (type === 'margin') {
             return;
         }
+        const isStock = (type === 'stock');
         const options = this.safeValue (this.options, type, {});
         const listenKey = this.safeString (options, 'listenKey');
         if (listenKey === undefined) {
             // A network error happened: we can't renew a listen key that does not exist.
+            // this guard now covers stock too - the old stock path would POST here and
+            // resurrect a fresh key without reconnecting the dead stream, leaving the
+            // options bucket claiming a healthy auth over a broken user stream
             return;
         }
         const request: Dict = {};
         params = this.omit (params, [ 'type', 'symbol' ]);
         const time = this.milliseconds ();
         try {
-            if (isPortfolioMargin) {
+            if (isStock) {
+                // the equity endpoint is create-or-renew: with an active key this
+                // POST extends the validity of that same key
+                const requestParams: Dict = this.omit (params, [ 'stock', 'name', 'callerMethodName', 'subType', 'timeframe' ]) as Dict;
+                await this.sapiPostEquityListenKey (requestParams);
+            } else if (isPortfolioMargin) {
                 await this.papiPutListenKey (this.extend (request, params));
                 params = this.extend (params, { 'portfolioMargin': true });
             } else if (type === 'future') {
@@ -3129,15 +3172,22 @@ export default class binance extends binanceRest {
                 await this.publicPutUserDataStream (this.extend (request, params));
             }
         } catch (error) {
-            let urlType = type;
-            if (isPortfolioMargin) {
-                urlType = 'papi';
+            let url = undefined;
+            if (isStock) {
+                // the stock user stream lives on a fixed url and subscribes to
+                // listenKey@orderReport, so the client is addressable without the key
+                url = this.getStockWsUrl ('user');
+            } else {
+                let urlType = type;
+                if (isPortfolioMargin) {
+                    urlType = 'papi';
+                }
+                if (type === 'option') {
+                    urlType = 'optionPrivate';
+                }
+                const cachedListenKey = this.options[type]['listenKey'];
+                url = this.getPrivateWsUrl (urlType, cachedListenKey);
             }
-            if (type === 'option') {
-                urlType = 'optionPrivate';
-            }
-            const cachedListenKey = this.options[type]['listenKey'];
-            const url = this.getPrivateWsUrl (urlType, cachedListenKey);
             const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
@@ -3156,7 +3206,13 @@ export default class binance extends binanceRest {
         });
         // whether or not to schedule another listenKey keepAlive request
         const clients = Object.values (this.clients);
-        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+        const refreshRateKey = isStock ? 'stockListenKeyRefreshRate' : 'listenKeyRefreshRate';
+        const listenKeyRefreshRate = this.safeInteger (this.options, refreshRateKey, 1200000);
+        let delayParams = params;
+        if (isStock) {
+            // params had type omitted above - restore it so the next cycle routes back here
+            delayParams = this.extend (params, { 'type': 'stock' });
+        }
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
             const clientSubscriptions = this.safeDict (client, 'subscriptions', {});
@@ -3164,7 +3220,7 @@ export default class binance extends binanceRest {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, delayParams);
                     return;
                 }
             }
@@ -3442,18 +3498,16 @@ export default class binance extends binanceRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.authenticate (params);
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
+        // derive BEFORE authenticating and pass the result in: authenticate
+        // re-derives from its own method scope, so without this a method-scoped
+        // options.watchBalance.type seeds one bucket while the read below
+        // indexes another - the same derive-first shape watchOrders uses
+        let type: Str = undefined;
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
+        [ type, subType, params ] = this.resolveAuthType ('watchBalance', undefined, params);
+        await this.authenticate (this.extend ({ 'type': type, 'subType': subType }, params));
         let isPortfolioMargin: Bool = undefined;
         [ isPortfolioMargin, params ] = this.handleOptionAndParams2 (params, 'watchBalance', 'papi', 'portfolioMargin', false);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
         let url = '';
         let urlType = type;
         if (type === 'spot' || type === 'margin') {
@@ -3615,6 +3669,30 @@ export default class binance extends binanceRest {
             }
         }
         return accountType;
+    }
+
+    resolveAuthType (methodName: string, market: Market = undefined, params: Dict = {}): [string, Str, Dict] {
+        // the single home for user-data type derivation: market type, subType,
+        // and the guarded linear/inverse rewrite. option and stock must keep
+        // their own type, or the listenKey bucket, the endpoint dispatch and
+        // the stream selection all silently degrade to futures - the guarded
+        // sites used to carry seven inline copies of this dance, and the
+        // unguarded copies were the bug class behind the option keepalive and
+        // stock keepalive fixes
+        let type: Str = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (methodName, market, params);
+        let subType: Str = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, market, params);
+        if (type !== 'option' && type !== 'stock') {
+            if (this.isLinear (type, subType)) {
+                type = 'future';
+            } else if (this.isInverse (type, subType)) {
+                type = 'delivery';
+            }
+        }
+        // sites consuming every element unpack this; the two that skip subType
+        // index it positionally instead, so no receiver is declared-but-unread
+        return [ type, subType, params ];
     }
 
     getMarketType (method: any, market: any, params = {}) {
@@ -4254,7 +4332,9 @@ export default class binance extends binanceRest {
         let stock = false;
         [ stock, params ] = this.handleOptionAndParams (params, 'watchOrders', 'stock', false);
         if (stock) {
-            await this.authenticateStock (params);
+            // literal on top: a stray type in the caller params must not override
+            // the forced stock, the removed authenticateStock ignored it entirely
+            await this.authenticate (this.extend (params, { 'type': 'stock' }));
             const stockOptions = this.safeDict (this.options, 'stock', {});
             const stockListenKey = this.safeString (stockOptions, 'listenKey');
             if (stockListenKey === undefined) {
@@ -4290,14 +4370,8 @@ export default class binance extends binanceRest {
             messageHash += ':' + symbol;
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
+        [ type, subType, params ] = this.resolveAuthType ('watchOrders', market, params);
         params = this.extend (params, { 'type': type, 'symbol': symbol, 'subType': subType }); // needed inside authenticate for isolated margin
         await this.authenticate (params);
         let marginMode: Str = undefined;
@@ -4905,18 +4979,18 @@ export default class binance extends binanceRest {
             messageHash = '::' + symbols.join (',');
         }
         let type: Str = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
-        if (type === 'spot' || type === 'margin') {
-            type = 'future';
-        }
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
+        [ type, subType, params ] = this.resolveAuthType ('watchPositions', market, params);
+        // spot and margin have no positions - whatever still RESOLVES to spot
+        // or margin after the helper falls through to the derivatives stream
+        // matching the subType. requests a defaultSubType already rewrote
+        // arrive here as future or delivery and pass untouched, which lands on
+        // the same stream the old raw-type ordering produced in every case
+        if (type === 'spot' || type === 'margin') {
+            type = (subType === 'inverse') ? 'delivery' : 'future';
         }
-        // 'option' stays as 'option', don't redirect to 'future'
+        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // guard finally makes this comment true
         const marketTypeObject: Dict = {};
         marketTypeObject['type'] = type;
         marketTypeObject['subType'] = subType;
@@ -5345,14 +5419,8 @@ export default class binance extends binanceRest {
             market = marketResolved;
             symbol = market['symbol'];
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params);
-        if (this.isLinear (type, subType)) {
-            type = 'future';
-        } else if (this.isInverse (type, subType)) {
-            type = 'delivery';
-        }
+        [ type, subType, params ] = this.resolveAuthType ('watchMyTrades', market, params);
         let messageHash = 'myTrades';
         if ((symbol !== undefined) && (market !== undefined)) {
             symbol = this.symbol (symbol);

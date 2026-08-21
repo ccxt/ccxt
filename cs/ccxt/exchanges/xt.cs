@@ -3172,10 +3172,10 @@ public partial class xt : Exchange
             parameters = this.omit(parameters, new List<object>() {"trailingPercent", "trailingAmount", "trailingTriggerPrice"});
             if (isTrue(getValue(market, "linear")))
             {
-                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCreateTrack", new object[] { this.extend(request, parameters) }));
+                response = await this.privateLinearPostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters));
             } else if (isTrue(getValue(market, "inverse")))
             {
-                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCreateTrack", new object[] { this.extend(request, parameters) }));
+                response = await this.privateInversePostFutureTradeV1EntrustCreateTrack(this.extend(request, parameters));
             }
         } else if (isTrue(isTrigger))
         {
@@ -3321,10 +3321,10 @@ public partial class xt : Exchange
             parameters = this.omit(parameters, "trailing");
             if (isTrue(isEqual(subType, "inverse")))
             {
-                response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackDetail", new object[] { this.extend(request, parameters) }));
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackDetail(this.extend(request, parameters));
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackDetail", new object[] { this.extend(request, parameters) }));
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackDetail(this.extend(request, parameters));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3529,10 +3529,10 @@ public partial class xt : Exchange
             parameters = this.omit(parameters, "trailing");
             if (isTrue(isEqual(subType, "inverse")))
             {
-                response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters));
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -3779,19 +3779,19 @@ public partial class xt : Exchange
             {
                 if (isTrue(isEqual(subType, "inverse")))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackList", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackList(this.extend(request, parameters));
                 } else
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackList", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackList(this.extend(request, parameters));
                 }
             } else
             {
                 if (isTrue(isEqual(subType, "inverse")))
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateInverseGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateInverseGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters));
                 } else
                 {
-                    response = await ((Task<object>)callDynamically(this, "privateLinearGetFutureTradeV1EntrustTrackListHistory", new object[] { this.extend(request, parameters) }));
+                    response = await this.privateLinearGetFutureTradeV1EntrustTrackListHistory(this.extend(request, parameters));
                 }
             }
         } else if (isTrue(isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")))))
@@ -4187,10 +4187,10 @@ public partial class xt : Exchange
             parameters = this.omit(parameters, "trailing");
             if (isTrue(isEqual(subType, "inverse")))
             {
-                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelTrack", new object[] { this.extend(request, parameters) }));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelTrack(this.extend(request, parameters));
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelTrack", new object[] { this.extend(request, parameters) }));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelTrack(this.extend(request, parameters));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {
@@ -4303,10 +4303,10 @@ public partial class xt : Exchange
             parameters = this.omit(parameters, "trailing");
             if (isTrue(isEqual(subType, "inverse")))
             {
-                response = await ((Task<object>)callDynamically(this, "privateInversePostFutureTradeV1EntrustCancelAllTrack", new object[] { this.extend(request, parameters) }));
+                response = await this.privateInversePostFutureTradeV1EntrustCancelAllTrack(this.extend(request, parameters));
             } else
             {
-                response = await ((Task<object>)callDynamically(this, "privateLinearPostFutureTradeV1EntrustCancelAllTrack", new object[] { this.extend(request, parameters) }));
+                response = await this.privateLinearPostFutureTradeV1EntrustCancelAllTrack(this.extend(request, parameters));
             }
         } else if (isTrue(isEqual(subType, "inverse")))
         {

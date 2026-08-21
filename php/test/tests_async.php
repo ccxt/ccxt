@@ -646,6 +646,104 @@ class testMainClass {
         return $symbol;
     }
 
+    public function get_ticker_volume($exchange, $ticker) {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        $quote_volume = $exchange->safe_number($ticker, 'quoteVolume');
+        if ($quote_volume !== null) {
+            return $quote_volume;
+        }
+        $base_volume = $exchange->safe_number($ticker, 'baseVolume');
+        if ($base_volume === null) {
+            return 0;
+        }
+        $last = $exchange->safe_number($ticker, 'last');
+        if ($last !== null) {
+            return $base_volume * $last;
+        }
+        return $base_volume;
+    }
+
+    public function get_most_active_symbols($exchange, $default_symbols) {
+        // `watch*` methods only resolve when the exchange pushes an update, so a
+        // thinly traded market makes the ws tests hang until the harness timeout
+        // kills them. the 24h volume is our proxy for "how often does this book
+        // change", so rank the markets by it and watch the busiest ones instead.
+        // the ranking is restricted to markets sharing the type/quote/settle of
+        // the statically chosen symbol, which keeps the volumes comparable (quote
+        // volumes denominated in different quote currencies are not) and keeps a
+        // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        return Async\async(function () use ($exchange, $default_symbols) {
+            $default_symbol = $default_symbols[0];
+            $default_market = $exchange->safe_dict($exchange->markets, $default_symbol);
+            if ($default_market === null) {
+                return $default_symbols;
+            }
+            // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+            // works around a venue-specific quirk), so never rank around it
+            $is_spot = $exchange->safe_bool($default_market, 'spot', false);
+            $preferred_key = ($is_spot) ? 'preferredSpotSymbol' : 'preferredSwapSymbol';
+            $preferred_symbol = $exchange->safe_string($this->skipped_settings_for_exchange, $preferred_key);
+            if ($preferred_symbol !== null) {
+                return $default_symbols;
+            }
+            if (!$exchange->safe_bool($exchange->has, 'fetchTickers', false)) {
+                return $default_symbols;
+            }
+            $tickers = null;
+            try {
+                // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+                // the statically typed ports (c#/go/java), same as the other call sites
+                $tickers = \React\Async\await(call_exchange_method_dynamically($exchange, 'fetchTickers', []));
+            } catch(\Throwable $e) {
+                // choosing a symbol must never fail the run, keep the static choice
+                $tickers = null;
+            }
+            if ($tickers === null) {
+                return $default_symbols;
+            }
+            $market_type = $exchange->safe_string($default_market, 'type');
+            $quote = $exchange->safe_string($default_market, 'quote');
+            $settle = $exchange->safe_string($default_market, 'settle');
+            $candidates = [];
+            $ticker_symbols = is_array($tickers) ? array_keys($tickers) : array();
+            for ($i = 0; $i < count($ticker_symbols); $i++) {
+                $ticker_symbol = $ticker_symbols[$i];
+                $market = $exchange->safe_dict($exchange->markets, $ticker_symbol);
+                if ($market !== null) {
+                    // exchanges keep returning tickers for delisted markets, and those
+                    // never push a websocket update at all, so skip inactive markets
+                    $is_active = $exchange->safe_bool($market, 'active', true);
+                    $same_type = $exchange->safe_string($market, 'type') === $market_type;
+                    $same_quote = $exchange->safe_string($market, 'quote') === $quote;
+                    $same_settle = $exchange->safe_string($market, 'settle') === $settle;
+                    if ($is_active && $same_type && $same_quote && $same_settle) {
+                        $ticker = $exchange->safe_dict($tickers, $ticker_symbol, array());
+                        $volume = $this->get_ticker_volume($exchange, $ticker);
+                        if ($volume > 0) {
+                            $entry = array();
+                            $entry['symbol'] = $ticker_symbol;
+                            $entry['volume'] = $volume;
+                            $candidates[] = $entry;
+                        }
+                    }
+                }
+            }
+            $ranked = $exchange->sort_by($candidates, 'volume', true);
+            $ranked_length = count($ranked);
+            if ($ranked_length === 0) {
+                return $default_symbols;
+            }
+            $result = [$exchange->safe_string($ranked[0], 'symbol')];
+            if ($ranked_length > 1) {
+                $result[] = $exchange->safe_string($ranked[1], 'symbol');
+            }
+            return $result;
+        }) ();
+    }
+
     public function test_exchange($exchange, $provided_symbol = null) {
         // prediction-market exchanges have no spot/swap markets and address methods by an
         // outcome handle (not a market symbol), so they take a dedicated test flow
@@ -681,6 +779,17 @@ class testMainClass {
                     if ($primary_symbol !== null) {
                         $secondary_symbol = str_replace('BTC', 'ETH', $primary_symbol); // this should work any exchange
                         $swap_symbols = [$primary_symbol, $secondary_symbol];
+                    }
+                }
+                // ws tests subscribe with `watch*`, which only resolves on an update,
+                // so re-target them at the most actively traded markets to avoid the
+                // harness timing out on a quiet book. rest tests keep the static choice.
+                if ($this->ws_tests) {
+                    if ($spot_symbols !== null) {
+                        $spot_symbols = \React\Async\await($this->get_most_active_symbols($exchange, $spot_symbols));
+                    }
+                    if ($swap_symbols !== null) {
+                        $swap_symbols = \React\Async\await($this->get_most_active_symbols($exchange, $swap_symbols));
                     }
                 }
             }

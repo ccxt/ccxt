@@ -78,6 +78,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
@@ -496,6 +497,8 @@ export default class krakenfutures extends Exchange {
                 'linear': linear,
                 'inverse': inverse,
                 'contractSize': this.safeNumber (market, 'contractSize'),
+                'taker': this.safeNumber (this.fees['trading'], 'taker'),
+                'maker': this.safeNumber (this.fees['trading'], 'maker'),
                 'maintenanceMarginRate': undefined,
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
@@ -1163,9 +1166,15 @@ export default class krakenfutures extends Exchange {
         let fee: FeeString = undefined;
         if ((takerOrMaker !== undefined) && (cost !== undefined)) {
             const feeRate = this.safeString (market, takerOrMaker);
+            // fees are charged in the settlement currency: the quote currency
+            // for linear contracts, the base currency for inverse contracts
+            let feeCurrency = this.safeString (market, 'settle');
+            if (feeCurrency === undefined) {
+                feeCurrency = this.safeString (market, 'quote');
+            }
             fee = {
                 'cost': Precise.stringMul (cost, feeRate),
-                'currency': this.safeString (market, 'quote'),
+                'currency': feeCurrency,
                 'rate': feeRate,
             };
         }
@@ -3049,6 +3058,7 @@ export default class krakenfutures extends Exchange {
         //        "price": "0.7533",
         //        "fillTime": "2022-03-03T22:51:16.566Z",
         //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
         //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
@@ -3059,6 +3069,7 @@ export default class krakenfutures extends Exchange {
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -3084,7 +3095,7 @@ export default class krakenfutures extends Exchange {
             'entryPrice': this.safeNumber (position, 'price'),
             'notional': undefined,
             'leverage': leverage,
-            'unrealizedPnl': undefined,
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnl'),
             'contracts': this.safeNumber (position, 'size'),
             'contractSize': this.safeNumber (market, 'contractSize'),
             'marginRatio': undefined,

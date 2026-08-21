@@ -2389,7 +2389,7 @@ func (this *KucoinCore) HandleSubscriptionStatus(client any, message any) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 			var messageHash any = ccxt.GetValue(messageHashes, i)
 			var subHash any = ccxt.GetValue(subMessageHashes, i)
-			this.CleanUnsubscription(client.(*ccxt.Client), subHash, messageHash)
+			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 		}
 		var topic any = this.SafeString(subscription, "topic")
 		if ccxt.IsTrue(ccxt.IsEqual(topic, "fundingRate")) {

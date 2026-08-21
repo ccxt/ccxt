@@ -789,6 +789,124 @@ public class TestMain extends BaseTest
         return symbol;
     }
 
+    public Object getTickerVolume(BaseExchange exchange, Object ticker)
+    {
+        // all candidates compared with this helper share the same quote currency,
+        // so `quoteVolume` is directly comparable between them. fall back to the
+        // base volume converted with the last price, then to the raw base volume,
+        // because not every exchange populates `quoteVolume`.
+        Object quoteVolume = exchange.safeNumber(ticker, "quoteVolume");
+        if (Helpers.isTrue(!Helpers.isEqual(quoteVolume, null)))
+        {
+            return quoteVolume;
+        }
+        Object baseVolume = exchange.safeNumber(ticker, "baseVolume");
+        if (Helpers.isTrue(Helpers.isEqual(baseVolume, null)))
+        {
+            return 0;
+        }
+        Object last = exchange.safeNumber(ticker, "last");
+        if (Helpers.isTrue(!Helpers.isEqual(last, null)))
+        {
+            return Helpers.multiply(baseVolume, last);
+        }
+        return baseVolume;
+    }
+
+    public java.util.concurrent.CompletableFuture<Object> getMostActiveSymbols(BaseExchange exchange, Object defaultSymbols)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            // `watch*` methods only resolve when the exchange pushes an update, so a
+            // thinly traded market makes the ws tests hang until the harness timeout
+            // kills them. the 24h volume is our proxy for "how often does this book
+            // change", so rank the markets by it and watch the busiest ones instead.
+            // the ranking is restricted to markets sharing the type/quote/settle of
+            // the statically chosen symbol, which keeps the volumes comparable (quote
+            // volumes denominated in different quote currencies are not) and keeps a
+            // per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+            Object defaultSymbol = Helpers.GetValue(defaultSymbols, 0);
+            Object defaultMarket = exchange.safeDict(exchange.markets, defaultSymbol);
+            if (Helpers.isTrue(Helpers.isEqual(defaultMarket, null)))
+            {
+                return defaultSymbols;
+            }
+            // an explicit per-exchange pin is a deliberate maintainer choice (it usually
+            // works around a venue-specific quirk), so never rank around it
+            Object isSpot = exchange.safeBool(defaultMarket, "spot", false);
+            Object preferredKey = ((Helpers.isTrue((isSpot)))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
+            Object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
+            if (Helpers.isTrue(!Helpers.isEqual(preferredSymbol, null)))
+            {
+                return defaultSymbols;
+            }
+            if (!Helpers.isTrue(exchange.safeBool(exchange.has, "fetchTickers", false)))
+            {
+                return defaultSymbols;
+            }
+            Object tickers = null;
+            try
+            {
+                // dynamic dispatch: `fetchTickers` is not on the base exchange type in
+                // the statically typed ports (c#/go/java), same as the other call sites
+                tickers = (callExchangeMethodDynamically(exchange, "fetchTickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
+            } catch(Exception e)
+            {
+                // choosing a symbol must never fail the run, keep the static choice
+                tickers = null;
+            }
+            if (Helpers.isTrue(Helpers.isEqual(tickers, null)))
+            {
+                return defaultSymbols;
+            }
+            Object marketType = exchange.safeString(defaultMarket, "type");
+            Object quote = exchange.safeString(defaultMarket, "quote");
+            Object settle = exchange.safeString(defaultMarket, "settle");
+            Object candidates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object tickerSymbols = Helpers.objectKeys(tickers);
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)
+            {
+                Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
+                Object market = exchange.safeDict(exchange.markets, tickerSymbol);
+                if (Helpers.isTrue(!Helpers.isEqual(market, null)))
+                {
+                    // exchanges keep returning tickers for delisted markets, and those
+                    // never push a websocket update at all, so skip inactive markets
+                    Object isActive = exchange.safeBool(market, "active", true);
+                    Object sameType = Helpers.isEqual(exchange.safeString(market, "type"), marketType);
+                    Object sameQuote = Helpers.isEqual(exchange.safeString(market, "quote"), quote);
+                    Object sameSettle = Helpers.isEqual(exchange.safeString(market, "settle"), settle);
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isActive) && Helpers.isTrue(sameType)) && Helpers.isTrue(sameQuote)) && Helpers.isTrue(sameSettle)))
+                    {
+                        Object ticker = exchange.safeDict(tickers, tickerSymbol, new java.util.HashMap<String, Object>() {{}});
+                        Object volume = this.getTickerVolume(exchange, ticker);
+                        if (Helpers.isTrue(Helpers.isGreaterThan(volume, 0)))
+                        {
+                            Object entry = new java.util.HashMap<String, Object>() {{}};
+                            Helpers.addElementToObject(entry, "symbol", tickerSymbol);
+                            Helpers.addElementToObject(entry, "volume", volume);
+                            ((java.util.List<Object>)candidates).add(entry);
+                        }
+                    }
+                }
+            }
+            Object ranked = exchange.sortBy(candidates, "volume", true);
+            Object rankedLength = Helpers.getArrayLength(ranked);
+            if (Helpers.isTrue(Helpers.isEqual(rankedLength, 0)))
+            {
+                return defaultSymbols;
+            }
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.safeString(Helpers.GetValue(ranked, 0), "symbol")));
+            if (Helpers.isTrue(Helpers.isGreaterThan(rankedLength, 1)))
+            {
+                ((java.util.List<Object>)result).add(exchange.safeString(Helpers.GetValue(ranked, 1), "symbol"));
+            }
+            return result;
+        });
+
+    }
+
     public java.util.concurrent.CompletableFuture<Object> testExchange(BaseExchange exchange, Object... optionalArgs)
     {
 
@@ -837,6 +955,20 @@ public class TestMain extends BaseTest
                     {
                         Object secondarySymbol = Helpers.replaceAll((String)primarySymbol, (String)"BTC", (String)"ETH"); // this should work any exchange
                         swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(primarySymbol, secondarySymbol));
+                    }
+                }
+                // ws tests subscribe with `watch*`, which only resolves on an update,
+                // so re-target them at the most actively traded markets to avoid the
+                // harness timing out on a quiet book. rest tests keep the static choice.
+                if (Helpers.isTrue(this.wsTests))
+                {
+                    if (Helpers.isTrue(!Helpers.isEqual(spotSymbols, null)))
+                    {
+                        spotSymbols = (this.getMostActiveSymbols(exchange, spotSymbols)).join();
+                    }
+                    if (Helpers.isTrue(!Helpers.isEqual(swapSymbols, null)))
+                    {
+                        swapSymbols = (this.getMostActiveSymbols(exchange, swapSymbols)).join();
                     }
                 }
             }

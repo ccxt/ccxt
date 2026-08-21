@@ -87,8 +87,7 @@ public partial class toobit : Exchange
                 { "www", "https://www.toobit.com/" },
                 { "doc", new List<object>() {"https://api-docs.toobit.com/"} },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://www.toobit.com/en-US/r?i=IFFPy0" },
-                    { "discount", 0.1 },
+                    { "url", "https://www.toobit.com/en-US/r?i=dvCpJj" },
                 } },
                 { "fees", "https://www.toobit.com/fee" },
             } },
@@ -1909,6 +1908,7 @@ public partial class toobit : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1985,15 +1985,13 @@ public partial class toobit : Exchange
         var costparametersVariable = this.handleParamString(parameters, "cost");
         cost = ((IList<object>)costparametersVariable)[0];
         parameters = ((IList<object>)costparametersVariable)[1];
-        if (isTrue(isEqual(type, "market")))
+        if (isTrue(isTrue(isEqual(type, "market")) && isTrue(isEqual(side, "buy"))))
         {
-            if (isTrue(isTrue(isEqual(cost, null)) && isTrue(isEqual(side, "buy"))))
+            if (isTrue(isEqual(cost, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires params[\"cost\"] for market buy order")) ;
-            } else
-            {
-                ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(symbol, cost);
             }
+            ((IDictionary<string,object>)request)["quantity"] = this.costToPrecision(symbol, cost);
         } else
         {
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(symbol, amount);
@@ -2034,10 +2032,10 @@ public partial class toobit : Exchange
         parameters = ((IList<object>)reduceOnlyparametersVariable)[1];
         if (isTrue(isEqual(side, "buy")))
         {
-            side = ((bool) isTrue(reduceOnly)) ? "SELL_CLOSE" : "BUY_OPEN";
+            side = ((bool) isTrue(reduceOnly)) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (isTrue(isEqual(side, "sell")))
         {
-            side = ((bool) isTrue(reduceOnly)) ? "BUY_CLOSE" : "SELL_OPEN";
+            side = ((bool) isTrue(reduceOnly)) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         ((IDictionary<string,object>)request)["side"] = side;
         if (isTrue(!isEqual(price, null)))
@@ -2180,6 +2178,20 @@ public partial class toobit : Exchange
         market = this.safeMarket(marketId, market);
         object rawType = this.safeString(order, "type");
         object rawSideLower = this.safeStringLower(order, "side");
+        object reduceOnly = null;
+        if (isTrue(!isEqual(rawSideLower, null)))
+        {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            object sideParts = ((string)rawSideLower).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object sideSuffix = this.safeString(sideParts, 1);
+            if (isTrue(!isEqual(sideSuffix, null)))
+            {
+                reduceOnly = (isEqual(sideSuffix, "close"));
+            }
+            rawSideLower = this.safeString(sideParts, 0);
+        }
         object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         if (isTrue(isEqual(triggerPrice, "0.0")))
         {
@@ -2209,7 +2221,7 @@ public partial class toobit : Exchange
             { "trades", null },
             { "fee", null },
             { "marginMode", null },
-            { "reduceOnly", null },
+            { "reduceOnly", reduceOnly },
             { "leverage", null },
             { "hedged", null },
         }, market);
@@ -3165,7 +3177,7 @@ public partial class toobit : Exchange
             { "coin", getValue(currency, "id") },
             { "address", address },
             { "quantity", this.currencyToPrecision(getValue(currency, "code"), amount) },
-            { "chainType", networkCode },
+            { "chainType", this.networkCodeToId(networkCode, code) },
             { "clientOrderId", this.milliseconds() },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -3280,22 +3292,22 @@ public partial class toobit : Exchange
         //
         // [
         //     {
-        //         "symbol":"BTC-SWAP-USDT", //symbol
-        //         "leverage":"20",  // leverage
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
         //         "marginType":"CROSS" // CROSS;ISOLATED
         //     }
         // ]
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, 0, new Dictionary<string, object>() {});
         return this.parseLeverage(data, market);
     }
 
     public override object parseLeverage(object leverage, object market = null)
     {
-        object marketId = this.safeString(leverage, "symbol");
+        object marketId = this.safeString2(leverage, "symbolId", "symbol");
         object leverageValue = this.safeInteger(leverage, "leverage");
-        object marginType = this.safeString(leverage, "marginType");
-        object marginMode = ((bool) isTrue((isEqual(marginType, "crossed")))) ? "cross" : "isolated";
+        object marginType = this.safeStringLower(leverage, "marginType");
+        object marginMode = ((bool) isTrue((isEqual(marginType, "cross")))) ? "cross" : "isolated";
         return new Dictionary<string, object>() {
             { "info", leverage },
             { "symbol", this.safeSymbol(marketId, market) },
