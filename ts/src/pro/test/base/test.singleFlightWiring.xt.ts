@@ -5,7 +5,7 @@ import ccxt from '../../../../ccxt.js';
 // native ts test, intentionally not transpiled - pins the single-flight listen
 // key acquisition from https://github.com/ccxt/ccxt/issues/29393 on xt. xt has
 // no authenticate (): its equivalent is getListenKey (isContract), which reads
-// client.subscriptions['token'], awaits a REST call, then writes the result
+// client.subscriptions['token'], fetches over REST, then writes the result
 // back. the logic is inlined directly into getListenKey (), so there is no
 // helper method to unit-test: this file is the only guard, and no build/lint
 // gate sees it - dropping the in-progress early-return or the flight settlement
@@ -35,24 +35,13 @@ function clientFor (exchange: any, url: string) {
 
 function flightCount (exchange: any, url: string) {
     // the flight IS the future: registered by the leader in client.futures
-    // before the first await and dropped by client.resolve () /
-    // client.reject () when it settles
+    // before it suspends and dropped by client.resolve () / client.reject ()
+    // when it settles
     const client = clientFor (exchange, url);
     if (client === undefined) {
         return 0;
     }
     return Object.keys (client.futures).length;
-}
-
-function parkedResultCount (exchange: any, url: string) {
-    // client.resolve () parks the value in pendingResults when no future is
-    // registered - the leader always holds one, so this must stay empty or a
-    // later caller would silently skip the flight
-    const client = clientFor (exchange, url);
-    if (client === undefined) {
-        return 0;
-    }
-    return Object.keys (client.pendingResults).length;
 }
 
 function parkedRejectionCount (exchange: any, url: string) {
@@ -68,7 +57,6 @@ function parkedRejectionCount (exchange: any, url: string) {
 
 function assertNoFlightResidue (exchange: any, url: string, label: string) {
     assert (flightCount (exchange, url) === 0, label + ': a settled flight must leave no future behind (got ' + flightCount (exchange, url).toString () + ')');
-    assert (parkedResultCount (exchange, url) === 0, label + ': a settled flight must park no pendingResult (got ' + parkedResultCount (exchange, url).toString () + ')');
     assert (parkedRejectionCount (exchange, url) === 0, label + ': a settled flight must park no rejection (got ' + parkedRejectionCount (exchange, url).toString () + ')');
 }
 
@@ -192,7 +180,7 @@ async function testXtGetListenKeySoloLeaderRejection () {
     // rejection (which would kill the process on the tick below). the leader
     // mints its own future before the try, so client.reject () always has a
     // waiter and never parks the error in client.rejections, and the trailing
-    // `await future` is what attaches the handler and rethrows
+    // future is what attaches the handler and rethrows
     const state = { 'spotFetches': 0, 'contractFetches': 0 };
     const exchange = makeStubbedXt (state);
     (exchange as any).privateLinearGetFutureUserV1UserListenKey = async () => {

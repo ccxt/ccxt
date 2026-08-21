@@ -82,19 +82,9 @@ export default class xt extends xtRest {
         const client = this.client (url);
         const token = this.safeString (client.subscriptions, 'token');
         if (token === undefined) {
-            // single-flight leader election, see
-            // https://github.com/ccxt/ccxt/issues/29393: the cached token is
-            // read from client.subscriptions, then a REST call is awaited, then
-            // the result is written back - concurrent callers all pass the
-            // check and each mint their own token, last write wins, and the
-            // losers already carried an orphaned token into their subscription
-            // params (name + '@' + listenKey), so their private streams never
-            // deliver. the flight is registered in client.futures, which is the
-            // registry Exchange.watch () itself dedupes on, and settled through
-            // client.resolve / client.reject so every write to that map stays
-            // behind the same lock in the ported clients. spot and contract
-            // resolve to different urls, and the hash is scoped by tradeType on
-            // top of that, so the two token streams never share a flight
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            // concurrent callers each minted their own token, last write won, and the losers
+            // carried an orphaned token into name + '@' + listenKey so their streams went dead
             const messageHash = 'authenticate:' + tradeType;
             if (messageHash in client.futures) {
                 // a flight is already in progress - wake when the leader
@@ -102,8 +92,8 @@ export default class xt extends xtRest {
                 await client.future (messageHash);
                 return client.subscriptions['token'];
             }
-            // register the flight BEFORE the first await, so concurrent
-            // callers see it and wait instead of minting their own token
+            // client.futures is the same registry Exchange.watch () dedupes on, so registering
+            // the flight here, before any suspension point, makes concurrent callers wait
             const future = client.reusableFuture (messageHash);
             try {
                 let listenKey: Str = undefined;
@@ -143,10 +133,9 @@ export default class xt extends xtRest {
                 client.subscriptions['token'] = listenKey;
                 client.resolve (listenKey, messageHash);
             } catch (e) {
-                // hand the failure to every waiter - the next caller re-leads
-                // instead of deadlocking on a dead flight. no throw here: the
-                // await below rethrows to this caller and is also what keeps a
-                // waiterless rejection from crashing the process
+                // hand the failure to every waiter so the next caller re-leads instead of
+                // deadlocking on a dead flight. no throw here: the trailing future rethrows
+                // to this caller and keeps a waiterless rejection from crashing the process
                 client.reject (e, messageHash);
             }
             await future;
