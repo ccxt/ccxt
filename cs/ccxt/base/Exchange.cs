@@ -757,17 +757,6 @@ public partial class BaseExchange
 
     public async Task Close(bool cleanInstanceCache = false)
     {
-        // settle any in-flight auth flights so their waiters do not hang across
-        // a close - same idea as Client.reset. lives on Close(bool) so every
-        // entry point (close(), Close(), Close(true)) runs it
-        foreach (var flightHash in this.authenticationFlights.Keys)
-        {
-            Future flight = null;
-            if (this.authenticationFlights.TryRemove(flightHash, out flight))
-            {
-                flight.reject(new ExchangeClosedByUser(this.id + " close() was called"));
-            }
-        }
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         var tasks = new List<Task>();
