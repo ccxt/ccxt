@@ -37,117 +37,76 @@ let shouldTranspileTests = true;
 
 let gofmtMissingWarned = false;
 
-// ast-transpiler emits every async method core as an unbuffered result channel:
+// ast-transpiler emits every async method core flat, on a capacity-1 channel, with a
+// named result (ccxt/ast-transpiler#64):
 //
-//     ch := make(chan any)
-//     go func() any {
+//     func (this *Bit2cCore) FetchBalance(...) (out <-chan any) {
+//         ch := make(chan any, 1)
+//         out = ch
 //         defer close(ch)
 //         defer ReturnPanicError(ch)
 //         ...
 //         ch <- value
-//     }()
-//     return ch
-//
-// The channel carries exactly one value (a resolved promise) and is closed right
-// after, so an unbuffered channel only forces the producing goroutine to block on
-// `ch <-` until somebody receives. Giving it capacity 1 lets the goroutine deposit
-// the value and finish without a rendezvous, which is strictly safer:
-//   - the generated wrappers receive immediately (`res := <-this.Core.FetchX(...)`),
-//     so behavior for existing consumers is unchanged;
-//   - a caller that abandons the channel (early return, select with a timeout,
-//     cancelled errgroup) no longer leaks a goroutine parked forever on the send;
-//   - it is the precondition for inlining the body instead of nesting a goroutine,
-//     because a fill-before-return core cannot self-deadlock with capacity 1.
-// Applied at write time so it covers every Go emitter path (exchange cores, base
-// methods, pro/, prediction/, transpiled base tests) without touching ast-transpiler.
-const GO_ASYNC_CORE_CHANNEL = new RegExp (
-    // 1: `ch := make(chan <type>` with a single type argument (no capacity yet)
-    '(\\bch\\s*:=\\s*make\\(chan\\s+[^(),\\n]+?)\\s*\\)'
-    // 2: the goroutine header that identifies the async core pattern; the
-    //    ReturnPanicError helper may be package-qualified (prediction/ -> ccxt.)
-    + '(\\s*\\n\\s*go func\\(\\)[^\\n]*\\{'
-    + '\\s*\\n\\s*defer close\\(ch\\)'
-    + '\\s*\\n\\s*defer (?:[A-Za-z_][A-Za-z0-9_.]*\\.)?ReturnPanicError\\(ch\\))',
-    'g'
-);
-
-function bufferAsyncCoreChannels (content: string): string {
-    return content.replace (GO_ASYNC_CORE_CHANNEL, '$1, 1)$2');
-}
-
-// Once the result channel has capacity 1 the goroutine is dead weight: the body
-// can fill the channel in place and hand it back already resolved. Flattening it
-// turns every core into a plain function call, which removes one goroutine per
-// invocation (~4.9k call sites) and makes stack traces of a failing request show
-// the caller instead of a detached `go func`.
-//
-//     func (this *Bit2cCore) FetchBalance(...) <-chan any {   ->   (out <-chan any) {
-//         ch := make(chan any, 1)                                  ch := make(chan any, 1)
-//         go func() any {                                          out = ch
-//             defer close(ch)                                      defer close(ch)
-//             defer ReturnPanicError(ch)                           defer ReturnPanicError(ch)
-//             ...                                                  ...
-//             ch <- value                                          ch <- value
-//             return nil                                           return ch
-//         }()
-//         return ch                                                return ch
+//         return ch
 //     }
 //
-// The result has to be *named*: `defer ReturnPanicError(ch)` recovers the panic,
-// so on the error path the function returns normally, and an unnamed result would
-// hand back the zero value of `<-chan any` — a nil channel every caller blocks on
-// forever. Assigning `out = ch` up front and rewriting the core-level `return nil`
-// into `return ch` keeps the channel reachable on both paths. Naming a result does
-// not change the method's type, so the generated wrappers and the typed interfaces
-// are unaffected.
+// Buffering the channel and inlining the body are therefore the emitter's job now and
+// CCXT no longer post-processes either. One thing the emitter does not do is stop a
+// core after its first send.
 //
-// A body that sends from inside a nested func literal needs one more thing. That
-// literal is the try/catch shim ast-transpiler emits for `try { … } catch (e) { … }`,
-// and its `return nil` only leaves the *shim* — in JS the same `return` leaves the
-// whole async function. The goroutine form papers over the difference: the core runs
-// on, reaches a second `ch <-`, and that send simply parks a goroutine nobody reads.
-// Inline on a capacity-1 channel the same second send blocks the *caller*, forever.
+// `try { ... return x } catch (e) { ... }` is emulated with a synthetic, immediately
+// invoked closure, so the `return` inside it only leaves that *closure* — in TypeScript
+// the same `return` leaves the whole async function. While the core body still ran in
+// its own goroutine that difference was survivable: execution carried on, reached a
+// second `ch <-`, and the send merely parked a goroutine nobody read. Running inline on
+// a capacity-1 channel the second send has nowhere to go and blocks the *caller*, so
+// the same shape turns from wasted work into a deadlock.
 //
-// So the flattener threads a `chSent` flag through those cores and returns as soon as
-// the shim has produced a value, which is what the TypeScript said in the first place:
+// Four base methods have that shape today — Fetch2, FetchWebEndpoint,
+// SafeDeterministicCall and FetchRestOrderBookSafe — each sending from inside a retry
+// loop's try block. The guard threads a `chSent` flag through exactly those cores and
+// leaves as soon as the closure produced a value, which is what the TypeScript said in
+// the first place:
 //
 //     for … {                                     for … {
 //         {                                           {
 //             func(this *X) (ret_ any) {                  func(this *X) (ret_ any) {
 //                 // try block:                               // try block:
 //                 ch <- response                              ch <- response
-//                                                             chSent = true
-//                 return nil                                  return nil
-//             }(this)                                     }(this)
-//         }                                               if chSent {
-//     }                                                       return ch
-//                                                         }
+//                 return nil                                  chSent = true
+//             }(this)                                         return nil
+//         }                                               }(this)
+//     }                                               }
+//                                                     if chSent {
+//                                                         return ch
 //                                                     }
 //                                                 }
 //
-// That also repairs a real bug the port has today, independent of this PR: with
+// That also repairs a real bug the port has today, independent of the emitter: with
 // `maxRetries` at its default 3, `SafeDeterministicCall` and `FetchRestOrderBookSafe`
 // keep looping after a successful call and re-issue the request up to three times
-// (measured: one call, three round trips). The caller only ever saw the first value,
-// so the extra traffic was invisible. The guard makes the loop stop on success.
+// (measured: one call, three round trips). The caller only ever saw the first value, so
+// the extra traffic was invisible. The guard makes the loop stop on success.
 //
-// The flag is only threaded when the core actually needs it; the vast majority of
-// cores send once, at core level, and keep the shape above.
-//
-// The rewrite is deliberately conservative: every core that is not provably safe
-// keeps its goroutine (see the gates in flattenAsyncCore). A skipped core is still
-// correct code, so a parse we do not fully understand degrades to today's output.
-const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?([A-Za-z_]\w*)\s*\(.*\)\s*<-\s?chan\s+any\s*\{$/;
+// Cores that send only at their own level — the vast majority — are left byte-identical,
+// and any core whose shape is not fully understood is skipped, so a parse we do not
+// fully trust degrades to exactly what ast-transpiler emitted.
+const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[A-Za-z_]\w*\s*\(.*\)\s*\(\s*out\d*\s+<-\s?chan\s+any\s*\)\s*\{$/;
 const GO_CORE_MAKE = /^([ \t]*)ch := make\(chan\s+[^(),\n]+,\s*1\)$/;
-const GO_CORE_GOROUTINE = /^([ \t]*)go func\(\)\s*any\s*\{$/;
+const GO_CORE_OUT = /^([ \t]*)out\d* = ch$/;
 const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
+// the panic helper is package-qualified in the prediction namespace (ccxt.ReturnPanicError)
 const GO_CORE_PANIC = /^([ \t]*)defer (?:[A-Za-z_][A-Za-z0-9_.]*\.)?ReturnPanicError\(ch\)$/;
+// generated cores are always top-level funcs, so the core ends at a brace in column 0
+const GO_CORE_END = /^\}\s*$/;
 const GO_CORE_SEND = /^ch\s*<-/;
 const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
 // the try/catch shim closes as an immediately-invoked literal, `}()` or `}(this)`
 const GO_LITERAL_INVOKED = /^\}\s*\([^()]*\)\s*$/;
 // the flag threaded through cores that send from inside such a shim
 const GO_SENT_FLAG = 'chSent';
+// the transpiler emits 4-space indentation; gofmt re-indents the file afterwards
+const GO_INDENT_UNIT = '    ';
 
 // drop string/rune literals and comments so brace counting and identifier lookups
 // cannot be fooled by Go source quoted inside a literal or a comment. Block comments
@@ -250,87 +209,6 @@ function scanCoreBody (body: string[]): CoreBodyScan | null {
     return { literalDepth, closesTo, sendsInLiteral };
 }
 
-// Rewrite one async core in place. `lines[start]` is the `ch := make(chan T, 1)`
-// line and `lines[start + 1]` opens the goroutine. Returns the replacement lines
-// plus the rewritten signature, or null when any safety gate fails.
-function flattenAsyncCore (lines: string[], start: number, signatureLine: string): { 'signature': string; 'body': string[]; 'end': number } | null {
-    const indent = (GO_CORE_MAKE.exec (lines[start]) as RegExpExecArray)[1];
-    const closeIndent = (GO_CORE_CLOSE.exec (lines[start + 2]) as RegExpExecArray)[1];
-    const unit = closeIndent.slice (indent.length);
-    if (!unit.length || closeIndent.slice (0, indent.length) !== indent) {
-        return null;
-    }
-    if (!GO_CORE_SIGNATURE.test (signatureLine)) {
-        return null;
-    }
-    // the goroutine is closed by `}()` at the same indentation as `go func()`, and
-    // the core always hands the channel back on the very next line
-    let end = start + 4;
-    while (end < lines.length && lines[end] !== indent + '}()') {
-        end++;
-    }
-    if (end >= lines.length || lines[end + 1] !== indent + 'return ch') {
-        return null;
-    }
-    const body = lines.slice (start + 4, end);
-    const scan = scanCoreBody (body);
-    if (scan === null) {
-        return null;
-    }
-    // a core that sends from inside a try/catch shim carries a flag so the core can
-    // return as soon as the shim produced a value — see the note above flattenAsyncCore
-    const needsFlag = scan.sendsInLiteral;
-    const rewritten: string[] = [];
-    for (let index = 0; index < body.length; index++) {
-        const line = body[index];
-        const trimmed = line.trim ();
-        const nested = scan.literalDepth[index] > 0;
-        const lineIndent = line.slice (0, line.length - line.trimStart ().length);
-        if (new RegExp ('\\b(?:out|' + GO_SENT_FLAG + ')\\b').test (stripGoLiterals (line))) {
-            // the named result or the flag would shadow, or be shadowed by, a body identifier
-            return null;
-        }
-        if (!nested && /^return\b/.test (trimmed)) {
-            if (trimmed !== 'return nil') {
-                // every core-level return ast-transpiler emits is `return nil`;
-                // anything else is a shape this rewrite does not understand
-                return null;
-            }
-            rewritten.push (line.replace (/return nil$/, 'return ch'));
-            continue;
-        }
-        rewritten.push (line);
-        if (needsFlag && nested && GO_CORE_SEND.test (trimmed)) {
-            // record the send so the core level below can stop; a multi-line send
-            // (`ch <- map[string]any{` …) would put this in the wrong place, so the
-            // send has to be a complete statement on its own line
-            if (!isBalancedGoLine (line)) {
-                return null;
-            }
-            rewritten.push (lineIndent + GO_SENT_FLAG + ' = true');
-        }
-        if (needsFlag && scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
-            // the outermost try/catch shim just returned: if it produced a value the
-            // core is done, exactly as the `return` inside the TypeScript `try` meant
-            rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
-            rewritten.push (lineIndent + unit + 'return ch');
-            rewritten.push (lineIndent + '}');
-        }
-    }
-    // dedent the body by the one level the goroutine used to add
-    const flattened = rewritten.map ((line) => (line.startsWith (unit) ? line.slice (unit.length) : line));
-    const prologue = [ lines[start], indent + 'out = ch', lines[start + 2], lines[start + 3] ];
-    if (needsFlag) {
-        prologue.push (indent + GO_SENT_FLAG + ' := false');
-        prologue.push (indent + '_ = ' + GO_SENT_FLAG);
-    }
-    return {
-        'signature': signatureLine.replace (/\)\s*<-\s?chan\s+any\s*\{$/, ') (out <-chan any) {'),
-        'body': prologue.concat (flattened),
-        'end': end,
-    };
-}
-
 // true when every bracket the line opens it also closes — i.e. the line is a
 // complete statement rather than the head of a multi-line composite literal
 function isBalancedGoLine (line: string): boolean {
@@ -349,8 +227,68 @@ function isBalancedGoLine (line: string): boolean {
     return depth === 0;
 }
 
-function flattenAsyncCoreChannels (content: string): string {
-    if (content.indexOf ('go func() any {') < 0) {
+// Thread the sent-flag through one core. `lines[start]` is the `ch := make(chan T, 1)`
+// line and the three lines after it are the rest of the core prologue. Returns the
+// replacement body (flag declaration + rewritten lines) and the index of the core's
+// closing brace, or null when any safety gate fails.
+function guardMultiSendCore (lines: string[], start: number): { 'body': string[]; 'end': number } | null {
+    const indent = (GO_CORE_MAKE.exec (lines[start]) as RegExpExecArray)[1];
+    // the whole prologue sits at one indentation level; anything else is a shape we
+    // did not emit and do not understand
+    for (const offset of [ 1, 2, 3 ]) {
+        const prologue = [ GO_CORE_OUT, GO_CORE_CLOSE, GO_CORE_PANIC ][offset - 1];
+        if ((prologue.exec (lines[start + offset]) as RegExpExecArray)[1] !== indent) {
+            return null;
+        }
+    }
+    const bodyStart = start + 4;
+    let end = bodyStart;
+    while (end < lines.length && !GO_CORE_END.test (lines[end])) {
+        end++;
+    }
+    if (end >= lines.length) {
+        return null;
+    }
+    const body = lines.slice (bodyStart, end);
+    const scan = scanCoreBody (body);
+    if (scan === null || !scan.sendsInLiteral) {
+        // nothing to guard: the core only ever sends at its own level
+        return null;
+    }
+    const rewritten: string[] = [];
+    for (let index = 0; index < body.length; index++) {
+        const line = body[index];
+        const trimmed = line.trim ();
+        const nested = scan.literalDepth[index] > 0;
+        const lineIndent = line.slice (0, line.length - line.trimStart ().length);
+        if (new RegExp ('\\b' + GO_SENT_FLAG + '\\b').test (stripGoLiterals (line))) {
+            // the flag would collide with an identifier the body already uses
+            return null;
+        }
+        rewritten.push (line);
+        if (nested && GO_CORE_SEND.test (trimmed)) {
+            // record the send so the core level below can stop; a multi-line send
+            // (`ch <- map[string]any{` …) would put this in the wrong place, so the
+            // send has to be a complete statement on its own line
+            if (!isBalancedGoLine (line)) {
+                return null;
+            }
+            rewritten.push (lineIndent + GO_SENT_FLAG + ' = true');
+        }
+        if (scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
+            // the outermost try/catch shim just returned: if it produced a value the
+            // core is done, exactly as the `return` inside the TypeScript `try` meant
+            rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
+            rewritten.push (lineIndent + GO_INDENT_UNIT + 'return ch');
+            rewritten.push (lineIndent + '}');
+        }
+    }
+    const declaration = [ indent + GO_SENT_FLAG + ' := false', indent + '_ = ' + GO_SENT_FLAG ];
+    return { 'body': declaration.concat (rewritten), 'end': end };
+}
+
+function guardMultiSendCores (content: string): string {
+    if (content.indexOf ('ReturnPanicError(ch)') < 0) {
         return content;
     }
     const lines = content.split ('\n');
@@ -359,28 +297,24 @@ function flattenAsyncCoreChannels (content: string): string {
     while (index < lines.length) {
         const isCore = (index + 4 < lines.length)
             && GO_CORE_MAKE.test (lines[index])
-            && GO_CORE_GOROUTINE.test (lines[index + 1])
+            && GO_CORE_OUT.test (lines[index + 1])
             && GO_CORE_CLOSE.test (lines[index + 2])
             && GO_CORE_PANIC.test (lines[index + 3])
-            && (GO_CORE_MAKE.exec (lines[index]) as RegExpExecArray)[1] === (GO_CORE_GOROUTINE.exec (lines[index + 1]) as RegExpExecArray)[1]
-            && result.length > 0;
-        const flattened = isCore ? flattenAsyncCore (lines, index, result[result.length - 1]) : null;
-        if (flattened === null) {
+            && result.length > 0
+            && GO_CORE_SIGNATURE.test (result[result.length - 1]);
+        const guarded = isCore ? guardMultiSendCore (lines, index) : null;
+        if (guarded === null) {
             result.push (lines[index]);
             index++;
             continue;
         }
-        result[result.length - 1] = flattened.signature;
-        for (const line of flattened.body) {
+        // the core keeps the prologue ast-transpiler emitted; only the body is rewritten
+        result.push (lines[index], lines[index + 1], lines[index + 2], lines[index + 3]);
+        for (const line of guarded.body) {
             result.push (line);
         }
-        // Skip both the goroutine's `}()` and the core's own trailing `return ch`.
-        // The body keeps its own final return (the rewritten `return nil`), so the
-        // function still ends in a terminating statement — guaranteed, because the
-        // `go func() any` this body came from had to end in one to compile at all.
-        // Emitting the outer `return ch` as well would make it unreachable code,
-        // which `go vet` reports as an error.
-        index = flattened.end + 2;
+        // the core's closing brace is emitted by the next turn of the loop
+        index = guarded.end;
     }
     return result.join ('\n');
 }
@@ -392,7 +326,7 @@ function formatGoSource (filePath: string, content: string): string {
     if (!filePath.endsWith ('.go')) {
         return content;
     }
-    content = flattenAsyncCoreChannels (bufferAsyncCoreChannels (content));
+    content = guardMultiSendCores (content);
     const gofmt = spawnSync ('gofmt', [], {
         'input': content,
         'encoding': 'utf8',
@@ -2513,8 +2447,8 @@ ${constStatements.join('\n')}
             ].join('\n');
             const file = fileHeader + '\n' + structDef + methods + shims + "\n";
             // this is the one generated .go write that does not go through
-            // overwriteFileAndFolder()/formatGoSource(), so buffer + flatten its async cores here
-            fs.writeFileSync (goPredictionBase, flattenAsyncCoreChannels (bufferAsyncCoreChannels (file)));
+            // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
+            fs.writeFileSync (goPredictionBase, guardMultiSendCores (file));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }
