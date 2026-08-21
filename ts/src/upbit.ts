@@ -815,8 +815,15 @@ export default class upbit extends Exchange {
                 }
             }
             const sortedQuoteIds = this.sort (quoteIds); // market iteration order differs per language
+            let quoteCurrencies = '';
+            for (let i = 0; i < sortedQuoteIds.length; i++) {
+                if (quoteCurrencies !== '') {
+                    quoteCurrencies = quoteCurrencies + ',';
+                }
+                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i];
+            }
             const request: Dict = {
-                'quote_currencies': sortedQuoteIds.join (','),
+                'quote_currencies': quoteCurrencies,
             };
             tickers = await this.publicGetTickerAll (this.extend (request, params));
         } else {
