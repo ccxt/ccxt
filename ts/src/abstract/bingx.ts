@@ -38,6 +38,7 @@ interface Exchange {
     spotV1PrivatePostOcoCancel (params?: {}): Promise<Dict>;
     spotV2PublicGetMarketDepth (params?: {}): Promise<Dict>;
     spotV2PublicGetMarketKline (params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteKlines (params?: {}): Promise<Dict>;
     spotV2PublicGetTickerPrice (params?: {}): Promise<Dict>;
     spotV3PrivateGetGetAssetTransfer (params?: {}): Promise<Dict>;
     spotV3PrivateGetAssetTransfer (params?: {}): Promise<Dict>;

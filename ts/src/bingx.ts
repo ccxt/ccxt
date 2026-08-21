@@ -229,6 +229,7 @@ export default class bingx extends Exchange {
                             'get': {
                                 'market/depth': { 'cost': 1 } as Endpoint<Dict>,
                                 'market/kline': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
                                 'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
@@ -1206,7 +1207,7 @@ export default class bingx extends Exchange {
             if (timeZone !== undefined) {
                 request['timeZone'] = timeZone;
             }
-            response = await this.spotV1PublicGetMarketKline (this.extend (request, params));
+            response = await this.spotV2PublicGetQuoteKlines (this.extend (request, params));
         } else {
             if (market['inverse']) {
                 response = await this.cswapV1PublicGetMarketKlines (this.extend (request, params));
