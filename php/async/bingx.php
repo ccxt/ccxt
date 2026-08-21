@@ -1373,11 +1373,12 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($limit !== null) {
-            $request['limit'] = min($limit, 100); // avoid API exception "limit should less than 100"
-        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        if ($limit !== null) {
+            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
+            $request['limit'] = min($limit, $maxLimit);
+        }
         if ($marketType === 'spot') {
             $response = Async\await($this->spotV1PublicGetMarketTrades($this->extend($request, $params)));
         } else {
