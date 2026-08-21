@@ -212,7 +212,6 @@ export declare class BaseExchange {
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
     streaming: Dictionary<any>;
-    authenticationFlights: Dictionary<FutureInterface>;
     sleep: typeof functions.sleep;
     deepExtend: typeof functions.deepExtend;
     deepExtendSafe: typeof functions.deepExtend;
@@ -478,10 +477,6 @@ export declare class BaseExchange {
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
     ping(client: Client): Dict | Str;
-    singleFlightAcquire(flightHash: string): Promise<boolean>;
-    singleFlightWait(flightHash: string): Promise<void>;
-    singleFlightResolve(flightHash: string, result?: any): void;
-    singleFlightReject(flightHash: string, error: any): void;
     client(url: Str): WsClient;
     calculateWsBackoffDelay(url: string): number;
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;

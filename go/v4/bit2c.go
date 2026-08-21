@@ -729,24 +729,32 @@ func (this *Bit2cCore) CreateOrder(symbol any, typeVar any, side any, amount any
 			retRes58612 := (<-this.LoadMarkets())
 			PanicOnError(retRes58612)
 		}
-		var method any = "privatePostOrderAddOrder"
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"Amount": amount,
 			"Pair":   GetValue(market, "id"),
 		}
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "market")) {
-			method = Add(method, Add("MarketPrice", this.Capitalize(side)))
+			if IsTrue(IsEqual(side, "buy")) {
+
+				response = (<-this.PrivatePostOrderAddOrderMarketPriceBuy(this.Extend(request, params)))
+				PanicOnError(response)
+			} else {
+
+				response = (<-this.PrivatePostOrderAddOrderMarketPriceSell(this.Extend(request, params)))
+				PanicOnError(response)
+			}
 		} else {
 			AddElementToObject(request, "Price", price)
 			var amountString any = this.NumberToString(amount)
 			var priceString any = this.NumberToString(price)
 			AddElementToObject(request, "Total", this.ParseToNumeric(Precise.StringMul(amountString, priceString)))
 			AddElementToObject(request, "IsBid", (IsEqual(side, "buy")))
-		}
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PrivatePostOrderAddOrder(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 
 		ch <- this.ParseOrder(response, market)
 		return nil
@@ -817,8 +825,8 @@ func (this *Bit2cCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes64112 := (<-this.LoadMarkets())
-			PanicOnError(retRes64112)
+			retRes64512 := (<-this.LoadMarkets())
+			PanicOnError(retRes64512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -859,8 +867,8 @@ func (this *Bit2cCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes66612 := (<-this.LoadMarkets())
-			PanicOnError(retRes66612)
+			retRes67012 := (<-this.LoadMarkets())
+			PanicOnError(retRes67012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1032,8 +1040,8 @@ func (this *Bit2cCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes81712 := (<-this.LoadMarkets())
-			PanicOnError(retRes81712)
+			retRes82112 := (<-this.LoadMarkets())
+			PanicOnError(retRes82112)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -1232,8 +1240,8 @@ func (this *Bit2cCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes100312 := (<-this.LoadMarkets())
-			PanicOnError(retRes100312)
+			retRes100712 := (<-this.LoadMarkets())
+			PanicOnError(retRes100712)
 		}
 		var currency any = this.Currency(code)
 		if IsTrue(this.IsFiat(code)) {

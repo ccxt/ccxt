@@ -113,7 +113,7 @@ export default class whitebit extends whitebitRest {
     watchPublic(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
     watchMultipleSubscription(messageHash: any, method: any, symbol: any, isNested?: boolean, params?: {}): Promise<any>;
     watchPrivate(messageHash: any, method: any, reqParams?: any[], params?: {}): Promise<any>;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<number>;
     handleAuthenticate(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): Bool;
     handleMessage(client: Client, message: any): void;

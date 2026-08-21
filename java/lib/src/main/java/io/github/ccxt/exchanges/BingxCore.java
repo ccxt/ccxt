@@ -1802,15 +1802,16 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
-            {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100)); // avoid API exception "limit should less than 100"
-            }
             Object response = null;
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? 500 : 1000;
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit));
+            }
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.spotV1PublicGetMarketTrades(this.extend(request, parameters))).join();

@@ -7304,7 +7304,7 @@ export default class gate extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['from'] = since;
+            request['from'] = this.parseToInt (since / 1000);
         }
         const response = await this.publicFuturesGetSettleContractStats (this.extend (request, params));
         //

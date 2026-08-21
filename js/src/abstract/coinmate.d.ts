@@ -58,6 +58,9 @@ interface Exchange {
     privatePostAdaWithdrawal(params?: {}): Promise<Dict>;
     privatePostAdaDepositAddresses(params?: {}): Promise<Dict>;
     privatePostUnconfirmedAdaDeposits(params?: {}): Promise<Dict>;
+    privatePostDaiWithdrawal(params?: {}): Promise<Dict>;
+    privatePostDaiDepositAddresses(params?: {}): Promise<Dict>;
+    privatePostUnconfirmedDaiDeposits(params?: {}): Promise<Dict>;
     privatePostSolWithdrawal(params?: {}): Promise<Dict>;
     privatePostSolDepositAddresses(params?: {}): Promise<Dict>;
     privatePostUnconfirmedSolDeposits(params?: {}): Promise<Dict>;

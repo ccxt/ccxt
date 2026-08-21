@@ -1199,59 +1199,120 @@ func (this *WhitebitCore) Authenticate(optionalArgs ...any) <-chan any {
 		_ = params
 		this.CheckRequiredCredentials()
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-		var messageHash any = "authenticated"
 		var client any = this.Client(url)
-		var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+		var subscribeHash any = "authenticated"
+		// handleAuthenticate () resolves the handshake future with 1, so 1 is
+		// the authorized sentinel authenticate () has always returned - every
+		// path below hands back that same value
+		var authorized any = 1
+		// single-flight leader election, see
+		// https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+		// subscriptions['authenticated'], which watch () only registers once
+		// the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
+		// every concurrent cold caller used to pass that gate, burn a
+		// rate-limited private REST call for its own websocket_token and push
+		// its own authorize frame down the shared socket. the flight is
+		// registered in client.futures on the very client that carries the
+		// handshake, under a key that is not one of the exchange's own
+		// messageHashes, and is settled through client.resolve () /
+		// client.reject () so every write to that map goes through the
+		// client's own accessors
+		var messageHash any = "authenticateFlight"
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader settles
+			// it, the socket is authorized by then. the flight gate is
+			// checked before the subscriptions one because watch () registers
+			// subscriptions['authenticated'] immediately, long before the
+			// venue acks the authorize frame
 
-			authToken := (<-this.V4PrivatePostProfileWebsocketToken())
-			ccxt.PanicOnError(authToken)
-			//
-			//   {
-			//       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
-			//   }
-			//
-			var token any = this.SafeString(authToken, "websocket_token")
-			var id any = this.Nonce()
-			var request any = map[string]any{
-				"id":     id,
-				"method": "authorize",
-				"params": []any{token, "public"},
-			}
-			var subscription any = map[string]any{
-				"id":     id,
-				"method": this.HandleAuthenticate,
-			}
+			retRes99912 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes99912)
 
-			{
-				func(this *WhitebitCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *WhitebitCore) any {
-								// catch block:
-								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-								future.(*ccxt.Future).Reject(e)
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-
-					retRes100016 := (<-this.Watch(url, messageHash, request, messageHash, subscription))
-					ccxt.PanicOnError(retRes100016)
-					return nil
-				}(this)
-
-			}
+			ch <- authorized
+			return nil
 		}
+		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+		if ccxt.IsTrue(!ccxt.IsEqual(authenticated, nil)) {
 
-		retRes100615 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes100615)
-		ch <- retRes100615
+			// a previous flight already completed the handshake on the client
+			ch <- authorized
+			return nil
+		}
+		// register the flight BEFORE the first await, so a caller arriving
+		// during the fetch or the authorize round-trip finds it and waits
+		// instead of re-leading, and so client.reject () below always has a
+		// waiter and can never park the error in client.rejections
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *WhitebitCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *WhitebitCore) any {
+							// catch block:
+							// drop the handshake state so the next caller can retry: watch ()
+							// registers subscriptions['authenticated'] before it connects and
+							// parks a rejected future under the same key when the dial fails,
+							// and either one left behind would make every later authenticate ()
+							// replay that failure. the stale future is settled through
+							// client.reject () - guarded, so it always has a waiter and the
+							// error is never parked in client.rejections
+							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)) {
+								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), subscribeHash)
+							}
+							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), subscribeHash)) {
+								client.(ccxt.ClientInterface).Reject(e, subscribeHash)
+							}
+							// reject the flight - the leader and every waiter throw and the
+							// next caller re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+
+				authToken := (<-this.V4PrivatePostProfileWebsocketToken())
+				ccxt.PanicOnError(authToken)
+				//
+				//   {
+				//       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
+				//   }
+				//
+				var token any = this.SafeString(authToken, "websocket_token")
+				if ccxt.IsTrue(ccxt.IsEqual(token, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty websocket_token")))
+				}
+				var id any = this.Nonce()
+				var request any = map[string]any{
+					"id":     id,
+					"method": "authorize",
+					"params": []any{token, "public"},
+				}
+				var subscription any = map[string]any{
+					"id":     id,
+					"method": this.HandleAuthenticate,
+				}
+
+				retRes103812 := (<-this.Watch(url, subscribeHash, request, subscribeHash, subscription))
+				ccxt.PanicOnError(retRes103812)
+				// settle the flight and wake every waiter - resolve () also drops
+				// the registry entry, so a later cold call can re-lead
+				client.(ccxt.ClientInterface).Resolve(authorized, messageHash)
+				return nil
+			}(this)
+
+		}
+		// rethrows the failure to the leader and attaches the handler that
+		// keeps an alone-leader rejection from crashing the process
+
+		retRes10628 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes10628)
+
+		ch <- authorized
 		return nil
 
 	}()

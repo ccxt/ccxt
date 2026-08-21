@@ -32,7 +32,6 @@ class Client {
     public $futures = array();
     public $subscriptions = array();
     public $rejections = array();
-    public $pending_results = array(); // latest value resolved without a waiter, per message hash
     public $options = array();
 
     public $cookies = array();
@@ -79,16 +78,6 @@ class Client {
     // ------------------------------------------------------------------------
 
     public function future($message_hash) {
-        // a value that arrived while no future existed satisfies this
-        // consumer immediately, the spent future intentionally stays out of
-        // the map so the next consumer waits for fresh data
-        if (array_key_exists($message_hash, $this->pending_results)) {
-            $pending = $this->pending_results[$message_hash];
-            unset($this->pending_results[$message_hash]);
-            $spent = new Future();
-            $spent->resolve($pending);
-            return $spent;
-        }
         if (!array_key_exists($message_hash, $this->futures)) {
             $this->futures[$message_hash] = new Future();
         }
@@ -115,14 +104,6 @@ class Client {
             $promise = $this->futures[$message_hash];
             $promise->resolve($result);
             unset($this->futures[$message_hash]);
-        } else {
-            // no consumer future right now, keep the latest value so the
-            // next future() call is resolved with it instead of waiting for
-            // data that already arrived. A successful resolve after a
-            // retained error means the stream recovered, the stale error
-            // must not fail a later waiter
-            $this->pending_results[$message_hash] = $result;
-            unset($this->rejections[$message_hash]);
         }
         return $result;
     }
@@ -136,14 +117,11 @@ class Client {
             } else {
                 $this->rejections[$message_hash] = $result;
             }
-            // stale pre-error values must not satisfy post-error consumers
-            unset($this->pending_results[$message_hash]);
         } else {
             $message_hashes = array_keys($this->futures);
             foreach ($message_hashes as $message_hash) {
                 $this->reject($result, $message_hash);
             }
-            $this->pending_results = array();
         }
         return $result;
     }
@@ -161,7 +139,6 @@ class Client {
         $this->futures = array();
         $this->subscriptions = array();
         $this->rejections = array();
-        $this->pending_results = array();
 
         $this->on_message_callback = $on_message_callback;
         $this->on_error_callback = $on_error_callback;

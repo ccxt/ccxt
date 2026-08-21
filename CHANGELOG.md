@@ -1,3 +1,58 @@
+<a id="v4.5.75"></a>
+# [v4.5.75](https://github.com/ccxt/ccxt/releases/tag/v4.5.75) - 2026-08-21
+
+## What's Changed
+* test(bitmex): skip the last-vs-median ticker check through the wind-down by [@kroitor](https://github.com/kroitor) in [#29914](https://github.com/ccxt/ccxt/pull/29914)
+* bingx: fix websocket balance routing by [@AresArtemius](https://github.com/AresArtemius) in [#29936](https://github.com/ccxt/ccxt/pull/29936)
+* fix(poloniex): map futures v3 error codes by [@rayBastard](https://github.com/rayBastard) in [#29920](https://github.com/ccxt/ccxt/pull/29920)
+* fix(krakenfutures): parse unrealizedPnl in parsePosition by [@shuxue6662-a11y](https://github.com/shuxue6662-a11y) in [#29937](https://github.com/ccxt/ccxt/pull/29937)
+* fix(binance): deduplicate and merge keepAliveStockListenKey into keepAliveListenKey by [@kroitor](https://github.com/kroitor) in [#29908](https://github.com/ccxt/ccxt/pull/29908)
+* fix(krakenfutures): don't resolve watchPositions with empty list on malformed frame by [@shuxue6662-a11y](https://github.com/shuxue6662-a11y) in [#29943](https://github.com/ccxt/ccxt/pull/29943)
+* fix(extended): stop account ws frames falling through to handleOrderBook by [@carlotestor](https://github.com/carlotestor) in [#29942](https://github.com/ccxt/ccxt/pull/29942)
+* fix(binance): guard option and stock from the linear/inverse rewrite in authenticate by [@kroitor](https://github.com/kroitor) in [#29946](https://github.com/ccxt/ccxt/pull/29946)
+* perf(pro): speed up ArrayCache append hot path -63%..-93% by [@carlotestor](https://github.com/carlotestor) in [#29945](https://github.com/ccxt/ccxt/pull/29945)
+* refactor(binance)!: fold authenticateStock into authenticate by [@kroitor](https://github.com/kroitor) in [#29950](https://github.com/ccxt/ccxt/pull/29950)
+* fix(cs): settle Future.reject once, under the resolve lock by [@kroitor](https://github.com/kroitor) in [#29951](https://github.com/ccxt/ccxt/pull/29951)
+* fix(poloniex): TRC20 withdrawals must send network TRX, not TRON by [@rayBastard](https://github.com/rayBastard) in [#29954](https://github.com/ccxt/ccxt/pull/29954)
+* ci: move language workflows back to GitHub-hosted runners by [@frosty00](https://github.com/frosty00) in [#29957](https://github.com/ccxt/ccxt/pull/29957)
+* Revert "ci: move language workflows back to GitHub-hosted runners" by [@frosty00](https://github.com/frosty00) in [#29959](https://github.com/ccxt/ccxt/pull/29959)
+* fix(build): go ws client casts panic when the transport hands a *WSClient by [@carlosmiei](https://github.com/carlosmiei) in [#29962](https://github.com/ccxt/ccxt/pull/29962)
+* fix(cs): normalize mixed numeric boxes in sortBy keys by [@kroitor](https://github.com/kroitor) in [#29964](https://github.com/ccxt/ccxt/pull/29964)
+* fix(poloniex): map unified clientOrderId to clOrdId for swap orders by [@rayBastard](https://github.com/rayBastard) in [#29966](https://github.com/ccxt/ccxt/pull/29966)
+* fix(phemex): apply amount precision to swap order quantity in createOrder by [@rayBastard](https://github.com/rayBastard) in [#29967](https://github.com/ccxt/ccxt/pull/29967)
+* refactor(binance): centralize user-data type derivation in resolveAuthType by [@kroitor](https://github.com/kroitor) in [#29969](https://github.com/ccxt/ccxt/pull/29969)
+* fix(krakenfutures): map open_orders cancel reason to unified status by [@official-burak](https://github.com/official-burak) in [#29970](https://github.com/ccxt/ccxt/pull/29970)
+* fix(kucoin): priceChgPct on contracts is a ratio, so scale it by [@mkzung](https://github.com/mkzung) in [#29918](https://github.com/ccxt/ccxt/pull/29918)
+* fix(kraken): watchOHLCV returned strings in descending order by [@mkzung](https://github.com/mkzung) in [#29976](https://github.com/ccxt/ccxt/pull/29976)
+* fix(toobit): strip the _OPEN and _CLOSE suffix from the order side by [@mkzung](https://github.com/mkzung) in [#29974](https://github.com/ccxt/ccxt/pull/29974)
+* fix(foxbit): drop the misspelt fecthOrderBook capability flag by [@mkzung](https://github.com/mkzung) in [#29973](https://github.com/ccxt/ccxt/pull/29973)
+* feat(base): ws auth single-flight primitives by [@kroitor](https://github.com/kroitor) in [#29903](https://github.com/ccxt/ccxt/pull/29903)
+* fix(bitmex): the watchPositions flag is spelled watchPostions by [@mkzung](https://github.com/mkzung) in [#29972](https://github.com/ccxt/ccxt/pull/29972)
+* refactor(binance): migrate authenticate to the singleFlight primitives by [@kroitor](https://github.com/kroitor) in [#29977](https://github.com/ccxt/ccxt/pull/29977)
+* fix(aster): prevent concurrent ws auth races via base single-flight guard by [@kroitor](https://github.com/kroitor) in [#29984](https://github.com/ccxt/ccxt/pull/29984)
+* fix(binance): reject the auth flight on an empty listenKey by [@kroitor](https://github.com/kroitor) in [#29986](https://github.com/ccxt/ccxt/pull/29986)
+* fix(bingx): prevent concurrent ws auth races via base single-flight guard by [@kroitor](https://github.com/kroitor) in [#29987](https://github.com/ccxt/ccxt/pull/29987)
+* test(exchange): exempt option markets from ticker percentage bounds by [@kroitor](https://github.com/kroitor) in [#29988](https://github.com/ccxt/ccxt/pull/29988)
+* chore(tests): store JSON request fixture output as objects by [@carlotestor](https://github.com/carlotestor) in [#29980](https://github.com/ccxt/ccxt/pull/29980)
+* fix(toobit): a reduce-only order was sent on the opposite side by [@mkzung](https://github.com/mkzung) in [#29982](https://github.com/ccxt/ccxt/pull/29982)
+* perf(js): precise methods  (version 1) by [@ttodua](https://github.com/ttodua) in [#29952](https://github.com/ccxt/ccxt/pull/29952)
+* fix(phemex): correct fetchPositionsADLRank jsdoc name and unify scale getters by [@rayBastard](https://github.com/rayBastard) in [#29985](https://github.com/ccxt/ccxt/pull/29985)
+* chore: remove this[method] from rest side by [@carlosmiei](https://github.com/carlosmiei) in [#30003](https://github.com/ccxt/ccxt/pull/30003)
+* revert(pro): drop Client.resolve pending-results queue by [@carlotestor](https://github.com/carlotestor) in [#30008](https://github.com/ccxt/ccxt/pull/30008)
+* fix(java): guard WsClient futures/rejections with a monitor by [@carlotestor](https://github.com/carlotestor) in [#30004](https://github.com/ccxt/ccxt/pull/30004)
+* fix(bitmex, cryptocom): watchPositions never resolves for a symbol-filtered subscription by [@mkzung](https://github.com/mkzung) in [#29981](https://github.com/ccxt/ccxt/pull/29981)
+* fix(binance): load stock markets if in options by [@carlosmiei](https://github.com/carlosmiei) in [#30010](https://github.com/ccxt/ccxt/pull/30010)
+* refactor(pro): inline the ws auth single-flight logic into authenticate() by [@carlotestor](https://github.com/carlotestor) in [#29992](https://github.com/ccxt/ccxt/pull/29992)
+
+## New Contributors
+* [@shuxue6662-a11y](https://github.com/shuxue6662-a11y) made their first contribution in [#29937](https://github.com/ccxt/ccxt/pull/29937)
+* [@official-burak](https://github.com/official-burak) made their first contribution in [#29970](https://github.com/ccxt/ccxt/pull/29970)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.74...v4.5.75
+
+[Changes][v4.5.75]
+
+
 <a id="v4.5.74"></a>
 # [v4.5.74](https://github.com/ccxt/ccxt/releases/tag/v4.5.74) - 2026-08-17
 
@@ -14358,6 +14413,7 @@ We highly recommend downloading and installing the most recent release of CCXT v
 [Changes][4.0.3]
 
 
+[v4.5.75]: https://github.com/ccxt/ccxt/compare/v4.5.74...v4.5.75
 [v4.5.74]: https://github.com/ccxt/ccxt/compare/v4.5.73...v4.5.74
 [v4.5.73]: https://github.com/ccxt/ccxt/compare/v4.5.72...v4.5.73
 [v4.5.72]: https://github.com/ccxt/ccxt/compare/v4.5.71...v4.5.72

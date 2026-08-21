@@ -604,21 +604,27 @@ func (this *MercadoCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 			PanicOnError(retRes50712)
 		}
 		var market any = this.Market(symbol)
-		var method any = "publicGetCoinTrades"
 		var request any = map[string]any{
 			"coin": GetValue(market, "base"),
 		}
 		if IsTrue(!IsEqual(since, nil)) {
-			method = Add(method, "From")
 			AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
 		}
 		var to any = this.SafeInteger(params, "to")
-		if IsTrue(!IsEqual(to, nil)) {
-			method = Add(method, "To")
-		}
+		var response any = nil
+		if IsTrue(IsTrue((!IsEqual(since, nil))) && IsTrue((!IsEqual(to, nil)))) {
 
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
+			response = (<-this.PublicGetCoinTradesFromTo(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(!IsEqual(since, nil)) {
+
+			response = (<-this.PublicGetCoinTradesFrom(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PublicGetCoinTrades(this.Extend(request, params)))
+			PanicOnError(response)
+		}
 
 		ch <- this.ParseTrades(response, market, since, limit)
 		return nil
@@ -665,8 +671,8 @@ func (this *MercadoCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes55612 := (<-this.LoadMarkets())
-			PanicOnError(retRes55612)
+			retRes55812 := (<-this.LoadMarkets())
+			PanicOnError(retRes55812)
 		}
 
 		response := (<-this.PrivatePostGetAccountInfo(params))
@@ -702,20 +708,27 @@ func (this *MercadoCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes57612 := (<-this.LoadMarkets())
-			PanicOnError(retRes57612)
+			retRes57812 := (<-this.LoadMarkets())
+			PanicOnError(retRes57812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"coin_pair": GetValue(market, "id"),
 		}
-		var method any = Add(this.Capitalize(side), "Order")
+		var response any = nil
 		if IsTrue(IsEqual(typeVar, "limit")) {
-			method = Add("privatePostPlace", method)
 			AddElementToObject(request, "limit_price", this.PriceToPrecision(GetValue(market, "symbol"), price))
 			AddElementToObject(request, "quantity", this.AmountToPrecision(GetValue(market, "symbol"), amount))
+			if IsTrue(IsEqual(side, "buy")) {
+
+				response = (<-this.PrivatePostPlaceBuyOrder(this.Extend(request, params)))
+				PanicOnError(response)
+			} else {
+
+				response = (<-this.PrivatePostPlaceSellOrder(this.Extend(request, params)))
+				PanicOnError(response)
+			}
 		} else {
-			method = Add("privatePostPlaceMarket", method)
 			if IsTrue(IsEqual(side, "buy")) {
 				if IsTrue(IsEqual(price, nil)) {
 					panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")))
@@ -724,13 +737,16 @@ func (this *MercadoCore) CreateOrder(symbol any, typeVar any, side any, amount a
 				var priceString any = this.NumberToString(price)
 				var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
 				AddElementToObject(request, "cost", this.PriceToPrecision(GetValue(market, "symbol"), cost))
+
+				response = (<-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params)))
+				PanicOnError(response)
 			} else {
 				AddElementToObject(request, "quantity", this.AmountToPrecision(GetValue(market, "symbol"), amount))
+
+				response = (<-this.PrivatePostPlaceMarketSellOrder(this.Extend(request, params)))
+				PanicOnError(response)
 			}
 		}
-
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
 
 		// TODO: replace this with a call to parseOrder for unification
 		ch <- this.SafeOrder(map[string]any{
@@ -766,8 +782,8 @@ func (this *MercadoCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes62312 := (<-this.LoadMarkets())
-			PanicOnError(retRes62312)
+			retRes62912 := (<-this.LoadMarkets())
+			PanicOnError(retRes62912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -915,8 +931,8 @@ func (this *MercadoCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes75512 := (<-this.LoadMarkets())
-			PanicOnError(retRes75512)
+			retRes76112 := (<-this.LoadMarkets())
+			PanicOnError(retRes76112)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -962,8 +978,8 @@ func (this *MercadoCore) Withdraw(code any, amount any, address any, optionalArg
 		this.CheckAddress(address)
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78312 := (<-this.LoadMarkets())
-			PanicOnError(retRes78312)
+			retRes78912 := (<-this.LoadMarkets())
+			PanicOnError(retRes78912)
 		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -1094,8 +1110,8 @@ func (this *MercadoCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes89912 := (<-this.LoadMarkets())
-			PanicOnError(retRes89912)
+			retRes90512 := (<-this.LoadMarkets())
+			PanicOnError(retRes90512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1153,8 +1169,8 @@ func (this *MercadoCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes93712 := (<-this.LoadMarkets())
-			PanicOnError(retRes93712)
+			retRes94312 := (<-this.LoadMarkets())
+			PanicOnError(retRes94312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1201,8 +1217,8 @@ func (this *MercadoCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes96412 := (<-this.LoadMarkets())
-			PanicOnError(retRes96412)
+			retRes97012 := (<-this.LoadMarkets())
+			PanicOnError(retRes97012)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1250,8 +1266,8 @@ func (this *MercadoCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes99212 := (<-this.LoadMarkets())
-			PanicOnError(retRes99212)
+			retRes99812 := (<-this.LoadMarkets())
+			PanicOnError(retRes99812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{

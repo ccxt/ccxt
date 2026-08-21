@@ -1126,51 +1126,83 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            // when we implement more private streams, we need to refactor the authentication
-            // to be concurrent-safe and respect the same authentication token
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: both branches below read
+            // the cache, then fetch, then write it back, so concurrent
+            // watchOrders/watchBalance calls on a cold instance each POST
+            // subscribe/get_key, and concurrent callers past the expiry each POST
+            // subscribe/refresh_key - every loser burns rate limit on a
+            // subscribeKey that is immediately overwritten. the flight is parked
+            // on this exchange's own ws client - the same one that carries
+            // subscriptions['authenticated'] - under a key that is not one of its
+            // messageHashes, registered in client.futures before the first fetch
+            // and settled through client.resolve / client.reject so that every
+            // write to the futures map goes through the client itself
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
+            this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             Object now = this.milliseconds();
-            Object messageHash = "authenticated";
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
+            Object messageHash = "authenticateFlight";
+            if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
-                this.checkRequiredCredentials();
-                Object response = (this.spotPrivatePostSubscribeGetKey(parameters)).join();
-                //
-                // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
-                //
-                Object result = this.safeValue(response, "result");
-                if (Helpers.isTrue(!Helpers.isEqual(result, true)))
+                // a flight is already in progress - wake when the leader settles
+                // it: the subscribeKey is then in the bucket
+                client.future((String)messageHash).getFuture().join();
+                return Helpers.GetValue(Helpers.GetValue(client.subscriptions, "authenticated"), "key");
+            }
+            io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+            try
+            {
+                Object authenticated = this.safeValue(client.subscriptions, "authenticated");
+                if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
                 {
-                    throw new ExchangeError((String)Helpers.add(this.id, " failed to get subscribe key")) ;
-                }
-                Helpers.addElementToObject(client.subscriptions, "authenticated", new java.util.HashMap<String, Object>() {{
+                    Object response = (this.spotPrivatePostSubscribeGetKey(parameters)).join();
+                    //
+                    // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
+                    //
+                    Object result = this.safeValue(response, "result");
+                    if (Helpers.isTrue(!Helpers.isEqual(result, true)))
+                    {
+                        throw new ExchangeError((String)Helpers.add(this.id, " failed to get subscribe key")) ;
+                    }
+                    Helpers.addElementToObject(client.subscriptions, "authenticated", new java.util.HashMap<String, Object>() {{
         put( "key", LbankCore.this.safeString(response, "data") );
         put( "expires", LbankCore.this.sum(now, 3300000) );
     }});
-            } else
-            {
-                Object expires = this.safeInteger(authenticated, "expires", 0);
-                if (Helpers.isTrue(Helpers.isLessThan(expires, now)))
+                } else
                 {
-                    final Object finalAuthenticated = authenticated;
-                    Object request = new java.util.HashMap<String, Object>() {{
-                        put( "subscribeKey", Helpers.GetValue(finalAuthenticated, "key") );
-                    }};
-                    Object response = (this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters))).join();
-                    //
-                    //    {"result": "true"}
-                    //
-                    Object result = this.safeString(response, "result");
-                    if (Helpers.isTrue(!Helpers.isEqual(result, "true")))
+                    Object expires = this.safeInteger(authenticated, "expires", 0);
+                    if (Helpers.isTrue(Helpers.isLessThan(expires, now)))
                     {
-                        throw new ExchangeError((String)Helpers.add(this.id, " failed to refresh the SubscribeKey")) ;
+                        final Object finalAuthenticated = authenticated;
+                        Object request = new java.util.HashMap<String, Object>() {{
+                            put( "subscribeKey", Helpers.GetValue(finalAuthenticated, "key") );
+                        }};
+                        Object response = (this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters))).join();
+                        //
+                        //    {"result": "true"}
+                        //
+                        Object result = this.safeString(response, "result");
+                        if (Helpers.isTrue(!Helpers.isEqual(result, "true")))
+                        {
+                            throw new ExchangeError((String)Helpers.add(this.id, " failed to refresh the SubscribeKey")) ;
+                        }
+                        Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(client, "subscriptions"), "authenticated"), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                     }
-                    Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(client, "subscriptions"), "authenticated"), "expires", this.sum(now, 3300000)); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
                 }
+                // settle the flight through the client so that every write to the
+                // futures map happens inside the base class
+                client.resolve(Helpers.GetValue(Helpers.GetValue(client.subscriptions, "authenticated"), "key"), messageHash);
+            } catch(Exception e)
+            {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
             }
+            // rethrows a rejected flight to the leader and attaches the handler
+            // that keeps an alone leader from crashing on an unhandled rejection
+            ((io.github.ccxt.ws.Future)future).getFuture().join();
             return Helpers.GetValue(Helpers.GetValue(client.subscriptions, "authenticated"), "key");
         });
 

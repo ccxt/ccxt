@@ -1205,39 +1205,47 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", this.getMarketIdByType(market) },
-        };
-        if (isTrue(!isEqual(getValue(market, "quote"), "USDT")))
+        object request = new Dictionary<string, object>() {};
+        // the venue routes market data by the symbol type reported by fetchMarkets,
+        // not by the quote currency: type 1 markets are served by the binance host
+        // with the underscore-less id, every other type by open/v1 with the raw id
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        object symbolType = this.safeString(marketInfo, "type");
+        if (isTrue(!isEqual(symbolType, "1")))
         {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            object responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, parameters));
+            // open/v1/market/trades answers an empty list for every market, the
+            // aggregate endpoint is the one that carries data for these markets
+            object responseInner = await this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters));
             //
             //    {
             //       "code": 0,
-            //       "msg": "success",
+            //       "msg": "Success",
             //       "data": {
             //           "list": [
             //                {
-            //                    "id": 28457,
-            //                    "price": "4.00000100",
-            //                    "qty": "12.00000000",
-            //                    "time": 1499865549590,
-            //                    "isBuyerMaker": true,
-            //                    "isBestMatch": true
+            //                    "a": 14433,             // aggregate tradeId
+            //                    "p": "495.00",          // price
+            //                    "q": "42.00000000",     // quantity
+            //                    "f": 15578,             // first tradeId
+            //                    "l": 15578,             // last tradeId
+            //                    "T": 1787292236948,     // timestamp
+            //                    "m": false              // was the buyer the maker?
             //                }
             //            ]
             //        },
-            //        "timestamp": 1571921637091
+            //        "timestamp": 1787318052414
             //    }
             //
             object data = this.safeDict(responseInner, "data", new Dictionary<string, object>() {});
             object list = this.safeList(data, "list", new List<object>() {});
             return this.parseTrades(list, market, since, limit);
         }
+        ((IDictionary<string,object>)request)["symbol"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 500, maximum = 1000

@@ -563,21 +563,24 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
         request = {
             'Amount': amount,
             'Pair': market['id'],
         }
+        response = None
         if type == 'market':
-            method += 'MarketPrice' + self.capitalize(side)
+            if side == 'buy':
+                response = self.privatePostOrderAddOrderMarketPriceBuy(self.extend(request, params))
+            else:
+                response = self.privatePostOrderAddOrderMarketPriceSell(self.extend(request, params))
         else:
             request['Price'] = price
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             request['Total'] = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostOrderAddOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
