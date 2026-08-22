@@ -1326,6 +1326,9 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' fetchTrades() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
