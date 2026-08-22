@@ -1,0 +1,87 @@
+{
+  "raw": {
+    "error": [],
+    "result": {
+      "ORDERID-ABC123": {
+        "refid": null,
+        "userref": 12345,
+        "status": "open",
+        "opentm": 1700000000.123,
+        "starttm": 0,
+        "expiretm": 0,
+        "descr": {
+          "pair": "XXBTZUSD",
+          "type": "buy",
+          "ordertype": "limit",
+          "price": "40200.00",
+          "price2": "0",
+          "leverage": "none",
+          "order": "buy 1.0 XXBTZUSD @ limit 40200.00",
+          "close": ""
+        },
+        "vol": "1.0",
+        "vol_exec": "0.5",
+        "cost": "20075.00",
+        "fee": "52.20",
+        "price": "40150.00",
+        "stopprice": "0.00000",
+        "limitprice": "0.00000",
+        "misc": "",
+        "oflags": "fciq",
+        "trades": ["TXID-ABC123", "TXID-DEF456"],
+        "closetm": 1700086400.123
+      }
+    }
+  },
+  "expected": {
+    "id": "ORDERID-ABC123",
+    "clientOrderId": "12345",
+    "timestamp": 1700000000123,
+    "datetime": "2023-11-15T00:00:00.123Z",
+    "lastTradeTimestamp": 1700086400123,
+    "symbol": "BTC/USD",
+    "type": "limit",
+    "timeInForce": null,
+    "postOnly": false,
+    "side": "buy",
+    "price": 40200.0,
+    "stopPrice": 0.0,
+    "amount": 1.0,
+    "cost": 20075.0,
+    "average": 40150.0,
+    "filled": 0.5,
+    "remaining": 0.5,
+    "status": "open",
+    "fee": 52.2,
+    "trades": ["TXID-ABC123", "TXID-DEF456"],
+    "info": {
+      "refid": null,
+      "userref": 12345,
+      "status": "open",
+      "opentm": 1700000000.123,
+      "starttm": 0,
+      "expiretm": 0,
+      "descr": {
+        "pair": "XXBTZUSD",
+        "type": "buy",
+        "ordertype": "limit",
+        "price": "40200.00",
+        "price2": "0",
+        "leverage": "none",
+        "order": "buy 1.0 XXBTZUSD @ limit 40200.00",
+        "close": ""
+      },
+      "vol": "1.0",
+      "vol_exec": "0.5",
+      "cost": "20075.00",
+      "fee": "52.20",
+      "price": "40150.00",
+      "stopprice": "0.00000",
+      "limitprice": "0.00000",
+      "misc": "",
+      "oflags": "fciq",
+      "trades": ["TXID-ABC123", "TXID-DEF456"],
+      "closetm": 1700086400.123
+    }
+  }
+}

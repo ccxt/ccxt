@@ -1,0 +1,290 @@
+[
+  {
+    "id": "BTCUSDT",
+    "symbol": "BTC/USDT",
+    "base": "BTC",
+    "quote": "USDT",
+    "baseId": "BTC",
+    "quoteId": "USDT",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.00001,
+      "price": 0.01
+    },
+    "limits": {
+      "amount": {
+        "min": 0.00001,
+        "max": 9000
+      },
+      "price": {
+        "min": 0.01,
+        "max": 1000000
+      },
+      "cost": {
+        "min": 10,
+        "max": null
+      }
+    },
+    "info": {
+      "symbol": "BTCUSDT",
+      "status": "TRADING",
+      "baseAsset": "BTC",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "baseCommissionPrecision": 8,
+      "quoteCommissionPrecision": 8,
+      "orderTypes": [
+        "LIMIT",
+        "LIMIT_MAKER",
+        "MARKET",
+        "STOP_LOSS_LIMIT",
+        "TAKE_PROFIT_LIMIT"
+      ],
+      "icebergAllowed": true,
+      "ocoAllowed": true,
+      "quoteOrderQtyMarketAllowed": true,
+      "allowTrailingStop": true,
+      "cancelReplaceAllowed": true,
+      "isSpotTradingAllowed": true,
+      "isMarginTradingAllowed": true,
+      "filters": [
+        {
+          "filterType": "PRICE_FILTER",
+          "minPrice": "0.01000000",
+          "maxPrice": "1000000.00000000",
+          "tickSize": "0.01000000"
+        },
+        {
+          "filterType": "LOT_SIZE",
+          "minQty": "0.00001000",
+          "maxQty": "9000.00000000",
+          "stepSize": "0.00001000"
+        },
+        {
+          "filterType": "MIN_NOTIONAL",
+          "minNotional": "10.00000000",
+          "applyToMarket": true,
+          "avgPriceMins": 5
+        }
+      ],
+      "permissions": [
+        "SPOT",
+        "MARGIN"
+      ],
+      "defaultSelfTradePreventionMode": "NONE",
+      "allowedSelfTradePreventionModes": [
+        "NONE"
+      ]
+    }
+  },
+  {
+    "id": "ETHUSDT",
+    "symbol": "ETH/USDT",
+    "base": "ETH",
+    "quote": "USDT",
+    "baseId": "ETH",
+    "quoteId": "USDT",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.0001,
+      "price": 0.01
+    },
+    "limits": {
+      "amount": {
+        "min": 0.0001,
+        "max": 90000
+      },
+      "price": {
+        "min": 0.01,
+        "max": 100000
+      },
+      "cost": {
+        "min": 10,
+        "max": null
+      }
+    },
+    "info": {
+      "symbol": "ETHUSDT",
+      "status": "TRADING",
+      "baseAsset": "ETH",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "USDT",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "baseCommissionPrecision": 8,
+      "quoteCommissionPrecision": 8,
+      "orderTypes": [
+        "LIMIT",
+        "LIMIT_MAKER",
+        "MARKET",
+        "STOP_LOSS_LIMIT",
+        "TAKE_PROFIT_LIMIT"
+      ],
+      "icebergAllowed": true,
+      "ocoAllowed": true,
+      "quoteOrderQtyMarketAllowed": true,
+      "allowTrailingStop": true,
+      "cancelReplaceAllowed": true,
+      "isSpotTradingAllowed": true,
+      "isMarginTradingAllowed": true,
+      "filters": [
+        {
+          "filterType": "PRICE_FILTER",
+          "minPrice": "0.01000000",
+          "maxPrice": "100000.00000000",
+          "tickSize": "0.01000000"
+        },
+        {
+          "filterType": "LOT_SIZE",
+          "minQty": "0.00010000",
+          "maxQty": "90000.00000000",
+          "stepSize": "0.00010000"
+        },
+        {
+          "filterType": "MIN_NOTIONAL",
+          "minNotional": "10.00000000",
+          "applyToMarket": true,
+          "avgPriceMins": 5
+        }
+      ],
+      "permissions": [
+        "SPOT",
+        "MARGIN"
+      ],
+      "defaultSelfTradePreventionMode": "NONE",
+      "allowedSelfTradePreventionModes": [
+        "NONE"
+      ]
+    }
+  },
+  {
+    "id": "ETHBTC",
+    "symbol": "ETH/BTC",
+    "base": "ETH",
+    "quote": "BTC",
+    "baseId": "ETH",
+    "quoteId": "BTC",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "precision": {
+      "amount": 0.0001,
+      "price": 0.000001
+    },
+    "limits": {
+      "amount": {
+        "min": 0.0001,
+        "max": 100000
+      },
+      "price": {
+        "min": 0.000001,
+        "max": 10000
+      },
+      "cost": {
+        "min": 0.0001,
+        "max": null
+      }
+    },
+    "info": {
+      "symbol": "ETHBTC",
+      "status": "TRADING",
+      "baseAsset": "ETH",
+      "baseAssetPrecision": 8,
+      "quoteAsset": "BTC",
+      "quotePrecision": 8,
+      "quoteAssetPrecision": 8,
+      "baseCommissionPrecision": 8,
+      "quoteCommissionPrecision": 8,
+      "orderTypes": [
+        "LIMIT",
+        "LIMIT_MAKER",
+        "MARKET",
+        "STOP_LOSS_LIMIT",
+        "TAKE_PROFIT_LIMIT"
+      ],
+      "icebergAllowed": true,
+      "ocoAllowed": true,
+      "quoteOrderQtyMarketAllowed": true,
+      "allowTrailingStop": true,
+      "cancelReplaceAllowed": true,
+      "isSpotTradingAllowed": true,
+      "isMarginTradingAllowed": true,
+      "filters": [
+        {
+          "filterType": "PRICE_FILTER",
+          "minPrice": "0.00000100",
+          "maxPrice": "10000.00000000",
+          "tickSize": "0.00000100"
+        },
+        {
+          "filterType": "LOT_SIZE",
+          "minQty": "0.00010000",
+          "maxQty": "100000.00000000",
+          "stepSize": "0.00010000"
+        },
+        {
+          "filterType": "MIN_NOTIONAL",
+          "minNotional": "0.00010000",
+          "applyToMarket": true,
+          "avgPriceMins": 5
+        }
+      ],
+      "permissions": [
+        "SPOT",
+        "MARGIN"
+      ],
+      "defaultSelfTradePreventionMode": "NONE",
+      "allowedSelfTradePreventionModes": [
+        "NONE"
+      ]
+    }
+  }
+]

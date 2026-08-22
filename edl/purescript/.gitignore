@@ -1,0 +1,15 @@
+# PureScript build artifacts
+output/
+.spago/
+dist/
+.purs-repl
+.psci_modules/
+*.purs-profile
+
+# Node
+node_modules/
+
+# IDE
+.idea/
+*.swp
+*.swo

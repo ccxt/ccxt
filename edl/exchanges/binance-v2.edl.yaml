@@ -1,0 +1,1282 @@
+# Binance Exchange Definition Language v2
+# Full-featured exchange definition without overrides
+
+version: "2.0"
+
+exchange:
+  id: binance
+  name: Binance
+  countries: [JP, MT]
+  rateLimit: 50
+  certified: true
+  pro: true
+
+  urls:
+    logo: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
+    api:
+      # Spot and Margin
+      public: https://api.binance.com/api/v3
+      private: https://api.binance.com/api/v3
+      sapi: https://api.binance.com/sapi/v1
+      # Futures (USDT-margined)
+      fapiPublic: https://fapi.binance.com/fapi/v1
+      fapiPrivate: https://fapi.binance.com/fapi/v1
+      fapiPrivateV2: https://fapi.binance.com/fapi/v2
+      fapiPrivateV3: https://fapi.binance.com/fapi/v3
+      # Delivery futures (Coin-margined)
+      dapiPublic: https://dapi.binance.com/dapi/v1
+      dapiPrivate: https://dapi.binance.com/dapi/v1
+      # Portfolio margin
+      papi: https://papi.binance.com/papi/v1
+    www: https://www.binance.com
+    doc:
+      - https://binance-docs.github.io/apidocs/spot/en
+      - https://binance-docs.github.io/apidocs/futures/en
+      - https://binance-docs.github.io/apidocs/delivery/en
+    fees: https://www.binance.com/en/fee/schedule
+
+  requiredCredentials:
+    apiKey: true
+    secret: true
+
+  # Broker IDs for order attribution
+  broker:
+    spot: x-R4BD3S82
+    margin: x-R4BD3S82
+    future: x-xcKtGhcu
+    delivery: x-xcKtGhcu
+
+  # Time sync with server
+  timeSync:
+    enabled: true
+    endpoint: public.get.time
+
+# ============================================================
+# Authentication - Multiple Signature Variants
+# ============================================================
+auth:
+  # Runtime selection of signature algorithm
+  select:
+    # Check if secret is a private key (RSA or EdDSA)
+    - condition: { op: contains, left: "$this.secret", right: "PRIVATE KEY" }
+      variant:
+        # Further check key length to distinguish RSA vs EdDSA
+        if: { op: ">", left: { call: length, args: ["$this.secret"] }, right: 120 }
+        then: rsa
+        else: eddsa
+    # Default to HMAC
+    - condition: { literal: true }
+      variant: hmac
+
+  variants:
+    hmac:
+      type: hmac
+      algorithm: sha256
+      encoding: hex
+
+      signatureInput:
+        components:
+          - source: params
+            transform: urlencode
+        # Timestamp is added to params before signing
+
+      signatureOutput:
+        location: query
+        name: signature
+
+      headers:
+        X-MBX-APIKEY: $this.apiKey
+
+      nonce:
+        type: timestamp_ms
+
+    rsa:
+      type: rsa
+      algorithm: sha256
+      encoding: base64
+
+      pipeline:
+        - operation: urlencode
+          input: { call: extend, args: [{ timestamp: "$nonce" }, "$params"] }
+          output: $query
+        - operation: rsa
+          algorithm: sha256
+          input: $query
+          key: $this.secret
+          encoding: base64
+          output: $signature
+        - operation: urlencode
+          input: $signature
+          output: $encodedSignature
+
+      signatureOutput:
+        location: query
+        name: signature
+
+      headers:
+        X-MBX-APIKEY: $this.apiKey
+
+    eddsa:
+      type: eddsa
+      algorithm: ed25519
+
+      pipeline:
+        - operation: urlencode
+          input: { call: extend, args: [{ timestamp: "$nonce" }, "$params"] }
+          output: $query
+        - operation: eddsa
+          algorithm: ed25519
+          input: $query
+          key: $this.secret
+          encoding: base64
+          output: $signature
+        - operation: urlencode
+          input: $signature
+          output: $encodedSignature
+
+      signatureOutput:
+        location: query
+        name: signature
+
+      headers:
+        X-MBX-APIKEY: $this.apiKey
+
+    # Special auth for endpoints that only need API key (no signature)
+    apiKeyOnly:
+      type: apiKey
+      headers:
+        X-MBX-APIKEY: $this.apiKey
+
+  # Per-endpoint auth overrides
+  endpoints:
+    historicalTrades: apiKeyOnly
+    userDataStream: apiKeyOnly
+    listenKey: apiKeyOnly
+
+# ============================================================
+# API Definitions
+# ============================================================
+api:
+  public:
+    get:
+      time:
+        path: time
+        cost: 1
+        response:
+          parser: time
+
+      exchangeInfo:
+        path: exchangeInfo
+        cost: 10
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: array
+            required: false
+        response:
+          parser: exchangeInfo
+
+      ticker24hr:
+        path: ticker/24hr
+        cost:
+          default: 40
+          byParam:
+            symbol: 1
+        params:
+          symbol:
+            type: string
+            required: false
+          symbols:
+            type: array
+            required: false
+        response:
+          formatDetection:
+            rules:
+              - condition: { call: Array.isArray, args: ["$response"] }
+                parser: tickers
+            default: ticker
+
+      tickerPrice:
+        path: ticker/price
+        cost:
+          default: 2
+          byParam:
+            symbol: 1
+        params:
+          symbol:
+            type: string
+            required: false
+        response:
+          formatDetection:
+            rules:
+              - condition: { call: Array.isArray, args: ["$response"] }
+                parser: prices
+            default: price
+
+      depth:
+        path: depth
+        cost:
+          default: 5
+          byLimit:
+            - [100, 5]
+            - [500, 10]
+            - [1000, 20]
+            - [5000, 50]
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: integer
+            required: false
+            default: 100
+        response:
+          parser: orderBook
+
+      trades:
+        path: trades
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: integer
+            required: false
+            default: 500
+        response:
+          parser: publicTrades
+
+      historicalTrades:
+        path: historicalTrades
+        cost: 5
+        auth: apiKeyOnly  # Only needs API key, no signature
+        params:
+          symbol:
+            type: string
+            required: true
+          limit:
+            type: integer
+            required: false
+          fromId:
+            type: string
+            required: false
+        response:
+          parser: publicTrades
+
+      klines:
+        path: klines
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          interval:
+            type: string
+            required: true
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          limit:
+            type: integer
+            required: false
+            default: 500
+        response:
+          parser: klines
+
+  private:
+    get:
+      account:
+        path: account
+        cost: 10
+        response:
+          parser: balance
+
+      openOrders:
+        path: openOrders
+        cost:
+          default: 40
+          byParam:
+            symbol: 3
+        params:
+          symbol:
+            type: string
+            required: false
+        response:
+          parser: orders
+
+      allOrders:
+        path: allOrders
+        cost: 10
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          limit:
+            type: integer
+            required: false
+            default: 500
+        response:
+          parser: orders
+
+      order:
+        path: order
+        cost: 2
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            requiredIf: { op: "==", left: "$params.origClientOrderId", right: null }
+          origClientOrderId:
+            type: string
+            requiredIf: { op: "==", left: "$params.orderId", right: null }
+        response:
+          parser: order
+
+      myTrades:
+        path: myTrades
+        cost: 10
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            required: false
+          startTime:
+            type: timestamp_ms
+            required: false
+          endTime:
+            type: timestamp_ms
+            required: false
+          fromId:
+            type: string
+            required: false
+          limit:
+            type: integer
+            required: false
+            default: 500
+        response:
+          parser: myTrades
+
+    post:
+      order:
+        path: order
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          side:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+          timeInForce:
+            type: string
+            required: false
+          quantity:
+            type: number
+            requiredIf: { op: "==", left: "$params.quoteOrderQty", right: null }
+            alias: amount
+          quoteOrderQty:
+            type: number
+            required: false
+            alias: cost
+          price:
+            type: number
+            required: false
+          newClientOrderId:
+            type: string
+            required: false
+            alias: clientOrderId
+          stopPrice:
+            type: number
+            required: false
+          icebergQty:
+            type: number
+            required: false
+          newOrderRespType:
+            type: string
+            required: false
+            default: FULL
+        response:
+          parser: orderResult
+
+    delete:
+      order:
+        path: order
+        cost: 1
+        params:
+          symbol:
+            type: string
+            required: true
+          orderId:
+            type: string
+            requiredIf: { op: "==", left: "$params.origClientOrderId", right: null }
+          origClientOrderId:
+            type: string
+            requiredIf: { op: "==", left: "$params.orderId", right: null }
+        response:
+          parser: cancelResult
+
+  # SAPI endpoints (special API for wallet, margin, etc.)
+  sapi:
+    get:
+      capital/config/getall:
+        path: capital/config/getall
+        cost: 10
+        response:
+          parser: currencies
+
+      margin/account:
+        path: margin/account
+        cost: 10
+        response:
+          parser: marginBalance
+
+      margin/isolated/account:
+        path: margin/isolated/account
+        cost: 10
+        params:
+          symbols:
+            type: string
+            required: false
+        response:
+          parser: isolatedMarginBalance
+
+      asset/get-funding-asset:
+        path: asset/get-funding-asset
+        cost: 1
+        response:
+          parser: fundingBalance
+
+  # Futures API (USDT-margined)
+  fapiPrivate:
+    get:
+      account:
+        path: account
+        cost: 5
+        response:
+          parser: futuresBalance
+
+      openOrders:
+        path: openOrders
+        cost:
+          default: 40
+          byParam:
+            symbol: 1
+        params:
+          symbol:
+            type: string
+            required: false
+        response:
+          parser: futuresOrders
+
+    post:
+      order:
+        path: order
+        cost: 0
+        params:
+          symbol:
+            type: string
+            required: true
+          side:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+          positionSide:
+            type: string
+            required: false
+          timeInForce:
+            type: string
+            required: false
+          quantity:
+            type: number
+            required: false
+          reduceOnly:
+            type: boolean
+            required: false
+          price:
+            type: number
+            required: false
+          newClientOrderId:
+            type: string
+            required: false
+          stopPrice:
+            type: number
+            required: false
+          closePosition:
+            type: boolean
+            required: false
+          activationPrice:
+            type: number
+            required: false
+          callbackRate:
+            type: number
+            required: false
+          workingType:
+            type: string
+            required: false
+          priceProtect:
+            type: boolean
+            required: false
+          newOrderRespType:
+            type: string
+            required: false
+        response:
+          parser: futuresOrderResult
+
+# ============================================================
+# Method Implementations with Variants
+# ============================================================
+methods:
+  fetchBalance:
+    # Multiple implementations based on account type
+    selection:
+      param: type
+      rules:
+        - condition: { op: "==", left: "$type", right: "spot" }
+          variant: spot
+        - condition: { op: "==", left: "$type", right: "margin" }
+          variant: margin
+        - condition: { op: "==", left: "$type", right: "isolated" }
+          variant: isolatedMargin
+        - condition: { op: "==", left: "$type", right: "funding" }
+          variant: funding
+        - condition: { op: "==", left: "$type", right: "linear" }
+          variant: linear
+        - condition: { op: "==", left: "$type", right: "inverse" }
+          variant: inverse
+        - condition: { op: "==", left: "$type", right: "papi" }
+          variant: portfolioMargin
+      default: spot
+
+    variants:
+      - name: spot
+        endpoint: private.get.account
+        response: balance
+
+      - name: margin
+        endpoint: sapi.get.margin/account
+        response: marginBalance
+
+      - name: isolatedMargin
+        endpoint: sapi.get.margin/isolated/account
+        request:
+          params:
+            symbols:
+              if: "$params.symbols"
+              then: { call: this.marketIds, args: ["$params.symbols"] }
+        response: isolatedMarginBalance
+
+      - name: funding
+        endpoint: sapi.get.asset/get-funding-asset
+        response: fundingBalance
+
+      - name: linear
+        endpoint: fapiPrivate.get.account
+        response: futuresBalance
+
+      - name: inverse
+        endpoint: dapiPrivate.get.account
+        response: deliveryBalance
+
+      - name: portfolioMargin
+        endpoint: papi.get.balance
+        response: portfolioBalance
+
+# ============================================================
+# Parser Definitions
+# ============================================================
+parsers:
+  time:
+    source: null
+    mapping:
+      serverTime:
+        path: serverTime
+        transform: safeInteger
+
+  exchangeInfo:
+    source: null
+    mapping:
+      timezone:
+        path: timezone
+      serverTime:
+        path: serverTime
+      rateLimits:
+        path: rateLimits
+      symbols:
+        path: symbols
+        transform: parseMarkets
+
+  ticker:
+    source: null
+    mapping:
+      symbol:
+        path: symbol
+        transform: { call: this.safeSymbol, args: ["$value"] }
+      timestamp:
+        path: closeTime
+        transform: safeTimestamp
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      high:
+        path: highPrice
+        transform: safeNumber
+      low:
+        path: lowPrice
+        transform: safeNumber
+      bid:
+        path: bidPrice
+        transform: safeNumber
+      bidVolume:
+        path: bidQty
+        transform: safeNumber
+      ask:
+        path: askPrice
+        transform: safeNumber
+      askVolume:
+        path: askQty
+        transform: safeNumber
+      vwap:
+        path: weightedAvgPrice
+        transform: safeNumber
+      open:
+        path: openPrice
+        transform: safeNumber
+      close:
+        path: lastPrice
+        transform: safeNumber
+      last:
+        path: lastPrice
+        transform: safeNumber
+      previousClose:
+        path: prevClosePrice
+        transform: safeNumber
+      change:
+        path: priceChange
+        transform: safeNumber
+      percentage:
+        path: priceChangePercent
+        transform: safeNumber
+      average:
+        compute: null
+      baseVolume:
+        path: volume
+        transform: safeNumber
+      quoteVolume:
+        path: quoteVolume
+        transform: safeNumber
+      info:
+        path: $response
+
+  tickers:
+    source: null
+    isArray: true
+    mapping: ticker  # Reuse ticker mapping for each item
+
+  orderBook:
+    source: null
+    mapping:
+      symbol:
+        compute: "$params.symbol"
+      timestamp:
+        path: lastUpdateId
+        transform: safeInteger
+      datetime:
+        compute: null
+      nonce:
+        path: lastUpdateId
+        transform: safeInteger
+      bids:
+        path: bids
+        transform: parseOrderBookSide
+      asks:
+        path: asks
+        transform: parseOrderBookSide
+
+  publicTrades:
+    source: null
+    isArray: true
+    mapping:
+      id:
+        path: id
+        transform: safeString
+      timestamp:
+        path: time
+        transform: safeTimestamp
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      symbol:
+        compute: "$params.symbol"
+      side:
+        compute:
+          if: { path: isBuyerMaker }
+          then: "sell"
+          else: "buy"
+      type:
+        compute: null
+      price:
+        path: price
+        transform: safeNumber
+      amount:
+        path: qty
+        transform: safeNumber
+      cost:
+        path: quoteQty
+        transform: safeNumber
+      info:
+        path: $item
+
+  klines:
+    source: null
+    isArray: true
+    # Each kline is an array: [openTime, open, high, low, close, volume, closeTime, quoteVolume, trades, takerBuyBase, takerBuyQuote, ignore]
+    mapping:
+      timestamp:
+        path: $item[0]
+        transform: safeInteger
+      open:
+        path: $item[1]
+        transform: safeNumber
+      high:
+        path: $item[2]
+        transform: safeNumber
+      low:
+        path: $item[3]
+        transform: safeNumber
+      close:
+        path: $item[4]
+        transform: safeNumber
+      volume:
+        path: $item[5]
+        transform: safeNumber
+
+  balance:
+    source: balances
+    isArray: true
+    mapping:
+      currency:
+        path: asset
+        transform: safeCurrencyCode
+      free:
+        path: free
+        transform: safeString
+      used:
+        path: locked
+        transform: safeString
+      total:
+        compute: null
+    postProcess:
+      - operation: safeBalance
+
+  marginBalance:
+    source: userAssets
+    isArray: true
+    mapping:
+      currency:
+        path: asset
+        transform: safeCurrencyCode
+      free:
+        path: free
+        transform: safeString
+      used:
+        path: locked
+        transform: safeString
+      total:
+        compute: null
+      borrowed:
+        path: borrowed
+        transform: safeString
+      interest:
+        path: interest
+        transform: safeString
+      debt:
+        compute: { op: "+", left: "$borrowed", right: "$interest" }
+    postProcess:
+      - operation: safeBalance
+
+  isolatedMarginBalance:
+    source: assets
+    isArray: true
+    # Isolated margin returns per-symbol balances with base and quote assets
+    iterate:
+      itemVar: asset
+    mapping:
+      # This creates symbol-keyed results
+      _symbolKey:
+        path: $asset.symbol
+        transform: { call: this.safeSymbol, args: ["$value"] }
+      _baseAsset:
+        path: $asset.baseAsset
+        subMapping:
+          currency:
+            path: asset
+            transform: safeCurrencyCode
+          free:
+            path: free
+            transform: safeString
+          used:
+            path: locked
+            transform: safeString
+          borrowed:
+            path: borrowed
+            transform: safeString
+      _quoteAsset:
+        path: $asset.quoteAsset
+        subMapping:
+          currency:
+            path: asset
+            transform: safeCurrencyCode
+          free:
+            path: free
+            transform: safeString
+          used:
+            path: locked
+            transform: safeString
+          borrowed:
+            path: borrowed
+            transform: safeString
+    postProcess:
+      - operation: buildIsolatedBalances
+
+  fundingBalance:
+    source: null
+    isArray: true
+    mapping:
+      currency:
+        path: asset
+        transform: safeCurrencyCode
+      free:
+        path: free
+        transform: safeString
+      used:
+        compute: { op: "+", left: "$freeze", right: { op: "+", left: "$locked", right: "$withdrawing" } }
+        context:
+          freeze: { path: freeze, transform: safeString }
+          locked: { path: locked, transform: safeString }
+          withdrawing: { path: withdrawing, transform: safeString }
+      total:
+        compute: null
+    postProcess:
+      - operation: safeBalance
+
+  futuresBalance:
+    source: assets
+    isArray: true
+    mapping:
+      currency:
+        path: asset
+        transform: safeCurrencyCode
+      free:
+        path: availableBalance
+        transform: safeString
+      used:
+        path: initialMargin
+        transform: safeString
+      total:
+        path: walletBalance
+        transform: safeString
+    postProcess:
+      - operation: safeBalance
+
+  order:
+    source: null
+    mapping:
+      id:
+        path: orderId
+        transform: safeString
+      clientOrderId:
+        path: clientOrderId
+        transform: safeString
+      timestamp:
+        path: [time, transactTime, updateTime]
+        transform: safeTimestamp
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      lastTradeTimestamp:
+        path: updateTime
+        transform: safeTimestamp
+      symbol:
+        path: symbol
+        transform: { call: this.safeSymbol, args: ["$value"] }
+      type:
+        path: type
+        transform: [lowercase, parseOrderType]
+      timeInForce:
+        path: timeInForce
+        transform: safeString
+      postOnly:
+        compute: { op: "==", left: "$timeInForce", right: "GTX" }
+      side:
+        path: side
+        transform: lowercase
+      price:
+        path: price
+        transform: safeNumber
+      stopPrice:
+        path: stopPrice
+        transform: safeNumber
+      amount:
+        path: origQty
+        transform: safeNumber
+      cost:
+        path: cummulativeQuoteQty
+        transform: safeNumber
+      average:
+        compute:
+          if: { op: ">", left: "$filled", right: 0 }
+          then: { op: "/", left: "$cost", right: "$filled" }
+          else: null
+      filled:
+        path: executedQty
+        transform: safeNumber
+      remaining:
+        compute: { op: "-", left: "$amount", right: "$filled" }
+      status:
+        path: status
+        transform: parseOrderStatus
+      fee:
+        compute: null
+      trades:
+        path: fills
+      info:
+        path: $response
+
+  orders:
+    source: null
+    isArray: true
+    mapping: order  # Reuse single order mapping
+
+  orderResult:
+    source: null
+    mapping: order  # Same as order
+
+  cancelResult:
+    source: null
+    mapping: order  # Same structure
+
+  myTrades:
+    source: null
+    isArray: true
+    mapping:
+      id:
+        path: id
+        transform: safeString
+      order:
+        path: orderId
+        transform: safeString
+      timestamp:
+        path: time
+        transform: safeTimestamp
+      datetime:
+        compute: { call: this.iso8601, args: ["$timestamp"] }
+      symbol:
+        path: symbol
+        transform: { call: this.safeSymbol, args: ["$value"] }
+      side:
+        compute:
+          if: { path: isBuyer }
+          then: "buy"
+          else: "sell"
+      type:
+        compute: null
+      takerOrMaker:
+        compute:
+          if: { path: isMaker }
+          then: "maker"
+          else: "taker"
+      price:
+        path: price
+        transform: safeNumber
+      amount:
+        path: qty
+        transform: safeNumber
+      cost:
+        path: quoteQty
+        transform: safeNumber
+      fee:
+        compute:
+          cost: { path: commission, transform: safeNumber }
+          currency: { path: commissionAsset, transform: safeCurrencyCode }
+      info:
+        path: $item
+
+  currencies:
+    source: null
+    isArray: true
+    mapping:
+      id:
+        path: coin
+      code:
+        path: coin
+        transform: safeCurrencyCode
+      name:
+        path: name
+      active:
+        compute:
+          op: "&&"
+          left: { path: depositAllEnable }
+          right: { path: withdrawAllEnable }
+      fee:
+        compute: null
+      precision:
+        compute: null
+      limits:
+        withdraw:
+          min:
+            compute: null
+          max:
+            compute: null
+      networks:
+        path: networkList
+        transform: parseNetworks
+      info:
+        path: $item
+
+# ============================================================
+# Custom Transforms
+# ============================================================
+transforms:
+  parseOrderType:
+    switch: "$value"
+    cases:
+      limit: limit
+      market: market
+      stop_loss: stop
+      stop_loss_limit: stop
+      take_profit: takeProfit
+      take_profit_limit: takeProfit
+      limit_maker: limit
+      trailing_stop_market: trailing
+    default: "$value"
+
+  parseOrderStatus:
+    switch: "$value"
+    cases:
+      NEW: open
+      PARTIALLY_FILLED: open
+      FILLED: closed
+      CANCELED: canceled
+      PENDING_CANCEL: canceling
+      REJECTED: rejected
+      EXPIRED: expired
+      EXPIRED_IN_MATCH: expired
+    default: "$value"
+
+  parseOrderBookSide:
+    # Convert [[price, amount], ...] to proper format
+    isArray: true
+    mapping:
+      - { path: "$item[0]", transform: safeNumber }
+      - { path: "$item[1]", transform: safeNumber }
+
+  parseMarkets:
+    isArray: true
+    mapping:
+      id:
+        path: symbol
+      symbol:
+        compute: { call: this.buildSymbol, args: ["$base", "$quote"] }
+      base:
+        path: baseAsset
+        transform: safeCurrencyCode
+      quote:
+        path: quoteAsset
+        transform: safeCurrencyCode
+      baseId:
+        path: baseAsset
+      quoteId:
+        path: quoteAsset
+      active:
+        path: status
+        transform: { op: "==", left: "$value", right: "TRADING" }
+      type:
+        compute:
+          if: { path: contractType }
+          then:
+            switch: "$contractType"
+            cases:
+              PERPETUAL: swap
+              CURRENT_QUARTER: future
+              NEXT_QUARTER: future
+            default: spot
+          else: spot
+      spot:
+        compute: { op: "==", left: "$type", right: "spot" }
+      margin:
+        path: isMarginTradingAllowed
+      swap:
+        compute: { op: "==", left: "$type", right: "swap" }
+      future:
+        compute: { op: "==", left: "$type", right: "future" }
+      option: { literal: false }
+      precision:
+        amount:
+          path: baseAssetPrecision
+          transform: parsePrecision
+        price:
+          path: quotePrecision
+          transform: parsePrecision
+      limits:
+        amount:
+          min:
+            compute: { call: this.findFilterValue, args: ["$filters", "LOT_SIZE", "minQty"] }
+          max:
+            compute: { call: this.findFilterValue, args: ["$filters", "LOT_SIZE", "maxQty"] }
+        price:
+          min:
+            compute: { call: this.findFilterValue, args: ["$filters", "PRICE_FILTER", "minPrice"] }
+          max:
+            compute: { call: this.findFilterValue, args: ["$filters", "PRICE_FILTER", "maxPrice"] }
+        cost:
+          min:
+            compute: { call: this.findFilterValue, args: ["$filters", "NOTIONAL", "minNotional"] }
+
+  parsePrecision:
+    compute: { call: Math.pow, args: [10, { op: "-", left: 0, right: "$value" }] }
+
+  parseNetworks:
+    isArray: true
+    mapping:
+      id:
+        path: network
+      network:
+        path: network
+      name:
+        path: name
+      active:
+        compute:
+          op: "&&"
+          left: { path: depositEnable }
+          right: { path: withdrawEnable }
+      fee:
+        path: withdrawFee
+        transform: safeNumber
+      limits:
+        withdraw:
+          min:
+            path: withdrawMin
+            transform: safeNumber
+          max:
+            path: withdrawMax
+            transform: safeNumber
+
+# ============================================================
+# Error Handling
+# ============================================================
+errors:
+  default:
+    exact:
+      "-1000": ExchangeNotAvailable
+      "-1001": ExchangeNotAvailable
+      "-1002": AuthenticationError
+      "-1003": RateLimitExceeded
+      "-1004": OperationFailed
+      "-1008": OperationFailed
+      "-1010": BadRequest
+      "-1013": InvalidOrder
+      "-1014": InvalidOrder
+      "-1015": RateLimitExceeded
+      "-1016": ExchangeNotAvailable
+      "-1020": NotSupported
+      "-1021": InvalidNonce
+      "-1022": AuthenticationError
+      "-1099": AuthenticationError
+      "-1100": BadRequest
+      "-1101": BadRequest
+      "-1102": BadRequest
+      "-1103": BadRequest
+      "-1104": BadRequest
+      "-1105": BadRequest
+      "-1106": BadRequest
+      "-1108": BadRequest
+      "-1109": BadRequest
+      "-1110": BadRequest
+      "-1111": BadRequest
+      "-1112": BadRequest
+      "-1114": BadRequest
+      "-1115": BadRequest
+      "-1116": BadRequest
+      "-1117": BadRequest
+      "-1118": BadRequest
+      "-1119": BadRequest
+      "-1120": BadRequest
+      "-1121": BadSymbol
+      "-1125": AuthenticationError
+      "-1127": BadRequest
+      "-1128": BadRequest
+      "-1130": BadRequest
+      "-1131": BadRequest
+      "-2010": InvalidOrder
+      "-2011": OrderNotFound
+      "-2013": OrderNotFound
+      "-2014": AuthenticationError
+      "-2015": AuthenticationError
+      "-2016": ExchangeError
+      "-2018": InsufficientFunds
+      "-2019": InsufficientFunds
+      "-2020": InvalidOrder
+      "-2021": InvalidOrder
+      "-2022": InvalidOrder
+      "-2024": InsufficientFunds
+      "-2025": InvalidOrder
+      "-2026": InvalidOrder
+
+# ============================================================
+# Feature Flags
+# ============================================================
+features:
+  publicAPI: true
+  privateAPI: true
+  sandbox: true
+  spot: true
+  margin: true
+  swap: true
+  future: true
+  option: true
+  fetchMarkets: true
+  fetchCurrencies: true
+  fetchTicker: true
+  fetchTickers: true
+  fetchOrderBook: true
+  fetchTrades: true
+  fetchOHLCV: true
+  fetchBalance: true
+  createOrder: true
+  cancelOrder: true
+  cancelAllOrders: true
+  editOrder: true
+  fetchOrder: true
+  fetchOrders: true
+  fetchOpenOrders: true
+  fetchClosedOrders: true
+  fetchMyTrades: true
+  fetchDeposits: true
+  fetchWithdrawals: true
+  fetchDepositAddress: true
+  withdraw: true
+  transfer: true
+  fetchPositions: true
+  setLeverage: true
+  setMarginMode: true

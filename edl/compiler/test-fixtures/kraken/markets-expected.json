@@ -1,0 +1,192 @@
+[
+  {
+    "id": "XXBTZUSD",
+    "symbol": "BTC/USD",
+    "base": "BTC",
+    "quote": "USD",
+    "baseId": "XXBT",
+    "quoteId": "ZUSD",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0026,
+    "maker": 0.0016,
+    "precision": {
+      "amount": 0.00000001,
+      "price": 0.1
+    },
+    "limits": {
+      "amount": {
+        "min": 0.0001,
+        "max": null
+      },
+      "price": {
+        "min": 0.1,
+        "max": null
+      },
+      "cost": {
+        "min": 0.5,
+        "max": null
+      },
+      "leverage": {
+        "min": null,
+        "max": 5
+      }
+    },
+    "info": {
+      "altname": "XBTUSD",
+      "wsname": "XBT/USD",
+      "aclass_base": "currency",
+      "base": "XXBT",
+      "aclass_quote": "currency",
+      "quote": "ZUSD",
+      "lot": "unit",
+      "cost_decimals": 5,
+      "pair_decimals": 1,
+      "lot_decimals": 8,
+      "lot_multiplier": 1,
+      "leverage_buy": [2, 3, 4, 5],
+      "leverage_sell": [2, 3, 4, 5],
+      "fees": [
+        [0, 0.26],
+        [50000, 0.24],
+        [100000, 0.22],
+        [250000, 0.2],
+        [500000, 0.18],
+        [1000000, 0.16],
+        [2500000, 0.14],
+        [5000000, 0.12],
+        [10000000, 0.1]
+      ],
+      "fees_maker": [
+        [0, 0.16],
+        [50000, 0.14],
+        [100000, 0.12],
+        [250000, 0.1],
+        [500000, 0.08],
+        [1000000, 0.06],
+        [2500000, 0.04],
+        [5000000, 0.02],
+        [10000000, 0]
+      ],
+      "fee_volume_currency": "ZUSD",
+      "margin_call": 80,
+      "margin_stop": 40,
+      "ordermin": "0.0001",
+      "costmin": "0.5",
+      "tick_size": "0.1",
+      "status": "online",
+      "long_position_limit": 1000,
+      "short_position_limit": 750
+    }
+  },
+  {
+    "id": "XETHZUSD",
+    "symbol": "ETH/USD",
+    "base": "ETH",
+    "quote": "USD",
+    "baseId": "XETH",
+    "quoteId": "ZUSD",
+    "active": true,
+    "type": "spot",
+    "spot": true,
+    "margin": true,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "settle": null,
+    "settleId": null,
+    "contractSize": null,
+    "linear": null,
+    "inverse": null,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0026,
+    "maker": 0.0016,
+    "precision": {
+      "amount": 0.00000001,
+      "price": 0.01
+    },
+    "limits": {
+      "amount": {
+        "min": 0.001,
+        "max": null
+      },
+      "price": {
+        "min": 0.01,
+        "max": null
+      },
+      "cost": {
+        "min": 0.5,
+        "max": null
+      },
+      "leverage": {
+        "min": null,
+        "max": 5
+      }
+    },
+    "info": {
+      "altname": "ETHUSD",
+      "wsname": "ETH/USD",
+      "aclass_base": "currency",
+      "base": "XETH",
+      "aclass_quote": "currency",
+      "quote": "ZUSD",
+      "lot": "unit",
+      "cost_decimals": 5,
+      "pair_decimals": 2,
+      "lot_decimals": 8,
+      "lot_multiplier": 1,
+      "leverage_buy": [2, 3, 4, 5],
+      "leverage_sell": [2, 3, 4, 5],
+      "fees": [
+        [0, 0.26],
+        [50000, 0.24],
+        [100000, 0.22],
+        [250000, 0.2],
+        [500000, 0.18],
+        [1000000, 0.16],
+        [2500000, 0.14],
+        [5000000, 0.12],
+        [10000000, 0.1]
+      ],
+      "fees_maker": [
+        [0, 0.16],
+        [50000, 0.14],
+        [100000, 0.12],
+        [250000, 0.1],
+        [500000, 0.08],
+        [1000000, 0.06],
+        [2500000, 0.04],
+        [5000000, 0.02],
+        [10000000, 0]
+      ],
+      "fee_volume_currency": "ZUSD",
+      "margin_call": 80,
+      "margin_stop": 40,
+      "ordermin": "0.001",
+      "costmin": "0.5",
+      "tick_size": "0.01",
+      "status": "online",
+      "long_position_limit": 10000,
+      "short_position_limit": 7500
+    }
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "info": {
+    "symbol": "BTCUSDT",
+    "markPrice": "45802.81129892",
+    "indexPrice": "45745.47701915",
+    "estimatedSettlePrice": "45133.91753671",
+    "lastFundingRate": "0.00063521",
+    "interestRate": "0.00010000",
+    "nextFundingTime": 1621267200000,
+    "time": 1621252344001
+  },
+  "symbol": "BTC/USDT:USDT",
+  "markPrice": 45802.81129892,
+  "indexPrice": 45745.47701915,
+  "interestRate": 0.0001,
+  "estimatedSettlePrice": 45133.91753671,
+  "timestamp": 1621252344001,
+  "datetime": "2021-05-17T12:05:44.001Z",
+  "fundingRate": 0.00063521,
+  "fundingTimestamp": 1621267200000,
+  "fundingDatetime": "2021-05-17T16:13:20.000Z",
+  "nextFundingRate": null,
+  "nextFundingTimestamp": null,
+  "nextFundingDatetime": null,
+  "previousFundingRate": null,
+  "previousFundingTimestamp": null,
+  "previousFundingDatetime": null
+}

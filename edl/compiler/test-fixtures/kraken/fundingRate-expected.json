@@ -1,0 +1,24 @@
+{
+  "info": {
+    "symbol": "PI_XBTUSD",
+    "fundingRate": 0.0001,
+    "relativeFundingRate": 0.00003,
+    "nextFundingRateTime": 1732543200000
+  },
+  "symbol": "BTC/USD:USD",
+  "markPrice": null,
+  "indexPrice": null,
+  "interestRate": null,
+  "estimatedSettlePrice": null,
+  "timestamp": null,
+  "datetime": null,
+  "fundingRate": 0.0001,
+  "fundingTimestamp": null,
+  "fundingDatetime": null,
+  "nextFundingRate": null,
+  "nextFundingTimestamp": 1732543200000,
+  "nextFundingDatetime": "2025-11-25T12:00:00.000Z",
+  "previousFundingRate": null,
+  "previousFundingTimestamp": null,
+  "previousFundingDatetime": null
+}

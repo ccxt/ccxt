@@ -1,0 +1,207 @@
+[
+  {
+    "id": "PI_XBTUSD",
+    "symbol": "XBT/USD:XBT",
+    "base": "XBT",
+    "quote": "USD",
+    "baseId": "XBT",
+    "quoteId": "USD",
+    "active": true,
+    "type": "swap",
+    "subType": "inverse",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "contract": true,
+    "settle": "XBT",
+    "settleId": "XBT",
+    "contractSize": 1,
+    "linear": false,
+    "inverse": true,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0005,
+    "maker": 0.0002,
+    "percentage": true,
+    "tierBased": false,
+    "feeSide": "base",
+    "precision": {
+      "amount": 1,
+      "price": 0.5,
+      "cost": null
+    },
+    "limits": {
+      "amount": {
+        "min": 1,
+        "max": 10000000
+      },
+      "price": {
+        "min": 0.5,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "leverage": {
+        "min": 1,
+        "max": 50
+      }
+    },
+    "created": null,
+    "info": {
+      "symbol": "PI_XBTUSD",
+      "type": "flexible_futures",
+      "underlying": "rr_xbtusd",
+      "tickSize": 0.5,
+      "contractSize": 1,
+      "tradeable": true,
+      "marginLevels": [
+        {"contracts": 0, "initialMargin": 0.02, "maintenanceMargin": 0.01}
+      ],
+      "maxPositionSize": 10000000,
+      "contractValueTradePrecision": 0
+    }
+  },
+  {
+    "id": "PF_ETHUSD",
+    "symbol": "ETH/USD:ETH",
+    "base": "ETH",
+    "quote": "USD",
+    "baseId": "ETH",
+    "quoteId": "USD",
+    "active": true,
+    "type": "swap",
+    "subType": "inverse",
+    "spot": false,
+    "margin": false,
+    "swap": true,
+    "future": false,
+    "option": false,
+    "contract": true,
+    "settle": "ETH",
+    "settleId": "ETH",
+    "contractSize": 1,
+    "linear": false,
+    "inverse": true,
+    "expiry": null,
+    "expiryDatetime": null,
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0005,
+    "maker": 0.0002,
+    "percentage": true,
+    "tierBased": false,
+    "feeSide": "base",
+    "precision": {
+      "amount": 1,
+      "price": 0.05,
+      "cost": null
+    },
+    "limits": {
+      "amount": {
+        "min": 1,
+        "max": 5000000
+      },
+      "price": {
+        "min": 0.05,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "leverage": {
+        "min": 1,
+        "max": 50
+      }
+    },
+    "created": null,
+    "info": {
+      "symbol": "PF_ETHUSD",
+      "type": "flexible_futures",
+      "underlying": "rr_ethusd",
+      "tickSize": 0.05,
+      "contractSize": 1,
+      "tradeable": true,
+      "marginLevels": [
+        {"contracts": 0, "initialMargin": 0.02, "maintenanceMargin": 0.01}
+      ],
+      "maxPositionSize": 5000000,
+      "contractValueTradePrecision": 0
+    }
+  },
+  {
+    "id": "FI_XBTUSD_240329",
+    "symbol": "XBT/USD:XBT-240329",
+    "base": "XBT",
+    "quote": "USD",
+    "baseId": "XBT",
+    "quoteId": "USD",
+    "active": true,
+    "type": "future",
+    "subType": "inverse",
+    "spot": false,
+    "margin": false,
+    "swap": false,
+    "future": true,
+    "option": false,
+    "contract": true,
+    "settle": "XBT",
+    "settleId": "XBT",
+    "contractSize": 1,
+    "linear": false,
+    "inverse": true,
+    "expiry": 1711699200000,
+    "expiryDatetime": "2024-03-29T16:00:00.000Z",
+    "strike": null,
+    "optionType": null,
+    "taker": 0.0005,
+    "maker": 0.0002,
+    "percentage": true,
+    "tierBased": false,
+    "feeSide": "base",
+    "precision": {
+      "amount": 1,
+      "price": 0.5,
+      "cost": null
+    },
+    "limits": {
+      "amount": {
+        "min": 1,
+        "max": 10000000
+      },
+      "price": {
+        "min": 0.5,
+        "max": null
+      },
+      "cost": {
+        "min": null,
+        "max": null
+      },
+      "leverage": {
+        "min": 1,
+        "max": 50
+      }
+    },
+    "created": null,
+    "info": {
+      "symbol": "FI_XBTUSD_240329",
+      "type": "month_futures",
+      "underlying": "rr_xbtusd",
+      "tickSize": 0.5,
+      "contractSize": 1,
+      "tradeable": true,
+      "marginLevels": [
+        {"contracts": 0, "initialMargin": 0.02, "maintenanceMargin": 0.01}
+      ],
+      "maxPositionSize": 10000000,
+      "lastTradingTime": "2024-03-29T16:00:00.000Z",
+      "contractValueTradePrecision": 0
+    }
+  }
+]

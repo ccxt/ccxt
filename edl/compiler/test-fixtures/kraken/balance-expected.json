@@ -1,0 +1,51 @@
+{
+  "info": {
+    "error": [],
+    "result": {
+      "ZUSD": {
+        "balance": "25435.21",
+        "hold_trade": "8249.76"
+      },
+      "XXBT": {
+        "balance": "1.2435",
+        "hold_trade": "0.8423"
+      },
+      "XETH": {
+        "balance": "0",
+        "hold_trade": "0"
+      }
+    }
+  },
+  "timestamp": null,
+  "datetime": null,
+  "USD": {
+    "free": 17185.449999999997,
+    "used": 8249.76,
+    "total": 25435.21
+  },
+  "BTC": {
+    "free": 0.4012,
+    "used": 0.8423,
+    "total": 1.2435
+  },
+  "ETH": {
+    "free": 0,
+    "used": 0,
+    "total": 0
+  },
+  "free": {
+    "USD": 17185.449999999997,
+    "BTC": 0.4012,
+    "ETH": 0
+  },
+  "used": {
+    "USD": 8249.76,
+    "BTC": 0.8423,
+    "ETH": 0
+  },
+  "total": {
+    "USD": 25435.21,
+    "BTC": 1.2435,
+    "ETH": 0
+  }
+}

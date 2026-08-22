@@ -1,0 +1,1006 @@
+# Kraken Exchange Definition Language (EDL) File
+# Based on CCXT's existing kraken.ts implementation
+
+exchange:
+  id: kraken
+  name: Kraken
+  countries: [US]
+  version: "0"
+  rateLimit: 1000
+  certified: false
+  pro: true
+  alias: false
+  dex: false
+
+urls:
+  logo: https://user-images.githubusercontent.com/51840849/76173629-fc67fb00-61b1-11ea-84fe-f2de582f58a3.jpg
+  api:
+    public: https://api.kraken.com/0/public
+    private: https://api.kraken.com/0/private
+  test:
+    public: https://api.kraken.com/0/public
+    private: https://api.kraken.com/0/private
+  www: https://www.kraken.com
+  doc:
+    - https://docs.kraken.com/rest/
+  fees: https://www.kraken.com/features/fee-schedule
+
+has:
+  publicAPI: true
+  privateAPI: true
+  CORS: null
+  sandbox: false
+  spot: true
+  margin: true
+  swap: false
+  future: false
+  option: false
+
+  # Market data
+  fetchMarkets: true
+  fetchCurrencies: true
+  fetchTicker: true
+  fetchTickers: true
+  fetchOrderBook: true
+  fetchTrades: true
+  fetchOHLCV: true
+  fetchStatus: false
+  fetchTime: true
+  fetchLastPrices: false
+  fetchBidsAsks: false
+
+  # Trading
+  createOrder: true
+  createLimitOrder: true
+  createMarketOrder: true
+  createStopLimitOrder: true
+  cancelOrder: true
+  cancelAllOrders: true
+  editOrder: true
+
+  # Account
+  fetchBalance: true
+  fetchOpenOrders: true
+  fetchClosedOrders: true
+  fetchOrders: true
+  fetchOrder: true
+  fetchMyTrades: true
+  fetchPositions: true
+
+  # Wallet
+  fetchDeposits: true
+  fetchWithdrawals: true
+  fetchDepositAddress: true
+  withdraw: true
+  fetchLedger: true
+
+  # Margin
+  fetchBorrowRates: false
+  borrowMargin: false
+  setLeverage: true
+
+timeframes:
+  1m: "1"
+  5m: "5"
+  15m: "15"
+  30m: "30"
+  1h: "60"
+  4h: "240"
+  1d: "1440"
+  1w: "10080"
+  2w: "21600"
+
+requiredCredentials:
+  apiKey: true
+  secret: true
+  uid: false
+  login: false
+  password: false
+  twofa: false
+  privateKey: false
+
+# Currency code mappings (Kraken uses X/Z prefixes)
+commonCurrencies:
+  LUNA: LUNC
+  LUNA2: LUNA
+  REPV2: REP
+  REP: REPV1
+  UST: USTC
+  XBT: BTC
+  XDG: DOGE
+  FEE: KFEE
+  XETC: ETC
+  XETH: ETH
+  XLTC: LTC
+  XMLN: MLN
+  XREP: REP
+  XXBT: BTC
+  XXDG: DOGE
+  XXLM: XLM
+  XXMR: XMR
+  XXRP: XRP
+  XZEC: ZEC
+  ZAUD: AUD
+  ZCAD: CAD
+  ZEUR: EUR
+  ZGBP: GBP
+  ZJPY: JPY
+  ZUSD: USD
+
+auth:
+  type: hmac
+  algorithm: sha512
+  encoding: base64
+  timestampUnit: milliseconds
+  nonceType: timestamp
+  signatureFormat: "{path}{nonce}{body_urlencoded}"
+
+  signature:
+    components:
+      - path
+      - nonce
+      - body_urlencoded
+
+  headers:
+    API-Key: "{apiKey}"
+    API-Sign: "{signature}"
+
+  body:
+    nonce: "{nonce}"
+
+api:
+  public:
+    get:
+      Time:
+        cost: 1
+        params: {}
+      SystemStatus:
+        cost: 1
+        params: {}
+      Assets:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: false
+          aclass:
+            type: string
+            required: false
+      AssetPairs:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: false
+          info:
+            type: string
+            required: false
+      Ticker:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+      Depth:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          count:
+            type: int
+            required: false
+            default: "100"
+      Trades:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          since:
+            type: string
+            required: false
+          count:
+            type: int
+            required: false
+      Spread:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          since:
+            type: string
+            required: false
+      OHLC:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: true
+          interval:
+            type: int
+            required: false
+            default: "1"
+          since:
+            type: timestamp
+            required: false
+
+  private:
+    post:
+      Balance:
+        cost: 1
+        params: {}
+      TradeBalance:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: false
+      OpenOrders:
+        cost: 1
+        params:
+          trades:
+            type: boolean
+            required: false
+          userref:
+            type: string
+            required: false
+      ClosedOrders:
+        cost: 1
+        params:
+          trades:
+            type: boolean
+            required: false
+          userref:
+            type: string
+            required: false
+          start:
+            type: timestamp
+            required: false
+          end:
+            type: timestamp
+            required: false
+          ofs:
+            type: int
+            required: false
+          closetime:
+            type: string
+            required: false
+      QueryOrders:
+        cost: 1
+        params:
+          txid:
+            type: string
+            required: true
+          trades:
+            type: boolean
+            required: false
+      TradesHistory:
+        cost: 1
+        params:
+          type:
+            type: string
+            required: false
+          trades:
+            type: boolean
+            required: false
+          start:
+            type: timestamp
+            required: false
+          end:
+            type: timestamp
+            required: false
+          ofs:
+            type: int
+            required: false
+      QueryTrades:
+        cost: 1
+        params:
+          txid:
+            type: string
+            required: true
+          trades:
+            type: boolean
+            required: false
+      OpenPositions:
+        cost: 1
+        params:
+          txid:
+            type: string
+            required: false
+          docalcs:
+            type: boolean
+            required: false
+      Ledgers:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: false
+          aclass:
+            type: string
+            required: false
+          type:
+            type: string
+            required: false
+          start:
+            type: timestamp
+            required: false
+          end:
+            type: timestamp
+            required: false
+          ofs:
+            type: int
+            required: false
+      QueryLedgers:
+        cost: 1
+        params:
+          id:
+            type: string
+            required: true
+      TradeVolume:
+        cost: 1
+        params:
+          pair:
+            type: string
+            required: false
+          fee-info:
+            type: boolean
+            required: false
+      AddOrder:
+        cost: 0.5
+        params:
+          pair:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true
+          ordertype:
+            type: string
+            required: true
+          price:
+            type: string
+            required_if: "ordertype in [limit, stop-loss-limit, take-profit-limit]"
+          volume:
+            type: string
+            required: true
+          leverage:
+            type: string
+            required: false
+          oflags:
+            type: string
+            required: false
+          timeinforce:
+            type: string
+            required: false
+          starttm:
+            type: string
+            required: false
+          expiretm:
+            type: string
+            required: false
+          userref:
+            type: string
+            required: false
+          validate:
+            type: boolean
+            required: false
+          close:
+            type: object
+            required: false
+      CancelOrder:
+        cost: 0.5
+        params:
+          txid:
+            type: string
+            required: true
+      CancelAll:
+        cost: 0.5
+        params: {}
+      CancelAllOrdersAfter:
+        cost: 0.5
+        params:
+          timeout:
+            type: int
+            required: true
+      EditOrder:
+        cost: 0.5
+        params:
+          txid:
+            type: string
+            required: true
+          pair:
+            type: string
+            required: true
+          volume:
+            type: string
+            required: false
+          price:
+            type: string
+            required: false
+          oflags:
+            type: string
+            required: false
+          userref:
+            type: string
+            required: false
+      DepositMethods:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: true
+      DepositAddresses:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: true
+          method:
+            type: string
+            required: true
+          new:
+            type: boolean
+            required: false
+      DepositStatus:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: false
+          method:
+            type: string
+            required: false
+      WithdrawInfo:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: true
+          key:
+            type: string
+            required: true
+          amount:
+            type: string
+            required: true
+      Withdraw:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: true
+          key:
+            type: string
+            required: true
+          amount:
+            type: string
+            required: true
+      WithdrawStatus:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: false
+          method:
+            type: string
+            required: false
+      WithdrawCancel:
+        cost: 1
+        params:
+          asset:
+            type: string
+            required: true
+          refid:
+            type: string
+            required: true
+
+parsers:
+  ticker:
+    source: Ticker
+    path: result.{marketId}
+    mapping:
+      symbol:
+        from_context: symbol
+      timestamp:
+        from_context: timestamp
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      high:
+        path: h.[1]
+        transform: parse_number
+      low:
+        path: l.[1]
+        transform: parse_number
+      bid:
+        path: b.[0]
+        transform: parse_number
+      bidVolume:
+        path: b.[2]
+        transform: parse_number
+      ask:
+        path: a.[0]
+        transform: parse_number
+      askVolume:
+        path: a.[2]
+        transform: parse_number
+      vwap:
+        path: p.[1]
+        transform: parse_number
+      open:
+        path: o
+        transform: parse_number
+      close:
+        path: c.[0]
+        transform: parse_number
+      last:
+        path: c.[0]
+        transform: parse_number
+      previousClose:
+        literal: "undefined"
+      change:
+        compute: "{last} - {open}"
+        dependencies: [last, open]
+      percentage:
+        compute: "({change} / {open}) * 100"
+        dependencies: [change, open]
+      average:
+        literal: "undefined"
+      baseVolume:
+        path: v.[1]
+        transform: parse_number
+      quoteVolume:
+        literal: "undefined"
+      info:
+        from_context: rawData
+
+  order:
+    source: QueryOrders
+    path: null
+    mapping:
+      id:
+        path: id
+        transform: parse_string
+      clientOrderId:
+        path: userref
+        transform: parse_string
+      timestamp:
+        path: opentm
+        transform: parse_timestamp
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      lastTradeTimestamp:
+        path: closetm
+        transform: parse_timestamp
+      symbol:
+        compute: "this.safeSymbol(marketId, market)"
+        dependencies: [marketId, market]
+      type:
+        path: descr.ordertype
+        transform: lowercase
+      timeInForce:
+        literal: "undefined"
+      postOnly:
+        compute: "this.safeString(response, 'oflags', '').includes('post')"
+      side:
+        path: descr.type
+        transform: lowercase
+      price:
+        path: descr.price
+        transform: parse_number
+      stopPrice:
+        path: stopprice
+        transform: parse_number
+      amount:
+        path: vol
+        transform: parse_number
+      cost:
+        path: cost
+        transform: parse_number
+      average:
+        path: price
+        transform: parse_number
+      filled:
+        path: vol_exec
+        transform: parse_number
+      remaining:
+        compute: "{amount} - {filled}"
+        dependencies: [amount, filled]
+      status:
+        path: status
+        map:
+          pending: open
+          open: open
+          closed: closed
+          canceled: canceled
+          expired: expired
+      fee:
+        path: fee
+        transform: parse_number
+      trades:
+        path: trades
+      info:
+        from_context: rawData
+
+  trade:
+    source: Trades
+    path: null
+    mapping:
+      id:
+        literal: null
+      order:
+        literal: null
+      timestamp:
+        compute: "this.safeTimestamp(response, 2)"
+        dependencies: []
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      symbol:
+        compute: "this.safeSymbol(marketId, market)"
+        dependencies: [marketId, market]
+      type:
+        compute: "this.safeString(response, 4) === 'l' ? 'limit' : this.safeString(response, 4) === 'm' ? 'market' : null"
+        dependencies: []
+      side:
+        compute: "this.safeString(response, 3) === 'b' ? 'buy' : this.safeString(response, 3) === 's' ? 'sell' : null"
+        dependencies: []
+      takerOrMaker:
+        literal: null
+      price:
+        compute: "this.safeNumber(response, 0)"
+        dependencies: []
+      amount:
+        compute: "this.safeNumber(response, 1)"
+        dependencies: []
+      cost:
+        compute: "this.parseNumber(response[0]) * this.parseNumber(response[1])"
+        dependencies: []
+      fee:
+        literal: null
+      fees:
+        compute: "[]"
+        dependencies: []
+      info:
+        from_context: rawData
+
+  balance:
+    source: Balance
+    path: result
+    iterator: entries
+    structure: balance
+    mapping:
+      currency:
+        from_context: currencyId
+        transform: parse_currency_code
+      total:
+        path: balance
+        transform: parse_number
+      used:
+        path: hold_trade
+        transform: parse_number
+      free:
+        compute: "this.parseNumber(this.numberToString(total - used))"
+        dependencies: [total, used]
+
+  market:
+    source: AssetPairs
+    path: result
+    iterator: entries
+    mapping:
+      id:
+        from_context: marketId
+      symbol:
+        compute: "base + '/' + quote"
+        dependencies: [base, quote]
+      base:
+        path: base
+        transform: parse_currency_code
+      quote:
+        path: quote
+        transform: parse_currency_code
+      baseId:
+        path: base
+      quoteId:
+        path: quote
+      active:
+        path: status
+        map:
+          online: true
+        default: false
+      type:
+        literal: "spot"
+      spot:
+        literal: true
+      margin:
+        compute: "this.safeValue(data, 'leverage_buy')?.length > 0 || this.safeValue(data, 'leverage_sell')?.length > 0"
+        dependencies: []
+      swap:
+        literal: false
+      future:
+        literal: false
+      option:
+        literal: false
+      contract:
+        literal: false
+      settle:
+        literal: null
+      settleId:
+        literal: null
+      contractSize:
+        literal: null
+      linear:
+        literal: null
+      inverse:
+        literal: null
+      expiry:
+        literal: null
+      expiryDatetime:
+        literal: null
+      strike:
+        literal: null
+      optionType:
+        literal: null
+      taker:
+        compute: "this.parseNumber(this.safeValue(this.safeValue(data, 'fees'), 0)?.[1]) / 100"
+        dependencies: []
+      maker:
+        compute: "this.parseNumber(this.safeValue(this.safeValue(data, 'fees_maker'), 0)?.[1]) / 100"
+        dependencies: []
+      precision.amount:
+        compute: "this.parseNumber(this.parsePrecision(this.safeString(data, 'lot_decimals')))"
+        dependencies: []
+      precision.price:
+        compute: "this.parseNumber(this.parsePrecision(this.safeString(data, 'pair_decimals')))"
+        dependencies: []
+      limits.amount.min:
+        path: ordermin
+        transform: parse_number
+      limits.amount.max:
+        literal: null
+      limits.price.min:
+        path: tick_size
+        transform: parse_number
+      limits.price.max:
+        literal: null
+      limits.cost.min:
+        path: costmin
+        transform: parse_number
+      limits.cost.max:
+        literal: null
+      limits.leverage.min:
+        literal: null
+      limits.leverage.max:
+        compute: "Math.max(...(this.safeValue(data, 'leverage_buy') || []), ...(this.safeValue(data, 'leverage_sell') || []), 0)"
+        dependencies: []
+      info:
+        from_context: value
+
+  deposit:
+    source: DepositStatus
+    path: null
+    mapping:
+      id:
+        path: refid
+      txid:
+        path: txid
+      type:
+        literal: "deposit"
+      currency:
+        path: asset
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          Success: ok
+          Pending: pending
+          Failure: failed
+      address:
+        path: info
+      addressTo:
+        path: info
+      addressFrom:
+        literal: null
+      tag:
+        literal: null
+      tagTo:
+        literal: null
+      tagFrom:
+        literal: null
+      network:
+        compute: "this.safeString(data, 'network') ?? this.safeString(data, 'method')"
+      timestamp:
+        path: time
+        transform: parse_timestamp
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      updated:
+        literal: null
+      internal:
+        literal: null
+      comment:
+        literal: null
+      fee.currency:
+        path: asset
+        transform: parse_currency_code
+      fee.cost:
+        path: fee
+        transform: parse_number
+      info:
+        from_context: rawData
+
+  withdrawal:
+    source: WithdrawStatus
+    path: null
+    mapping:
+      id:
+        path: refid
+      txid:
+        path: txid
+      type:
+        literal: "withdrawal"
+      currency:
+        path: asset
+        transform: parse_currency_code
+      amount:
+        path: amount
+        transform: parse_number
+      status:
+        path: status
+        map:
+          Success: ok
+          Pending: pending
+          Failure: failed
+      address:
+        path: info
+      addressTo:
+        path: info
+      addressFrom:
+        literal: null
+      tag:
+        literal: null
+      tagTo:
+        literal: null
+      tagFrom:
+        literal: null
+      network:
+        compute: "this.safeString(data, 'network') ?? this.safeString(data, 'method')"
+      timestamp:
+        path: time
+        transform: parse_timestamp
+      datetime:
+        compute: "this.iso8601(timestamp)"
+        dependencies: [timestamp]
+      updated:
+        literal: null
+      internal:
+        literal: null
+      comment:
+        literal: null
+      fee.currency:
+        path: asset
+        transform: parse_currency_code
+      fee.cost:
+        path: fee
+        transform: parse_number
+      info:
+        from_context: rawData
+
+  depositAddress:
+    source: DepositAddresses
+    path: null
+    mapping:
+      currency:
+        literal: null
+      network:
+        literal: null
+      address:
+        path: address
+      tag:
+        path: tag
+      info:
+        from_context: rawData
+
+errors:
+  patterns:
+    # Authentication errors
+    - match: "EAPI:Invalid key"
+      type: AuthenticationError
+    - match: "EAPI:Invalid signature"
+      type: AuthenticationError
+    - match: "EAPI:Invalid nonce"
+      type: InvalidNonce
+
+    # Permission errors
+    - match: "EGeneral:Permission denied"
+      type: PermissionDenied
+
+    # Insufficient funds
+    - match: "EOrder:Insufficient funds"
+      type: InsufficientFunds
+    - match: "EOrder:Insufficient margin"
+      type: InsufficientFunds
+
+    # Order errors
+    - match: "EOrder:Unknown order"
+      type: OrderNotFound
+    - match: "EOrder:Invalid order"
+      type: InvalidOrder
+    - match: "EOrder:Order minimum not met"
+      type: InvalidOrder
+    - match: "EOrder:Orders limit exceeded"
+      type: InvalidOrder
+    - match: "EOrder:Positions limit exceeded"
+      type: InvalidOrder
+
+    # Rate limiting
+    - match: "EOrder:Rate limit exceeded"
+      type: RateLimitExceeded
+      retry: exponential
+    - match: "EAPI:Rate limit exceeded"
+      type: RateLimitExceeded
+      retry: exponential
+
+    # Exchange availability
+    - match: "EService:Unavailable"
+      type: ExchangeNotAvailable
+      retry: linear
+    - match: "EService:Busy"
+      type: ExchangeNotAvailable
+      retry: linear
+    - match: "EService:Market in cancel_only mode"
+      type: OnMaintenance
+
+    # Bad requests
+    - match: "EQuery:Unknown asset pair"
+      type: BadSymbol
+    - match: "EGeneral:Invalid arguments"
+      type: BadRequest
+    - match: "EGeneral:Temporary lockout"
+      type: AccountSuspended
+
+fees:
+  trading:
+    tierBased: true
+    percentage: true
+    taker: 0.0026
+    maker: 0.0016
+    tiers:
+      taker:
+        - [0, 0.0026]
+        - [50000, 0.0024]
+        - [100000, 0.0022]
+        - [250000, 0.002]
+        - [500000, 0.0018]
+        - [1000000, 0.0016]
+        - [2500000, 0.0014]
+        - [5000000, 0.0012]
+        - [10000000, 0.001]
+      maker:
+        - [0, 0.0016]
+        - [50000, 0.0014]
+        - [100000, 0.0012]
+        - [250000, 0.001]
+        - [500000, 0.0008]
+        - [1000000, 0.0006]
+        - [2500000, 0.0004]
+        - [5000000, 0.0002]
+        - [10000000, 0]
+
+options:
+  defaultType: spot
+
+overrides:
+  - method: fetchBalance
+    description: "Kraken balance requires special handling for margin accounts"
+    file: kraken.overrides.ts
+  - method: sign
+    description: "Kraken uses sha256+sha512 chained signature"
+    file: kraken.overrides.ts
