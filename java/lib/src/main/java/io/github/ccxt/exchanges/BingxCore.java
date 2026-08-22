@@ -2622,12 +2622,13 @@ public class BingxCore extends BingxApi
         Object id = this.safeString(interest, "symbol");
         Object symbol = this.safeSymbol(id, market, "-", "swap");
         Object openInterest = this.safeNumber(interest, "openInterest");
+        Object inverse = this.safeBool(market, "inverse", false);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "baseVolume", null );
             put( "quoteVolume", null );
-            put( "openInterestAmount", null );
-            put( "openInterestValue", openInterest );
+            put( "openInterestAmount", ((Helpers.isTrue(inverse))) ? openInterest : null );
+            put( "openInterestValue", ((Helpers.isTrue(inverse))) ? null : openInterest );
             put( "timestamp", timestamp );
             put( "datetime", BingxCore.this.iso8601(timestamp) );
             put( "info", interest );
