@@ -10,6 +10,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 )
 
 func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan any {
@@ -25,6 +26,13 @@ func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan
 		if this.FetchResponse != nil {
 			ch <- this.FetchResponse
 			return
+		}
+		// benchmark instrumentation: start the HTTP-layer timer here so the measured
+		// window matches the other languages' wrappers, which wrap the whole fetch
+		// (request building and signing included), not just the wire call
+		var fetchStart time.Time
+		if this.Profile {
+			fetchStart = time.Now()
 		}
 		this.UpdateProxySettings() // for now this needs to be here
 
@@ -202,11 +210,20 @@ func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan
 			}
 		}
 
+		if this.Profile {
+			this.ProfileHttpMs = float64(time.Since(fetchStart).Microseconds()) / 1000.0
+		}
 		responseHeaders := HeaderToMap(resp.Header)
 
 		// Use ParseJSON to handle JSON parsing with proper number normalization
 		var result any
-		result = ParseJSON(string(respBody))
+		if this.Profile {
+			jsonStart := time.Now()
+			result = ParseJSON(string(respBody))
+			this.ProfileJsonMs = float64(time.Since(jsonStart).Microseconds()) / 1000.0
+		} else {
+			result = ParseJSON(string(respBody))
+		}
 
 		if result == nil {
 			// If ParseJSON failed, fallback to raw string
