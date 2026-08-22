@@ -1563,7 +1563,9 @@ class Transpiler {
     // Emitted PHP (CI regen), e.g. do_request:
     //   -return Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
     //   +return $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
-    static phpInnerAsyncLayerMethods = [ 'fetch2' ]
+    // `fetch` is hand-written on php/async/Exchange.php: its do_fetch re-enters the public
+    // hook only when a subclass (or a test mock) overrides it, so the seam is preserved.
+    static phpInnerAsyncLayerMethods = [ 'fetch2', 'fetch' ]
 
     phpCollapseInnerAsyncLayers (phpBody: string) {
         for (const name of Transpiler.phpInnerAsyncLayerMethods) {
