@@ -1310,6 +1310,8 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        if market['inverse']:
+            raise NotSupported(self.id + ' fetchTrades() is not supported for inverse swap markets')
         request = {
             'symbol': market['id'],
         }
