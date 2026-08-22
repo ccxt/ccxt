@@ -1543,6 +1543,10 @@ public partial class bingx : ccxt.bingx
         }
         object cache = this.positions;
         object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        if (!isTrue((inOp(data, "P"))))
+        {
+            return;
+        }
         object rawPositions = this.safeList(data, "P", new List<object>() {});
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
