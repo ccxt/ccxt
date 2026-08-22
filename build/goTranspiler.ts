@@ -101,18 +101,15 @@ let gofmtMissingWarned = false;
 //
 // Everything here matches the *raw* emitted text: this runs before gofmt, which is what
 // later normalises `<- chan any` to `<-chan any` and 4-space indentation to tabs.
-const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[A-Za-z_]\w*\s*\(.*\)\s*<-\s*chan\s+any\s*\{$/;
-const GO_CORE_MAKE = /^([ \t]*)ch := make\(chan\s+[^(),\n]+,\s*1\)$/;
-// the trampoline's goroutine opener, `go func() any {`, sits at the same indent as the make
-const GO_CORE_GO = /^([ \t]*)go func\(\)\s+\S+\s*\{$/;
+// The BODY half of a trampoline pair: `func (this *X) fetchTickerBody(ch chan any, …) any {`
+// (or the package-level `func helperABody(ch chan any, …) any {`). The public trampoline
+// itself is three statements and can never multi-send, so only the body is scanned.
+const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[a-z_]\w*\s*\(ch chan\s+[^(),\n]+(?:,[^\n]*)?\)\s*any\s*\{$/;
 const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
 // the panic helper is package-qualified in the prediction namespace (ccxt.ReturnPanicError)
 const GO_CORE_PANIC = /^([ \t]*)defer (?:[A-Za-z_][A-Za-z0-9_.]*\.)?ReturnPanicError\(ch\)$/;
 // generated cores are always top-level funcs, so the core ends at a brace in column 0
 const GO_CORE_END = /^\}\s*$/;
-// the trampoline tail, between the body and that column-0 brace: `}()` then `return ch`
-const GO_CORE_GO_END = /^\s*\}\(\)\s*$/;
-const GO_CORE_RETURN_CH = /^\s*return ch\s*$/;
 const GO_CORE_SEND = /^ch\s*<-/;
 const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
 // the try/catch shim closes as an immediately-invoked literal, `}()` or `}(this)`
@@ -241,24 +238,19 @@ function isBalancedGoLine (line: string): boolean {
     return depth === 0;
 }
 
-// Thread the sent-flag through one core. `lines[start]` is the `ch := make(chan T, 1)`
-// line and the three lines after it are the rest of the core prologue (`go func() any {`
-// and the two defers inside it). Returns the replacement body (flag declaration +
-// rewritten lines + the untouched trampoline tail) and the index of the core's closing
-// brace, or null when any safety gate fails.
+// Thread the sent-flag through one core BODY. `lines[start]` is the `defer close(ch)`
+// line and `lines[start + 1]` the `defer ReturnPanicError(ch)` right after it; the body
+// statements follow, flat, until the column-0 closing brace. Returns the replacement body
+// (flag declaration + rewritten lines) and the index of that brace, or null when any
+// safety gate fails.
 function guardMultiSendCore (lines: string[], start: number): { 'body': string[]; 'end': number } | null {
-    const indent = (GO_CORE_MAKE.exec (lines[start]) as RegExpExecArray)[1];
-    // the goroutine opener sits at the make's level, the two defers one level inside it;
-    // anything else is a shape we did not emit and do not understand
-    const bodyIndent = indent + GO_INDENT_UNIT;
-    for (const offset of [ 1, 2, 3 ]) {
-        const prologue = [ GO_CORE_GO, GO_CORE_CLOSE, GO_CORE_PANIC ][offset - 1];
-        const expected = (offset === 1) ? indent : bodyIndent;
-        if ((prologue.exec (lines[start + offset]) as RegExpExecArray)[1] !== expected) {
-            return null;
-        }
+    const indent = (GO_CORE_CLOSE.exec (lines[start]) as RegExpExecArray)[1];
+    // the two defers open the body at the same level; anything else is a shape we did
+    // not emit and do not understand
+    if ((GO_CORE_PANIC.exec (lines[start + 1]) as RegExpExecArray)[1] !== indent) {
+        return null;
     }
-    const bodyStart = start + 4;
+    const bodyStart = start + 2;
     let end = bodyStart;
     while (end < lines.length && !GO_CORE_END.test (lines[end])) {
         end++;
@@ -266,26 +258,7 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
     if (end >= lines.length) {
         return null;
     }
-    // the trampoline's own tail — `}()` closing the goroutine, then `return ch` — sits
-    // between the body and that column-0 brace. Exclude it from the scan: the goroutine
-    // is a func literal too, and counting it would shift every literal depth by one and
-    // break the `closesTo === 0` test that spots the outermost try/catch shim.
-    let returnIndex = end - 1;
-    while (returnIndex > bodyStart && lines[returnIndex].trim () === '') {
-        returnIndex--;
-    }
-    if (returnIndex <= bodyStart || !GO_CORE_RETURN_CH.test (lines[returnIndex])) {
-        return null;
-    }
-    let goEndIndex = returnIndex - 1;
-    while (goEndIndex > bodyStart && lines[goEndIndex].trim () === '') {
-        goEndIndex--;
-    }
-    if (goEndIndex <= bodyStart || !GO_CORE_GO_END.test (lines[goEndIndex])) {
-        return null;
-    }
-    const tail = lines.slice (goEndIndex, end);
-    const body = lines.slice (bodyStart, goEndIndex);
+    const body = lines.slice (bodyStart, end);
     const scan = scanCoreBody (body);
     if (scan === null || !scan.sendsInLiteral) {
         // nothing to guard: the core only ever sends at its own level
@@ -314,7 +287,7 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
         if (scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
             // the outermost try/catch shim just returned: if it produced a value the
             // core is done, exactly as the `return` inside the TypeScript `try` meant.
-            // `return nil` leaves the body goroutine (whose result is `any`); the
+            // `return nil` leaves the body method (whose result is `any`); the
             // trampoline already handed the channel to the caller and `defer close`
             // still runs
             rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
@@ -322,8 +295,8 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
             rewritten.push (lineIndent + '}');
         }
     }
-    const declaration = [ bodyIndent + GO_SENT_FLAG + ' := false', bodyIndent + '_ = ' + GO_SENT_FLAG ];
-    return { 'body': declaration.concat (rewritten).concat (tail), 'end': end };
+    const declaration = [ indent + GO_SENT_FLAG + ' := false', indent + '_ = ' + GO_SENT_FLAG ];
+    return { 'body': declaration.concat (rewritten), 'end': end };
 }
 
 function guardMultiSendCores (content: string): string {
@@ -334,11 +307,9 @@ function guardMultiSendCores (content: string): string {
     const result: string[] = [];
     let index = 0;
     while (index < lines.length) {
-        const isCore = (index + 4 < lines.length)
-            && GO_CORE_MAKE.test (lines[index])
-            && GO_CORE_GO.test (lines[index + 1])
-            && GO_CORE_CLOSE.test (lines[index + 2])
-            && GO_CORE_PANIC.test (lines[index + 3])
+        const isCore = (index + 2 < lines.length)
+            && GO_CORE_CLOSE.test (lines[index])
+            && GO_CORE_PANIC.test (lines[index + 1])
             && result.length > 0
             && GO_CORE_SIGNATURE.test (result[result.length - 1]);
         const guarded = isCore ? guardMultiSendCore (lines, index) : null;
@@ -348,7 +319,7 @@ function guardMultiSendCores (content: string): string {
             continue;
         }
         // the core keeps the prologue ast-transpiler emitted; only the body is rewritten
-        result.push (lines[index], lines[index + 1], lines[index + 2], lines[index + 3]);
+        result.push (lines[index], lines[index + 1]);
         for (const line of guarded.body) {
             result.push (line);
         }
@@ -2381,7 +2352,11 @@ ${constStatements.join('\n')}
             // WS cache primitives the transpiler cannot emit), so drop the transpiled *Exchange copy to
             // avoid a redeclaration (and its untranspilable body). loadOrderBook is the first method of
             // the Exchange class, always followed by another `func (this *Exchange)`.
-            [/func\s+\(this \*Exchange\)\s+LoadOrderBook\([\s\S]*?(?=\nfunc\s+\(this \*Exchange\))/g, ''],
+            // Async cores are emitted as a trampoline + unexported body PAIR
+            // (`LoadOrderBook` then `loadOrderBookBody`), so the cut has to run to the next
+            // EXPORTED method — stopping at the lowercase body would leave that body behind,
+            // orphaned and still untranspilable.
+            [/func\s+\(this \*Exchange\)\s+LoadOrderBook\([\s\S]*?(?=\nfunc\s+\(this \*Exchange\)\s+[A-Z])/g, ''],
             // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
             // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
             // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
