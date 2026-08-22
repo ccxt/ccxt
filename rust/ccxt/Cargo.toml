@@ -1,0 +1,35 @@
+[package]
+name = "ccxt"
+version = "0.1.0"
+edition = "2021"
+description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
+license = "MIT"
+repository = "https://github.com/ccxt/ccxt"
+homepage = "https://ccxt.com"
+documentation = "https://docs.rs/ccxt"
+readme = "README.md"
+keywords = ["cryptocurrency", "exchange", "trading", "bitcoin", "ccxt"]
+categories = ["api-bindings", "asynchronous", "finance"]
+
+[lib]
+name = "ccxt"
+path = "src/lib.rs"
+
+[dependencies]
+# The untyped engine. The per-exchange typed wrappers wrap its REST/prediction
+# Cores and base method surface. Kept a separate crate so no single rustc
+# invocation compiles the whole generated surface at once (CI memory ceiling).
+# This `ccxt` crate re-exports ccxt-base at its root, so `ccxt::Value`,
+# `ccxt::exchanges::…`, `ccxt::runtime::…` resolve alongside the typed wrappers.
+ccxt-base = { path = "../ccxt-base", features = ["transpiled-base"] }
+
+tokio = { version = "1", features = ["full"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+rust_decimal = { version = "1", features = ["serde-str"] }
+num-bigint = "0.4"
+num-traits = "0.2"
+chrono = { version = "0.4", features = ["serde"] }
+async-trait = "0.1"
+futures = "0.3"
+indexmap = { version = "2", features = ["serde"] }

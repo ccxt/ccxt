@@ -1330,6 +1330,7 @@
                 "maker": "undef",
                 "active": "undef",
                 "contractSize": "undef",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated",
                 "precisionAmountAbnormal": "abnormal precision"
             },
             "fetchCurrencies": {
@@ -2471,7 +2472,8 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "contractSize": "not provided"
+                "contractSize": "not provided",
+                "marginModes": "parseMarket does not emit marginModes.cross/isolated"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided",
