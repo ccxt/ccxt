@@ -713,7 +713,7 @@ public partial class whitebit : Exchange
         object settle = null;
         object settleId = null;
         object symbol = add(add(bs, "/"), quote);
-        object swap = isEqual(typeId, "futures");
+        object swap = isTrue((isEqual(typeId, "futures"))) || isTrue((isEqual(typeId, "tradfiFutures")));
         object margin = isTrue(isCollateral) && !isTrue(swap);
         object contract = false;
         object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
