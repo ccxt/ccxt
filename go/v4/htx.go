@@ -2162,8 +2162,8 @@ func (this *HtxCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//     }
 		//
 		var data any = this.SafeDict(response, "data", map[string]any{})
-		var heartbeatKey string = "heartbeat"
-		var etaKey string = "estimated_recovery_time"
+		var heartbeatKey any = "heartbeat"
+		var etaKey any = "estimated_recovery_time"
 		if IsTrue(IsEqual(subType, "linear")) {
 			heartbeatKey = "linear_swap_heartbeat"
 			etaKey = "linear_swap_estimated_recovery_time"
@@ -2454,7 +2454,7 @@ func (this *HtxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(typesparamsVariable, 1)
 	var allMarkets any = []any{}
 	var promises any = []any{}
-	var keys []string = ObjectKeys(types)
+	var keys any = ObjectKeys(types)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		if IsTrue(this.SafeBool(types, key)) {
@@ -2615,7 +2615,7 @@ func (this *HtxCore) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, 
 	//     }
 	//
 	var markets any = this.SafeList(response, "data", []any{})
-	var numMarkets int = GetArrayLength(markets)
+	var numMarkets any = GetArrayLength(markets)
 	if IsTrue(IsLessThan(numMarkets, 1)) {
 		panic(OperationFailed(Add(Add(this.Id, " fetchMarkets() returned an empty response: "), this.Json(response))))
 	}
@@ -2651,7 +2651,7 @@ func (this *HtxCore) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, 
 				if IsTrue(IsEqual(id, nil)) {
 					panic(ExchangeError(Add(this.Id, " method() missing id")))
 				}
-				var parts []string = Split(id, "-")
+				var parts any = Split(id, "-")
 				baseId = this.SafeStringLower(market, "symbol")
 				quoteId = this.SafeStringLower(parts, 1)
 				settleId = Ternary(IsTrue(inverse), baseId, quoteId)
@@ -2666,7 +2666,7 @@ func (this *HtxCore) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, 
 					if IsTrue(IsEqual(pair, nil)) {
 						panic(ExchangeError(Add(this.Id, " method() missing pair")))
 					}
-					var parts []string = Split(pair, "-")
+					var parts any = Split(pair, "-")
 					quoteId = this.SafeStringLower(parts, 1)
 					settleId = quoteId
 				}
@@ -2735,7 +2735,7 @@ func (this *HtxCore) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, 
 		}
 		var leverageRatio any = this.SafeString(market, "leverage-ratio", "1")
 		var superLeverageRatio any = this.SafeString(market, "super-margin-leverage-ratio", "1")
-		var hasLeverage bool = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
+		var hasLeverage any = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
 		// 0 Delisting
 		// 1 Listing
 		// 2 Pending Listing
@@ -3094,7 +3094,7 @@ func (this *HtxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(first, nil)) {
 		market = this.Market(first)
 	}
-	var isSubTypeRequested bool = IsTrue((InOp(params, "subType"))) || IsTrue((InOp(params, "business_type")))
+	var isSubTypeRequested any = IsTrue((InOp(params, "subType"))) || IsTrue((InOp(params, "business_type")))
 	var typeVar any = nil
 	var subType any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
@@ -3507,7 +3507,7 @@ func (this *HtxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeString2(trade, "direction", "side")
 	var typeVar any = this.SafeString(trade, "type")
 	if IsTrue(IsTrue((!IsEqual(typeVar, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(typeVar, "-"), 0)))) {
-		var typeParts []string = Split(typeVar, "-")
+		var typeParts any = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)
 	}
@@ -4071,7 +4071,7 @@ func (this *HtxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 			var duration any = this.ParseTimeframe(timeframe)
 			var calcualtedEnd any = nil
 			if IsTrue(IsEqual(since, nil)) {
-				var now int64 = this.Seconds()
+				var now any = this.Seconds()
 				AddElementToObject(request, "from", Subtract(now, Multiply(duration, (Subtract(limit, 1)))))
 				calcualtedEnd = now
 			} else {
@@ -4477,8 +4477,8 @@ func (this *HtxCore) NetworkIdToCode(optionalArgs ...any) any {
 	_ = networkId
 	currencyCode := GetArg(optionalArgs, 1, nil)
 	_ = currencyCode
-	var keys []string = ObjectKeys(GetValue(this.Options, "networkNamesByChainIds"))
-	var keysLength int = GetArrayLength(keys)
+	var keys any = ObjectKeys(GetValue(this.Options, "networkNamesByChainIds"))
+	var keysLength any = GetArrayLength(keys)
 	if IsTrue(IsEqual(keysLength, 0)) {
 		panic(ExchangeError(Add(this.Id, " networkIdToCode() - markets need to be loaded at first")))
 	}
@@ -4494,8 +4494,8 @@ func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(currencyCode, nil)) {
 		return this.Exchange.NetworkCodeToId(networkCode)
 	}
-	var keys []string = ObjectKeys(GetValue(this.Options, "networkChainIdsByNames"))
-	var keysLength int = GetArrayLength(keys)
+	var keys any = ObjectKeys(GetValue(this.Options, "networkChainIdsByNames"))
+	var keysLength any = GetArrayLength(keys)
 	if IsTrue(IsEqual(keysLength, 0)) {
 		panic(ExchangeError(Add(this.Id, " networkCodeToId() - markets need to be loaded at first")))
 	}
@@ -4572,7 +4572,7 @@ func (this *HtxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(marginModeparamsVariable, 1)
 	var isolated any = (IsEqual(marginMode, "isolated"))
 	var cross any = (IsEqual(marginMode, "cross"))
-	var margin bool = IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsTrue(spot) && IsTrue((IsTrue(cross) || IsTrue(isolated)))))
+	var margin any = IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsTrue(spot) && IsTrue((IsTrue(cross) || IsTrue(isolated)))))
 	var response any = nil
 	if IsTrue(IsTrue(isMultiAssetMode) || IsTrue((IsTrue(linear) && IsTrue((IsTrue(swap) || IsTrue(future)))))) {
 
@@ -5431,7 +5431,7 @@ func (this *HtxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
-	var contract bool = IsTrue((IsEqual(marketType, "swap"))) || IsTrue((IsEqual(marketType, "future")))
+	var contract any = IsTrue((IsEqual(marketType, "swap"))) || IsTrue((IsEqual(marketType, "future")))
 	if IsTrue(IsTrue(contract) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchOrders() requires a symbol argument for "), marketType), " orders")))
 	}
@@ -6285,7 +6285,7 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	var id any = this.SafeStringN(order, []any{"algo_id", "id", "order_id_str", "order-id", "order_id"})
 	var side any = this.SafeString2(order, "direction", "side")
 	var contractCode any = this.SafeString(order, "contract_code")
-	var isLinearOrder bool = IsTrue(IsTrue(IsTrue((!IsEqual(contractCode, nil))) && IsTrue((!IsEqual(market, nil)))) && IsTrue(GetValue(market, "linear"))) && !IsTrue(GetValue(market, "spot"))
+	var isLinearOrder any = IsTrue(IsTrue(IsTrue((!IsEqual(contractCode, nil))) && IsTrue((!IsEqual(market, nil)))) && IsTrue(GetValue(market, "linear"))) && !IsTrue(GetValue(market, "spot"))
 	var typeVar any = nil
 	if IsTrue(isLinearOrder) {
 		typeVar = this.SafeString(order, "type")
@@ -6300,7 +6300,7 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 		var rawType any = this.SafeString(order, "type")
 		if IsTrue(!IsEqual(rawType, nil)) {
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(rawType, "-"), 0)) {
-				var orderType []string = Split(rawType, "-")
+				var orderType any = Split(rawType, "-")
 				side = GetValue(orderType, 0)
 				typeVar = GetValue(orderType, 1)
 			} else if IsTrue(IsEqual(typeVar, nil)) {
@@ -7330,7 +7330,7 @@ func (this *HtxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 					AddElementToObject(requestItem, "algo_client_order_id", clientOrderId)
 					params = this.Omit(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 				}
-				var requestBody []any = []any{this.Extend(requestItem, params)}
+				var requestBody any = []any{this.Extend(requestItem, params)}
 
 				response = (<-this.ContractPrivatePostV5AlgoCancelOrders(requestBody))
 				PanicOnError(response)
@@ -8100,8 +8100,8 @@ func (this *HtxCore) fetchWithdrawAddressesBody(ch chan any, code any, optionalA
 	var addresses any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(allAddresses)); i++ {
 		var address any = GetValue(allAddresses, i)
-		var noteMatch bool = IsTrue((IsEqual(note, nil))) || IsTrue((IsEqual(GetValue(address, "note"), note)))
-		var networkMatch bool = IsTrue((IsEqual(networkCode, nil))) || IsTrue((IsEqual(GetValue(address, "network"), networkCode)))
+		var noteMatch any = IsTrue((IsEqual(note, nil))) || IsTrue((IsEqual(GetValue(address, "note"), note)))
+		var networkMatch any = IsTrue((IsEqual(networkCode, nil))) || IsTrue((IsEqual(GetValue(address, "network"), networkCode)))
 		if IsTrue(IsTrue(noteMatch) && IsTrue(networkMatch)) {
 			AppendToArray(&addresses, address)
 		}
@@ -8350,7 +8350,7 @@ func (this *HtxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 		txHash = Add("0x", txHash)
 	}
 	var subType any = this.SafeString(transaction, "sub-type")
-	var internal bool = IsEqual(subType, "FAST")
+	var internal any = IsEqual(subType, "FAST")
 	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString2(transaction, "id", "data"),
@@ -8610,16 +8610,16 @@ func (this *HtxCore) transferBody(ch chan any, code any, amount any, fromAccount
 	params = GetValue(subTypeparamsVariable, 1)
 	var fromAccountId any = this.ConvertTypeToAccount(fromAccount)
 	var toAccountId any = this.ConvertTypeToAccount(toAccount)
-	var toCross bool = IsEqual(toAccountId, "cross")
-	var fromCross bool = IsEqual(fromAccountId, "cross")
+	var toCross any = IsEqual(toAccountId, "cross")
+	var fromCross any = IsEqual(fromAccountId, "cross")
 	var toIsolated any = (IsTrue((!IsEqual(this.Ids, nil))) && IsTrue(this.InArray(toAccountId, this.Ids)))
 	var fromIsolated any = (IsTrue((!IsEqual(this.Ids, nil))) && IsTrue(this.InArray(fromAccountId, this.Ids)))
-	var fromSpot bool = IsEqual(fromAccountId, "pro")
-	var toSpot bool = IsEqual(toAccountId, "pro")
+	var fromSpot any = IsEqual(fromAccountId, "pro")
+	var toSpot any = IsEqual(toAccountId, "pro")
 	if IsTrue(IsTrue(fromSpot) && IsTrue(toSpot)) {
 		panic(BadRequest(Add(Add(Add(Add(this.Id, " transfer () cannot make a transfer between "), fromAccount), " and "), toAccount)))
 	}
-	var fromOrToFuturesAccount bool = IsTrue((IsEqual(fromAccountId, "futures"))) || IsTrue((IsEqual(toAccountId, "futures")))
+	var fromOrToFuturesAccount any = IsTrue((IsEqual(fromAccountId, "futures"))) || IsTrue((IsEqual(toAccountId, "futures")))
 	var response any = nil
 	if IsTrue(fromOrToFuturesAccount) {
 		var typeVar any = Add(Add(fromAccountId, "-to-"), toAccountId)
@@ -9139,7 +9139,7 @@ func (this *HtxCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes737912)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var defaultSubType string = "linear"
+	var defaultSubType any = "linear"
 	var subType any = nil
 	subTypeparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRates", "subType", defaultSubType)
 	subType = GetValue(subTypeparamsVariable, 0)
@@ -9356,7 +9356,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = "/"
-	var isArrayParams bool = IsArray(params)
+	var isArrayParams any = IsArray(params)
 	var query any = nil
 	if IsTrue(isArrayParams) {
 		query = map[string]any{}
@@ -9373,7 +9373,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 		url = Add(url, Add("/", this.ImplodeParams(path, params)))
 		if IsTrue(IsTrue(IsEqual(api, "private")) || IsTrue(IsEqual(api, "v2Private"))) {
 			this.CheckRequiredCredentials()
-			var timestamp string = this.Ymdhms(this.Nonce(), "T")
+			var timestamp any = this.Ymdhms(this.Nonce(), "T")
 			var request any = map[string]any{
 				"SignatureMethod":  "HmacSHA256",
 				"SignatureVersion": "2",
@@ -9383,12 +9383,12 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(!IsEqual(method, "POST")) {
 				request = this.Extend(request, query)
 			}
-			var sortedRequest map[string]any = this.Keysort(request)
+			var sortedRequest any = this.Keysort(request)
 			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirement
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
-			var content []any = []any{method, this.Hostname, url, auth}
+			var content any = []any{method, this.Hostname, url, auth}
 			var payload any = Join(content, "\n") // eslint-disable-line quotes
-			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 				"Signature": signature,
 			})))
@@ -9459,7 +9459,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 					}
 				}
 			}
-			var timestamp string = this.Ymdhms(this.Nonce(), "T")
+			var timestamp any = this.Ymdhms(this.Nonce(), "T")
 			var request any = map[string]any{
 				"SignatureMethod":  "HmacSHA256",
 				"SignatureVersion": "2",
@@ -9469,14 +9469,14 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			// sorting needs such flow exactly, before urlencoding (more at: https://github.com/ccxt/ccxt/issues/24930 )
 			request = this.Keysort(request)
 			if IsTrue(!IsEqual(method, "POST")) {
-				var sortedQuery map[string]any = this.Keysort(query)
+				var sortedQuery any = this.Keysort(query)
 				request = this.Extend(request, sortedQuery)
 			}
 			var auth any = Replace(this.Urlencode(request, true), "%2c", "%2C") // in c# it manually needs to be uppercased
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
-			var content2 []any = []any{method, hostname, url, auth}
+			var content2 any = []any{method, hostname, url, auth}
 			var payload any = Join(content2, "\n") // eslint-disable-line quotes
-			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 				"Signature": signature,
 			})))
@@ -9850,7 +9850,7 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 	var rawPositionSide any = this.SafeString(position, "position_side")
 	// in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
 	var side any = directionSide
-	var isHedgedPositionSide bool = IsTrue((IsEqual(rawPositionSide, "long"))) || IsTrue((IsEqual(rawPositionSide, "short")))
+	var isHedgedPositionSide any = IsTrue((IsEqual(rawPositionSide, "long"))) || IsTrue((IsEqual(rawPositionSide, "short")))
 	if IsTrue(isHedgedPositionSide) {
 		side = rawPositionSide
 	}
@@ -9954,7 +9954,7 @@ func (this *HtxCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(symbolsLength, 0)) {
 			var first any = this.SafeString(symbols, 0)
 			market = this.Market(first)
@@ -10535,7 +10535,7 @@ func (this *HtxCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) an
 	symbols = this.MarketSymbols(symbols)
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(symbolsLength, 0)) {
 			var first any = this.SafeString(symbols, 0)
 			market = this.Market(first)
@@ -11758,7 +11758,7 @@ func (this *HtxCore) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any)
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(symbolsLength, 0)) {
 			var first any = this.SafeString(symbols, 0)
 			market = this.Market(first)

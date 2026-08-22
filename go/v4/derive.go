@@ -926,10 +926,10 @@ func (this *DeriveCore) fetchOptionMarketsBody(ch chan any, optionalArgs ...any)
 func (this *DeriveCore) ParseMarket(market any) any {
 	var typeVar any = this.SafeString(market, "instrument_type")
 	var marketType any = nil
-	var spot bool = false
-	var margin bool = true
-	var swap bool = false
-	var option bool = false
+	var spot any = false
+	var margin any = true
+	var swap any = false
+	var option any = false
 	var linear any = nil
 	var inverse any = nil
 	var baseId any = this.SafeString(market, "base_currency")
@@ -1326,7 +1326,7 @@ func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 			continue
 		}
 		var parsed any = this.ParseTrade(rawTrade, market)
-		var trade map[string]any = this.Extend(parsed, params)
+		var trade any = this.Extend(parsed, params)
 		AppendToArray(&result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
@@ -1623,9 +1623,9 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var postOnly any = this.SafeBool(params, "postOnly")
-	var orderType string = ToLower(typeVar)
-	var orderSide string = ToLower(side)
-	var nonce int64 = this.Milliseconds()
+	var orderType any = ToLower(typeVar)
+	var orderSide any = ToLower(side)
+	var nonce any = this.Milliseconds()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
 	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
@@ -1822,9 +1822,9 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var postOnly any = this.SafeBool(params, "postOnly")
-	var orderType string = ToLower(typeVar)
-	var orderSide string = ToLower(side)
-	var nonce int64 = this.Milliseconds()
+	var orderType any = ToLower(typeVar)
+	var orderSide any = ToLower(side)
+	var nonce any = this.Milliseconds()
 	var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
@@ -2310,7 +2310,7 @@ func (this *DeriveCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		retRes184112 := (<-this.LoadMarkets())
 		PanicOnError(retRes184112)
 	}
-	var extendedParams map[string]any = this.Extend(params, map[string]any{
+	var extendedParams any = this.Extend(params, map[string]any{
 		"status": "open",
 	})
 
@@ -2353,7 +2353,7 @@ func (this *DeriveCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		retRes186112 := (<-this.LoadMarkets())
 		PanicOnError(retRes186112)
 	}
-	var extendedParams map[string]any = this.Extend(params, map[string]any{
+	var extendedParams any = this.Extend(params, map[string]any{
 		"status": "filled",
 	})
 
@@ -2396,7 +2396,7 @@ func (this *DeriveCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any
 		retRes188112 := (<-this.LoadMarkets())
 		PanicOnError(retRes188112)
 	}
-	var extendedParams map[string]any = this.Extend(params, map[string]any{
+	var extendedParams any = this.Extend(params, map[string]any{
 		"status": "cancelled",
 	})
 
@@ -3439,7 +3439,7 @@ func (this *DeriveCore) Sign(path any, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 		if IsTrue(IsEqual(api, "private")) {
-			var now string = ToString(this.Milliseconds())
+			var now any = ToString(this.Milliseconds())
 			var signature any = this.SignMessage(now, this.PrivateKey)
 			AddElementToObject(headers, "X-LyraWallet", this.SafeString(this.Options, "deriveWalletAddress"))
 			AddElementToObject(headers, "X-LyraTimestamp", now)

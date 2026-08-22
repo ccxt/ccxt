@@ -1044,7 +1044,7 @@ func (this *BitsoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 			AddElementToObject(request, "end", this.Sum(since, Multiply(Multiply(duration, limit), 1000)))
 		}
 	} else if IsTrue(!IsEqual(limit, nil)) {
-		var now int64 = this.Milliseconds()
+		var now any = this.Milliseconds()
 		AddElementToObject(request, "end", now)
 		AddElementToObject(request, "start", Subtract(now, Multiply(Multiply(this.ParseTimeframe(timeframe), 1000), limit)))
 	}
@@ -1379,7 +1379,7 @@ func (this *BitsoCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	// convert it to an integer unconditionally
 	if IsTrue(markerInParams) {
-		var marker int64 = ParseInt(GetValue(params, "marker"))
+		var marker any = ParseInt(GetValue(params, "marker"))
 		params = this.Extend(params, map[string]any{
 			"marker": marker,
 		})
@@ -1697,7 +1697,7 @@ func (this *BitsoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	// convert it to an integer unconditionally
 	if IsTrue(markerInParams) {
-		var marker int64 = ParseInt(GetValue(params, "marker"))
+		var marker any = ParseInt(GetValue(params, "marker"))
 		params = this.Extend(params, map[string]any{
 			"marker": marker,
 		})
@@ -1750,7 +1750,7 @@ func (this *BitsoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	PanicOnError(response)
 	var payload any = this.SafeValue(response, "payload")
 	if IsTrue(IsArray(payload)) {
-		var numOrders int = GetArrayLength(payload)
+		var numOrders any = GetArrayLength(payload)
 		if IsTrue(IsEqual(numOrders, 1)) {
 
 			ch <- this.ParseOrder(GetValue(payload, 0))
@@ -1971,7 +1971,7 @@ func (this *BitsoCore) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	var address any = this.SafeString(payload, "account_identifier")
 	var tag any = nil
 	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(address, "?dt="), 0)) {
-		var parts []string = Split(address, "?dt=")
+		var parts any = Split(address, "?dt=")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 	}
@@ -2082,7 +2082,7 @@ func (this *BitsoCore) fetchTransactionFeesBody(ch chan any, optionalArgs ...any
 		}
 	}
 	var withdrawalFees any = this.SafeValue(payload, "withdrawal_fees", []any{})
-	var currencyIds []string = ObjectKeys(withdrawalFees)
+	var currencyIds any = ObjectKeys(withdrawalFees)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -2251,7 +2251,7 @@ func (this *BitsoCore) ParseDepositWithdrawFees(response any, optionalArgs ...an
 			}
 		}
 	}
-	var withdrawalKeys []string = ObjectKeys(withdrawalResponse)
+	var withdrawalKeys any = ObjectKeys(withdrawalResponse)
 	for i := 0; IsLessThan(i, GetArrayLength(withdrawalKeys)); i++ {
 		var currencyId any = GetValue(withdrawalKeys, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -2452,9 +2452,9 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), endpoint)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		endpoint = Add("/api", endpoint)
-		var content []any = []any{nonce, method, endpoint}
+		var content any = []any{nonce, method, endpoint}
 		var request any = Join(content, "")
 		if IsTrue(IsTrue(!IsEqual(method, "GET")) && IsTrue(!IsEqual(method, "DELETE"))) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
@@ -2462,7 +2462,7 @@ func (this *BitsoCore) Sign(path any, optionalArgs ...any) any {
 				request = Add(request, body)
 			}
 		}
-		var signature string = this.Hmac(this.Encode(request), this.Encode(this.Secret), sha256)
+		var signature any = this.Hmac(this.Encode(request), this.Encode(this.Secret), sha256)
 		var auth any = Add(Add(Add(Add(this.ApiKey, ":"), nonce), ":"), signature)
 		headers = map[string]any{
 			"Authorization": Add("Bitso ", auth),

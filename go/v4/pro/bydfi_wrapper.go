@@ -38,7 +38,10 @@ func (this *Bydfi) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions
 		opt(&opts)
 	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchTicker(symbol, params)
 	if ccxt.IsError(res) {
 		return ccxt.Ticker{}, ccxt.CreateReturnError(res)
@@ -63,7 +66,10 @@ func (this *Bydfi) UnWatchTicker(symbol string, options ...ccxt.UnWatchTickerOpt
 		opt(&opts)
 	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.UnWatchTicker(symbol, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -89,9 +95,15 @@ func (this *Bydfi) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Ticke
 		opt(&opts)
 	}
 
-	var symbols = opts.Symbols
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchTickers(symbols, params)
 	if ccxt.IsError(res) {
 		return ccxt.Tickers{}, ccxt.CreateReturnError(res)
@@ -117,9 +129,15 @@ func (this *Bydfi) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, e
 		opt(&opts)
 	}
 
-	var symbols = opts.Symbols
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.UnWatchTickers(symbols, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -147,13 +165,25 @@ func (this *Bydfi) WatchOHLCV(symbol string, options ...ccxt.WatchOHLCVOptions) 
 		opt(&opts)
 	}
 
-	var timeframe = opts.Timeframe
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
 
-	var since = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOHLCV(symbol, timeframe, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -179,9 +209,15 @@ func (this *Bydfi) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLCVOptio
 		opt(&opts)
 	}
 
-	var timeframe = opts.Timeframe
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.UnWatchOHLCV(symbol, timeframe, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -208,11 +244,20 @@ func (this *Bydfi) WatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options
 		opt(&opts)
 	}
 
-	var since = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOHLCVForSymbols(symbolsAndTimeframes, since, limit, params)
 	if ccxt.IsError(res) {
 		return map[string]map[string][]ccxt.OHLCV{}, ccxt.CreateReturnError(res)
@@ -237,7 +282,10 @@ func (this *Bydfi) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, optio
 		opt(&opts)
 	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.UnWatchOHLCVForSymbols(symbolsAndTimeframes, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -263,9 +311,15 @@ func (this *Bydfi) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookO
 		opt(&opts)
 	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOrderBook(symbol, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
@@ -290,7 +344,10 @@ func (this *Bydfi) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderB
 		opt(&opts)
 	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.UnWatchOrderBook(symbol, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -316,9 +373,15 @@ func (this *Bydfi) WatchOrderBookForSymbols(symbols []string, options ...ccxt.Wa
 		opt(&opts)
 	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOrderBookForSymbols(symbols, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.OrderBook{}, ccxt.CreateReturnError(res)
@@ -344,7 +407,10 @@ func (this *Bydfi) UnWatchOrderBookForSymbols(symbols []string, options ...ccxt.
 		opt(&opts)
 	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.UnWatchOrderBookForSymbols(symbols, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -371,13 +437,25 @@ func (this *Bydfi) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order
 		opt(&opts)
 	}
 
-	var symbol = opts.Symbol
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
 
-	var since = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOrders(symbol, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -404,11 +482,20 @@ func (this *Bydfi) WatchOrdersForSymbols(symbols []string, options ...ccxt.Watch
 		opt(&opts)
 	}
 
-	var since = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOrdersForSymbols(symbols, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -435,13 +522,25 @@ func (this *Bydfi) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt
 		opt(&opts)
 	}
 
-	var symbols = opts.Symbols
+	var symbols any = nil
+	if opts.Symbols != nil {
+		symbols = *opts.Symbols
+	}
 
-	var since = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchPositions(symbols, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)

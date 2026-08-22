@@ -34,7 +34,10 @@ func (this *Binanceusdm) TransferIn(code string, amount any, options ...Transfer
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.TransferIn(code, amount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
@@ -49,7 +52,10 @@ func (this *Binanceusdm) TransferOut(code string, amount any, options ...Transfe
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.TransferOut(code, amount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)

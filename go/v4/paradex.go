@@ -860,7 +860,7 @@ func (this *ParadexCore) ParseMarket(market any) any {
 	var assetKind any = this.SafeString(market, "asset_kind")
 	var isOptionPerpetual any = (IsEqual(assetKind, "PERP_OPTION"))
 	var isOptionDelivery any = (IsEqual(assetKind, "OPTION"))
-	var isOption bool = IsTrue(isOptionPerpetual) || IsTrue(isOptionDelivery)
+	var isOption any = IsTrue(isOptionPerpetual) || IsTrue(isOptionDelivery)
 	var typeVar any = Ternary(IsTrue((isOption)), "option", "swap")
 	var isSwap any = (IsEqual(typeVar, "swap"))
 	var marketId any = this.SafeString(market, "symbol")
@@ -1132,7 +1132,7 @@ func (this *ParadexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     GetValue(market, "id"),
 	}
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var duration any = this.ParseTimeframe(timeframe)
 	var until any = this.SafeInteger2(params, "until", "till", now)
 	var price any = this.SafeString(params, "price")
@@ -1555,7 +1555,7 @@ func (this *ParadexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amountString any = this.SafeString(trade, "size")
 	var side any = this.SafeStringLower(trade, "side")
 	var liability any = this.SafeStringLower(trade, "liquidity", "taker")
-	var isTaker bool = IsEqual(liability, "taker")
+	var isTaker any = IsEqual(liability, "taker")
 	var takerOrMaker any = Ternary(IsTrue((isTaker)), "taker", "maker")
 	var currencyId any = this.SafeString(trade, "fee_currency")
 	var code any = this.SafeCurrencyCode(currencyId)
@@ -2055,8 +2055,8 @@ func (this *ParadexCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	}
 	var market any = this.Market(symbol)
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType string = ToUpper(typeVar)
-	var orderSide string = ToUpper(side)
+	var orderType any = ToUpper(typeVar)
+	var orderSide any = ToUpper(side)
 	var request any = map[string]any{
 		"market":      GetValue(market, "id"),
 		"side":        orderSide,
@@ -2066,10 +2066,10 @@ func (this *ParadexCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
-	var isMarket bool = IsEqual(orderType, "MARKET")
+	var isMarket any = IsEqual(orderType, "MARKET")
 	var isTakeProfitOrder any = (!IsEqual(takeProfitPrice, nil))
 	var isStopLossOrder any = (!IsEqual(stopLossPrice, nil))
-	var isStopOrder bool = IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue(isTakeProfitOrder)) || IsTrue(isStopLossOrder)
+	var isStopOrder any = IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue(isTakeProfitOrder)) || IsTrue(isStopLossOrder)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	if !IsTrue(isMarket) {
@@ -2418,7 +2418,7 @@ func (this *ParadexCore) createOrdersBody(ch chan any, orders any, optionalArgs 
 		var amount any = this.SafeNumber(rawOrder, "amount")
 		var price any = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-		var extendedParams map[string]any = this.Extend(params, orderParams)
+		var extendedParams any = this.Extend(params, orderParams)
 		var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, extendedParams)
 
 		orderRequest = (<-this.SignOrderRequest(orderRequest))
@@ -2551,8 +2551,8 @@ func (this *ParadexCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-	var hasOrderIds bool = IsTrue((!IsEqual(ids, nil))) && IsTrue((IsArray(ids)))
-	var hasClientOrderIds bool = IsTrue((!IsEqual(clientOrderIds, nil))) && IsTrue((IsArray(clientOrderIds)))
+	var hasOrderIds any = IsTrue((!IsEqual(ids, nil))) && IsTrue((IsArray(ids)))
+	var hasClientOrderIds any = IsTrue((!IsEqual(clientOrderIds, nil))) && IsTrue((IsArray(clientOrderIds)))
 	if IsTrue(!IsTrue(hasOrderIds) && !IsTrue(hasClientOrderIds)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")))
 	}
@@ -2848,7 +2848,7 @@ func (this *ParadexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var orders any = this.SafeList(response, "results", []any{})
 	var paginationCursor any = this.SafeString(response, "next")
-	var ordersLength int = GetArrayLength(orders)
+	var ordersLength any = GetArrayLength(orders)
 	if IsTrue(IsTrue((!IsEqual(paginationCursor, nil))) && IsTrue((IsGreaterThan(ordersLength, 0)))) {
 		var first any = GetValue(orders, 0)
 		AddElementToObject(first, "next", paginationCursor)

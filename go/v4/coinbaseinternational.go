@@ -672,7 +672,7 @@ func (this *CoinbaseinternationalCore) fetchFundingRateHistoryBody(ch chan any, 
 	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
-	var pageKey string = "ccxtPageKey"
+	var pageKey any = "ccxtPageKey"
 	if IsTrue(paginate) {
 
 		retRes53819 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -1119,7 +1119,7 @@ func (this *CoinbaseinternationalCore) ParseNetworks(networks any, optionalArgs 
 	_ = params
 	var result any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(networks)); i++ {
-		var network map[string]any = this.Extend(this.ParseNetwork(GetValue(networks, i)), params)
+		var network any = this.Extend(this.ParseNetwork(GetValue(networks, i)), params)
 		AddElementToObject(result, GetValue(network, "network"), network)
 	}
 	return result
@@ -1253,7 +1253,7 @@ func (this *CoinbaseinternationalCore) fetchDepositsWithdrawalsBody(ch chan any,
 	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
-	var pageKey string = "ccxtPageKey"
+	var pageKey any = "ccxtPageKey"
 	if IsTrue(paginate) {
 
 		retRes98819 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -1398,7 +1398,7 @@ func (this *CoinbaseinternationalCore) ParsePosition(position any, optionalArgs 
 	var marketId any = this.SafeString(position, "symbol")
 	var quantity any = this.SafeString(position, "net_size")
 	market = this.SafeMarket(marketId, market, "-")
-	var side string = "long"
+	var side any = "long"
 	if IsTrue(Precise.StringLe(quantity, "0")) {
 		side = "short"
 		quantity = Precise.StringMul("-1", quantity)
@@ -2256,7 +2256,7 @@ func (this *CoinbaseinternationalCore) createOrderBody(ch chan any, symbol any, 
 		PanicOnError(retRes179112)
 	}
 	var market any = this.Market(symbol)
-	var typeId string = ToUpper(typeVar)
+	var typeId any = ToUpper(typeVar)
 	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var clientOrderIdprefix any = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
 	var clientOrderId any = Add(Add(clientOrderIdprefix, "-"), this.Uuid())
@@ -2727,7 +2727,7 @@ func (this *CoinbaseinternationalCore) fetchOpenOrdersBody(ch chan any, optional
 	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 	params = GetValue(maxEntriesPerRequestparamsVariable, 1)
-	var pageKey string = "ccxtPageKey"
+	var pageKey any = "ccxtPageKey"
 	if IsTrue(paginate) {
 
 		retRes216119 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
@@ -2836,7 +2836,7 @@ func (this *CoinbaseinternationalCore) fetchMyTradesBody(ch chan any, optionalAr
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var pageKey string = "ccxtPageKey"
+	var pageKey any = "ccxtPageKey"
 	var maxEntriesPerRequest any = 100
 	maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest)
 	maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
@@ -3011,7 +3011,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var version any = GetValue(api, 0)
-	var signed bool = IsEqual(GetValue(api, 1), "private")
+	var signed any = IsEqual(GetValue(api, 1), "private")
 	var fullPath any = Add(Add(Add("/", version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = Add("/api", fullPath)
@@ -3023,7 +3023,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), fullPath)
 	if IsTrue(signed) {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
@@ -3032,7 +3032,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var auth any = Add(Add(Add(nonce, method), savedPath), payload)
-		var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
+		var signature any = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
 		headers = map[string]any{
 			"CB-ACCESS-TIMESTAMP":  nonce,
 			"CB-ACCESS-SIGN":       signature,

@@ -673,7 +673,7 @@ func (this *BlofinCore) ParseMarket(market any) any {
 	var future any = (IsEqual(typeVar, "future"))
 	var swap any = (IsEqual(typeVar, "swap"))
 	var option any = (IsEqual(typeVar, "option"))
-	var contract bool = IsTrue(swap) || IsTrue(future)
+	var contract any = IsTrue(swap) || IsTrue(future)
 	var baseId any = this.SafeString(market, "baseCurrency")
 	var quoteId any = this.SafeString(market, "quoteCurrency")
 	var settleId any = this.SafeString(market, "settleCurrency", quoteId)
@@ -694,7 +694,7 @@ func (this *BlofinCore) ParseMarket(market any) any {
 	var maxLeverage any = this.SafeString(market, "maxLeverage", "100")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var isActive any = (IsEqual(this.SafeString(market, "state"), "live"))
-	var isMargin bool = IsTrue(spot) && IsTrue((Precise.StringGt(maxLeverage, "1")))
+	var isMargin any = IsTrue(spot) && IsTrue((Precise.StringGt(maxLeverage, "1")))
 	var contractType any = this.SafeString(market, "contractType")
 	var maxLimitAmount any = this.SafeNumber(market, "maxLimitSize")
 	var maxSpotCost any = this.SafeNumber(market, "maxMarketSize") // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -1615,9 +1615,9 @@ func (this *BlofinCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	if IsTrue(isHedged) {
 		AddElementToObject(request, "positionSide", Ternary(IsTrue((IsEqual(side, "buy"))), "long", "short"))
 	}
-	var isMarketOrder bool = IsEqual(typeVar, "market")
+	var isMarketOrder any = IsEqual(typeVar, "market")
 	params = this.Omit(params, []any{"timeInForce"})
-	var ioc bool = IsTrue((IsEqual(timeInForce, "IOC"))) || IsTrue((IsEqual(typeVar, "ioc")))
+	var ioc any = IsTrue((IsEqual(timeInForce, "IOC"))) || IsTrue((IsEqual(typeVar, "ioc")))
 	var marketIOC any = (IsTrue(isMarketOrder) && IsTrue(ioc))
 	if IsTrue(IsTrue(isMarketOrder) || IsTrue(marketIOC)) {
 		AddElementToObject(request, "orderType", "market")
@@ -1855,8 +1855,8 @@ func (this *BlofinCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	isTpslEndpointparamsVariable := this.HandleOptionAndParams(params, "createOrder", "tpsl", false)
 	isTpslEndpoint = GetValue(isTpslEndpointparamsVariable, 0)
 	params = GetValue(isTpslEndpointparamsVariable, 1)
-	var isCombinedSlTp bool = IsTrue((IsTrue(isStopLossPriceDefined) && IsTrue(isTakeProfitPriceDefined))) || IsTrue(isTpslEndpoint)
-	var isSlOrTp bool = IsTrue(isStopLossPriceDefined) || IsTrue(isTakeProfitPriceDefined)
+	var isCombinedSlTp any = IsTrue((IsTrue(isStopLossPriceDefined) && IsTrue(isTakeProfitPriceDefined))) || IsTrue(isTpslEndpoint)
+	var isSlOrTp any = IsTrue(isStopLossPriceDefined) || IsTrue(isTakeProfitPriceDefined)
 	var response any = nil
 	var reduceOnly any = this.SafeBool(params, "reduceOnly")
 	if IsTrue(!IsEqual(reduceOnly, nil)) {
@@ -2065,7 +2065,7 @@ func (this *BlofinCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
+		var extendedParams any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
 		AppendToArray(&ordersRequests, orderRequest)
 	}
@@ -2900,7 +2900,7 @@ func (this *BlofinCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...a
 	var request any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 0)) {
 			market = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "instId", GetValue(market, "id"))
@@ -3053,7 +3053,7 @@ func (this *BlofinCore) ParsePosition(position any, optionalArgs ...any) any {
 		var initialMarginPercentageString any = this.NumberToString(initialMarginPercentage)
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
-	var rounder string = "0.00005" // round to closest 0.01%
+	var rounder any = "0.00005" // round to closest 0.01%
 	var maintenanceMarginPercentage any = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4))
 	var liquidationPrice any = this.SafeNumber(position, "liquidationPrice")
 	var percentageString any = this.SafeString(position, "unrealizedPnlRatio")
@@ -3786,7 +3786,7 @@ func (this *BlofinCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp string = ToString(this.Milliseconds())
+		var timestamp any = ToString(this.Milliseconds())
 		headers = map[string]any{
 			"ACCESS-KEY":        this.ApiKey,
 			"ACCESS-PASSPHRASE": this.Password,

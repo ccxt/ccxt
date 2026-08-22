@@ -20,7 +20,7 @@ func testFetchHistoryBaseBody(ch chan any) any {
 		"fetchHistoryCacheSize": 2,
 	}, map[string]any{}, exchange)
 	assert(ccxt.IsEqual(ExchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2")
-	var trueAssertion bool = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
+	var trueAssertion any = ccxt.IsEqual(exchange.ParseNumber(nil), nil)
 
 	{
 		func() (ret_ any) {

@@ -441,13 +441,13 @@ func (this *ExtendedCore) HandleMyTrades(client any, message any) {
 		ccxt.AddElementToObject(symbols, symbol, true)
 		stored.(ccxt.Appender).Append(trade)
 	}
-	var keys []string = ccxt.ObjectKeys(symbols)
+	var keys any = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var messageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
-	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptions)); i++ {
 		var messageHash any = ccxt.GetValue(subscriptions, i)
 		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(messageHash, "myTrades:"), 0)) {
@@ -556,9 +556,9 @@ func (this *ExtendedCore) HandlePositions(client any, message any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts []string = ccxt.Split(messageHash, "::")
+		var parts any = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols []string = ccxt.Split(symbolsString, ",")
+		var symbols any = ccxt.Split(symbolsString, ",")
 		var filtered any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !ccxt.IsTrue(this.IsEmpty(filtered)) {
 			client.(ccxt.ClientInterface).Resolve(filtered, messageHash)
@@ -615,13 +615,13 @@ func (this *ExtendedCore) HandleOrders(client any, message any) {
 		ccxt.AddElementToObject(symbols, symbol, true)
 		orders.(ccxt.Appender).Append(order)
 	}
-	var keys []string = ccxt.ObjectKeys(symbols)
+	var keys any = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var messageHash any = ccxt.Add("orders:", ccxt.GetValue(keys, i))
 		client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	}
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
-	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptions)); i++ {
 		var messageHash any = ccxt.GetValue(subscriptions, i)
 		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetIndexOf(messageHash, "orders:"), 0)) {
@@ -1015,7 +1015,7 @@ func (this *ExtendedCore) HandleOHLCV(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
 func (this *ExtendedCore) FindSubscription(client any, name any) any {
-	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var keys any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), key)
@@ -1058,7 +1058,7 @@ func (this *ExtendedCore) HandleMessage(client any, message any) {
 	} else if ccxt.IsTrue(!ccxt.IsEqual(data, nil)) {
 		// an account frame may carry several sections at once, so these are
 		// not mutually exclusive and must not fall through to the order book
-		var isAccountUpdate bool = false
+		var isAccountUpdate any = false
 		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "ORDER"))) || ccxt.IsTrue((ccxt.InOp(data, "orders")))) {
 			this.HandleOrders(client, message)
 			isAccountUpdate = true

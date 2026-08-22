@@ -368,7 +368,7 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var result any = []any{}
 	var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
-	var quotes []string = ObjectKeys(quoteCurrencies)
+	var quotes any = ObjectKeys(quoteCurrencies)
 	var promises any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
 		var request any = map[string]any{
@@ -385,7 +385,7 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		var response any = GetValue(results, i)
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var extension any = this.SafeDict(quoteCurrencies, quote, map[string]any{})
-		var currencyIds []string = ObjectKeys(data)
+		var currencyIds any = ObjectKeys(data)
 		for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
 			var currencyId any = GetValue(currencyIds, j)
 			if IsTrue(IsEqual(currencyId, "date")) {
@@ -393,14 +393,14 @@ func (this *BithumbCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			}
 			var market any = GetValue(data, currencyId)
 			var base any = this.SafeCurrencyCode(currencyId)
-			var active bool = true
+			var active any = true
 			if IsTrue(IsArray(market)) {
-				var numElements int = GetArrayLength(market)
+				var numElements any = GetArrayLength(market)
 				if IsTrue(IsEqual(numElements, 0)) {
 					active = false
 				}
 			}
-			var entry map[string]any = this.DeepExtend(map[string]any{
+			var entry any = this.DeepExtend(map[string]any{
 				"id":             currencyId,
 				"symbol":         Add(Add(base, "/"), quote),
 				"base":           base,
@@ -458,7 +458,7 @@ func (this *BithumbCore) ParseBalance(response any) any {
 		"info": response,
 	}
 	var balances any = this.SafeDict(response, "data")
-	var codes []string = ObjectKeys(this.Currencies)
+	var codes any = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var account any = this.Account()
@@ -649,7 +649,7 @@ func (this *BithumbCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var result any = map[string]any{}
 	var quoteCurrencies any = this.SafeDict(this.Options, "quoteCurrencies", map[string]any{})
-	var quotes []string = ObjectKeys(quoteCurrencies)
+	var quotes any = ObjectKeys(quoteCurrencies)
 	var promises any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(quotes)); i++ {
 		var request any = map[string]any{
@@ -687,7 +687,7 @@ func (this *BithumbCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		var data any = this.SafeDict(response, "data", map[string]any{})
 		var timestamp any = this.SafeInteger(data, "date")
 		var tickers any = this.Omit(data, "date")
-		var currencyIds []string = ObjectKeys(tickers)
+		var currencyIds any = ObjectKeys(tickers)
 		for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
 			var currencyId any = GetValue(currencyIds, j)
 			var ticker any = GetValue(data, currencyId)
@@ -874,8 +874,8 @@ func (this *BithumbCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var timestamp any = nil
 	var transactionDatetime any = this.SafeString(trade, "transaction_date")
 	if IsTrue(!IsEqual(transactionDatetime, nil)) {
-		var parts []string = Split(transactionDatetime, " ")
-		var numParts int = GetArrayLength(parts)
+		var parts any = Split(transactionDatetime, " ")
+		var numParts any = GetArrayLength(parts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			var transactionDate any = GetValue(parts, 0)
 			var transactionTime any = GetValue(parts, 1)
@@ -1185,7 +1185,7 @@ func (this *BithumbCore) ParseOrder(order any, optionalArgs ...any) any {
 	var side any = Ternary(IsTrue((IsEqual(sideProperty, "bid"))), "buy", "sell")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "order_status"))
 	var price any = this.SafeString2(order, "order_price", "price")
-	var typeVar string = "limit"
+	var typeVar any = "limit"
 	if IsTrue(Precise.StringEquals(price, "0")) {
 		typeVar = "market"
 	}
@@ -1510,11 +1510,11 @@ func (this *BithumbCore) Sign(path any, optionalArgs ...any) any {
 			"endpoint": endpoint,
 		}, query))
 		// bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-		var bodyParts []string = Split(body, "%20")
+		var bodyParts any = Split(body, "%20")
 		body = Join(bodyParts, "+")
-		var nonce string = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), body), "//"+"0"), nonce) // eslint-disable-line quotes
-		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
+		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 		var signature64 any = this.StringToBase64(signature)
 		headers = map[string]any{
 			"Accept":       "application/json",

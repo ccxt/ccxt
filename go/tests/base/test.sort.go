@@ -30,7 +30,7 @@ func TestSort() {
 	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 1.5, 0.5, 2.5 ]), [ 0.5, 1.5, 2.5 ]);
 	// assertDeepEqual (exchange, undefined, 'sort', exchange.sort ([ 3.3, 1.1, 2.2 ]), [ 1.1, 2.2, 3.3 ]);
 	// immutability - original array should not be modified
-	var original []any = []any{"b", "a", "c"}
+	var original any = []any{"b", "a", "c"}
 	exchange.Sort(original)
 	AssertDeepEqual(exchange, nil, "sort", original, []any{"b", "a", "c"})
 }

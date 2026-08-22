@@ -24,7 +24,7 @@ func (this *BinancecoinmCore) Describe() any {
 	restInstance := ccxt.NewBinancecoinm(nil)
 	var restDescribe any = restInstance.Describe()
 	var parentWsDescribe any = this.base.DescribeData()
-	var extended map[string]any = this.DeepExtend(restDescribe, parentWsDescribe)
+	var extended any = this.DeepExtend(restDescribe, parentWsDescribe)
 	return this.DeepExtend(extended, map[string]any{
 		"id":   "binancecoinm",
 		"name": "Binance COIN-M",

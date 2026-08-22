@@ -2160,7 +2160,7 @@ func (this *BybitCore) AddPaginationCursorToResult(response any) any {
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeListN(result, []any{"list", "rows", "data", "dataList"}, []any{})
 	var paginationCursor any = this.SafeString2(result, "nextPageCursor", "cursor")
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	if IsTrue(IsTrue((!IsEqual(paginationCursor, nil))) && IsTrue((IsGreaterThan(dataLength, 0)))) {
 		var first any = GetValue(data, 0)
 		AddElementToObject(first, "nextPageCursor", paginationCursor)
@@ -2204,7 +2204,7 @@ func (this *BybitCore) isUnifiedEnabledBody(ch chan any, optionalArgs ...any) an
 			ch <- []any{GetValue(this.Options, "enableUnifiedMargin"), GetValue(this.Options, "enableUnifiedAccount")}
 			return nil
 		}
-		var rawPromises []any = []any{this.PrivateGetV5UserQueryApi(params), this.PrivateGetV5AccountInfo(params)}
+		var rawPromises any = []any{this.PrivateGetV5UserQueryApi(params), this.PrivateGetV5AccountInfo(params)}
 
 		promises := (<-promiseAll(rawPromises))
 		PanicOnError(promises)
@@ -2304,8 +2304,8 @@ func (this *BybitCore) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
 	var quote any = nil
 	var settle any = nil
-	var optionParts []string = Split(symbol, "-")
-	var symbolBase []string = Split(symbol, "/")
+	var optionParts any = Split(symbol, "-")
+	var symbolBase any = Split(symbol, "/")
 	var base any = nil
 	var expiry any = nil
 	if IsTrue(IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1))) {
@@ -2315,7 +2315,7 @@ func (this *BybitCore) CreateExpiredOptionMarket(symbol any) any {
 		if IsTrue(IsEqual(symbolQuoteAndSettle, nil)) {
 			panic(ExchangeError(Add(this.Id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")))
 		}
-		var splitQuote []string = Split(symbolQuoteAndSettle, ":")
+		var splitQuote any = Split(symbolQuoteAndSettle, ":")
 		var quoteAndSettle any = this.SafeString(splitQuote, 0)
 		quote = quoteAndSettle
 		settle = quoteAndSettle
@@ -2403,7 +2403,7 @@ func (this *BybitCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(1)))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(1))))))
+	var isOption any = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(1)))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(1))))))
 	if IsTrue(IsTrue(isOption) && IsTrue((IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -2505,7 +2505,7 @@ func (this *BybitCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
 	var list any = this.SafeList(result, "list", []any{})
-	var status string = "ok"
+	var status any = "ok"
 	var eta any = nil
 	var url any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(list)); i++ {
@@ -2724,7 +2724,7 @@ func (this *BybitCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var promisesUnresolved any = []any{}
 	var types any = nil
-	var defaultTypes []any = []any{"spot", "linear", "inverse", "option"}
+	var defaultTypes any = []any{"spot", "linear", "inverse", "option"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	if IsTrue(!IsEqual(fetchMarketsOptions, nil)) {
 		types = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
@@ -2929,7 +2929,7 @@ func (this *BybitCore) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) 
 		response = (<-this.PrivateGetV5MarketInstrumentsInfo(params))
 		PanicOnError(response)
 	} else {
-		var linearPromises []any = []any{this.PublicGetV5MarketInstrumentsInfo(params), this.PublicGetV5MarketInstrumentsInfo(this.Extend(params, map[string]any{
+		var linearPromises any = []any{this.PublicGetV5MarketInstrumentsInfo(params), this.PublicGetV5MarketInstrumentsInfo(this.Extend(params, map[string]any{
 			"status": "PreLaunch",
 		}))}
 
@@ -2956,7 +2956,7 @@ func (this *BybitCore) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) 
 			}
 			var dataNew any = this.SafeDict(responseInner, "result", map[string]any{})
 			var rawMarkets any = this.SafeList(dataNew, "list", []any{})
-			var rawMarketsLength int = GetArrayLength(rawMarkets)
+			var rawMarketsLength any = GetArrayLength(rawMarkets)
 			if IsTrue(IsEqual(rawMarketsLength, 0)) {
 				break
 			}
@@ -3043,8 +3043,8 @@ func (this *BybitCore) fetchFutureMarketsBody(ch chan any, optionalArgs ...any) 
 		var priceFilter any = this.SafeDict(market, "priceFilter", map[string]any{})
 		var leverage any = this.SafeDict(market, "leverageFilter", map[string]any{})
 		var status any = this.SafeString(market, "status")
-		var swap bool = IsTrue(linearPerpetual) || IsTrue(inversePerpetual)
-		var future bool = IsTrue(inverseFutures) || IsTrue(linearFutures)
+		var swap any = IsTrue(linearPerpetual) || IsTrue(inversePerpetual)
+		var future any = IsTrue(inverseFutures) || IsTrue(linearFutures)
 		var typeVar any = nil
 		if IsTrue(swap) {
 			typeVar = "swap"
@@ -3165,7 +3165,7 @@ func (this *BybitCore) fetchOptionMarketsBody(ch chan any, params any) any {
 				}
 				var dataNew any = this.SafeDict(responseInner, "result", map[string]any{})
 				var rawMarkets any = this.SafeList(dataNew, "list", []any{})
-				var rawMarketsLength int = GetArrayLength(rawMarkets)
+				var rawMarketsLength any = GetArrayLength(rawMarkets)
 				if IsTrue(IsEqual(rawMarketsLength, 0)) {
 					break
 				}
@@ -3226,11 +3226,11 @@ func (this *BybitCore) fetchOptionMarketsBody(ch chan any, params any) any {
 		if IsTrue(IsEqual(id, nil)) {
 			panic(ExchangeError(Add(this.Id, " method() missing id")))
 		}
-		var splitId []string = Split(id, "-")
+		var splitId any = Split(id, "-")
 		var strike any = this.SafeString(splitId, 2)
 		var optionLetter any = this.SafeString(splitId, 3)
 		var isActive any = (IsEqual(status, "Trading"))
-		var isInverse bool = IsEqual(base, settle)
+		var isInverse any = IsEqual(base, settle)
 		var loadExpiredOptions any = this.HandleOption("fetchMarkets", "loadExpiredOptions")
 		if IsTrue(IsTrue(IsTrue(isActive) || IsTrue(loadAllOptions)) || IsTrue(loadExpiredOptions)) {
 			AppendToArray(&result, this.SafeMarketStructure(map[string]any{
@@ -3371,7 +3371,7 @@ func (this *BybitCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isSpot bool = IsEqual(this.SafeString(ticker, "openInterestValue"), nil)
+	var isSpot any = IsEqual(this.SafeString(ticker, "openInterestValue"), nil)
 	var timestamp any = this.SafeInteger(ticker, "time")
 	var marketId any = this.SafeString(ticker, "symbol")
 	var typeVar any = Ternary(IsTrue(isSpot), "spot", "contract")
@@ -3925,7 +3925,7 @@ func (this *BybitCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) a
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -4636,7 +4636,7 @@ func (this *BybitCore) ParseBalance(response any) any {
 	var currencyList any = this.SafeListN(responseResult, []any{"loanAccountList", "list", "balance"})
 	if IsTrue(IsEqual(currencyList, nil)) {
 		// usdc wallet
-		var code string = "USDC"
+		var code any = "USDC"
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(responseResult, "availableBalance"))
 		AddElementToObject(account, "total", this.SafeString(responseResult, "walletBalance"))
@@ -4742,7 +4742,7 @@ func (this *BybitCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var isSpot any = (IsEqual(typeVar, "spot"))
 	var isLinear any = (IsEqual(typeVar, "linear"))
 	var isInverse any = (IsEqual(typeVar, "inverse"))
-	var isFunding bool = IsTrue((IsEqual(lowercaseRawType, "fund"))) || IsTrue((IsEqual(lowercaseRawType, "funding")))
+	var isFunding any = IsTrue((IsEqual(lowercaseRawType, "fund"))) || IsTrue((IsEqual(lowercaseRawType, "funding")))
 	if IsTrue(isUnifiedAccount) {
 		var unifiedMarginStatus any = this.SafeInteger(this.Options, "unifiedMarginStatus", 6)
 		if IsTrue(IsLessThan(unifiedMarginStatus, 5)) {
@@ -5062,7 +5062,7 @@ func (this *BybitCore) ParseOrder(order any, optionalArgs ...any) any {
 	var side any = this.SafeStringLower(order, "side")
 	var amount any = nil
 	var cost any = nil
-	var qtyIsQuote bool = IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue((IsEqual(typeVar, "market")))) && IsTrue((IsTrue((IsEqual(marketUnit, "quoteCoin"))) || IsTrue((IsTrue((IsEqual(marketUnit, nil))) && IsTrue((IsEqual(side, "buy")))))))
+	var qtyIsQuote any = IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue((IsEqual(typeVar, "market")))) && IsTrue((IsTrue((IsEqual(marketUnit, "quoteCoin"))) || IsTrue((IsTrue((IsEqual(marketUnit, nil))) && IsTrue((IsEqual(side, "buy")))))))
 	if IsTrue(qtyIsQuote) {
 		// qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
 		cost = this.SafeString(order, "cumExecValue")
@@ -5077,7 +5077,7 @@ func (this *BybitCore) ParseOrder(order any, optionalArgs ...any) any {
 	var status any = this.ParseOrderStatus(rawStatus)
 	var fee any = nil
 	var cumFeeDetail any = this.SafeDict(order, "cumFeeDetail", map[string]any{})
-	var feeCoins []string = ObjectKeys(cumFeeDetail)
+	var feeCoins any = ObjectKeys(cumFeeDetail)
 	var feeCoinId any = this.SafeString(feeCoins, 0)
 	if IsTrue(!IsEqual(feeCoinId, nil)) {
 		fee = map[string]any{
@@ -5098,7 +5098,7 @@ func (this *BybitCore) ParseOrder(order any, optionalArgs ...any) any {
 	var stopLossPrice any = this.OmitZero(this.SafeString(order, "stopLoss"))
 	var triggerDirection any = this.SafeString(order, "triggerDirection")
 	var isAscending any = (IsEqual(triggerDirection, "1"))
-	var isStopOrderType2 bool = IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue(reduceOnly)
+	var isStopOrderType2 any = IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue(reduceOnly)
 	if IsTrue(IsTrue((IsEqual(stopLossPrice, nil))) && IsTrue(isStopOrderType2)) {
 		// check if order is stop order type 2 - stopLossPrice
 		if IsTrue(IsTrue(isAscending) && IsTrue((IsEqual(side, "buy")))) {
@@ -5296,7 +5296,7 @@ func (this *BybitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	var isStopLossOrder any = !IsEqual(this.SafeString(params, "stopLossPrice"), nil)
 	var isTakeProfitOrder any = !IsEqual(this.SafeString(params, "takeProfitPrice"), nil)
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params, enableUnifiedAccount)
-	var switchToOco bool = IsTrue((IsTrue(isStopLossOrder) && IsTrue(isTakeProfitOrder))) || IsTrue(this.SafeBool(params, "tradingStopEndpoint", false))
+	var switchToOco any = IsTrue((IsTrue(isStopLossOrder) && IsTrue(isTakeProfitOrder))) || IsTrue(this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod any = nil
 	if IsTrue(IsTrue((IsTrue(isTrailingOrder) || IsTrue(switchToOco))) && !IsTrue(GetValue(market, "spot"))) {
 		defaultMethod = "privatePostV5PositionTradingStop"
@@ -5349,7 +5349,7 @@ func (this *BybitCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	}
 	var market any = this.Market(symbol)
 	symbol = GetValue(market, "symbol")
-	var lowerCaseType string = ToLower(typeVar)
+	var lowerCaseType any = ToLower(typeVar)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
@@ -5368,10 +5368,10 @@ func (this *BybitCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var isTakeProfitOrder any = !IsEqual(takeProfitTriggerPrice, nil)
 	var hasStopLoss any = !IsEqual(stopLoss, nil)
 	var hasTakeProfit any = !IsEqual(takeProfit, nil)
-	var isMarket bool = IsEqual(lowerCaseType, "market")
-	var isLimit bool = IsEqual(lowerCaseType, "limit")
-	var isBuy bool = IsEqual(side, "buy")
-	var switchToOco bool = IsTrue((IsTrue(isStopLossOrder) && IsTrue(isTakeProfitOrder))) || IsTrue(this.SafeBool(params, "tradingStopEndpoint", false))
+	var isMarket any = IsEqual(lowerCaseType, "market")
+	var isLimit any = IsEqual(lowerCaseType, "limit")
+	var isBuy any = IsEqual(side, "buy")
+	var switchToOco any = IsTrue((IsTrue(isStopLossOrder) && IsTrue(isTakeProfitOrder))) || IsTrue(this.SafeBool(params, "tradingStopEndpoint", false))
 	var defaultMethod any = nil
 	if IsTrue(IsTrue(isTrailingOrder) || IsTrue(switchToOco)) {
 		defaultMethod = "privatePostV5PositionTradingStop"
@@ -5382,7 +5382,7 @@ func (this *BybitCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	methodparamsVariable := this.HandleOptionAndParams(params, "createOrder", "method", defaultMethod)
 	method = GetValue(methodparamsVariable, 0)
 	params = GetValue(methodparamsVariable, 1)
-	var endpointIsTradingStop bool = IsEqual(method, "privatePostV5PositionTradingStop")
+	var endpointIsTradingStop any = IsEqual(method, "privatePostV5PositionTradingStop")
 	if IsTrue(IsTrue(IsTrue((IsEqual(price, nil))) && IsTrue((IsEqual(lowerCaseType, "limit")))) && !IsTrue(endpointIsTradingStop)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder requires a price argument for limit orders")))
 	}
@@ -5489,8 +5489,8 @@ func (this *BybitCore) CreateOrderRequest(symbol any, typeVar any, side any, amo
 	var cost any = this.SafeString(params, "cost")
 	params = this.Omit(params, "cost")
 	// if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
-	var isMarketBuyAndCostInferable bool = IsTrue(IsTrue((IsEqual(lowerCaseType, "market"))) && IsTrue((IsEqual(side, "buy")))) && IsTrue((IsTrue((!IsEqual(price, nil))) || IsTrue((!IsEqual(cost, nil)))))
-	var isMarketOrder bool = IsEqual(lowerCaseType, "market")
+	var isMarketBuyAndCostInferable any = IsTrue(IsTrue((IsEqual(lowerCaseType, "market"))) && IsTrue((IsEqual(side, "buy")))) && IsTrue((IsTrue((!IsEqual(price, nil))) || IsTrue((!IsEqual(cost, nil)))))
+	var isMarketOrder any = IsEqual(lowerCaseType, "market")
 	if IsTrue(IsTrue(IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue(isMarketOrder)) && IsTrue(isUTA)) && !IsTrue(isMarketBuyAndCostInferable)) {
 		// UTA account can specify the cost of the order on both sides
 		if IsTrue(IsTrue((!IsEqual(cost, nil))) || IsTrue((!IsEqual(price, nil)))) {
@@ -6284,7 +6284,7 @@ func (this *BybitCore) cancelOrdersForSymbolsBody(ch chan any, orders any, optio
 		category = currentCategory
 		var id any = this.SafeString(order, "id")
 		var clientOrderId any = this.SafeString(order, "clientOrderId")
-		var idKey string = "orderId"
+		var idKey any = "orderId"
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			idKey = "orderLinkId"
 		}
@@ -6490,7 +6490,7 @@ func (this *BybitCore) fetchOrderClassicBody(ch chan any, id any, optionalArgs .
 
 	result := (<-this.FetchOrdersClassic(symbol, nil, nil, this.Extend(request, params)))
 	PanicOnError(result)
-	var length int = GetArrayLength(result)
+	var length any = GetArrayLength(result)
 	if IsTrue(IsEqual(length, 0)) {
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
@@ -6623,7 +6623,7 @@ func (this *BybitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	var innerList any = this.SafeList(result, "list", []any{})
 	// the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
 	// see https://github.com/ccxt/ccxt/pull/29602
-	var innerListLength int = GetArrayLength(innerList)
+	var innerListLength any = GetArrayLength(innerList)
 	if IsTrue(IsEqual(innerListLength, 0)) {
 		var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
 		panic(OrderNotFound(Add(Add(Add("Order ", ToString(id)), " was not found."), extra)))
@@ -6812,7 +6812,7 @@ func (this *BybitCore) fetchClosedOrderBody(ch chan any, id any, optionalArgs ..
 
 	result := (<-this.FetchClosedOrders(symbol, nil, nil, this.Extend(request, params)))
 	PanicOnError(result)
-	var length int = GetArrayLength(result)
+	var length any = GetArrayLength(result)
 	if IsTrue(IsEqual(length, 0)) {
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
@@ -6866,7 +6866,7 @@ func (this *BybitCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...a
 
 	result := (<-this.FetchOpenOrders(symbol, nil, nil, this.Extend(request, params)))
 	PanicOnError(result)
-	var length int = GetArrayLength(result)
+	var length any = GetArrayLength(result)
 	if IsTrue(IsEqual(length, 0)) {
 		var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 		var extra any = Ternary(IsTrue(isTrigger), "", " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true")
@@ -7926,7 +7926,7 @@ func (this *BybitCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	enableUnified := (<-this.IsUnifiedEnabled())
 	PanicOnError(enableUnified)
 	var currency any = nil
-	var currencyKey string = "coin"
+	var currencyKey any = "coin"
 	if IsTrue(GetValue(enableUnified, 1)) {
 		currencyKey = "currency"
 		if IsTrue(!IsEqual(since, nil)) {
@@ -8396,7 +8396,7 @@ func (this *BybitCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var symbol any = nil
 	if IsTrue(IsTrue((!IsEqual(symbols, nil))) && IsTrue(IsArray(symbols))) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(symbolsLength, 1)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchPositions() does not accept an array with more than one symbol")))
 		} else if IsTrue(IsEqual(symbolsLength, 1)) {
@@ -8840,7 +8840,7 @@ func (this *BybitCore) setMarginModeBody(ch chan any, marginMode any, optionalAr
 			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol parameter for non unified account")))
 		}
 		market = this.Market(symbol)
-		var isUsdcSettled bool = IsEqual(GetValue(market, "settle"), "USDC")
+		var isUsdcSettled any = IsEqual(GetValue(market, "settle"), "USDC")
 		if IsTrue(isUsdcSettled) {
 			if IsTrue(IsEqual(marginMode, "cross")) {
 				marginMode = "REGULAR_MARGIN"
@@ -10175,7 +10175,7 @@ func (this *BybitCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var chains any = this.SafeList(fee, "chains", []any{})
-	var chainsLength int = GetArrayLength(chains)
+	var chainsLength any = GetArrayLength(chains)
 	var result any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -10710,7 +10710,7 @@ func (this *BybitCore) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			market = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -11032,7 +11032,7 @@ func (this *BybitCore) getLeverageTiersPaginatedBody(ch chan any, optionalArgs .
 	PanicOnError(response)
 	var result any = this.AddPaginationCursorToResult(response)
 	var first any = this.SafeDict(result, 0)
-	var total int = GetArrayLength(result)
+	var total any = GetArrayLength(result)
 	var lastIndex any = Subtract(total, 1)
 	var last any = this.SafeDict(result, lastIndex, map[string]any{})
 	var cursorValue any = this.SafeString(first, "nextPageCursor")
@@ -11115,8 +11115,8 @@ func (this *BybitCore) ParseLeverageTiers(response any, optionalArgs ...any) any
 	var marketIds any = this.MarketIds(symbols)
 	var idKey any = Ternary(IsTrue((IsEqual(marketIdKey, nil))), "symbol", marketIdKey)
 	var filteredResults any = this.FilterByArray(response, idKey, marketIds, false)
-	var grouped map[string]any = this.GroupBy(filteredResults, idKey)
-	var keys []string = ObjectKeys(grouped)
+	var grouped any = this.GroupBy(filteredResults, idKey)
+	var keys any = ObjectKeys(grouped)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var marketId any = GetValue(keys, i)
 		var entry any = GetValue(grouped, marketId)
@@ -12451,11 +12451,11 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var isOpenapi bool = IsGreaterThanOrEqual(GetIndexOf(url, "openapi"), 0)
-		var isV3UnifiedMargin bool = IsGreaterThanOrEqual(GetIndexOf(url, "unified/v3"), 0)
-		var isV3Contract bool = IsGreaterThanOrEqual(GetIndexOf(url, "contract/v3"), 0)
-		var isV5UnifiedAccount bool = IsGreaterThanOrEqual(GetIndexOf(url, "v5"), 0)
-		var timestamp string = ToString(this.Nonce())
+		var isOpenapi any = IsGreaterThanOrEqual(GetIndexOf(url, "openapi"), 0)
+		var isV3UnifiedMargin any = IsGreaterThanOrEqual(GetIndexOf(url, "unified/v3"), 0)
+		var isV3Contract any = IsGreaterThanOrEqual(GetIndexOf(url, "contract/v3"), 0)
+		var isV5UnifiedAccount any = IsGreaterThanOrEqual(GetIndexOf(url, "v5"), 0)
+		var timestamp any = ToString(this.Nonce())
 		if IsTrue(isOpenapi) {
 			if IsTrue(GetArrayLength(ObjectKeys(params))) {
 				body = this.Json(params)
@@ -12482,7 +12482,7 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(IsTrue(isV3UnifiedMargin) || IsTrue(isV3Contract)) {
 				AddElementToObject(headers, "X-BAPI-SIGN-TYPE", "2")
 			}
-			var query map[string]any = this.Extend(map[string]any{}, params)
+			var query any = this.Extend(map[string]any{}, params)
 			var queryEncoded any = this.Rawencode(query)
 			var auth_base any = Add(Add(ToString(timestamp), this.ApiKey), ToString(GetValue(this.Options, "recvWindow")))
 			var authFull any = nil
@@ -12501,12 +12501,12 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 			}
 			AddElementToObject(headers, "X-BAPI-SIGN", signature)
 		} else {
-			var query map[string]any = this.Extend(params, map[string]any{
+			var query any = this.Extend(params, map[string]any{
 				"api_key":     this.ApiKey,
 				"recv_window": GetValue(this.Options, "recvWindow"),
 				"timestamp":   timestamp,
 			})
-			var sortedQuery map[string]any = this.Keysort(query)
+			var sortedQuery any = this.Keysort(query)
 			var auth any = this.Rawencode(sortedQuery, true)
 			var signature any = nil
 			if IsTrue(IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), OpNeg(1))) {
@@ -12515,8 +12515,8 @@ func (this *BybitCore) Sign(path any, optionalArgs ...any) any {
 				signature = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			}
 			if IsTrue(IsEqual(method, "POST")) {
-				var isSpot bool = IsGreaterThanOrEqual(GetIndexOf(url, "spot"), 0)
-				var extendedQuery map[string]any = this.Extend(query, map[string]any{
+				var isSpot any = IsGreaterThanOrEqual(GetIndexOf(url, "spot"), 0)
+				var extendedQuery any = this.Extend(query, map[string]any{
 					"sign": signature,
 				})
 				if IsTrue(isSpot) {

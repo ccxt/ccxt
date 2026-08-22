@@ -106,7 +106,7 @@ func HelperTestProperties() {
 	//
 	// userAgents
 	//
-	var keys []any = []any{"chrome", "chrome39", "chrome100"}
+	var keys any = []any{"chrome", "chrome39", "chrome100"}
 	Assert(!ccxt.IsEqual(ExchangeProp(exchange, "userAgents"), nil))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)

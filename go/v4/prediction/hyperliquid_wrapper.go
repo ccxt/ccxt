@@ -62,7 +62,10 @@ func (this *Hyperliquid) FetchTicker(outcome string, options ...ccxt.FetchTicker
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchTicker(outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
@@ -87,9 +90,15 @@ func (this *Hyperliquid) FetchTickers(options ...FetchTickersOptions) (ccxt.Pred
 		opt(&opts)
 	}
 
-	var outcomes *[]string = opts.Outcomes
+	var outcomes any = nil
+	if opts.Outcomes != nil {
+		outcomes = *opts.Outcomes
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchTickers(outcomes, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
@@ -115,9 +124,15 @@ func (this *Hyperliquid) FetchOrderBook(outcome string, options ...ccxt.FetchOrd
 		opt(&opts)
 	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOrderBook(outcome, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrderBook{}, ccxt.CreateReturnError(res)
@@ -146,13 +161,25 @@ func (this *Hyperliquid) FetchOHLCV(outcome string, options ...ccxt.FetchOHLCVOp
 		opt(&opts)
 	}
 
-	var timeframe *string = opts.Timeframe
+	var timeframe any = nil
+	if opts.Timeframe != nil {
+		timeframe = *opts.Timeframe
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOHLCV(outcome, timeframe, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -195,9 +222,15 @@ func (this *Hyperliquid) FetchPositions(options ...FetchPositionsOptions) ([]ccx
 		opt(&opts)
 	}
 
-	var outcomes *[]string = opts.Outcomes
+	var outcomes any = nil
+	if opts.Outcomes != nil {
+		outcomes = *opts.Outcomes
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchPositions(outcomes, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -232,9 +265,15 @@ func (this *Hyperliquid) CreateOrder(outcome string, typeVar string, side string
 		opt(&opts)
 	}
 
-	var price *float64 = opts.Price
+	var price any = nil
+	if opts.Price != nil {
+		price = *opts.Price
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.CreateOrder(outcome, typeVar, side, amount, price, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
@@ -262,9 +301,15 @@ func (this *Hyperliquid) CancelOrder(id string, options ...CancelOrderOptions) (
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.CancelOrder(id, outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
@@ -290,9 +335,15 @@ func (this *Hyperliquid) CancelOrders(ids []string, options ...CancelOrdersOptio
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.CancelOrders(ids, outcome, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -321,13 +372,25 @@ func (this *Hyperliquid) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]c
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOpenOrders(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -355,13 +418,25 @@ func (this *Hyperliquid) FetchOrders(options ...FetchOrdersOptions) ([]ccxt.Pred
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOrders(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -389,9 +464,15 @@ func (this *Hyperliquid) FetchOrder(id string, options ...FetchOrderOptions) (cc
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOrder(id, outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
@@ -418,11 +499,20 @@ func (this *Hyperliquid) FetchTrades(outcome string, options ...ccxt.FetchTrades
 		opt(&opts)
 	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchTrades(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -451,13 +541,25 @@ func (this *Hyperliquid) FetchMyTrades(options ...FetchMyTradesOptions) ([]ccxt.
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchMyTrades(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -507,7 +609,10 @@ func (this *Hyperliquid) CreateMarketBuyOrderWithCost(outcome string, cost float
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.CreateMarketBuyOrderWithCost(outcome, cost, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
@@ -522,23 +627,16 @@ func (this *Hyperliquid) CreateMarketSellOrderWithCost(outcome string, cost floa
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.CreateMarketSellOrderWithCost(outcome, cost, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrder{}, ccxt.CreateReturnError(res)
 	}
 	return ccxt.NewPredictionOrder(res), nil
 }
-
-/**
- * @method
- * @name hyperliquid#createOrders
- * @description create a list of trade orders
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
- * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
- */
 func (this *Hyperliquid) CreateOrders(orders []ccxt.PredictionOrderRequest, options ...ccxt.CreateOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := ccxt.CreateOrdersOptionsStruct{}
@@ -547,7 +645,10 @@ func (this *Hyperliquid) CreateOrders(orders []ccxt.PredictionOrderRequest, opti
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.CreateOrders(ccxt.ConvertPredictionOrderRequestListToArray(orders), params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -566,18 +667,6 @@ func (this *Hyperliquid) FetchBorrowInterest(options ...ccxt.FetchBorrowInterest
 func (this *Hyperliquid) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchClosedOrders
- * @description fetch all unfilled currently closed orders
- * @param {string} symbol unified market symbol
- * @param {int} [since] the earliest time in ms to fetch open orders for
- * @param {int} [limit] the maximum number of open orders structures to retrieve
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {ccxt.Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
- */
 func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchClosedOrdersOptionsStruct{}
@@ -586,13 +675,25 @@ func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) 
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchClosedOrders(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -719,15 +820,6 @@ func (this *Hyperliquid) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMark
 func (this *Hyperliquid) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {
 	return this.exchangeTyped.FetchMyLiquidations(options...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchOpenInterest
- * @description retrieves the open interest of a contract trading pair
- * @param {string} symbol unified CCXT market symbol
- * @param {object} [params] exchange specific parameters
- * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
- */
 func (this *Hyperliquid) FetchOpenInterest(outcome string, options ...ccxt.FetchOpenInterestOptions) (ccxt.PredictionOpenInterest, error) {
 
 	opts := ccxt.FetchOpenInterestOptionsStruct{}
@@ -736,7 +828,10 @@ func (this *Hyperliquid) FetchOpenInterest(outcome string, options ...ccxt.Fetch
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOpenInterest(outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOpenInterest{}, ccxt.CreateReturnError(res)
@@ -766,13 +861,25 @@ func (this *Hyperliquid) FetchOrderTrades(id string, options ...FetchOrderTrades
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchOrderTrades(id, outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -782,17 +889,6 @@ func (this *Hyperliquid) FetchOrderTrades(id string, options ...FetchOrderTrades
 func (this *Hyperliquid) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchPosition
- * @description fetch data on an open position
- * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/perpetuals#retrieve-users-perpetuals-account-summary
- * @param {string} symbol unified market symbol of the market the position is held in
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
- */
 func (this *Hyperliquid) FetchPosition(outcome string, options ...ccxt.FetchPositionOptions) (ccxt.PredictionPosition, error) {
 
 	opts := ccxt.FetchPositionOptionsStruct{}
@@ -801,7 +897,10 @@ func (this *Hyperliquid) FetchPosition(outcome string, options ...ccxt.FetchPosi
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchPosition(outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionPosition{}, ccxt.CreateReturnError(res)
@@ -820,17 +919,6 @@ func (this *Hyperliquid) FetchStatus(params ...any) (ccxt.Status, error) {
 func (this *Hyperliquid) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
-
-/**
- * @method
- * @name hyperliquid#fetchTradingFee
- * @description fetch the trading fees for a market
- * @param {string} symbol unified market symbol
- * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.user] user address, will default to this.walletAddress if not provided
- * @param {string} [params.subAccountAddress] sub account user address
- * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
- */
 func (this *Hyperliquid) FetchTradingFee(outcome string, options ...ccxt.FetchTradingFeeOptions) (ccxt.PredictionTradingFee, error) {
 
 	opts := ccxt.FetchTradingFeeOptionsStruct{}
@@ -839,7 +927,10 @@ func (this *Hyperliquid) FetchTradingFee(outcome string, options ...ccxt.FetchTr
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchTradingFee(outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTradingFee{}, ccxt.CreateReturnError(res)
@@ -956,13 +1047,25 @@ func (this *Hyperliquid) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchMyTrades(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -983,9 +1086,15 @@ func (this *Hyperliquid) WatchOrderBook(outcome string, options ...ccxt.WatchOrd
 		opt(&opts)
 	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOrderBook(outcome, limit, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionOrderBook{}, ccxt.CreateReturnError(res)
@@ -1000,13 +1109,25 @@ func (this *Hyperliquid) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Pred
 		opt(&opts)
 	}
 
-	var outcome *string = opts.Outcome
+	var outcome any = nil
+	if opts.Outcome != nil {
+		outcome = *opts.Outcome
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchOrders(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -1021,13 +1142,25 @@ func (this *Hyperliquid) WatchPositions(options ...WatchPositionsOptions) ([]ccx
 		opt(&opts)
 	}
 
-	var outcomes *[]string = opts.Outcomes
+	var outcomes any = nil
+	if opts.Outcomes != nil {
+		outcomes = *opts.Outcomes
+	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchPositions(outcomes, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)
@@ -1042,7 +1175,10 @@ func (this *Hyperliquid) WatchTicker(outcome string, options ...ccxt.WatchTicker
 		opt(&opts)
 	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchTicker(outcome, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTicker{}, ccxt.CreateReturnError(res)
@@ -1057,9 +1193,15 @@ func (this *Hyperliquid) WatchTickers(options ...WatchTickersOptions) (ccxt.Pred
 		opt(&opts)
 	}
 
-	var outcomes *[]string = opts.Outcomes
+	var outcomes any = nil
+	if opts.Outcomes != nil {
+		outcomes = *opts.Outcomes
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchTickers(outcomes, params)
 	if ccxt.IsError(res) {
 		return ccxt.PredictionTickers{}, ccxt.CreateReturnError(res)
@@ -1074,11 +1216,20 @@ func (this *Hyperliquid) WatchTrades(outcome string, options ...ccxt.WatchTrades
 		opt(&opts)
 	}
 
-	var since *int64 = opts.Since
+	var since any = nil
+	if opts.Since != nil {
+		since = *opts.Since
+	}
 
-	var limit *int64 = opts.Limit
+	var limit any = nil
+	if opts.Limit != nil {
+		limit = *opts.Limit
+	}
 
-	var params *map[string]any = opts.Params
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.WatchTrades(outcome, since, limit, params)
 	if ccxt.IsError(res) {
 		return nil, ccxt.CreateReturnError(res)

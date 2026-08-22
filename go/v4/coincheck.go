@@ -354,7 +354,7 @@ func (this *CoincheckCore) ParseBalance(response any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var codes []string = ObjectKeys(this.Currencies)
+	var codes any = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var currency any = this.Currency(code)
@@ -408,7 +408,7 @@ func (this *CoincheckCore) fetchStatusBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var exchangeStatuses any = this.SafeList(response, "exchange_status", []any{})
-	var status string = "ok"
+	var status any = "ok"
 	var updated any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(exchangeStatuses)); i++ {
 		var exchangeStatus any = GetValue(exchangeStatuses, i)
@@ -1320,7 +1320,7 @@ func (this *CoincheckCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		var queryString any = ""
 		if IsTrue(IsEqual(method, "GET")) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {

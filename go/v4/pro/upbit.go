@@ -70,7 +70,7 @@ func (this *UpbitCore) watchPublicMultipleBody(ch chan any, symbols any, channel
 		"hostname": this.Hostname,
 	})
 	var client any = this.Client(url)
-	var subscriptionsKey string = "upbitPublicSubscriptions"
+	var subscriptionsKey any = "upbitPublicSubscriptions"
 	if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey))) {
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
 	}
@@ -91,7 +91,7 @@ func (this *UpbitCore) watchPublicMultipleBody(ch chan any, symbols any, channel
 	var finalMessage any = []any{map[string]any{
 		"ticket": this.Uuid(),
 	}}
-	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
+	var channelKeys any = ccxt.ObjectKeys(subscriptions)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(channelKeys)); i++ {
 		var key any = ccxt.GetValue(channelKeys, i)
 		ccxt.AppendToArray(&finalMessage, ccxt.GetValue(subscriptions, key))
@@ -509,7 +509,7 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 		ccxt.PanicOnError(retRes37312)
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
-		var symbols []any = []any{symbol}
+		var symbols any = []any{symbol}
 		var marketIds any = this.MarketIds(symbols)
 		ccxt.AddElementToObject(request, "codes", marketIds)
 		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -520,7 +520,7 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 	url = ccxt.Add(url, "/private")
 	var client any = this.Client(url)
 	// Track private channel subscriptions to support multiple concurrent watches
-	var subscriptionsKey string = "upbitPrivateSubscriptions"
+	var subscriptionsKey any = "upbitPrivateSubscriptions"
 	if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey))) {
 		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionsKey, map[string]any{})
 	}
@@ -536,7 +536,7 @@ func (this *UpbitCore) watchPrivateBody(ch chan any, symbol any, channel any, me
 	// Build subscription message with all requested private channels
 	// Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
 	var requests any = []any{}
-	var channelKeys []string = ccxt.ObjectKeys(subscriptions)
+	var channelKeys any = ccxt.ObjectKeys(subscriptions)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(channelKeys)); i++ {
 		ccxt.AppendToArray(&requests, ccxt.GetValue(subscriptions, ccxt.GetValue(channelKeys, i)))
 	}
@@ -585,8 +585,8 @@ func (this *UpbitCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes43112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes43112)
 	}
-	var channel string = "myOrder"
-	var messageHash string = "myOrder"
+	var channel any = "myOrder"
+	var messageHash any = "myOrder"
 
 	orders := (<-this.WatchPrivate(symbol, channel, messageHash))
 	ccxt.PanicOnError(orders)
@@ -630,8 +630,8 @@ func (this *UpbitCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes45512 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes45512)
 	}
-	var channel string = "myOrder"
-	var messageHash string = "myTrades"
+	var channel any = "myOrder"
+	var messageHash any = "myTrades"
 
 	trades := (<-this.WatchPrivate(symbol, channel, messageHash))
 	ccxt.PanicOnError(trades)
@@ -839,8 +839,8 @@ func (this *UpbitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		retRes65112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes65112)
 	}
-	var channel string = "myAsset"
-	var messageHash string = "myAsset"
+	var channel any = "myAsset"
+	var messageHash any = "myAsset"
 
 	retRes65515 := (<-this.WatchPrivate(nil, channel, messageHash))
 	ccxt.PanicOnError(retRes65515)

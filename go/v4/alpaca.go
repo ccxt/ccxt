@@ -662,7 +662,7 @@ func (this *AlpacaCore) ParseMarket(asset any) any {
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts []string = Split(marketId, "/")
+	var parts any = Split(marketId, "/")
 	var assetClass any = this.SafeString(asset, "class")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
@@ -1183,7 +1183,7 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//
 	var results any = []any{}
 	var snapshots any = this.SafeDict(response, "snapshots", map[string]any{})
-	var marketIds []string = ObjectKeys(snapshots)
+	var marketIds any = ObjectKeys(snapshots)
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var market any = this.SafeMarket(marketId)
@@ -1223,8 +1223,8 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *AlpacaCore) GenerateClientOrderId(params any) any {
 	var clientOrderIdprefix any = this.SafeString(this.Options, "clientOrderId")
-	var uuid string = this.Uuid()
-	var parts []string = Split(uuid, "-")
+	var uuid any = this.Uuid()
+	var parts any = Split(uuid, "-")
 	var random_id any = Join(parts, "")
 	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
@@ -2219,7 +2219,7 @@ func (this *AlpacaCore) fetchTransactionsHelperBody(ch chan any, typeVar any, co
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var sandboxMode bool = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
+	var sandboxMode any = IsTrue(this.IsSandboxModeEnabled) || IsTrue(this.SafeBool(this.Options, "sandboxMode", false))
 	if IsTrue(sandboxMode) {
 		// paper-trading hosts do not serve the crypto wallets api at all, so route
 		// through the account activities ledger instead, filtered to transfer-like
@@ -2250,7 +2250,7 @@ func (this *AlpacaCore) fetchTransactionsHelperBody(ch chan any, typeVar any, co
 			var entry any = GetValue(ledger, i)
 			var activityType any = this.SafeString(entry, "activity_type")
 			var amount any = this.SafeString(entry, "net_amount")
-			var isIncoming bool = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
+			var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(amount, "0"))))
 			var entryDirection any = Ternary(IsTrue(isIncoming), "INCOMING", "OUTGOING")
 			if IsTrue(IsTrue((IsEqual(typeVar, "BOTH"))) || IsTrue((IsEqual(entryDirection, typeVar)))) {
 				AppendToArray(&filtered, entry)
@@ -2449,7 +2449,7 @@ func (this *AlpacaCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var fee any = nil
 	if IsTrue(!IsEqual(activityType, nil)) {
 		var netAmount any = this.SafeString(transaction, "net_amount")
-		var isIncoming bool = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
+		var isIncoming any = IsTrue((IsEqual(activityType, "CSD"))) || IsTrue((IsTrue((IsEqual(activityType, "TRANS"))) && !IsTrue(Precise.StringLt(netAmount, "0"))))
 		timestamp = this.Parse8601(Add(this.SafeString(transaction, "date"), "T00:00:00Z"))
 		datetime = this.Iso8601(timestamp)
 		typeVar = Ternary(IsTrue(isIncoming), "deposit", "withdrawal")

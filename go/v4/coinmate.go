@@ -581,7 +581,7 @@ func (this *CoinmateCore) ParseBalance(response any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var currencyIds []string = ObjectKeys(balances)
+	var currencyIds any = ObjectKeys(balances)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -772,7 +772,7 @@ func (this *CoinmateCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var keys []string = ObjectKeys(data)
+	var keys any = ObjectKeys(data)
 	var result any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var market any = this.Market(GetValue(keys, i))
@@ -1007,7 +1007,7 @@ func (this *CoinmateCore) withdrawBody(ch chan any, code any, amount any, addres
 	var methods any = this.SafeValue(withdrawOptions, "methods", map[string]any{})
 	var method any = this.SafeString(methods, code)
 	if IsTrue(IsEqual(method, nil)) {
-		var allowedCurrencies []string = ObjectKeys(methods)
+		var allowedCurrencies any = ObjectKeys(methods)
 		panic(ExchangeError(Add(Add(this.Id, " withdraw() only allows withdrawing the following currencies: "), Join(allowedCurrencies, ", "))))
 	}
 	var request any = map[string]any{
@@ -1017,7 +1017,7 @@ func (this *CoinmateCore) withdrawBody(ch chan any, code any, amount any, addres
 	if IsTrue(!IsEqual(tag, nil)) {
 		AddElementToObject(request, "destinationTag", tag)
 	}
-	var requestParams map[string]any = this.Extend(request, params)
+	var requestParams any = this.Extend(request, params)
 	var response any = nil
 	if IsTrue(IsEqual(method, "privatePostBitcoinWithdrawal")) {
 
@@ -1562,7 +1562,7 @@ func (this *CoinmateCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		method = Add(method, this.Capitalize(typeVar))
 	}
-	var requestParams map[string]any = this.Extend(request, params)
+	var requestParams any = this.Extend(request, params)
 	var response any = nil
 	if IsTrue(IsEqual(method, "privatePostBuyInstant")) {
 
@@ -1701,9 +1701,9 @@ func (this *CoinmateCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
-		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		body = this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
 			"nonce":     nonce,

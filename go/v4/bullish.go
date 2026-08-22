@@ -950,11 +950,11 @@ func (this *BullishCore) ParseMarket(market any) any {
 	var settleId any = this.SafeString(market, "settlementAssetSymbol")
 	var settle any = this.SafeCurrencyCode(settleId)
 	var typeVar any = this.ParseMarketType(this.SafeString(market, "marketType"), "spot")
-	var spot bool = false
-	var swap bool = false
-	var future bool = false
-	var option bool = false
-	var contract bool = true
+	var spot any = false
+	var swap any = false
+	var future any = false
+	var option any = false
+	var contract any = true
 	var linear any = nil
 	var inverse any = nil
 	var expiryDatetime any = nil
@@ -975,7 +975,7 @@ func (this *BullishCore) ParseMarket(market any) any {
 			swap = true
 		} else {
 			expiryDatetime = this.SafeString(market, "expiryDatetime")
-			var idParts []string = Split(id, "-")
+			var idParts any = Split(id, "-")
 			var datePart any = this.SafeString(idParts, 2)
 			var dateYmd any = Slice(datePart, 2, nil)
 			symbol = Add(symbol, Add("-", dateYmd))
@@ -1969,7 +1969,7 @@ func (this *BullishCore) HandlePaginationParams(method any, optionalArgs ...any)
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var ninetyDays any = Multiply(Multiply(Multiply(Multiply(90, 24), 60), 60), 1000)
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var allowedSince any = Subtract(now, ninetyDays)
 	if IsTrue(IsTrue((!IsEqual(since, nil))) && IsTrue((IsLessThan(since, allowedSince)))) {
 		panic(BadRequest(Add(Add(Add(this.Id, " "), method), "() only allows fetching entries up to 90 days in the past")))
@@ -2003,7 +2003,7 @@ func (this *BullishCore) HandleSinceAndUntil(optionalArgs ...any) any {
 			params = this.Omit(params, "until")
 		} else if IsTrue(IsEqual(until, nil)) {
 			until = this.Sum(since, timeDelta)
-			var now int64 = this.Milliseconds()
+			var now any = this.Milliseconds()
 			if IsTrue(IsGreaterThan(until, now)) {
 				until = now
 			}
@@ -2514,7 +2514,7 @@ func (this *BullishCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	//         "requestId": "633900538459062272"
 	//     }
 	//
-	var orders []any = []any{response}
+	var orders any = []any{response}
 
 	ch <- this.ParseOrders(orders, market)
 	return nil
@@ -3082,7 +3082,7 @@ func (this *BullishCore) fetchDepositAddressBody(ch chan any, code any, optional
 	//     ]
 	//
 	var safeResponse any = this.ToArray(response)
-	var length int = GetArrayLength(safeResponse)
+	var length any = GetArrayLength(safeResponse)
 	var data any = this.SafeDict(safeResponse, 0, map[string]any{})
 	var network any = nil
 	networkparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -3408,7 +3408,7 @@ func (this *BullishCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 	var until any = this.SafeInteger(params, "until")
 	if IsTrue(IsTrue((IsEqual(since, nil))) && IsTrue((IsEqual(until, nil)))) {
 		// since and until are mandatory for this endpoint, set until to now if both are undefined
-		var now int64 = this.Milliseconds()
+		var now any = this.Milliseconds()
 		params = this.Extend(params, map[string]any{
 			"until": now,
 		})
@@ -3587,7 +3587,7 @@ func (this *BullishCore) fetchBorrowRateHistoryBody(ch chan any, code any, optio
 		"assetSymbol":      GetValue(currency, "id"),
 		"tradingAccountId": tradingAccountId,
 	}
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var startTimestamp any = since
 	requestparamsVariable := this.HandleUntilOption("createdAtDatetime[lte]", request, params)
 	request = GetValue(requestparamsVariable, 0)
@@ -3791,11 +3791,11 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), endpoint)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Microseconds())
-		var timestamp string = ToString(this.GetTimestamp())
+		var nonce any = ToString(this.Microseconds())
+		var timestamp any = ToString(this.GetTimestamp())
 		if IsTrue(IsEqual(method, "GET")) {
 			var payload any = Add(Add(Add(Add(timestamp, nonce), method), "/trading-api/"), path)
-			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
+			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
 				"BX-NONCE":     nonce,
@@ -3805,7 +3805,7 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(params)
 			var payload any = Add(Add(Add(Add(Add(timestamp, nonce), method), "/trading-api/"), path), body)
 			var digest any = this.Hash(this.Encode(payload), sha256, "hex")
-			var signature string = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
+			var signature any = this.Hmac(this.Encode(digest), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"BX-TIMESTAMP": timestamp,
 				"BX-NONCE":     nonce,
@@ -3891,7 +3891,7 @@ func (this *BullishCore) handleTokenBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var token any = this.Token
 	var tokenExpires any = this.SafeInteger(this.Options, "tokenExpires")
 	if IsTrue(IsTrue(IsTrue((IsEqual(token, nil))) || IsTrue((IsEqual(tokenExpires, nil)))) || IsTrue((IsGreaterThan(now, tokenExpires)))) {

@@ -4230,9 +4230,9 @@ func (this *BinanceCore) SetSandboxMode(enable any) {
 }
 func (this *BinanceCore) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
-	var settle string = "USDT"
-	var optionParts []string = Split(symbol, "-")
-	var symbolBase []string = Split(symbol, "/")
+	var settle any = "USDT"
+	var optionParts any = Split(symbol, "-")
+	var symbolBase any = Split(symbol, "/")
 	var base any = nil
 	if IsTrue(IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1))) {
 		base = this.SafeString(symbolBase, 0)
@@ -4300,9 +4300,9 @@ func (this *BinanceCore) Market(symbol any) any {
 	// defaultType has legacy support on binance
 	var defaultType any = this.SafeString(this.Options, "defaultType")
 	var defaultSubType any = this.SafeString(this.Options, "defaultSubType")
-	var isLegacyLinear bool = IsEqual(defaultType, "future")
-	var isLegacyInverse bool = IsEqual(defaultType, "delivery")
-	var isLegacy bool = IsTrue(isLegacyLinear) || IsTrue(isLegacyInverse)
+	var isLegacyLinear any = IsEqual(defaultType, "future")
+	var isLegacyInverse any = IsEqual(defaultType, "delivery")
+	var isLegacy any = IsTrue(isLegacyLinear) || IsTrue(isLegacyInverse)
 	if IsTrue(IsString(symbol)) {
 		if IsTrue(IsTrue((!IsEqual(this.Markets, nil))) && IsTrue((InOp(this.Markets, symbol)))) {
 			var market any = GetValue(this.Markets, symbol)
@@ -4361,7 +4361,7 @@ func (this *BinanceCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(1)))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(1))))))
+	var isOption any = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(1)))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(1))))))
 	if IsTrue(IsTrue(isOption) && IsTrue((IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -4896,7 +4896,7 @@ func (this *BinanceCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var promisesRaw any = []any{}
 	var rawFetchMarkets any = nil
-	var defaultTypes []any = []any{"spot", "linear", "inverse"}
+	var defaultTypes any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	if IsTrue(!IsEqual(fetchMarketsOptions, nil)) {
 		rawFetchMarkets = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
@@ -4912,7 +4912,7 @@ func (this *BinanceCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	}
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
-	var isDemoEnv bool = IsTrue(demoMode) || IsTrue(sandboxMode)
+	var isDemoEnv any = IsTrue(demoMode) || IsTrue(sandboxMode)
 	var fetchMarkets any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawFetchMarkets)); i++ {
 		var typeVar any = GetValue(rawFetchMarkets, i)
@@ -4953,8 +4953,8 @@ func (this *BinanceCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
 		var res any = this.SafeValue(results, i)
 		if IsTrue(IsTrue(fetchMargins) && IsTrue(IsArray(res))) {
-			var keysList []string = ObjectKeys(this.IndexBy(res, "symbol"))
-			var length int = GetArrayLength(GetValue(this.Options, "crossMarginPairsData"))
+			var keysList any = ObjectKeys(this.IndexBy(res, "symbol"))
+			var length any = GetArrayLength(GetValue(this.Options, "crossMarginPairsData"))
 			// first one is the cross-margin promise
 			if IsTrue(IsEqual(length, 0)) {
 				AddElementToObject(this.Options, "crossMarginPairsData", keysList)
@@ -5221,20 +5221,20 @@ func (this *BinanceCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BinanceCore) ParseMarket(market any) any {
-	var swap bool = false
-	var future bool = false
-	var option bool = false
+	var swap any = false
+	var future any = false
+	var option any = false
 	var underlying any = this.SafeString(market, "underlying")
 	var id any = this.SafeString(market, "symbol")
 	if IsTrue(IsEqual(id, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
 	}
-	var optionParts []string = Split(id, "-")
+	var optionParts any = Split(id, "-")
 	var optionBase any = this.SafeString(optionParts, 0)
 	var lowercaseId any = this.SafeStringLower(market, "symbol")
 	var baseId any = this.SafeString(market, "baseAsset", optionBase)
 	var quoteId any = this.SafeString(market, "quoteAsset")
-	var stock bool = false
+	var stock any = false
 	if IsTrue(InOp(market, "tradability")) {
 		quoteId = "USDC"
 		stock = true
@@ -5258,7 +5258,7 @@ func (this *BinanceCore) ParseMarket(market any) any {
 	var settle any = this.SafeCurrencyCode(settleId)
 	var spot any = !IsTrue(contract)
 	var filters any = this.SafeList(market, "filters", []any{})
-	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
+	var filtersByType any = this.IndexBy(filters, "filterType")
 	var status any = this.SafeString2(market, "status", "contractStatus")
 	var contractSize any = nil
 	var fees any = this.Fees
@@ -5294,8 +5294,8 @@ func (this *BinanceCore) ParseMarket(market any) any {
 	var isMarginTradingAllowed any = this.SafeBool(market, "isMarginTradingAllowed", false)
 	var marginModes any = nil
 	if IsTrue(spot) {
-		var hasCrossMargin bool = this.InArray(id, GetValue(this.Options, "crossMarginPairsData"))
-		var hasIsolatedMargin bool = this.InArray(id, GetValue(this.Options, "isolatedMarginPairsData"))
+		var hasCrossMargin any = this.InArray(id, GetValue(this.Options, "crossMarginPairsData"))
+		var hasIsolatedMargin any = this.InArray(id, GetValue(this.Options, "isolatedMarginPairsData"))
 		marginModes = map[string]any{
 			"cross":    hasCrossMargin,
 			"isolated": hasIsolatedMargin,
@@ -5441,8 +5441,8 @@ func (this *BinanceCore) ParseBalanceCustom(response any, optionalArgs ...any) a
 		"info": response,
 	}
 	var timestamp any = nil
-	var isolated bool = IsEqual(marginMode, "isolated")
-	var cross bool = IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsEqual(marginMode, "cross")))
+	var isolated any = IsEqual(marginMode, "isolated")
+	var cross any = IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsEqual(marginMode, "cross")))
 	if IsTrue(isPortfolioMargin) {
 		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 			var entry any = GetValue(response, i)
@@ -6843,7 +6843,7 @@ func (this *BinanceCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		panic(ExchangeError(Add(this.Id, " fetchOHLCV() missing marketId")))
 	}
 	if IsTrue(IsEqual(price, "index")) {
-		var parts []string = Split(marketId, "_")
+		var parts any = Split(marketId, "_")
 		var pair any = this.SafeString(parts, 0)
 		AddElementToObject(request, "pair", pair) // Index price takes this argument instead of symbol
 	} else {
@@ -6860,7 +6860,7 @@ func (this *BinanceCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 			if IsTrue(IsGreaterThan(since, 0)) {
 				var duration any = this.ParseTimeframe(timeframe)
 				var endTime any = this.Sum(since, Subtract(Multiply(Multiply(limit, duration), 1000), 1))
-				var now int64 = this.Milliseconds()
+				var now any = this.Milliseconds()
 				AddElementToObject(request, "endTime", mathMin(now, endTime))
 			}
 		}
@@ -7169,7 +7169,7 @@ func (this *BinanceCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var amount any = this.SafeString2(trade, "q", "qty")
 	amount = this.SafeString(trade, "quantity", amount)
 	var marketId any = this.SafeString(trade, "symbol")
-	var isSpotTrade bool = IsTrue(IsTrue(IsTrue((InOp(trade, "isIsolated"))) || IsTrue((InOp(trade, "M")))) || IsTrue((InOp(trade, "orderListId")))) || IsTrue((InOp(trade, "isMaker")))
+	var isSpotTrade any = IsTrue(IsTrue(IsTrue((InOp(trade, "isIsolated"))) || IsTrue((InOp(trade, "M")))) || IsTrue((InOp(trade, "orderListId")))) || IsTrue((InOp(trade, "isMaker")))
 	var marketType any = Ternary(IsTrue(isSpotTrade), "spot", "contract")
 	market = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol any = GetValue(market, "symbol")
@@ -7312,7 +7312,7 @@ func (this *BinanceCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	method = this.SafeString2(params, "fetchTradesMethod", "method", method)
 	if IsTrue(!IsEqual(limit, nil)) {
 		var isFutureOrSwap any = (IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future")))
-		var isHistoricalEndpoint bool = IsTrue((!IsEqual(method, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(method, "GetHistoricalTrades"), 0)))
+		var isHistoricalEndpoint any = IsTrue((!IsEqual(method, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(method, "GetHistoricalTrades"), 0)))
 		var maxLimitForContractHistorical any = Ternary(IsTrue(isHistoricalEndpoint), 500, 1000)
 		AddElementToObject(request, "limit", Ternary(IsTrue(isFutureOrSwap), mathMin(limit, maxLimitForContractHistorical), limit)) // default = 500, maximum = 1000
 	}
@@ -7571,7 +7571,7 @@ func (this *BinanceCore) EditSpotOrderRequest(id any, symbol any, typeVar any, s
 		"symbol": GetValue(market, "id"),
 		"side":   ToUpper(side),
 	}
-	var initialUppercaseType string = ToUpper(typeVar)
+	var initialUppercaseType any = ToUpper(typeVar)
 	var uppercaseType any = initialUppercaseType
 	var postOnly any = this.IsPostOnly(IsEqual(initialUppercaseType, "MARKET"), IsEqual(initialUppercaseType, "LIMIT_MAKER"), params)
 	if IsTrue(postOnly) {
@@ -7606,10 +7606,10 @@ func (this *BinanceCore) EditSpotOrderRequest(id any, symbol any, typeVar any, s
 		AddElementToObject(request, "newClientOrderId", clientOrderId)
 	}
 	AddElementToObject(request, "newOrderRespType", this.SafeValue(GetValue(this.Options, "newOrderRespType"), typeVar, "RESULT")) // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
-	var timeInForceIsRequired bool = false
-	var priceIsRequired bool = false
-	var triggerPriceIsRequired bool = false
-	var quantityIsRequired bool = false
+	var timeInForceIsRequired any = false
+	var priceIsRequired any = false
+	var triggerPriceIsRequired any = false
+	var quantityIsRequired any = false
 	if IsTrue(IsEqual(uppercaseType, "MARKET")) {
 		var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
 		if IsTrue(quoteOrderQty) {
@@ -8620,7 +8620,7 @@ func (this *BinanceCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var status any = this.ParseOrderStatus(this.SafeStringN(order, []any{"status", "strategyStatus", "algoStatus"}))
 	var marketId any = this.SafeString(order, "symbol")
-	var isContract bool = IsTrue((InOp(order, "positionSide"))) || IsTrue((InOp(order, "cumQuote")))
+	var isContract any = IsTrue((InOp(order, "positionSide"))) || IsTrue((InOp(order, "cumQuote")))
 	var marketType any = Ternary(IsTrue(isContract), "contract", "spot")
 	var symbol any = this.SafeSymbol(marketId, market, nil, marketType)
 	var filled any = this.SafeString2(order, "executedQty", "filledQty", "0")
@@ -8653,7 +8653,7 @@ func (this *BinanceCore) ParseOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = "PO"
 	}
-	var postOnly bool = IsTrue((IsEqual(typeVar, "limit_maker"))) || IsTrue((IsEqual(timeInForce, "PO")))
+	var postOnly any = IsTrue((IsEqual(typeVar, "limit_maker"))) || IsTrue((IsEqual(timeInForce, "PO")))
 	var stopPriceString any = this.SafeString2(order, "stopPrice", "triggerPrice")
 	var triggerPrice any = this.ParseNumber(this.OmitZero(stopPriceString))
 	var feeCost any = this.SafeNumber(order, "fee")
@@ -8867,7 +8867,7 @@ func (this *BinanceCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
 	var isStopLoss any = !IsEqual(stopLossPrice, nil)
 	var isTakeProfit any = !IsEqual(takeProfitPrice, nil)
-	var isConditional bool = IsTrue(IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue(isTrailingPercentOrder)) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit)
+	var isConditional any = IsTrue(IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue(isTrailingPercentOrder)) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit)
 	var sor any = this.SafeBool2(params, "sor", "SOR", false)
 	var test any = this.SafeBool(params, "test", false)
 	var stock any = this.SafeBool(market, "stock", false)
@@ -8998,10 +8998,10 @@ func (this *BinanceCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var marketType any = this.SafeString(params, "type", GetValue(market, "type"))
 	var stock any = this.SafeBool(market, "stock", false)
 	var clientOrderId any = this.SafeStringN(params, []any{"clientAlgoId", "newClientOrderId", "clientOrderId"})
-	var initialUppercaseType string = ToUpper(typeVar)
-	var isMarketOrder bool = IsEqual(initialUppercaseType, "MARKET")
-	var isLimitOrder bool = IsEqual(initialUppercaseType, "LIMIT")
-	var upperCaseSide string = ToUpper(side)
+	var initialUppercaseType any = ToUpper(typeVar)
+	var isMarketOrder any = IsEqual(initialUppercaseType, "MARKET")
+	var isLimitOrder any = IsEqual(initialUppercaseType, "LIMIT")
+	var upperCaseSide any = ToUpper(side)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   upperCaseSide,
@@ -9029,13 +9029,13 @@ func (this *BinanceCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	var trailingPercent any = this.SafeStringN(params, []any{"trailingPercent", "callbackRate", "trailingDelta"})
 	var priceMatch any = this.SafeString(params, "priceMatch")
 	var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
-	var isStopLoss bool = IsTrue(!IsEqual(stopLossPrice, nil)) || IsTrue(!IsEqual(trailingDelta, nil))
+	var isStopLoss any = IsTrue(!IsEqual(stopLossPrice, nil)) || IsTrue(!IsEqual(trailingDelta, nil))
 	var isTakeProfit any = !IsEqual(takeProfitPrice, nil)
 	var isTriggerOrder any = !IsEqual(triggerPrice, nil)
-	var isConditional bool = IsTrue(IsTrue(IsTrue(isTriggerOrder) || IsTrue(isTrailingPercentOrder)) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit)
+	var isConditional any = IsTrue(IsTrue(IsTrue(isTriggerOrder) || IsTrue(isTrailingPercentOrder)) || IsTrue(isStopLoss)) || IsTrue(isTakeProfit)
 	var isPortfolioMarginConditional any = (IsTrue(isPortfolioMargin) && IsTrue(isConditional))
 	var isPriceMatch any = !IsEqual(priceMatch, nil)
-	var priceRequiredForTrailing bool = true
+	var priceRequiredForTrailing any = true
 	var uppercaseType any = ToUpper(typeVar)
 	var stopPrice any = nil
 	if IsTrue(isTrailingPercentOrder) {
@@ -9163,10 +9163,10 @@ func (this *BinanceCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	AddElementToObject(request, typeRequest, uppercaseType)
 	// additional required fields depending on the order type
 	var closePosition any = this.SafeBool(params, "closePosition", false)
-	var timeInForceIsRequired bool = false
-	var priceIsRequired bool = false
-	var triggerPriceIsRequired bool = false
-	var quantityIsRequired bool = false
+	var timeInForceIsRequired any = false
+	var priceIsRequired any = false
+	var triggerPriceIsRequired any = false
+	var quantityIsRequired any = false
 	//
 	// spot/margin
 	//
@@ -9546,10 +9546,10 @@ func (this *BinanceCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = GetValue(isPortfolioMarginparamsVariable, 1)
 	var isConditional any = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
-	var isOptionType bool = IsEqual(typeVar, "option")
+	var isOptionType any = IsEqual(typeVar, "option")
 	var isLinearType any = this.IsLinear(typeVar, subType)
 	var isInverseType any = this.IsInverse(typeVar, subType)
-	var isLinearSwapConditional bool = IsTrue(IsTrue(IsTrue(IsTrue(isLinearType) && IsTrue((!IsEqual(market, nil)))) && IsTrue(GetValue(market, "swap"))) && IsTrue(isConditional)) && !IsTrue(isPortfolioMargin)
+	var isLinearSwapConditional any = IsTrue(IsTrue(IsTrue(IsTrue(isLinearType) && IsTrue((!IsEqual(market, nil)))) && IsTrue(GetValue(market, "swap"))) && IsTrue(isConditional)) && !IsTrue(isPortfolioMargin)
 	var clientOrderId any = this.SafeStringN(params, []any{"origClientOrderId", "clientOrderId", "clientAlgoId"})
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		if IsTrue(isOptionType) {
@@ -9715,7 +9715,7 @@ func (this *BinanceCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = GetValue(isPortfolioMarginparamsVariable, 1)
 	var isConditional any = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
-	var isOptionType bool = IsEqual(typeVar, "option")
+	var isOptionType any = IsEqual(typeVar, "option")
 	var isLinearType any = this.IsLinear(typeVar, subType)
 	var isInverseType any = this.IsInverse(typeVar, subType)
 	var until any = this.SafeIntegerN(params, []any{"until", "till", "endTime"})
@@ -10709,10 +10709,10 @@ func (this *BinanceCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	isPortfolioMargin = GetValue(isPortfolioMarginparamsVariable, 0)
 	params = GetValue(isPortfolioMarginparamsVariable, 1)
 	var isConditional any = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
-	var isOptionType bool = IsEqual(typeVar, "option")
+	var isOptionType any = IsEqual(typeVar, "option")
 	var isLinearType any = this.IsLinear(typeVar, subType)
 	var isInverseType any = this.IsInverse(typeVar, subType)
-	var isSwapConditional bool = IsTrue(IsTrue(IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "swap"))) && IsTrue(isConditional)) && !IsTrue(isPortfolioMargin)
+	var isSwapConditional any = IsTrue(IsTrue(IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "swap"))) && IsTrue(isConditional)) && !IsTrue(isPortfolioMargin)
 	var clientOrderId any = this.SafeStringN(params, []any{"origClientOrderId", "clientOrderId", "newClientStrategyId", "clientAlgoId"})
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		if IsTrue(isOptionType) {
@@ -10884,7 +10884,7 @@ func (this *BinanceCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	subTypeparamsVariable := this.HandleSubTypeAndParams("cancelAllOrders", market, params)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	var isOptionType bool = IsEqual(typeVar, "option")
+	var isOptionType any = IsEqual(typeVar, "option")
 	var isLinearType any = this.IsLinear(typeVar, subType)
 	var isInverseType any = this.IsInverse(typeVar, subType)
 	params = this.Omit(params, []any{"stop", "trigger", "conditional"})
@@ -11206,7 +11206,7 @@ func (this *BinanceCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		// If startTime and endTime are both not sent, then the last 7 days' data will be returned.
 		// The time between startTime and endTime cannot be longer than 7 days.
 		// The parameter fromId cannot be sent with startTime or endTime.
-		var currentTimestamp int64 = this.Milliseconds()
+		var currentTimestamp any = this.Milliseconds()
 		var oneWeek any = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000)
 		if IsTrue(IsGreaterThanOrEqual((Subtract(currentTimestamp, startTime)), oneWeek)) {
 			if IsTrue(IsTrue((IsEqual(endTime, nil))) && IsTrue(this.SafeBool(market, "linear"))) {
@@ -11577,7 +11577,7 @@ func (this *BinanceCore) ParseDustTrade(trade any, optionalArgs ...any) any {
 	var bnb any = this.Currency("BNB")
 	var earnedCurrency any = GetValue(bnb, "code")
 	var applicantSymbol any = Add(Add(earnedCurrency, "/"), tradedCurrency)
-	var tradedCurrencyIsQuote bool = false
+	var tradedCurrencyIsQuote any = false
 	if IsTrue(IsTrue((!IsEqual(this.Markets, nil))) && IsTrue((InOp(this.Markets, applicantSymbol)))) {
 		tradedCurrencyIsQuote = true
 	}
@@ -12097,7 +12097,7 @@ func (this *BinanceCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var toAccount any = nil
 	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
 	if IsTrue(!IsEqual(typeVar, nil)) {
-		var parts []string = Split(typeVar, "_")
+		var parts any = Split(typeVar, "_")
 		fromAccount = this.SafeValue(parts, 0)
 		toAccount = this.SafeValue(parts, 1)
 		fromAccount = this.SafeString(accountsById, fromAccount, fromAccount)
@@ -12196,8 +12196,8 @@ func (this *BinanceCore) transferBody(ch chan any, code any, amount any, fromAcc
 			market = this.Market(symbol)
 			params = this.Omit(params, "symbol")
 		}
-		var fromId string = ToUpper(this.ConvertTypeToAccount(fromAccount))
-		var toId string = ToUpper(this.ConvertTypeToAccount(toAccount))
+		var fromId any = ToUpper(this.ConvertTypeToAccount(fromAccount))
+		var toId any = ToUpper(this.ConvertTypeToAccount(toAccount))
 		var isolatedSymbol any = nil
 		if IsTrue(!IsEqual(market, nil)) {
 			isolatedSymbol = GetValue(market, "id")
@@ -12222,13 +12222,13 @@ func (this *BinanceCore) transferBody(ch chan any, code any, amount any, fromAcc
 			isolatedSymbol = toId
 		}
 		if IsTrue(IsTrue(fromIsolated) || IsTrue(toIsolated)) {
-			var fromFuture bool = IsTrue(IsEqual(fromId, "UMFUTURE")) || IsTrue(IsEqual(fromId, "CMFUTURE"))
-			var toFuture bool = IsTrue(IsEqual(toId, "UMFUTURE")) || IsTrue(IsEqual(toId, "CMFUTURE"))
-			var fromSpot bool = IsEqual(fromId, "MAIN")
-			var toSpot bool = IsEqual(toId, "MAIN")
-			var funding bool = IsTrue(IsEqual(fromId, "FUNDING")) || IsTrue(IsEqual(toId, "FUNDING"))
-			var option bool = IsTrue(IsEqual(fromId, "OPTION")) || IsTrue(IsEqual(toId, "OPTION"))
-			var prohibitedWithIsolated bool = IsTrue(IsTrue(IsTrue(fromFuture) || IsTrue(toFuture)) || IsTrue(funding)) || IsTrue(option)
+			var fromFuture any = IsTrue(IsEqual(fromId, "UMFUTURE")) || IsTrue(IsEqual(fromId, "CMFUTURE"))
+			var toFuture any = IsTrue(IsEqual(toId, "UMFUTURE")) || IsTrue(IsEqual(toId, "CMFUTURE"))
+			var fromSpot any = IsEqual(fromId, "MAIN")
+			var toSpot any = IsEqual(toId, "MAIN")
+			var funding any = IsTrue(IsEqual(fromId, "FUNDING")) || IsTrue(IsEqual(toId, "FUNDING"))
+			var option any = IsTrue(IsEqual(fromId, "OPTION")) || IsTrue(IsEqual(toId, "OPTION"))
+			var prohibitedWithIsolated any = IsTrue(IsTrue(IsTrue(fromFuture) || IsTrue(toFuture)) || IsTrue(funding)) || IsTrue(option)
 			if IsTrue(IsTrue((IsTrue(fromIsolated) || IsTrue(toIsolated))) && IsTrue(prohibitedWithIsolated)) {
 				panic(BadRequest(Add(Add(Add(Add(this.Id, " transfer () does not allow transfers between "), fromAccount), " and "), toAccount)))
 			} else if IsTrue(IsTrue(toSpot) && IsTrue(fromIsolated)) {
@@ -12325,7 +12325,7 @@ func (this *BinanceCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 		currency = this.Currency(code)
 	}
 	var request any = map[string]any{}
-	var limitKey string = "limit"
+	var limitKey any = "limit"
 	if !IsTrue(internal) {
 		var defaultType any = this.SafeString2(this.Options, "fetchTransfers", "defaultType", "spot")
 		var fromAccount any = this.SafeString(params, "fromAccount", defaultType)
@@ -12337,11 +12337,11 @@ func (this *BinanceCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 		var toId any = this.SafeString(accountsByType, toAccount)
 		if IsTrue(IsEqual(typeVar, nil)) {
 			if IsTrue(IsEqual(fromId, nil)) {
-				var keys []string = ObjectKeys(accountsByType)
+				var keys any = ObjectKeys(accountsByType)
 				panic(ExchangeError(Add(Add(this.Id, " fromAccount parameter must be one of "), Join(keys, ", "))))
 			}
 			if IsTrue(IsEqual(toId, nil)) {
-				var keys []string = ObjectKeys(accountsByType)
+				var keys any = ObjectKeys(accountsByType)
 				panic(ExchangeError(Add(Add(this.Id, " toAccount parameter must be one of "), Join(keys, ", "))))
 			}
 			typeVar = Add(Add(fromId, "_"), toId)
@@ -12980,7 +12980,7 @@ func (this *BinanceCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchTradingFees", nil, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	var isSpotOrMargin bool = IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))
+	var isSpotOrMargin any = IsTrue((IsEqual(typeVar, "spot"))) || IsTrue((IsEqual(typeVar, "margin")))
 	var isLinear any = this.IsLinear(typeVar, subType)
 	var isInverse any = this.IsInverse(typeVar, subType)
 	var response any = nil
@@ -13101,7 +13101,7 @@ func (this *BinanceCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 		if IsTrue(IsEqual(markets, nil)) {
 			panic(ExchangeError(Add(this.Id, " markets not loaded")))
 		}
-		var symbols []string = ObjectKeys(markets)
+		var symbols any = ObjectKeys(markets)
 		var result any = map[string]any{}
 		var feeTier any = this.SafeInteger(response, "feeTier")
 		var feeTiers any = GetValue(GetValue(GetValue(this.Fees, "linear"), "trading"), "tiers")
@@ -13138,7 +13138,7 @@ func (this *BinanceCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 		if IsTrue(IsEqual(markets, nil)) {
 			panic(ExchangeError(Add(this.Id, " markets not loaded")))
 		}
-		var symbols []string = ObjectKeys(markets)
+		var symbols any = ObjectKeys(markets)
 		var result any = map[string]any{}
 		var feeTier any = this.SafeInteger(response, "feeTier")
 		var feeTiers any = GetValue(GetValue(GetValue(this.Fees, "inverse"), "trading"), "tiers")
@@ -13537,7 +13537,7 @@ func (this *BinanceCore) ParseAccountPositions(account any, optionalArgs ...any)
 		var code any = Ternary(IsTrue(GetValue(market, "linear")), GetValue(market, "quote"), GetValue(market, "base"))
 		var maintenanceMargin any = this.SafeString(position, "maintMargin")
 		// check for maintenance margin so empty positions are not returned
-		var isPositionOpen bool = IsTrue((!IsEqual(maintenanceMargin, "0"))) && IsTrue((!IsEqual(maintenanceMargin, "0.00000000")))
+		var isPositionOpen any = IsTrue((!IsEqual(maintenanceMargin, "0"))) && IsTrue((!IsEqual(maintenanceMargin, "0.00000000")))
 		if IsTrue(!IsTrue(filterClosed) || IsTrue(isPositionOpen)) {
 			// sometimes not all the codes are correctly returned...
 			if IsTrue(InOp(balances, code)) {
@@ -13764,10 +13764,10 @@ func (this *BinanceCore) ParseAccountPosition(position any, optionalArgs ...any)
 		}
 		var pricePrecision any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "price"))
 		var pricePrecisionPlusOne any = Add(pricePrecision, 1)
-		var pricePrecisionPlusOneString string = ToString(pricePrecisionPlusOne)
+		var pricePrecisionPlusOneString any = ToString(pricePrecisionPlusOne)
 		// round half up
 		rounder := NewPrecise(Add("5e-", pricePrecisionPlusOneString))
-		var rounderString string = ToString(rounder)
+		var rounderString any = ToString(rounder)
 		var liquidationPriceRoundedString any = Precise.StringAdd(rounderString, liquidationPriceStringRaw)
 		var truncatedLiquidationPrice any = Precise.StringDiv(liquidationPriceRoundedString, "1", pricePrecision)
 		if IsTrue(IsTrue(!IsEqual(truncatedLiquidationPrice, nil)) && IsTrue(IsEqual(GetValue(truncatedLiquidationPrice, 0), "-"))) {
@@ -13938,7 +13938,7 @@ func (this *BinanceCore) ParsePositionRisk(position any, optionalArgs ...any) an
 		var precision any = this.SafeDict(market, "precision", map[string]any{})
 		var basePrecisionValue any = this.SafeString(precision, "base")
 		var quotePrecisionValue any = this.SafeString2(precision, "quote", "price")
-		var precisionIsUndefined bool = IsTrue((IsEqual(basePrecisionValue, nil))) && IsTrue((IsEqual(quotePrecisionValue, nil)))
+		var precisionIsUndefined any = IsTrue((IsEqual(basePrecisionValue, nil))) && IsTrue((IsEqual(quotePrecisionValue, nil)))
 		if !IsTrue(precisionIsUndefined) {
 			if IsTrue(linear) {
 				// walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
@@ -13995,7 +13995,7 @@ func (this *BinanceCore) ParsePositionRisk(position any, optionalArgs ...any) an
 	var initialMarginPercentageString any = nil
 	var leverageString any = this.OmitZero(this.SafeString(position, "leverage")) // portfolio-margin accounts may return leverage "0", see #29244
 	if IsTrue(!IsEqual(leverageString, nil)) {
-		var leverage int64 = ParseInt(leverageString)
+		var leverage any = ParseInt(leverageString)
 		var rational any = this.IsRoundNumber(Mod(1000, leverage))
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString, 8)
 		if !IsTrue(rational) {
@@ -14374,7 +14374,7 @@ func (this *BinanceCore) fetchOptionPositionsBody(ch chan any, optionalArgs ...a
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var symbol any = nil
 		if IsTrue(IsArray(symbols)) {
-			var symbolsLength int = GetArrayLength(symbols)
+			var symbolsLength any = GetArrayLength(symbols)
 			if IsTrue(IsGreaterThan(symbolsLength, 1)) {
 				panic(BadRequest(Add(this.Id, " fetchPositions() symbols argument cannot contain more than 1 symbol")))
 			}
@@ -15852,7 +15852,7 @@ func (this *BinanceCore) GetNetworkCodeByNetworkUrl(currencyCode any, optionalAr
 	var networkCode any = nil
 	var currency any = this.Currency(currencyCode)
 	var networks any = this.SafeDict(currency, "networks", map[string]any{})
-	var networkCodes []string = ObjectKeys(networks)
+	var networkCodes any = ObjectKeys(networks)
 	for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
 		var currentNetworkCode any = GetValue(networkCodes, i)
 		var info any = this.SafeDict(GetValue(networks, currentNetworkCode), "info", map[string]any{})
@@ -15869,7 +15869,7 @@ func (this *BinanceCore) GetBaseDomainFromUrl(url any) any {
 	if IsTrue(IsEqual(url, nil)) {
 		return nil
 	}
-	var urlParts []string = Split(url, "/")
+	var urlParts any = Split(url, "/")
 	var scheme any = this.SafeString(urlParts, 0)
 	if IsTrue(IsEqual(scheme, nil)) {
 		return nil
@@ -15906,7 +15906,7 @@ func (this *BinanceCore) Sign(path any, optionalArgs ...any) any {
 			panic(AuthenticationError(Add(this.Id, " historicalTrades endpoint requires `apiKey` credential")))
 		}
 	}
-	var userDataStream bool = IsTrue(IsTrue((IsEqual(path, "userDataStream"))) || IsTrue((IsEqual(path, "listenKey")))) || IsTrue((IsEqual(path, "userListenToken")))
+	var userDataStream any = IsTrue(IsTrue((IsEqual(path, "userDataStream"))) || IsTrue((IsEqual(path, "listenKey")))) || IsTrue((IsEqual(path, "userListenToken")))
 	if IsTrue(userDataStream) {
 		if IsTrue(this.ApiKey) {
 			// v1 special case for userDataStream
@@ -15949,7 +15949,7 @@ func (this *BinanceCore) Sign(path any, optionalArgs ...any) any {
 					var batchOrder any = GetValue(batchOrders, i)
 					var newClientOrderId any = this.SafeString(batchOrder, "newClientOrderId")
 					if IsTrue(IsEqual(newClientOrderId, nil)) {
-						var defaultId string = "x-xcKtGhcu" // batchOrders can not be spot or margin
+						var defaultId any = "x-xcKtGhcu" // batchOrders can not be spot or margin
 						var broker any = this.SafeDict(this.Options, "broker", map[string]any{})
 						var brokerId any = this.SafeString(broker, "future", defaultId)
 						newClientOrderId = Add(brokerId, this.Uuid22())
@@ -15983,8 +15983,8 @@ func (this *BinanceCore) Sign(path any, optionalArgs ...any) any {
 					AddElementToObject(extendedParams, "symbol", this.EncodeURIComponent(GetValue(extendedParams, "symbol")))
 				}
 				query = this.Rawencode(extendedParams)
-				var orderidlistLength int = GetArrayLength(orderidlist)
-				var origclientorderidlistLength int = GetArrayLength(origclientorderidlist)
+				var orderidlistLength any = GetArrayLength(orderidlist)
+				var origclientorderidlistLength any = GetArrayLength(origclientorderidlist)
 				if IsTrue(IsGreaterThan(orderidlistLength, 0)) {
 					query = Add(Add(Add(Add(query, "&"), "orderidlist=%5B"), Join(orderidlist, "%2C")), "%5D")
 				}
@@ -16145,7 +16145,7 @@ func (this *BinanceCore) HandleErrors(code any, reason any, url any, method any,
 	}
 	if IsTrue(IsArray(response)) {
 		// cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-		var arrayLength int = GetArrayLength(response)
+		var arrayLength any = GetArrayLength(response)
 		if IsTrue(IsEqual(arrayLength, 1)) {
 			var element any = GetValue(response, 0)
 			var errorCode any = this.SafeString(element, "code")
@@ -16302,8 +16302,8 @@ func (this *BinanceCore) ParseMarginModification(data any, optionalArgs ...any) 
 	var marketId any = this.SafeString(data, "symbol")
 	var timestamp any = this.SafeInteger(data, "time")
 	market = this.SafeMarket(marketId, market, nil, "swap")
-	var noErrorCode bool = IsEqual(errorCode, nil)
-	var success bool = IsEqual(errorCode, "200")
+	var noErrorCode any = IsEqual(errorCode, nil)
+	var success any = IsEqual(errorCode, "200")
 	return map[string]any{
 		"info":       data,
 		"symbol":     GetValue(market, "symbol"),
@@ -16560,7 +16560,7 @@ func (this *BinanceCore) fetchBorrowRateHistoryBody(ch chan any, code any, optio
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
 		var endTime any = Subtract(this.Sum(since, Multiply(limit, 86400000)), 1) // required when startTime is further than 93 days in the past
-		var now int64 = this.Milliseconds()
+		var now any = this.Milliseconds()
 		AddElementToObject(request, "endTime", mathMin(endTime, now)) // cannot have an endTime later than current time
 	}
 
@@ -17769,7 +17769,7 @@ func (this *BinanceCore) fetchAllGreeksBody(ch chan any, optionalArgs ...any) an
 	var request any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			market = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -18497,7 +18497,7 @@ func (this *BinanceCore) fetchConvertTradeBody(ch chan any, id any, optionalArgs
 	var response any = nil
 	if IsTrue(IsEqual(code, "BUSD")) {
 		var msInDay any = 86400000
-		var now int64 = this.Milliseconds()
+		var now any = this.Milliseconds()
 		if IsTrue(!IsEqual(code, nil)) {
 			var currency any = this.Currency(code)
 			AddElementToObject(request, "asset", GetValue(currency, "id"))
@@ -18572,7 +18572,7 @@ func (this *BinanceCore) fetchConvertTradeHistoryBody(ch chan any, optionalArgs 
 	}
 	var request any = map[string]any{}
 	var msInThirtyDays any = 2592000000
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
 	} else {
@@ -18747,7 +18747,7 @@ func (this *BinanceCore) fetchFundingIntervalsBody(ch chan any, optionalArgs ...
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
 	}
-	var typeVar string = "swap"
+	var typeVar any = "swap"
 	var subType any = nil
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingIntervals", market, params, "linear")
 	subType = GetValue(subTypeparamsVariable, 0)

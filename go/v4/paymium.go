@@ -212,7 +212,7 @@ func (this *PaymiumCore) ParseBalance(response any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var currencies []string = ObjectKeys(this.Currencies)
+	var currencies any = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
 		var code any = GetValue(currencies, i)
 		var currency any = this.Currency(code)
@@ -861,7 +861,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
+		var nonce any = ToString(this.Nonce())
 		var auth any = Add(nonce, url)
 		headers = map[string]any{
 			"Api-Key":   this.ApiKey,

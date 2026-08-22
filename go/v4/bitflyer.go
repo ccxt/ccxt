@@ -389,12 +389,12 @@ func (this *BitflyerCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var market any = GetValue(markets, i)
 		var id any = this.SafeString(market, "product_code")
-		var currencies []string = Split(id, "_")
+		var currencies any = Split(id, "_")
 		var marketType any = this.SafeString(market, "market_type")
 		var swap any = (IsEqual(marketType, "FX"))
 		var future any = (IsEqual(marketType, "Futures"))
 		var spot any = !IsTrue(swap) && !IsTrue(future)
-		var typeVar string = "spot"
+		var typeVar any = "spot"
 		var settle any = nil
 		var baseId any = nil
 		var quoteId any = nil
@@ -418,11 +418,11 @@ func (this *BitflyerCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 				var expiryDate any = Slice(id, OpNeg(9), nil)
 				expiry = this.ParseExpiryDate(expiryDate)
 			} else {
-				var splitAlias []string = Split(alias, "_")
+				var splitAlias any = Split(alias, "_")
 				var currencyIds any = this.SafeString(splitAlias, 0)
 				baseId = Slice(currencyIds, 0, OpNeg(3))
 				quoteId = Slice(currencyIds, OpNeg(3), nil)
-				var splitId []string = Split(id, currencyIds)
+				var splitId any = Split(id, currencyIds)
 				var expiryDate any = this.SafeString(splitId, 1)
 				expiry = this.ParseExpiryDate(expiryDate)
 			}
@@ -433,7 +433,7 @@ func (this *BitflyerCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 		var symbol any = Add(Add(base, "/"), quote)
 		var taker any = GetValue(GetValue(this.Fees, "trading"), "taker")
 		var maker any = GetValue(GetValue(this.Fees, "trading"), "maker")
-		var contract bool = IsTrue(swap) || IsTrue(future)
+		var contract any = IsTrue(swap) || IsTrue(future)
 		if IsTrue(contract) {
 			maker = 0
 			taker = 0
@@ -1152,7 +1152,7 @@ func (this *BitflyerCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 
 	orders := (<-this.FetchOrders(symbol))
 	PanicOnError(orders)
-	var ordersById map[string]any = this.IndexBy(orders, "id")
+	var ordersById any = this.IndexBy(orders, "id")
 	if IsTrue(InOp(ordersById, id)) {
 
 		ch <- GetValue(ordersById, id)
@@ -1657,8 +1657,8 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(baseUrl, request)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce string = ToString(this.Nonce())
-		var content []any = []any{nonce, method, request}
+		var nonce any = ToString(this.Nonce())
+		var content any = []any{nonce, method, request}
 		var auth any = Join(content, "")
 		if IsTrue(GetArrayLength(ObjectKeys(params))) {
 			if IsTrue(!IsEqual(method, "GET")) {

@@ -524,7 +524,7 @@ func (this *LunoCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var currenciesData any = this.SafeList(response, "data", []any{})
-	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
+	var grouped any = this.GroupBy(currenciesData, "native_currency")
 	var values any = ObjectValues(grouped)
 
 	ch <- this.ParseCurrencies(values)
@@ -640,12 +640,12 @@ func (this *LunoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		// rates below are read from Luno's own Help Centre fee article for the ZAR
 		// market; markets quoted in other fiat currencies are left on the
 		// exchange-wide default until their schedules are verified the same way.
-		var fiats []any = []any{"ZAR"}
+		var fiats any = []any{"ZAR"}
 		// live-but-unverified counters, kept on the exchange-wide default; the market
 		// list is geo-filtered so this is a superset of any one region's view, and
 		// ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-		var unverifiedQuotes []any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
-		var stablecoins []any = []any{"USDT", "USDC"}
+		var unverifiedQuotes any = []any{"MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"}
+		var stablecoins any = []any{"USDT", "USDC"}
 		var taker any = nil
 		var maker any = nil
 		if IsTrue(this.InArray(quote, fiats)) {
@@ -1205,8 +1205,8 @@ func (this *LunoCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	response := (<-this.PublicGetTickers(params))
 	PanicOnError(response)
 	var rawTickers any = this.SafeList(response, "tickers", []any{})
-	var tickers map[string]any = this.IndexBy(rawTickers, "pair")
-	var ids []string = ObjectKeys(tickers)
+	var tickers any = this.IndexBy(rawTickers, "pair")
+	var ids any = ObjectKeys(tickers)
 	var result any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
@@ -1814,7 +1814,7 @@ func (this *LunoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 			panic(ArgumentsRequired(Add(this.Id, " fetchLedger() requires a currency code argument if no account id specified in params")))
 		}
 		currency = this.Currency(code)
-		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
+		var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "currency")
 		var account any = this.SafeValue(accountsByCurrencyCode, code)
 		if IsTrue(IsEqual(account, nil)) {
 			panic(ExchangeError(Add(Add(this.Id, " fetchLedger() could not find account id for "), code)))
@@ -1851,7 +1851,7 @@ func (this *LunoCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *LunoCore) ParseLedgerComment(comment any) any {
-	var words []string = Split(comment, " ")
+	var words any = Split(comment, " ")
 	var types any = map[string]any{
 		"Withdrawal": "fee",
 		"Trading":    "fee",

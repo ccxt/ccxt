@@ -2136,17 +2136,17 @@ func (this *KucoinCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes161919
 		return nil
 	}
-	var defaultTypes []any = []any{"spot", "swap", "future", "contract"}
+	var defaultTypes any = []any{"spot", "swap", "future", "contract"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	var types any = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
 	var credentialsSet any = this.CheckRequiredCredentials(false)
-	var requestMarginables bool = IsTrue(credentialsSet) && IsTrue(this.SafeBool(params, "marginables", true))
+	var requestMarginables any = IsTrue(credentialsSet) && IsTrue(this.SafeBool(params, "marginables", true))
 	params = this.Omit(params, "marginables")
-	var fetchContractMarkets bool = false
+	var fetchContractMarkets any = false
 	if IsTrue(IsTrue(IsTrue(this.InArray("swap", types)) || IsTrue(this.InArray("future", types))) || IsTrue(this.InArray("contract", types))) {
 		fetchContractMarkets = true
 	}
-	var fetchSpotMarkets bool = this.InArray("spot", types)
+	var fetchSpotMarkets any = this.InArray("spot", types)
 	fetchTickersFees = IsTrue(fetchTickersFees) && IsTrue(fetchSpotMarkets) // tickers and fees are only fetched for spot markets
 	var promises any = []any{}
 	if IsTrue(fetchSpotMarkets) {
@@ -2228,13 +2228,13 @@ func (this *KucoinCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	}
 	var crossData any = Ternary(IsTrue(requestMarginables), this.SafeDict(GetValue(responses, crossIndex), "data", map[string]any{}), map[string]any{})
 	var crossItems any = this.SafeList(crossData, "items", []any{})
-	var crossById map[string]any = this.IndexBy(crossItems, "symbol")
+	var crossById any = this.IndexBy(crossItems, "symbol")
 	var isolatedData any = Ternary(IsTrue(requestMarginables), GetValue(responses, isolatedIndex), map[string]any{})
 	var isolatedItems any = this.SafeList(isolatedData, "data", []any{})
-	var isolatedById map[string]any = this.IndexBy(isolatedItems, "symbol")
+	var isolatedById any = this.IndexBy(isolatedItems, "symbol")
 	var tickersResponse any = Ternary(IsTrue(fetchTickersFees), this.SafeDict(responses, tickersIndex, map[string]any{}), map[string]any{})
 	var tickerItems any = this.SafeList(this.SafeDict(tickersResponse, "data", map[string]any{}), "ticker", []any{})
-	var tickersById map[string]any = this.IndexBy(tickerItems, "symbol")
+	var tickersById any = this.IndexBy(tickerItems, "symbol")
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(symbolsData)); i++ {
 		var market any = GetValue(symbolsData, i)
@@ -2255,7 +2255,7 @@ func (this *KucoinCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var takerCoefficient any = this.SafeString(ticker, "takerCoefficient")
 		var hasCrossMargin any = (InOp(crossById, id))
 		var hasIsolatedMargin any = (InOp(isolatedById, id))
-		var isMarginable bool = IsTrue(IsTrue(this.SafeBool(market, "isMarginEnabled", false)) || IsTrue(hasCrossMargin)) || IsTrue(hasIsolatedMargin)
+		var isMarginable any = IsTrue(IsTrue(this.SafeBool(market, "isMarginEnabled", false)) || IsTrue(hasCrossMargin)) || IsTrue(hasIsolatedMargin)
 		AppendToArray(&result, map[string]any{
 			"id":       id,
 			"symbol":   Add(Add(base, "/"), quote),
@@ -2406,7 +2406,7 @@ func (this *KucoinCore) fetchContractMarketsBody(ch chan any, optionalArgs ...an
 		var market any = GetValue(data, i)
 		var id any = this.SafeString(market, "symbol")
 		var expiry any = this.SafeInteger(market, "expireDate")
-		var future bool = IsEqual(this.SafeString(market, "nextFundingRateTime"), nil)
+		var future any = IsEqual(this.SafeString(market, "nextFundingRateTime"), nil)
 		var swap any = !IsTrue(future)
 		var baseId any = this.SafeString(market, "baseCurrency")
 		var quoteId any = this.SafeString(market, "quoteCurrency")
@@ -2415,7 +2415,7 @@ func (this *KucoinCore) fetchContractMarketsBody(ch chan any, optionalArgs ...an
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var settle any = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-		var typeVar string = "swap"
+		var typeVar any = "swap"
 		if IsTrue(future) {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry, ""))
 			typeVar = "future"
@@ -2609,12 +2609,12 @@ func (this *KucoinCore) fetchUTAMarketsBody(ch chan any, optionalArgs ...any) an
 		var expiry any = this.SafeInteger(market, "expiryTime")
 		var active any = this.SafeString(market, "tradingStatus")
 		var typeVar any = nil
-		var spot bool = false
-		var swap bool = false
-		var future bool = false
-		var contract bool = false
-		var linear bool = false
-		var inverse bool = false
+		var spot any = false
+		var swap any = false
+		var future any = false
+		var contract any = false
+		var linear any = false
+		var inverse any = false
 		if IsTrue(!IsEqual(contractType, nil)) {
 			contract = true
 			if IsTrue(IsEqual(quote, settle)) {
@@ -2829,7 +2829,7 @@ func (this *KucoinCore) ParseCurrency(currency any) any {
 	var code any = this.SafeCurrencyCode(id)
 	var networks any = map[string]any{}
 	var chains any = this.SafeList2(entry, "chains", "items", []any{})
-	var chainsLength int = GetArrayLength(chains)
+	var chainsLength any = GetArrayLength(chains)
 	for j := 0; IsLessThan(j, chainsLength); j++ {
 		var chain any = GetValue(chains, j)
 		var chainId any = this.SafeString(chain, "chainId")
@@ -2861,7 +2861,7 @@ func (this *KucoinCore) ParseCurrency(currency any) any {
 	// kucoin has determined 'fiat' currencies with below logic
 	var rawPrecision any = this.SafeString(entry, "precision")
 	var precision any = this.ParseNumber(this.ParsePrecision(rawPrecision))
-	var isFiat bool = IsEqual(chainsLength, 0)
+	var isFiat any = IsEqual(chainsLength, 0)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"name":      this.SafeString(entry, "fullName"),
@@ -3187,7 +3187,7 @@ func (this *KucoinCore) IsFuturesMethod(methodName any, params any) any {
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var typeVar any = this.SafeString(accountsByType, requestedType)
 	if IsTrue(IsEqual(typeVar, nil)) {
-		var keys []string = ObjectKeys(accountsByType)
+		var keys any = ObjectKeys(accountsByType)
 		panic(ExchangeError(Add(Add(this.Id, " isFuturesMethod() type must be one of "), Join(keys, ", "))))
 	}
 	params = this.Omit(params, "type")
@@ -4630,7 +4630,7 @@ func (this *KucoinCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
 	if IsTrue(uta) {
-		var limitString string = "20"
+		var limitString any = "20"
 		if IsTrue(IsTrue((IsEqual(limit, nil))) || IsTrue((IsGreaterThanOrEqual(limit, 100)))) {
 			limitString = "FULL"
 		} else if IsTrue(IsGreaterThan(limit, 20)) {
@@ -4915,7 +4915,7 @@ func (this *KucoinCore) createSpotOrderBody(ch chan any, symbol any, typeVar any
 	var isTriggerOrder any = (IsTrue(IsTrue(triggerPrice) || IsTrue(stopLossPrice)) || IsTrue(takeProfitPrice))
 	var marginResult any = this.HandleMarginModeAndParams("createOrder", params)
 	var marginMode any = this.SafeString(marginResult, 0)
-	var isMarginOrder bool = IsTrue(IsEqual(tradeType, "MARGIN_TRADE")) || IsTrue(!IsEqual(marginMode, nil))
+	var isMarginOrder any = IsTrue(IsEqual(tradeType, "MARGIN_TRADE")) || IsTrue(!IsEqual(marginMode, nil))
 	// don't omit anything before calling createOrderRequest
 	var orderRequest any = this.CreateSpotOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
@@ -5034,7 +5034,7 @@ func (this *KucoinCore) CreateSpotOrderRequest(symbol any, typeVar any, side any
 	stopLossPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 1)
 	takeProfitPrice := GetValue(triggerPricestopLossPricetakeProfitPriceVariable, 2)
 	var isTriggerOrder any = (IsTrue(IsTrue(triggerPrice) || IsTrue(stopLossPrice)) || IsTrue(takeProfitPrice))
-	var isMarginOrder bool = IsTrue(IsEqual(tradeType, "MARGIN_TRADE")) || IsTrue(!IsEqual(marginMode, nil))
+	var isMarginOrder any = IsTrue(IsEqual(tradeType, "MARGIN_TRADE")) || IsTrue(!IsEqual(marginMode, nil))
 	params = this.Omit(params, []any{"stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"})
 	if IsTrue(isTriggerOrder) {
 		if IsTrue(triggerPrice) {
@@ -5133,7 +5133,7 @@ func (this *KucoinCore) createContractOrderBody(ch chan any, symbol any, typeVar
 	var market any = this.Market(symbol)
 	var testOrder any = this.SafeBool(params, "test", false)
 	params = this.Omit(params, "test")
-	var hasTpOrSlOrder bool = IsTrue((!IsEqual(this.SafeValue(params, "stopLoss"), nil))) || IsTrue((!IsEqual(this.SafeValue(params, "takeProfit"), nil)))
+	var hasTpOrSlOrder any = IsTrue((!IsEqual(this.SafeValue(params, "stopLoss"), nil))) || IsTrue((!IsEqual(this.SafeValue(params, "takeProfit"), nil)))
 	var orderRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
 	if IsTrue(testOrder) {
@@ -5254,7 +5254,7 @@ func (this *KucoinCore) CreateContractOrderRequest(symbol any, typeVar any, side
 		AddElementToObject(request, "reduceOnly", true)
 		AddElementToObject(request, "stopPriceType", triggerPriceTypeValue)
 	}
-	var uppercaseType string = ToUpper(typeVar)
+	var uppercaseType any = ToUpper(typeVar)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
 	if IsTrue(IsEqual(uppercaseType, "LIMIT")) {
 		if IsTrue(IsEqual(price, nil)) {
@@ -5664,8 +5664,8 @@ func (this *KucoinCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 		retRes466412 := (<-this.LoadMarkets())
 		PanicOnError(retRes466412)
 	}
-	var isSpot bool = false
-	var isContract bool = false
+	var isSpot any = false
+	var isContract any = false
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var order any = this.SafeDict(orders, i)
 		var symbol any = this.SafeString(order, "symbol")
@@ -6090,7 +6090,7 @@ func (this *KucoinCore) cancelSpotOrderBody(ch chan any, id any, optionalArgs ..
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var tradeType any = this.SafeString(params, "tradeType") // keep it for backward compatibility
-	var isMarginOrder bool = IsTrue(IsEqual(tradeType, "MARGIN_TRADE")) || IsTrue(!IsEqual(marginMode, nil))
+	var isMarginOrder any = IsTrue(IsEqual(tradeType, "MARGIN_TRADE")) || IsTrue(!IsEqual(marginMode, nil))
 	if IsTrue(IsTrue(IsTrue(hf) || IsTrue(useSync)) || IsTrue(isMarginOrder)) {
 		if !IsTrue(trigger) {
 			if IsTrue(IsEqual(symbol, nil)) {
@@ -6803,7 +6803,7 @@ func (this *KucoinCore) fetchSpotOrdersByStatusBody(ch chan any, status any, opt
 		retRes547812 := (<-this.LoadMarkets())
 		PanicOnError(retRes547812)
 	}
-	var lowercaseStatus string = ToLower(status)
+	var lowercaseStatus any = ToLower(status)
 	var until any = this.SafeInteger(params, "until")
 	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
 	var hf any = nil
@@ -7103,7 +7103,7 @@ func (this *KucoinCore) fetchUtaOrdersByStatusBody(ch chan any, status any, opti
 		marketType = this.SafeString(params, "marketType")
 	}
 	params = this.Omit(params, "marketType")
-	var isContract bool = IsTrue((!IsEqual(marketType, "spot"))) && IsTrue((!IsEqual(marketType, "margin")))
+	var isContract any = IsTrue((!IsEqual(marketType, "spot"))) && IsTrue((!IsEqual(marketType, "margin")))
 	if IsTrue(!IsTrue(isContract) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")))
 	}
@@ -7123,7 +7123,7 @@ func (this *KucoinCore) fetchUtaOrdersByStatusBody(ch chan any, status any, opti
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "pageSize", limit)
 	}
-	var lowercaseStatus string = ToLower(status)
+	var lowercaseStatus any = ToLower(status)
 	if IsTrue(IsEqual(lowercaseStatus, "open")) {
 		lowercaseStatus = "active"
 	} else if IsTrue(IsEqual(lowercaseStatus, "closed")) {
@@ -7772,8 +7772,8 @@ func (this *KucoinCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tradeType any = this.SafeString(order, "tradeType")
-	var utaTradeTypes []any = []any{"SPOT", "CROSS", "ISOLATED", "FUTURES"} // tradeType specific for uta endpoint
-	var isUtaOrder bool = this.InArray(tradeType, utaTradeTypes)
+	var utaTradeTypes any = []any{"SPOT", "CROSS", "ISOLATED", "FUTURES"} // tradeType specific for uta endpoint
+	var isUtaOrder any = this.InArray(tradeType, utaTradeTypes)
 	if IsTrue(InOp(order, "sizeUnit")) {
 		isUtaOrder = true
 	}
@@ -8424,7 +8424,7 @@ func (this *KucoinCore) fetchMySpotTradesBody(ch chan any, optionalArgs ...any) 
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 	}
 	var method any = GetValue(this.Options, "fetchMyTradesMethod")
-	var parseResponseData bool = false
+	var parseResponseData any = false
 	var response any = nil
 	requestparamsVariable := this.HandleUntilOption("endAt", request, params)
 	request = GetValue(requestparamsVariable, 0)
@@ -9488,8 +9488,8 @@ func (this *KucoinCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var amount any = this.SafeString(transaction, "amount")
 	var txid any = this.SafeString(transaction, "walletTxId")
 	if IsTrue(!IsEqual(txid, nil)) {
-		var txidParts []string = Split(txid, "@")
-		var numTxidParts int = GetArrayLength(txidParts)
+		var txidParts any = Split(txid, "@")
+		var numTxidParts any = GetArrayLength(txidParts)
 		if IsTrue(IsGreaterThan(numTxidParts, 1)) {
 			if IsTrue(IsEqual(address, nil)) {
 				if IsTrue(IsGreaterThan(GetLength(GetValue(txidParts, 1)), 1)) {
@@ -10075,8 +10075,8 @@ func (this *KucoinCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var isolated bool = IsTrue((IsEqual(marginMode, "isolated"))) || IsTrue((IsEqual(typeVar, "isolated")))
-	var cross bool = IsTrue((IsEqual(marginMode, "cross"))) || IsTrue((IsEqual(typeVar, "margin")))
+	var isolated any = IsTrue((IsEqual(marginMode, "isolated"))) || IsTrue((IsEqual(typeVar, "isolated")))
+	var cross any = IsTrue((IsEqual(marginMode, "cross"))) || IsTrue((IsEqual(typeVar, "margin")))
 	if IsTrue(isolated) {
 		if IsTrue(!IsEqual(currency, nil)) {
 			AddElementToObject(request, "balanceCurrency", GetValue(currency, "id"))
@@ -10593,8 +10593,8 @@ func (this *KucoinCore) transferUtaBody(ch chan any, code any, amount any, fromA
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
 	var toId any = this.ConvertTypeToAccount(toAccount)
 	var exchangeIds any = Ternary(IsTrue((IsEqual(this.Ids, nil))), []any{}, this.Ids)
-	var fromIsolated bool = this.InArray(fromId, exchangeIds)
-	var toIsolated bool = this.InArray(toId, exchangeIds)
+	var fromIsolated any = this.InArray(fromId, exchangeIds)
+	var toIsolated any = this.InArray(toId, exchangeIds)
 	if IsTrue(fromIsolated) {
 		AddElementToObject(request, "fromAccountSymbol", fromId)
 		fromId = "ISOLATED"
@@ -10690,8 +10690,8 @@ func (this *KucoinCore) transferClassicBody(ch chan any, code any, amount any, f
 	var fromId any = this.ConvertTypeToAccount(fromAccount)
 	var toId any = this.ConvertTypeToAccount(toAccount)
 	var exchangeIds any = Ternary(IsTrue((IsEqual(this.Ids, nil))), []any{}, this.Ids)
-	var fromIsolated bool = this.InArray(fromId, exchangeIds)
-	var toIsolated bool = this.InArray(toId, exchangeIds)
+	var fromIsolated any = this.InArray(fromId, exchangeIds)
+	var toIsolated any = this.InArray(toId, exchangeIds)
 	if IsTrue(fromIsolated) {
 		AddElementToObject(request, "fromAccountTag", fromId)
 		fromId = "isolated"
@@ -11735,7 +11735,7 @@ func (this *KucoinCore) ParseBorrowRateHistories(response any, codes any, since 
 			AppendToArray(&borrowRateHistoriesCode, borrowRateStructure)
 		}
 	}
-	var keys []string = ObjectKeys(borrowRateHistories)
+	var keys any = ObjectKeys(borrowRateHistories)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var code any = GetValue(keys, i)
 		AddElementToObject(borrowRateHistories, code, this.FilterByCurrencySinceLimit(GetValue(borrowRateHistories, code), code, since, limit))
@@ -12017,7 +12017,7 @@ func (this *KucoinCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var currencyId any = this.SafeString(info, "currency")
 	return map[string]any{
 		"id":        this.SafeString(info, "orderNo"),
@@ -12552,7 +12552,7 @@ func (this *KucoinCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 		end = this.Milliseconds()
 	}
 	var response any = nil
-	var resultKey string = "data"
+	var resultKey any = "data"
 	if IsTrue(uta) {
 		AddElementToObject(request, "startAt", start)
 		AddElementToObject(request, "endAt", end)
@@ -12994,7 +12994,7 @@ func (this *KucoinCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...a
 	var request any = map[string]any{}
 	symbols = this.MarketSymbols(symbols)
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length int = GetArrayLength(symbols)
+		var length any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(length, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -13337,7 +13337,7 @@ func (this *KucoinCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	var ordersRequests any = []any{}
 	var clientOrderIds any = this.SafeList2(params, "clientOrderIds", "clientOids", []any{})
 	params = this.Omit(params, []any{"clientOrderIds", "clientOids"})
-	var useClientorderId bool = false
+	var useClientorderId any = false
 	for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
 		useClientorderId = true
 		if IsTrue(IsEqual(symbol, nil)) {
@@ -13441,7 +13441,7 @@ func (this *KucoinCore) addMarginBody(ch chan any, symbol any, amount any, optio
 		PanicOnError(retRes1097512)
 	}
 	var market any = this.Market(symbol)
-	var uuid string = this.Uuid()
+	var uuid any = this.Uuid()
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"margin": this.AmountToPrecision(symbol, amount),
@@ -14130,7 +14130,7 @@ func (this *KucoinCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any)
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length int = GetArrayLength(symbols)
+		var length any = GetArrayLength(symbols)
 		if IsTrue(IsLessThan(length, 11)) {
 			// the endpoint does not accept more than 10 symbols at a time
 			// if user provided more than 10 symbols, we will fetch all symbols
@@ -14330,7 +14330,7 @@ func (this *KucoinCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "earn")) {
 		endpoint = Add("/api/v1/", this.ImplodeParams(path, params))
 	}
-	var isUtaPrivate bool = false
+	var isUtaPrivate any = false
 	if IsTrue(IsTrue((IsEqual(api, "uta"))) || IsTrue((IsEqual(api, "utaPrivate")))) {
 		endpoint = Add("/api/ua/v1/", this.ImplodeParams(path, params))
 		if IsTrue(IsEqual(api, "utaPrivate")) {
@@ -14361,7 +14361,7 @@ func (this *KucoinCore) Sign(path any, optionalArgs ...any) any {
 	var isEarn any = (IsEqual(api, "earn"))
 	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(isPrivate) || IsTrue(isFuturePrivate)) || IsTrue(isBroker)) || IsTrue(isEarn)) || IsTrue(isUtaPrivate)) {
 		this.CheckRequiredCredentials()
-		var timestamp string = ToString(this.Nonce())
+		var timestamp any = ToString(this.Nonce())
 		headers = this.Extend(map[string]any{
 			"KC-API-KEY-VERSION": "2",
 			"KC-API-KEY":         this.ApiKey,
@@ -14370,23 +14370,23 @@ func (this *KucoinCore) Sign(path any, optionalArgs ...any) any {
 		headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 		var apiKeyVersion any = this.SafeString(headers, "KC-API-KEY-VERSION")
 		if IsTrue(IsEqual(apiKeyVersion, "2")) {
-			var passphrase string = this.Hmac(this.Encode(this.Password), this.Encode(this.Secret), sha256, "base64")
+			var passphrase any = this.Hmac(this.Encode(this.Password), this.Encode(this.Secret), sha256, "base64")
 			AddElementToObject(headers, "KC-API-PASSPHRASE", passphrase)
 		} else {
 			AddElementToObject(headers, "KC-API-PASSPHRASE", this.Password)
 		}
 		var payload any = Add(Add(Add(timestamp, method), endpoint), endpart)
-		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(headers, "KC-API-SIGN", signature)
 		var partner any = this.SafeDict(this.Options, "partner", map[string]any{})
-		var isUtaFuturePrivate bool = IsTrue(isUtaPrivate) && IsTrue((IsEqual(tradeType, "FUTURES")))
-		var isFuturePartner bool = IsTrue(isFuturePrivate) || IsTrue(isUtaFuturePrivate)
+		var isUtaFuturePrivate any = IsTrue(isUtaPrivate) && IsTrue((IsEqual(tradeType, "FUTURES")))
+		var isFuturePartner any = IsTrue(isFuturePrivate) || IsTrue(isUtaFuturePrivate)
 		partner = Ternary(IsTrue(isFuturePartner), this.SafeValue(partner, "future", partner), this.SafeValue(partner, "spot", partner))
 		var partnerId any = this.SafeString(partner, "id")
 		var partnerSecret any = this.SafeString2(partner, "secret", "key")
 		if IsTrue(IsTrue((!IsEqual(partnerId, nil))) && IsTrue((!IsEqual(partnerSecret, nil)))) {
 			var partnerPayload any = Add(Add(timestamp, partnerId), this.ApiKey)
-			var partnerSignature string = this.Hmac(this.Encode(partnerPayload), this.Encode(partnerSecret), sha256, "base64")
+			var partnerSignature any = this.Hmac(this.Encode(partnerPayload), this.Encode(partnerSecret), sha256, "base64")
 			AddElementToObject(headers, "KC-API-PARTNER-SIGN", partnerSignature)
 			AddElementToObject(headers, "KC-API-PARTNER", partnerId)
 			AddElementToObject(headers, "KC-API-PARTNER-VERIFY", "true")

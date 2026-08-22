@@ -460,7 +460,7 @@ func (this *ExtendedCore) IndexByStringifiedNumericId(input any) any {
 	if IsTrue(IsEqual(input, nil)) {
 		return nil
 	}
-	var keys []string = ObjectKeys(input)
+	var keys any = ObjectKeys(input)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var item any = GetValue(input, key)
@@ -666,7 +666,7 @@ func (this *ExtendedCore) ParseMarket(market any) any {
 	var settleId any = nil
 	var settle any = nil
 	var symbol any = Add(Add(base, "/"), quote)
-	var isSpot bool = false
+	var isSpot any = false
 	var typeVar any = this.SafeStringLower(market, "type")
 	var contractSize any = nil
 	var linear any = nil
@@ -1096,7 +1096,7 @@ func (this *ExtendedCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var orderbook any = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty")
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(orderbook, "bids", this.ArraySlice(GetValue(orderbook, "bids"), 0, limit))
@@ -1248,7 +1248,7 @@ func (this *ExtendedCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -1348,7 +1348,7 @@ func (this *ExtendedCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...a
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -1660,7 +1660,7 @@ func (this *ExtendedCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -2035,7 +2035,7 @@ func (this *ExtendedCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any 
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -2180,7 +2180,7 @@ func (this *ExtendedCore) fetchTransactionsBody(ch chan any, optionalArgs ...any
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -2330,7 +2330,7 @@ func (this *ExtendedCore) withdrawBody(ch chan any, code any, amount any, addres
 	//         "data": 1820796462590083072
 	//     }
 	//
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 
 	ch <- map[string]any{
 		"info":        response,
@@ -2416,7 +2416,7 @@ func (this *ExtendedCore) fetchTransfersBody(ch chan any, optionalArgs ...any) a
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -2499,7 +2499,7 @@ func (this *ExtendedCore) transferBody(ch chan any, code any, amount any, fromAc
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var validSignature any = this.SafeBool(data, "validSignature")
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var status any = "pending"
 	if IsTrue(!IsEqual(validSignature, nil)) {
 		status = Ternary(IsTrue(validSignature), "ok", "failed")
@@ -3064,7 +3064,7 @@ func (this *ExtendedCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ..
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -3227,7 +3227,7 @@ func (this *ExtendedCore) CreateOrderSettlementData(isBuy any, amountString any,
 func (this *ExtendedCore) CreateWithdrawalSettlementData(address any, amountString any, currency any, account any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var settlementExpiration any = this.SafeInteger(params, "settlementExpiration", Add(Add(this.ParseToInt(Divide((Add(now, 999)), 1000)), 1209600), 60))
 	var nonce any = this.SafeInteger(params, "nonce", this.Nonce())
 	var positionId any = this.SafeString2(params, "positionId", "l2Vault", this.SafeString(account, "l2Vault"))
@@ -3261,7 +3261,7 @@ func (this *ExtendedCore) CreateWithdrawalSettlementData(address any, amountStri
 func (this *ExtendedCore) CreateTransferSettlementData(amountString any, currency any, account any, toVault any, toL2Key any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var settlementExpiration any = this.SafeInteger(params, "settlementExpiration", Add(this.ParseToInt(Divide((Add(now, 999)), 1000)), 1814400))
 	var nonce any = this.SafeInteger(params, "nonce", this.Nonce())
 	var fromVault any = this.SafeString2(params, "fromVault", "senderPositionId", this.SafeString(account, "l2Vault"))
@@ -3313,8 +3313,8 @@ func (this *ExtendedCore) createExtendedOrderRequestBody(ch chan any, symbol any
 	retRes26138 := (<-this.LoadMarkets())
 	PanicOnError(retRes26138)
 	var market any = this.Market(symbol)
-	var uppercaseType string = ToUpper(typeVar)
-	var uppercaseSide string = ToUpper(side)
+	var uppercaseType any = ToUpper(typeVar)
+	var uppercaseSide any = ToUpper(side)
 	if IsTrue(IsTrue(GetValue(market, "spot")) && IsTrue(!IsEqual(uppercaseType, "LIMIT"))) {
 		panic(BadRequest(Add(this.Id, " createOrder() supports limit orders for spot markets only")))
 	}
@@ -3351,7 +3351,7 @@ func (this *ExtendedCore) createExtendedOrderRequestBody(ch chan any, symbol any
 	if IsTrue(!IsEqual(builderFeeRate, nil)) {
 		totalFee = Precise.StringAdd(fee, builderFeeRate)
 	}
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var expiryEpochMillis any = this.SafeInteger(params, "expiryEpochMillis", Add(now, 3600000))
 	var settlementExpiration any = this.SafeInteger(params, "settlementExpiration", Add(this.ParseToInt(Divide((Add(expiryEpochMillis, 999)), 1000)), 1209600))
 	var nonce any = this.NumberToString(this.Nonce())
@@ -3659,7 +3659,7 @@ func (this *ExtendedCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 		"postOnly":   postOnly,
 		"reduceOnly": reduceOnly,
 	}, params)
-	var requestParams map[string]any = this.Extend(params, map[string]any{
+	var requestParams any = this.Extend(params, map[string]any{
 		"cancelId":          cancelId,
 		"expiryEpochMillis": expiryEpochMillis,
 	})
@@ -3794,7 +3794,7 @@ func (this *ExtendedCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 	var request any = map[string]any{}
 	var hasOrderIds any = !IsEqual(ids, nil)
 	if IsTrue(hasOrderIds) {
-		var idsLength int = GetArrayLength(ids)
+		var idsLength any = GetArrayLength(ids)
 		if IsTrue(IsGreaterThan(idsLength, 0)) {
 			AddElementToObject(request, "orderIds", ids)
 		}
@@ -3804,7 +3804,7 @@ func (this *ExtendedCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 	}
 	var hasClientOrderIds any = !IsEqual(clientOrderIds, nil)
 	if IsTrue(!IsEqual(clientOrderIds, nil)) {
-		var clientOrderIdsLength int = GetArrayLength(clientOrderIds)
+		var clientOrderIdsLength any = GetArrayLength(clientOrderIds)
 		if IsTrue(IsGreaterThan(clientOrderIdsLength, 0)) {
 			AddElementToObject(request, "externalOrderIds", clientOrderIds)
 		}
@@ -4133,7 +4133,7 @@ func (this *ExtendedCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "cursor")
 	var result any = []any{}
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	for i := 0; IsLessThan(i, dataLength); i++ {
 		var entry any = GetValue(data, i)
 		if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((IsEqual(i, Subtract(dataLength, 1))))) {
@@ -4328,7 +4328,7 @@ func (this *ExtendedCore) GetExtendedStringToFelt(value any) any {
 }
 func (this *ExtendedCore) GetExtendedEncodeI64(value any) any {
 	// Cairo prime offset for i64 negative encoding.
-	var prime string = "3618502788666131213697322783095070105623107215331596699973092056135872020481"
+	var prime any = "3618502788666131213697322783095070105623107215331596699973092056135872020481"
 	var valueString any = this.NumberToString(value)
 	if IsTrue(Precise.StringLt(valueString, "0")) {
 		return Precise.StringAdd(prime, valueString)
@@ -4342,7 +4342,7 @@ func (this *ExtendedCore) GetExtendedDecimalToBase16(value any) any {
 	} else {
 		decimalString = this.NumberToString(value)
 	}
-	var hexChars []any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
+	var hexChars any = []any{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"}
 	var result any = ""
 	for Precise.StringGt(decimalString, "0") {
 		var remainder any = this.ParseToInt(Precise.StringMod(decimalString, "16"))
@@ -4369,7 +4369,7 @@ func (this *ExtendedCore) GetExtendedSignatureHex(signature any) any {
 }
 func (this *ExtendedCore) GetExtendedDomainHash() any {
 	var domainTypeHash any = this.ConvertToBigInt(this.ExtendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"))
-	var isTestnet bool = IsGreaterThanOrEqual(GetIndexOf(GetValue(GetValue(this.Urls, "api"), "rest"), "sepolia"), 0)
+	var isTestnet any = IsGreaterThanOrEqual(GetIndexOf(GetValue(GetValue(this.Urls, "api"), "rest"), "sepolia"), 0)
 	var defaultChainId any = Ternary(IsTrue(isTestnet), "SN_SEPOLIA", "SN_MAIN")
 	var chainId any = this.SafeString(this.Options, "chainId", defaultChainId)
 	return this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{domainTypeHash, this.GetExtendedStringToFelt("Perpetuals"), this.GetExtendedStringToFelt("v0"), this.GetExtendedStringToFelt(chainId), this.ConvertToBigInt("1")}))

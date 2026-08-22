@@ -418,8 +418,8 @@ func (this *CexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(responses)
 	var dataCurrencies any = this.SafeList(GetValue(responses, 0), "data", []any{})
 	var dataNetworks any = this.SafeDict(GetValue(responses, 1), "data", map[string]any{})
-	var currenciesIndexed map[string]any = this.IndexBy(dataCurrencies, "currency")
-	var data map[string]any = this.DeepExtend(currenciesIndexed, dataNetworks)
+	var currenciesIndexed any = this.IndexBy(dataCurrencies, "currency")
+	var data any = this.DeepExtend(currenciesIndexed, dataNetworks)
 
 	ch <- this.ParseCurrencies(this.ToArray(data))
 	return nil
@@ -431,13 +431,13 @@ func (this *CexCore) ParseCurrency(rawCurrency any) any {
 	var currencyPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(rawCurrency, "precision")))
 	var networks any = map[string]any{}
 	var rawNetworks any = this.SafeDict(rawCurrency, "blockchains", map[string]any{})
-	var keys []string = ObjectKeys(rawNetworks)
+	var keys any = ObjectKeys(rawNetworks)
 	for j := 0; IsLessThan(j, GetArrayLength(keys)); j++ {
 		var networkId any = GetValue(keys, j)
 		var rawNetwork any = GetValue(rawNetworks, networkId)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		var deposit bool = IsEqual(this.SafeString(rawNetwork, "deposit"), "enabled")
-		var withdraw bool = IsEqual(this.SafeString(rawNetwork, "withdrawal"), "enabled")
+		var deposit any = IsEqual(this.SafeString(rawNetwork, "deposit"), "enabled")
+		var withdraw any = IsEqual(this.SafeString(rawNetwork, "withdrawal"), "enabled")
 		if IsTrue(!IsEqual(networkCode, nil)) {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":        networkId,
@@ -1065,7 +1065,7 @@ func (this *CexCore) ParseTradingFees(response any, optionalArgs ...any) any {
 	useKeyAsId := GetArg(optionalArgs, 0, false)
 	_ = useKeyAsId
 	var result any = map[string]any{}
-	var keys []string = ObjectKeys(response)
+	var keys any = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var market any = nil
@@ -1228,7 +1228,7 @@ func (this *CexCore) ParseBalance(response any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var keys []string = ObjectKeys(response)
+	var keys any = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var balance any = this.SafeDict(response, key, map[string]any{})
@@ -2328,10 +2328,10 @@ func (this *CexCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var seconds string = ToString(this.Seconds())
+		var seconds any = ToString(this.Seconds())
 		body = this.Json(query)
 		var auth any = Add(Add(path, seconds), body)
-		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
+		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
 		headers = map[string]any{
 			"Content-Type":     "application/json",
 			"X-AGGR-KEY":       this.ApiKey,

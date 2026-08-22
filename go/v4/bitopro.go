@@ -421,7 +421,7 @@ func (this *BitoproCore) ParseCurrency(rawCurrency any) any {
 	var code any = this.SafeCurrencyCode(currencyId)
 	var deposit any = this.SafeBool(rawCurrency, "deposit")
 	var withdraw any = this.SafeBool(rawCurrency, "withdraw")
-	var isFiat bool = this.InArray(code, fiatCurrencies)
+	var isFiat any = this.InArray(code, fiatCurrencies)
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
@@ -499,7 +499,7 @@ func (this *BitoproCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(id, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
 	}
-	var uppercaseId string = ToUpper(id)
+	var uppercaseId any = ToUpper(id)
 	var baseId any = this.SafeString(market, "base")
 	var quoteId any = this.SafeString(market, "quote")
 	var base any = this.SafeCurrencyCode(baseId)
@@ -1099,7 +1099,7 @@ func (this *BitoproCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 func (this *BitoproCore) InsertMissingCandles(candles any, distance any, since any, limit any) any {
 	// the exchange doesn't send zero volume candles so we emulate them instead
 	// otherwise sending a limit arg leads to unexpected results
-	var length int = GetArrayLength(candles)
+	var length any = GetArrayLength(candles)
 	if IsTrue(IsEqual(length, 0)) {
 		return candles
 	}
@@ -1112,7 +1112,7 @@ func (this *BitoproCore) InsertMissingCandles(candles any, distance any, since a
 		timestamp = since
 	}
 	var i any = 0
-	var candleLength int = GetArrayLength(candles)
+	var candleLength any = GetArrayLength(candles)
 	var resultLength any = 0
 	for IsTrue((IsLessThan(resultLength, limit))) && IsTrue((IsLessThan(i, candleLength))) {
 		var candle any = GetValue(candles, i)
@@ -1354,7 +1354,7 @@ func (this *BitoproCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"amount":    this.AmountToPrecision(symbol, amount),
 		"timestamp": this.Milliseconds(),
 	}
-	var orderType string = ToUpper(typeVar)
+	var orderType any = ToUpper(typeVar)
 	if IsTrue(IsEqual(orderType, "LIMIT")) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
@@ -1448,7 +1448,7 @@ func (this *BitoproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	return nil
 }
 func (this *BitoproCore) ParseCancelOrders(data any) any {
-	var dataKeys []string = ObjectKeys(data)
+	var dataKeys any = ObjectKeys(data)
 	var orders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(dataKeys)); i++ {
 		var marketId any = GetValue(dataKeys, i)
@@ -2351,7 +2351,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) {
 			body = this.Json(params)
 			var payload any = this.StringToBase64(body)
-			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
@@ -2359,13 +2359,13 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
-			var nonce int64 = this.Milliseconds()
+			var nonce any = this.Milliseconds()
 			var rawData any = map[string]any{
 				"nonce": nonce,
 			}
 			var data any = this.Json(rawData)
 			var payload any = this.StringToBase64(data)
-			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)

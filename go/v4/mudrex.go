@@ -254,7 +254,7 @@ func (this *MudrexCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(brokerId, nil)) {
 		AddElementToObject(requestHeaders, "Partner-Id", brokerId)
 	}
-	var methodUpper string = ToUpper(method)
+	var methodUpper any = ToUpper(method)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		AddElementToObject(requestHeaders, "X-Authentication", this.Secret)
@@ -309,7 +309,7 @@ func (this *MudrexCore) HandleErrors(code any, reason any, url any, method any, 
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errCode, Add(Add(this.Id, " "), text))
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), text, Add(Add(this.Id, " "), text))
 		var msg any = Add(Add(this.Id, " "), text)
-		var low string = ToLower(text)
+		var low any = ToLower(text)
 		if IsTrue(IsTrue(IsEqual(code, 401)) || IsTrue(IsGreaterThanOrEqual(GetIndexOf(low, "auth"), 0))) {
 			panic(AuthenticationError(msg))
 		}
@@ -386,7 +386,7 @@ func (this *MudrexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	if IsTrue(IsEqual(requestLimit, nil)) {
 		requestLimit = 500
 	}
-	var now int64 = this.Seconds()
+	var now any = this.Seconds()
 	var startTime any = nil
 	if IsTrue(!IsEqual(since, nil)) {
 		startTime = this.ParseToInt(Divide(since, 1000))
@@ -565,7 +565,7 @@ func (this *MudrexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var ms any = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(ms, market)
 	var symbol any = GetValue(market, "symbol")
-	var ts int64 = this.Milliseconds()
+	var ts any = this.Milliseconds()
 	var pct any = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -612,9 +612,9 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	var aggregated any = []any{}
 	var offset any = 0
 	var pageLimit any = 100
-	var paging bool = true
+	var paging any = true
 	for IsEqual(paging, true) {
-		var q map[string]any = this.Extend(map[string]any{
+		var q any = this.Extend(map[string]any{
 			"limit":  pageLimit,
 			"offset": offset,
 		}, params)
@@ -626,7 +626,7 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		if IsTrue(IsTrue(IsObject(data)) && !IsTrue(IsArray(data))) {
 			items = this.SafeList(data, "items", []any{})
 			// hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-			var itemsLength int = GetArrayLength(items)
+			var itemsLength any = GetArrayLength(items)
 			if !IsTrue(itemsLength) {
 				items = this.SafeList(data, "results", []any{})
 				itemsLength = GetArrayLength(items)
@@ -637,7 +637,7 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		} else {
 			items = this.ToArray(data)
 		}
-		var numItems int = GetArrayLength(items)
+		var numItems any = GetArrayLength(items)
 		if !IsTrue(numItems) {
 			paging = false
 			break
@@ -666,8 +666,8 @@ func (this *MudrexCore) ParseMarket(asset any) any {
 	if IsTrue(IsTrue(!IsEqual(ms, nil)) && IsTrue(EndsWith(ms, "USDT"))) {
 		base = Slice(ms, 0, OpNeg(4))
 	}
-	var quote string = "USDT"
-	var settle string = "USDT"
+	var quote any = "USDT"
+	var settle any = "USDT"
 	var symbol any = nil
 	if IsTrue(!IsEqual(base, nil)) {
 		symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
@@ -787,7 +787,7 @@ func (this *MudrexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *MudrexCore) ParseBalance(response any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var currency any = this.SafeString(response, "currency", "USDT")
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var result any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
@@ -1256,7 +1256,7 @@ func (this *MudrexCore) fetchOrdersByStateBody(ch chan any, state any, optionalA
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(q, "limit", limit)
 	}
-	var request map[string]any = this.Extend(q, params)
+	var request any = this.Extend(q, params)
 	var response any = nil
 	if IsTrue(IsEqual(state, "closed")) {
 
@@ -1853,7 +1853,7 @@ func (this *MudrexCore) transferBody(ch chan any, code any, amount any, fromAcco
 		"to_wallet_type":   tw,
 		"amount":           this.NumberToString(amount),
 	}
-	var useInr bool = false
+	var useInr any = false
 	if IsTrue(IsEqual(code, "INR")) {
 		useInr = true
 	} else {

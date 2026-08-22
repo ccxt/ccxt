@@ -24,7 +24,7 @@ func (this *BybiteuCore) Describe() any {
 	restInstance := ccxt.NewBybiteu(nil)
 	var restDescribe any = restInstance.Describe()
 	var parentWsDescribe any = this.base.DescribeData()
-	var extended map[string]any = this.DeepExtend(restDescribe, parentWsDescribe)
+	var extended any = this.DeepExtend(restDescribe, parentWsDescribe)
 	return this.DeepExtend(extended, map[string]any{
 		"id":        "bybiteu",
 		"name":      "Bybit EU",

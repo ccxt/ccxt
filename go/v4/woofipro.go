@@ -801,8 +801,8 @@ func (this *WoofiproCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts []string = Split(marketId, "_")
-	var marketType string = "swap"
+	var parts any = Split(marketId, "_")
+	var marketType any = "swap"
 	var baseId any = this.SafeString(parts, 1)
 	var quoteId any = this.SafeString(parts, 2)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -975,7 +975,7 @@ func (this *WoofiproCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) 
 	var tokenRows any = this.SafeList(tokenData, "rows", []any{})
 	var chainData any = this.SafeDict(chainResponse, "data", map[string]any{})
 	var chainRows any = this.SafeList(chainData, "rows", []any{})
-	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
+	var indexedChains any = this.IndexBy(chainRows, "chain_id")
 	for i := 0; IsLessThan(i, GetArrayLength(tokenRows)); i++ {
 		var token any = GetValue(tokenRows, i)
 		var parsed any = this.ParseCurrency(map[string]any{
@@ -1114,7 +1114,7 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var id any = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if IsTrue(isFromFetchOrder) {
-		var isMaker bool = IsEqual(this.SafeString(trade, "is_maker"), "1")
+		var isMaker any = IsEqual(this.SafeString(trade, "is_maker"), "1")
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
 	return this.SafeTrade(map[string]any{
@@ -1554,7 +1554,7 @@ func (this *WoofiproCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 		if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
 			continue
 		}
-		var ticker map[string]any = this.Extend(map[string]any{
+		var ticker any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
 		AppendToArray(&result, this.ParseTicker(ticker))
@@ -1702,7 +1702,7 @@ func (this *WoofiproCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...an
 		if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
 			continue
 		}
-		var interest map[string]any = this.Extend(map[string]any{
+		var interest any = this.Extend(map[string]any{
 			"timestamp": timestamp,
 		}, row)
 		AppendToArray(&result, this.ParseOpenInterest(interest))
@@ -2228,7 +2228,7 @@ func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(childOrders, nil)) {
 		var first any = this.SafeValue(childOrders, 0)
 		var innerChildOrders any = this.SafeValue(first, "childOrders", []any{})
-		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
+		var innerChildOrdersLength any = GetArrayLength(innerChildOrders)
 		if IsTrue(IsGreaterThan(innerChildOrdersLength, 0)) {
 			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
 			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
@@ -2326,12 +2326,12 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	 * @returns {object} request to be sent to the exchange
 	 */
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType string = ToUpper(typeVar)
+	var orderType any = ToUpper(typeVar)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
 	}
 	var market any = this.Market(symbol)
-	var orderSide string = ToUpper(side)
+	var orderSide any = ToUpper(side)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
@@ -2342,8 +2342,8 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	var hasStopLoss any = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
 	var algoType any = this.SafeString(params, "algoType")
-	var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-	var isMarket bool = IsEqual(orderType, "MARKET")
+	var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isMarket any = IsEqual(orderType, "MARKET")
 	var timeInForce any = this.SafeStringLower(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
@@ -2459,7 +2459,7 @@ func (this *WoofiproCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLoss any = this.SafeValue(params, "stopLoss")
 	var takeProfit any = this.SafeValue(params, "takeProfit")
-	var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var response any = nil
 	if IsTrue(isConditional) {
 
@@ -2515,7 +2515,7 @@ func (this *WoofiproCore) createOrdersBody(ch chan any, orders any, optionalArgs
 		var triggerPrice any = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLoss any = this.SafeValue(orderParams, "stopLoss")
 		var takeProfit any = this.SafeValue(orderParams, "takeProfit")
-		var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
+		var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
 		if IsTrue(isConditional) {
 			panic(NotSupported(Add(this.Id, " createOrders() only support non-stop order")))
 		}
@@ -2597,7 +2597,7 @@ func (this *WoofiproCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
 		AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 	}
-	var isConditional bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
 	var priceKey any = Ternary(IsTrue(isConditional), "price", "order_price")
 	if IsTrue(!IsEqual(price, nil)) {
@@ -2618,9 +2618,9 @@ func (this *WoofiproCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	} else {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
 		AddElementToObject(request, "side", ToUpper(side))
-		var orderType string = ToUpper(typeVar)
+		var orderType any = ToUpper(typeVar)
 		var timeInForce any = this.SafeStringLower(params, "timeInForce")
-		var isMarket bool = IsEqual(orderType, "MARKET")
+		var isMarket any = IsEqual(orderType, "MARKET")
 		var postOnly any = this.IsPostOnly(isMarket, nil, params)
 		if IsTrue(postOnly) {
 			AddElementToObject(request, "order_type", "POST_ONLY")
@@ -3156,7 +3156,7 @@ func (this *WoofiproCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 		retRes247612 := (<-this.LoadMarkets())
 		PanicOnError(retRes247612)
 	}
-	var extendedParams map[string]any = this.Extend(params, map[string]any{
+	var extendedParams any = this.Extend(params, map[string]any{
 		"status": "INCOMPLETE",
 	})
 
@@ -3204,7 +3204,7 @@ func (this *WoofiproCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any
 		retRes250112 := (<-this.LoadMarkets())
 		PanicOnError(retRes250112)
 	}
-	var extendedParams map[string]any = this.Extend(params, map[string]any{
+	var extendedParams any = this.Extend(params, map[string]any{
 		"status": "COMPLETED",
 	})
 
@@ -4566,7 +4566,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 			params = this.Keysort(params)
 		}
 		var auth any = ""
-		var ts string = ToString(this.Nonce())
+		var ts any = ToString(this.Nonce())
 		url = Add(url, pathWithParams)
 		var apiKey any = this.ApiKey
 		if IsTrue(IsLessThan(GetIndexOf(apiKey, "ed25519:"), 0)) {
@@ -4594,7 +4594,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var secret any = this.Secret
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(secret, "ed25519:"), 0)) {
-			var parts []string = Split(secret, "ed25519:")
+			var parts any = Split(secret, "ed25519:")
 			secret = GetValue(parts, 1)
 		}
 		var signature any = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)

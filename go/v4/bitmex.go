@@ -658,8 +658,8 @@ func (this *BitmexCore) ParseCurrency(currency any) any {
 	var id any = this.SafeString(currency, "currency")
 	var name any = this.SafeString(currency, "name")
 	var chains any = this.SafeValue(currency, "networks", []any{})
-	var depositEnabled bool = false
-	var withdrawEnabled bool = false
+	var depositEnabled any = false
+	var withdrawEnabled any = false
 	var networks any = map[string]any{}
 	var scale any = this.SafeString(currency, "scale")
 	var precisionString any = this.ParsePrecision(scale)
@@ -703,14 +703,14 @@ func (this *BitmexCore) ParseCurrency(currency any) any {
 		}
 	}
 	var currencyEnabled any = this.SafeValue(currency, "enabled")
-	var currencyActive bool = IsTrue(currencyEnabled) || IsTrue((IsTrue(depositEnabled) || IsTrue(withdrawEnabled)))
+	var currencyActive any = IsTrue(currencyEnabled) || IsTrue((IsTrue(depositEnabled) || IsTrue(withdrawEnabled)))
 	var minWithdrawalString any = this.SafeString(currency, "minWithdrawalAmount")
 	var minWithdrawal any = this.ParseNumber(Precise.StringMul(minWithdrawalString, precisionString))
 	var maxWithdrawalString any = this.SafeString(currency, "maxWithdrawalAmount")
 	var maxWithdrawal any = this.ParseNumber(Precise.StringMul(maxWithdrawalString, precisionString))
 	var minDepositString any = this.SafeString(currency, "minDepositAmount")
 	var minDeposit any = this.ParseNumber(Precise.StringMul(minDepositString, precisionString))
-	var isCrypto bool = IsEqual(this.SafeString(currency, "currencyType"), "Crypto")
+	var isCrypto any = IsEqual(this.SafeString(currency, "currencyType"), "Crypto")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -772,7 +772,7 @@ func (this *BitmexCore) ConvertFromRawQuantity(symbol any, rawQuantity any, opti
 		return this.ParseNumber(rawQuantity)
 	}
 	symbol = this.SafeSymbol(symbol)
-	var marketExists bool = this.InArray(symbol, this.Symbols)
+	var marketExists any = this.InArray(symbol, this.Symbols)
 	if !IsTrue(marketExists) {
 		return this.ParseNumber(rawQuantity)
 	}
@@ -1000,9 +1000,9 @@ func (this *BitmexCore) ParseMarket(market any) any {
 	// so let's take the settlCurrency first and then adjust if needed
 	var typ any = this.SafeString(market, "typ") // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
 	var typeVar any = nil
-	var swap bool = false
-	var spot bool = false
-	var future bool = false
+	var swap any = false
+	var spot any = false
+	var future any = false
 	if IsTrue(IsEqual(typ, "FFWCSX")) {
 		typeVar = "swap"
 		swap = true
@@ -1024,13 +1024,13 @@ func (this *BitmexCore) ParseMarket(market any) any {
 	}
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var contract bool = IsTrue(swap) || IsTrue(future)
+	var contract any = IsTrue(swap) || IsTrue(future)
 	var contractSize any = nil
 	var isInverse any = this.SafeValue(market, "isInverse") // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
 	var isQuanto any = this.SafeValue(market, "isQuanto")   // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
 	var linear any = Ternary(IsTrue(contract), (!IsTrue(isInverse) && !IsTrue(isQuanto)), nil)
 	var status any = this.SafeString(market, "state")
-	var active bool = IsEqual(status, "Open") // Open, Settled, Unlisted
+	var active any = IsEqual(status, "Open") // Open, Settled, Unlisted
 	var expiry any = nil
 	var expiryDatetime any = nil
 	var symbol any = nil
@@ -1365,7 +1365,7 @@ func (this *BitmexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 
 	response := (<-this.FetchOrders(symbol, nil, nil, this.DeepExtend(filter, params)))
 	PanicOnError(response)
-	var numResults int = GetArrayLength(response)
+	var numResults any = GetArrayLength(response)
 	if IsTrue(IsEqual(numResults, 1)) {
 
 		ch <- GetValue(response, 0)
@@ -2631,7 +2631,7 @@ func (this *BitmexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	if IsTrue(IsEqual(postOnly, true)) {
 		AppendToArray(&execInstructions, "ParticipateDoNotInitiate")
 	}
-	var execInstLength int = GetArrayLength(execInstructions)
+	var execInstLength any = GetArrayLength(execInstructions)
 	if IsTrue(IsGreaterThan(execInstLength, 0)) {
 		AddElementToObject(request, "execInst", Join(execInstructions, ","))
 	}
@@ -2660,8 +2660,8 @@ func (this *BitmexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 			}
 		}
 		if IsTrue(isTrailingAmountOrder) {
-			var isStopSellOrder bool = IsTrue((IsEqual(side, "sell"))) && IsTrue((IsTrue((IsEqual(orderType, "Stop"))) || IsTrue((IsEqual(orderType, "StopLimit")))))
-			var isBuyIfTouchedOrder bool = IsTrue((IsEqual(side, "buy"))) && IsTrue((IsTrue((IsEqual(orderType, "MarketIfTouched"))) || IsTrue((IsEqual(orderType, "LimitIfTouched")))))
+			var isStopSellOrder any = IsTrue((IsEqual(side, "sell"))) && IsTrue((IsTrue((IsEqual(orderType, "Stop"))) || IsTrue((IsEqual(orderType, "StopLimit")))))
+			var isBuyIfTouchedOrder any = IsTrue((IsEqual(side, "buy"))) && IsTrue((IsTrue((IsEqual(orderType, "MarketIfTouched"))) || IsTrue((IsEqual(orderType, "LimitIfTouched")))))
 			if IsTrue(IsTrue(isStopSellOrder) || IsTrue(isBuyIfTouchedOrder)) {
 				trailingAmount = Add("-", trailingAmount)
 			}
@@ -2733,8 +2733,8 @@ func (this *BitmexCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 				orderType = Ternary(IsTrue(triggerAbove), "MarketIfTouched", "Stop")
 			}
 		}
-		var isStopSellOrder bool = IsTrue((IsEqual(side, "sell"))) && IsTrue((IsTrue((IsEqual(orderType, "Stop"))) || IsTrue((IsEqual(orderType, "StopLimit")))))
-		var isBuyIfTouchedOrder bool = IsTrue((IsEqual(side, "buy"))) && IsTrue((IsTrue((IsEqual(orderType, "MarketIfTouched"))) || IsTrue((IsEqual(orderType, "LimitIfTouched")))))
+		var isStopSellOrder any = IsTrue((IsEqual(side, "sell"))) && IsTrue((IsTrue((IsEqual(orderType, "Stop"))) || IsTrue((IsEqual(orderType, "StopLimit")))))
+		var isBuyIfTouchedOrder any = IsTrue((IsEqual(side, "buy"))) && IsTrue((IsTrue((IsEqual(orderType, "MarketIfTouched"))) || IsTrue((IsEqual(orderType, "LimitIfTouched")))))
 		if IsTrue(IsTrue(isStopSellOrder) || IsTrue(isBuyIfTouchedOrder)) {
 			trailingAmount = Add("-", trailingAmount)
 		}
@@ -3509,9 +3509,9 @@ func (this *BitmexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 		var code any = this.Currency(symbol)
 		AddElementToObject(request, "symbol", GetValue(code, "id"))
 	} else if IsTrue(!IsEqual(symbol, nil)) {
-		var splitSymbol []string = Split(symbol, ":")
-		var splitSymbolLength int = GetArrayLength(splitSymbol)
-		var timeframes []any = []any{"nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"}
+		var splitSymbol any = Split(symbol, ":")
+		var splitSymbolLength any = GetArrayLength(splitSymbol)
+		var timeframes any = []any{"nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"}
 		if IsTrue(IsTrue((IsGreaterThan(splitSymbolLength, 1))) && IsTrue(this.InArray(GetValue(splitSymbol, 1), timeframes))) {
 			var code any = this.Currency(GetValue(splitSymbol, 0))
 			symbol = Add(Add(GetValue(code, "id"), ":"), GetValue(splitSymbol, 1))
@@ -3759,7 +3759,7 @@ func (this *BitmexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var networks any = this.SafeValue(fee, "networks", []any{})
-	var networksLength int = GetArrayLength(networks)
+	var networksLength any = GetArrayLength(networks)
 	var result any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
@@ -4587,7 +4587,7 @@ func (this *BitmexCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsEqual(expires, nil)) {
 			panic(ExchangeError(Add(this.Id, " sign() missing expires")))
 		}
-		var stringExpires string = ToString(expires)
+		var stringExpires any = ToString(expires)
 		auth = Add(auth, stringExpires)
 		AddElementToObject(headers, "api-expires", stringExpires)
 		if IsTrue(IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) || IsTrue(IsEqual(method, "DELETE"))) {

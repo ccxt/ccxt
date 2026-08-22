@@ -106,14 +106,14 @@ func (this *BitrueCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 
 	url := (<-this.Authenticate())
 	ccxt.PanicOnError(url)
-	var messageHash string = "balance"
+	var messageHash any = "balance"
 	var message any = map[string]any{
 		"event": "sub",
 		"params": map[string]any{
 			"channel": "user_balance_update",
 		},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	retRes8915 := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(retRes8915)
@@ -168,7 +168,7 @@ func (this *BitrueCore) HandleBalance(client any, message any) {
 	//
 	var balances any = this.SafeValue(message, "B", []any{})
 	this.ParseWSBalances(balances)
-	var messageHash string = "balance"
+	var messageHash any = "balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
 func (this *BitrueCore) ParseWSBalances(balances any) {
@@ -254,14 +254,14 @@ func (this *BitrueCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	url := (<-this.Authenticate())
 	ccxt.PanicOnError(url)
-	var messageHash string = "orders"
+	var messageHash any = "orders"
 	var message any = map[string]any{
 		"event": "sub",
 		"params": map[string]any{
 			"channel": "user_order_update",
 		},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orders)
@@ -303,7 +303,7 @@ func (this *BitrueCore) HandleOrder(client any, message any) {
 	}
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(parsed)
-	var messageHash string = "orders"
+	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
 func (this *BitrueCore) ParseWsOrder(order any, optionalArgs ...any) any {
@@ -410,7 +410,7 @@ func (this *BitrueCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 			"channel": channel,
 		},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	retRes34915 := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(retRes34915)
@@ -451,7 +451,7 @@ func (this *BitrueCore) HandleOrderBook(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var parts []string = ccxt.Split(channel, "_")
+	var parts any = ccxt.Split(channel, "_")
 	var channelKind any = this.SafeString(parts, 1)
 	var isFutures any = (ccxt.IsEqual(channelKind, "e"))
 	var market any = nil
@@ -488,7 +488,7 @@ func (this *BitrueCore) FindSwapMarketByWsBaseQuote(wsBaseQuote any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(markets, nil)) {
 		return nil
 	}
-	var symbols []string = ccxt.ObjectKeys(markets)
+	var symbols any = ccxt.ObjectKeys(markets)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var candidate any = ccxt.GetValue(markets, ccxt.GetValue(symbols, i))
 		if !ccxt.IsTrue(ccxt.GetValue(candidate, "swap")) {
@@ -573,7 +573,7 @@ func (this *BitrueCore) watchTradesBody(ch chan any, symbol any, optionalArgs ..
 			"channel": channel,
 		},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	trades := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(trades)
@@ -606,7 +606,7 @@ func (this *BitrueCore) HandleTrades(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var parts []string = ccxt.Split(channel, "_")
+	var parts any = ccxt.Split(channel, "_")
 	var wsBaseQuote any = this.SafeStringLower(parts, 2)
 	var market any = this.FindSwapMarketByWsBaseQuote(wsBaseQuote)
 	if ccxt.IsTrue(ccxt.IsEqual(market, nil)) {
@@ -615,7 +615,7 @@ func (this *BitrueCore) HandleTrades(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var tick any = this.SafeValue(message, "tick", map[string]any{})
 	var data any = this.SafeList(tick, "data", []any{})
-	var appended bool = false
+	var appended any = false
 	var stored any = this.SafeValue(this.Trades, symbol)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
@@ -714,7 +714,7 @@ func (this *BitrueCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 			"channel": channel,
 		},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(ohlcv)
@@ -745,7 +745,7 @@ func (this *BitrueCore) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var parts []string = ccxt.Split(channel, "_")
+	var parts any = ccxt.Split(channel, "_")
 	var wsBaseQuote any = this.SafeStringLower(parts, 2)
 	var market any = this.FindSwapMarketByWsBaseQuote(wsBaseQuote)
 	if ccxt.IsTrue(ccxt.IsEqual(market, nil)) {
@@ -829,7 +829,7 @@ func (this *BitrueCore) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 			"channel": channel,
 		},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	retRes71715 := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(retRes71715)
@@ -854,7 +854,7 @@ func (this *BitrueCore) HandleTicker(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var parts []string = ccxt.Split(channel, "_")
+	var parts any = ccxt.Split(channel, "_")
 	var wsBaseQuote any = this.SafeStringLower(parts, 2)
 	var market any = this.FindSwapMarketByWsBaseQuote(wsBaseQuote)
 	if ccxt.IsTrue(ccxt.IsEqual(market, nil)) {
@@ -995,7 +995,7 @@ func (this *BitrueCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// client.futures and settled through client.resolve/client.reject,
 		// so every mutation of that map happens under the ws client's own
 		// lock rather than through an unsynchronized map write
-		var messageHash string = "authenticateFlight"
+		var messageHash any = "authenticateFlight"
 		var client any = this.Client("authenticationFlights")
 		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			// a flight is already in progress - wake when the leader

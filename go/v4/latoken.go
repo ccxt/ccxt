@@ -533,7 +533,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes40712)
 	}
 	var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
-	var currenciesById map[string]any = this.IndexBy(currencies, "id")
+	var currenciesById any = this.IndexBy(currencies, "id")
 	var result any = []any{}
 	var rawMarkets any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
@@ -552,7 +552,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 			if IsTrue(IsTrue((IsEqual(base, nil))) || IsTrue((IsEqual(quote, nil)))) {
 				continue
 			}
-			var lowercaseQuote string = ToLower(quote)
+			var lowercaseQuote any = ToLower(quote)
 			var capitalizedQuote any = this.Capitalize(lowercaseQuote)
 			var status any = this.SafeString(market, "status")
 			AppendToArray(&result, map[string]any{
@@ -756,7 +756,7 @@ func (this *LatokenCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	var typeVar any = this.SafeString(params, "type", defaultType)
 	var types any = this.SafeValue(this.Options, "types", map[string]any{})
 	var accountType any = this.SafeString(types, typeVar, typeVar)
-	var balancesByType map[string]any = this.GroupBy(response, "type")
+	var balancesByType any = this.GroupBy(response, "type")
 	var balances any = this.SafeValue(balancesByType, accountType, []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
@@ -1458,8 +1458,8 @@ func (this *LatokenCore) ParseOrder(order any, optionalArgs ...any) any {
 	var orderSide any = this.SafeString(order, "side")
 	var side any = nil
 	if IsTrue(!IsEqual(orderSide, nil)) {
-		var parts []string = Split(orderSide, "_")
-		var partsLength int = GetArrayLength(parts)
+		var parts any = Split(orderSide, "_")
+		var partsLength any = GetArrayLength(parts)
 		side = this.SafeStringLower(parts, Subtract(partsLength, 1))
 	}
 	var typeVar any = this.ParseOrderType(this.SafeString(order, "type"))
@@ -1786,7 +1786,7 @@ func (this *LatokenCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes142212)
 	}
 	var market any = this.Market(symbol)
-	var uppercaseType string = ToUpper(typeVar)
+	var uppercaseType any = ToUpper(typeVar)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
@@ -2338,7 +2338,7 @@ func (this *LatokenCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		var auth any = Add(Add(method, request), urlencodedQuery)
-		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
+		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
 		headers = map[string]any{
 			"X-LA-APIKEY":    this.ApiKey,
 			"X-LA-SIGNATURE": signature,

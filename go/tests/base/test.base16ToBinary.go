@@ -41,7 +41,7 @@ func TestBase16ToBinary() {
 	Assert(ccxt.IsEqual(exchange.BinaryToBase16(binary7), "deadbeef"))
 	Assert(ccxt.IsEqual(exchange.BinaryLength(binary7), 4))
 	// Test 8: roundtrip binaryToBase16 -> base16ToBinary
-	var hex8 string = "cafebabe"
+	var hex8 any = "cafebabe"
 	var binary8 any = exchange.Base16ToBinary(hex8)
 	Assert(ccxt.IsEqual(exchange.BinaryToBase16(binary8), hex8))
 }

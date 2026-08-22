@@ -105,13 +105,13 @@ func (this *PoloniexCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	this.CheckRequiredCredentials()
 	var timestamp any = this.NumberToString(this.Milliseconds())
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-	var messageHash string = "authenticated"
+	var messageHash any = "authenticated"
 	var client any = this.Client(url)
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(future, nil)) {
-		var accessPath string = "/ws"
+		var accessPath any = "/ws"
 		var requestString any = ccxt.Add(ccxt.Add(ccxt.Add("GET\n", accessPath), "\nsignTimestamp="), timestamp)
-		var signature string = this.Hmac(this.Encode(requestString), this.Encode(this.Secret), ccxt.Sha256, "base64")
+		var signature any = this.Hmac(this.Encode(requestString), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var request any = map[string]any{
 			"event":   "subscribe",
 			"channel": []any{"auth"},
@@ -123,7 +123,7 @@ func (this *PoloniexCore) authenticateBody(ch chan any, optionalArgs ...any) any
 				"signatureVersion": "2",
 			},
 		}
-		var message map[string]any = this.Extend(request, params)
+		var message any = this.Extend(request, params)
 
 		future = (<-this.Watch(url, messageHash, message, messageHash))
 		ccxt.PanicOnError(future)
@@ -197,7 +197,7 @@ func (this *PoloniexCore) subscribeBody(ch chan any, name any, messageHash any, 
 	if ccxt.IsTrue(!ccxt.IsEqual(name, "balances")) {
 		ccxt.AddElementToObject(subscribe, "symbols", marketIds)
 	}
-	var request map[string]any = this.Extend(subscribe, params)
+	var request any = this.Extend(subscribe, params)
 
 	retRes17015 := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(retRes17015)
@@ -224,7 +224,7 @@ func (this *PoloniexCore) tradeRequestBody(ch chan any, name any, optionalArgs .
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-	var messageHash string = ccxt.ToString(this.Nonce())
+	var messageHash any = ccxt.ToString(this.Nonce())
 	var subscribe any = map[string]any{
 		"id":     messageHash,
 		"event":  name,
@@ -280,11 +280,11 @@ func (this *PoloniexCore) createOrderWsBody(ch chan any, symbol any, typeVar any
 	retRes2188 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes2188)
 	var market any = this.Market(symbol)
-	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var uppercaseType any = ccxt.ToUpper(typeVar)
 	if ccxt.IsTrue(ccxt.IsEqual(side, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " createOrderWs() side is required")))
 	}
-	var uppercaseSide string = ccxt.ToUpper(side)
+	var uppercaseSide any = ccxt.ToUpper(side)
 	var isPostOnly any = this.IsPostOnly(ccxt.IsEqual(uppercaseType, "MARKET"), ccxt.IsEqual(uppercaseType, "LIMIT_MAKER"), params)
 	if ccxt.IsTrue(isPostOnly) {
 		uppercaseType = "LIMIT_MAKER"
@@ -576,7 +576,7 @@ func (this *PoloniexCore) watchTickersBody(ch chan any, optionalArgs ...any) any
 		retRes40712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes40712)
 	}
-	var name string = "ticker"
+	var name any = "ticker"
 	symbols = this.MarketSymbols(symbols)
 
 	newTickers := (<-this.Subscribe(name, name, false, symbols, params))
@@ -654,7 +654,7 @@ func (this *PoloniexCore) watchTradesForSymbolsBody(ch chan any, symbols any, op
 		ccxt.PanicOnError(retRes44612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false, true, true)
-	var name string = "trades"
+	var name any = "trades"
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
 	var marketIds any = this.MarketIds(symbols)
 	var subscribe any = map[string]any{
@@ -662,7 +662,7 @@ func (this *PoloniexCore) watchTradesForSymbolsBody(ch chan any, symbols any, op
 		"channel": []any{name},
 		"symbols": marketIds,
 	}
-	var request map[string]any = this.Extend(subscribe, params)
+	var request any = this.Extend(subscribe, params)
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -754,7 +754,7 @@ func (this *PoloniexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any 
 		retRes50912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes50912)
 	}
-	var name string = "orders"
+	var name any = "orders"
 
 	retRes5128 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes5128)
@@ -805,8 +805,8 @@ func (this *PoloniexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) an
 		retRes53712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes53712)
 	}
-	var name string = "orders"
-	var messageHash string = "myTrades"
+	var name any = "orders"
+	var messageHash any = "myTrades"
 
 	retRes5418 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes5418)
@@ -848,7 +848,7 @@ func (this *PoloniexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any
 		retRes56312 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes56312)
 	}
-	var name string = "balances"
+	var name any = "balances"
 
 	retRes5668 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes5668)
@@ -949,7 +949,7 @@ func (this *PoloniexCore) HandleTrade(client any, message any) any {
 		if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
 			var trade any = this.ParseWsTrade(item)
 			var symbol any = ccxt.GetValue(trade, "symbol")
-			var typeVar string = "trades"
+			var typeVar any = "trades"
 			var messageHash any = ccxt.Add(ccxt.Add(typeVar, "::"), symbol)
 			var tradesArray any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.SafeValue(this.Trades, symbol))
 			if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
@@ -1340,9 +1340,9 @@ func (this *PoloniexCore) HandleTicker(client any, message any) any {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "ticker::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts []string = ccxt.Split(messageHash, "::")
+		var parts any = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols []string = ccxt.Split(symbolsString, ",")
+		var symbols any = ccxt.Split(symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
 		if !ccxt.IsTrue(this.IsEmpty(tickers)) {
 			client.(ccxt.ClientInterface).Resolve(tickers, messageHash)
@@ -1401,14 +1401,14 @@ func (this *PoloniexCore) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeValue(message, "data", []any{})
 	var typeVar any = this.SafeString(message, "action")
-	var snapshot bool = ccxt.IsEqual(typeVar, "snapshot")
-	var update bool = ccxt.IsEqual(typeVar, "update")
+	var snapshot any = ccxt.IsEqual(typeVar, "snapshot")
+	var update any = ccxt.IsEqual(typeVar, "update")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var item any = ccxt.GetValue(data, i)
 		var marketId any = this.SafeString(item, "symbol")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = ccxt.GetValue(market, "symbol")
-		var name string = "book_lv2"
+		var name any = "book_lv2"
 		var messageHash any = ccxt.Add(ccxt.Add(name, "::"), symbol)
 		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, map[string]any{})
 		var limit any = this.SafeInteger(subscription, "limit")
@@ -1466,7 +1466,7 @@ func (this *PoloniexCore) HandleBalance(client any, message any) {
 	//    }
 	//
 	var data any = this.SafeValue(message, "data", []any{})
-	var messageHash string = "balances"
+	var messageHash any = "balances"
 	this.Balance = this.ParseWsBalance(data)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -1509,7 +1509,7 @@ func (this *PoloniexCore) ParseWsBalance(response any) any {
 }
 func (this *PoloniexCore) HandleMyTrades(client any, parsedTrade any) {
 	// emulated using the orders' stream
-	var messageHash string = "myTrades"
+	var messageHash any = "myTrades"
 	var symbol any = ccxt.GetValue(parsedTrade, "symbol")
 	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -1566,7 +1566,7 @@ func (this *PoloniexCore) HandleMessage(client any, message any) {
 		this.HandleOrderRequest(client, message)
 	} else {
 		var data any = this.SafeValue(message, "data", []any{})
-		var dataLength int = ccxt.GetArrayLength(data)
+		var dataLength any = ccxt.GetArrayLength(data)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(dataLength, 0)) {
 			ccxt.CallDynamically(method, client, message)
 		}
@@ -1619,7 +1619,7 @@ func (this *PoloniexCore) HandleErrorMessage(client any, message any) any {
 						ret_ = func(this *PoloniexCore) any {
 							// catch block:
 							if ccxt.IsTrue(ccxt.IsInstance(e, ccxt.AuthenticationError)) {
-								var messageHash string = "authenticated"
+								var messageHash any = "authenticated"
 								client.(ccxt.ClientInterface).Reject(e, messageHash)
 								if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 									ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1661,7 +1661,7 @@ func (this *PoloniexCore) HandleAuthenticate(client any, message any) any {
 	//
 	var data any = this.SafeValue(message, "data")
 	var success any = this.SafeValue(data, "success")
-	var messageHash string = "authenticated"
+	var messageHash any = "authenticated"
 	if ccxt.IsTrue(success) {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	} else {

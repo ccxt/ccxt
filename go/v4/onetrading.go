@@ -597,7 +597,7 @@ func (this *OnetradingCore) ParseMarket(market any) any {
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var state any = this.SafeString(market, "state")
 	var typeVar any = this.SafeString(market, "type")
-	var isPerp bool = IsEqual(typeVar, "PERP")
+	var isPerp any = IsEqual(typeVar, "PERP")
 	var symbol any = Add(Add(base, "/"), quote)
 	if IsTrue(isPerp) {
 		symbol = Add(Add(symbol, ":"), quote)
@@ -1252,7 +1252,7 @@ func (this *OnetradingCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs
 		"unit":            unit,
 	}
 	if IsTrue(IsEqual(since, nil)) {
-		var now int64 = this.Milliseconds()
+		var now any = this.Milliseconds()
 		AddElementToObject(request, "to", this.Iso8601(now))
 		AddElementToObject(request, "from", this.Iso8601(Subtract(now, Multiply(limit, duration))))
 	} else {
@@ -1593,7 +1593,7 @@ func (this *OnetradingCore) createOrderBody(ch chan any, symbol any, typeVar any
 		PanicOnError(retRes140112)
 	}
 	var market any = this.Market(symbol)
-	var uppercaseType string = ToUpper(typeVar)
+	var uppercaseType any = ToUpper(typeVar)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
@@ -1603,7 +1603,7 @@ func (this *OnetradingCore) createOrderBody(ch chan any, symbol any, typeVar any
 		"side":            ToUpper(side),
 		"amount":          this.AmountToPrecision(symbol, amount),
 	}
-	var priceIsRequired bool = false
+	var priceIsRequired any = false
 	if IsTrue(IsTrue(IsEqual(uppercaseType, "LIMIT")) || IsTrue(IsEqual(uppercaseType, "STOP"))) {
 		priceIsRequired = true
 	}
@@ -1682,7 +1682,7 @@ func (this *OnetradingCore) cancelOrderBody(ch chan any, id any, optionalArgs ..
 	}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_id")
 	params = this.Omit(params, []any{"clientOrderId", "client_id"})
-	var method string = "privateDeleteAccountOrdersOrderId"
+	var method any = "privateDeleteAccountOrdersOrderId"
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(clientOrderId, nil)) {
 		method = "privateDeleteAccountOrdersClientClientId"

@@ -68,7 +68,7 @@ func (this *ParadexCore) authenticateBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client any = this.Client(url)
-	var messageHash string = "authenticated"
+	var messageHash any = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
@@ -332,7 +332,7 @@ func (this *ParadexCore) watchTickerBody(ch chan any, symbol any, optionalArgs .
 		ccxt.PanicOnError(retRes26212)
 	}
 	symbol = this.Symbol(symbol)
-	var channel string = "markets_summary"
+	var channel any = "markets_summary"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request any = map[string]any{
 		"jsonrpc": "2.0",
@@ -376,7 +376,7 @@ func (this *ParadexCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		ccxt.PanicOnError(retRes28912)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var channel string = "markets_summary"
+	var channel any = "markets_summary"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request any = map[string]any{
 		"jsonrpc": "2.0",
@@ -509,7 +509,7 @@ func (this *ParadexCore) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	this.Orders.(ccxt.Appender).Append(parsed)
-	var messageHash string = "orders"
+	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -580,7 +580,7 @@ func (this *ParadexCore) watchFundingRateBody(ch chan any, symbol any, optionalA
 		ccxt.PanicOnError(retRes45512)
 	}
 	symbol = this.Symbol(symbol)
-	var channel string = "funding_data"
+	var channel any = "funding_data"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request any = map[string]any{
 		"jsonrpc": "2.0",
@@ -624,7 +624,7 @@ func (this *ParadexCore) watchFundingRatesBody(ch chan any, optionalArgs ...any)
 		ccxt.PanicOnError(retRes48212)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var channel string = "funding_data"
+	var channel any = "funding_data"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request any = map[string]any{
 		"jsonrpc": "2.0",
@@ -635,7 +635,7 @@ func (this *ParadexCore) watchFundingRatesBody(ch chan any, optionalArgs ...any)
 	}
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-		var symbolsLength int = ccxt.GetArrayLength(symbols)
+		var symbolsLength any = ccxt.GetArrayLength(symbols)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 0)) {
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 				var messageHash any = ccxt.Add(ccxt.Add(channel, "."), ccxt.GetValue(symbols, i))
@@ -799,7 +799,7 @@ func (this *ParadexCore) HandleMessage(client any, message any) {
 	var data any = this.SafeDict(message, "params")
 	if ccxt.IsTrue(!ccxt.IsEqual(data, nil)) {
 		var channel any = this.SafeString(data, "channel")
-		var parts []string = ccxt.Split(channel, ".")
+		var parts any = ccxt.Split(channel, ".")
 		var name any = this.SafeString(parts, 0)
 		var methods any = map[string]any{
 			"trades":          this.HandleTrade,

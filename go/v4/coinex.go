@@ -1326,7 +1326,7 @@ func (this *CoinexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promisesUnresolved []any = []any{this.FetchSpotMarkets(params), this.FetchContractMarkets(params)}
+	var promisesUnresolved any = []any{this.FetchSpotMarkets(params), this.FetchContractMarkets(params)}
 
 	promises := (<-promiseAll(promisesUnresolved))
 	PanicOnError(promises)
@@ -1484,7 +1484,7 @@ func (this *CoinexCore) fetchContractMarketsBody(ch chan any, params any) any {
 		var settleId any = Ternary(IsTrue((IsEqual(subType, "linear"))), "USDT", baseId)
 		var settle any = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-		var leveragesLength int = GetArrayLength(leverages)
+		var leveragesLength any = GetArrayLength(leverages)
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -2505,7 +2505,7 @@ func (this *CoinexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBalance", params)
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
-	var isMargin bool = IsTrue((!IsEqual(marginMode, nil))) || IsTrue((IsEqual(marketType, "margin")))
+	var isMargin any = IsTrue((!IsEqual(marginMode, nil))) || IsTrue((IsEqual(marketType, "margin")))
 	if IsTrue(IsEqual(marketType, "swap")) {
 
 		retRes188819 := (<-this.FetchSwapBalance(params))
@@ -2868,7 +2868,7 @@ func (this *CoinexCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
 	var option any = this.SafeString(params, "option")
-	var isMarketOrder bool = IsEqual(typeVar, "market")
+	var isMarketOrder any = IsEqual(typeVar, "market")
 	var postOnly any = this.IsPostOnly(isMarketOrder, IsEqual(option, "maker_only"), params)
 	var timeInForceRaw any = this.SafeStringUpper(params, "timeInForce")
 	var reduceOnly any = this.SafeBool(params, "reduceOnly")
@@ -2881,7 +2881,7 @@ func (this *CoinexCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(IsEqual(clientOrderId, nil)) {
-		var defaultId string = "x-167673045"
+		var defaultId any = "x-167673045"
 		var brokerId any = this.SafeString(this.Options, "brokerId", defaultId)
 		AddElementToObject(request, "client_id", Add(Add(brokerId, "-"), this.Uuid16()))
 	} else {
@@ -3014,7 +3014,7 @@ func (this *CoinexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var isTriggerOrder any = !IsEqual(triggerPrice, nil)
 	var isStopLossTriggerOrder any = !IsEqual(stopLossTriggerPrice, nil)
 	var isTakeProfitTriggerOrder any = !IsEqual(takeProfitTriggerPrice, nil)
-	var isStopLossOrTakeProfitTrigger bool = IsTrue(isStopLossTriggerOrder) || IsTrue(isTakeProfitTriggerOrder)
+	var isStopLossOrTakeProfitTrigger any = IsTrue(isStopLossTriggerOrder) || IsTrue(isTakeProfitTriggerOrder)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
 	var response any = nil
 	if IsTrue(GetValue(market, "spot")) {
@@ -3091,7 +3091,7 @@ func (this *CoinexCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 	var symbol any = nil
 	var reduceOnly any = false
 	var isTriggerOrder any = false
-	var isStopLossOrTakeProfitTrigger bool = false
+	var isStopLossOrTakeProfitTrigger any = false
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var rawOrder any = GetValue(orders, i)
 		var marketId any = this.SafeString(rawOrder, "symbol")
@@ -3407,7 +3407,7 @@ func (this *CoinexCore) editOrdersBody(ch chan any, orders any, optionalArgs ...
 		marginModeorderParamsVariable := this.HandleMarginModeAndParams("editOrders", orderParams)
 		marginMode = GetValue(marginModeorderParamsVariable, 0)
 		orderParams = GetValue(marginModeorderParamsVariable, 1)
-		var market_type string = "SPOT"
+		var market_type any = "SPOT"
 		if IsTrue(GetValue(market, "swap")) {
 			market_type = "FUTURES"
 		} else if IsTrue(!IsEqual(marginMode, nil)) {
@@ -3752,8 +3752,8 @@ func (this *CoinexCore) fetchOrdersByStatusBody(ch chan any, status any, optiona
 	marketType = GetValue(marketTypeparamsVariable, 0)
 	params = GetValue(marketTypeparamsVariable, 1)
 	var response any = nil
-	var isClosed bool = IsTrue((IsEqual(status, "finished"))) || IsTrue((IsEqual(status, "closed")))
-	var isOpen bool = IsTrue((IsEqual(status, "pending"))) || IsTrue((IsEqual(status, "open")))
+	var isClosed any = IsTrue((IsEqual(status, "finished"))) || IsTrue((IsEqual(status, "closed")))
+	var isOpen any = IsTrue((IsEqual(status, "pending"))) || IsTrue((IsEqual(status, "open")))
 	if IsTrue(IsEqual(marketType, "swap")) {
 		AddElementToObject(request, "market_type", "FUTURES")
 		if IsTrue(isClosed) {
@@ -4016,10 +4016,10 @@ func (this *CoinexCore) ParseDepositAddress(depositAddress any, optionalArgs ...
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var coinAddress any = this.SafeString(depositAddress, "address", "")
-	var parts []string = Split(coinAddress, ":")
+	var parts any = Split(coinAddress, ":")
 	var address any = nil
 	var tag any = nil
-	var partsLength int = GetArrayLength(parts)
+	var partsLength any = GetArrayLength(parts)
 	if IsTrue(IsTrue(IsGreaterThan(partsLength, 1)) && IsTrue(!IsEqual(GetValue(parts, 0), "cfx"))) {
 		address = GetValue(parts, 0)
 		tag = GetValue(parts, 1)
@@ -4152,7 +4152,7 @@ func (this *CoinexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var symbol any = nil
 		if IsTrue(IsArray(symbols)) {
-			var symbolsLength int = GetArrayLength(symbols)
+			var symbolsLength any = GetArrayLength(symbols)
 			if IsTrue(IsGreaterThan(symbolsLength, 1)) {
 				panic(BadRequest(Add(this.Id, " fetchPositions() symbols argument cannot contain more than 1 symbol")))
 			}
@@ -5364,7 +5364,7 @@ func (this *CoinexCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var networkId any = this.SafeString(transaction, "chain")
 	var feeCost any = this.SafeString(transaction, "tx_fee")
 	var transferMethod any = this.SafeStringLower2(transaction, "withdraw_method", "deposit_method")
-	var internal bool = IsEqual(transferMethod, "local")
+	var internal any = IsEqual(transferMethod, "local")
 	var amount any = this.SafeNumber(transaction, "actual_amount")
 	if IsTrue(IsEqual(amount, nil)) {
 		amount = this.SafeNumber(transaction, "amount")
@@ -6632,14 +6632,14 @@ func (this *CoinexCore) Sign(path any, optionalArgs ...any) any {
 	var requestUrl any = GetValue(api, 1)
 	var url any = Add(Add(Add(Add(GetValue(GetValue(this.Urls, "api"), requestUrl), "/"), version), "/"), path)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var nonce string = ToString(this.Nonce())
+	var nonce any = ToString(this.Nonce())
 	if IsTrue(IsEqual(method, "POST")) {
-		var parts []string = Split(path, "/")
+		var parts any = Split(path, "/")
 		var firstPart any = this.SafeString(parts, 0, "")
-		var numParts int = GetArrayLength(parts)
+		var numParts any = GetArrayLength(parts)
 		var lastPart any = this.SafeString(parts, Subtract(numParts, 1), "")
-		var lastWords []string = Split(lastPart, "_")
-		var numWords int = GetArrayLength(lastWords)
+		var lastWords any = Split(lastPart, "_")
+		var numWords any = GetArrayLength(lastWords)
 		var lastWord any = this.SafeString(lastWords, Subtract(numWords, 1), "")
 		if IsTrue(IsTrue((IsEqual(firstPart, "order"))) && IsTrue((IsTrue(IsEqual(lastWord, "limit")) || IsTrue(IsEqual(lastWord, "market"))))) {
 			// inject in implicit API calls
@@ -6653,7 +6653,7 @@ func (this *CoinexCore) Sign(path any, optionalArgs ...any) any {
 			// POST /perpetual/v1/order/put_stop_market - Place stop market orders
 			var clientOrderId any = this.SafeString(params, "client_id")
 			if IsTrue(IsEqual(clientOrderId, nil)) {
-				var defaultId string = "x-167673045"
+				var defaultId any = "x-167673045"
 				var brokerId any = this.SafeValue(this.Options, "brokerId", defaultId)
 				AddElementToObject(query, "client_id", Add(Add(brokerId, "_"), this.Uuid16()))
 			}

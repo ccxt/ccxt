@@ -248,7 +248,7 @@ func (this *HashkeyCore) watchTickerBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var topic string = "realtimes"
+	var topic any = "realtimes"
 	var messageHash any = ccxt.Add("ticker:", symbol)
 
 	retRes19515 := (<-this.WathPublic(market, topic, messageHash, params))
@@ -326,7 +326,7 @@ func (this *HashkeyCore) watchTradesBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var topic string = "trade"
+	var topic any = "trade"
 	var messageHash any = ccxt.Add("trades:", symbol)
 
 	trades := (<-this.WathPublic(market, topic, messageHash, params))
@@ -413,7 +413,7 @@ func (this *HashkeyCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var topic string = "depth"
+	var topic any = "depth"
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 
 	orderbook := (<-this.WathPublic(market, topic, messageHash, params))
@@ -559,7 +559,7 @@ func (this *HashkeyCore) HandleOrder(client any, message any) {
 	var parsed any = this.ParseWsOrder(message)
 	var orders any = this.Orders
 	orders.(ccxt.Appender).Append(parsed)
-	var messageHash string = "orders"
+	var messageHash any = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	var symbolSpecificMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -693,7 +693,7 @@ func (this *HashkeyCore) HandleMyTrade(client any, message any, optionalArgs ...
 	var parsed any = this.ParseWsTrade(message)
 	tradesArray.(ccxt.Appender).Append(parsed)
 	this.MyTrades = tradesArray
-	var messageHash string = "myTrades"
+	var messageHash any = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	var symbolSpecificMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -732,7 +732,7 @@ func (this *HashkeyCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market)
 	var timestamp any = this.SafeInteger(trade, "t")
 	var isBuyerMaker any = this.SafeBool(trade, "m")
-	var isPublicTrade bool = ccxt.IsEqual(this.SafeString(trade, "e"), nil)
+	var isPublicTrade any = ccxt.IsEqual(this.SafeString(trade, "e"), nil)
 	var side any = nil
 	var takerOrMaker any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(isBuyerMaker, nil)) {
@@ -797,7 +797,7 @@ func (this *HashkeyCore) watchPositionsBody(ch chan any, optionalArgs ...any) an
 	listenKey := (<-this.Authenticate())
 	ccxt.PanicOnError(listenKey)
 	symbols = this.MarketSymbols(symbols)
-	var messageHash string = "positions"
+	var messageHash any = "positions"
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 		ccxt.AppendToArray(&messageHashes, messageHash)
@@ -848,7 +848,7 @@ func (this *HashkeyCore) HandlePosition(client any, message any) {
 	var positions any = this.Positions
 	var parsed any = this.ParseWsPosition(message)
 	positions.(ccxt.Appender).Append(parsed)
-	var messageHash string = "positions"
+	var messageHash any = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	var symbol any = ccxt.GetValue(parsed, "symbol")
 	client.(ccxt.ClientInterface).Resolve(parsed, ccxt.Add(ccxt.Add(messageHash, ":"), symbol))
@@ -1004,7 +1004,7 @@ func (this *HashkeyCore) HandleBalance(client any, message any) {
 	var event any = this.SafeString(message, "e")
 	var data any = this.SafeList(message, "B", []any{})
 	var balanceUpdate any = this.SafeDict(data, 0)
-	var isSpot bool = ccxt.IsEqual(event, "outboundAccountInfo")
+	var isSpot any = ccxt.IsEqual(event, "outboundAccountInfo")
 	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "swap")
 	if !ccxt.IsTrue((ccxt.InOp(this.Balance, typeVar))) {
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
@@ -1047,7 +1047,7 @@ func (this *HashkeyCore) authenticateBody(ch chan any, optionalArgs ...any) any 
 	// client.futures and settled through client.resolve () /
 	// client.reject (), so every mutation of the futures map goes through
 	// the client's own accessors
-	var messageHash string = "authenticateFlight"
+	var messageHash any = "authenticateFlight"
 	var client any = this.Client("authenticationFlights")
 	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		// a flight is already in progress - wake when the leader

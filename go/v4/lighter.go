@@ -470,7 +470,7 @@ func (this *LighterCore) loadAccountBody(ch chan any, chainId any, privateKey an
 	libraryPathparamsVariable := this.HandleOptionAndParams(params, "loadAccount", "libraryPath")
 	libraryPath = GetValue(libraryPathparamsVariable, 0)
 	params = GetValue(libraryPathparamsVariable, 1)
-	var lighterPrivateKeyIsSet bool = IsTrue((!IsEqual(privateKey, nil))) && IsTrue((!IsEqual(privateKey, "")))
+	var lighterPrivateKeyIsSet any = IsTrue((!IsEqual(privateKey, nil))) && IsTrue((!IsEqual(privateKey, "")))
 	if IsTrue(IsTrue(IsTrue(IsTrue(lighterPrivateKeyIsSet) && IsTrue((!IsEqual(libraryPath, nil)))) && IsTrue((!IsEqual(apiKeyIndex, nil)))) && IsTrue((!IsEqual(accountIndex, nil)))) {
 		// load lighter library, and create lighter client
 
@@ -481,7 +481,7 @@ func (this *LighterCore) loadAccountBody(ch chan any, chainId any, privateKey an
 		ch <- signer
 		return nil
 	}
-	var privateKeyIsSet bool = IsTrue((!IsEqual(this.PrivateKey, nil))) && IsTrue((!IsEqual(this.PrivateKey, "")))
+	var privateKeyIsSet any = IsTrue((!IsEqual(this.PrivateKey, nil))) && IsTrue((!IsEqual(this.PrivateKey, "")))
 	if IsTrue(IsTrue(IsTrue(privateKeyIsSet) && IsTrue((!IsEqual(apiKeyIndex, nil)))) && IsTrue((!IsEqual(accountIndex, nil)))) {
 		if IsTrue(IsGreaterThan(GetLength(this.PrivateKey), 66)) {
 			panic(NotSupported(Add(this.Id, " after the latest update (v4.5.50), CCXT now expects the l1 private key to be provided in the credentials. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")))
@@ -976,9 +976,9 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument")))
 	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false) // default false
-	var orderType string = ToUpper(typeVar)
+	var orderType any = ToUpper(typeVar)
 	var market any = this.Market(symbol)
-	var orderSide string = ToUpper(side)
+	var orderSide any = ToUpper(side)
 	var request any = map[string]any{
 		"market_index": this.ParseToInt(GetValue(market, "id")),
 	}
@@ -1089,7 +1089,7 @@ func (this *LighterCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 	if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		// group order
 		AddElementToObject(GetValue(orders, 0), "client_order_index", 0) // client order index should be 0
-		var triggerOrderSide string = ""
+		var triggerOrderSide any = ""
 		if IsTrue(IsEqual(side, "BUY")) {
 			triggerOrderSide = "sell"
 		} else {
@@ -1193,7 +1193,7 @@ func (this *LighterCore) signAndCreateOrderBody(ch chan any, method any, symbol 
 	groupingType = GetValue(groupingTypeparamsVariable, 0)
 	params = GetValue(groupingTypeparamsVariable, 1) // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
 	var orderRequests any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-	var totalOrderRequests int = GetArrayLength(orderRequests)
+	var totalOrderRequests any = GetArrayLength(orderRequests)
 	var apiKeyIndex any = nil
 	var order any = nil
 	if IsTrue(IsGreaterThan(totalOrderRequests, 0)) {
@@ -1576,7 +1576,7 @@ func (this *LighterCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		if IsTrue(IsTrue(!IsEqual(baseId, nil)) && IsTrue(!IsEqual(GetIndexOf(baseId, "/"), OpNeg(1)))) {
 			baseId = GetValue(Split(baseId, "/"), 0)
 		}
-		var quoteId string = "USDC"
+		var quoteId any = "USDC"
 		var settleId any = Ternary(IsTrue((IsEqual(typeVar, "swap"))), "USDC", nil)
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
@@ -2093,7 +2093,7 @@ func (this *LighterCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"until"})
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	var startTs any = nil
 	var endTs any = nil
 	if IsTrue(!IsEqual(since, nil)) {

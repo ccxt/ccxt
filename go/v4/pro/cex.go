@@ -93,7 +93,7 @@ func (this *CexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		"data": map[string]any{},
 		"oid":  this.RequestId(),
 	}
-	var request map[string]any = this.DeepExtend(subscribe, params)
+	var request any = this.DeepExtend(subscribe, params)
 
 	retRes8015 := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(retRes8015)
@@ -127,7 +127,7 @@ func (this *CexCore) HandleBalance(client any, message any) {
 	var result any = map[string]any{
 		"info": data,
 	}
-	var currencyIds []string = ccxt.ObjectKeys(freeBalance)
+	var currencyIds any = ccxt.ObjectKeys(freeBalance)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(currencyIds)); i++ {
 		var currencyId any = ccxt.GetValue(currencyIds, i)
 		var account any = this.Account()
@@ -181,11 +181,11 @@ func (this *CexCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash string = "trades"
+	var messageHash any = "trades"
 	var subscriptionHash any = ccxt.Add("old:", symbol)
 	var client any = this.SafeValue(this.Clients, url)
 	if ccxt.IsTrue(!ccxt.IsEqual(client, nil)) {
-		var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+		var subscriptionKeys any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptionKeys)); i++ {
 			var subscriptionKey any = ccxt.GetValue(subscriptionKeys, i)
 			if ccxt.IsTrue(ccxt.IsEqual(subscriptionKey, subscriptionHash)) {
@@ -201,7 +201,7 @@ func (this *CexCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		"e":     "subscribe",
 		"rooms": []any{ccxt.Add(ccxt.Add(ccxt.Add("pair-", ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	trades := (<-this.Watch(url, messageHash, request, subscriptionHash))
 	ccxt.PanicOnError(trades)
@@ -280,14 +280,14 @@ func (this *CexCore) HandleTradesInner(client any, message any) {
 	}
 	var stored any = ccxt.GetValue(this.Trades, symbol)
 	var market any = this.Market(symbol)
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength any = ccxt.GetArrayLength(data)
 	for i := 0; ccxt.IsLessThan(i, dataLength); i++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
 		var rawTrade any = ccxt.GetValue(data, index)
 		var parsed any = this.ParseWsOldTrade(rawTrade, market)
 		stored.(ccxt.Appender).Append(parsed)
 	}
-	var messageHash string = "trades"
+	var messageHash any = "trades"
 	ccxt.AddElementToObject(this.Trades, symbol, stored)
 	client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Trades, symbol), messageHash)
 }
@@ -338,7 +338,7 @@ func (this *CexCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...an
 		}
 		subscriptionHash = ccxt.Add("ticker:", symbol)
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	retRes29615 := (<-this.Watch(url, messageHash, request, subscriptionHash))
 	ccxt.PanicOnError(retRes29615)
@@ -374,12 +374,12 @@ func (this *CexCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	symbols = this.MarketSymbols(symbols)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash string = "tickers"
+	var messageHash any = "tickers"
 	var message any = map[string]any{
 		"e":     "subscribe",
 		"rooms": []any{"tickers"},
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	ticker := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(ticker)
@@ -430,7 +430,7 @@ func (this *CexCore) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
-	var request map[string]any = this.Extend(map[string]any{
+	var request any = this.Extend(map[string]any{
 		"e":    "ticker",
 		"oid":  messageHash,
 		"data": []any{ccxt.GetValue(market, "base"), ccxt.GetValue(market, "quote")},
@@ -563,7 +563,7 @@ func (this *CexCore) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes4648)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
-	var request map[string]any = this.Extend(map[string]any{
+	var request any = this.Extend(map[string]any{
 		"e":   "get-balance",
 		"oid": messageHash,
 	}, params)
@@ -623,7 +623,7 @@ func (this *CexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		},
 		"oid": symbol,
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(orders)
@@ -684,7 +684,7 @@ func (this *CexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		},
 		"oid": ccxt.GetValue(market, "symbol"),
 	}
-	var request map[string]any = this.DeepExtend(message, params)
+	var request any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, messageHash, request, subscriptionHash, request))
 	ccxt.PanicOnError(orders)
@@ -890,7 +890,7 @@ func (this *CexCore) HandleOrderUpdate(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
-	var isTransaction bool = ccxt.IsEqual(this.SafeString(message, "e"), "tx")
+	var isTransaction any = ccxt.IsEqual(this.SafeString(message, "e"), "tx")
 	var orderId any = this.SafeString2(data, "id", "order")
 	var remains any = this.SafeString(data, "remains")
 	var baseId any = this.SafeString(data, "symbol")
@@ -1014,7 +1014,7 @@ func (this *CexCore) ParseWsOrderUpdate(order any, optionalArgs ...any) any {
 		timestamp = this.Parse8601(time)
 	}
 	var canceled any = this.SafeBool(order, "cancel", false)
-	var status string = "open"
+	var status any = "open"
 	if ccxt.IsTrue(canceled) {
 		status = "canceled"
 	} else if ccxt.IsTrue(isTransaction) {
@@ -1098,7 +1098,7 @@ func (this *CexCore) HandleOrdersSnapshot(client any, message any) {
 	}
 	this.Orders = myOrders
 	var messageHash any = ccxt.Add("orders:", symbol)
-	var ordersLength int = ccxt.GetArrayLength(myOrders)
+	var ordersLength any = ccxt.GetArrayLength(myOrders)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ordersLength, 0)) {
 		client.(ccxt.ClientInterface).Resolve(myOrders, messageHash)
 	}
@@ -1148,7 +1148,7 @@ func (this *CexCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		},
 		"oid": this.RequestId(),
 	}
-	var request map[string]any = this.DeepExtend(subscribe, params)
+	var request any = this.DeepExtend(subscribe, params)
 
 	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -1196,7 +1196,7 @@ func (this *CexCore) HandleOrderBookSnapshot(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *CexCore) PairToSymbol(pair any) any {
-	var parts []string = ccxt.Split(pair, ":")
+	var parts any = ccxt.Split(pair, ":")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -1324,7 +1324,7 @@ func (this *CexCore) HandleInitOHLCV(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(pair, nil)) {
 		return
 	}
-	var parts []string = ccxt.Split(pair, ":")
+	var parts any = ccxt.Split(pair, ":")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -1375,7 +1375,7 @@ func (this *CexCore) HandleOHLCV1m(client any, message any) {
 	var pair any = this.SafeString(data, "pair")
 	var symbol any = this.PairToSymbol(pair)
 	var messageHash any = ccxt.Add("ohlcv:", symbol)
-	var ohlcv []any = []any{this.SafeTimestamp(data, "time"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
+	var ohlcv any = []any{this.SafeTimestamp(data, "time"), this.SafeNumber(data, "o"), this.SafeNumber(data, "h"), this.SafeNumber(data, "l"), this.SafeNumber(data, "c"), this.SafeNumber(data, "v")}
 	var stored any = this.SafeValue(this.Ohlcvs, symbol)
 	stored.(ccxt.Appender).Append(ohlcv)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1397,10 +1397,10 @@ func (this *CexCore) HandleOHLCV(client any, message any) {
 	// const stored = this.safeValue (this.ohlcvs, symbol)
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), "unknown")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
-		var ohlcv []any = []any{this.SafeTimestamp(ccxt.GetValue(data, i), 0), this.SafeNumber(ccxt.GetValue(data, i), 1), this.SafeNumber(ccxt.GetValue(data, i), 2), this.SafeNumber(ccxt.GetValue(data, i), 3), this.SafeNumber(ccxt.GetValue(data, i), 4), this.SafeNumber(ccxt.GetValue(data, i), 5)}
+		var ohlcv any = []any{this.SafeTimestamp(ccxt.GetValue(data, i), 0), this.SafeNumber(ccxt.GetValue(data, i), 1), this.SafeNumber(ccxt.GetValue(data, i), 2), this.SafeNumber(ccxt.GetValue(data, i), 3), this.SafeNumber(ccxt.GetValue(data, i), 4), this.SafeNumber(ccxt.GetValue(data, i), 5)}
 		stored.(ccxt.Appender).Append(ohlcv)
 	}
-	var dataLength int = ccxt.GetArrayLength(data)
+	var dataLength any = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(dataLength, 0)) {
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
@@ -1440,7 +1440,7 @@ func (this *CexCore) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) 
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var data map[string]any = this.Extend(map[string]any{
+	var data any = this.Extend(map[string]any{
 		"order_id": ccxt.ToString(id),
 	}, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1499,7 +1499,7 @@ func (this *CexCore) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any
 	var market any = this.Market(symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
-	var data map[string]any = this.Extend(map[string]any{
+	var data any = this.Extend(map[string]any{
 		"pair": []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
 	}, params)
 	var request any = map[string]any{
@@ -1555,7 +1555,7 @@ func (this *CexCore) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	var market any = this.Market(symbol)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var messageHash any = this.RequestId()
-	var data map[string]any = this.Extend(map[string]any{
+	var data any = this.Extend(map[string]any{
 		"pair":   []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
 		"amount": amount,
 		"price":  price,
@@ -1617,7 +1617,7 @@ func (this *CexCore) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 	retRes13898 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes13898)
 	var market any = this.Market(symbol)
-	var data map[string]any = this.Extend(map[string]any{
+	var data any = this.Extend(map[string]any{
 		"pair":     []any{ccxt.GetValue(market, "baseId"), ccxt.GetValue(market, "quoteId")},
 		"type":     side,
 		"amount":   amount,
@@ -1673,7 +1673,7 @@ func (this *CexCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var data map[string]any = this.Extend(map[string]any{
+	var data any = this.Extend(map[string]any{
 		"order_id": id,
 	}, params)
 	var messageHash any = this.RequestId()
@@ -1725,7 +1725,7 @@ func (this *CexCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...an
 	retRes14598 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes14598)
 	var messageHash any = this.RequestId()
-	var data map[string]any = this.Extend(map[string]any{
+	var data any = this.Extend(map[string]any{
 		"cancel-orders": ids,
 	}, params)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1885,14 +1885,14 @@ func (this *CexCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client any = this.Client(url)
-	var messageHash string = "authenticated"
+	var messageHash any = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
 		this.CheckRequiredCredentials()
-		var nonce string = ccxt.ToString(this.Seconds())
+		var nonce any = ccxt.ToString(this.Seconds())
 		var auth any = ccxt.Add(nonce, this.ApiKey)
-		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
+		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
 		var request any = map[string]any{
 			"e": "auth",
 			"auth": map[string]any{

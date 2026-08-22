@@ -130,7 +130,7 @@ func (this *BithumbCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		"symbols":   marketIds,
 		"tickTypes": []any{this.SafeString(params, "tickTypes", "24H")},
 	}
-	var message map[string]any = this.Extend(request, params)
+	var message any = this.Extend(request, params)
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
 	ccxt.PanicOnError(newTicker)
@@ -521,8 +521,8 @@ func (this *BithumbCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	retRes4198 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes4198)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var messageHash string = "myAsset"
-	var request []any = []any{map[string]any{
+	var messageHash any = "myAsset"
+	var request any = []any{map[string]any{
 		"ticket": "ccxt",
 	}, map[string]any{
 		"type": messageHash,
@@ -550,7 +550,7 @@ func (this *BithumbCore) HandleBalance(client any, message any) {
 	//        "stream_type": "REALTIME"
 	//    }
 	//
-	var messageHash string = "myAsset"
+	var messageHash any = "myAsset"
 	var assets any = this.SafeList(message, "assets", []any{})
 	if ccxt.IsTrue(ccxt.IsEqual(this.Balance, nil)) {
 		this.Balance = map[string]any{}
@@ -647,7 +647,7 @@ func (this *BithumbCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var messageHash any = "myOrder"
 	var codes any = this.SafeList(params, "codes", []any{})
-	var request []any = []any{map[string]any{
+	var request any = []any{map[string]any{
 		"ticket": "ccxt",
 	}, map[string]any{
 		"type":  messageHash,
@@ -693,7 +693,7 @@ func (this *BithumbCore) HandleOrders(client any, message any) {
 	//        "stream_type": "REALTIME"
 	//    }
 	//
-	var messageHash string = "myOrder"
+	var messageHash any = "myOrder"
 	var parsed any = this.ParseWsOrder(message)
 	var symbol any = this.SafeString(parsed, "symbol")
 	// const orderId = this.safeString (parsed, 'id')

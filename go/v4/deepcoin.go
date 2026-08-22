@@ -651,7 +651,7 @@ func (this *DeepcoinCore) ParseMarket(market any) any {
 	var maxLimitSize any = this.SafeString(market, "maxLmtSz")
 	var maxAmount any = this.ParseNumber(Precise.StringMax(maxMarketSize, maxLimitSize))
 	var state any = this.SafeString(market, "state")
-	var isMargin bool = IsTrue(spot) && IsTrue((Precise.StringGt(maxLeverage, "1")))
+	var isMargin any = IsTrue(spot) && IsTrue((Precise.StringGt(maxLeverage, "1")))
 	var isInverse any = Ternary(IsTrue(swap), (!IsTrue(isLinear)), nil)
 	return this.Extend(fees, map[string]any{
 		"id":             id,
@@ -707,7 +707,7 @@ func (this *DeepcoinCore) SetMarkets(markets any, optionalArgs ...any) any {
 	currencies := GetArg(optionalArgs, 0, nil)
 	_ = currencies
 	var result any = this.Exchange.SetMarkets(markets, currencies)
-	var symbols []string = ObjectKeys(result)
+	var symbols any = ObjectKeys(result)
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
 		var market any = GetValue(result, symbol)
@@ -862,7 +862,7 @@ func (this *DeepcoinCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 			if IsTrue(!IsEqual(until, nil)) {
 				endTime = mathMin(endTime, until)
 			}
-			var now int64 = this.Milliseconds()
+			var now any = this.Milliseconds()
 			AddElementToObject(request, "after", mathMin(endTime, now))
 		}
 	}
@@ -1067,7 +1067,7 @@ func (this *DeepcoinCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 	return nil
 }
 func (this *DeepcoinCore) GetProductGroupFromMarket(market any) any {
-	var productGroup string = "Spot"
+	var productGroup any = "Spot"
 	if IsTrue(this.SafeBool(market, "swap")) {
 		if IsTrue(this.SafeBool(market, "linear")) {
 			productGroup = "SwapU"
@@ -1456,7 +1456,7 @@ func (this *DeepcoinCore) fetchDepositAddressesBody(ch chan any, optionalArgs ..
 	if IsTrue(IsEqual(codes, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchDepositAddresses requires a list with one currency code")))
 	}
-	var length int = GetArrayLength(codes)
+	var length any = GetArrayLength(codes)
 	if IsTrue(!IsEqual(length, 1)) {
 		panic(NotSupported(Add(this.Id, " fetchDepositAddresses requires a list with one currency code")))
 	}
@@ -1540,7 +1540,7 @@ func (this *DeepcoinCore) fetchDepositAddressBody(ch chan any, code any, optiona
 
 	addressess := (<-this.FetchDepositAddresses([]any{code}, params))
 	PanicOnError(addressess)
-	var length int = GetArrayLength(addressess)
+	var length any = GetArrayLength(addressess)
 	var address any = this.SafeDict(addressess, 0, map[string]any{})
 	if IsTrue(IsTrue((!IsEqual(network, nil))) && IsTrue((IsGreaterThan(length, 1)))) {
 		for i := 0; IsLessThan(i, length); i++ {
@@ -2374,7 +2374,7 @@ func (this *DeepcoinCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs .
 	response := (<-this.PrivateGetDeepcoinTradeOrderByID(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
-	var length int = GetArrayLength(data)
+	var length any = GetArrayLength(data)
 	if IsTrue(IsEqual(length, 0)) {
 		panic(OrderNotFound(Add(Add(this.Id, " fetchOpenOrder() could not find order id "), id)))
 	}
@@ -2577,7 +2577,7 @@ func (this *DeepcoinCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var methodName string = "fetchCanceledOrders"
+	var methodName any = "fetchCanceledOrders"
 	params = this.Extend(params, map[string]any{
 		"methodName": methodName,
 	})
@@ -2619,7 +2619,7 @@ func (this *DeepcoinCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var methodName string = "fetchClosedOrders"
+	var methodName any = "fetchClosedOrders"
 	params = this.Extend(params, map[string]any{
 		"methodName": methodName,
 	})
@@ -2946,7 +2946,7 @@ func (this *DeepcoinCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	}
 	var stopLossPrice any = this.SafeNumber(params, "stopLossPrice")
 	var takeProfitPrice any = this.SafeNumber(params, "takeProfitPrice")
-	var isTPSL bool = IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))
+	var isTPSL any = IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))
 	var response any = nil
 	if IsTrue(isTPSL) {
 		if IsTrue(IsTrue((!IsEqual(price, nil))) || IsTrue((!IsEqual(amount, nil)))) {
@@ -3464,7 +3464,7 @@ func (this *DeepcoinCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any
 	subTypeparamsVariable := this.HandleSubTypeAndParams("fetchFundingRates", firstMarket, params, subType)
 	subType = GetValue(subTypeparamsVariable, 0)
 	params = GetValue(subTypeparamsVariable, 1)
-	var instType string = "SwapU"
+	var instType any = "SwapU"
 	if IsTrue(IsEqual(subType, "inverse")) {
 		instType = "Swap"
 	} else if IsTrue(!IsEqual(subType, "linear")) {
@@ -3918,7 +3918,7 @@ func (this *DeepcoinCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), requestPath)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp int64 = this.Milliseconds()
+		var timestamp any = this.Milliseconds()
 		var dateTime any = this.Iso8601(timestamp)
 		var payload any = Add(Add(Add(dateTime, method), "/"), requestPath)
 		headers = map[string]any{
@@ -3932,7 +3932,7 @@ func (this *DeepcoinCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 			payload = Add(payload, body)
 		}
-		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(headers, "DC-ACCESS-SIGN", signature)
 	}
 	return map[string]any{

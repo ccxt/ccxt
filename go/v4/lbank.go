@@ -569,7 +569,7 @@ func (this *LbankCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//    }
 	//
 	var currenciesData any = this.SafeList(response, "data", []any{})
-	var grouped map[string]any = this.GroupBy(currenciesData, "assetCode")
+	var grouped any = this.GroupBy(currenciesData, "assetCode")
 	var values any = ObjectValues(grouped)
 
 	ch <- this.ParseCurrencies(values)
@@ -654,7 +654,7 @@ func (this *LbankCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var marketsPromises []any = []any{this.FetchSpotMarkets(params), this.FetchSwapMarkets(params)}
+	var marketsPromises any = []any{this.FetchSpotMarkets(params), this.FetchSwapMarkets(params)}
 
 	resolvedMarkets := (<-promiseAll(marketsPromises))
 	PanicOnError(resolvedMarkets)
@@ -695,7 +695,7 @@ func (this *LbankCore) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) an
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var market any = GetValue(data, i)
 		var marketId any = this.SafeString(market, "symbol")
-		var parts []string = Split(marketId, "_")
+		var parts any = Split(marketId, "_")
 		var baseId any = GetValue(parts, 0)
 		var quoteId any = GetValue(parts, 1)
 		var base any = this.SafeCurrencyCode(baseId)
@@ -1029,7 +1029,7 @@ func (this *LbankCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbols = this.MarketSymbols(symbols)
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(symbolsLength, 0)) {
 			market = this.Market(GetValue(symbols, 0))
 		}
@@ -1202,7 +1202,7 @@ func (this *LbankCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//     }
 	//
 	var orderbook any = this.SafeValue(response, "data", map[string]any{})
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	if IsTrue(GetValue(market, "swap")) {
 
 		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume")
@@ -1272,7 +1272,7 @@ func (this *LbankCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var takerOrMaker any = nil
 	if IsTrue(!IsEqual(side, nil)) {
-		var parts []string = Split(side, "_")
+		var parts any = Split(side, "_")
 		side = this.SafeString(parts, 0)
 		var typePart any = this.SafeString(parts, 1)
 		typeVar = "limit"
@@ -1583,7 +1583,7 @@ func (this *LbankCore) ParseBalance(response any) any {
 	if IsTrue(!IsEqual(toBtc, nil)) {
 		var used any = this.SafeValue(data, "freeze", map[string]any{})
 		var free any = this.SafeValue(data, "free", map[string]any{})
-		var currencies []string = ObjectKeys(free)
+		var currencies any = ObjectKeys(free)
 		for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
 			var currencyId any = GetValue(currencies, i)
 			var code any = this.SafeCurrencyCode(currencyId)
@@ -1613,7 +1613,7 @@ func (this *LbankCore) ParseBalance(response any) any {
 		return this.SafeBalance(result)
 	}
 	// from spotPrivatePostSupplementUserInfo
-	var isArray bool = IsArray(data)
+	var isArray any = IsArray(data)
 	if IsTrue(IsEqual(isArray, true)) {
 		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 			var item any = GetValue(data, i)
@@ -2216,10 +2216,10 @@ func (this *LbankCore) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var timeInForce any = nil
-	var postOnly bool = false
-	var typeVar string = "limit"
+	var postOnly any = false
+	var typeVar any = "limit"
 	var rawType any = this.SafeString2(order, "type", "tradeType") // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-	var parts []string = Split(rawType, "_")
+	var parts any = Split(rawType, "_")
 	var side any = this.SafeString(parts, 0)
 	var typePart any = this.SafeString(parts, 1) // market, maker, ioc, fok or undefined (limit)
 	if IsTrue(IsEqual(typePart, "market")) {
@@ -2417,7 +2417,7 @@ func (this *LbankCore) fetchOrderDefaultBody(ch chan any, id any, optionalArgs .
 	//      }
 	//
 	var result any = this.SafeValue(response, "data", []any{})
-	var numOrders int = GetArrayLength(result)
+	var numOrders any = GetArrayLength(result)
 	if IsTrue(IsEqual(numOrders, 1)) {
 
 		ch <- this.ParseOrder(GetValue(result, 0))
@@ -3795,7 +3795,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var timestamp string = ToString(this.Milliseconds())
+		var timestamp any = ToString(this.Milliseconds())
 		var echostr any = Add(this.Uuid22(), this.Uuid16())
 		query = this.Extend(map[string]any{
 			"api_key": this.ApiKey,
@@ -3814,7 +3814,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 		}, query)))
 		var encoded any = this.Encode(auth)
 		var hash any = this.Hash(encoded, md5)
-		var uppercaseHash string = ToUpper(hash)
+		var uppercaseHash any = ToUpper(hash)
 		var sign any = nil
 		if IsTrue(IsEqual(signatureMethod, "RSA")) {
 			var cacheSecretAsPem any = this.SafeBool(this.Options, "cacheSecretAsPem", true)

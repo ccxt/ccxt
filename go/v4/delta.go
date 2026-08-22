@@ -424,9 +424,9 @@ func (this *DeltaCore) Describe() any {
 }
 func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
-	var quote string = "USDT"
-	var optionParts []string = Split(symbol, "-")
-	var symbolBase []string = Split(symbol, "/")
+	var quote any = "USDT"
+	var optionParts any = Split(symbol, "-")
+	var symbolBase any = Split(symbol, "/")
 	var base any = nil
 	var expiry any = nil
 	var optionType any = nil
@@ -501,7 +501,7 @@ func (this *DeltaCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue(IsTrue(IsTrue((EndsWith(marketId, "-C"))) || IsTrue((EndsWith(marketId, "-P")))) || IsTrue((StartsWith(marketId, "C-")))) || IsTrue((StartsWith(marketId, "P-")))))
+	var isOption any = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue(IsTrue(IsTrue((EndsWith(marketId, "-C"))) || IsTrue((EndsWith(marketId, "-P")))) || IsTrue((StartsWith(marketId, "C-")))) || IsTrue((StartsWith(marketId, "P-")))))
 	if IsTrue(IsTrue(isOption) && IsTrue((IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
@@ -788,7 +788,7 @@ func (this *DeltaCore) IndexByStringifiedNumericId(input any) any {
 	if IsTrue(IsEqual(input, nil)) {
 		return nil
 	}
-	var keys []string = ObjectKeys(input)
+	var keys any = ObjectKeys(input)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var item any = GetValue(input, key)
@@ -1048,7 +1048,7 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 				if IsTrue(option) {
 					typeVar = "option"
-					var letter string = "C"
+					var letter any = "C"
 					optionType = "call"
 					if IsTrue(putOptions) {
 						letter = "P"
@@ -1251,7 +1251,7 @@ func (this *DeltaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	// spot markets that is the base currency rather than the quote
 	var turnoverSymbol any = this.SafeStringUpper(ticker, "turnover_symbol")
 	var quoteId any = this.SafeStringUpper(market, "quoteId")
-	var baseDenominated bool = IsTrue(IsTrue((!IsEqual(turnoverSymbol, nil))) && IsTrue((!IsEqual(quoteId, nil)))) && IsTrue((!IsEqual(turnoverSymbol, quoteId)))
+	var baseDenominated any = IsTrue(IsTrue((!IsEqual(turnoverSymbol, nil))) && IsTrue((!IsEqual(quoteId, nil)))) && IsTrue((!IsEqual(turnoverSymbol, quoteId)))
 	var quoteVolume any = Ternary(IsTrue(baseDenominated), this.SafeNumber(ticker, "turnover_usd"), this.SafeNumber(ticker, "turnover"))
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
@@ -3014,7 +3014,7 @@ func (this *DeltaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var timestamp any = this.Parse8601(this.SafeString(item, "created_at"))
 	var after any = this.SafeString(item, "balance")
 	var before any = Precise.StringMax("0", Precise.StringSub(after, amount))
-	var status string = "ok"
+	var status any = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               id,
@@ -4870,7 +4870,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp string = ToString(this.Seconds())
+		var timestamp any = ToString(this.Seconds())
 		headers = map[string]any{
 			"api-key":   this.ApiKey,
 			"timestamp": timestamp,
@@ -4887,7 +4887,7 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
-		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "signature", signature)
 	}
 	return map[string]any{

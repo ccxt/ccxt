@@ -824,7 +824,7 @@ func (this *CoinsphCore) CalculateRateLimiterCost(api any, method any, path any,
 		return GetValue(config, "noSymbolAndNoSymbols")
 	} else if IsTrue(IsTrue((InOp(config, "byNumberOfSymbols"))) && IsTrue((InOp(params, "symbols")))) {
 		var symbols any = GetValue(params, "symbols")
-		var symbolsAmount int = GetArrayLength(symbols)
+		var symbolsAmount any = GetArrayLength(symbols)
 		var byNumberOfSymbols any = this.SafeList(config, "byNumberOfSymbols", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(byNumberOfSymbols)); i++ {
 			var entry any = GetValue(byNumberOfSymbols, i)
@@ -995,7 +995,7 @@ func (this *CoinsphCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 		var quoteId any = this.SafeString(market, "quoteAsset")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
-		var limits map[string]any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
+		var limits any = this.IndexBy(this.SafeList(market, "filters", []any{}), "filterType")
 		var amountLimits any = this.SafeValue(limits, "LOT_SIZE", map[string]any{})
 		var priceLimits any = this.SafeValue(limits, "PRICE_FILTER", map[string]any{})
 		var costLimits any = this.SafeValue(limits, "NOTIONAL", map[string]any{})
@@ -1095,7 +1095,7 @@ func (this *CoinsphCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		}
 		AddElementToObject(request, "symbols", ids)
 	}
-	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
+	var defaultMethod any = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTickers", map[string]any{})
 	var method any = this.SafeString(options, "method", defaultMethod)
 	var tickers any = []any{}
@@ -1147,7 +1147,7 @@ func (this *CoinsphCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var defaultMethod string = "publicGetOpenapiQuoteV1Ticker24hr"
+	var defaultMethod any = "publicGetOpenapiQuoteV1Ticker24hr"
 	var options any = this.SafeDict(this.Options, "fetchTicker", map[string]any{})
 	var method any = this.SafeString(options, "method", defaultMethod)
 	var ticker any = map[string]any{}
@@ -1358,7 +1358,7 @@ func (this *CoinsphCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		} else {
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 			var endTimeByLimit any = this.Sum(since, Multiply(duration, (Subtract(limit, 1))))
-			var now int64 = this.Milliseconds()
+			var now any = this.Milliseconds()
 			AddElementToObject(request, "endTime", mathMin(endTimeByLimit, now))
 		}
 	} else if IsTrue(!IsEqual(until, nil)) {
@@ -2683,7 +2683,7 @@ func (this *CoinsphCore) ParseTransaction(transaction any, optionalArgs ...any) 
 		}
 	}
 	var network any = this.SafeString(transaction, "network")
-	var internal bool = IsEqual(network, "Internal")
+	var internal any = IsEqual(network, "Internal")
 	return map[string]any{
 		"info":        transaction,
 		"id":          id,
@@ -2794,7 +2794,7 @@ func (this *CoinsphCore) UrlEncodeQuery(optionalArgs ...any) any {
 	query := GetArg(optionalArgs, 0, map[string]any{})
 	_ = query
 	var encodedArrayParams any = ""
-	var keys []string = ObjectKeys(query)
+	var keys any = ObjectKeys(query)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		if IsTrue(IsArray(GetValue(query, key))) {

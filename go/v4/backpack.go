@@ -1742,7 +1742,7 @@ func (this *BackpackCore) ParseBalance(response any) any {
 	//         }
 	//     }
 	//
-	var balanceKeys []string = ObjectKeys(response)
+	var balanceKeys any = ObjectKeys(response)
 	var result any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(balanceKeys)); i++ {
 		var id any = GetValue(balanceKeys, i)
@@ -2219,7 +2219,7 @@ func (this *BackpackCore) createOrdersBody(ch chan any, orders any, optionalArgs
 		var amount any = this.SafeNumber(rawOrder, "amount")
 		var price any = this.SafeNumber(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
+		var extendedParams any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
 		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
 		AppendToArray(&ordersRequests, orderRequest)
 	}
@@ -2937,7 +2937,7 @@ func (this *BackpackCore) Sign(path any, optionalArgs ...any) any {
 	var sortedParams any = Ternary(IsTrue(IsArray(params)), params, this.Keysort(params))
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var ts string = ToString(this.Nonce())
+		var ts any = ToString(this.Nonce())
 		var recvWindow any = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
 		var optionInstructions any = this.SafeDict(this.Options, "instructions", map[string]any{})
 		var optionPathInstructions any = this.SafeDict(optionInstructions, path, map[string]any{})
@@ -2985,7 +2985,7 @@ func (this *BackpackCore) GenerateBatchPayload(params any, ts any, recvWindow an
 	var payload any = ""
 	for i := 0; IsLessThan(i, GetArrayLength(params)); i++ {
 		var order any = this.SafeDict(params, i, map[string]any{})
-		var sortedOrder map[string]any = this.Keysort(order)
+		var sortedOrder any = this.Keysort(order)
 		var orderQuery any = this.Urlencode(sortedOrder)
 		payload = Add(payload, Add(Add(Add(Add("instruction=", instruction), "&"), orderQuery), "&"))
 		if IsTrue(IsEqual(i, (Subtract(GetArrayLength(params), 1)))) {

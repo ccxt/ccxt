@@ -1377,8 +1377,8 @@ func (this *MexcCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 		//
 		//     {}
 		//
-		var keys []string = ObjectKeys(response)
-		var length int = GetArrayLength(keys)
+		var keys any = ObjectKeys(response)
+		var length any = GetArrayLength(keys)
 		status = Ternary(IsTrue(length), this.Json(response), "ok")
 	} else if IsTrue(IsEqual(marketType, "swap")) {
 
@@ -1680,7 +1680,7 @@ func (this *MexcCore) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var status any = this.SafeString(market, "status")
 		var isSpotTradingAllowed any = this.SafeValue(market, "isSpotTradingAllowed")
-		var active bool = false
+		var active any = false
 		if IsTrue(IsTrue((IsEqual(status, "1"))) && IsTrue((isSpotTradingAllowed))) {
 			active = true
 		}
@@ -1826,7 +1826,7 @@ func (this *MexcCore) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var settle any = this.SafeCurrencyCode(settleId)
 		var state any = this.SafeString(market, "state")
-		var isLinear bool = IsEqual(quote, settle)
+		var isLinear any = IsEqual(quote, settle)
 		AppendToArray(&result, map[string]any{
 			"id":             id,
 			"symbol":         Add(Add(Add(Add(base, "/"), quote), ":"), settle),
@@ -2308,7 +2308,7 @@ func (this *MexcCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 			if IsTrue(IsEqual(until, nil)) {
 				// we have to calculate it assuming we can get at most 2000 entries per request
 				var end any = this.Sum(since, Multiply(maxLimit, duration))
-				var now int64 = this.Milliseconds()
+				var now any = this.Milliseconds()
 				AddElementToObject(request, "endTime", mathMin(end, now))
 			}
 		}
@@ -2421,9 +2421,9 @@ func (this *MexcCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var request any = map[string]any{}
 	var market any = nil
-	var isSingularMarket bool = false
+	var isSingularMarket any = false
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length int = GetArrayLength(symbols)
+		var length any = GetArrayLength(symbols)
 		isSingularMarket = IsEqual(length, 1)
 		var firstSymbol any = this.SafeString(symbols, 0)
 		market = this.Market(firstSymbol)
@@ -2700,9 +2700,9 @@ func (this *MexcCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes226512)
 	}
 	var market any = nil
-	var isSingularMarket bool = false
+	var isSingularMarket any = false
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length int = GetArrayLength(symbols)
+		var length any = GetArrayLength(symbols)
 		isSingularMarket = IsEqual(length, 1)
 		market = this.Market(GetValue(symbols, 0))
 	}
@@ -2874,7 +2874,7 @@ func (this *MexcCore) CreateSpotOrderRequest(market any, typeVar any, side any, 
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var symbol any = GetValue(market, "symbol")
-	var orderSide string = ToUpper(side)
+	var orderSide any = ToUpper(side)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
@@ -5892,7 +5892,7 @@ func (this *MexcCore) fetchDepositAddressBody(ch chan any, code any, optionalArg
 		if IsTrue(!IsEqual(defaultNetworkForCurrency, nil)) {
 			result = this.SafeDict(addressStructures, defaultNetworkForCurrency)
 		} else {
-			var keys []string = ObjectKeys(addressStructures)
+			var keys any = ObjectKeys(addressStructures)
 			var key any = this.SafeString(keys, 0)
 			result = this.SafeDict(addressStructures, key)
 		}
@@ -6662,11 +6662,11 @@ func (this *MexcCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	var fromId any = this.SafeString(accounts, fromAccount, fromAccount)
 	var toId any = this.SafeString(accounts, toAccount, toAccount)
 	if IsTrue(IsEqual(fromId, nil)) {
-		var keys []string = ObjectKeys(accounts)
+		var keys any = ObjectKeys(accounts)
 		panic(ExchangeError(Add(Add(this.Id, " fromAccount must be one of "), Join(keys, ", "))))
 	}
 	if IsTrue(IsEqual(toId, nil)) {
-		var keys []string = ObjectKeys(accounts)
+		var keys any = ObjectKeys(accounts)
 		panic(ExchangeError(Add(Add(this.Id, " toAccount must be one of "), Join(keys, ", "))))
 	}
 	var request any = map[string]any{
@@ -7353,7 +7353,7 @@ func (this *MexcCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any
 	}
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength int = GetArrayLength(symbols)
+		var symbolsLength any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -7445,7 +7445,7 @@ func (this *MexcCore) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	if IsTrue(GetValue(market, "spot")) {
 		panic(BadSymbol(Add(this.Id, " setMarginMode() supports contract markets only")))
 	}
-	var marginModeLower string = ToLower(marginMode)
+	var marginModeLower any = ToLower(marginMode)
 	if IsTrue(IsTrue(!IsEqual(marginModeLower, "isolated")) && IsTrue(!IsEqual(marginModeLower, "cross"))) {
 		panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be isolated or cross")))
 	}
@@ -7541,7 +7541,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			this.CheckRequiredCredentials()
-			var timestamp string = ToString(this.Nonce())
+			var timestamp any = ToString(this.Nonce())
 			var auth any = ""
 			headers = map[string]any{
 				"ApiKey":       this.ApiKey,
@@ -7560,7 +7560,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 				}
 			}
 			auth = Add(Add(this.ApiKey, timestamp), auth)
-			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+			var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			AddElementToObject(headers, "Signature", signature)
 		}
 	}

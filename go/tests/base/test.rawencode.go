@@ -18,8 +18,8 @@ func TestRawencode() {
 		"b": "+&",
 	}
 	// as key-order not preserved, expect mixed orde
-	var expected2a string = "a=1&b=+&"
-	var expected2b string = "b=+&&a=1"
+	var expected2a any = "a=1&b=+&"
+	var expected2b any = "b=+&&a=1"
 	var result2 any = exchange.Rawencode(dict2)
 	assert(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("rawencode: expected ", expected2a), " or "), expected2b), " but got "), result2))
 }

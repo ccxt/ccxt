@@ -812,7 +812,7 @@ func (this *CoinbaseCore) fetchAccountsV2Body(ch chan any, optionalArgs ...any) 
 	var pagination any = this.SafeDict(response, "pagination", map[string]any{})
 	var cursor any = this.SafeString(pagination, "next_starting_after")
 	var accounts any = this.SafeList(response, "data", []any{})
-	var length int = GetArrayLength(accounts)
+	var length any = GetArrayLength(accounts)
 	var lastIndex any = Subtract(length, 1)
 	var last any = this.SafeDict(accounts, lastIndex, map[string]any{})
 	if IsTrue(IsTrue((!IsEqual(cursor, nil))) && IsTrue((!IsEqual(cursor, "")))) {
@@ -886,7 +886,7 @@ func (this *CoinbaseCore) fetchAccountsV3Body(ch chan any, optionalArgs ...any) 
 	//     }
 	//
 	var accounts any = this.SafeList(response, "accounts", []any{})
-	var accountsLength int = GetArrayLength(accounts)
+	var accountsLength any = GetArrayLength(accounts)
 	var cursor any = this.SafeString(response, "cursor")
 	if IsTrue(IsTrue(IsTrue((IsGreaterThan(accountsLength, 0))) && IsTrue((!IsEqual(cursor, nil)))) && IsTrue((!IsEqual(cursor, "")))) {
 		var lastIndex any = Subtract(accountsLength, 1)
@@ -997,7 +997,7 @@ func (this *CoinbaseCore) ParseAccount(account any) any {
 	var currencyId any = this.SafeString(currency, "code", currencyIdV3)
 	var typeV3 any = this.SafeString(account, "name")
 	var typeV2 any = this.SafeString(account, "type")
-	var parts []string = Split(typeV3, " ")
+	var parts any = Split(typeV3, " ")
 	return map[string]any{
 		"id":   this.SafeString2(account, "id", "uuid"),
 		"type": Ternary(IsTrue((!IsEqual(active, nil))), this.SafeStringLower(parts, 1), typeV2),
@@ -1783,9 +1783,9 @@ func (this *CoinbaseCore) fetchMarketsV2Body(ch chan any, optionalArgs ...any) a
 	var currencies any = this.SafeDict(response, "currencies", map[string]any{})
 	var exchangeRates any = this.SafeDict(response, "exchangeRates", map[string]any{})
 	var data any = this.SafeList(currencies, "data", []any{})
-	var dataById map[string]any = this.IndexBy(data, "id")
+	var dataById any = this.IndexBy(data, "id")
 	var rates any = this.SafeDict(this.SafeDict(exchangeRates, "data", map[string]any{}), "rates", map[string]any{})
-	var baseIds []string = ObjectKeys(rates)
+	var baseIds any = ObjectKeys(rates)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(baseIds)); i++ {
 		var baseId any = GetValue(baseIds, i)
@@ -1946,7 +1946,7 @@ func (this *CoinbaseCore) fetchMarketsV3Body(ch chan any, optionalArgs ...any) a
 
 	promises := (<-promiseAll(spotUnresolvedPromises))
 	PanicOnError(promises)
-	var unresolvedContractPromises []any = []any{}
+	var unresolvedContractPromises any = []any{}
 
 	{
 		func(this *CoinbaseCore) (ret_ any) {
@@ -2043,7 +2043,7 @@ func (this *CoinbaseCore) fetchMarketsV3Body(ch chan any, optionalArgs ...any) a
 		var market any = GetValue(result, i)
 		var info any = this.SafeValue(market, "info", map[string]any{})
 		var realMarketIds any = this.SafeList(info, "alias_to", []any{})
-		var length int = GetArrayLength(realMarketIds)
+		var length any = GetArrayLength(realMarketIds)
 		if IsTrue(IsGreaterThan(length, 0)) {
 			AddElementToObject(market, "alias", GetValue(realMarketIds, 0))
 		} else {
@@ -2360,9 +2360,9 @@ func (this *CoinbaseCore) fetchCurrenciesFromCacheBody(ch chan any, optionalArgs
 	var options any = this.SafeDict(this.Options, "fetchCurrencies", map[string]any{})
 	var timestamp any = this.SafeInteger(options, "timestamp")
 	var expires any = this.SafeInteger(options, "expires", 1000)
-	var now int64 = this.Milliseconds()
+	var now any = this.Milliseconds()
 	if IsTrue(IsTrue((IsEqual(timestamp, nil))) || IsTrue((IsGreaterThan((Subtract(now, timestamp)), expires)))) {
-		var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params)}
+		var promises any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params)}
 
 		promisesResult := (<-promiseAll(promises))
 		PanicOnError(promisesResult)
@@ -2425,7 +2425,7 @@ func (this *CoinbaseCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises []any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params), this.V2PublicGetExchangeRates(params)}
+	var promises any = []any{this.V2PublicGetCurrencies(params), this.V2PublicGetCurrenciesCrypto(params), this.V2PublicGetExchangeRates(params)}
 
 	promisesResult := (<-promiseAll(promises))
 	PanicOnError(promisesResult)
@@ -2461,7 +2461,7 @@ func (this *CoinbaseCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) 
 	var cryptoData any = this.SafeList(cryptoResponse, "data", []any{})
 	var ratesData any = this.SafeDict(ratesResponse, "data", map[string]any{})
 	var rates any = this.SafeDict(ratesData, "rates", map[string]any{})
-	var ratesIds []string = ObjectKeys(rates)
+	var ratesIds any = ObjectKeys(rates)
 	var currencies any = this.ArrayConcat(fiatData, cryptoData)
 	var result any = map[string]any{}
 	var networks any = map[string]any{}
@@ -2505,7 +2505,7 @@ func (this *CoinbaseCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) 
 			}))
 		}
 		if IsTrue(!IsEqual(assetId, nil)) {
-			var lowerCaseName string = ToLower(name)
+			var lowerCaseName any = ToLower(name)
 			if IsTrue(!IsEqual(code, nil)) {
 				AddElementToObject(networks, code, lowerCaseName)
 			}
@@ -2611,8 +2611,8 @@ func (this *CoinbaseCore) fetchTickersV2Body(ch chan any, optionalArgs ...any) a
 	var rates any = this.SafeDict(data, "rates", map[string]any{})
 	var quoteId any = this.SafeString(data, "currency")
 	var result any = map[string]any{}
-	var baseIds []string = ObjectKeys(rates)
-	var delimiter string = "-"
+	var baseIds any = ObjectKeys(rates)
+	var delimiter any = "-"
 	for i := 0; IsLessThan(i, GetArrayLength(baseIds)); i++ {
 		var baseId any = GetValue(baseIds, i)
 		var marketId any = Add(Add(baseId, delimiter), quoteId)
@@ -2770,7 +2770,7 @@ func (this *CoinbaseCore) fetchTickerV2Body(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes223312)
 	}
 	var market any = this.Market(symbol)
-	var request map[string]any = this.Extend(map[string]any{
+	var request any = this.Extend(map[string]any{
 		"symbol": GetValue(market, "id"),
 	}, params)
 
@@ -3248,7 +3248,7 @@ func (this *CoinbaseCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any 
 	PanicOnError(response)
 	var data any = this.SafeList(response, "data", []any{})
 	var ledger any = this.ParseLedger(data, currency, since, limit)
-	var length int = GetArrayLength(ledger)
+	var length any = GetArrayLength(ledger)
 	if IsTrue(IsEqual(length, 0)) {
 
 		ch <- ledger
@@ -3573,8 +3573,8 @@ func (this *CoinbaseCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var path any = this.SafeString(item, "resource_path")
 	var accountId any = nil
 	if IsTrue(!IsEqual(path, nil)) {
-		var parts []string = Split(path, "/")
-		var numParts int = GetArrayLength(parts)
+		var parts any = Split(path, "/")
+		var numParts any = GetArrayLength(parts)
 		if IsTrue(IsGreaterThan(numParts, 3)) {
 			accountId = GetValue(parts, 3)
 		}
@@ -4830,7 +4830,7 @@ func (this *CoinbaseCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	if IsTrue(!IsEqual(since, nil)) {
 		sinceString = this.NumberToString(this.ParseToInt(Divide(since, 1000)))
 	} else {
-		var now string = ToString(this.Seconds())
+		var now any = ToString(this.Seconds())
 		sinceString = Precise.StringSub(now, ToString(requestedDuration))
 	}
 	AddElementToObject(request, "start", sinceString)
@@ -5501,7 +5501,7 @@ func (this *CoinbaseCore) ParseDepositAddress(depositAddress any, optionalArgs .
 	var addressLabel any = this.SafeString(depositAddress, "address_label")
 	var currencyId any = nil
 	if IsTrue(!IsEqual(addressLabel, nil)) {
-		var splitAddressLabel []string = Split(addressLabel, " ")
+		var splitAddressLabel any = Split(addressLabel, " ")
 		currencyId = this.SafeString(splitAddressLabel, 0)
 	} else {
 		currencyId = this.SafeString(depositAddress, "currency")
@@ -5808,7 +5808,7 @@ func (this *CoinbaseCore) ParseDepositMethodIds(ids any, optionalArgs ...any) an
 	_ = params
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-		var id map[string]any = this.Extend(this.ParseDepositMethodId(GetValue(ids, i)), params)
+		var id any = this.Extend(this.ParseDepositMethodId(GetValue(ids, i)), params)
 		AppendToArray(&result, id)
 	}
 	return result
@@ -6603,8 +6603,8 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var version any = GetValue(api, 0)
-	var signed bool = IsEqual(GetValue(api, 1), "private")
-	var isV3 bool = IsEqual(version, "v3")
+	var signed any = IsEqual(GetValue(api, 1), "private")
+	var isV3 any = IsEqual(version, "v3")
 	var pathPart any = Ternary(IsTrue((isV3)), "api/v3", "v2")
 	var fullPath any = Add(Add(Add("/", pathPart), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
@@ -6642,9 +6642,9 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
 			// v2: 'GET' require payload in the signature
 			// https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
-			var isCloudAPiKey bool = IsTrue((IsGreaterThanOrEqual(GetIndexOf(this.ApiKey, "organizations/"), 0))) || IsTrue((StartsWith(this.Secret, "-----BEGIN")))
+			var isCloudAPiKey any = IsTrue((IsGreaterThanOrEqual(GetIndexOf(this.ApiKey, "organizations/"), 0))) || IsTrue((StartsWith(this.Secret, "-----BEGIN")))
 			// using the size might be fragile, so we add an option to force v2 cloud api key if needed
-			var isV2CloudAPiKey bool = IsTrue(IsTrue(IsEqual(GetLength(this.Secret), 88)) || IsTrue(this.SafeBool(this.Options, "v2CloudAPiKey", false))) || IsTrue(EndsWith(this.Secret, "="))
+			var isV2CloudAPiKey any = IsTrue(IsTrue(IsEqual(GetLength(this.Secret), 88)) || IsTrue(this.SafeBool(this.Options, "v2CloudAPiKey", false))) || IsTrue(EndsWith(this.Secret, "="))
 			if IsTrue(IsTrue(isCloudAPiKey) || IsTrue(isV2CloudAPiKey)) {
 				if IsTrue(IsTrue(isCloudAPiKey) && IsTrue(StartsWith(this.ApiKey, "-----BEGIN"))) {
 					panic(ArgumentsRequired(Add(this.Id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")))
@@ -6673,9 +6673,9 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 			} else {
 				var nonce any = this.Nonce()
 				var timestamp any = this.ParseToInt(Divide(nonce, 1000))
-				var timestampString string = ToString(timestamp)
+				var timestampString any = ToString(timestamp)
 				var auth any = Add(Add(Add(timestampString, method), savedPath), payload)
-				var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+				var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 				headers = map[string]any{
 					"CB-ACCESS-KEY":       this.ApiKey,
 					"CB-ACCESS-SIGN":      signature,
@@ -6758,7 +6758,7 @@ func (this *CoinbaseCore) HandleErrors(code any, reason any, url any, method any
 	var errors any = this.SafeList(response, "errors")
 	if IsTrue(!IsEqual(errors, nil)) {
 		if IsTrue(IsArray(errors)) {
-			var numErrors int = GetArrayLength(errors)
+			var numErrors any = GetArrayLength(errors)
 			if IsTrue(IsGreaterThan(numErrors, 0)) {
 				errorCode = this.SafeString(GetValue(errors, 0), "id")
 				var errorMessage any = this.SafeString(GetValue(errors, 0), "message")

@@ -18,8 +18,8 @@ func TestUrlencode() {
 		"c": "+&",
 	}
 	// as key-order not preserved, expect mixed order
-	var expected1 string = "a=1&c=%2B%26"
-	var expected2 string = "c=%2B%26&a=1"
+	var expected1 any = "a=1&c=%2B%26"
+	var expected2 any = "c=%2B%26&a=1"
 	var encoded any = exchange.Urlencode(dict1)
 	assert(ccxt.IsTrue(ccxt.IsEqual(encoded, expected1)) || ccxt.IsTrue(ccxt.IsEqual(encoded, expected2)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("testUrlencode: expected ", expected1), " or "), expected2), " but got "), encoded))
 }

@@ -400,13 +400,13 @@ func (this *ApexCore) ParseBalance(response any) any {
 	// }
 	// }
 	//
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var result any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var code string = "USDT"
+	var code any = "USDT"
 	var account any = this.Account()
 	AddElementToObject(account, "free", this.SafeString(response, "availableBalance"))
 	AddElementToObject(account, "total", this.SafeString(response, "totalEquityValue"))
@@ -649,9 +649,9 @@ func (this *ApexCore) ParseCurrency(currency any) any {
 			}
 		}
 	}
-	var networkKeys []string = ObjectKeys(networks)
-	var networksLength int = GetArrayLength(networkKeys)
-	var emptyChains bool = IsEqual(networksLength, 0) // non-functional coins
+	var networkKeys any = ObjectKeys(networks)
+	var networksLength any = GetArrayLength(networkKeys)
+	var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
 	var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      currency,
@@ -851,7 +851,7 @@ func (this *ApexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var marketId any = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = this.SafeSymbol(marketId, market)
@@ -1102,7 +1102,7 @@ func (this *ApexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	// }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var orderbook any = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "b", "a")
 	AddElementToObject(orderbook, "nonce", this.SafeInteger(data, "u"))
 
@@ -1277,7 +1277,7 @@ func (this *ApexCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var marketId any = this.SafeString(interest, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = this.SafeSymbol(marketId, market)
@@ -1538,7 +1538,7 @@ func (this *ApexCore) SafeMarket(optionalArgs ...any) any {
 			var newMarketId any = this.AddHyphenBeforeUsdt(marketId)
 			if IsTrue(IsTrue((!IsEqual(marketsById, nil))) && IsTrue((InOp(marketsById, newMarketId)))) {
 				var markets any = GetValue(marketsById, newMarketId)
-				var numMarkets int = GetArrayLength(markets)
+				var numMarkets any = GetArrayLength(markets)
 				if IsTrue(IsGreaterThan(numMarkets, 0)) {
 					if IsTrue(IsEqual(GetValue(GetValue(GetValue(marketsById, newMarketId), 0), "id2"), marketId)) {
 						market = GetValue(GetValue(marketsById, newMarketId), 0)
@@ -1550,12 +1550,12 @@ func (this *ApexCore) SafeMarket(optionalArgs ...any) any {
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
 func (this *ApexCore) GenerateRandomClientIdOmni(_accountId any) any {
-	var accountId bool = IsTrue(_accountId) || IsTrue(ToString(this.RandNumber(12)))
+	var accountId any = IsTrue(_accountId) || IsTrue(ToString(this.RandNumber(12)))
 	return Add(Add(Add(Add(Add("apexomni-", accountId), "-"), ToString(this.Milliseconds())), "-"), ToString(this.RandNumber(6)))
 }
 func (this *ApexCore) AddHyphenBeforeUsdt(symbol any) any {
-	var uppercaseSymbol string = ToUpper(symbol)
-	var index int = GetIndexOf(uppercaseSymbol, "USDT")
+	var uppercaseSymbol any = ToUpper(symbol)
+	var index any = GetIndexOf(uppercaseSymbol, "USDT")
 	var symbolChar any = this.SafeString(symbol, Subtract(index, 1))
 	if IsTrue(IsTrue(IsGreaterThan(index, 0)) && IsTrue(!IsEqual(symbolChar, "-"))) {
 		return Add(Add(Slice(symbol, 0, index), "-"), Slice(symbol, index, nil))
@@ -1631,7 +1631,7 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	var orderSide string = ToUpper(side)
+	var orderSide any = ToUpper(side)
 	var orderSize any = this.AmountToPrecision(symbol, amount)
 	var orderPrice any = "0"
 	if IsTrue(!IsEqual(price, nil)) {
@@ -1641,7 +1641,7 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var taker any = this.SafeString(fees, "taker", "0.0005")
 	var maker any = this.SafeString(fees, "maker", "0.0002")
 	var limitFee any = this.DecimalToPrecision(Precise.StringAdd(Precise.StringMul(Precise.StringMul(orderPrice, orderSize), taker), this.NumberToString(GetValue(GetValue(market, "precision"), "price"))), TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
-	var timeNow int64 = this.Milliseconds()
+	var timeNow any = this.Milliseconds()
 	var triggerPrice any = this.SafeString(params, "triggerPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
@@ -1652,7 +1652,7 @@ func (this *ApexCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		orderType = Ternary(IsTrue((IsEqual(orderType, "MARKET"))), "TAKE_PROFIT_MARKET", "TAKE_PROFIT_LIMIT")
 		triggerPrice = takeProfitPrice
 	}
-	var isMarket bool = IsEqual(orderType, "MARKET")
+	var isMarket any = IsEqual(orderType, "MARKET")
 	if IsTrue(IsTrue(isMarket) && IsTrue((IsEqual(price, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for market orders")))
 	}
@@ -1802,7 +1802,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	var finalClientOrderId any = clientOrderId // java req
 	params = this.Omit(params, []any{"clientId", "clientOrderId", "client_order_id"})
 	if IsTrue(IsTrue(!IsEqual(fromAccount, nil)) && IsTrue(IsEqual(ToLower(fromAccount), "contract"))) {
-		var formattedUint32 string = "4294967295"
+		var formattedUint32 any = "4294967295"
 		var zkSignAccountId any = Precise.StringMod(accountId, formattedUint32)
 		var expireTime any = Add(timestampSeconds, Multiply(Multiply(3600, 24), 28))
 		var orderToSign any = map[string]any{
@@ -1832,7 +1832,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 		response := (<-this.PrivatePostV3ContractTransferOut(this.Extend(request, params)))
 		PanicOnError(response)
 		var data any = this.SafeDict(response, "data", map[string]any{})
-		var currentTime int64 = this.Milliseconds()
+		var currentTime any = this.Milliseconds()
 		var parsedAmount any = this.ParseNumber(amount)
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
@@ -1858,7 +1858,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 
 		signature := (<-this.GetZKTransferSignatureObj(this.Remove0xPrefix(this.GetSeeds()), orderToSign))
 		PanicOnError(signature)
-		var amountStr string = ToString(amount)
+		var amountStr any = ToString(amount)
 		var ts any = timestampSeconds // java req
 		var request any = map[string]any{
 			"amount":               amountStr,
@@ -1880,7 +1880,7 @@ func (this *ApexCore) transferBody(ch chan any, code any, amount any, fromAccoun
 		response := (<-this.PrivatePostV3TransferOut(this.Extend(request, params)))
 		PanicOnError(response)
 		var data any = this.SafeDict(response, "data", map[string]any{})
-		var currentTime int64 = this.Milliseconds()
+		var currentTime any = this.Milliseconds()
 
 		ch <- this.Extend(this.ParseTransfer(data, this.Currency(code)), map[string]any{
 			"timestamp":   currentTime,
@@ -2346,7 +2346,7 @@ func (this *ApexCore) ParseIncome(income any, optionalArgs ...any) any {
 	_ = market
 	var marketId any = this.SafeString(income, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "contract")
-	var code string = "USDT"
+	var code any = "USDT"
 	var timestamp any = this.SafeInteger(income, "fundingTime")
 	return map[string]any{
 		"info":      income,
@@ -2521,17 +2521,17 @@ func (this *ApexCore) Sign(path any, optionalArgs ...any) any {
 			url = Add(url, Add("?", this.Rawencode(params)))
 		}
 	} else {
-		var sortedQuery map[string]any = this.Keysort(params)
+		var sortedQuery any = this.Keysort(params)
 		signBody = this.Rawencode(sortedQuery)
 	}
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp string = ToString(this.Milliseconds())
+		var timestamp any = ToString(this.Milliseconds())
 		var messageString any = Add(Add(timestamp, ToUpper(method)), signPath)
 		if IsTrue(!IsEqual(signBody, nil)) {
 			messageString = Add(messageString, signBody)
 		}
-		var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), sha256, "base64")
+		var signature any = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), sha256, "base64")
 		AddElementToObject(headers, "APEX-SIGNATURE", signature)
 		AddElementToObject(headers, "APEX-API-KEY", this.ApiKey)
 		AddElementToObject(headers, "APEX-TIMESTAMP", timestamp)
@@ -2557,7 +2557,7 @@ func (this *ApexCore) HandleErrors(code any, reason any, url any, method any, he
 		var feedback any = Add(Add(this.Id, " "), body)
 		var message any = this.SafeString2(response, "key", "msg")
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
-		var status string = ToString(code)
+		var status any = ToString(code)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), status, feedback)
 		panic(ExchangeError(feedback))
 	}

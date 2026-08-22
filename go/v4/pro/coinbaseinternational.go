@@ -112,7 +112,7 @@ func (this *CoinbaseinternationalCore) subscribeBody(ch chan any, name any, opti
 	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 		symbols = this.GetActiveSymbols()
 	}
-	var symbolsLength int = ccxt.GetArrayLength(symbols)
+	var symbolsLength any = ccxt.GetArrayLength(symbols)
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 1)) {
 		var parsedSymbols any = this.MarketSymbols(symbols)
@@ -130,9 +130,9 @@ func (this *CoinbaseinternationalCore) subscribeBody(ch chan any, name any, opti
 	if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " is not supported in sandbox environment")))
 	}
-	var timestamp string = ccxt.ToString(this.Nonce())
+	var timestamp any = ccxt.ToString(this.Nonce())
 	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
-	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
+	var signature any = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe any = map[string]any{
 		"type":       "SUBSCRIBE",
 		"channels":   []any{name},
@@ -205,7 +205,7 @@ func (this *CoinbaseinternationalCore) subscribeMultipleBody(ch chan any, name a
 	}
 	var timestamp any = this.NumberToString(this.Seconds())
 	var auth any = ccxt.Add(ccxt.Add(ccxt.Add(timestamp, this.ApiKey), "CBINTLMD"), this.Password)
-	var signature string = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
+	var signature any = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), ccxt.Sha256, "base64")
 	var subscribe any = map[string]any{
 		"type":        "SUBSCRIBE",
 		"time":        timestamp,

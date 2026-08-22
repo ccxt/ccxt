@@ -12,9 +12,9 @@ func TestStringToBase16() {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var result1 any = exchange.StringToBase16("hello")
-	var expected1 string = "0x68656c6c6f"
+	var expected1 any = "0x68656c6c6f"
 	assert(ccxt.IsEqual(result1, expected1), ccxt.Add(ccxt.Add(ccxt.Add("stringToBase16 failed for \"hello\", expected: ", expected1), ", got: "), result1))
 	var result2 any = exchange.StringToBase16("world 1!@#$%^&*()")
-	var expected2 string = "0x776f726c64203121402324255e262a2829"
+	var expected2 any = "0x776f726c64203121402324255e262a2829"
 	assert(ccxt.IsEqual(result2, expected2), ccxt.Add(ccxt.Add(ccxt.Add("stringToBase16 failed for \"world 1!@#$%^&*()\", expected: ", expected2), ", got: "), result2))
 }

@@ -480,13 +480,13 @@ func (this *BitoproCore) Authenticate(url any) {
 		return
 	}
 	this.CheckRequiredCredentials()
-	var nonce int64 = this.Milliseconds()
+	var nonce any = this.Milliseconds()
 	var rawData any = this.Json(map[string]any{
 		"nonce":    nonce,
 		"identity": this.Login,
 	})
 	var payload any = this.StringToBase64(rawData)
-	var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384)
+	var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384)
 	var defaultOptions any = map[string]any{
 		"ws": map[string]any{
 			"options": map[string]any{
@@ -533,7 +533,7 @@ func (this *BitoproCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 		retRes43712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes43712)
 	}
-	var messageHash string = "ACCOUNT_BALANCE"
+	var messageHash any = "ACCOUNT_BALANCE"
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
 	this.Authenticate(url)
 
@@ -563,7 +563,7 @@ func (this *BitoproCore) HandleBalance(client any, message any) {
 	var data any = this.SafeValue(message, "data")
 	var timestamp any = this.SafeInteger(message, "timestamp")
 	var datetime any = this.SafeString(message, "datetime")
-	var currencies []string = ccxt.ObjectKeys(data)
+	var currencies any = ccxt.ObjectKeys(data)
 	var result any = map[string]any{
 		"info":      data,
 		"timestamp": timestamp,

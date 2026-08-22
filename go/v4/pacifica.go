@@ -891,7 +891,7 @@ func (this *PacificaCore) ParseMarket(market any) any {
 	var isSwap any = !IsTrue(isSpot)
 	var quoteId any = "USDC"
 	var settleId any = nil
-	var typeVar string = "spot"
+	var typeVar any = "spot"
 	var linear any = nil
 	var inverse any = nil
 	var contractSize any = nil
@@ -903,7 +903,7 @@ func (this *PacificaCore) ParseMarket(market any) any {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing id")))
 	}
 	if IsTrue(isSpot) {
-		var idParts []string = Split(id, "-")
+		var idParts any = Split(id, "-")
 		quoteId = this.SafeString(idParts, 1, quoteId)
 	}
 	var isolatedOnly any = this.SafeBool(market, "isolated_only", false)
@@ -930,7 +930,7 @@ func (this *PacificaCore) ParseMarket(market any) any {
 	var maker any = this.SafeNumber(fees, "maker")
 	var amountPrecision any = this.SafeNumber(market, "lot_size")
 	var pricePrecision any = this.SafeNumber(market, "tick_size")
-	var active bool = true // there is no non-active markets comes from endpoint market info
+	var active any = true // there is no non-active markets comes from endpoint market info
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         symbol,
@@ -1221,7 +1221,7 @@ func (this *PacificaCore) loadAccountSettingsBody(ch chan any, optionalArgs ...a
 	return nil
 }
 func (this *PacificaCore) ParseAccountSettings(settings any) any {
-	var settingsLen int = GetArrayLength(settings)
+	var settingsLen any = GetArrayLength(settings)
 	if IsTrue(IsEqual(settingsLen, 0)) {
 		return map[string]any{}
 	}
@@ -1565,7 +1565,7 @@ func (this *PacificaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
 	request = GetValue(requestparamsVariable, 0)
 	params = GetValue(requestparamsVariable, 1)
-	var nowMillis int64 = this.Milliseconds()
+	var nowMillis any = this.Milliseconds()
 	var until any = this.SafeInteger(request, "end_time")
 	if IsTrue(IsEqual(until, nil)) {
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2002,12 +2002,12 @@ func (this *PacificaCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	}
 	var operationType any = nil
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
-	var orderType string = ToUpper(typeVar)
+	var orderType any = ToUpper(typeVar)
 	var triggerPrice any = this.SafeString(params, "triggerPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
 	var tifRaw any = this.SafeStringUpper(params, "timeInForce")
-	var isMarket bool = IsEqual(orderType, "MARKET")
+	var isMarket any = IsEqual(orderType, "MARKET")
 	var isTakeProfitOrder any = (!IsEqual(takeProfitPrice, nil))
 	var isStopLossOrder any = (!IsEqual(stopLossPrice, nil))
 	var isStopOrder any = (!IsEqual(triggerPrice, nil))
@@ -2111,7 +2111,7 @@ func (this *PacificaCore) BatchOrdersRequest(actions any) any {
 	//  Create (Only Limit or Market, never stop order or tpsl order)
 	//  Cancel (Only common (limit) orders)
 	//
-	var lenActions int = GetArrayLength(actions)
+	var lenActions any = GetArrayLength(actions)
 	var maxLen any = this.HandleOption("batchOrdersRequest", "batchOrdersMax")
 	if IsTrue(!IsEqual(maxLen, nil)) {
 		if IsTrue(IsGreaterThan(lenActions, maxLen)) {
@@ -2126,7 +2126,7 @@ func (this *PacificaCore) CreateOrdersRequest(orders any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var actions any = []any{}
-	var timestamp int64 = this.Milliseconds() // unified sequence
+	var timestamp any = this.Milliseconds() // unified sequence
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var order any = GetValue(orders, i)
 		var symbol any = this.SafeString(order, "symbol")
@@ -2394,7 +2394,7 @@ func (this *PacificaCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 func (this *PacificaCore) CancelAllOrdersRequest(symbol any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "cancel_all_orders"
+	var operationType any = "cancel_all_orders"
 	var sigPayload any = map[string]any{}
 	var excludeReduceOnly any = this.SafeBool(params, "excludeReduceOnly", false)
 	AddElementToObject(sigPayload, "exclude_reduce_only", excludeReduceOnly)
@@ -2576,7 +2576,7 @@ func (this *PacificaCore) EditOrderRequest(id any, symbol any, typeVar any, side
 	if IsTrue(IsEqual(price, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a price")))
 	}
-	var operationType string = "edit_order"
+	var operationType any = "edit_order"
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
 	var priceNormalized any = this.PriceToPrecision(symbol, price)
 	var amountNormalized any = this.AmountToPrecision(symbol, amount)
@@ -3099,7 +3099,7 @@ func (this *PacificaCore) AddPaginationCursorToResult(response any) any {
 	var data any = this.SafeList(response, "data", []any{})
 	var paginationCursor any = this.SafeString(response, "next_cursor")
 	var hasMore any = this.SafeBool(response, "has_more", false)
-	var dataLength int = GetArrayLength(data)
+	var dataLength any = GetArrayLength(data)
 	if IsTrue(hasMore) {
 		if IsTrue(IsTrue((!IsEqual(paginationCursor, nil))) && IsTrue((IsGreaterThan(dataLength, 0)))) {
 			var first any = GetValue(data, 0)
@@ -3196,7 +3196,7 @@ func (this *PacificaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	var data any = this.SafeList(response, "data", []any{})
 	// return last state
 	var sorted any = this.SortBy(data, "created_at")
-	var lastIdx int = GetArrayLength(sorted)
+	var lastIdx any = GetArrayLength(sorted)
 	var lastInfo any = map[string]any{}
 	if IsTrue(IsGreaterThan(lastIdx, 0)) {
 		lastInfo = GetValue(sorted, 0)
@@ -3551,7 +3551,7 @@ func (this *PacificaCore) setMarginModeBody(ch chan any, marginMode any, optiona
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var operationType string = "update_margin_mode"
+	var operationType any = "update_margin_mode"
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 	}
@@ -3602,7 +3602,7 @@ func (this *PacificaCore) setLeverageBody(ch chan any, leverage any, optionalArg
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var operationType string = "update_leverage"
+	var operationType any = "update_leverage"
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
 	}
@@ -3654,7 +3654,7 @@ func (this *PacificaCore) withdrawBody(ch chan any, code any, amount any, addres
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var operationType string = "withdraw"
+	var operationType any = "withdraw"
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes285212 := (<-this.LoadMarkets())
@@ -4158,7 +4158,7 @@ func (this *PacificaCore) transferBody(ch chan any, code any, amount any, fromAc
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "transfer_funds"
+	var operationType any = "transfer_funds"
 	var sigPayload any = map[string]any{
 		"to_account": toAccount,
 		"amount":     amount,
@@ -4260,7 +4260,7 @@ func (this *PacificaCore) createSubAccountBody(ch chan any, name any, optionalAr
 	if IsTrue(IsEqual(subAccountPrivateKey, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountPrivateKey\"!")))
 	}
-	var timestamp int64 = this.Milliseconds()
+	var timestamp any = this.Milliseconds()
 	var expiryWindow any = nil
 	expiryWindowparamsVariable := this.HandleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
 	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
@@ -4315,7 +4315,7 @@ func (this *PacificaCore) bindAgentWalletBody(ch chan any, agentAddress any, opt
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "bind_agent_wallet"
+	var operationType any = "bind_agent_wallet"
 	var sigPayload any = map[string]any{
 		"agent_wallet": agentAddress,
 	}
@@ -4336,7 +4336,7 @@ func (this *PacificaCore) createApiKeyBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "create_api_key"
+	var operationType any = "create_api_key"
 	var sigPayload any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
@@ -4355,7 +4355,7 @@ func (this *PacificaCore) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "revoke_api_key"
+	var operationType any = "revoke_api_key"
 	var sigPayload any = map[string]any{
 		"api_key": apiKey,
 	}
@@ -4376,7 +4376,7 @@ func (this *PacificaCore) fetchApiKeysBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "list_api_keys"
+	var operationType any = "list_api_keys"
 	var sigPayload any = map[string]any{}
 	var request any = this.PostActionRequest(operationType, sigPayload, params)
 
@@ -4395,7 +4395,7 @@ func (this *PacificaCore) approveBuilderCodeBody(ch chan any, builderCode any, m
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "approve_builder_code"
+	var operationType any = "approve_builder_code"
 	var sigPayload any = map[string]any{
 		"builder_code": builderCode,
 		"max_fee_rate": maxFeeRate,
@@ -4434,7 +4434,7 @@ func (this *PacificaCore) revokeBuilderCodeBody(ch chan any, builderCode any, op
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var operationType string = "revoke_builder_code"
+	var operationType any = "revoke_builder_code"
 	var sigPayload any = map[string]any{
 		"builder_code": builderCode,
 	}
@@ -4502,7 +4502,7 @@ func (this *PacificaCore) Sign(path any, optionalArgs ...any) any {
 	var host any = this.ImplodeHostname(GetValue(GetValue(this.Urls, urlKey), api))
 	var url any = Add(Add(Add(Add(host, "/api/"), this.Version), "/"), this.ImplodeParams(path, params))
 	params = this.Omit(params, this.ExtractParams(path))
-	var paramsLen int = GetArrayLength(ObjectKeys(params))
+	var paramsLen any = GetArrayLength(ObjectKeys(params))
 	headers = map[string]any{
 		"Content-Type": "application/json",
 	}
@@ -4540,7 +4540,7 @@ func (this *PacificaCore) CalculateRateLimiterCost(api any, method any, path any
 func (this *PacificaCore) SortJsonKeys(value any) any {
 	if IsTrue(this.IsDictionary(value)) {
 		var result any = map[string]any{}
-		var keys []string = ObjectKeys(value)
+		var keys any = ObjectKeys(value)
 		var sortedKeys any = this.Sort(keys)
 		for i := 0; IsLessThan(i, GetArrayLength(sortedKeys)); i++ {
 			var key any = GetValue(sortedKeys, i)
@@ -4561,7 +4561,7 @@ func (this *PacificaCore) PrepareMessage(header any, payload any) any {
 	if IsTrue(IsTrue(IsTrue(IsEqual(GetValue(header, "type"), nil)) || IsTrue(IsEqual(GetValue(header, "timestamp"), nil))) || IsTrue(IsEqual(GetValue(header, "expiry_window"), nil))) {
 		panic(ArgumentsRequired(Add(this.Id, " prepareMessage() requires type, timestamp, expiry_window in header")))
 	}
-	var data map[string]any = this.Extend(header, map[string]any{
+	var data any = this.Extend(header, map[string]any{
 		"data": payload,
 	})
 	var sorted any = this.SortJsonKeys(data)
@@ -4625,7 +4625,7 @@ func (this *PacificaCore) PostActionRequest(operationType any, sigPayload any, p
 	AddElementToObject(finalHeaders, "signature", signature)
 	AddElementToObject(finalHeaders, "timestamp", this.SafeInteger(signatureHeader, "timestamp"))
 	AddElementToObject(finalHeaders, "expiry_window", this.SafeInteger(signatureHeader, "expiry_window"))
-	var request map[string]any = this.Extend(finalHeaders, sigPayload)
+	var request any = this.Extend(finalHeaders, sigPayload)
 	return request
 }
 

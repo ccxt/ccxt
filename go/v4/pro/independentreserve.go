@@ -228,7 +228,7 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var parts []string = ccxt.Split(channel, "/")
+	var parts any = ccxt.Split(channel, "/")
 	var depth any = this.SafeString(parts, 1)
 	var baseId any = this.SafeString(parts, 2)
 	var quoteId any = this.SafeString(parts, 3)
@@ -261,8 +261,8 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsTrue(checksum) && ccxt.IsTrue(receivedSnapshot)) {
 		var storedAsks any = ccxt.GetValue(orderbook, "asks")
 		var storedBids any = ccxt.GetValue(orderbook, "bids")
-		var asksLength int = ccxt.GetArrayLength(storedAsks)
-		var bidsLength int = ccxt.GetArrayLength(storedBids)
+		var asksLength any = ccxt.GetArrayLength(storedAsks)
+		var bidsLength any = ccxt.GetArrayLength(storedBids)
 		var payload any = ""
 		for i := 0; ccxt.IsLessThan(i, 10); i++ {
 			if ccxt.IsTrue(ccxt.IsLessThan(i, bidsLength)) {

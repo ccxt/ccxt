@@ -358,7 +358,7 @@ func (this *CryptomusCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts []string = Split(marketId, "_")
+	var parts any = Split(marketId, "_")
 	var baseId any = GetValue(parts, 0)
 	var quoteId any = GetValue(parts, 1)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -461,7 +461,7 @@ func (this *CryptomusCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var coins any = this.SafeList(response, "result")
-	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
+	var groupedById any = this.GroupBy(coins, "currency_code")
 	var groupedArray any = ObjectValues(groupedById)
 
 	ch <- this.ParseCurrencies(groupedArray)
@@ -870,7 +870,7 @@ func (this *CryptomusCore) createOrderBody(ch chan any, symbol any, typeVar any,
 		params = this.Omit(params, "clientOrderId")
 		AddElementToObject(request, "client_order_id", clientOrderId)
 	}
-	var sideBuy bool = IsEqual(side, "buy")
+	var sideBuy any = IsEqual(side, "buy")
 	var amountToString any = this.NumberToString(amount)
 	var priceToString any = this.NumberToString(price)
 	var cost any = nil

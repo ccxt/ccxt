@@ -818,9 +818,9 @@ func (this *BtseCore) ParseMarket(market any) any {
 	//     }
 	//
 	var marketType any = this.SafeString(market, "type")
-	var isSpot bool = IsEqual(marketType, "Spot")
-	var isFuture bool = IsEqual(marketType, "FuturesTimeBased")
-	var isSwap bool = IsEqual(marketType, "FuturesPerpetual")
+	var isSpot any = IsEqual(marketType, "Spot")
+	var isFuture any = IsEqual(marketType, "FuturesTimeBased")
+	var isSwap any = IsEqual(marketType, "FuturesPerpetual")
 	var id any = this.SafeString(market, "symbol")
 	var baseId any = this.SafeString(market, "baseCurrency")
 	var quoteId any = this.SafeString(market, "quoteCurrency")
@@ -833,7 +833,7 @@ func (this *BtseCore) ParseMarket(market any) any {
 	var pricePrecision any = this.SafeString(market, "minPriceIncrement")
 	var amountPrecision any = this.SafeString(market, "minSizeIncrement")
 	var active any = this.SafeBool(market, "active")
-	var typeVar string = "spot"
+	var typeVar any = "spot"
 	var expiry any = nil
 	var contractSize any = nil
 	if !IsTrue(isSpot) {
@@ -1311,7 +1311,7 @@ func (this *BtseCore) ParseBalance(response any) any {
 			AddElementToObject(frees, code, Precise.StringAdd(this.SafeString(frees, code, "0"), this.SafeString2(row, "availableAmount", "available")))
 		}
 	}
-	var codes []string = ObjectKeys(totals)
+	var codes any = ObjectKeys(totals)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var account any = this.Account()
@@ -1350,7 +1350,7 @@ func (this *BtseCore) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) a
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length int = GetArrayLength(symbols)
+		var length any = GetArrayLength(symbols)
 		if IsTrue(IsEqual(length, 1)) {
 			var requestedSymbol any = this.SafeString(symbols, 0)
 			var market any = this.Market(requestedSymbol)
@@ -1414,7 +1414,7 @@ func (this *BtseCore) fetchLeverageTiersBody(ch chan any, optionalArgs ...any) a
 	// the exchange only provides the cap of each risk tier, so the floor
 	// is derived from the previous tier: 0 for the first tier, and the
 	// previous tier's maxNotional for every subsequent tier
-	var symbolKeys []string = ObjectKeys(result)
+	var symbolKeys any = ObjectKeys(result)
 	for i := 0; IsLessThan(i, GetArrayLength(symbolKeys)); i++ {
 		var symbolKey any = GetValue(symbolKeys, i)
 		var tiersList any = GetValue(result, symbolKey)
@@ -2366,7 +2366,7 @@ func (this *BtseCore) createSpotOrderBody(ch chan any, symbol any, typeVar any, 
 	PanicOnError(retRes19518)
 	var market any = this.Market(symbol)
 	typeVar = ToUpper(typeVar)
-	var upperSide string = ToUpper(side)
+	var upperSide any = ToUpper(side)
 	var request any = map[string]any{
 		"symbol":    GetValue(market, "id"),
 		"orderSide": upperSide,
@@ -2393,10 +2393,10 @@ func (this *BtseCore) createSpotOrderBody(ch chan any, symbol any, typeVar any, 
 	var triggerPrice any = this.SafeString(params, "triggerPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
-	var isTriggerOrder bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))
+	var isTriggerOrder any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))
 	var isStopLossOrder any = (!IsEqual(stopLossPrice, nil))
-	var isConditionalOrder bool = IsTrue((IsTrue(isTriggerOrder) || IsTrue(isStopLossOrder))) && IsTrue((IsTrue(isMarketOrder) || IsTrue(isLimitOrder)))
-	var isAlgoOrder bool = IsTrue(isConditionalOrder) || IsTrue((!IsTrue(isMarketOrder) && !IsTrue(isLimitOrder)))
+	var isConditionalOrder any = IsTrue((IsTrue(isTriggerOrder) || IsTrue(isStopLossOrder))) && IsTrue((IsTrue(isMarketOrder) || IsTrue(isLimitOrder)))
+	var isAlgoOrder any = IsTrue(isConditionalOrder) || IsTrue((!IsTrue(isMarketOrder) && !IsTrue(isLimitOrder)))
 	if IsTrue(IsTrue(IsTrue(isLimitOrder) || IsTrue((IsEqual(typeVar, "PEG")))) || IsTrue((IsEqual(typeVar, "OCO")))) {
 		if IsTrue(IsEqual(price, nil)) {
 			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a price argument for "), typeVar), " orders")))
@@ -2405,7 +2405,7 @@ func (this *BtseCore) createSpotOrderBody(ch chan any, symbol any, typeVar any, 
 	// market and trailing buys are denominated in the quote currency while
 	// every other combination is denominated in the base currency, the
 	// sizing rules are strict on both sides, verified live
-	var needsQuoteSize bool = IsTrue((IsTrue(isMarketOrder) || IsTrue((IsEqual(typeVar, "TRAILING"))))) && IsTrue((IsEqual(upperSide, "BUY")))
+	var needsQuoteSize any = IsTrue((IsTrue(isMarketOrder) || IsTrue((IsEqual(typeVar, "TRAILING"))))) && IsTrue((IsEqual(upperSide, "BUY")))
 	if IsTrue(needsQuoteSize) {
 		var quoteAmount any = nil
 		var createMarketBuyOrderRequiresPrice any = true
@@ -2639,10 +2639,10 @@ func (this *BtseCore) createContractOrderBody(ch chan any, symbol any, typeVar a
 	var triggerPrice any = this.SafeString(params, "triggerPrice")
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice")
-	var isTriggerOrder bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))
+	var isTriggerOrder any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))
 	var isStopLossOrder any = (!IsEqual(stopLossPrice, nil))
-	var isConditionalOrder bool = IsTrue((IsTrue(isTriggerOrder) || IsTrue(isStopLossOrder))) && IsTrue((IsTrue(isMarketOrder) || IsTrue(isLimitOrder)))
-	var isAlgoOrder bool = IsTrue(isConditionalOrder) || IsTrue((!IsTrue(isMarketOrder) && !IsTrue(isLimitOrder)))
+	var isConditionalOrder any = IsTrue((IsTrue(isTriggerOrder) || IsTrue(isStopLossOrder))) && IsTrue((IsTrue(isMarketOrder) || IsTrue(isLimitOrder)))
+	var isAlgoOrder any = IsTrue(isConditionalOrder) || IsTrue((!IsTrue(isMarketOrder) && !IsTrue(isLimitOrder)))
 	if IsTrue(IsTrue(isLimitOrder) || IsTrue((IsEqual(typeVar, "OCO")))) {
 		if IsTrue(IsEqual(price, nil)) {
 			panic(InvalidOrder(Add(Add(Add(this.Id, " createOrder() requires a price argument for "), typeVar), " orders")))
@@ -4064,7 +4064,7 @@ func (this *BtseCore) ParsePosition(position any, optionalArgs ...any) any {
 	_ = market
 	var marketId any = this.SafeString(position, "positionId")
 	if IsTrue(!IsEqual(marketId, nil)) {
-		var parts []string = Split(marketId, "|")
+		var parts any = Split(marketId, "|")
 		marketId = this.SafeString(parts, 0)
 	} else {
 		marketId = this.SafeString(position, "symbol")
@@ -4074,7 +4074,7 @@ func (this *BtseCore) ParsePosition(position any, optionalArgs ...any) any {
 	var marginType any = this.SafeString(position, "marginType")
 	var side any = this.SafeStringLower2(position, "positionDirection", "side")
 	var positionMode any = this.SafeString(position, "positionMode")
-	var hedged bool = IsTrue((IsEqual(positionMode, "HEDGE"))) || IsTrue((IsEqual(positionMode, "ISOLATED")))
+	var hedged any = IsTrue((IsEqual(positionMode, "HEDGE"))) || IsTrue((IsEqual(positionMode, "ISOLATED")))
 	var takeProfitOrder any = this.SafeDict(position, "takeProfitOrder", map[string]any{})
 	var takeProfitPrice any = this.SafeString(takeProfitOrder, "triggerPrice")
 	var stopLossOrder any = this.SafeDict(position, "stopLossOrder", map[string]any{})
@@ -4171,7 +4171,7 @@ func (this *BtseCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) an
 	//
 	var data any = this.SafeDict(response, 0, map[string]any{})
 	var positionMode any = this.SafeString(data, "positionMode")
-	var hedged bool = IsTrue((IsEqual(positionMode, "HEDGE"))) || IsTrue((IsEqual(positionMode, "ISOLATED")))
+	var hedged any = IsTrue((IsEqual(positionMode, "HEDGE"))) || IsTrue((IsEqual(positionMode, "ISOLATED")))
 
 	ch <- map[string]any{
 		"info":   data,
@@ -4274,7 +4274,7 @@ func (this *BtseCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(marginMode, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var positionMode any = this.SafeStringLower(marginMode, "marginMode")
-	var marginModeValue string = "cross"
+	var marginModeValue any = "cross"
 	if IsTrue(IsEqual(positionMode, "isolated")) {
 		marginModeValue = "isolated"
 	}
@@ -4322,7 +4322,7 @@ func (this *BtseCore) setMarginModeBody(ch chan any, marginMode any, optionalArg
 	PanicOnError(retRes35278)
 	var market any = this.Market(symbol)
 	marginMode = ToLower(marginMode)
-	var positionMode string = "ONE_WAY"
+	var positionMode any = "ONE_WAY"
 	if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
 		panic(BadRequest(Add(this.Id, " setMarginMode() marginMode argument should be either cross or isolated")))
 	}
@@ -4637,7 +4637,7 @@ func (this *BtseCore) Sign(path any, optionalArgs ...any) any {
 	// body like its POST and PUT counterparts, while the spot v4 and the
 	// legacy apis keep DELETE params in the query string, verified live
 	// in both directions
-	var isBodyDelete bool = IsTrue((IsEqual(method, "DELETE"))) && IsTrue(StartsWith(path, "futures/api/v3/"))
+	var isBodyDelete any = IsTrue((IsEqual(method, "DELETE"))) && IsTrue(StartsWith(path, "futures/api/v3/"))
 	var queryString any = ""
 	if IsTrue(IsTrue((IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE"))))) && !IsTrue(isBodyDelete)) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
@@ -4665,7 +4665,7 @@ func (this *BtseCore) Sign(path any, optionalArgs ...any) any {
 			signPath = this.CleanPath(path)
 		}
 		var payload any = Add(Add(signPath, ToString(nonce)), bodyString)
-		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
+		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 		headers = map[string]any{
 			"request-api":   this.ApiKey,
 			"request-nonce": ToString(nonce),
