@@ -1,36 +1,68 @@
 // Typed WebSocket API demo — the `ccxt_pro::<Exchange>` wrappers expose each
 // `watch_*` method with a native Rust return type (one decoded update per call)
 // instead of the dynamic `Value`. This is the WS analog of `iexchange_demo`
-// (REST). Compile-check only: the futures are constructed to prove the types,
-// never `.await`-ed to completion in `main`, so no live traffic is generated.
+// (REST).
 //
-// Build: `cargo run --example ws_typed_demo --features ws` (or `--bin`).
+// This demo actually connects and consumes a few live updates from binance's
+// public streams. No credentials, no private data.
+//
+// Build/run: `cargo run --bin ws_typed_demo --features ws`
 use ccxt::Value;
 use ccxt_pro::{Binance, TypedExchange, TypedExchangeExt};
 
-// ── A. concrete wrapper — typed returns ──────────────────────────────────────
-#[allow(dead_code)]
-async fn demo() {
+const SYMBOL: &str = "BTC/USDT";
+const UPDATES: usize = 3;
+
+#[tokio::main]
+async fn main() {
+    println!("=== ccxt_pro typed watch_* demo — binance {SYMBOL} ===\n");
+
+    // ── A. concrete wrapper — typed returns ──────────────────────────────────
     let mut b = Binance::new(None);
     b.load_markets(false).await;
 
-    // Each typed `watch_*` resolves to one decoded, statically-typed update:
-    match b.watch_ticker("BTC/USDT", Value::Null).await {
-        Ok(t) => println!("ticker {} last={:?}", t.symbol, t.last),
-        Err(e) => println!("watch_ticker unsupported: {e}"),
+    // Each typed `watch_*` resolves to one decoded, statically-typed update,
+    // so consuming a stream is just calling it in a loop.
+    println!("→ watch_ticker -> Ticker");
+    for i in 1..=UPDATES {
+        match b.watch_ticker(SYMBOL, Value::Null).await {
+            Ok(t) => println!("   #{i} last={:?} bid={:?} ask={:?}", t.last, t.bid, t.ask),
+            Err(e) => { eprintln!("   x [{}] {}", e.kind, e.message); break; }
+        }
     }
-    // `-> Result<OrderBook>` / `Result<Vec<Trade>>` — bound and dropped here.
-    let _book = b.watch_order_book("BTC/USDT", Some(20), Value::Null).await;
-    let _trades = b.watch_trades("BTC/USDT", None, Some(50), Value::Null).await;
-    let _tickers = b.watch_tickers(None, Value::Null).await;
+
+    // `limit` is best-effort: some venues only publish a full book, so expect
+    // more levels than requested.
+    println!("\n→ watch_order_book -> OrderBook");
+    for i in 1..=UPDATES {
+        match b.watch_order_book(SYMBOL, Some(20), Value::Null).await {
+            Ok(ob) => println!("   #{i} bids={} asks={} top_bid={:?}",
+                               ob.bids.len(), ob.asks.len(), ob.bids.first()),
+            Err(e) => { eprintln!("   x [{}] {}", e.kind, e.message); break; }
+        }
+    }
+
+    // One update carries the batch of trades the venue published.
+    println!("\n→ watch_trades -> Vec<Trade>");
+    for i in 1..=UPDATES {
+        match b.watch_trades(SYMBOL, None, Some(50), Value::Null).await {
+            Ok(tr) => println!("   #{i} {} trade(s), first px={:?} amount={:?}",
+                               tr.len(),
+                               tr.first().and_then(|t| t.price),
+                               tr.first().and_then(|t| t.amount)),
+            Err(e) => { eprintln!("   x [{}] {}", e.kind, e.message); break; }
+        }
+    }
 
     // ── B. generic / dynamic via the `ccxt_pro::TypedExchange` trait ─────────
     // Same object-safe pattern as the REST `iexchange_demo`, but over `watch_*`.
+    println!("\n→ same surface through Box<dyn TypedExchange>");
     let mut ex: Box<dyn TypedExchange> = Box::new(Binance::new(None));
     ex.load_markets(false).await;
-    let _ = ex.watch_ticker("BTC/USDT", Value::Null).await; // via TypedExchangeExt
-}
+    match ex.watch_ticker(SYMBOL, Value::Null).await {
+        Ok(t) => println!("   last={:?}", t.last),
+        Err(e) => eprintln!("   x [{}] {}", e.kind, e.message),
+    }
 
-fn main() {
-    println!("ws_typed_demo: compile-check only — ccxt_pro typed watch_* -> Result<T>");
+    println!("\ndone.");
 }
