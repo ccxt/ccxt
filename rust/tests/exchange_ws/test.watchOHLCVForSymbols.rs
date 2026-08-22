@@ -53,8 +53,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             assert!(ccxt::runtime::is_true(&(Value::Bool(is_array(&ohlcvs)))));
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1449: bool = true;
-                while { if !__for_first_1449 { i = add(&i, &Value::Int(1)); } __for_first_1449 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
+                let mut __for_first_1448: bool = true;
+                while { if !__for_first_1448 { i = add(&i, &Value::Int(1)); } __for_first_1448 = false; is_less_than(&i, &get_array_length(&ohlcvs)) } {
                 testOHLCV(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&ohlcvs, &i), symbol.clone(), now.clone());
             }
             }

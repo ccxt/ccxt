@@ -7668,21 +7668,24 @@ impl std::ops::DerefMut for ${coreName} {
         // (process APIs, a `try/finally` with no `catch` the Rust transpiler
         // can't lower, and its own "NOT wired into CI" banner) — never meant
         // to be transpiled. Skip both.
-        // `test.clientRetention` and the `test.singleFlight*` family
-        // (`test.singleFlight`, `test.singleFlightPrimitives`,
-        // `test.singleFlightWiring`) are native ts tests (their own comments say
-        // so): the php/cs/python lanes ship hand-written siblings
-        // (PR 29720 / issue 29393) and they drive internal client plumbing
-        // (`new Client(...)`, `client.future`, `pendingResults`, `Promise`,
-        // `setTimeout`) that isn't exposed for transpilation. Skip them — the
-        // Rust WS runtime covers this behaviour directly.
+        // `test.clientRetention` and the whole `test.singleFlight*` family are
+        // native ts tests (their own comments say so): the php/cs/python lanes
+        // ship hand-written siblings (PR 29720 / issue 29393) and they drive
+        // internal client plumbing (`new Client(...)`, `client.future`,
+        // `pendingResults`, `Promise`, `setTimeout`) that isn't exposed for
+        // transpilation. The family keeps growing — besides `test.singleFlight`
+        // and `test.singleFlightPrimitives`, master ships per-exchange
+        // `test.singleFlightWiring.<id>` files whose double-dotted names would
+        // also transpile to invalid Rust module/symbol paths — so match the
+        // whole `test.singleFlight` prefix rather than exact names. The Rust WS
+        // runtime covers this behaviour directly.
         // `test.cacheNative` is a js-only test (its own header says "intentionally
         // not transpiled"): `removeAt ()` / `slice ()` are JS Array helpers on
         // BaseCache with no port equivalent; the python/php/cs lanes ship
         // hand-written siblings (test_cache_native.*). Skip it here too.
-        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.singleFlight', 'test.singleFlightPrimitives', 'test.singleFlightWiring', 'test.cacheNative']);
+        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.cacheNative']);
         for (const testName of testFiles) {
-            if (SKIP.has(testName)) continue;
+            if (SKIP.has(testName) || testName.startsWith('test.singleFlight')) continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             if (tsContent.includes('// NO_AUTO_TRANSPILE')) continue;

@@ -672,8 +672,8 @@ impl Bit2cCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_303: bool = true;
-            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_302: bool = true;
+            while { if !__for_first_302 { i = add(&i, &Value::Int(1)); } __for_first_302 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -753,8 +753,8 @@ impl Bit2cCore {
         let mut asks: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_304: bool = true;
-            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
+            let mut __for_first_303: bool = true;
+            while { if !__for_first_303 { i = add(&i, &Value::Int(1)); } __for_first_303 = false; is_less_than(&i, &get_array_length(&rawBids)) } {
             let mut bidRow: Value = get_value(&rawBids, &i);
             let mut bidRow: Value = get_value(&rawBids, &i);
             let mut bidAmount: Value = self.safe_string(bidRow.clone(), Value::Int(1), &[]);
@@ -765,8 +765,8 @@ impl Bit2cCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_305: bool = true;
-            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
+            let mut __for_first_304: bool = true;
+            while { if !__for_first_304 { i = add(&i, &Value::Int(1)); } __for_first_304 = false; is_less_than(&i, &get_array_length(&rawAsks)) } {
             let mut askRow: Value = get_value(&rawAsks, &i);
             let mut askRow: Value = get_value(&rawAsks, &i);
             let mut askAmount: Value = self.safe_string(askRow.clone(), Value::Int(1), &[]);
@@ -958,8 +958,8 @@ impl Bit2cCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_306: bool = true;
-            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_305: bool = true;
+            while { if !__for_first_305 { i = add(&i, &Value::Int(1)); } __for_first_305 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut marketId: Value = get_value(&keys, &i);
             let mut marketId: Value = get_value(&keys, &i);
             let mut symbol: Value = self.safe_symbol(marketId.clone(), &[]);
@@ -1007,7 +1007,6 @@ impl Bit2cCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut method: Value = Value::Str("privatePostOrderAddOrder".to_string());
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1015,17 +1014,24 @@ impl Bit2cCore {
                 m.insert("Pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
+        let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("market".to_string())) {
-            method = add(&method, &add(&Value::Str("MarketPrice".to_string()), &self.capitalize(side.clone())));
+            if is_equal(&side, &Value::Str("buy".to_string())) {
+                let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_order_add_order_market_price_buy(&[__ws_arg_4]).await;
+            }  else {
+                let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_order_add_order_market_price_sell(&[__ws_arg_5]).await;
+            }
         }  else {
             add_element_to_object(&mut request, &Value::Str("Price".to_string()), price.clone());
             let mut amountString: Value = self.number_to_string(amount.clone());
             let mut priceString: Value = self.number_to_string(price.clone());
             add_element_to_object(&mut request, &Value::Str("Total".to_string()), self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString)));
             add_element_to_object(&mut request, &Value::Str("IsBid".to_string()), Value::Bool((is_equal(&side, &Value::Str("buy".to_string())))));
+            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_order_add_order(&[__ws_arg_6]).await;
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_4]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1052,8 +1058,8 @@ impl Bit2cCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_order_cancel_order(&[__ws_arg_5]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_cancel_order(&[__ws_arg_7]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -1090,8 +1096,8 @@ impl Bit2cCore {
                 m.insert("pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_order_my_orders(&[__ws_arg_6]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order_my_orders(&[__ws_arg_8]).await;
         let mut orders: Value = self.safe_value(response.clone(), get_value(&market, &Value::Str("id".to_string())), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1128,8 +1134,8 @@ impl Bit2cCore {
                 m.insert("id".to_string(), id.clone());
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_order_get_by_id(&[__ws_arg_7]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order_get_by_id(&[__ws_arg_9]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1293,8 +1299,8 @@ impl Bit2cCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("pair".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_order_order_history(&[__ws_arg_8]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order_order_history(&[__ws_arg_10]).await;
         //
         //     [
         //         {
@@ -1347,8 +1353,8 @@ impl Bit2cCore {
         let mut strParts: Value = split(&str_val, &Value::Str(",".to_string()));
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_307: bool = true;
-            while { if !__for_first_307 { i = add(&i, &Value::Int(1)); } __for_first_307 = false; is_less_than(&i, &get_array_length(&strParts)) } {
+            let mut __for_first_306: bool = true;
+            while { if !__for_first_306 { i = add(&i, &Value::Int(1)); } __for_first_306 = false; is_less_than(&i, &get_array_length(&strParts)) } {
             newString = add(&newString, &get_value(&strParts, &i));
         }
         }
@@ -1496,8 +1502,8 @@ impl Bit2cCore {
                 m.insert("Coin".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_funds_add_coin_funds_request(&[__ws_arg_9]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_funds_add_coin_funds_request(&[__ws_arg_11]).await;
         return self.parse_deposit_address(response.clone(), &[currency.clone()]);
 
     Value::Null

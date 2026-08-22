@@ -655,6 +655,21 @@ impl CoinmateCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("daiWithdrawal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("daiDepositAddresses".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("unconfirmedDaiDeposits".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("solWithdrawal".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -890,8 +905,8 @@ impl CoinmateCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_557: bool = true;
-            while { if !__for_first_557 { i = add(&i, &Value::Int(1)); } __for_first_557 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_556: bool = true;
+            while { if !__for_first_556 { i = add(&i, &Value::Int(1)); } __for_first_556 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut market: Value = get_value(&data, &i);
             let mut market: Value = get_value(&data, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "name", &[]);
@@ -983,8 +998,8 @@ impl CoinmateCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_558: bool = true;
-            while { if !__for_first_558 { i = add(&i, &Value::Int(1)); } __for_first_558 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_557: bool = true;
+            while { if !__for_first_557 { i = add(&i, &Value::Int(1)); } __for_first_557 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1159,8 +1174,8 @@ impl CoinmateCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_559: bool = true;
-            while { if !__for_first_559 { i = add(&i, &Value::Int(1)); } __for_first_559 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_558: bool = true;
+            while { if !__for_first_558 { i = add(&i, &Value::Int(1)); } __for_first_558 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut market: Value = self.market(get_value(&keys, &i));
             let mut ticker: Value = self.parse_ticker(self.safe_value(data.clone(), get_value(&keys, &i), &[]), &[market.clone()]);
             add_element_to_object(&mut result, &get_value(&market, &Value::Str("symbol".to_string())), ticker.clone());
@@ -1408,8 +1423,29 @@ impl CoinmateCore {
         if !is_equal(&tag, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("destinationTag".to_string()), tag.clone());
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_3]).await;
+        let mut requestParams: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = Value::Null;
+        if is_equal(&method, &Value::Str("privatePostBitcoinWithdrawal".to_string())) {
+            response = self.private_post_bitcoin_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostLitecoinWithdrawal".to_string())) {
+            response = self.private_post_litecoin_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostBitcoinCashWithdrawal".to_string())) {
+            response = self.private_post_bitcoin_cash_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostEthereumWithdrawal".to_string())) {
+            response = self.private_post_ethereum_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostRippleWithdrawal".to_string())) {
+            response = self.private_post_ripple_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostDashWithdrawal".to_string())) {
+            response = self.private_post_dash_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostDaiWithdrawal".to_string())) {
+            response = self.private_post_dai_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostAdaWithdrawal".to_string())) {
+            response = self.private_post_ada_withdrawal(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostSolWithdrawal".to_string())) {
+            response = self.private_post_sol_withdrawal(&[requestParams.clone()]).await;
+        }  else {
+            panic!("{}", crate::exchange_errors::exchange_error(add(&add(&add(&self.id, &Value::Str(" withdraw() does not support the ".to_string())), &method), &Value::Str(" method".to_string()))));
+        }
         //
         //     {
         //         "error": false,
@@ -1472,8 +1508,8 @@ impl CoinmateCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("timestampFrom".to_string()), since.clone());
         }
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_trade_history(&[__ws_arg_4]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_history(&[__ws_arg_3]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_trades(data.clone(), &[Value::Null, since.clone(), limit.clone()]);
 
@@ -1579,8 +1615,8 @@ impl CoinmateCore {
                 m.insert("minutesIntoHistory".to_string(), Value::Int(10));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.public_get_transactions(&[__ws_arg_5]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_transactions(&[__ws_arg_4]).await;
         //
         //     {
         //         "error":false,
@@ -1626,8 +1662,8 @@ impl CoinmateCore {
                 m.insert("currencyPair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_trader_fees(&[__ws_arg_6]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trader_fees(&[__ws_arg_5]).await;
         //
         //     {
         //         "error": false,
@@ -1676,11 +1712,11 @@ impl CoinmateCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ws_arg_7 = self.extend(Value::Map({
+        let __ws_arg_6 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }), &[params.clone()]);
-        let mut response: Value = self.private_post_open_orders(&[__ws_arg_7]).await;
+        let mut response: Value = self.private_post_open_orders(&[__ws_arg_6]).await;
         let mut extension: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("status".to_string(), Value::Str("open".to_string()));
@@ -1727,8 +1763,8 @@ impl CoinmateCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_order_history(&[__ws_arg_8]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_history(&[__ws_arg_7]).await;
         let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
         return self.parse_orders(data.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
@@ -1897,8 +1933,19 @@ impl CoinmateCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
             method = add(&method, &self.capitalize(type_var.clone()));
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_9]).await;
+        let mut requestParams: Value = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = Value::Null;
+        if is_equal(&method, &Value::Str("privatePostBuyInstant".to_string())) {
+            response = self.private_post_buy_instant(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostSellInstant".to_string())) {
+            response = self.private_post_sell_instant(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostBuyLimit".to_string())) {
+            response = self.private_post_buy_limit(&[requestParams.clone()]).await;
+        }  else if is_equal(&method, &Value::Str("privatePostSellLimit".to_string())) {
+            response = self.private_post_sell_limit(&[requestParams.clone()]).await;
+        }  else {
+            panic!("{}", crate::exchange_errors::invalid_order(add(&add(&self.id, &Value::Str(" createOrder() does not support order type ".to_string())), &type_var)));
+        }
         let mut id: Value = self.safe_string_k(response.clone(), "data", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1939,8 +1986,8 @@ impl CoinmateCore {
         if is_true(&symbol) {
             market = self.market(symbol.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_order_by_id(&[__ws_arg_10]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_order_by_id(&[__ws_arg_8]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
         return self.parse_order(data.clone(), &[market.clone()]);
 
@@ -1969,8 +2016,8 @@ impl CoinmateCore {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_cancel_order_with_info(&[__ws_arg_11]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_cancel_order_with_info(&[__ws_arg_9]).await;
         //
         //    {
         //        "error": false,
@@ -2012,7 +2059,7 @@ impl CoinmateCore {
             let mut nonce: Value = to_string_val(&self.nonce());
             let mut auth: Value = add(&add(&nonce, &self.uid), &self.apiKey);
             let mut signature: Value = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
-            let __ws_arg_12 = self.extend(Value::Map({
+            let __ws_arg_10 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("clientId".to_string(), self.uid.clone());
                     m.insert("nonce".to_string(), nonce.clone());
@@ -2020,7 +2067,7 @@ impl CoinmateCore {
                     m.insert("signature".to_string(), to_upper(&signature));
                 m
             }), &[params.clone()]);
-            body = self.urlencode(__ws_arg_12, &[]);
+            body = self.urlencode(__ws_arg_10, &[]);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".to_string()));

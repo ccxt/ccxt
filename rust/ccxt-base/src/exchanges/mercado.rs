@@ -669,8 +669,8 @@ impl MercadoCore {
         let mut coins: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_916: bool = true;
-            while { if !__for_first_916 { i = add(&i, &Value::Int(1)); } __for_first_916 = false; is_less_than(&i, &get_array_length(&coins)) } {
+            let mut __for_first_915: bool = true;
+            while { if !__for_first_915 { i = add(&i, &Value::Int(1)); } __for_first_915 = false; is_less_than(&i, &get_array_length(&coins)) } {
             let mut coin: Value = get_value(&coins, &i);
             let mut coin: Value = get_value(&coins, &i);
             let mut baseId: Value = coin.clone();
@@ -921,22 +921,26 @@ impl MercadoCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut method: Value = Value::Str("publicGetCoinTrades".to_string());
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("coin".to_string(), get_value(&market, &Value::Str("base".to_string())));
             m
         });
         if !is_equal(&since, &Value::Null) {
-            method = add(&method, &Value::Str("From".to_string()));
             add_element_to_object(&mut request, &Value::Str("from".to_string()), self.parse_to_int(divide(&since, &Value::Int(1000))));
         }
         let mut to: Value = self.safe_integer_k(params.clone(), "to", &[]);
-        if !is_equal(&to, &Value::Null) {
-            method = add(&method, &Value::Str("To".to_string()));
+        let mut response: Value = Value::Null;
+        if is_true(&(!is_equal(&since, &Value::Null))) && is_true(&(!is_equal(&to, &Value::Null))) {
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_coin_trades_from_to(&[__ws_arg_2]).await;
+        }  else if !is_equal(&since, &Value::Null) {
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_coin_trades_from(&[__ws_arg_3]).await;
+        }  else {
+            let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_coin_trades(&[__ws_arg_4]).await;
         }
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_2]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -959,8 +963,8 @@ impl MercadoCore {
         let mut currencyIds: Value = object_keys(&balances);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_917: bool = true;
-            while { if !__for_first_917 { i = add(&i, &Value::Int(1)); } __for_first_917 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
+            let mut __for_first_916: bool = true;
+            while { if !__for_first_916 { i = add(&i, &Value::Int(1)); } __for_first_916 = false; is_less_than(&i, &get_array_length(&currencyIds)) } {
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut currencyId: Value = get_value(&currencyIds, &i);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
@@ -1031,13 +1035,18 @@ impl MercadoCore {
                 m.insert("coin_pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut method: Value = add(&self.capitalize(side.clone()), &Value::Str("Order".to_string()));
+        let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("limit".to_string())) {
-            method = add(&Value::Str("privatePostPlace".to_string()), &method);
             add_element_to_object(&mut request, &Value::Str("limit_price".to_string()), self.price_to_precision(get_value(&market, &Value::Str("symbol".to_string())), price.clone()));
             add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(get_value(&market, &Value::Str("symbol".to_string())), amount.clone()));
+            if is_equal(&side, &Value::Str("buy".to_string())) {
+                let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_place_buy_order(&[__ws_arg_5]).await;
+            }  else {
+                let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_place_sell_order(&[__ws_arg_6]).await;
+            }
         }  else {
-            method = add(&Value::Str("privatePostPlaceMarket".to_string()), &method);
             if is_equal(&side, &Value::Str("buy".to_string())) {
                 if is_equal(&price, &Value::Null) {
                     panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount".to_string()))));
@@ -1046,12 +1055,14 @@ impl MercadoCore {
                 let mut priceString: Value = self.number_to_string(price.clone());
                 let mut cost: Value = self.parse_to_numeric(crate::precise::Precise::stringMul(&amountString, &priceString));
                 add_element_to_object(&mut request, &Value::Str("cost".to_string()), self.price_to_precision(get_value(&market, &Value::Str("symbol".to_string())), cost.clone()));
+                let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_place_market_buy_order(&[__ws_arg_7]).await;
             }  else {
                 add_element_to_object(&mut request, &Value::Str("quantity".to_string()), self.amount_to_precision(get_value(&market, &Value::Str("symbol".to_string())), amount.clone()));
+                let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+                response = self.private_post_place_market_sell_order(&[__ws_arg_8]).await;
             }
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_3]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1090,8 +1101,8 @@ impl MercadoCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_4]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_cancel_order(&[__ws_arg_9]).await;
         //
         //     {
         //         "response_data": {
@@ -1249,8 +1260,8 @@ impl MercadoCore {
                 m.insert("order_id".to_string(), crate::runtime::parse_int(&id));
             m
         });
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_get_order(&[__ws_arg_5]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_get_order(&[__ws_arg_10]).await;
         let mut responseData: Value = self.safe_value_k(response.clone(), "response_data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1311,8 +1322,8 @@ impl MercadoCore {
                 }
             }
         }
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_6]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_withdraw_coin(&[__ws_arg_11]).await;
         //
         //     {
         //         "response_data": {
@@ -1432,8 +1443,8 @@ impl MercadoCore {
             add_element_to_object(&mut request, &Value::Str("to".to_string()), self.seconds());
             { let __be_tmp = subtract(&get_value(&request, &Value::Str("to".to_string())), &(multiply(&limit, &self.parse_timeframe(timeframe.clone())))); add_element_to_object(&mut request, &Value::Str("from".to_string()), __be_tmp); };
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v4_public_net_get_candles(&[__ws_arg_7]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v4_public_net_get_candles(&[__ws_arg_12]).await;
         return self.parse_trading_view_ohlcv(response.clone(), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1469,8 +1480,8 @@ impl MercadoCore {
                 m.insert("coin_pair".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_list_orders(&[__ws_arg_8]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_list_orders(&[__ws_arg_13]).await;
         let mut responseData: Value = self.safe_value_k(response.clone(), "response_data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1512,8 +1523,8 @@ impl MercadoCore {
                 m.insert("status_list".to_string(), Value::Str("[2]".to_string()));
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_list_orders(&[__ws_arg_9]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_list_orders(&[__ws_arg_14]).await;
         let mut responseData: Value = self.safe_value_k(response.clone(), "response_data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1555,8 +1566,8 @@ impl MercadoCore {
                 m.insert("has_fills".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_list_orders(&[__ws_arg_10]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_list_orders(&[__ws_arg_15]).await;
         let mut responseData: Value = self.safe_value_k(response.clone(), "response_data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1573,13 +1584,13 @@ impl MercadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_919: bool = true;
-            while { if !__for_first_919 { i = add(&i, &Value::Int(1)); } __for_first_919 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_918: bool = true;
+            while { if !__for_first_918 { i = add(&i, &Value::Int(1)); } __for_first_918 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut trades: Value = self.safe_value_k(get_value(&orders, &i), "trades", &[Value::List(vec![])]);
             {
                                 let mut y: Value = Value::Int(0);
-                let mut __for_first_918: bool = true;
-                while { if !__for_first_918 { y = add(&y, &Value::Int(1)); } __for_first_918 = false; is_less_than(&y, &get_array_length(&trades)) } {
+                let mut __for_first_917: bool = true;
+                while { if !__for_first_917 { y = add(&y, &Value::Int(1)); } __for_first_917 = false; is_less_than(&y, &get_array_length(&trades)) } {
                 append_to_array(&mut result, get_value(&trades, &y));
             }
             }
@@ -1610,13 +1621,13 @@ impl MercadoCore {
             self.check_required_credentials(&[]);
             url = add(&url, &add(&self.version, &Value::Str("/".to_string())));
             let mut nonce: Value = self.nonce();
-            let __ws_arg_11 = self.extend(Value::Map({
+            let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("tapi_method".to_string(), path.clone());
                     m.insert("tapi_nonce".to_string(), nonce.clone());
                 m
             }), &[params.clone()]);
-            body = self.urlencode(__ws_arg_11, &[]);
+            body = self.urlencode(__ws_arg_16, &[]);
             let mut auth: Value = add(&add(&add(&add(&Value::Str("/tapi/".to_string()), &self.version), &Value::Str("/".to_string())), &Value::Str("?".to_string())), &body);
             headers = Value::Map({
                 let mut m = indexmap::IndexMap::new();

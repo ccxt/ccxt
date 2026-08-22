@@ -882,8 +882,8 @@ impl MudrexCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_940: bool = true;
-            while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_939: bool = true;
+            while { if !__for_first_939 { i = add(&i, &Value::Int(1)); } __for_first_939 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut t: Value = get_value(&rows, &i);
             let mut t: Value = get_value(&rows, &i);
             let mut sym: Value = self.safe_string_k(t.clone(), "symbol", &[]);
@@ -986,8 +986,8 @@ impl MudrexCore {
             }
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_941: bool = true;
-                while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &numItems) } {
+                let mut __for_first_940: bool = true;
+                while { if !__for_first_940 { i = add(&i, &Value::Int(1)); } __for_first_940 = false; is_less_than(&i, &numItems) } {
                 append_to_array(&mut aggregated, get_value(&items, &i));
             }
             }
@@ -1001,8 +1001,8 @@ impl MudrexCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_942: bool = true;
-            while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
+            let mut __for_first_941: bool = true;
+            while { if !__for_first_941 { i = add(&i, &Value::Int(1)); } __for_first_941 = false; is_less_than(&i, &get_array_length(&aggregated)) } {
             append_to_array(&mut result, self.parse_market(get_value(&aggregated, &i)));
         }
         }
@@ -1601,8 +1601,8 @@ impl MudrexCore {
         let mut orders: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_943: bool = true;
-            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_942: bool = true;
+            while { if !__for_first_942 { i = add(&i, &Value::Int(1)); } __for_first_942 = false; is_less_than(&i, &get_array_length(&rows)) } {
             append_to_array(&mut orders, self.parse_order(get_value(&rows, &i), &[market.clone()]));
         }
         }
@@ -1716,8 +1716,8 @@ impl MudrexCore {
         let mut outPos: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_944: bool = true;
-            while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_943: bool = true;
+            while { if !__for_first_943 { i = add(&i, &Value::Int(1)); } __for_first_943 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut p: Value = get_value(&rows, &i);
             let mut p: Value = get_value(&rows, &i);
             let mut symRaw: Value = self.safe_string_k(p.clone(), "symbol", &[]);
@@ -1878,8 +1878,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_945: bool = true;
-                while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_944: bool = true;
+                while { if !__for_first_944 { i = add(&i, &Value::Int(1)); } __for_first_944 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if !is_equal(&side, &Value::Null) && !is_equal(&get_value(&p, &Value::Str("side".to_string())), &side) {
@@ -1945,8 +1945,8 @@ impl MudrexCore {
             let mut positions: Value = self.fetch_positions(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_946: bool = true;
-                while { if !__for_first_946 { i = add(&i, &Value::Int(1)); } __for_first_946 = false; is_less_than(&i, &get_array_length(&positions)) } {
+                let mut __for_first_945: bool = true;
+                while { if !__for_first_945 { i = add(&i, &Value::Int(1)); } __for_first_945 = false; is_less_than(&i, &get_array_length(&positions)) } {
                 let mut p: Value = get_value(&positions, &i);
                 let mut p: Value = get_value(&positions, &i);
                 if is_equal(&get_value(&p, &Value::Str("symbol".to_string())), &symbol) {

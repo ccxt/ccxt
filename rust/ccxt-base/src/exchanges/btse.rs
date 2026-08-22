@@ -1624,8 +1624,8 @@ impl BtseCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_442: bool = true;
-            while { if !__for_first_442 { i = add(&i, &Value::Int(1)); } __for_first_442 = false; is_less_than(&i, &get_array_length(&rates)) } {
+            let mut __for_first_441: bool = true;
+            while { if !__for_first_441 { i = add(&i, &Value::Int(1)); } __for_first_441 = false; is_less_than(&i, &get_array_length(&rates)) } {
             let mut rate: Value = get_value(&rates, &i);
             let mut rate: Value = get_value(&rates, &i);
             let mut timestamp: Value = self.safe_integer_k(rate.clone(), "timestamp", &[]);
@@ -1738,8 +1738,8 @@ impl BtseCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_445: bool = true;
-            while { if !__for_first_445 { i = add(&i, &Value::Int(1)); } __for_first_445 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_444: bool = true;
+            while { if !__for_first_444 { i = add(&i, &Value::Int(1)); } __for_first_444 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut row: Value = get_value(&response, &i);
             let mut row: Value = get_value(&response, &i);
             let mut assets: Value = self.safe_list_k(row.clone(), "assets", &[]);
@@ -1749,8 +1749,8 @@ impl BtseCore {
                 let mut inUse: Value = self.safe_list_k(row.clone(), "assetsInUse", &[Value::List(vec![])]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_443: bool = true;
-                    while { if !__for_first_443 { j = add(&j, &Value::Int(1)); } __for_first_443 = false; is_less_than(&j, &get_array_length(&inUse)) } {
+                    let mut __for_first_442: bool = true;
+                    while { if !__for_first_442 { j = add(&j, &Value::Int(1)); } __for_first_442 = false; is_less_than(&j, &get_array_length(&inUse)) } {
                     let mut usedRow: Value = get_value(&inUse, &j);
                     let mut usedRow: Value = get_value(&inUse, &j);
                     let mut usedCode: Value = self.safe_currency_code(self.safe_string_k(usedRow.clone(), "currency", &[]), &[]);
@@ -1762,8 +1762,8 @@ impl BtseCore {
                 }
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_444: bool = true;
-                    while { if !__for_first_444 { j = add(&j, &Value::Int(1)); } __for_first_444 = false; is_less_than(&j, &get_array_length(&assets)) } {
+                    let mut __for_first_443: bool = true;
+                    while { if !__for_first_443 { j = add(&j, &Value::Int(1)); } __for_first_443 = false; is_less_than(&j, &get_array_length(&assets)) } {
                     let mut assetRow: Value = get_value(&assets, &j);
                     let mut assetRow: Value = get_value(&assets, &j);
                     let mut code: Value = self.safe_currency_code(self.safe_string_k(assetRow.clone(), "currency", &[]), &[]);
@@ -1789,8 +1789,8 @@ impl BtseCore {
         let mut codes: Value = object_keys(&totals);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_446: bool = true;
-            while { if !__for_first_446 { i = add(&i, &Value::Int(1)); } __for_first_446 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_445: bool = true;
+            while { if !__for_first_445 { i = add(&i, &Value::Int(1)); } __for_first_445 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -1869,8 +1869,8 @@ impl BtseCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_448: bool = true;
-            while { if !__for_first_448 { i = add(&i, &Value::Int(1)); } __for_first_448 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_447: bool = true;
+            while { if !__for_first_447 { i = add(&i, &Value::Int(1)); } __for_first_447 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut entry: Value = get_value(&data, &i);
             let mut entry: Value = get_value(&data, &i);
             let mut marketId: Value = self.safe_string_k(entry.clone(), "symbol", &[]);
@@ -1881,8 +1881,8 @@ impl BtseCore {
                 let mut tiers: Value = Value::List(vec![]);
                 {
                                         let mut j: Value = Value::Int(0);
-                    let mut __for_first_447: bool = true;
-                    while { if !__for_first_447 { j = add(&j, &Value::Int(1)); } __for_first_447 = false; is_less_than(&j, &get_array_length(&levels)) } {
+                    let mut __for_first_446: bool = true;
+                    while { if !__for_first_446 { j = add(&j, &Value::Int(1)); } __for_first_446 = false; is_less_than(&j, &get_array_length(&levels)) } {
                     let mut level: Value = get_value(&levels, &j);
                     let mut level: Value = get_value(&levels, &j);
                     // the endpoint only reports the notional ladder, the
@@ -1911,16 +1911,16 @@ impl BtseCore {
         let mut symbolKeys: Value = object_keys(&result);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_450: bool = true;
-            while { if !__for_first_450 { i = add(&i, &Value::Int(1)); } __for_first_450 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
+            let mut __for_first_449: bool = true;
+            while { if !__for_first_449 { i = add(&i, &Value::Int(1)); } __for_first_449 = false; is_less_than(&i, &get_array_length(&symbolKeys)) } {
             let mut symbolKey: Value = get_value(&symbolKeys, &i);
             let mut symbolKey: Value = get_value(&symbolKeys, &i);
             let mut tiersList: Value = get_value(&result, &symbolKey);
             let mut tiersList: Value = get_value(&result, &symbolKey);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_449: bool = true;
-                while { if !__for_first_449 { j = add(&j, &Value::Int(1)); } __for_first_449 = false; is_less_than(&j, &get_array_length(&tiersList)) } {
+                let mut __for_first_448: bool = true;
+                while { if !__for_first_448 { j = add(&j, &Value::Int(1)); } __for_first_448 = false; is_less_than(&j, &get_array_length(&tiersList)) } {
                 if is_equal(&j, &Value::Int(0)) {
                     add_element_to_object(get_value_mut(&mut tiersList, &j), &Value::Str("minNotional".to_string()), Value::Int(0));
                 }  else {
@@ -2167,8 +2167,8 @@ impl BtseCore {
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_451: bool = true;
-            while { if !__for_first_451 { i = add(&i, &Value::Int(1)); } __for_first_451 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_450: bool = true;
+            while { if !__for_first_450 { i = add(&i, &Value::Int(1)); } __for_first_450 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut row: Value = get_value(&data, &i);
             let mut row: Value = get_value(&data, &i);
             // spot rows do not carry an open interest
@@ -2265,8 +2265,8 @@ impl BtseCore {
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_452: bool = true;
-            while { if !__for_first_452 { i = add(&i, &Value::Int(1)); } __for_first_452 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_451: bool = true;
+            while { if !__for_first_451 { i = add(&i, &Value::Int(1)); } __for_first_451 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut row: Value = get_value(&data, &i);
             let mut row: Value = get_value(&data, &i);
             // spot rows do not carry a funding rate
@@ -2405,8 +2405,8 @@ impl BtseCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_453: bool = true;
-            while { if !__for_first_453 { i = add(&i, &Value::Int(1)); } __for_first_453 = false; is_less_than(&i, &get_array_length(&trades)) } {
+            let mut __for_first_452: bool = true;
+            while { if !__for_first_452 { i = add(&i, &Value::Int(1)); } __for_first_452 = false; is_less_than(&i, &get_array_length(&trades)) } {
             let mut trade: Value = get_value(&trades, &i);
             let mut trade: Value = get_value(&trades, &i);
             let mut timestamp: Value = self.safe_integer_k(trade.clone(), "timestamp", &[]);
@@ -3794,8 +3794,8 @@ impl BtseCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_454: bool = true;
-            while { if !__for_first_454 { i = add(&i, &Value::Int(1)); } __for_first_454 = false; is_less_than(&i, &get_array_length(&responseList)) } {
+            let mut __for_first_453: bool = true;
+            while { if !__for_first_453 { i = add(&i, &Value::Int(1)); } __for_first_453 = false; is_less_than(&i, &get_array_length(&responseList)) } {
             let mut feeInfo: Value = get_value(&responseList, &i);
             let mut feeInfo: Value = get_value(&responseList, &i);
             let mut marketId: Value = self.safe_string_k(feeInfo.clone(), "symbol", &[]);
@@ -3903,8 +3903,8 @@ impl BtseCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_455: bool = true;
-            while { if !__for_first_455 { i = add(&i, &Value::Int(1)); } __for_first_455 = false; is_less_than(&i, &get_array_length(&typesList)) } {
+            let mut __for_first_454: bool = true;
+            while { if !__for_first_454 { i = add(&i, &Value::Int(1)); } __for_first_454 = false; is_less_than(&i, &get_array_length(&typesList)) } {
             let mut historyType: Value = get_value(&typesList, &i);
             let mut historyType: Value = get_value(&typesList, &i);
             add_element_to_object(&mut allowed, &historyType, Value::Bool(true));
@@ -3914,8 +3914,8 @@ impl BtseCore {
         let mut rows: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_456: bool = true;
-            while { if !__for_first_456 { i = add(&i, &Value::Int(1)); } __for_first_456 = false; is_less_than(&i, &get_array_length(&rawRows)) } {
+            let mut __for_first_455: bool = true;
+            while { if !__for_first_455 { i = add(&i, &Value::Int(1)); } __for_first_455 = false; is_less_than(&i, &get_array_length(&rawRows)) } {
             let mut entry: Value = get_value(&rawRows, &i);
             let mut entry: Value = get_value(&rawRows, &i);
             let mut type_var: Value = self.safe_string_k(entry.clone(), "type", &[Value::Str("".to_string())]);
@@ -4844,8 +4844,8 @@ impl BtseCore {
         let mut marginMode: Value = Value::Null;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_457: bool = true;
-            while { if !__for_first_457 { i = add(&i, &Value::Int(1)); } __for_first_457 = false; is_less_than(&i, &get_array_length(&safeResponse)) } {
+            let mut __for_first_456: bool = true;
+            while { if !__for_first_456 { i = add(&i, &Value::Int(1)); } __for_first_456 = false; is_less_than(&i, &get_array_length(&safeResponse)) } {
             let mut entrty: Value = get_value(&safeResponse, &i);
             let mut entrty: Value = get_value(&safeResponse, &i);
             let mut leverageValue: Value = self.safe_integer_k(entrty.clone(), "leverage", &[]);
@@ -4975,8 +4975,8 @@ impl BtseCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_458: bool = true;
-            while { if !__for_first_458 { i = add(&i, &Value::Int(1)); } __for_first_458 = false; is_less_than(&i, &get_array_length(&rows)) } {
+            let mut __for_first_457: bool = true;
+            while { if !__for_first_457 { i = add(&i, &Value::Int(1)); } __for_first_457 = false; is_less_than(&i, &get_array_length(&rows)) } {
             let mut row: Value = get_value(&rows, &i);
             let mut row: Value = get_value(&rows, &i);
             let mut status: Value = self.safe_string_k(row.clone(), "status", &[]);

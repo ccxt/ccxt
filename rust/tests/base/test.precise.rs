@@ -112,6 +112,46 @@ pub fn testPrecise() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("10".to_string()), &Value::Str("5".to_string())), &Value::Str("15".to_string())))))); // 1010 | 0101 = 1111 = 15
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("0".to_string()), &Value::Str("0".to_string())), &Value::Str("0".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringOr(&Value::Str("7".to_string()), &Value::Str("0".to_string())), &Value::Str("7".to_string()))))));
+    // zero divisor
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("1".to_string()), &Value::Str("0".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("0".to_string()), &Value::Str("0".to_string())), &Value::Null)))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("0".to_string()), &Value::Str("5".to_string())), &Value::Str("0".to_string()))))));
+    // float precision classics (would fail with binary floats)
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Str("0.1".to_string()), &Value::Str("0.2".to_string())), &Value::Str("0.3".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringSub(&Value::Str("0.3".to_string()), &Value::Str("0.1".to_string())), &Value::Str("0.2".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("0.1".to_string()), &Value::Str("0.2".to_string())), &Value::Str("0.02".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("0.1".to_string()), &Value::Str("0.3".to_string())), &Value::Str("0.03".to_string()))))));
+    // trailing zero reduction
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("10.00".to_string()), &Value::Str("1.0".to_string())), &Value::Str("10".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("1000".to_string()), &Value::Str("1".to_string())), &Value::Str("1000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("0.500".to_string()), &Value::Str("20.00".to_string())), &Value::Str("10".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("0.0".to_string()), &Value::Str("0.00".to_string())), &Value::Str("0".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Str("0.000".to_string()), &Value::Str("0".to_string())), &Value::Str("0".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEquals(&Value::Str("1.2300".to_string()), &Value::Str("1.23".to_string())))));
+    assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringEquals(&Value::Str("1000".to_string()), &Value::Str("1e3".to_string())))));
+    // scientific notation
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("1.23e2".to_string()), &Value::Str("1e-2".to_string())), &Value::Str("1.23".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("1E8".to_string()), &Value::Str("2".to_string())), &Value::Str("200000000".to_string())))))); // uppercase exponent marker
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Str("1e2".to_string()), &Value::Str("1e-2".to_string())), &Value::Str("100.01".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAbs(&Value::Str("-1.23e-6".to_string())), &Value::Str("0.00000123".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringNeg(&Value::Str("1.23e-6".to_string())), &Value::Str("-0.00000123".to_string()))))));
+    // division truncates toward zero
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("10".to_string()), &Value::Str("4".to_string())), &Value::Str("2.5".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("-10".to_string()), &Value::Str("4".to_string())), &Value::Str("-2.5".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("3".to_string()), &Value::Int(5)), &Value::Str("0.33333".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("-1".to_string()), &Value::Str("3".to_string()), &Value::Int(5)), &Value::Str("-0.33333".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("7".to_string()), &Value::Int(25)), &Value::Str("0.1428571428571428571428571".to_string()))))));
+    // comparisons with scientific notation
+    assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&Value::Str("1e3".to_string()), &Value::Str("999.999".to_string())))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&ccxt::precise::Precise::stringLt(&Value::Str("1e-3".to_string()), &Value::Str("0.001".to_string()))))))); // equal values, different representation
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMax(&Value::Str("1e3".to_string()), &Value::Str("999.999".to_string())), &Value::Str("1000".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMin(&Value::Str("999.999".to_string()), &Value::Str("1e3".to_string())), &Value::Str("999.999".to_string()))))));
+    // large integers
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("123456789012345678901234567890".to_string()), &Value::Str("987654321".to_string())), &Value::Str("121932631124828532112482853211126352690".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringAdd(&Value::Str("123456789012345678901234567890".to_string()), &Value::Str("123456789012345678901234567890".to_string())), &Value::Str("246913578024691357802469135780".to_string()))))));
+    // positive modulo
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMod(&Value::Str("1000000000.123".to_string()), &Value::Str("7".to_string())), &Value::Str("6.123".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMod(&Value::Str("7.5".to_string()), &Value::Str("2.5".to_string())), &Value::Str("0".to_string()))))));
     // with undefined arguments
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Null, &Value::Str("1".to_string())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("1".to_string()), &Value::Null), &Value::Null)))));

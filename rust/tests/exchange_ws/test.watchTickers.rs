@@ -63,8 +63,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), values.clone(), checkedSymbol.clone()]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1453: bool = true;
-                while { if !__for_first_1453 { i = add(&i, &Value::Int(1)); } __for_first_1453 = false; is_less_than(&i, &get_array_length(&values)) } {
+                let mut __for_first_1452: bool = true;
+                while { if !__for_first_1452 { i = add(&i, &Value::Int(1)); } __for_first_1452 = false; is_less_than(&i, &get_array_length(&values)) } {
                 let mut ticker: Value = get_value(&values, &i);
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     testTicker(exchange.clone(), skippedProperties.clone(), method.clone(), ticker.clone(), checkedSymbol.clone());

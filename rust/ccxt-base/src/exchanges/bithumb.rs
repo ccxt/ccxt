@@ -662,7 +662,6 @@ impl BithumbCore {
 }));
         m.insert("commonCurrencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("ALT".to_string(), Value::Str("ArchLoot".to_string()));
         m.insert("FTC".to_string(), Value::Str("FTC2".to_string()));
         m.insert("SOC".to_string(), Value::Str("Soda Coin".to_string()));
     m
@@ -712,8 +711,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_360: bool = true;
-            while { if !__for_first_360 { i = add(&i, &Value::Int(1)); } __for_first_360 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { i = add(&i, &Value::Int(1)); } __for_first_359 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -726,8 +725,8 @@ impl BithumbCore {
         let mut results: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_362: bool = true;
-            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { i = add(&i, &Value::Int(1)); } __for_first_361 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut quoteId: Value = quote.clone();
@@ -744,8 +743,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&data);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_361: bool = true;
-                while { if !__for_first_361 { j = add(&j, &Value::Int(1)); } __for_first_361 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_360: bool = true;
+                while { if !__for_first_360 { j = add(&j, &Value::Int(1)); } __for_first_360 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 if is_equal(&currencyId, &Value::Str("date".to_string())) {
@@ -842,8 +841,8 @@ impl BithumbCore {
         let mut codes: Value = object_keys(&self.currencies);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_363: bool = true;
-            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&codes)) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i = add(&i, &Value::Int(1)); } __for_first_362 = false; is_less_than(&i, &get_array_length(&codes)) } {
             let mut code: Value = get_value(&codes, &i);
             let mut code: Value = get_value(&codes, &i);
             let mut account: Value = self.account();
@@ -1033,8 +1032,8 @@ impl BithumbCore {
         let mut promises: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_364: bool = true;
-            while { if !__for_first_364 { i = add(&i, &Value::Int(1)); } __for_first_364 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { i = add(&i, &Value::Int(1)); } __for_first_363 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("quoteId".to_string(), get_value(&quotes, &i));
@@ -1047,8 +1046,8 @@ impl BithumbCore {
         let mut responses: Value = promise_all(&promises).await;
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_366: bool = true;
-            while { if !__for_first_366 { i = add(&i, &Value::Int(1)); } __for_first_366 = false; is_less_than(&i, &get_array_length(&quotes)) } {
+            let mut __for_first_365: bool = true;
+            while { if !__for_first_365 { i = add(&i, &Value::Int(1)); } __for_first_365 = false; is_less_than(&i, &get_array_length(&quotes)) } {
             let mut quote: Value = get_value(&quotes, &i);
             let mut quote: Value = get_value(&quotes, &i);
             let mut response: Value = get_value(&responses, &i);
@@ -1083,8 +1082,8 @@ impl BithumbCore {
             let mut currencyIds: Value = object_keys(&tickers);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_365: bool = true;
-                while { if !__for_first_365 { j = add(&j, &Value::Int(1)); } __for_first_365 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
+                let mut __for_first_364: bool = true;
+                while { if !__for_first_364 { j = add(&j, &Value::Int(1)); } __for_first_364 = false; is_less_than(&j, &get_array_length(&currencyIds)) } {
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut currencyId: Value = get_value(&currencyIds, &j);
                 let mut ticker: Value = get_value(&data, &currencyId);
@@ -1396,15 +1395,19 @@ impl BithumbCore {
                 m.insert("units".to_string(), amount.clone());
             m
         });
-        let mut method: Value = Value::Str("privatePostTradePlace".to_string());
+        let mut response: Value = Value::Null;
         if is_equal(&type_var, &Value::Str("limit".to_string())) {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), price.clone());
             add_element_to_object(&mut request, &Value::Str("type".to_string()), ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Str("bid".to_string()), Value::Str("ask".to_string())));
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_trade_place(&[__ws_arg_7]).await;
+        }  else if is_equal(&side, &Value::Str("buy".to_string())) {
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_trade_market_buy(&[__ws_arg_8]).await;
         }  else {
-            method = add(&Value::Str("privatePostTradeMarket".to_string()), &self.capitalize(side.clone()));
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_trade_market_sell(&[__ws_arg_9]).await;
         }
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_7]).await;
         let mut id: Value = self.safe_string_k(response.clone(), "order_id", &[]);
         if is_equal(&id, &Value::Null) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder() did not return an order id".to_string()))));
@@ -1453,8 +1456,8 @@ impl BithumbCore {
                 m.insert("payment_currency".to_string(), get_value(&market, &Value::Str("quote".to_string())));
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_info_order_detail(&[__ws_arg_8]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_info_order_detail(&[__ws_arg_10]).await;
         //
         //     {
         //         "status": "0000",
@@ -1483,12 +1486,12 @@ impl BithumbCore {
         //     }
         //
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
-        let __ws_arg_9 = self.extend(data.clone(), &[Value::Map({
+        let __ws_arg_11 = self.extend(data.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("order_id".to_string(), id.clone());
     m
 })]);
-        return self.parse_order(__ws_arg_9, &[market.clone()]);
+        return self.parse_order(__ws_arg_11, &[market.clone()]);
 
     Value::Null
 }
@@ -1648,8 +1651,8 @@ impl BithumbCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("after".to_string()), since.clone());
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_info_orders(&[__ws_arg_10]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_info_orders(&[__ws_arg_12]).await;
         //
         //     {
         //         "status": "0000",
@@ -1708,8 +1711,8 @@ impl BithumbCore {
                 m.insert("payment_currency".to_string(), get_value(&market, &Value::Str("quote".to_string())));
             m
         });
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_trade_cancel(&[__ws_arg_11]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_cancel(&[__ws_arg_13]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -1729,8 +1732,8 @@ impl BithumbCore {
                 m.insert("side".to_string(), get_value(&order, &Value::Str("side".to_string())));
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
-        return self.cancel_order(get_value(&order, &Value::Str("id".to_string())), &[get_value(&order, &Value::Str("symbol".to_string())), __ws_arg_12]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        return self.cancel_order(get_value(&order, &Value::Str("id".to_string())), &[get_value(&order, &Value::Str("symbol".to_string())), __ws_arg_14]).await;
 
     Value::Null
 }
@@ -1774,8 +1777,8 @@ impl BithumbCore {
                 add_element_to_object(&mut request, &Value::Str("destination".to_string()), tag.clone());
             }
         }
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_trade_btc_withdrawal(&[__ws_arg_13]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_trade_btc_withdrawal(&[__ws_arg_15]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -1855,12 +1858,12 @@ impl BithumbCore {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let __ws_arg_14 = self.extend(Value::Map({
+            let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("endpoint".to_string(), endpoint.clone());
                 m
             }), &[query.clone()]);
-            body = self.urlencode(__ws_arg_14, &[]);
+            body = self.urlencode(__ws_arg_16, &[]);
             // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
             let mut bodyParts: Value = split(&body, &Value::Str("%20".to_string()));
             body = join(&bodyParts, &Value::Str("+".to_string()));

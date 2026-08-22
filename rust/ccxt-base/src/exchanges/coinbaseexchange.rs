@@ -1120,8 +1120,8 @@ impl CoinbaseexchangeCore {
         let mut supportedNetworks: Value = self.safe_list_k(rawCurrency.clone(), "supported_networks", &[Value::List(vec![])]);
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_519: bool = true;
-            while { if !__for_first_519 { j = add(&j, &Value::Int(1)); } __for_first_519 = false; is_less_than(&j, &get_array_length(&supportedNetworks)) } {
+            let mut __for_first_518: bool = true;
+            while { if !__for_first_518 { j = add(&j, &Value::Int(1)); } __for_first_518 = false; is_less_than(&j, &get_array_length(&supportedNetworks)) } {
             let mut network: Value = get_value(&supportedNetworks, &j);
             let mut network: Value = get_value(&supportedNetworks, &j);
             let mut networkId: Value = self.safe_string_k(network.clone(), "id", &[]);
@@ -1255,8 +1255,8 @@ impl CoinbaseexchangeCore {
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_520: bool = true;
-            while { if !__for_first_520 { i = add(&i, &Value::Int(1)); } __for_first_520 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_519: bool = true;
+            while { if !__for_first_519 { i = add(&i, &Value::Int(1)); } __for_first_519 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -1419,8 +1419,8 @@ impl CoinbaseexchangeCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_521: bool = true;
-            while { if !__for_first_521 { i = add(&i, &Value::Int(1)); } __for_first_521 = false; is_less_than(&i, &get_array_length(&response)) } {
+            let mut __for_first_520: bool = true;
+            while { if !__for_first_520 { i = add(&i, &Value::Int(1)); } __for_first_520 = false; is_less_than(&i, &get_array_length(&response)) } {
             let mut balance: Value = get_value(&response, &i);
             let mut balance: Value = get_value(&response, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "currency", &[]);
@@ -1652,8 +1652,8 @@ impl CoinbaseexchangeCore {
         let mut delimiter: Value = Value::Str("-".to_string());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_522: bool = true;
-            while { if !__for_first_522 { i = add(&i, &Value::Int(1)); } __for_first_522 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
+            let mut __for_first_521: bool = true;
+            while { if !__for_first_521 { i = add(&i, &Value::Int(1)); } __for_first_521 = false; is_less_than(&i, &get_array_length(&marketIds)) } {
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut marketId: Value = get_value(&marketIds, &i);
             let mut entry: Value = self.safe_value(response.clone(), marketId.clone(), &[Value::List(vec![])]);
@@ -1693,8 +1693,14 @@ impl CoinbaseexchangeCore {
         });
         // publicGetProductsIdTicker or publicGetProductsIdStats
         let mut method: Value = self.safe_string_k(self.options.clone(), "fetchTickerMethod", &[Value::Str("publicGetProductsIdTicker".to_string())]);
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_7]).await;
+        let mut response: Value = Value::Null;
+        if is_equal(&method, &Value::Str("publicGetProductsIdStats".to_string())) {
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_products_id_stats(&[__ws_arg_7]).await;
+        }  else {
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_products_id_ticker(&[__ws_arg_8]).await;
+        }
         return self.parse_ticker(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -1830,8 +1836,8 @@ impl CoinbaseexchangeCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_fills(&[__ws_arg_8]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_fills(&[__ws_arg_9]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1867,8 +1873,8 @@ impl CoinbaseexchangeCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default 100
         }
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.public_get_products_id_trades(&[__ws_arg_9]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_products_id_trades(&[__ws_arg_10]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1906,8 +1912,8 @@ impl CoinbaseexchangeCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_523: bool = true;
-            while { if !__for_first_523 { i = add(&i, &Value::Int(1)); } __for_first_523 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
+            let mut __for_first_522: bool = true;
+            while { if !__for_first_522 { i = add(&i, &Value::Int(1)); } __for_first_522 = false; is_less_than(&i, &get_array_length(&self.symbols)) } {
             let mut symbol: Value = get_value(&self.symbols, &i);
             add_element_to_object(&mut result, &symbol, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1996,8 +2002,8 @@ impl CoinbaseexchangeCore {
                 add_element_to_object(&mut request, &Value::Str("end".to_string()), self.iso8601(until.clone()));
             }
         }
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.public_get_products_id_candles(&[__ws_arg_10]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_products_id_candles(&[__ws_arg_11]).await;
         return self.parse_ohlc_vs(self.to_array(response.clone()), &[market.clone(), timeframe.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2143,17 +2149,17 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string()), &[]);
-        let mut method: Value = Value::Null;
+        let mut response: Value = Value::Null;
         if is_equal(&clientOrderId, &Value::Null) {
-            method = Value::Str("privateGetOrdersId".to_string());
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
+            let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_orders_id(&[__ws_arg_12]).await;
         }  else {
-            method = Value::Str("privateGetOrdersClientClientOid".to_string());
             add_element_to_object(&mut request, &Value::Str("client_oid".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string())]), &[]);
+            let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_get_orders_client_client_oid(&[__ws_arg_13]).await;
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_11]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -2190,8 +2196,8 @@ impl CoinbaseexchangeCore {
                 m.insert("order_id".to_string(), id.clone());
             m
         });
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_fills(&[__ws_arg_12]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_fills(&[__ws_arg_14]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2222,8 +2228,8 @@ impl CoinbaseexchangeCore {
                 m.insert("status".to_string(), Value::Str("all".to_string()));
             m
         });
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_open_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_13]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_open_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_15]).await;
 
     Value::Null
 }
@@ -2277,8 +2283,8 @@ impl CoinbaseexchangeCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_orders(&[__ws_arg_14]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders(&[__ws_arg_16]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2309,8 +2315,8 @@ impl CoinbaseexchangeCore {
                 m.insert("status".to_string(), Value::Str("done".to_string()));
             m
         });
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
-        return self.fetch_open_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_15]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        return self.fetch_open_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_17]).await;
 
     Value::Null
 }
@@ -2380,8 +2386,8 @@ impl CoinbaseexchangeCore {
                 add_element_to_object(&mut request, &Value::Str("size".to_string()), self.amount_to_precision(symbol.clone(), amount.clone()));
             }
         }
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_orders(&[__ws_arg_16]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_orders(&[__ws_arg_18]).await;
         return self.parse_order(response.clone(), &[market.clone()]);
 
     Value::Null
@@ -2411,12 +2417,9 @@ impl CoinbaseexchangeCore {
             m
         });
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string()), &[]);
-        let mut method: Value = Value::Null;
         if is_equal(&clientOrderId, &Value::Null) {
-            method = Value::Str("privateDeleteOrdersId".to_string());
             add_element_to_object(&mut request, &Value::Str("id".to_string()), id.clone());
         }  else {
-            method = Value::Str("privateDeleteOrdersClientClientOid".to_string());
             add_element_to_object(&mut request, &Value::Str("client_oid".to_string()), clientOrderId.clone());
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string()), Value::Str("client_oid".to_string())]), &[]);
         }
@@ -2425,8 +2428,14 @@ impl CoinbaseexchangeCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("product_id".to_string()), get_value(&market, &Value::Str("symbol".to_string()))); // the request will be more performant if you include it
         }
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_17]).await;
+        let mut response: Value = Value::Null;
+        if is_equal(&clientOrderId, &Value::Null) {
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_orders_id(&[__ws_arg_19]).await;
+        }  else {
+            let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_delete_orders_client_client_oid(&[__ws_arg_20]).await;
+        }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -2463,8 +2472,8 @@ impl CoinbaseexchangeCore {
             market = self.market(symbol.clone());
             add_element_to_object(&mut request, &Value::Str("product_id".to_string()), get_value(&market, &Value::Str("symbol".to_string()))); // the request will be more performant if you include it
         }
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_delete_orders(&[__ws_arg_18]).await;
+        let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_orders(&[__ws_arg_21]).await;
         return Value::List(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.clone());
@@ -2515,20 +2524,21 @@ impl CoinbaseexchangeCore {
                 m.insert("amount".to_string(), amount.clone());
             m
         });
-        let mut method: Value = Value::Str("privatePostWithdrawals".to_string());
+        let mut response: Value = Value::Null;
         if is_true(&Value::Bool(in_op(&params, &Value::Str("payment_method_id".to_string())))) {
-            method = add(&method, &Value::Str("PaymentMethod".to_string()));
+            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdrawals_payment_method(&[__ws_arg_22]).await;
         }  else if is_true(&Value::Bool(in_op(&params, &Value::Str("coinbase_account_id".to_string())))) {
-            method = add(&method, &Value::Str("CoinbaseAccount".to_string()));
+            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdrawals_coinbase_account(&[__ws_arg_23]).await;
         }  else {
-            method = add(&method, &Value::Str("Crypto".to_string()));
             add_element_to_object(&mut request, &Value::Str("crypto_address".to_string()), address.clone());
             if !is_equal(&tag, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("destination_tag".to_string()), tag.clone());
             }
+            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdrawals_crypto(&[__ws_arg_24]).await;
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_19]).await;
         if !is_true(&response) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" withdraw() error: ".to_string())), &self.json(response.clone()))));
         }
@@ -2683,13 +2693,13 @@ impl CoinbaseexchangeCore {
             params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
             add_element_to_object(&mut request, &Value::Str("end_date".to_string()), self.iso8601(until.clone()));
         }
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_accounts_id_ledger(&[__ws_arg_20]).await;
+        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_accounts_id_ledger(&[__ws_arg_25]).await;
         let mut entries: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_524: bool = true;
-            while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&entries)) } {
+            let mut __for_first_523: bool = true;
+            while { if !__for_first_523 { i = add(&i, &Value::Int(1)); } __for_first_523 = false; is_less_than(&i, &get_array_length(&entries)) } {
             add_element_to_object(get_value_mut(&mut entries, &i), &Value::Str("currency".to_string()), code.clone());
         }
         }
@@ -2748,8 +2758,8 @@ impl CoinbaseexchangeCore {
         }
         let mut response: Value = Value::Null;
         if is_equal(&id, &Value::Null) {
-            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
-            let mut transfers: Value = self.private_get_transfers(&[__ws_arg_21]).await;
+            let __ws_arg_26 = self.extend(request.clone(), &[params.clone()]);
+            let mut transfers: Value = self.private_get_transfers(&[__ws_arg_26]).await;
             //
             //    [
             //        {
@@ -2781,8 +2791,8 @@ impl CoinbaseexchangeCore {
             response = self.to_array(transfers.clone());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_525: bool = true;
-                while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_524: bool = true;
+                while { if !__for_first_524 { i = add(&i, &Value::Int(1)); } __for_first_524 = false; is_less_than(&i, &get_array_length(&response)) } {
                 let mut account_id: Value = self.safe_string_k(get_value(&response, &i), "account_id", &[]);
                 let mut account: Value = self.safe_value(self.accountsById.clone(), account_id.clone(), &[]);
                 let mut codeInner: Value = self.safe_string_k(account.clone(), "code", &[]);
@@ -2790,8 +2800,8 @@ impl CoinbaseexchangeCore {
             }
             }
         }  else {
-            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
-            let mut accountTransfers: Value = self.private_get_accounts_id_transfers(&[__ws_arg_22]).await;
+            let __ws_arg_27 = self.extend(request.clone(), &[params.clone()]);
+            let mut accountTransfers: Value = self.private_get_accounts_id_transfers(&[__ws_arg_27]).await;
             //
             //    [
             //        {
@@ -2821,8 +2831,8 @@ impl CoinbaseexchangeCore {
             response = self.to_array(accountTransfers.clone());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_526: bool = true;
-                while { if !__for_first_526 { i = add(&i, &Value::Int(1)); } __for_first_526 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_525: bool = true;
+                while { if !__for_first_525 { i = add(&i, &Value::Int(1)); } __for_first_525 = false; is_less_than(&i, &get_array_length(&response)) } {
                 add_element_to_object(get_value_mut(&mut response, &i), &Value::Str("currency".to_string()), code.clone());
             }
             }
@@ -2852,12 +2862,12 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ws_arg_23 = self.extend(Value::Map({
+        let __ws_arg_28 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("deposit".to_string()));
     m
 }), &[params.clone()]);
-        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_23]).await;
+        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_28]).await;
 
     Value::Null
 }
@@ -2882,12 +2892,12 @@ impl CoinbaseexchangeCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let __ws_arg_24 = self.extend(Value::Map({
+        let __ws_arg_29 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("withdraw".to_string()));
     m
 }), &[params.clone()]);
-        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_24]).await;
+        return self.fetch_deposits_withdrawals(&[code.clone(), since.clone(), limit.clone(), __ws_arg_29]).await;
 
     Value::Null
 }
@@ -3035,8 +3045,8 @@ impl CoinbaseexchangeCore {
                 m.insert("id".to_string(), get_value(&account, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_coinbase_accounts_id_addresses(&[__ws_arg_25]).await;
+        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_coinbase_accounts_id_addresses(&[__ws_arg_30]).await;
         let mut address: Value = self.safe_string_k(response.clone(), "address", &[]);
         let mut tag: Value = self.safe_string_k(response.clone(), "destination_tag", &[]);
         return Value::Map({

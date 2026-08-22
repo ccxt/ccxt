@@ -297,6 +297,21 @@ impl CoinmateCore {
         self.call_method(Value::Str("private_post_unconfirmed_ada_deposits".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostDaiWithdrawal` implicit endpoint.
+    pub async fn private_post_dai_withdrawal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_dai_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostDaiDepositAddresses` implicit endpoint.
+    pub async fn private_post_dai_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_dai_deposit_addresses".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUnconfirmedDaiDeposits` implicit endpoint.
+    pub async fn private_post_unconfirmed_dai_deposits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_unconfirmed_dai_deposits".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostSolWithdrawal` implicit endpoint.
     pub async fn private_post_sol_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_sol_withdrawal".to_string()), optional_args).await

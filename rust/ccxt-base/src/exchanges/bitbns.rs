@@ -716,8 +716,8 @@ impl BitbnsCore {
         let mut rawMarkets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
+            let mut __for_first_309: bool = true;
+            while { if !__for_first_309 { i = add(&i, &Value::Int(1)); } __for_first_309 = false; is_less_than(&i, &get_array_length(&rawMarkets)) } {
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut market: Value = get_value(&rawMarkets, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "id", &[]);
@@ -974,8 +974,8 @@ impl BitbnsCore {
         let mut keys: Value = object_keys(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_311: bool = true;
-            while { if !__for_first_311 { i = add(&i, &Value::Int(1)); } __for_first_311 = false; is_less_than(&i, &get_array_length(&keys)) } {
+            let mut __for_first_310: bool = true;
+            while { if !__for_first_310 { i = add(&i, &Value::Int(1)); } __for_first_310 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut parts: Value = split(&key, &Value::Str("availableorder".to_string()));
@@ -1164,11 +1164,9 @@ impl BitbnsCore {
                 m.insert("quantity".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        let mut method: Value = Value::Str("v2PostOrders".to_string());
         if is_equal(&type_var, &Value::Str("limit".to_string())) {
             add_element_to_object(&mut request, &Value::Str("rate".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }  else {
-            method = Value::Str("v1PostPlaceMarketOrderQntySymbol".to_string());
             add_element_to_object(&mut request, &Value::Str("market".to_string()), get_value(&market, &Value::Str("quoteId".to_string())));
         }
         if !is_equal(&triggerPrice, &Value::Null) {
@@ -1180,8 +1178,14 @@ impl BitbnsCore {
         if !is_equal(&trailRate, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("trail_rate".to_string()), self.price_to_precision(symbol.clone(), trailRate.clone()));
         }
-        let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.call_method(method.clone(), &[__ws_arg_1]).await;
+        let mut response: Value = Value::Null;
+        if is_equal(&type_var, &Value::Str("limit".to_string())) {
+            let __ws_arg_1 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v2_post_orders(&[__ws_arg_1]).await;
+        }  else {
+            let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
+            response = self.v1_post_place_market_order_qnty_symbol(&[__ws_arg_2]).await;
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -1238,8 +1242,8 @@ impl BitbnsCore {
         let mut quoteSide: Value = ternary(is_true(&(is_equal(&get_value(&market, &Value::Str("quoteId".to_string())), &Value::Str("USDT".to_string())))), Value::Str("usdtcancel".to_string()), Value::Str("cancel".to_string()));
         quoteSide = add(&quoteSide, &tail);
         add_element_to_object(&mut request, &Value::Str("side".to_string()), quoteSide.clone());
-        let __ws_arg_2 = self.extend(request.clone(), &[params.clone()]);
-        response = self.v2_post_cancel(&[__ws_arg_2]).await;
+        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+        response = self.v2_post_cancel(&[__ws_arg_3]).await;
         let mut parsed: Value = ternary(is_true(&(is_equal(&response, &Value::Null))), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1282,8 +1286,8 @@ impl BitbnsCore {
         if is_true(&trigger) {
             panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchOrder cannot fetch stop orders".to_string()))));
         }
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_post_order_status_symbol(&[__ws_arg_3]).await;
+        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_order_status_symbol(&[__ws_arg_4]).await;
         //
         //     {
         //         "data":[
@@ -1357,8 +1361,8 @@ impl BitbnsCore {
                 m.insert("side".to_string(), ternary(is_true(&isTrigger), (add(&quoteSide, &Value::Str("StopOrders".to_string()))), (add(&quoteSide, &Value::Str("Orders".to_string())))));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v2_post_getordersnew(&[__ws_arg_4]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v2_post_getordersnew(&[__ws_arg_5]).await;
         //
         //     {
         //         "data":[
@@ -1507,8 +1511,8 @@ impl BitbnsCore {
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("since".to_string()), self.iso8601(since.clone()));
         }
-        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_post_list_executed_orders_symbol(&[__ws_arg_5]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_list_executed_orders_symbol(&[__ws_arg_6]).await;
         //
         //     {
         //         "data": [
@@ -1586,8 +1590,8 @@ impl BitbnsCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("quoteId".to_string())));
             m
         });
-        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.www_get_exchange_data_tradedetails(&[__ws_arg_6]).await;
+        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.www_get_exchange_data_tradedetails(&[__ws_arg_7]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1624,8 +1628,8 @@ impl BitbnsCore {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_post_deposit_history_symbol(&[__ws_arg_7]).await;
+        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_deposit_history_symbol(&[__ws_arg_8]).await;
         //
         //     {
         //         "data":[
@@ -1686,8 +1690,8 @@ impl BitbnsCore {
                 m.insert("page".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_post_withdraw_history_symbol(&[__ws_arg_8]).await;
+        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_withdraw_history_symbol(&[__ws_arg_9]).await;
         //
         //     ...
         //
@@ -1829,8 +1833,8 @@ impl BitbnsCore {
                 m.insert("symbol".to_string(), get_value(&currency, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.v1_post_get_coin_address_symbol(&[__ws_arg_9]).await;
+        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.v1_post_get_coin_address_symbol(&[__ws_arg_10]).await;
         //
         //     {
         //         "data":{
