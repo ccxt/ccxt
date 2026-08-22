@@ -410,6 +410,15 @@ const GENERATED_TESTS_FOLDER = './go/tests';
 const goComments: { [key: string]: { [key: string]: string}} = {};
 
 const goTypeOptions: dict = {};
+// Go type of every field emitted into an option struct of THIS stage, keyed by
+// method capName → { FieldName: goType } (the type WITHOUT the leading `*`).
+// Single source of truth shared by createOptionsStruct (which writes it while emitting
+// the struct) and getDefaultParamsWrappers (which reads it to declare the wrapper's
+// optional local with the exact same type). Recorded only for structs that are DECLARED
+// in the current stage/package; aliased structs (pro, prediction re-exports) have no
+// entry and the wrapper falls back to `var x = opts.X` type inference, which yields the
+// identical pointer type without having to re-derive (and possibly mis-derive) it.
+const goOptionFieldTypes: { [key: string]: { [field: string]: string } } = {};
 // names of the options structs that live in the base ccxt package; used by the
 // prediction pass to decide between aliasing (type X = ccxt.X) and emitting a local struct
 const baseGoTypeOptionNames = new Set<string>();
@@ -1581,6 +1590,15 @@ class NewTranspiler {
         return returnStatement;
     }
 
+    /**
+     * @description Single source of truth for the Go type of an option-struct field.
+     * The struct declares it as `*<type>` and the wrapper declares its optional local as
+     * `*<type>` too, so both must be computed here and nowhere else.
+     */
+    optionStructFieldGoType(param: any, qualify: (type: string | undefined) => string | undefined): string | undefined {
+        return qualify(this.jsTypeToGo(param.name, param.type));
+    }
+
     getDefaultParamsWrappers(name: string, rawParameters: any[]) {
         let res: string[] = [];
 
@@ -1588,8 +1606,8 @@ class NewTranspiler {
         const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
         const i2 = this.inden(2);
         const i1 = this.inden(1);
+        const structName = capitalize(name) + 'Options';
         if (hasOptionalParams && !isOnlyParams) {
-            const structName = capitalize(name) + 'Options';
             const initOptions = [
                 '',
                 'opts := ' + structName + 'Struct{}',
@@ -1607,12 +1625,15 @@ class NewTranspiler {
                 // const isOptional =  param.optional || param.initializer !== undefined;
                 if (isOptional) {
                     const capName = capitalize(param.name);
-                    // const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
+                    // Emit the local with the SAME Go pointer type the option struct field has,
+                    // assigned straight from the field (no deref, no `any`). When the struct for
+                    // this method was declared in this stage we know the exact field type and
+                    // spell it out; otherwise (aliased struct) we let Go infer it from the field,
+                    // which yields the identical pointer type.
+                    const fieldType = goOptionFieldTypes[structName] && goOptionFieldTypes[structName][capName];
+                    const typeDecl = fieldType ? ` *${fieldType}` : '';
                     let decl = `
-    var ${this.safeGoName(param.name)} any = nil
-    if opts.${capName} != nil {
-        ${this.safeGoName(param.name)} = *opts.${capName}
-    }`;
+    var ${this.safeGoName(param.name)}${typeDecl} = opts.${capName}`;
                 res.push(decl);
                 }
             });
@@ -1699,11 +1720,15 @@ class NewTranspiler {
                 }),
             ].join('\n');
         } else {
+            const fieldTypes: { [field: string]: string } = {};
             goTypeOptions[capName] = [
                 `type ${optionsStruct} struct {`,
-                ...optionalParams.map((param) => (
-                    `${i1}${capitalize(param.name)} *${qualify(this.jsTypeToGo(param.name, param.type))}`
-                )),
+                ...optionalParams.map((param) => {
+                    const fieldName = capitalize(param.name);
+                    const fieldType = this.optionStructFieldGoType(param, qualify) as string;
+                    fieldTypes[fieldName] = fieldType;
+                    return `${i1}${fieldName} *${fieldType}`;
+                }),
                 '}',
                 '',
                 `type ${options} func(opts *${optionsStruct})`,
@@ -1711,7 +1736,7 @@ class NewTranspiler {
                     .filter((param) => param.optional || param.initializer !== undefined)
                     .map((param) => {
                         const name = capitalize(param.name);
-                        const type = qualify(this.jsTypeToGo(param.name, param.type));
+                        const type = this.optionStructFieldGoType(param, qualify);
                         return [
                             '',
                             `${one}func With${capName}${name}(${this.safeGoName(param.name)} ${type}) ${options} {`,
@@ -1730,6 +1755,7 @@ class NewTranspiler {
                 //     }
                 // }
             ].join('\n');
+            goOptionFieldTypes[options] = fieldTypes;
         }
     }
 
@@ -3820,6 +3846,9 @@ func (this *${className}) Init(userConfig map[string]any) {
 function resetPerStageAccumulators () {
     for (const k of Object.keys (goTypeOptions)) {
         delete goTypeOptions[k];
+    }
+    for (const k of Object.keys (goOptionFieldTypes)) {
+        delete goOptionFieldTypes[k];
     }
     baseGoTypeOptionNames.clear ();
     predictionLocalOptionStructs.clear ();
