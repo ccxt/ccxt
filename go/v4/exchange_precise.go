@@ -16,6 +16,51 @@ type PreciseStruct struct {
 
 var Precise = &PreciseStruct{}
 
+// pow10Table caches small powers of ten so Add/Sub/Mul/Div/Mod/comparisons
+// don't repeatedly pay for big.Int.Exp on the same handful of exponents
+// (decimal-count differences are almost always small). Populated once at
+// package init and never mutated afterwards, so concurrent reads are safe.
+var pow10Table [128]*big.Int
+
+func init() {
+	ten := big.NewInt(10)
+	val := big.NewInt(1)
+	pow10Table[0] = val
+	for i := 1; i < len(pow10Table); i++ {
+		val = new(big.Int).Mul(val, ten)
+		pow10Table[i] = val
+	}
+}
+
+func pow10(n int) *big.Int {
+	if n >= 0 && n < len(pow10Table) {
+		return pow10Table[n]
+	}
+	if n < 0 {
+		n = 0
+	}
+	return new(big.Int).Exp(big.NewInt(10), big.NewInt(int64(n)), nil)
+}
+
+func intMax(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+// newPreciseFromBigInt builds a result directly from an already-computed
+// big.Int and decimal count, skipping the string round-trip (fmt.Sprintf +
+// re-parsing) that NewPrecise needs for raw string input. Every arithmetic
+// method below already holds a fresh *big.Int, so this is the hot path.
+func newPreciseFromBigInt(integer *big.Int, decimals int) *PreciseStruct {
+	return &PreciseStruct{
+		integer:    integer,
+		Decimals:   decimals,
+		baseNumber: 10,
+	}
+}
+
 func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 	var dec int
 	if len(dec2) > 0 {
@@ -61,7 +106,7 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Mul(p.integer, other.integer)
 	decimals := p.Decimals.(int) + other.Decimals.(int)
-	return NewPrecise(integer.String(), decimals)
+	return newPreciseFromBigInt(integer, decimals)
 }
 
 func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStruct {
@@ -75,59 +120,60 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 	if distance == 0 {
 		numerator = p.integer
 	} else if distance < 0 {
-		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
 		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
-		numerator = new(big.Int).Quo(p.integer, exponent)
+		numerator = new(big.Int).Quo(p.integer, pow10(int(-distance)))
 	} else {
-		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
-		numerator = new(big.Int).Mul(p.integer, exponent)
+		numerator = new(big.Int).Mul(p.integer, pow10(int(distance)))
 	}
 	result := new(big.Int).Quo(numerator, other.integer)
-	return NewPrecise(result.String(), precision)
+	return newPreciseFromBigInt(result, int(precision))
 }
 
 func (p *PreciseStruct) Add(other *PreciseStruct) *PreciseStruct {
-	if p.Decimals == other.Decimals {
+	pDecimals := p.Decimals.(int)
+	oDecimals := other.Decimals.(int)
+	if pDecimals == oDecimals {
 		integerResult := new(big.Int).Add(p.integer, other.integer)
-		return NewPrecise(integerResult.String(), p.Decimals.(int))
-	} else {
-		var smaller, bigger *PreciseStruct
-		if p.Decimals.(int) < other.Decimals.(int) {
-			smaller = p
-			bigger = other
-		} else {
-			smaller = other
-			bigger = p
-		}
-		exponent := bigger.Decimals.(int) - smaller.Decimals.(int)
-		normalized := new(big.Int).Mul(smaller.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(exponent)), nil))
-		result := new(big.Int).Add(normalized, bigger.integer)
-		return NewPrecise(result.String(), bigger.Decimals.(int))
+		return newPreciseFromBigInt(integerResult, pDecimals)
 	}
+	var smaller, bigger *PreciseStruct
+	if pDecimals < oDecimals {
+		smaller = p
+		bigger = other
+	} else {
+		smaller = other
+		bigger = p
+	}
+	exponent := bigger.Decimals.(int) - smaller.Decimals.(int)
+	normalized := new(big.Int).Mul(smaller.integer, pow10(exponent))
+	result := new(big.Int).Add(normalized, bigger.integer)
+	return newPreciseFromBigInt(result, bigger.Decimals.(int))
 }
 
 func (p *PreciseStruct) Mod(other *PreciseStruct) *PreciseStruct {
-	rationizerNumerator := int(math.Max(float64(-p.Decimals.(int)+other.Decimals.(int)), 0))
-	numerator := new(big.Int).Mul(p.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerNumerator)), nil))
-	rationizerDenominator := int(math.Max(float64(-other.Decimals.(int)+p.Decimals.(int)), 0))
-	denominator := new(big.Int).Mul(other.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerDenominator)), nil))
+	pDecimals := p.Decimals.(int)
+	oDecimals := other.Decimals.(int)
+	rationizerNumerator := intMax(oDecimals-pDecimals, 0)
+	numerator := new(big.Int).Mul(p.integer, pow10(rationizerNumerator))
+	rationizerDenominator := intMax(pDecimals-oDecimals, 0)
+	denominator := new(big.Int).Mul(other.integer, pow10(rationizerDenominator))
 	result := new(big.Int).Mod(numerator, denominator)
-	return NewPrecise(result.String(), rationizerDenominator+other.Decimals.(int))
+	return newPreciseFromBigInt(result, rationizerDenominator+oDecimals)
 }
 
 func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
-	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), other.Decimals.(int))
+	negative := newPreciseFromBigInt(new(big.Int).Neg(other.integer), other.Decimals.(int))
 	return p.Add(negative)
 }
 
 func (p *PreciseStruct) Or(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Or(p.integer, other.integer)
 	decimals := p.Decimals.(int) + other.Decimals.(int)
-	return NewPrecise(integer.String(), decimals)
+	return newPreciseFromBigInt(integer, decimals)
 }
 
 func (p *PreciseStruct) Neg() *PreciseStruct {
-	return NewPrecise(new(big.Int).Neg(p.integer).String(), p.Decimals.(int))
+	return newPreciseFromBigInt(new(big.Int).Neg(p.integer), p.Decimals.(int))
 }
 
 func (p *PreciseStruct) Min(other *PreciseStruct) *PreciseStruct {
@@ -144,32 +190,42 @@ func (p *PreciseStruct) Max(other *PreciseStruct) *PreciseStruct {
 	return other
 }
 
+// alignedCompare scales the operand with fewer decimals up to match the
+// other's scale and compares the resulting integers directly, avoiding the
+// full Sub()+NewPrecise() allocation the naive comparison used to do.
+func alignedCompare(p, other *PreciseStruct) int {
+	pDecimals := p.Decimals.(int)
+	oDecimals := other.Decimals.(int)
+	if pDecimals == oDecimals {
+		return p.integer.Cmp(other.integer)
+	}
+	if pDecimals < oDecimals {
+		scaled := new(big.Int).Mul(p.integer, pow10(oDecimals-pDecimals))
+		return scaled.Cmp(other.integer)
+	}
+	scaled := new(big.Int).Mul(other.integer, pow10(pDecimals-oDecimals))
+	return p.integer.Cmp(scaled)
+}
+
 func (p *PreciseStruct) Gt(other *PreciseStruct) bool {
-	sum := p.Sub(other)
-	return sum.integer.Cmp(big.NewInt(0)) > 0
+	return alignedCompare(p, other) > 0
 }
 
 func (p *PreciseStruct) Ge(other *PreciseStruct) bool {
-	sum := p.Sub(other)
-	return sum.integer.Cmp(big.NewInt(0)) >= 0
+	return alignedCompare(p, other) >= 0
 }
 
 func (p *PreciseStruct) Lt(other *PreciseStruct) bool {
-	return other.Gt(p)
+	return alignedCompare(p, other) < 0
 }
 
 func (p *PreciseStruct) Le(other *PreciseStruct) bool {
-	return other.Ge(p)
+	return alignedCompare(p, other) <= 0
 }
 
 func (p *PreciseStruct) Abs() *PreciseStruct {
-	var result *big.Int
-	if p.integer.Cmp(big.NewInt(0)) < 0 {
-		result = new(big.Int).Mul(p.integer, big.NewInt(-1))
-	} else {
-		result = p.integer
-	}
-	return NewPrecise(result.String(), p.Decimals.(int))
+	result := new(big.Int).Abs(p.integer)
+	return newPreciseFromBigInt(result, p.Decimals.(int))
 }
 
 func (p *PreciseStruct) Reduce() *PreciseStruct {
@@ -187,13 +243,12 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 			break
 		}
 	}
-	difference := int64(start - i)
+	difference := start - i
 	if difference == 0 {
 		return p
 	}
-	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precision by converting to int, should be int64
-	p.integer = new(big.Int)
-	p.integer.SetString(str[:i+1], 10)
+	p.Decimals = int(ParseInt(p.Decimals)) - difference // TODO: loss of precision by converting to int, should be int64
+	p.integer = new(big.Int).Quo(p.integer, pow10(difference))
 	return p
 }
 
@@ -206,14 +261,12 @@ func (p *PreciseStruct) Equals(other *PreciseStruct) bool {
 func (p *PreciseStruct) String() string {
 	p.Reduce()
 	sign := ""
-	var abs *big.Int
-	if p.integer.Cmp(big.NewInt(0)) < 0 {
+	integer := p.integer
+	if integer.Sign() < 0 {
 		sign = "-"
-		abs = new(big.Int).Mul(p.integer, big.NewInt(-1))
-	} else {
-		abs = p.integer
+		integer = new(big.Int).Abs(integer)
 	}
-	absParsed := abs.String()
+	absParsed := integer.String()
 	var intDecimals int
 	switch v := p.Decimals.(type) {
 	case int:
@@ -221,28 +274,20 @@ func (p *PreciseStruct) String() string {
 	case int64:
 		intDecimals = int(v) // TODO: loss of precsion by converting to int, should be int64
 	}
-	padSize := intDecimals
-	if padSize < 0 {
-		padSize = 0
+	if intDecimals > 0 && len(absParsed) < intDecimals {
+		absParsed = strings.Repeat("0", intDecimals-len(absParsed)) + absParsed
 	}
-	integerArray := strings.Split(fmt.Sprintf("%0*s", padSize, absParsed), "")
-	index := len(integerArray) - intDecimals
-	item := ""
+	if intDecimals <= 0 {
+		if intDecimals < 0 {
+			return sign + absParsed + strings.Repeat("0", -intDecimals)
+		}
+		return sign + absParsed
+	}
+	index := len(absParsed) - intDecimals
 	if index == 0 {
-		item = "0."
-	} else if intDecimals < 0 {
-		item = strings.Repeat("0", -intDecimals)
-	} else if intDecimals == 0 {
-		item = ""
-	} else {
-		item = "."
+		return sign + "0." + absParsed
 	}
-	arrayIndex := index
-	if arrayIndex > len(integerArray) {
-		arrayIndex = len(integerArray)
-	}
-	integerArray = append(integerArray[:arrayIndex], append([]string{item}, integerArray[arrayIndex:]...)...)
-	return sign + strings.Join(integerArray, "")
+	return sign + absParsed[:index] + "." + absParsed[index:]
 }
 
 func StringMul(string1, string2 any) any {
