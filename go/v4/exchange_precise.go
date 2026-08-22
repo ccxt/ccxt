@@ -9,9 +9,8 @@ import (
 )
 
 type PreciseStruct struct {
-	Decimals   any
-	integer    *big.Int
-	baseNumber int64
+	Decimals any
+	integer  *big.Int
 }
 
 var Precise = &PreciseStruct{}
@@ -45,9 +44,8 @@ const preciseBaseNumber = 10
 // re-parsing it through the public constructor
 func newPrecise(integer *big.Int, decimals int) *PreciseStruct {
 	return &PreciseStruct{
-		Decimals:   decimals,
-		integer:    integer,
-		baseNumber: preciseBaseNumber,
+		Decimals: decimals,
+		integer:  integer,
 	}
 }
 
@@ -65,9 +63,7 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 	} else {
 		number = fmt.Sprintf("%v", number2)
 	}
-	p := &PreciseStruct{
-		baseNumber: preciseBaseNumber,
-	}
+	p := &PreciseStruct{}
 	p.integer = new(big.Int)
 	if dec == math.MinInt32 {
 		// scientific notation is rare — only lower and split when an
