@@ -1,5 +1,9 @@
 ## Install
 
+> **Just want an AI agent or your terminal to use CCXT?** You may not need to install the library at all:
+> - **[CCXT MCP Server](MCP.md)** — connect Claude Desktop/Code, Cursor, VS Code, Windsurf or any MCP host to 100+ exchanges and prediction markets. One line: `claude mcp add ccxt -- npx -y ccxt-mcp`.
+> - **[CCXT CLI](CLI.md)** — call any unified method straight from your shell.
+
 The easiest way to install the ccxt library is to use builtin package managers:
 
 - [ccxt in **NPM**](http://npmjs.com/package/ccxt) (JavaScript / Node v15+)
