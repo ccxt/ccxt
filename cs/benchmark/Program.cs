@@ -72,6 +72,28 @@ namespace ccxtbench
             return sb.ToString();
         }
 
+        // coinbase's real shape: {"pricebook":{"bids":[{"price":"..","size":".."}],...}}
+        static string BuildDictBook(int levels)
+        {
+            var sb = new StringBuilder();
+            sb.Append("{\"bids\":[");
+            for (int i = 0; i < levels; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"price\":\"").Append((112345.67 - i * 0.01).ToString("F2", CultureInfo.InvariantCulture))
+                  .Append("\",\"size\":\"").Append((0.5 + i * 0.001).ToString("F8", CultureInfo.InvariantCulture)).Append("\"}");
+            }
+            sb.Append("],\"asks\":[");
+            for (int i = 0; i < levels; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"price\":\"").Append((112345.68 + i * 0.01).ToString("F2", CultureInfo.InvariantCulture))
+                  .Append("\",\"size\":\"").Append((0.5 + i * 0.001).ToString("F8", CultureInfo.InvariantCulture)).Append("\"}");
+            }
+            sb.Append("]}");
+            return sb.ToString();
+        }
+
         static int EnvInt(string k, int d) => int.TryParse(Environment.GetEnvironmentVariable(k), out var v) ? v : d;
         static double NowMs() => (double)Stopwatch.GetTimestamp() / Stopwatch.Frequency * 1000.0;
         static string N(double v) => v.ToString(CultureInfo.InvariantCulture);
@@ -148,8 +170,12 @@ namespace ccxtbench
             int retain = EnvInt("BENCH_LOAD_RETAIN", 2000);
 
             var ex = new coinbase();
-            string raw = BuildRawBook(levels);
-            for (int i = 0; i < 200; i++) ex.parseOrderBook(ex.parseJson(raw), symbol); // warmup / JIT
+            bool dictShape = Environment.GetEnvironmentVariable("BENCH_BOOK_SHAPE") == "dict";
+            string raw = dictShape ? BuildDictBook(levels) : BuildRawBook(levels);
+            Func<object> parseOne = dictShape
+                ? (Func<object>)(() => ex.parseOrderBook(ex.parseJson(raw), symbol, null, "bids", "asks", "price", "size"))
+                : (Func<object>)(() => ex.parseOrderBook(ex.parseJson(raw), symbol));
+            for (int i = 0; i < 200; i++) parseOne(); // warmup / JIT
 
             var proc = Process.GetCurrentProcess();
             var cpu0 = proc.TotalProcessorTime;
@@ -157,7 +183,7 @@ namespace ccxtbench
             long ops = 0, sink = 0;
             while (NowMs() < deadline)
             {
-                var ob = ex.parseOrderBook(ex.parseJson(raw), symbol);
+                var ob = parseOne();
                 if (ob is IDictionary<string, object> d && d.TryGetValue("bids", out var b) && b is System.Collections.IList list) sink += list.Count;
                 ops++;
             }
@@ -167,7 +193,7 @@ namespace ccxtbench
 
             long rssBefore = CurrentRssKb();
             var kept = new List<object>();
-            for (int i = 0; i < retain; i++) kept.Add(ex.parseOrderBook(ex.parseJson(raw), symbol));
+            for (int i = 0; i < retain; i++) kept.Add(parseOne());
             long rssAfter = CurrentRssKb();
             double perBookKb = Math.Round((double)(rssAfter - rssBefore) / retain, 2);
 
