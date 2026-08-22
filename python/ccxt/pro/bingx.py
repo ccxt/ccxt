@@ -1265,6 +1265,8 @@ class bingx(ccxt.async_support.bingx):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         data = self.safe_dict(message, 'a', {})
+        if not ('P' in data):
+            return
         rawPositions = self.safe_list(data, 'P', [])
         newPositions = []
         for i in range(0, len(rawPositions)):
