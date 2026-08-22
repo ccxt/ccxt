@@ -54,6 +54,7 @@ export default class lighter extends Exchange {
                 'createStopOrder': false,
                 'createTriggerOrder': false,
                 'editOrder': true,
+                'editOrders': true,
                 'fetchAccounts': true,
                 'fetchAllGreeks': false,
                 'fetchBalance': true,
@@ -1003,13 +1004,36 @@ export default class lighter extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        const [ txType, txInfo, market ] = await this.signAndEditOrder ('editOrder', id, symbol, amount, price, params);
+        const request: Dict = {
+            'tx_type': txType,
+            'tx_info': txInfo,
+        };
+        const response = await this.publicPostSendTx (request);
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#signAndEditOrder
+     * @description signs a modify order transaction, lighter only changes amount, price and trigger price
+     * @param {string} method the name of the calling unified method, used for option lookups and error messages
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any[]} an array of [ txType, txInfo, market ]
+     */
+    async signAndEditOrder (method: string, id: string, symbol: string, amount: Num = undefined, price: Num = undefined, params = {}): Promise<any[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let apiKeyIndex: Int = undefined;
-        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, 'editOrder', 'apiKeyIndex', 'api_key_index');
+        [ apiKeyIndex, params ] = this.handleApiKeyIndex (params, method, 'apiKeyIndex', 'api_key_index');
         let accountIndex: Int = undefined;
-        [ accountIndex, params ] = await this.handleAccountIndex (params, 'editOrder', 'accountIndex', 'account_index');
+        [ accountIndex, params ] = await this.handleAccountIndex (params, method, 'accountIndex', 'account_index');
         const strAccountIndex = this.numberToString (accountIndex) as string;
         const strApiKeyIndex = this.numberToString (apiKeyIndex) as string;
         const signer = await this.loadAccount (this.options['chainId'], this.getLighterPrivateKey (strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, params);
@@ -1045,12 +1069,7 @@ export default class lighter extends Exchange {
             signRaw['integrator_maker_fee'] = this.options['integratorMakerFee'];
         }
         const [ txType, txInfo ] = this.lighterSignModifyOrder (signer, this.extend (signRaw, params));
-        const request: Dict = {
-            'tx_type': txType,
-            'tx_info': txInfo,
-        };
-        const response = await this.publicPostSendTx (request);
-        return this.parseOrder (response, market);
+        return [ txType, txInfo, market ];
     }
 
     /**
@@ -3324,11 +3343,21 @@ export default class lighter extends Exchange {
                     'market_index': this.safeString (cancelledMarket, 'id'),
                     'order_id': id,
                 });
+            } else if (transactionMethod === 'editOrder') {
+                const id = this.safeString (transaction, 'id') as string;
+                const amount = this.safeNumber (transaction, 'amount');
+                const price = this.safeNumber (transaction, 'price');
+                signed = await this.signAndEditOrder (method, id, symbol as string, amount, price, requestParams);
+                const editedMarket = signed[2];
+                infos.push ({
+                    'market_index': this.safeString (editedMarket, 'id'),
+                    'order_id': id,
+                });
             } else if (transactionMethod === 'cancelAllOrders') {
                 signed = await this.signAndCancelAllOrders (method, symbol, requestParams);
                 infos.push ({});
             } else {
-                throw new NotSupported (this.id + ' ' + method + '() does not support "' + transactionMethod + '" transactions, supported methods are "createOrder", "cancelOrder" and "cancelAllOrders"');
+                throw new NotSupported (this.id + ' ' + method + '() does not support "' + transactionMethod + '" transactions, supported methods are "createOrder", "editOrder", "cancelOrder" and "cancelAllOrders"');
             }
             txTypes.push (this.parseToInt (signed[0]));
             txInfos.push (signed[1]);
@@ -3398,13 +3427,13 @@ export default class lighter extends Exchange {
      * @description signs and sends an ordered list of transactions in a single request, order creations and cancellations can be mixed freely
      * @see https://apidocs.lighter.xyz/reference/sendtxbatch
      * @param {object[]} transactions ordered list of transactions, the exchange executes them in the given order
-     * @param {string} transactions[].method one of "createOrder", "cancelOrder" or "cancelAllOrders", defaults to "createOrder"
-     * @param {string} transactions[].symbol unified market symbol, required by "createOrder" and "cancelOrder"
+     * @param {string} transactions[].method one of "createOrder", "editOrder", "cancelOrder" or "cancelAllOrders", defaults to "createOrder"
+     * @param {string} transactions[].symbol unified market symbol, required by every method except "cancelAllOrders"
      * @param {string} [transactions[].type] 'market' or 'limit', only used by "createOrder"
      * @param {string} [transactions[].side] 'buy' or 'sell', only used by "createOrder"
-     * @param {float} [transactions[].amount] how much of currency you want to trade in units of base currency, only used by "createOrder"
-     * @param {float} [transactions[].price] the price at which the order is to be fulfilled, only used by "createOrder"
-     * @param {string} [transactions[].id] order id, only used by "cancelOrder"
+     * @param {float} [transactions[].amount] how much of currency you want to trade in units of base currency, used by "createOrder" and "editOrder"
+     * @param {float} [transactions[].price] the price at which the order is to be fulfilled, used by "createOrder" and "editOrder"
+     * @param {string} [transactions[].id] order id, used by "editOrder" and "cancelOrder"
      * @param {object} [transactions[].params] extra parameters specific to this single transaction
      * @param {object} [params] extra parameters applied to every transaction of the batch
      * @param {int} [params.nonce] nonce of the first transaction, the following ones are incremented by one
@@ -3453,6 +3482,49 @@ export default class lighter extends Exchange {
                 'symbol': this.safeString (rawOrder, 'symbol'),
                 'type': this.safeString (rawOrder, 'type'),
                 'side': this.safeString (rawOrder, 'side'),
+                'amount': this.safeNumber (rawOrder, 'amount'),
+                'price': this.safeNumber (rawOrder, 'price'),
+                'params': this.safeDict (rawOrder, 'params', {}),
+            });
+        }
+        return transactions;
+    }
+
+    /**
+     * @method
+     * @name lighter#editOrders
+     * @description edit a list of trade orders using a single request
+     * @see https://apidocs.lighter.xyz/reference/sendtxbatch
+     * @param {Array} orders list of orders to edit, each object should contain id, symbol, amount and price
+     * @param {object} [params] extra parameters applied to every order of the batch
+     * @param {int} [params.nonce] nonce of the first order, the following ones are incremented by one
+     * @param {int} [params.apiKeyIndex] apiKeyIndex, shared by every order of the batch
+     * @param {int} [params.accountIndex] accountIndex, shared by every order of the batch
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        const transactions = this.editOrdersTransactions (orders);
+        const signedBatch = await this.signBatchTransactions ('editOrders', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#editOrdersTransactions
+     * @description converts a list of unified edit requests into batch transactions
+     * @param {Array} orders list of orders to edit
+     * @returns {object[]} a list of batch transactions
+     */
+    editOrdersTransactions (orders: OrderRequest[]): Dict[] {
+        const transactions: List = [];
+        const ordersLength = orders.length;
+        for (let i = 0; i < ordersLength; i++) {
+            const rawOrder = orders[i];
+            transactions.push ({
+                'method': 'editOrder',
+                'id': this.safeString (rawOrder, 'id'),
+                'symbol': this.safeString (rawOrder, 'symbol'),
                 'amount': this.safeNumber (rawOrder, 'amount'),
                 'price': this.safeNumber (rawOrder, 'price'),
                 'params': this.safeDict (rawOrder, 'params', {}),

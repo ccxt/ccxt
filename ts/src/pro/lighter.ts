@@ -45,6 +45,7 @@ export default class lighter extends lighterRest {
                 'unWatchOrders': true,
                 'createOrderWs': true,
                 'createOrdersWs': true,
+                'editOrderWs': true,
                 'cancelOrderWs': true,
                 'cancelOrdersWs': true,
                 'cancelAllOrdersWs': true,
@@ -1210,6 +1211,44 @@ export default class lighter extends lighterRest {
 
     /**
      * @method
+     * @name lighter#editOrderWs
+     * @description edit an open order, lighter only changes amount, price and trigger price
+     * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type not used by lighter.editOrderWs
+     * @param {string} side not used by lighter.editOrderWs
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {float} [params.triggerPrice] the new trigger price
+     * @param {int} [params.accountIndex] account index
+     * @param {int} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
+        const url = this.urls['api']['ws'];
+        const requestId = this.requestId (url);
+        const messageHash = 'jsonapi/sendtx:' + requestId;
+        const [ txType, txInfo, market ] = await this.signAndEditOrder ('editOrderWs', id, symbol, amount, price, params);
+        const parsedTx = this.parseJson (txInfo);
+        const message: Dict = {
+            'type': 'jsonapi/sendtx',
+            'data': {
+                'id': requestId,
+                'tx_type': txType,
+                'tx_info': parsedTx,
+            },
+        };
+        const subscription: Dict = {
+            'id': requestId,
+        };
+        const rawMessage = await this.watch (url, messageHash, message, messageHash, subscription);
+        return this.parseOrder (rawMessage, market);
+    }
+
+    /**
+     * @method
      * @name lighter#cancelOrderWs
      * @description cancel multiple orders
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-tx
@@ -1331,13 +1370,13 @@ export default class lighter extends lighterRest {
      * @description signs and sends an ordered list of transactions in a single websocket message, order creations and cancellations can be mixed freely
      * @see https://apidocs.lighter.xyz/docs/websocket-reference#send-batch-tx
      * @param {object[]} transactions ordered list of at most 15 transactions, the exchange executes them in the given order
-     * @param {string} transactions[].method one of "createOrder", "cancelOrder" or "cancelAllOrders", defaults to "createOrder"
-     * @param {string} transactions[].symbol unified market symbol, required by "createOrder" and "cancelOrder"
+     * @param {string} transactions[].method one of "createOrder", "editOrder", "cancelOrder" or "cancelAllOrders", defaults to "createOrder"
+     * @param {string} transactions[].symbol unified market symbol, required by every method except "cancelAllOrders"
      * @param {string} [transactions[].type] 'market' or 'limit', only used by "createOrder"
      * @param {string} [transactions[].side] 'buy' or 'sell', only used by "createOrder"
-     * @param {float} [transactions[].amount] how much of currency you want to trade in units of base currency, only used by "createOrder"
-     * @param {float} [transactions[].price] the price at which the order is to be fulfilled, only used by "createOrder"
-     * @param {string} [transactions[].id] order id, only used by "cancelOrder"
+     * @param {float} [transactions[].amount] how much of currency you want to trade in units of base currency, used by "createOrder" and "editOrder"
+     * @param {float} [transactions[].price] the price at which the order is to be fulfilled, used by "createOrder" and "editOrder"
+     * @param {string} [transactions[].id] order id, used by "editOrder" and "cancelOrder"
      * @param {object} [transactions[].params] extra parameters specific to this single transaction
      * @param {object} [params] extra parameters applied to every transaction of the batch
      * @param {int} [params.nonce] nonce of the first transaction, the following ones are incremented by one
