@@ -1165,7 +1165,8 @@ export default class bingx extends bingxRest {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
-        const fetchBalanceSnapshot = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        let fetchBalanceSnapshot: Bool = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if (fetchBalanceSnapshot) {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
@@ -1756,10 +1757,11 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
+            const previous = this.safeDict (this.balance[type], code, {});
             const account = this.account ();
             account['info'] = balance;
-            account['used'] = this.safeString (balance, 'lk');
-            account['free'] = this.safeString (balance, 'wb');
+            account['total'] = this.safeString (balance, 'wb');
+            account['used'] = this.safeString (previous, 'used');
             if ((type !== undefined) && (code !== undefined)) {
                 this.balance[type][code] = account;
             }
