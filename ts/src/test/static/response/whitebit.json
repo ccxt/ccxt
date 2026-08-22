@@ -537,10 +537,7 @@
                         "price": 73236.67,
                         "amount": 0.003212,
                         "cost": 235.23618404,
-                        "fee": {
-                            "cost": null,
-                            "currency": null
-                        },
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -588,7 +585,7 @@
                     "average": 72764.05,
                     "baseVolume": 17340.923796,
                     "quoteVolume": 1237525361.9981415,
-                    "markPrice": null,
+                    "markPrice":  null,
                     "indexPrice": null,
                     "info": {
                         "open": "72165.04",
@@ -646,11 +643,13 @@
                 "description": "Fetch a conversion quote",
                 "method": "fetchConvertQuote",
                 "input": [
-                    "USDT",
-                    "BTC",
-                    4
+                  "USDT",
+                  "BTC",
+                  4
                 ],
-                "httpResponse": {
+                "httpResponse": {"give":"4","receive":"0.0000477","rate":"0.00001192","id":"1740959","expireAt":1741090372,"from":"USDT","to":"BTC"},
+                "parsedResponse": {
+                  "info": {
                     "give": "4",
                     "receive": "0.0000477",
                     "rate": "0.00001192",
@@ -658,26 +657,16 @@
                     "expireAt": 1741090372,
                     "from": "USDT",
                     "to": "BTC"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "give": "4",
-                        "receive": "0.0000477",
-                        "rate": "0.00001192",
-                        "id": "1740959",
-                        "expireAt": 1741090372,
-                        "from": "USDT",
-                        "to": "BTC"
-                    },
-                    "timestamp": 1741090372000,
-                    "datetime": "2025-03-04T12:12:52.000Z",
-                    "id": "1740959",
-                    "fromCurrency": "USDT",
-                    "fromAmount": 4,
-                    "toCurrency": "BTC",
-                    "toAmount": 0.0000477,
-                    "price": 0.00001192,
-                    "fee": null
+                  },
+                  "timestamp": 1741090372000,
+                  "datetime": "2025-03-04T12:12:52.000Z",
+                  "id": "1740959",
+                  "fromCurrency": "USDT",
+                  "fromAmount": 4,
+                  "toCurrency": "BTC",
+                  "toAmount": 0.0000477,
+                  "price": 0.00001192,
+                  "fee": null
                 }
             }
         ],
@@ -686,29 +675,26 @@
                 "description": "Fill this with a description of the method call",
                 "method": "createConvertTrade",
                 "input": [
-                    "1741105",
-                    "USDT",
-                    "BTC",
-                    4
+                  "1741105",
+                  "USDT",
+                  "BTC",
+                  4
                 ],
-                "httpResponse": {
+                "httpResponse": {"finalGive":"4","finalReceive":"0.00004772"},
+                "parsedResponse": {
+                  "info": {
                     "finalGive": "4",
                     "finalReceive": "0.00004772"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "finalGive": "4",
-                        "finalReceive": "0.00004772"
-                    },
-                    "timestamp": null,
-                    "datetime": null,
-                    "id": null,
-                    "fromCurrency": "USDT",
-                    "fromAmount": 4,
-                    "toCurrency": "BTC",
-                    "toAmount": 0.00004772,
-                    "price": null,
-                    "fee": null
+                  },
+                  "timestamp": null,
+                  "datetime": null,
+                  "id": null,
+                  "fromCurrency": "USDT",
+                  "fromAmount": 4,
+                  "toCurrency": "BTC",
+                  "toAmount": 0.00004772,
+                  "price": null,
+                  "fee": null
                 }
             }
         ],
@@ -717,55 +703,35 @@
                 "description": "Fill this with a description of the method call",
                 "method": "fetchConvertTradeHistory",
                 "input": [
-                    "USDT"
+                  "USDT"
                 ],
-                "httpResponse": {
-                    "records": [
-                        {
-                            "id": "1741105",
-                            "path": [
-                                {
-                                    "from": "USDT",
-                                    "to": "BTC",
-                                    "rate": "0.00001193"
-                                }
-                            ],
-                            "date": 1741090757,
-                            "give": "4",
-                            "receive": "0.00004772",
-                            "rate": "0.00001193"
-                        }
-                    ],
-                    "total": 1,
-                    "limit": 100,
-                    "offset": 0
-                },
+                "httpResponse": {"records":[{"id":"1741105","path":[{"from":"USDT","to":"BTC","rate":"0.00001193"}],"date":1741090757,"give":"4","receive":"0.00004772","rate":"0.00001193"}],"total":1,"limit":100,"offset":0},
                 "parsedResponse": [
-                    {
-                        "info": {
-                            "id": "1741105",
-                            "path": [
-                                {
-                                    "from": "USDT",
-                                    "to": "BTC",
-                                    "rate": "0.00001193"
-                                }
-                            ],
-                            "date": 1741090757,
-                            "give": "4",
-                            "receive": "0.00004772",
-                            "rate": "0.00001193"
-                        },
-                        "timestamp": 1741090757000,
-                        "datetime": "2025-03-04T12:19:17.000Z",
-                        "id": "1741105",
-                        "fromCurrency": "USDT",
-                        "fromAmount": 4,
-                        "toCurrency": "BTC",
-                        "toAmount": 0.00004772,
-                        "price": 0.00001193,
-                        "fee": null
-                    }
+                  {
+                    "info": {
+                      "id": "1741105",
+                      "path": [
+                        {
+                          "from": "USDT",
+                          "to": "BTC",
+                          "rate": "0.00001193"
+                        }
+                      ],
+                      "date": 1741090757,
+                      "give": "4",
+                      "receive": "0.00004772",
+                      "rate": "0.00001193"
+                    },
+                    "timestamp": 1741090757000,
+                    "datetime": "2025-03-04T12:19:17.000Z",
+                    "id": "1741105",
+                    "fromCurrency": "USDT",
+                    "fromAmount": 4,
+                    "toCurrency": "BTC",
+                    "toAmount": 0.00004772,
+                    "price": 0.00001193,
+                    "fee": null
+                  }
                 ]
             }
         ],
@@ -774,44 +740,81 @@
                 "description": "Fetch a swap position",
                 "method": "fetchPosition",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ],
-                "httpResponse": [
-                    {
-                        "positionId": 479975679,
-                        "market": "BTC_PERP",
-                        "openDate": 1741941025.3011868,
-                        "modifyDate": 1741941025.3011868,
-                        "amount": "0.001",
-                        "basePrice": "82498.7",
-                        "liquidationPrice": "70177.2",
-                        "pnl": "0",
-                        "pnlPercent": "0.00",
-                        "margin": "4.2",
-                        "freeMargin": "10",
-                        "funding": "0",
-                        "unrealizedFunding": "0",
-                        "liquidationState": null,
-                        "tpsl": null
-                    }
-                ],
+                "httpResponse": [{"positionId":479975679,"market":"BTC_PERP","openDate":1741941025.3011869,"modifyDate":1741941025.3011869,"amount":"0.001","basePrice":"82498.7","liquidationPrice":"70177.2","pnl":"0","pnlPercent":"0.00","margin":"4.2","freeMargin":"10","funding":"0","unrealizedFunding":"0","liquidationState":null,"tpsl":null}],
                 "parsedResponse": {
+                  "info": {
+                    "positionId": 479975679,
+                    "market": "BTC_PERP",
+                    "openDate": 1741941025.3011869,
+                    "modifyDate": 1741941025.3011869,
+                    "amount": "0.001",
+                    "basePrice": "82498.7",
+                    "liquidationPrice": "70177.2",
+                    "pnl": "0",
+                    "pnlPercent": "0.00",
+                    "margin": "4.2",
+                    "freeMargin": "10",
+                    "funding": "0",
+                    "unrealizedFunding": "0",
+                    "liquidationState": null,
+                    "tpsl": null
+                  },
+                  "id": "479975679",
+                  "symbol": "BTC/USDT:USDT",
+                  "notional": null,
+                  "marginMode": null,
+                  "liquidationPrice": 70177.2,
+                  "entryPrice": 82498.7,
+                  "unrealizedPnl": 0,
+                  "realizedPnl": null,
+                  "percentage": 0,
+                  "contracts": null,
+                  "contractSize": 1,
+                  "markPrice": null,
+                  "lastPrice": null,
+                  "side": null,
+                  "hedged": null,
+                  "timestamp": 1741941025301,
+                  "datetime": "2025-03-14T08:30:25.301Z",
+                  "lastUpdateTimestamp": 1741941025301,
+                  "maintenanceMargin": null,
+                  "maintenanceMarginPercentage": null,
+                  "collateral": 4.2,
+                  "initialMargin": null,
+                  "initialMarginPercentage": null,
+                  "leverage": null,
+                  "marginRatio": null,
+                  "stopLossPrice": null,
+                  "takeProfitPrice": null
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "Fetch all swap positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": [{"positionId":479975679,"market":"BTC_PERP","openDate":1741941025.3011869,"modifyDate":1741941025.3011869,"amount":"0.001","basePrice":"82498.7","liquidationPrice":"70177.2","pnl":"0","pnlPercent":"0.00","margin":"4.2","freeMargin":"10","funding":"0","unrealizedFunding":"0","liquidationState":null,"tpsl":null}],
+                "parsedResponse": [
+                  {
                     "info": {
-                        "positionId": 479975679,
-                        "market": "BTC_PERP",
-                        "openDate": 1741941025.3011868,
-                        "modifyDate": 1741941025.3011868,
-                        "amount": "0.001",
-                        "basePrice": "82498.7",
-                        "liquidationPrice": "70177.2",
-                        "pnl": "0",
-                        "pnlPercent": "0.00",
-                        "margin": "4.2",
-                        "freeMargin": "10",
-                        "funding": "0",
-                        "unrealizedFunding": "0",
-                        "liquidationState": null,
-                        "tpsl": null
+                      "positionId": 479975679,
+                      "market": "BTC_PERP",
+                      "openDate": 1741941025.3011869,
+                      "modifyDate": 1741941025.3011869,
+                      "amount": "0.001",
+                      "basePrice": "82498.7",
+                      "liquidationPrice": "70177.2",
+                      "pnl": "0",
+                      "pnlPercent": "0.00",
+                      "margin": "4.2",
+                      "freeMargin": "10",
+                      "funding": "0",
+                      "unrealizedFunding": "0",
+                      "liquidationState": null,
+                      "tpsl": null
                     },
                     "id": "479975679",
                     "symbol": "BTC/USDT:USDT",
@@ -840,80 +843,7 @@
                     "marginRatio": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null
-                }
-            }
-        ],
-        "fetchPositions": [
-            {
-                "description": "Fetch all swap positions",
-                "method": "fetchPositions",
-                "input": [],
-                "httpResponse": [
-                    {
-                        "positionId": 479975679,
-                        "market": "BTC_PERP",
-                        "openDate": 1741941025.3011868,
-                        "modifyDate": 1741941025.3011868,
-                        "amount": "0.001",
-                        "basePrice": "82498.7",
-                        "liquidationPrice": "70177.2",
-                        "pnl": "0",
-                        "pnlPercent": "0.00",
-                        "margin": "4.2",
-                        "freeMargin": "10",
-                        "funding": "0",
-                        "unrealizedFunding": "0",
-                        "liquidationState": null,
-                        "tpsl": null
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "positionId": 479975679,
-                            "market": "BTC_PERP",
-                            "openDate": 1741941025.3011868,
-                            "modifyDate": 1741941025.3011868,
-                            "amount": "0.001",
-                            "basePrice": "82498.7",
-                            "liquidationPrice": "70177.2",
-                            "pnl": "0",
-                            "pnlPercent": "0.00",
-                            "margin": "4.2",
-                            "freeMargin": "10",
-                            "funding": "0",
-                            "unrealizedFunding": "0",
-                            "liquidationState": null,
-                            "tpsl": null
-                        },
-                        "id": "479975679",
-                        "symbol": "BTC/USDT:USDT",
-                        "notional": null,
-                        "marginMode": null,
-                        "liquidationPrice": 70177.2,
-                        "entryPrice": 82498.7,
-                        "unrealizedPnl": 0,
-                        "realizedPnl": null,
-                        "percentage": 0,
-                        "contracts": null,
-                        "contractSize": 1,
-                        "markPrice": null,
-                        "lastPrice": null,
-                        "side": null,
-                        "hedged": null,
-                        "timestamp": 1741941025301,
-                        "datetime": "2025-03-14T08:30:25.301Z",
-                        "lastUpdateTimestamp": 1741941025301,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "collateral": 4.2,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "leverage": null,
-                        "marginRatio": null,
-                        "stopLossPrice": null,
-                        "takeProfitPrice": null
-                    }
+                  }
                 ]
             }
         ],
@@ -922,78 +852,58 @@
                 "description": "Fetch the position history for a swap symbol",
                 "method": "fetchPositionHistory",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ],
-                "httpResponse": [
-                    {
-                        "positionId": 479975679,
-                        "market": "BTC_PERP",
-                        "openDate": 1741941025.301187,
-                        "modifyDate": 1741941025.301187,
-                        "amount": "0.001",
-                        "basePrice": "82498.7",
-                        "realizedFunding": "0",
-                        "liquidationPrice": "0",
-                        "liquidationState": null,
-                        "orderDetail": {
-                            "id": 1224727949521,
-                            "tradeAmount": "0.001",
-                            "price": "82498.7",
-                            "tradeFee": "0.028874545",
-                            "fundingFee": "0",
-                            "realizedPnl": "-0.028874545"
-                        }
-                    }
-                ],
+                "httpResponse": [{"positionId":479975679,"market":"BTC_PERP","openDate":1741941025.301187,"modifyDate":1741941025.301187,"amount":"0.001","basePrice":"82498.7","realizedFunding":"0","liquidationPrice":"0","liquidationState":null,"orderDetail":{"id":1224727949521,"tradeAmount":"0.001","price":"82498.7","tradeFee":"0.028874545","fundingFee":"0","realizedPnl":"-0.028874545"}}],
                 "parsedResponse": [
-                    {
-                        "info": {
-                            "positionId": 479975679,
-                            "market": "BTC_PERP",
-                            "openDate": 1741941025.301187,
-                            "modifyDate": 1741941025.301187,
-                            "amount": "0.001",
-                            "basePrice": "82498.7",
-                            "realizedFunding": "0",
-                            "liquidationPrice": "0",
-                            "liquidationState": null,
-                            "orderDetail": {
-                                "id": 1224727949521,
-                                "tradeAmount": "0.001",
-                                "price": "82498.7",
-                                "tradeFee": "0.028874545",
-                                "fundingFee": "0",
-                                "realizedPnl": "-0.028874545"
-                            }
-                        },
-                        "id": "479975679",
-                        "symbol": "BTC/USDT:USDT",
-                        "notional": null,
-                        "marginMode": null,
-                        "liquidationPrice": 0,
-                        "entryPrice": 82498.7,
-                        "unrealizedPnl": null,
-                        "realizedPnl": -0.028874545,
-                        "percentage": null,
-                        "contracts": null,
-                        "contractSize": 1,
-                        "markPrice": null,
-                        "lastPrice": null,
-                        "side": null,
-                        "hedged": null,
-                        "timestamp": 1741941025301,
-                        "datetime": "2025-03-14T08:30:25.301Z",
-                        "lastUpdateTimestamp": 1741941025301,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "collateral": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "leverage": null,
-                        "marginRatio": null,
-                        "stopLossPrice": null,
-                        "takeProfitPrice": null
-                    }
+                  {
+                    "info": {
+                      "positionId": 479975679,
+                      "market": "BTC_PERP",
+                      "openDate": 1741941025.301187,
+                      "modifyDate": 1741941025.301187,
+                      "amount": "0.001",
+                      "basePrice": "82498.7",
+                      "realizedFunding": "0",
+                      "liquidationPrice": "0",
+                      "liquidationState": null,
+                      "orderDetail": {
+                        "id": 1224727949521,
+                        "tradeAmount": "0.001",
+                        "price": "82498.7",
+                        "tradeFee": "0.028874545",
+                        "fundingFee": "0",
+                        "realizedPnl": "-0.028874545"
+                      }
+                    },
+                    "id": "479975679",
+                    "symbol": "BTC/USDT:USDT",
+                    "notional": null,
+                    "marginMode": null,
+                    "liquidationPrice": 0,
+                    "entryPrice": 82498.7,
+                    "unrealizedPnl": null,
+                    "realizedPnl": -0.028874545,
+                    "percentage": null,
+                    "contracts": null,
+                    "contractSize": 1,
+                    "markPrice": null,
+                    "lastPrice": null,
+                    "side": null,
+                    "hedged": null,
+                    "timestamp": 1741941025301,
+                    "datetime": "2025-03-14T08:30:25.301Z",
+                    "lastUpdateTimestamp": 1741941025301,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": null,
+                    "initialMarginPercentage": null,
+                    "leverage": null,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
                 ]
             }
         ],
@@ -1147,7 +1057,7 @@
                         "optionType": null,
                         "precision": {
                             "amount": 0.0001,
-                            "price": 0.000001
+                            "price": 1e-06
                         },
                         "limits": {
                             "leverage": {
@@ -1163,7 +1073,7 @@
                                 "max": null
                             },
                             "cost": {
-                                "min": 0.000012,
+                                "min": 1.2e-05,
                                 "max": 100000
                             }
                         },
@@ -1249,7 +1159,7 @@
                         "optionType": null,
                         "precision": {
                             "amount": 1000000,
-                            "price": 1e-9
+                            "price": 1e-09
                         },
                         "limits": {
                             "leverage": {
@@ -1291,6 +1201,112 @@
                             "maxTotal": "1000000000000",
                             "isTradFiFutures": false,
                             "delistedAt": null
+                        }
+                    }
+                ]
+            },
+            {
+                "description": "fetchMarkets: TradFi futures are parsed as linear swaps",
+                "method": "fetchMarkets",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "name": "RIVN_PERP",
+                        "stock": "RIVN",
+                        "money": "USDT",
+                        "stockPrec": "2",
+                        "moneyPrec": "2",
+                        "feePrec": "6",
+                        "makerFee": "0.01",
+                        "takerFee": "0.055",
+                        "minAmount": "0.01",
+                        "minTotal": "5",
+                        "tradesEnabled": true,
+                        "type": "tradfiFutures",
+                        "isCollateral": true,
+                        "maxTotal": "100000000000",
+                        "isTradFiFutures": true,
+                        "delistedAt": null,
+                        "tickSize": "0.01",
+                        "stepSize": "0.01"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "RIVN_PERP",
+                        "lowercaseId": null,
+                        "symbol": "RIVN/USDT:USDT",
+                        "base": "RIVN",
+                        "quote": "USDT",
+                        "settle": "USDT",
+                        "baseId": "RIVN",
+                        "quoteId": "USDT",
+                        "settleId": "USDT",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": false,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": false,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00055,
+                        "maker": 0.0001,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.01
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": null
+                            },
+                            "amount": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 5,
+                                "max": 100000000000
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "RIVN_PERP",
+                            "stock": "RIVN",
+                            "money": "USDT",
+                            "stockPrec": "2",
+                            "moneyPrec": "2",
+                            "feePrec": "6",
+                            "makerFee": "0.01",
+                            "takerFee": "0.055",
+                            "minAmount": "0.01",
+                            "minTotal": "5",
+                            "tradesEnabled": true,
+                            "type": "tradfiFutures",
+                            "isCollateral": true,
+                            "maxTotal": "100000000000",
+                            "isTradFiFutures": true,
+                            "delistedAt": null,
+                            "tickSize": "0.01",
+                            "stepSize": "0.01"
                         }
                     }
                 ]
@@ -2864,7 +2880,7 @@
                         },
                         "symbol": "DOGE/USDT:USDT",
                         "currency": "USDT",
-                        "interest": 0.0000307828284903,
+                        "interest": 3.07828284903e-05,
                         "interestRate": 0.00098,
                         "amountBorrowed": 80,
                         "marginMode": "cross",
