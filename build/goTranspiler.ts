@@ -16,13 +16,12 @@ import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
+import { SELECT_TAG, buildTagFor, stubTagFor, getExtendedExchanges, allExchanges } from "./goBuildTags.js";
 
 type dict = { [key: string]: string };
 
 ansi.nice;
 
-// const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
-const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
 const exchangeIds = exchanges.ids;
 const exchangeIdsWs = exchanges.ws;
@@ -832,7 +831,6 @@ class NewTranspiler {
     // prediction venues (which embed BaseExchange via PredictionExchange) never inherit them —
     // matching TS/C#/Java. Populated in transpileBaseMethods.
     exchangeTierMethods: Set<string> = new Set();
-    private _extendedExchanges: { [key: string]: string } | null = null;
     private _typeAndFuncNamesCache: { [key: string]: Set<string> } = {};
     // transpiled base-class results, keyed by source path. transpileBaseMethods runs three
     // times per --rest-and-ws build (REST, prediction recursion, WS) over the same
@@ -958,31 +956,8 @@ class NewTranspiler {
         ];
     }
 
-    // Dynamic alias detection based on TypeScript inheritance analysis
     get extendedExchanges(): { [key: string]: string } {
-        if (!this._extendedExchanges) {
-
-            const extendedExchanges: { [key: string]: string } = {};
-            const tsFolder = './ts/src';
-
-            exchangeIds.forEach((exchangeName: string) => {
-                const filePath = `${tsFolder}/${exchangeName}.ts`;
-                const content = fs.readFileSync(filePath, 'utf8');
-
-                const inheritancePattern = /class (\w+) extends ([a-z0-9]+)/;
-                const match = content.match(inheritancePattern);
-
-                if (match) {
-                    const baseExchange = match[2];
-                    
-                    if (baseExchange.toLowerCase() !== exchangeName.toLowerCase()) {
-                        extendedExchanges[exchangeName] = baseExchange;
-                    }
-                }
-            })
-            this._extendedExchanges = extendedExchanges;
-        }
-        return this._extendedExchanges;
+        return getExtendedExchanges();
     }
 
     isExtendedExchange(exchangeName: string) {
@@ -995,6 +970,41 @@ class NewTranspiler {
 
     getParentExchange(exchangeName: string) {
         return this.extendedExchanges[exchangeName];
+    }
+
+    // <id>_stub.go: New<Exchange>/New<Exchange>Core returning nil, compiled when the exchange is
+    // left out of the build. They return the interface, not the concrete type, which is absent
+    // from such a build.
+    createStubFile (exchangeName: string, ws: boolean | 'prediction' = false): string {
+        const capitalized = capitalize(exchangeName);
+        const isWs = (ws === true);
+        const external = isWs || this.isPrediction;
+        const qualifier = external ? 'ccxt.' : '';
+        let packageName = 'ccxt';
+        if (this.isPrediction) {
+            packageName = isWs ? PREDICTION_WS_PACKAGE : PREDICTION_PACKAGE;
+        } else if (isWs) {
+            packageName = 'ccxtpro';
+        }
+        return [
+            stubTagFor(exchangeName),
+            '',
+            `package ${packageName}`,
+            external ? 'import ccxt "github.com/ccxt/ccxt/go/v4"' : '',
+            '',
+            this.createGeneratedHeader().join('\n'),
+            '',
+            `// ${exchangeName} is not part of this build (see ${SELECT_TAG}). CreateExchange returns`,
+            `// nil for it and DynamicallyCreateInstance returns (nil, false), as for an unknown id.`,
+            `func New${capitalized}(userConfig map[string]any) ${qualifier}IExchange {`,
+            '    return nil',
+            '}',
+            '',
+            `func New${capitalized}Core() ${qualifier}ICoreExchange {`,
+            '    return nil',
+            '}',
+            '',
+        ].join('\n');
     }
 
     // go custom method
@@ -2086,7 +2096,10 @@ class NewTranspiler {
         if (this.isPrediction) {
             importLines = ws ? [ ...imports, PREDICTION_IMPORT ].join('\n') : imports.join('\n');
         }
+        // 'Exchange' is the shared base wrapper, not an exchange. Never tag-gated
+        const buildTag = (exchange === 'Exchange') ? [] : [ buildTagFor(exchange), '' ];
         let file = [
+            ...buildTag,
             namespace,
             importLines,
             exchangeStruct,
@@ -2477,16 +2490,23 @@ ${constStatements.join('\n')}
     createDynamicInstanceFile(ws = false, prediction = false, force = true){
         const subFolder = ws ? '/pro' : (prediction ? '/prediction' : '');
         const dynamicInstanceFile = `./go/v4${subFolder}/exchange_dynamic.go`;
-        // this file is a pure function of the exchange id lists in exchanges.json
-        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json' ], [ dynamicInstanceFile ])) {
+        // this file is a function of the exchange id lists in exchanges.json and of the case
+        // template below, which carries the nil guard the stub files rely on
+        if (skipUpToDateStage ('go', `dynamic instance file (${subFolder || '/v4'})`, force, [ './exchanges.json', './build/goTranspiler.ts' ], [ dynamicInstanceFile ])) {
             return;
         }
         const exchanges = ws ? exchangeIdsWs : (prediction ? predictionIds : ['Exchange'].concat(exchangeIds));
         const externalPackage = ws || prediction; // packages outside go/v4 import the base ccxt package
         const caseStatements = exchanges.map(exchange => {
             const coreName = (exchange === 'Exchange') ? exchange : capitalize(exchange) + 'Core';
+            // New<Ex>Core() is nil when the exchange is not in the build (see <id>_stub.go);
+            // Init on a nil interface would panic.
+            const guard = (exchange === 'Exchange') ? '' : `
+        if ${exchange}Itf == nil {
+            return nil, false
+        }`;
             return`    case "${exchange}":
-        ${exchange}Itf := New${coreName}()
+        ${exchange}Itf := New${coreName}()${guard}
         ${exchange}Itf.Init(exchangeArgs)
         return ${exchange}Itf, true`;
         });
@@ -2983,8 +3003,10 @@ ${caseStatements.join('\n')}
             const transpiled = transpiledFiles[i];
             const exchangeName = exchangeFiles[i].replace('.ts','');
             const path = `${wrapperFolder}/${exchangeName}_wrapper.go`;
+            const stubPath = `${wrapperFolder}/${exchangeName}_stub.go`
 
             this.createGoWrappers(exchangeName, path, transpiled.methodsTypes, ws);
+            overwriteFileAndFolder(stubPath, this.createStubFile(exchangeName, ws));
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws));
         // prediction packages always need their own option-structs file even with a single exchange.
@@ -3242,7 +3264,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // error constructors, the embedded Exchange struct itself, ...)
             content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
         }
-        return goImports + content;
+        return [ buildTagFor(exchangeName), '', goImports + content ].join('\n');
     }
 
     transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws: boolean | 'prediction' = false) {
