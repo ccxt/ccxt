@@ -67,20 +67,14 @@ interpreted" would predict:
 
 ### Bonus: a first look at the Rust port
 
-CCXT is currently growing a seventh target. [PR #28627](https://github.com/ccxt/ccxt/pull/28627)
-adds a Rust implementation — still unmerged and moving fast, but far enough along that
-`parseJson` and `parseOrderBook` work, so we pointed the same benchmark at it.
+A Rust implementation is in progress in [PR #28627](https://github.com/ccxt/ccxt/pull/28627).
+We ran the same benchmark against a snapshot of that branch: **~1.01 ms, third place** — behind
+JavaScript and Java, ahead of Go and C#. Since Rust is also AOT-compiled with no tracing JIT,
+that ordering is a hint the boxing tax below is about how the code is generated, not about
+compilation.
 
-**Rust lands third at ~1.01 ms** — roughly 2.3× the parse time of JavaScript and Java, but 1.7×
-faster than PHP and about 2.6× faster than Go and C#. That last comparison is the interesting one:
-Rust and Go are both AOT-compiled with no tracing JIT, yet the Rust port is comfortably ahead.
-The difference is representation. Where the transpiled Go boxes every value into `interface{}`
-and routes each field access through a generic runtime helper, the Rust port's `Value` is a
-plain enum matched directly — same dynamic shape, far less indirection per level.
-
-Treat this number as provisional: it's an in-flight port, and the measurement carries two
-caveats spelled out in the methodology (a different machine, normalized via a same-machine
-JavaScript reference; and a crate trimmed to the coinbase exchange so it would compile).
+This is a moving target — an unmerged branch measured at one moment, with the caveats in the
+methodology — so treat it as a rough early signal, not a result.
 
 We also tried swapping Python's standard-library `json` for the fast Rust parser
 [`orjson`](https://github.com/ijl/orjson) — shown as its own row (`BENCH_ORJSON=1`). It shaves
@@ -166,6 +160,11 @@ and exclude here:
 - **JavaScript (11.0 ms) and PHP (11.7 ms)** sit in the middle.
 - **Go: 18.7 ms** — the most expensive per delta.
 
+Those really are milliseconds, not microseconds. It's a lot of CPU for one delta, and the reason
+is scale: the book is ~45,500 levels, and every new price level shifts an array of that size. As
+a sanity check, JavaScript parses 2,000 book entries in 0.44 ms offline, so ~45,500 entries works
+out to roughly 10 ms — right where the measured 11.0 ms per delta lands.
+
 That 18× spread is not an apples-to-oranges comparison: we checked, and every language holds the
 same book (~45,500 levels after the snapshot). The difference is in how each one *inserts* into
 it. All of them keep the side sorted and do a binary search plus a shift, which is O(n) per new
@@ -200,9 +199,8 @@ in PHP.
   — because the transpiled code is boxing-heavy and only a mature tracing JIT specializes it away.
 - **Memory favors Node and Go.** They keep the smallest footprints; the JVM is fastest but
   hungriest out of the box.
-- **The Rust port looks promising.** In its current unmerged state it parses ~2.6× faster than
-  Go or C# and holds the second-leanest memory footprint — evidence that the boxing tax above is
-  a property of how the code is generated, not of ahead-of-time compilation.
+- **The in-progress Rust port looks promising** — faster than Go and C# in an early snapshot,
+  though it's an unmerged branch and will move.
 - **For high-frequency WebSocket books, Python is remarkably cheap** (~0.6 ms of CPU per delta)
   and Go is the most expensive (~19 ms); PHP's real cost is the one-time snapshot build, not the
   deltas.
@@ -255,18 +253,16 @@ and hover any span for its exact share of the trace.
 - **Same CCXT version (4.5.65) everywhere**, generated from one TypeScript source. Runtimes:
   Node 22, Python 3.11, PHP 8.4, .NET 8, Go 1.25, OpenJDK 21. REST/WebSocket cover four languages;
   the offline load test covers all six.
-- **The Rust figure is a normalized preview, and here is exactly what that means.** It comes from
-  unmerged [PR #28627](https://github.com/ccxt/ccxt/pull/28627) and was measured after our
-  original machine was replaced mid-project, so it could not be run alongside the other six. Two
-  adjustments were needed, both disclosed rather than hidden:
-  (1) *Throughput is normalized.* We re-ran the **JavaScript** benchmark on the replacement
-  machine as a reference: it managed 1,858 ops/s versus 2,293 ops/s originally, i.e. the second
-  box is 23% slower. Rust measured 800 ops/s raw there, which rescales to ~988 ops/s (1.01 ms).
-  The raw and normalized values are both in `results.json`.
-  (2) *The crate was trimmed.* The full Rust crate would not compile in the available
-  15 GB / 4 cores (it OOM-killed at full parallelism and failed to link after 33 minutes
-  single-threaded), so we removed the 206 exchange modules the benchmark never calls and built
-  coinbase only. `parseJson` and `parseOrderBook` are untouched by that trim.
-  Memory needed **no** adjustment: the JavaScript reference reproduced its original per-book
-  (145 KB) and peak-RSS (425 MB) numbers within 1%, so memory comparisons transfer across the two
-  machines directly. Treat the Rust latency as a good estimate, not a measured peer of the others.
+- **The Rust figure is a normalized snapshot, not a peer measurement.** It comes from unmerged
+  [PR #28627](https://github.com/ccxt/ccxt/pull/28627), measured after our original machine was
+  replaced mid-project. Throughput is rescaled via a same-machine JavaScript reference run (that
+  box benchmarked 23% slower; Rust's raw 800 ops/s → ~988), and the crate was trimmed to coinbase
+  so it would compile. Memory needed no adjustment — the JS reference reproduced its original
+  numbers within 1%. Raw and normalized values are both in `results.json`.
+
+## Conclusion
+
+Pick your language for the workload, not the benchmark. If you're calling REST endpoints, the
+network dwarfs everything and any of the six will do. If you're parsing at volume or merging deep
+order books, the runtime's JIT and the shape of the generated code decide it — and that ordering
+has little to do with whether the language is compiled.
