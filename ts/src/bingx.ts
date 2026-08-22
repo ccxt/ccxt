@@ -5753,7 +5753,16 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const amountString = market['inverse'] ? this.currencyToPrecision (market['settle'], amount) : this.amountToPrecision (market['symbol'], amount);
+        const positionSide = this.safeString (params, 'positionSide');
+        if (market['inverse'] && (positionSide === undefined)) {
+            throw new ArgumentsRequired (this.id + ' setMargin() requires a positionSide parameter for Coin-M markets');
+        }
+        let amountString: Str = undefined;
+        if (market['inverse']) {
+            amountString = this.currencyToPrecision (market['settle'], amount);
+        } else {
+            amountString = this.amountToPrecision (market['symbol'], amount);
+        }
         const request: Dict = {
             'symbol': market['id'],
             'amount': amountString,
@@ -5773,7 +5782,16 @@ export default class bingx extends Exchange {
         //        "type": 1
         //    }
         //
-        return this.parseMarginModification (response, market);
+        let responseData = response;
+        if (market['inverse']) {
+            responseData = this.extend ({
+                'amount': amountString,
+                'type': type,
+            }, this.safeDict (response, 'data', {}));
+        }
+        const result = this.parseMarginModification (responseData, market);
+        result['info'] = response;
+        return result;
     }
 
     override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
