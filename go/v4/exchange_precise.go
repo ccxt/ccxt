@@ -81,13 +81,13 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 		}
 		decimalIndex := strings.Index(number, ".")
 		var newDecimals int
-		var integerString string
 		if decimalIndex > -1 {
 			newDecimals = len(number) - decimalIndex - 1
-			integerString = number[:decimalIndex] + number[decimalIndex+1:]
-		} else {
-			integerString = number
 		}
+		// strip every dot, not just the first — slicing around the first dot
+		// only would leave residual dots on malformed multi-dot input, and
+		// SetString would then silently parse just the leading digit prefix
+		integerString := strings.Replace(number, ".", "", -1)
 		p.integer.SetString(integerString, 10)
 		p.Decimals = newDecimals - modified
 	} else {
@@ -167,11 +167,13 @@ func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
 	}
 	var smallerInteger, biggerInteger *big.Int
 	var smallerDecimals, biggerDecimals int
+	var pIsBigger bool
 	if p.Decimals.(int) > other.Decimals.(int) {
 		smallerInteger = other.integer
 		smallerDecimals = other.Decimals.(int)
 		biggerInteger = p.integer
 		biggerDecimals = p.Decimals.(int)
+		pIsBigger = true
 	} else {
 		smallerInteger = p.integer
 		smallerDecimals = p.Decimals.(int)
@@ -180,7 +182,7 @@ func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
 	}
 	normalized := new(big.Int).Mul(smallerInteger, precisePow10(int64(biggerDecimals-smallerDecimals)))
 	var result *big.Int
-	if biggerInteger == p.integer {
+	if pIsBigger {
 		result = new(big.Int).Sub(biggerInteger, normalized)
 	} else {
 		result = new(big.Int).Sub(normalized, biggerInteger)
