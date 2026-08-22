@@ -2152,7 +2152,15 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeDict(response, "data");
+        object data = null;
+        if (isTrue(getValue(market, "inverse")))
+        {
+            object dataList = this.safeList(response, "data", new List<object>() {});
+            data = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
+        } else
+        {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        }
         return this.parseFundingRate(data, market);
     }
 
@@ -3343,7 +3351,7 @@ public partial class bingx : Exchange
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
             { "notional", this.safeNumber(position, "positionValue") },
             { "marginMode", marginMode },
-            { "liquidationPrice", null },
+            { "liquidationPrice", this.safeNumberOmitZero(position, "liquidationPrice") },
             { "entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice") },
             { "unrealizedPnl", this.safeNumber(position, "unrealizedProfit") },
             { "realizedPnl", this.safeNumber(position, "realisedProfit") },
