@@ -1036,9 +1036,9 @@ func (this *WeexCore) ParseCurrency(rawCurrency any) any {
 			})
 		}
 	}
-	var networkKeys any = ObjectKeys(networks)
-	var networksLength any = GetArrayLength(networkKeys)
-	var emptyChains any = IsEqual(networksLength, 0) // non-functional coins
+	var networkKeys []string = ObjectKeys(networks)
+	var networksLength int = GetArrayLength(networkKeys)
+	var emptyChains bool = IsEqual(networksLength, 0) // non-functional coins
 	var valueForEmpty any = Ternary(IsTrue(emptyChains), false, nil)
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      rawCurrency,
@@ -1093,7 +1093,7 @@ func (this *WeexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		retRes94812 := (<-this.LoadTimeDifference())
 		PanicOnError(retRes94812)
 	}
-	var promises any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
+	var promises []any = []any{this.PublicGetApiV3ExchangeInfo(params), this.ContractGetCapiV3MarketExchangeInfo(params)}
 	spotResponsecontractResponseVariable := (<-promiseAll(promises))
 	spotResponse := GetValue(spotResponsecontractResponseVariable, 0)
 	contractResponse := GetValue(spotResponsecontractResponseVariable, 1)
@@ -1168,9 +1168,9 @@ func (this *WeexCore) ParseMarket(market any) any {
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var settle any = this.SafeCurrencyCode(settleId)
-	var active any = true
+	var active bool = true
 	var symbol any = Add(Add(base, "/"), quote)
-	var isSpot any = true
+	var isSpot bool = true
 	var isLinear any = nil
 	var isInverse any = nil
 	if IsTrue(!IsEqual(settle, nil)) {
@@ -1481,7 +1481,7 @@ func (this *WeexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	_ = market
 	var marketId any = this.SafeString(ticker, "symbol")
 	var markPrice any = this.SafeString(ticker, "markPrice")
-	var marketType any = "spot"
+	var marketType string = "spot"
 	if IsTrue(IsTrue((!IsEqual(markPrice, nil))) || IsTrue((IsTrue((!IsEqual(market, nil))) && IsTrue(GetValue(market, "contract"))))) {
 		// 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
 		marketType = "swap"
@@ -1634,7 +1634,7 @@ func (this *WeexCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	// normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-	var ticker any = this.Extend(map[string]any{}, response)
+	var ticker map[string]any = this.Extend(map[string]any{}, response)
 	if IsTrue(IsEqual(priceType, "INDEX")) {
 		AddElementToObject(ticker, "indexPrice", this.SafeString(ticker, "price"))
 	} else {
@@ -1945,7 +1945,7 @@ func (this *WeexCore) fetchContractOHLCVBody(ch chan any, symbol any, optionalAr
 		var startTime any = since
 		var endTime any = until
 		if IsTrue(IsTrue((IsEqual(since, nil))) || IsTrue((IsEqual(until, nil)))) {
-			var now any = this.Milliseconds()
+			var now int64 = this.Milliseconds()
 			var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 			var numberOfCandles any = Ternary(IsTrue(limit), limit, maxHistoricalLimit)
 			var timeDelta any = Multiply(numberOfCandles, duration)
@@ -2879,7 +2879,7 @@ func (this *WeexCore) CreateContractOrderRequest(symbol any, typeVar any, side a
 		reduceOnly = true
 	}
 	var isReduceOnly any = (IsEqual(reduceOnly, true))
-	var positionSide any = "LONG"
+	var positionSide string = "LONG"
 	if IsTrue(isReduceOnly) {
 		if IsTrue(IsEqual(side, "buy")) {
 			positionSide = "SHORT"
@@ -4378,7 +4378,7 @@ func (this *WeexCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after any = this.SafeString2(item, "afterAmount", "balance")
 	var before any = Precise.StringSub(after, amountRaw)
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
-	var direction any = "in"
+	var direction string = "in"
 	if IsTrue(IsEqual(amountRaw, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseLedgerEntry() missing amountRaw")))
 	}
@@ -4621,7 +4621,7 @@ func (this *WeexCore) ParsePosition(position any, optionalArgs ...any) any {
 	market = this.SafeMarket(marketId, market, nil, "contract")
 	var timestamp any = this.SafeInteger(position, "createdTime")
 	var marginType any = this.SafeString2(position, "marginType", "marginMode")
-	var marginMode any = "cross"
+	var marginMode string = "cross"
 	if IsTrue(IsEqual(marginType, "ISOLATED")) {
 		marginMode = "isolated"
 	}
@@ -5420,7 +5420,7 @@ func (this *WeexCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 			payload = Add(payload, body)
 		}
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		headers = map[string]any{
 			"ACCESS-KEY":        this.ApiKey,
 			"ACCESS-SIGN":       signature,

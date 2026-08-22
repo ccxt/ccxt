@@ -301,6 +301,209 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
     return { 'body': declaration.concat (rewritten), 'end': end };
 }
 
+// ---------------------------------------------------------------------------
+// Core-body local typing.
+//
+// ast-transpiler's Go printer hardcodes `var <name> any = <expr>` for every
+// declaration, discarding types TypeScript already knows. Where the emitted
+// initializer's Go static type is ALREADY concrete (`Split` returns []string,
+// `ObjectKeys` returns []string, `this.Extend` returns map[string]any, a string
+// literal is a string, ...) the `any` box always held that dynamic type, so
+// naming it at the declaration site is a pure compile-time refinement with
+// byte-identical runtime behaviour.
+//
+// Shapes whose helper returns `any` (this.SafeString, GetValue, Ternary, Add,
+// Precise.String*, ...) are deliberately NOT typed: converting those to a
+// pointer/typed form would change what travels inside the `any` and a typed nil
+// boxed in `any` is not `== nil` in Go, which silently inverts control flow.
+// ---------------------------------------------------------------------------
+
+// initializer prefix -> the concrete Go static type of that expression
+const GO_LOCAL_TYPE_RULES: [RegExp, string][] = [
+    [ /^GetArrayLength\(/,   'int' ],
+    [ /^GetIndexOf\(/,       'int' ],
+    [ /^ToString\(/,         'string' ],
+    [ /^ToLower\(/,          'string' ],
+    [ /^ToUpper\(/,          'string' ],
+    [ /^JsonStringify\(/,    'string' ],
+    [ /^Capitalize\(/,       'string' ],
+    [ /^this\.Uuid\(/,       'string' ],
+    [ /^this\.Hmac\(/,       'string' ],
+    [ /^this\.Ymdhms\(/,     'string' ],
+    [ /^this\.Yyyymmdd\(/,   'string' ],
+    [ /^this\.Ymd\(/,        'string' ],
+    [ /^Split\(/,            '[]string' ],
+    [ /^ObjectKeys\(/,       '[]string' ],
+    [ /^this\.Extend\(/,     'map[string]any' ],
+    [ /^this\.DeepExtend\(/, 'map[string]any' ],
+    [ /^this\.Keysort\(/,    'map[string]any' ],
+    [ /^this\.IndexBy\(/,    'map[string]any' ],
+    [ /^this\.GroupBy\(/,    'map[string]any' ],
+    [ /^this\.Milliseconds\(/, 'int64' ],
+    [ /^this\.Seconds\(/,    'int64' ],
+    [ /^this\.Microseconds\(/, 'int64' ],
+    [ /^ParseInt\(/,         'int64' ],
+    [ /^MathFloor\(/,        'float64' ],
+    [ /^MathCeil\(/,         'float64' ],
+    [ /^MathRound\(/,        'float64' ],
+    [ /^MathAbs\(/,          'float64' ],
+    [ /^MathPow\(/,          'float64' ],
+    [ /^ToFloat64\(/,        'float64' ],
+    [ /^(IsTrue|IsEqual|IsGreaterThan|IsLessThan|IsGreaterThanOrEqual|IsLessThanOrEqual|InOp|IsArray|IsString|IsInt|IsBool|IsNumber|IsObject|IsDictionary|StartsWith|EndsWith|IsInstance|IsInteger|this\.InArray|this\.ValueIsDefined)\(/, 'bool' ],
+    [ /^Precise\.String(Gt|Ge|Lt|Le|Eq|Equals)\(/, 'bool' ],
+    [ /^(true|false)$/,      'bool' ],
+    [ /^"(?:[^"\\]|\\.)*"$/, 'string' ],
+    [ /^map\[string\](any|interface\{\})\{/, 'map[string]any' ],
+    [ /^\[\](any|interface\{\})\{/, '[]any' ],
+];
+
+const GO_PRIMITIVE_TYPE_NAMES = [ 'string', 'int64', 'int', 'float64', 'bool', 'any' ];
+const GO_LOCAL_DECL = /^(\s*)var ([A-Za-z_]\w*) any = (.*)$/;
+
+// drop a trailing // comment that is not inside a string literal
+function stripGoLineComment (text: string): string {
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inString) {
+            if (escaped) { escaped = false; }
+            else if (c === '\\') { escaped = true; }
+            else if (c === '"') { inString = false; }
+        } else if (c === '"') { inString = true;
+        } else if ((c === '/') && (text[i + 1] === '/')) { return text.slice (0, i).trim (); }
+    }
+    return text.trim ();
+}
+
+// bracket depth of a line, ignoring strings/comments — used to join a multi-line initializer
+function goBracketDelta (text: string): number {
+    let depth = 0;
+    let inString = false;
+    let escaped = false;
+    for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inString) {
+            if (escaped) { escaped = false; }
+            else if (c === '\\') { escaped = true; }
+            else if (c === '"') { inString = false; }
+        } else if (c === '"') { inString = true;
+        } else if (c === '`') { const j = text.indexOf ('`', i + 1); if (j < 0) { break; } i = j;
+        } else if ((c === '/') && (text[i + 1] === '/')) { break;
+        } else if ((c === '(') || (c === '[') || (c === '{')) { depth++;
+        } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
+    }
+    return depth;
+}
+
+// pro/ and prediction/ qualify base helpers as ccxt.Xxx — classify on the bare name
+function goLocalTypeOf (initializer: string): string | undefined {
+    const expr = stripGoLineComment (initializer).replace (/\bccxt\./g, '');
+    for (let i = 0; i < GO_LOCAL_TYPE_RULES.length; i++) {
+        if (GO_LOCAL_TYPE_RULES[i][0].test (expr)) {
+            return GO_LOCAL_TYPE_RULES[i][1];
+        }
+    }
+    return undefined;
+}
+
+// A refinement is rejected when anything downstream in the same body relies on the
+// local being an interface, or would stop compiling / change meaning under a
+// concrete type. Every filter here is a real construct observed in the tree.
+function goLocalIsSafeToType (name: string, goType: string, rest: string): boolean {
+    const w = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const rejects = [
+        new RegExp ('(?:^|[^\\w.])' + w + '\\s*\\.\\('),                        // X.(T) / switch X.(type): illegal on a concrete type
+        new RegExp ('&\\s*' + w + '\\b'),                                       // &X would become *T instead of *any
+        new RegExp ('(?:^|[^\\w.])' + w + '\\s*[!=]=\\s*nil|nil\\s*[!=]=\\s*' + w + '\\b'), // nil compare: []string(nil)==nil is true, any([]string(nil))==nil is false
+        new RegExp ('(?:^|[^\\w.])' + w + '\\s*(\\+=|-=|\\*=|/=|%=|\\+\\+|--)'),
+        new RegExp ('(?:^|[^\\w.])(?:' + w + '\\s*,[\\w\\s,]*|[\\w\\s,]*,\\s*' + w + '\\s*)(?::?=)(?!=)', 'm'),
+        new RegExp ('(?:^|[^\\w.])' + w + '\\s*:=', 'm'),                       // shadowing redeclaration
+        new RegExp ('range\\s+' + w + '\\b'),
+        new RegExp ('(?:^|[^\\w.])' + w + '\\s*(==|!=|<|>|<=|>=|\\+|-|\\*|/)\\s'), // direct Go operator: type-checked once concrete
+        new RegExp ('(?:^|[^\\w.])' + w + '\\s*\\['),                           // index/slice expression
+    ];
+    for (let i = 0; i < rejects.length; i++) {
+        if (rejects[i].test (rest)) {
+            return false;
+        }
+    }
+    // later plain assignments are allowed only when the RHS has the SAME concrete type
+    const assign = new RegExp ('(?:^|[^\\w.])' + w + '\\s*=(?!=)', 'gm');
+    let m: RegExpExecArray | null;
+    while ((m = assign.exec (rest)) !== null) {
+        const end = rest.indexOf ('\n', m.index + m[0].length);
+        const rhs = rest.slice (m.index + m[0].length, (end < 0) ? rest.length : end);
+        if (goLocalTypeOf (rhs) !== goType) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// identifiers that shadow a primitive type name inside this func (a transpiled
+// parameter is literally named `string` in findBroadlyMatchedKey), which would make
+// `var x string = ...` a compile error
+function goShadowedTypeNames (signature: string, body: string): Set<string> {
+    const shadowed = new Set<string> ();
+    const open = signature.indexOf ('(', signature.indexOf (')') + 1);
+    const params = (open >= 0) ? signature.slice (open + 1, signature.lastIndexOf (')')) : '';
+    const paramRe = /([A-Za-z_]\w*)\s+(?:\.\.\.)?[A-Za-z_[\]*.]+/g;
+    let m: RegExpExecArray | null;
+    while ((m = paramRe.exec (params)) !== null) {
+        if (GO_PRIMITIVE_TYPE_NAMES.indexOf (m[1]) >= 0) { shadowed.add (m[1]); }
+    }
+    const declRe = /(?:^|[^\w.])(?:var\s+([A-Za-z_]\w*)|([A-Za-z_]\w*)\s*:=)/gm;
+    while ((m = declRe.exec (body)) !== null) {
+        const n = m[1] || m[2];
+        if (GO_PRIMITIVE_TYPE_NAMES.indexOf (n) >= 0) { shadowed.add (n); }
+    }
+    return shadowed;
+}
+
+function typeCoreLocals (content: string): string {
+    if (content.indexOf (' any = ') < 0) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    let index = 0;
+    while (index < lines.length) {
+        if (!lines[index].startsWith ('func ')) {
+            index++;
+            continue;
+        }
+        // gofmt (and the emitter) close a top-level func with a bare `}` at column 0
+        let end = index + 1;
+        while ((end < lines.length) && (lines[end] !== '}')) { end++; }
+        const bodyStart = index + 1;
+        const body = lines.slice (bodyStart, end).join ('\n');
+        const shadowed = goShadowedTypeNames (lines[index], body);
+        let i = bodyStart;
+        while (i < end) {
+            const match = lines[i].match (GO_LOCAL_DECL);
+            if (match === null) { i++; continue; }
+            const [ , , name, head ] = match;
+            let depth = goBracketDelta (head);
+            let last = i;
+            let initializer = head;
+            while ((depth > 0) && (last + 1 < end)) {
+                last++;
+                initializer += ' ' + lines[last].trim ();
+                depth += goBracketDelta (lines[last]);
+            }
+            const goType = goLocalTypeOf (initializer);
+            const collides = (goType !== undefined) && (goType.match (/[A-Za-z_]\w*/g) || []).some ((t) => shadowed.has (t));
+            if ((goType !== undefined) && !collides
+                && goLocalIsSafeToType (name, goType, lines.slice (last + 1, end).join ('\n'))) {
+                lines[i] = lines[i].replace ('var ' + name + ' any = ', 'var ' + name + ' ' + goType + ' = ');
+            }
+            i = last + 1;
+        }
+        index = end + 1;
+    }
+    return lines.join ('\n');
+}
+
 function guardMultiSendCores (content: string): string {
     if (content.indexOf ('ReturnPanicError(ch)') < 0) {
         return content;
@@ -339,6 +542,7 @@ function formatGoSource (filePath: string, content: string): string {
         return content;
     }
     content = guardMultiSendCores (content);
+    content = typeCoreLocals (content);
     const gofmt = spawnSync ('gofmt', [], {
         'input': content,
         'encoding': 'utf8',
@@ -2493,8 +2697,9 @@ ${constStatements.join('\n')}
             ].join('\n');
             const file = fileHeader + '\n' + structDef + methods + shims + "\n";
             // this is the one generated .go write that does not go through
-            // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
-            fs.writeFileSync (goPredictionBase, guardMultiSendCores (file));
+            // overwriteFileAndFolder()/formatGoSource(), so guard its async cores
+            // and type its body locals here
+            fs.writeFileSync (goPredictionBase, typeCoreLocals (guardMultiSendCores (file)));
             log.green ('Transpiled prediction base methods to', (goPredictionBase as any).yellow)
         }
     }

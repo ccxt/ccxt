@@ -437,8 +437,8 @@ func (this *FoxbitCore) ParseCurrency(rawCurrency any) any {
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo any = this.SafeDict(network, "withdraw_info")
 		var networkDepositInfo any = this.SafeDict(network, "deposit_info")
-		var isWithdrawEnabled any = IsEqual(this.SafeString(networkWithdrawInfo, "status"), "ENABLED")
-		var isDepositEnabled any = IsEqual(this.SafeString(networkDepositInfo, "status"), "ENABLED")
+		var isWithdrawEnabled bool = IsEqual(this.SafeString(networkWithdrawInfo, "status"), "ENABLED")
+		var isDepositEnabled bool = IsEqual(this.SafeString(networkDepositInfo, "status"), "ENABLED")
 		if IsTrue(!IsEqual(networkCode, nil)) {
 			AddElementToObject(parsedNetworks, networkCode, map[string]any{
 				"info":      rawCurrency,
@@ -2454,7 +2454,7 @@ func (this *FoxbitCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var cryptoDetails any = this.SafeDict(transaction, "details_crypto")
 	var address any = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
 	var sn any = this.SafeString(transaction, "sn")
-	var typeVar any = "withdrawal"
+	var typeVar string = "withdrawal"
 	if IsTrue(IsTrue(!IsEqual(sn, nil)) && IsTrue(IsEqual(GetValue(sn, 0), "D"))) {
 		typeVar = "deposit"
 	}
@@ -2531,7 +2531,7 @@ func (this *FoxbitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = this.ParseLedgerEntryType(reasonType)
 	var exchangeSymbol any = this.SafeString(item, "currency_symbol")
 	var currencySymbol any = this.SafeCurrencyCode(exchangeSymbol)
-	var direction any = "in"
+	var direction string = "in"
 	var amount any = this.SafeNumber(item, "amount")
 	var realAmount any = amount
 	var balance any = this.SafeNumber(item, "balance")
@@ -2593,12 +2593,12 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), urlPath), fullPath)
 	params = this.Omit(params, this.ExtractParams(path))
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var query any = ""
 	var signatureQuery any = ""
 	if IsTrue(IsEqual(method, "GET")) {
-		var paramKeys any = ObjectKeys(params)
-		var paramKeysLength any = GetArrayLength(paramKeys)
+		var paramKeys []string = ObjectKeys(params)
+		var paramKeysLength int = GetArrayLength(paramKeys)
 		if IsTrue(IsGreaterThan(paramKeysLength, 0)) {
 			query = this.Urlencode(params)
 			url = Add(url, Add("?", query))
@@ -2629,7 +2629,7 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(urlPath, "private")) {
 		this.CheckRequiredCredentials()
 		var preHash any = Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature)
-		var signature any = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
+		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
 		AddElementToObject(headers, "X-FB-ACCESS-KEY", this.ApiKey)
 		AddElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.NumberToString(timestamp))
 		AddElementToObject(headers, "X-FB-ACCESS-SIGNATURE", signature)

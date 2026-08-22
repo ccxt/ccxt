@@ -630,7 +630,7 @@ func (this *BigoneCore) ParseCurrency(rawCurrency any) any {
 			})
 		}
 	}
-	var chainLength any = GetArrayLength(chains)
+	var chainLength int = GetArrayLength(chains)
 	var typeVar any = nil
 	if IsTrue(this.SafeBool(rawCurrency, "is_fiat")) {
 		typeVar = "fiat"
@@ -686,7 +686,7 @@ func (this *BigoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var promises any = []any{this.PublicGetAssetPairs(params), this.ContractPublicGetSymbols(params)}
+	var promises []any = []any{this.PublicGetAssetPairs(params), this.ContractPublicGetSymbols(params)}
 
 	promisesResult := (<-promiseAll(promises))
 	PanicOnError(promisesResult)
@@ -1051,7 +1051,7 @@ func (this *BigoneCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
 	typeVar = GetValue(typeVarparamsVariable, 0)
 	params = GetValue(typeVarparamsVariable, 1)
-	var isSpot any = IsEqual(typeVar, "spot")
+	var isSpot bool = IsEqual(typeVar, "spot")
 	var request any = map[string]any{}
 	symbols = this.MarketSymbols(symbols)
 	var data any = nil
@@ -1238,7 +1238,7 @@ func (this *BigoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 }
 func (this *BigoneCore) ParseContractBidsAsks(bidsAsks any) any {
-	var bidsAsksKeys any = ObjectKeys(bidsAsks)
+	var bidsAsksKeys []string = ObjectKeys(bidsAsks)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(bidsAsksKeys)); i++ {
 		var price any = GetValue(bidsAsksKeys, i)
@@ -1822,8 +1822,8 @@ func (this *BigoneCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var market any = this.Market(symbol)
 	var isBuy any = (IsEqual(side, "buy"))
 	var requestSide any = Ternary(IsTrue(isBuy), "BID", "ASK")
-	var uppercaseType any = ToUpper(typeVar)
-	var isLimit any = IsEqual(uppercaseType, "LIMIT")
+	var uppercaseType string = ToUpper(typeVar)
+	var isLimit bool = IsEqual(uppercaseType, "LIMIT")
 	var exchangeSpecificParam any = this.SafeBool(params, "post_only", false)
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(IsEqual(uppercaseType, "MARKET"), IsEqual(exchangeSpecificParam, true), params)
@@ -2332,7 +2332,7 @@ func (this *BigoneCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var request any = map[string]any{
 			"type":  "OpenAPIV2",
 			"sub":   this.ApiKey,
@@ -2410,11 +2410,11 @@ func (this *BigoneCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var dataLength any = GetArrayLength(data)
+	var dataLength int = GetArrayLength(data)
 	if IsTrue(IsLessThan(dataLength, 1)) {
 		panic(ExchangeError(Add(this.Id, " fetchDepositAddress() returned empty address response")))
 	}
-	var chainsIndexedById any = this.IndexBy(data, "chain")
+	var chainsIndexedById map[string]any = this.IndexBy(data, "chain")
 	var selectedNetworkId any = this.SelectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById)
 	var addressObject any = this.SafeDict(chainsIndexedById, selectedNetworkId, map[string]any{})
 	var address any = this.SafeString(addressObject, "value")

@@ -328,7 +328,7 @@ func (this *GrvtCore) HandleTicker(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -458,7 +458,7 @@ func (this *GrvtCore) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -602,7 +602,7 @@ func (this *GrvtCore) HandleOHLCV(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -618,7 +618,7 @@ func (this *GrvtCore) HandleOHLCV(client any, message any) {
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseWsOHLCV(data, market)
 	stored.(ccxt.Appender).Append(parsed)
-	var resolveData any = []any{symbol, timeframe, stored}
+	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *GrvtCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -696,8 +696,8 @@ func (this *GrvtCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
-	var isSnapshot any = ccxt.IsEqual(channel, "v1.book.s")
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var isSnapshot bool = ccxt.IsEqual(channel, "v1.book.s")
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() requires a non-empty array of symbols")))
 	}
@@ -761,7 +761,7 @@ func (this *GrvtCore) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -772,8 +772,8 @@ func (this *GrvtCore) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var sequenceNumber any = this.SafeInteger(message, "sequence_number", 0)
 	var stream any = this.SafeString(message, "stream")
-	var isSnapshotChannel any = ccxt.IsEqual(stream, "v1.book.s")
-	var isSnapshotMessage any = ccxt.IsLessThanOrEqual(sequenceNumber, 0)
+	var isSnapshotChannel bool = ccxt.IsEqual(stream, "v1.book.s")
+	var isSnapshotMessage bool = ccxt.IsLessThanOrEqual(sequenceNumber, 0)
 	if ccxt.IsTrue(ccxt.IsTrue(isSnapshotChannel) || ccxt.IsTrue(isSnapshotMessage)) {
 		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)

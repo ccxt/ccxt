@@ -880,7 +880,7 @@ func (this *TokocryptoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 		var settle any = this.SafeCurrencyCode(settleId)
 		var symbol any = Add(Add(base, "/"), quote)
 		var filters any = this.SafeValue(market, "filters", []any{})
-		var filtersByType any = this.IndexBy(filters, "filterType")
+		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 		var status any = this.SafeString(market, "spotTradingEnable")
 		var active any = (IsEqual(status, "1"))
 		var permissions any = this.SafeValue(market, "permissions", []any{})
@@ -1290,7 +1290,7 @@ func (this *TokocryptoCore) fetchTradesBody(ch chan any, symbol any, optionalArg
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit) // default = 500, maximum = 1000
 	}
-	var defaultMethod any = "binanceGetTrades"
+	var defaultMethod string = "binanceGetTrades"
 	var method any = this.SafeString(this.Options, "fetchTradesMethod", defaultMethod)
 	var response any = nil
 	if IsTrue(IsTrue((IsEqual(method, "binanceGetAggTrades"))) && IsTrue((!IsEqual(since, nil)))) {
@@ -1938,7 +1938,7 @@ func (this *TokocryptoCore) ParseOrder(order any, optionalArgs ...any) any {
 		// GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
 		timeInForce = "PO"
 	}
-	var postOnly any = IsTrue((IsEqual(typeVar, "limit_maker"))) || IsTrue((IsEqual(timeInForce, "PO")))
+	var postOnly bool = IsTrue((IsEqual(typeVar, "limit_maker"))) || IsTrue((IsEqual(timeInForce, "PO")))
 	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 id,
@@ -2014,7 +2014,7 @@ func (this *TokocryptoCore) createOrderBody(ch chan any, symbol any, typeVar any
 		typeVar = "LIMIT_MAKER"
 	}
 	params = this.Omit(params, []any{"clientId", "clientOrderId"})
-	var initialUppercaseType any = ToUpper(typeVar)
+	var initialUppercaseType string = ToUpper(typeVar)
 	var uppercaseType any = initialUppercaseType
 	var triggerPrice any = this.SafeValue2(params, "triggerPrice", "stopPrice")
 	if IsTrue(!IsEqual(triggerPrice, nil)) {
@@ -2063,9 +2063,9 @@ func (this *TokocryptoCore) createOrderBody(ch chan any, symbol any, typeVar any
 		AddElementToObject(request, "clientId", clientOrderId)
 	}
 	// additional required fields depending on the order type
-	var priceIsRequired any = false
-	var triggerPriceIsRequired any = false
-	var quantityIsRequired any = false
+	var priceIsRequired bool = false
+	var triggerPriceIsRequired bool = false
+	var quantityIsRequired bool = false
 	//
 	// spot/margin
 	//
@@ -2891,7 +2891,7 @@ func (this *TokocryptoCore) ParseTransaction(transaction any, optionalArgs ...an
 		AddElementToObject(fee, "cost", feeCost)
 	}
 	var internalRaw any = this.SafeInteger(transaction, "transferType")
-	var internal any = false
+	var internal bool = false
 	if IsTrue(!IsEqual(internalRaw, nil)) {
 		internal = true
 	}
@@ -3010,7 +3010,7 @@ func (this *TokocryptoCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "wapi")) {
 		url = Add(url, ".html")
 	}
-	var userDataStream any = IsTrue((IsEqual(path, "userDataStream"))) || IsTrue((IsEqual(path, "listenKey")))
+	var userDataStream bool = IsTrue((IsEqual(path, "userDataStream"))) || IsTrue((IsEqual(path, "listenKey")))
 	if IsTrue(userDataStream) {
 		if IsTrue(this.ApiKey) {
 			// v1 special case for userDataStream
@@ -3028,7 +3028,7 @@ func (this *TokocryptoCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var query any = nil
 		var defaultRecvWindow any = this.SafeInteger(this.Options, "recvWindow")
-		var extendedParams any = this.Extend(map[string]any{
+		var extendedParams map[string]any = this.Extend(map[string]any{
 			"timestamp": this.Nonce(),
 		}, params)
 		if IsTrue(!IsEqual(defaultRecvWindow, nil)) {

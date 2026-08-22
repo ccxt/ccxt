@@ -277,15 +277,15 @@ func (this *BtcboxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	response2 := GetValue(response1response2Variable, 1)
 	//
 	var result2Data any = this.SafeDict(response2, "data", map[string]any{})
-	var marketIds any = ObjectKeys(response1)
+	var marketIds []string = ObjectKeys(response1)
 	var markets any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
-		var symbolParts any = Split(marketId, "_")
+		var symbolParts []string = Split(marketId, "_")
 		var baseCurr any = this.SafeString(symbolParts, 0, "")
 		var quote any = this.SafeString(symbolParts, 1, "")
-		var quoteId any = ToLower(quote)
-		var id any = ToLower(baseCurr)
+		var quoteId string = ToLower(quote)
+		var id string = ToLower(baseCurr)
 		var res any = this.SafeDict(response1, marketId, map[string]any{})
 		var symbol any = Add(Add(baseCurr, "/"), quote)
 		var fee any = Ternary(IsTrue((IsEqual(id, "BTC"))), this.ParseNumber("0.0005"), this.ParseNumber("0.0010"))
@@ -409,7 +409,7 @@ func (this *BtcboxCore) ParseBalance(response any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var codes any = ObjectKeys(this.Currencies)
+	var codes []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
 		var code any = GetValue(codes, i)
 		var currency any = this.Currency(code)
@@ -486,7 +486,7 @@ func (this *BtcboxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
-	var numSymbols any = GetArrayLength(this.Symbols)
+	var numSymbols int = GetArrayLength(this.Symbols)
 	if IsTrue(IsGreaterThan(numSymbols, 1)) {
 		AddElementToObject(request, "coin", GetValue(market, "baseId"))
 	}
@@ -552,7 +552,7 @@ func (this *BtcboxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
-	var numSymbols any = GetArrayLength(this.Symbols)
+	var numSymbols int = GetArrayLength(this.Symbols)
 	if IsTrue(IsGreaterThan(numSymbols, 1)) {
 		AddElementToObject(request, "coin", GetValue(market, "baseId"))
 	}
@@ -666,7 +666,7 @@ func (this *BtcboxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var request any = map[string]any{}
-	var numSymbols any = GetArrayLength(this.Symbols)
+	var numSymbols int = GetArrayLength(this.Symbols)
 	if IsTrue(IsGreaterThan(numSymbols, 1)) {
 		AddElementToObject(request, "coin", GetValue(market, "baseId"))
 	}
@@ -891,7 +891,7 @@ func (this *BtcboxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		symbol = "BTC/JPY"
 	}
 	var market any = this.Market(symbol)
-	var request any = this.Extend(map[string]any{
+	var request map[string]any = this.Extend(map[string]any{
 		"id":   id,
 		"coin": GetValue(market, "baseId"),
 	}, params)
@@ -1062,8 +1062,8 @@ func (this *BtcboxCore) Sign(path any, optionalArgs ...any) any {
 		url = Add(Add(GetValue(this.Urls, "www"), "/"), path)
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
-		var query any = this.Extend(map[string]any{
+		var nonce string = ToString(this.Nonce())
+		var query map[string]any = this.Extend(map[string]any{
 			"key":   this.ApiKey,
 			"nonce": nonce,
 		}, params)

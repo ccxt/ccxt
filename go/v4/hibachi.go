@@ -335,7 +335,7 @@ func (this *HibachiCore) GetAccountId() any {
 func (this *HibachiCore) ParseMarket(market any) any {
 	var marketId any = this.SafeString(market, "symbol")
 	var numericId any = this.SafeNumber(market, "id")
-	var marketType any = "swap"
+	var marketType string = "swap"
 	var baseId any = this.SafeString(market, "underlyingSymbol")
 	var quoteId any = this.SafeString(market, "settlementSymbol")
 	var base any = this.SafeCurrencyCode(baseId)
@@ -452,7 +452,7 @@ func (this *HibachiCore) HardcodedCurrencies() any {
 	// We don't have an API endpoint to expose this information yet
 	var result any = map[string]any{}
 	var networks any = map[string]any{}
-	var networkId any = "ARBITRUM"
+	var networkId string = "ARBITRUM"
 	AddElementToObject(networks, networkId, map[string]any{
 		"id":      networkId,
 		"network": networkId,
@@ -755,7 +755,7 @@ func (this *HibachiCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	var rawPromises any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
+	var rawPromises []any = []any{this.PublicGetMarketDataPrices(this.Extend(request, params)), this.PublicGetMarketDataStats(this.Extend(request, params))}
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
@@ -829,10 +829,10 @@ func (this *HibachiCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(IsTrue(IsTrue(IsEqual(remainingString, nil)) && IsTrue(!IsEqual(totalQuantity, nil))) && IsTrue(!IsEqual(filled, nil))) {
 		remainingString = Precise.StringSub(totalQuantity, filled)
 	}
-	var timeInForce any = "GTC"
+	var timeInForce string = "GTC"
 	var orderFlags any = this.SafeValue(order, "orderFlags")
-	var postOnly any = false
-	var reduceOnly any = false
+	var postOnly bool = false
+	var reduceOnly bool = false
 	if IsTrue(IsEqual(orderFlags, "POST_ONLY")) {
 		timeInForce = "PO"
 		postOnly = true
@@ -991,9 +991,9 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	var info any = this.SafeDict(market, "info")
 	var underlying any = Add("1e", this.SafeString(info, "underlyingDecimals"))
 	var settlement any = Add("1e", this.SafeString(info, "settlementDecimals"))
-	var one any = "1"
-	var feeRateFactor any = "100000000" // 10^8
-	var priceFactor any = "4294967296"  // 2^32
+	var one string = "1"
+	var feeRateFactor string = "100000000" // 10^8
+	var priceFactor string = "4294967296"  // 2^32
 	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, underlying), one, 0)
 	var feeRateInternal any = Precise.StringDiv(Precise.StringMul(feeRateStr, feeRateFactor), one, 0)
 	// Encoding
@@ -1041,7 +1041,7 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 	var takerFeeValue any = Ternary(IsTrue((IsEqual(takerFee, nil))), 0, takerFee)
 	var makerFeeValue any = Ternary(IsTrue((IsEqual(makerFee, nil))), 0, makerFee)
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
-	var sideInternal any = ""
+	var sideInternal string = ""
 	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = "ASK"
 	} else if IsTrue(IsEqual(side, "buy")) {
@@ -1502,10 +1502,10 @@ func (this *HibachiCore) EncodeWithdrawMessage(amount any, maxFees any, address 
 	// - maxFees: Internal = External * (10^6)
 	// We only have USDT as our currency as this time
 	var USDTAssetId any = 1
-	var USDTFactor any = "1000000"
+	var USDTFactor string = "1000000"
 	var amountStr any = this.NumberToString(amount)
 	var maxFeesStr any = this.NumberToString(maxFees)
-	var one any = "1"
+	var one string = "1"
 	var quantityInternal any = Precise.StringDiv(Precise.StringMul(amountStr, USDTFactor), one, 0)
 	var maxFeesInternal any = Precise.StringDiv(Precise.StringMul(maxFeesStr, USDTFactor), one, 0)
 	// Encoding
@@ -2418,7 +2418,7 @@ func (this *HibachiCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	var rawPromises any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
+	var rawPromises []any = []any{this.PrivateGetCapitalHistory(this.Extend(request, params)), this.PrivateGetTradeAccountTradingHistory(this.Extend(request, params))}
 
 	promises := (<-promiseAll(rawPromises))
 	PanicOnError(promises)
@@ -2902,7 +2902,7 @@ func (this *HibachiCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 	//
 	//   { "totalQuantity" : "2.3299770166" }
 	//
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 
 	ch <- this.SafeOpenInterest(map[string]any{
 		"symbol":             symbol,
@@ -2961,7 +2961,7 @@ func (this *HibachiCore) fetchFundingRateBody(ch chan any, symbol any, optionalA
 	// }
 	//
 	var funding any = this.SafeDict(response, "fundingRateEstimation", map[string]any{})
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var nextFundingTimestamp any = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
 
 	ch <- map[string]any{

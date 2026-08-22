@@ -97,7 +97,7 @@ func (this *CoinoneCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 			"target_currency": ccxt.GetValue(market, "base"),
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -194,7 +194,7 @@ func (this *CoinoneCore) watchTickerBody(ch chan any, symbol any, optionalArgs .
 			"target_currency": ccxt.GetValue(market, "base"),
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes16215 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes16215)
@@ -338,7 +338,7 @@ func (this *CoinoneCore) watchTradesBody(ch chan any, symbol any, optionalArgs .
 			"target_currency": ccxt.GetValue(market, "base"),
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
@@ -457,7 +457,7 @@ func (this *CoinoneCore) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(exacMethod, client, message)
 			return
 		}
-		var keys any = ccxt.ObjectKeys(methods)
+		var keys []string = ccxt.ObjectKeys(methods)
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 			var key any = ccxt.GetValue(keys, i)
 			if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0)) {

@@ -404,7 +404,7 @@ func (this *ZaifCore) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var funds any = this.SafeValue(balances, "funds", map[string]any{})
-	var currencyIds any = ObjectKeys(funds)
+	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -672,7 +672,7 @@ func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//      ]
 	//
 	var trades any = this.ToArray(response)
-	var numTrades any = GetArrayLength(trades)
+	var numTrades int = GetArrayLength(trades)
 	if IsTrue(IsEqual(numTrades, 1)) {
 		var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
 		if !IsTrue(GetArrayLength(ObjectKeys(firstTrade))) {

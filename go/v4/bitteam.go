@@ -518,7 +518,7 @@ func (this *BitteamCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 func (this *BitteamCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "name")
 	var numericId any = this.SafeInteger(market, "id")
-	var parts any = Split(id, "_")
+	var parts []string = Split(id, "_")
 	var baseId any = this.SafeString(parts, 0)
 	var quoteId any = this.SafeString(parts, 1)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -755,7 +755,7 @@ func (this *BitteamCore) ParseCurrency(currency any) any {
 	var statuses any = this.SafeValue(statusesResponse, numericId, map[string]any{})
 	var deposit any = this.SafeValue(statuses, "depositStatus")
 	var withdraw any = this.SafeValue(statuses, "withdrawStatus")
-	var networkIds any = ObjectKeys(feesByNetworkId)
+	var networkIds []string = ObjectKeys(feesByNetworkId)
 	var networks any = map[string]any{}
 	var networkPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "decimals")))
 	var typeRaw any = this.SafeString(currency, "type")
@@ -1490,7 +1490,7 @@ func (this *BitteamCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var orders any = []any{result}
+	var orders []any = []any{result}
 
 	ch <- this.ParseOrders(orders, market)
 	return nil
@@ -2520,7 +2520,7 @@ func (this *BitteamCore) ParseBalance(response any) any {
 	//         }
 	//     }
 	//
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var balance any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
@@ -2528,7 +2528,7 @@ func (this *BitteamCore) ParseBalance(response any) any {
 	}
 	var result any = this.SafeValue(response, "result", map[string]any{})
 	var balanceByCurrencies any = this.Omit(result, []any{"free", "used", "total"})
-	var rawCurrencyIds any = ObjectKeys(balanceByCurrencies)
+	var rawCurrencyIds []string = ObjectKeys(balanceByCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(rawCurrencyIds)); i++ {
 		var rawCurrencyId any = GetValue(rawCurrencyIds, i)
 		var currencyBalance any = this.SafeValue(result, rawCurrencyId)
@@ -2837,12 +2837,12 @@ func (this *BitteamCore) HandleErrors(code any, reason any, url any, method any,
 	if IsTrue(!IsEqual(code, 200)) {
 		if IsTrue(IsEqual(code, 404)) {
 			if IsTrue(IsTrue((IsGreaterThanOrEqual(GetIndexOf(url, "/ccxt/order/"), 0))) && IsTrue((IsEqual(method, "GET")))) {
-				var parts any = Split(url, "/order/")
+				var parts []string = Split(url, "/order/")
 				var orderId any = this.SafeString(parts, 1)
 				panic(OrderNotFound(Add(Add(Add(this.Id, " order "), orderId), " not found")))
 			}
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(url, "/cmc/orderbook/"), 0)) {
-				var parts any = Split(url, "/cmc/orderbook/")
+				var parts []string = Split(url, "/cmc/orderbook/")
 				var symbolId any = this.SafeString(parts, 1)
 				panic(BadSymbol(Add(Add(Add(this.Id, " symbolId "), symbolId), " not found")))
 			}

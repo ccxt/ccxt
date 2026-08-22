@@ -249,7 +249,7 @@ func (this *XtCore) subscribeBody(ch chan any, name any, access any, methodName 
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var privateAccess any = ccxt.IsEqual(access, "private")
+	var privateAccess bool = ccxt.IsEqual(access, "private")
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
@@ -279,7 +279,7 @@ func (this *XtCore) subscribeBody(ch chan any, name any, access any, methodName 
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		messageHash = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.Join(symbols, ","))
 	}
-	var request any = this.Extend(subscribe, params)
+	var request map[string]any = this.Extend(subscribe, params)
 	var tail any = access
 	if ccxt.IsTrue(isContract) {
 		tail = ccxt.Ternary(ccxt.IsTrue(privateAccess), "user", "market")
@@ -328,7 +328,7 @@ func (this *XtCore) unSubscribeBody(ch chan any, messageHash any, name any, acce
 	_ = params
 	subscriptionParams := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = subscriptionParams
-	var privateAccess any = ccxt.IsEqual(access, "private")
+	var privateAccess bool = ccxt.IsEqual(access, "private")
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams(methodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
@@ -355,7 +355,7 @@ func (this *XtCore) unSubscribeBody(ch chan any, messageHash any, name any, acce
 	}
 	var tradeType any = ccxt.Ternary(ccxt.IsTrue(isContract), "contract", "spot")
 	var subMessageHash any = ccxt.Add(ccxt.Add(name, "::"), tradeType)
-	var request any = this.Extend(unsubscribe, params)
+	var request map[string]any = this.Extend(unsubscribe, params)
 	var tail any = access
 	if ccxt.IsTrue(isContract) {
 		tail = ccxt.Ternary(ccxt.IsTrue(privateAccess), "user", "market")
@@ -632,7 +632,7 @@ func (this *XtCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	var name any = ccxt.Add(ccxt.Add(ccxt.Add("kline@", ccxt.GetValue(market, "id")), ","), timeframe)
 	var messageHash any = ccxt.Add("unsubscribe::", name)
-	var symbolsAndTimeframes any = []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}}
+	var symbolsAndTimeframes []any = []any{[]any{ccxt.GetValue(market, "symbol"), timeframe}}
 
 	retRes45115 := (<-this.UnSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, []any{symbol}, params, map[string]any{
 		"symbolsAndTimeframes": symbolsAndTimeframes,
@@ -843,7 +843,7 @@ func (this *XtCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes57012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes57012)
 	}
-	var name any = "order"
+	var name string = "order"
 	var market any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -892,7 +892,7 @@ func (this *XtCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		retRes59812 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes59812)
 	}
-	var name any = "trade"
+	var name string = "trade"
 	var market any = nil
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -932,7 +932,7 @@ func (this *XtCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 		retRes62312 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes62312)
 	}
-	var name any = "balance"
+	var name string = "balance"
 
 	retRes62615 := (<-this.Subscribe(name, "private", "watchBalance", nil, nil, params))
 	ccxt.PanicOnError(retRes62615)
@@ -986,7 +986,7 @@ func (this *XtCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
 	}
-	var name any = "position"
+	var name string = "position"
 
 	newPositions := (<-this.Subscribe(name, "private", "watchPositions", nil, nil, params))
 	ccxt.PanicOnError(newPositions)
@@ -1109,7 +1109,7 @@ func (this *XtCore) SetPositionsCache(client any) {
 	}
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot")
 	if ccxt.IsTrue(fetchPositionsSnapshot) {
-		var messageHash any = "fetchPositionsSnapshot"
+		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshot, client, messageHash)
@@ -1185,9 +1185,9 @@ func (this *XtCore) HandlePosition(client any, message any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "position::contract")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts any = ccxt.Split(messageHash, "::")
+		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols any = ccxt.Split(symbolsString, ",")
+		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray([]any{position}, "symbol", symbols, false)
 		if !ccxt.IsTrue(this.IsEmpty(positions)) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
@@ -1359,12 +1359,12 @@ func (this *XtCore) HandleTickers(client any, message any) any {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(messageHashStart, "::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts any = ccxt.Split(messageHash, "::")
+		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 2)
-		var symbols any = ccxt.Split(symbolsString, ",")
+		var symbols []string = ccxt.Split(symbolsString, ",")
 		var tickers any = this.FilterByArray(newTickers, "symbol", symbols)
-		var tickersSymbols any = ccxt.ObjectKeys(tickers)
-		var numTickers any = ccxt.GetArrayLength(tickersSymbols)
+		var tickersSymbols []string = ccxt.ObjectKeys(tickers)
+		var numTickers int = ccxt.GetArrayLength(tickersSymbols)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(numTickers, 0)) {
 			client.(ccxt.ClientInterface).Resolve(tickers, messageHash)
 		}
@@ -1548,9 +1548,9 @@ func (this *XtCore) HandleOrderBook(client any, message any) {
 	var marketId any = this.SafeString(data, "s")
 	if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
 		var event any = this.SafeString(message, "event", "")
-		var splitEvent any = ccxt.Split(event, ",")
+		var splitEvent []string = ccxt.Split(event, ",")
 		event = this.SafeString(splitEvent, 0, "")
-		var tradeType any = "spot"
+		var tradeType string = "spot"
 		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(data, nil))) && ccxt.IsTrue((ccxt.InOp(data, "fu")))) {
 			tradeType = "contract"
 		}
@@ -1567,7 +1567,7 @@ func (this *XtCore) HandleOrderBook(client any, message any) {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var nonce any = this.SafeInteger(orderbook, "nonce")
 		if ccxt.IsTrue(ccxt.IsEqual(nonce, nil)) {
-			var cacheLength any = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
+			var cacheLength int = ccxt.GetArrayLength(orderbook.(ccxt.OrderBookInterface).GetCache())
 			var snapshotDelay any = this.HandleOption("watchOrderBook", "snapshotDelay", 25)
 			if ccxt.IsTrue(ccxt.IsEqual(cacheLength, snapshotDelay)) {
 				this.Spawn(this.LoadOrderBook, client, messageHash, symbol)
@@ -1955,7 +1955,7 @@ func (this *XtCore) HandleSubscriptionStatus(client any, message any) any {
 	//     }
 	//
 	var id any = this.SafeString(message, "id")
-	var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var unsubscribe any = false
 	if ccxt.IsTrue(!ccxt.IsEqual(id, nil)) {
 		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})

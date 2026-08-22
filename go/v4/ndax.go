@@ -1317,7 +1317,7 @@ func (this *NdaxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"Interval":     this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	if IsTrue(IsEqual(since, nil)) {
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "FromDate", this.Ymdhms(Subtract(now, Multiply(Multiply(duration, limit), 1000))))
@@ -2793,7 +2793,7 @@ func (this *NdaxCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...
 	//         },
 	//     ]
 	//
-	var grouped any = this.GroupBy(response, "ChangeReason")
+	var grouped map[string]any = this.GroupBy(response, "ChangeReason")
 	var trades any = this.SafeList(grouped, "Trade", []any{})
 
 	ch <- this.ParseTrades(trades, market, since, limit)
@@ -2875,9 +2875,9 @@ func (this *NdaxCore) ParseDepositAddress(depositAddress any, optionalArgs ...an
 	_ = currency
 	var depositInfoString any = this.SafeString(depositAddress, "DepositInfo", "[]")
 	var depositInfo any = JsonParse(depositInfoString)
-	var depositInfoLength any = GetArrayLength(depositInfo)
+	var depositInfoLength int = GetArrayLength(depositInfo)
 	var lastString any = this.SafeString(depositInfo, Subtract(depositInfoLength, 1), "")
-	var parts any = Split(lastString, "?memo=")
+	var parts []string = Split(lastString, "?memo=")
 	var address any = this.SafeString(parts, 0)
 	var tag any = this.SafeString(parts, 1)
 	var code any = nil
@@ -3408,9 +3408,9 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var sessionToken any = this.SafeString(this.Options, "sessionToken")
 		if IsTrue(IsEqual(sessionToken, nil)) {
-			var nonce any = ToString(this.Nonce())
+			var nonce string = ToString(this.Nonce())
 			var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
-			var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			headers = map[string]any{
 				"Nonce":     nonce,
 				"APIKey":    this.ApiKey,

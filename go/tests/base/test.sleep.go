@@ -30,8 +30,8 @@ func testSleepBody(ch chan any) any {
 	var marginOfError any = 20
 	var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
 	var maxElapsed any = ccxt.Add(sleepAmount, marginOfError)
-	var elapsedBiggerThanSleep any = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
-	var elapsedLessThanMax any = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
+	var elapsedBiggerThanSleep bool = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
+	var elapsedLessThanMax bool = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
 	assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than minimum "), ccxt.ToString(minElapsed)), "ms (sleep amount "), ccxt.ToString(sleepAmount)), "ms)"))
 	assert(elapsedLessThanMax, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms exceeds sleep amount "), ccxt.ToString(maxElapsed)), "ms"))
 

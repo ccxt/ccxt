@@ -1165,8 +1165,8 @@ func (this *CoinbaseexchangeCore) fetchTickersBody(ch chan any, optionalArgs ...
 	//     }
 	//
 	var result any = map[string]any{}
-	var marketIds any = ObjectKeys(response)
-	var delimiter any = "-"
+	var marketIds []string = ObjectKeys(response)
+	var delimiter string = "-"
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var entry any = this.SafeValue(response, marketId, []any{})
@@ -2308,7 +2308,7 @@ func (this *CoinbaseexchangeCore) ParseLedgerEntry(item any, optionalArgs ...any
 	} else {
 		referenceId = this.SafeString(details, "order_id")
 	}
-	var status any = "ok"
+	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               id,
@@ -2369,7 +2369,7 @@ func (this *CoinbaseexchangeCore) fetchLedgerBody(ch chan any, optionalArgs ...a
 	retRes18468 := (<-this.LoadAccounts())
 	PanicOnError(retRes18468)
 	var currency any = this.Currency(code)
-	var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "code")
+	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account any = this.SafeValue(accountsByCurrencyCode, code)
 	if IsTrue(IsEqual(account, nil)) {
 		panic(ExchangeError(Add(Add(this.Id, " fetchLedger() could not find account id for "), code)))
@@ -2442,7 +2442,7 @@ func (this *CoinbaseexchangeCore) fetchDepositsWithdrawalsBody(ch chan any, opti
 	if IsTrue(IsEqual(id, nil)) {
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
-			var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "code")
+			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 			var account any = this.SafeValue(accountsByCurrencyCode, code)
 			if IsTrue(IsEqual(account, nil)) {
 				panic(ExchangeError(Add(Add(this.Id, " fetchDepositsWithdrawals() could not find account id for "), code)))
@@ -2785,7 +2785,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), request)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
@@ -2816,7 +2816,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 			}(this)
 
 		}
-		var signature any = this.Hmac(this.Encode(what), secret, sha256, "base64")
+		var signature string = this.Hmac(this.Encode(what), secret, sha256, "base64")
 		headers = map[string]any{
 			"CB-ACCESS-KEY":        this.ApiKey,
 			"CB-ACCESS-SIGN":       signature,

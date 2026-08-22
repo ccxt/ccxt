@@ -105,7 +105,7 @@ func (this *BitvavoCore) watchPublicBody(ch chan any, name any, symbol any, opti
 			"markets": []any{ccxt.GetValue(market, "id")},
 		}},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes9415 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes9415)
@@ -128,7 +128,7 @@ func (this *BitvavoCore) watchPublicMultipleBody(ch chan any, methodName any, ch
 		ccxt.PanicOnError(retRes9912)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var messageHashes any = []any{methodName}
+	var messageHashes []any = []any{methodName}
 	var args any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var market any = this.Market(ccxt.GetValue(symbols, i))
@@ -142,7 +142,7 @@ func (this *BitvavoCore) watchPublicMultipleBody(ch chan any, methodName any, ch
 			"markets": args,
 		}},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes11915 := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
 	ccxt.PanicOnError(retRes11915)
@@ -203,7 +203,7 @@ func (this *BitvavoCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		ccxt.PanicOnError(retRes14612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var channel any = "ticker24h"
+	var channel string = "ticker24h"
 
 	tickers := (<-this.WatchPublicMultiple(channel, channel, symbols, params))
 	ccxt.PanicOnError(tickers)
@@ -278,7 +278,7 @@ func (this *BitvavoCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError(retRes20512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var channel any = "ticker24h"
+	var channel string = "ticker24h"
 
 	tickers := (<-this.WatchPublicMultiple("bidask", channel, symbols, params))
 	ccxt.PanicOnError(tickers)
@@ -287,7 +287,7 @@ func (this *BitvavoCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *BitvavoCore) HandleBidAsk(client any, message any) {
-	var event any = "bidask"
+	var event string = "bidask"
 	var tickers any = this.SafeValue(message, "data", []any{})
 	var result any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tickers)); i++ {
@@ -375,7 +375,7 @@ func (this *BitvavoCore) HandleTrade(client any, message any) {
 	var marketId any = this.SafeString(message, "market")
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var name any = "trades"
+	var name string = "trades"
 	var messageHash any = ccxt.Add(ccxt.Add(name, "@"), marketId)
 	var trade any = this.ParseTrade(message, market)
 	var tradesArray any = this.SafeValue(this.Trades, symbol)
@@ -419,7 +419,7 @@ func (this *BitvavoCore) watchTradesForSymbolsBody(ch chan any, symbols any, opt
 		ccxt.PanicOnError(retRes30912)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var name any = "trades"
+	var name string = "trades"
 	var marketIds any = []any{}
 	var messageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -435,7 +435,7 @@ func (this *BitvavoCore) watchTradesForSymbolsBody(ch chan any, symbols any, opt
 			"markets": marketIds,
 		}},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
 	ccxt.PanicOnError(trades)
@@ -500,7 +500,7 @@ func (this *BitvavoCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, o
 		ccxt.PanicOnError(retRes36412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var name any = "trades"
+	var name string = "trades"
 	var marketIds any = []any{}
 	var subMessageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -508,7 +508,7 @@ func (this *BitvavoCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, o
 		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(name, "@"), ccxt.GetValue(market, "id")))
 	}
-	var channels any = []any{map[string]any{
+	var channels []any = []any{map[string]any{
 		"name":    name,
 		"markets": marketIds,
 	}}
@@ -556,7 +556,7 @@ func (this *BitvavoCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var name any = "candles"
+	var name string = "candles"
 	var marketId any = ccxt.GetValue(market, "id")
 	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(name, "@"), marketId), "_"), interval)
@@ -569,7 +569,7 @@ func (this *BitvavoCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 			"markets":  []any{marketId},
 		}},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(ohlcv)
@@ -613,7 +613,7 @@ func (this *BitvavoCore) HandleOHLCV(client any, message any) {
 	//         ]
 	//     }
 	//
-	var name any = "candles"
+	var name string = "candles"
 	var marketId any = this.SafeString(message, "market")
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -669,7 +669,7 @@ func (this *BitvavoCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefra
 		retRes50012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes50012)
 	}
-	var name any = "candles"
+	var name string = "candles"
 	var messageHashes any = []any{}
 	var marketIdsByInterval any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -685,7 +685,7 @@ func (this *BitvavoCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefra
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("multi:", name), "@"), ccxt.GetValue(market, "id")), "_"), interval))
 	}
 	var channels any = []any{}
-	var intervals any = ccxt.ObjectKeys(marketIdsByInterval)
+	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(intervals)); i++ {
 		var interval any = ccxt.GetValue(intervals, i)
 		ccxt.AppendToArray(&channels, map[string]any{
@@ -699,7 +699,7 @@ func (this *BitvavoCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefra
 		"action":   "subscribe",
 		"channels": channels,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 	symboltimeframecandlesVariable := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
 	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
 	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
@@ -766,7 +766,7 @@ func (this *BitvavoCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimef
 		retRes56612 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes56612)
 	}
-	var name any = "candles"
+	var name string = "candles"
 	var subMessageHashes any = []any{}
 	var marketIdsByInterval any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -784,7 +784,7 @@ func (this *BitvavoCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimef
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("multi:", name), "@"), ccxt.GetValue(market, "id")), "_"), interval))
 	}
 	var channels any = []any{}
-	var intervals any = ccxt.ObjectKeys(marketIdsByInterval)
+	var intervals []string = ccxt.ObjectKeys(marketIdsByInterval)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(intervals)); i++ {
 		var interval any = ccxt.GetValue(intervals, i)
 		ccxt.AppendToArray(&channels, map[string]any{
@@ -831,7 +831,7 @@ func (this *BitvavoCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
-	var name any = "book"
+	var name string = "book"
 	var messageHash any = ccxt.Add(ccxt.Add(name, "@"), ccxt.GetValue(market, "id"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request any = map[string]any{
@@ -850,7 +850,7 @@ func (this *BitvavoCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 		"limit":       limit,
 		"params":      params,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.Watch(url, messageHash, message, messageHash, subscription))
 	ccxt.PanicOnError(orderbook)
@@ -887,7 +887,7 @@ func (this *BitvavoCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		ccxt.PanicOnError(retRes65612)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var name any = "book"
+	var name string = "book"
 	var marketIds any = []any{}
 	var messageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -911,7 +911,7 @@ func (this *BitvavoCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, 
 		"limit":   limit,
 		"params":  params,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.WatchMultiple(url, messageHashes, message, messageHashes, subscription))
 	ccxt.PanicOnError(orderbook)
@@ -971,7 +971,7 @@ func (this *BitvavoCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any
 		ccxt.PanicOnError(retRes71412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, false)
-	var name any = "book"
+	var name string = "book"
 	var marketIds any = []any{}
 	var subMessageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -979,7 +979,7 @@ func (this *BitvavoCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any
 		ccxt.AppendToArray(&marketIds, ccxt.GetValue(market, "id"))
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(name, "@"), ccxt.GetValue(market, "id")))
 	}
-	var channels any = []any{map[string]any{
+	var channels []any = []any{map[string]any{
 		"name":    name,
 		"markets": marketIds,
 	}}
@@ -1086,7 +1086,7 @@ func (this *BitvavoCore) watchOrderBookSnapshotBody(ch chan any, client any, mes
 		// order book - skip it so the getBook request is not sent for a dead market
 		return nil
 	}
-	var name any = "getBook"
+	var name string = "getBook"
 	var messageHash any = ccxt.Add(ccxt.Add(name, "@"), marketId)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var request any = map[string]any{
@@ -1126,7 +1126,7 @@ func (this *BitvavoCore) HandleOrderBookSnapshot(client any, message any) {
 	}
 	var marketId any = this.SafeString(response, "market")
 	var symbol any = this.SafeSymbol(marketId, nil, "-")
-	var name any = "book"
+	var name string = "book"
 	var messageHash any = ccxt.Add(ccxt.Add(name, "@"), marketId)
 	var orderbook any = this.SafeValue(this.Orderbooks, symbol)
 	if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
@@ -1161,7 +1161,7 @@ func (this *BitvavoCore) HandleOrderBookSubscription(client any, message any, su
 	ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook(map[string]any{}, limit))
 }
 func (this *BitvavoCore) HandleOrderBookSubscriptions(client any, message any, marketIds any) {
-	var name any = "book"
+	var name string = "book"
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketIds)); i++ {
 		var marketId any = this.SafeString(marketIds, i)
 		var symbol any = this.SafeSymbol(marketId, nil, "-")
@@ -1199,12 +1199,12 @@ func (this *BitvavoCore) unWatchChannelsBody(ch chan any, topic any, channels an
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subMessageHashes)); i++ {
 		ccxt.AppendToArray(&unsubHashes, ccxt.Add("unsubscribe:", ccxt.GetValue(subMessageHashes, i)))
 	}
-	var subscription any = this.Extend(map[string]any{
+	var subscription map[string]any = this.Extend(map[string]any{
 		"topic":            topic,
 		"subMessageHashes": subMessageHashes,
 		"unsubHashes":      unsubHashes,
 	}, subscriptionArgs)
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes93715 := (<-this.WatchMultiple(url, unsubHashes, message, unsubHashes, subscription))
 	ccxt.PanicOnError(retRes93715)
@@ -1220,7 +1220,7 @@ func (this *BitvavoCore) HandleUnsubscriptionStatus(client any, message any) any
 	//
 	// the confirmation carries the remaining subscriptions without identifying
 	// which unsubscribe request it belongs to, so settle every pending unsubscription
-	var keys any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var keys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), key))) {
@@ -1285,7 +1285,7 @@ func (this *BitvavoCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	symbol = ccxt.GetValue(market, "symbol")
 	var marketId any = ccxt.GetValue(market, "id")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var name any = "account"
+	var name string = "account"
 	var messageHash any = ccxt.Add("order:", symbol)
 	var request any = map[string]any{
 		"action": "subscribe",
@@ -1346,7 +1346,7 @@ func (this *BitvavoCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 	symbol = ccxt.GetValue(market, "symbol")
 	var marketId any = ccxt.GetValue(market, "id")
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var name any = "account"
+	var name string = "account"
 	var messageHash any = ccxt.Add("myTrades:", symbol)
 	var request any = map[string]any{
 		"action": "subscribe",
@@ -1663,9 +1663,9 @@ func (this *BitvavoCore) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *BitvavoCore) RequestId() any {
-	var ts any = ccxt.ToString(this.Milliseconds())
+	var ts string = ccxt.ToString(this.Milliseconds())
 	var randomNumber any = this.RandNumber(4)
-	var randomPart any = ccxt.ToString(randomNumber)
+	var randomPart string = ccxt.ToString(randomNumber)
 	return ccxt.ParseInt(ccxt.Add(ts, randomPart))
 }
 func (this *BitvavoCore) WatchRequest(action any, request any) <-chan any {
@@ -1677,7 +1677,7 @@ func (this *BitvavoCore) watchRequestBody(ch chan any, action any, request any) 
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var messageHash any = this.RequestId()
-	var messageHashStr any = ccxt.ToString(messageHash)
+	var messageHashStr string = ccxt.ToString(messageHash)
 	ccxt.AddElementToObject(request, "action", action)
 	ccxt.AddElementToObject(request, "requestId", messageHash)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -1977,7 +1977,7 @@ func (this *BitvavoCore) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs 
 		ccxt.PanicOnError(retRes142712)
 	}
 	var request any = this.FetchOHLCVRequest(symbol, timeframe, since, limit, params)
-	var action any = "getCandles"
+	var action string = "getCandles"
 
 	ohlcv := (<-this.WatchRequest(action, request))
 	ccxt.PanicOnError(ohlcv)
@@ -2403,7 +2403,7 @@ func (this *BitvavoCore) HandleSubscriptionStatus(client any, message any) any {
 	var methods any = map[string]any{
 		"book": this.HandleOrderBookSubscriptions,
 	}
-	var names any = ccxt.ObjectKeys(subscriptions)
+	var names []string = ccxt.ObjectKeys(subscriptions)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(names)); i++ {
 		var name any = ccxt.GetValue(names, i)
 		var method any = this.SafeValue(methods, name)
@@ -2426,21 +2426,21 @@ func (this *BitvavoCore) authenticateBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client any = this.Client(url)
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var future any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(future, nil)) {
-		var timestamp any = this.Milliseconds()
-		var stringTimestamp any = ccxt.ToString(timestamp)
+		var timestamp int64 = this.Milliseconds()
+		var stringTimestamp string = ccxt.ToString(timestamp)
 		var auth any = ccxt.Add(ccxt.Add(ccxt.Add(stringTimestamp, "GET/"), this.Version), "/websocket")
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
-		var action any = "authenticate"
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
+		var action string = "authenticate"
 		var request any = map[string]any{
 			"action":    action,
 			"key":       this.ApiKey,
 			"signature": signature,
 			"timestamp": timestamp,
 		}
-		var message any = this.Extend(request, params)
+		var message map[string]any = this.Extend(request, params)
 
 		future = (<-this.Watch(url, messageHash, message, messageHash))
 		ccxt.PanicOnError(future)
@@ -2457,7 +2457,7 @@ func (this *BitvavoCore) HandleAuthenticationMessage(client any, message any) {
 	//         "authenticated": true
 	//     }
 	//
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var authenticated any = this.SafeBool(message, "authenticated", false)
 	if ccxt.IsTrue(authenticated) {
 		// we resolve the future here permanently so authentication only happens once
@@ -2492,7 +2492,7 @@ func (this *BitvavoCore) HandleErrorMessage(client any, message any) any {
 	var action any = this.SafeString(message, "action")
 	var buildMessage any = this.BuildMessageHash(action, message)
 	var messageHash any = this.SafeString(message, "requestId", buildMessage)
-	var rejected any = false
+	var rejected bool = false
 
 	{
 		func(this *BitvavoCore) (ret_ any) {

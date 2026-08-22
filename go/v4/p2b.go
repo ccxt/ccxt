@@ -1004,7 +1004,7 @@ func (this *P2bCore) ParseBalance(response any) any {
 	var result any = map[string]any{
 		"info": response,
 	}
-	var keys any = ObjectKeys(response)
+	var keys []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var currencyId any = GetValue(keys, i)
 		var balance any = GetValue(response, currencyId)
@@ -1511,7 +1511,7 @@ func (this *P2bCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	//
 	var result any = this.SafeValue(response, "result")
 	var orders any = []any{}
-	var keys any = ObjectKeys(result)
+	var keys []string = ObjectKeys(result)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var marketId any = GetValue(keys, i)
 		var marketOrders any = GetValue(result, marketId)

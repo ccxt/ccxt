@@ -1402,9 +1402,9 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		// since bitbank offers no server time endpoint to compensate against
 		var authMethod any = this.SafeString(this.Options, "authMethod", "timeWindow")
 		var isTimeWindow any = (IsEqual(authMethod, "timeWindow"))
-		var requestTime any = ToString(this.Milliseconds())
+		var requestTime string = ToString(this.Milliseconds())
 		var timeWindow any = this.SafeString(this.Options, "timeWindow", "5000")
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var auth any = nil
 		if IsTrue(isTimeWindow) {
 			auth = Add(requestTime, timeWindow)

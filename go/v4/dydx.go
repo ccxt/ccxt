@@ -611,25 +611,25 @@ func (this *DydxCore) ParseMarket(market any) any {
 	//     "defaultFundingRate1H": "0"
 	// }
 	//
-	var quoteId any = "USDC"
+	var quoteId string = "USDC"
 	var marketId any = this.SafeString(market, "ticker")
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts any = Split(marketId, "-")
+	var parts []string = Split(marketId, "-")
 	var baseName any = this.SafeString(parts, 0)
 	var baseId any = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var settleId any = "USDC"
+	var settleId string = "USDC"
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	var contract any = true
-	var swap any = true
+	var contract bool = true
+	var swap bool = true
 	var amountPrecisionStr any = this.SafeString(market, "stepSize")
 	var pricePrecisionStr any = this.SafeString(market, "tickSize")
 	var status any = this.SafeString(market, "status")
-	var active any = true
+	var active bool = true
 	if IsTrue(!IsEqual(status, "ACTIVE")) {
 		active = false
 	}
@@ -1632,12 +1632,12 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
 	}
-	var orderSide any = ToUpper(side)
+	var orderSide string = ToUpper(side)
 	var subaccountId any = 0
 	subaccountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -1645,8 +1645,8 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
-	var isConditional any = IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))
-	var isMarket any = IsEqual(orderType, "MARKET")
+	var isConditional bool = IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))
+	var isMarket bool = IsEqual(orderType, "MARKET")
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GTT")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
@@ -1858,7 +1858,7 @@ func (this *DydxCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	lastBlockHeight := (<-this.FetchLatestBlockHeight())
 	PanicOnError(lastBlockHeight)
 	// params['latestBlockHeight'] = lastBlockHeight;
-	var newParams any = this.Extend(params, map[string]any{
+	var newParams map[string]any = this.Extend(params, map[string]any{
 		"latestBlockHeight": lastBlockHeight,
 	})
 	var orderRequestRes any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams)
@@ -1939,7 +1939,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if IsTrue(IsEqual(clientOrderId, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")))
 	}
-	var idString any = ToString(id)
+	var idString string = ToString(id)
 	if IsTrue(IsTrue(!IsEqual(id, nil)) && IsTrue(IsGreaterThan(GetIndexOf(idString, "-"), OpNeg(1)))) {
 		panic(NotSupported(Add(this.Id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")))
 	}
@@ -2331,7 +2331,7 @@ func (this *DydxCore) estimateTxFeeBody(ch chan any, message any, memo any, acco
 		gasPrice = GetValue(feeDenom, "CHAINTOKEN_GAS_PRICE")
 		denom = GetValue(feeDenom, "CHAINTOKEN_DENOM")
 	}
-	var gasLimit any = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
+	var gasLimit float64 = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 	var feeAmount any = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
 	if IsTrue(IsEqual(feeAmount, nil)) {
 		panic(ExchangeError(Add(this.Id, " estimateTxFee() missing feeAmount")))

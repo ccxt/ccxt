@@ -101,7 +101,7 @@ func (this *ModetradeCore) watchPublicBody(ch chan any, messageHash any, message
 	var subscribe any = map[string]any{
 		"id": requestId,
 	}
-	var request any = this.Extend(subscribe, message)
+	var request map[string]any = this.Extend(subscribe, message)
 
 	retRes9215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
 	ccxt.PanicOnError(retRes9215)
@@ -136,14 +136,14 @@ func (this *ModetradeCore) watchOrderBookBody(ch chan any, symbol any, optionalA
 		retRes10712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes10712)
 	}
-	var name any = "orderbook"
+	var name string = "orderbook"
 	var market any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
 	var request any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(orderbook)
@@ -212,7 +212,7 @@ func (this *ModetradeCore) watchTickerBody(ch chan any, symbol any, optionalArgs
 		retRes16912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes16912)
 	}
-	var name any = "ticker"
+	var name string = "ticker"
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
@@ -220,7 +220,7 @@ func (this *ModetradeCore) watchTickerBody(ch chan any, symbol any, optionalArgs
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes18015 := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(retRes18015)
@@ -322,13 +322,13 @@ func (this *ModetradeCore) watchTickersBody(ch chan any, optionalArgs ...any) an
 		ccxt.PanicOnError(retRes26112)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var name any = "tickers"
+	var name string = "tickers"
 	var topic any = name
 	var request any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	tickers := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(tickers)
@@ -399,13 +399,13 @@ func (this *ModetradeCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes32012)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var name any = "bbos"
+	var name string = "bbos"
 	var topic any = name
 	var request any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	tickers := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(tickers)
@@ -502,13 +502,13 @@ func (this *ModetradeCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	}
 	var market any = this.Market(symbol)
 	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var name any = "kline"
+	var name string = "kline"
 	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
 	var request any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	ohlcv := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(ohlcv)
@@ -548,7 +548,7 @@ func (this *ModetradeCore) HandleOHLCV(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
 		return
 	}
-	var parsed any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
+	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
@@ -598,7 +598,7 @@ func (this *ModetradeCore) watchTradesBody(ch chan any, symbol any, optionalArgs
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(trades)
@@ -725,7 +725,7 @@ func (this *ModetradeCore) HandleAuth(client any, message any) {
 	//         "ts": 1657463158812
 	//     }
 	//
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var success any = this.SafeValue(message, "success")
 	if ccxt.IsTrue(success) {
 		// client.resolve (message, messageHash)
@@ -753,16 +753,16 @@ func (this *ModetradeCore) authenticateBody(ch chan any, optionalArgs ...any) an
 	this.CheckRequiredCredentials()
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
 	var client any = this.Client(url)
-	var messageHash any = "authenticated"
-	var event any = "auth"
+	var messageHash string = "authenticated"
+	var event string = "auth"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-		var ts any = ccxt.ToString(this.Nonce())
+		var ts string = ccxt.ToString(this.Nonce())
 		var auth any = ts
 		var secret any = this.Secret
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(secret, "ed25519:"), 0)) {
-			var parts any = ccxt.Split(secret, "ed25519:")
+			var parts []string = ccxt.Split(secret, "ed25519:")
 			secret = ccxt.GetValue(parts, 1)
 		}
 		var signature any = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
@@ -774,7 +774,7 @@ func (this *ModetradeCore) authenticateBody(ch chan any, optionalArgs ...any) an
 				"timestamp":   ts,
 			},
 		}
-		var message any = this.Extend(request, params)
+		var message map[string]any = this.Extend(request, params)
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
@@ -801,7 +801,7 @@ func (this *ModetradeCore) watchPrivateBody(ch chan any, messageHash any, messag
 	var subscribe any = map[string]any{
 		"id": requestId,
 	}
-	var request any = this.Extend(subscribe, message)
+	var request map[string]any = this.Extend(subscribe, message)
 
 	retRes66515 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
 	ccxt.PanicOnError(retRes66515)
@@ -826,7 +826,7 @@ func (this *ModetradeCore) watchPrivateMultipleBody(ch chan any, messageHashes a
 	var subscribe any = map[string]any{
 		"id": requestId,
 	}
-	var request any = this.Extend(subscribe, message)
+	var request map[string]any = this.Extend(subscribe, message)
 
 	retRes67615 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
 	ccxt.PanicOnError(retRes67615)
@@ -881,7 +881,7 @@ func (this *ModetradeCore) watchOrdersBody(ch chan any, optionalArgs ...any) any
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orders := (<-this.WatchPrivate(messageHash, message))
 	ccxt.PanicOnError(orders)
@@ -940,7 +940,7 @@ func (this *ModetradeCore) watchMyTradesBody(ch chan any, optionalArgs ...any) a
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orders := (<-this.WatchPrivate(messageHash, message))
 	ccxt.PanicOnError(orders)
@@ -1185,7 +1185,7 @@ func (this *ModetradeCore) HandleMyTrade(client any, message any) {
 	//     maker: false
 	// }
 	//
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var marketId any = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1278,7 +1278,7 @@ func (this *ModetradeCore) SetPositionsCache(client any, typeVar any, optionalAr
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if ccxt.IsTrue(fetchPositionsSnapshot) {
-		var messageHash any = "fetchPositionsSnapshot"
+		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshot, client, messageHash)
@@ -1465,13 +1465,13 @@ func (this *ModetradeCore) watchBalanceBody(ch chan any, optionalArgs ...any) an
 		retRes122012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes122012)
 	}
-	var topic any = "balance"
+	var topic string = "balance"
 	var messageHash any = topic
 	var request any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes122915 := (<-this.WatchPrivate(messageHash, message))
 	ccxt.PanicOnError(retRes122915)
@@ -1508,7 +1508,7 @@ func (this *ModetradeCore) HandleBalance(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var balances any = this.SafeDict(data, "balances", map[string]any{})
-	var keys any = ccxt.ObjectKeys(balances)
+	var keys []string = ccxt.ObjectKeys(balances)
 	var ts any = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
@@ -1556,7 +1556,7 @@ func (this *ModetradeCore) HandleErrorMessage(client any, message any) any {
 					ret_ = func(this *ModetradeCore) any {
 						// catch block:
 						if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
-							var messageHash any = "authenticated"
+							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1617,8 +1617,8 @@ func (this *ModetradeCore) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(method, client, message)
 			return
 		}
-		var splitTopic any = ccxt.Split(topic, "@")
-		var splitLength any = ccxt.GetArrayLength(splitTopic)
+		var splitTopic []string = ccxt.Split(topic, "@")
+		var splitLength int = ccxt.GetArrayLength(splitTopic)
 		if ccxt.IsTrue(ccxt.IsEqual(splitLength, 2)) {
 			var name any = this.SafeString(splitTopic, 1)
 			if ccxt.IsTrue(ccxt.IsEqual(name, nil)) {
@@ -1629,8 +1629,8 @@ func (this *ModetradeCore) HandleMessage(client any, message any) {
 				ccxt.CallDynamically(method, client, message)
 				return
 			}
-			var splitName any = ccxt.Split(name, "_")
-			var splitNameLength any = ccxt.GetArrayLength(splitTopic)
+			var splitName []string = ccxt.Split(name, "_")
+			var splitNameLength int = ccxt.GetArrayLength(splitTopic)
 			if ccxt.IsTrue(ccxt.IsEqual(splitNameLength, 2)) {
 				var splitNameFirst any = this.SafeString(splitName, 0)
 				method = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(splitNameFirst, nil))), nil, this.SafeValue(methods, splitNameFirst))

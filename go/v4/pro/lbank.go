@@ -130,7 +130,7 @@ func (this *LbankCore) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ..
 	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
 		ccxt.AddElementToObject(message, "size", limit)
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
 
 	retRes11015 := (<-this.Watch(url, messageHash, request, requestId, request))
@@ -185,7 +185,7 @@ func (this *LbankCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"kbar":      timeframeId,
 		"pair":      ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(ohlcv)
@@ -255,7 +255,7 @@ func (this *LbankCore) HandleOHLCV(client any, message any) {
 	var records any = this.SafeValue(message, "records")
 	if ccxt.IsTrue(!ccxt.IsEqual(records, nil)) {
 		var rawOHLCV any = this.SafeValue(records, 0, []any{})
-		var parsed any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
+		var parsed []any = []any{this.SafeInteger(rawOHLCV, 0), this.SafeNumber(rawOHLCV, 1), this.SafeNumber(rawOHLCV, 2), this.SafeNumber(rawOHLCV, 3), this.SafeNumber(rawOHLCV, 4), this.SafeNumber(rawOHLCV, 5)}
 		var timeframeId any = this.SafeString(message, "kbar")
 		var timeframe any = this.FindTimeframe(timeframeId, timeframes)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
@@ -272,7 +272,7 @@ func (this *LbankCore) HandleOHLCV(client any, message any) {
 		var rawOHLCV any = this.SafeValue(message, "kbar", map[string]any{})
 		var timeframeId any = this.SafeString(rawOHLCV, "slot")
 		var datetime any = this.SafeString(rawOHLCV, "t")
-		var parsed any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
+		var parsed []any = []any{this.Parse8601(datetime), this.SafeNumber(rawOHLCV, "o"), this.SafeNumber(rawOHLCV, "h"), this.SafeNumber(rawOHLCV, "l"), this.SafeNumber(rawOHLCV, "c"), this.SafeNumber(rawOHLCV, "v")}
 		var timeframe any = this.FindTimeframe(timeframeId, timeframes)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 		var stored any = this.SafeValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
@@ -320,7 +320,7 @@ func (this *LbankCore) fetchTickerWsBody(ch chan any, symbol any, optionalArgs .
 		"request": "tick",
 		"pair":    ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
 
 	retRes27915 := (<-this.Watch(url, messageHash, request, requestId, request))
@@ -362,7 +362,7 @@ func (this *LbankCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...
 		"subscribe": "tick",
 		"pair":      ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	retRes30515 := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(retRes30515)
@@ -496,7 +496,7 @@ func (this *LbankCore) fetchTradesWsBody(ch chan any, symbol any, optionalArgs .
 		"pair":    ccxt.GetValue(market, "id"),
 		"size":    limit,
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 	var requestId any = this.RequestId()
 
 	retRes42115 := (<-this.Watch(url, messageHash, request, requestId, request))
@@ -544,7 +544,7 @@ func (this *LbankCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...
 		"subscribe": "trade",
 		"pair":      ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	trades := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(trades)
@@ -623,7 +623,7 @@ func (this *LbankCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 		timestamp = this.Parse8601(datetime)
 	}
 	var rawSide any = this.SafeString2(trade, "direction", 3)
-	var parts any = ccxt.Split(rawSide, "_")
+	var parts []string = ccxt.Split(rawSide, "_")
 	var firstPart any = this.SafeString(parts, 0)
 	var secondPart any = this.SafeString(parts, 1)
 	var side any = firstPart
@@ -700,7 +700,7 @@ func (this *LbankCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"subscribeKey": key,
 		"pair":         pair,
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(orders)
@@ -790,7 +790,7 @@ func (this *LbankCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	_ = market
 	var orderUpdate any = this.SafeValue(order, "orderUpdate", map[string]any{})
 	var rawType any = this.SafeString(orderUpdate, "type", "")
-	var typeParts any = ccxt.Split(rawType, "_")
+	var typeParts []string = ccxt.Split(rawType, "_")
 	var side any = this.SafeString(typeParts, 0)
 	var exchangeType any = this.SafeString(typeParts, 1)
 	var typeVar any = nil
@@ -867,13 +867,13 @@ func (this *LbankCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	key := (<-this.Authenticate(params))
 	ccxt.PanicOnError(key)
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var messageHash any = "balance"
+	var messageHash string = "balance"
 	var message any = map[string]any{
 		"action":       "subscribe",
 		"subscribe":    "assetUpdate",
 		"subscribeKey": key,
 	}
-	var request any = this.DeepExtend(message, params)
+	var request map[string]any = this.DeepExtend(message, params)
 
 	retRes73915 := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(retRes73915)
@@ -955,7 +955,7 @@ func (this *LbankCore) fetchOrderBookWsBody(ch chan any, symbol any, optionalArg
 		"depth":   limit,
 		"pair":    ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -1005,7 +1005,7 @@ func (this *LbankCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs 
 		"depth":     limit,
 		"pair":      ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -1189,8 +1189,8 @@ func (this *LbankCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	this.CheckRequiredCredentials()
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client any = this.Client(url)
-	var now any = this.Milliseconds()
-	var messageHash any = "authenticateFlight"
+	var now int64 = this.Milliseconds()
+	var messageHash string = "authenticateFlight"
 	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		// a flight is already in progress - wake when the leader settles
 		// it: the subscribeKey is then in the bucket

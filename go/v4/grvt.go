@@ -652,8 +652,8 @@ func (this *GrvtCore) EipDefinitions() any {
 	}
 }
 func (this *GrvtCore) UsesPrivateKey() any {
-	var privateKeyDefined any = IsTrue(!IsEqual(this.PrivateKey, nil)) && IsTrue(!IsEqual(this.PrivateKey, ""))
-	var apiKeyDefined any = IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))
+	var privateKeyDefined bool = IsTrue(!IsEqual(this.PrivateKey, nil)) && IsTrue(!IsEqual(this.PrivateKey, ""))
+	var apiKeyDefined bool = IsTrue(!IsEqual(this.ApiKey, nil)) && IsTrue(!IsEqual(this.ApiKey, ""))
 	if IsTrue(IsTrue(privateKeyDefined) && IsTrue(apiKeyDefined)) {
 		panic(ExchangeError("You should provide either \"privateKey\" or \"apikey & secret\""))
 	}
@@ -710,7 +710,7 @@ func (this *GrvtCore) signInWithApiKeyBody(ch chan any, optionalArgs ...any) any
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	// expires in 24 hours as CS suggested
 	var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
 	// if previous sign-in not expired (give 10 seconds margin)
@@ -747,7 +747,7 @@ func (this *GrvtCore) signInWithPrivateKeyBody(ch chan any, optionalArgs ...any)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	// expires in 24 hours as CS suggested
 	var expires any = this.SafeInteger(this.Options, "signInExpiration", 0)
 	// if previous sign-in not expired (give 10 seconds margin)
@@ -812,8 +812,8 @@ func (this *GrvtCore) initializeClientBody(ch chan any, optionalArgs ...any) any
 	//
 	var currentBuilders any = GetValue(results, 0)
 	var approvedBuilder any = this.SafeList(currentBuilders, "results", []any{})
-	var length any = GetArrayLength(approvedBuilder)
-	var found any = false
+	var length int = GetArrayLength(approvedBuilder)
+	var found bool = false
 	for i := 0; IsLessThan(i, length); i++ {
 		var builderInfo any = this.SafeDict(approvedBuilder, i, map[string]any{})
 		var builderAccountId any = this.SafeString(builderInfo, "builder_account_id")
@@ -976,7 +976,7 @@ func (this *GrvtCore) ParseMarket(market any) any {
 	var isSpot any = (IsEqual(typeVar, "spot"))
 	var isSwap any = (IsEqual(typeVar, "swap"))
 	var isFuture any = (IsEqual(typeVar, "future"))
-	var isContract any = IsTrue(isSwap) || IsTrue(isFuture)
+	var isContract bool = IsTrue(isSwap) || IsTrue(isFuture)
 	return map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -2328,7 +2328,7 @@ func (this *GrvtCore) transferBody(ch chan any, code any, amount any, fromAccoun
 					ret_ = func(this *GrvtCore) any {
 						// catch block:
 						var msg any = this.ExceptionMessage(error)
-						var isFromFundingAccount any = IsEqual(fromAccount, "funding")
+						var isFromFundingAccount bool = IsEqual(fromAccount, "funding")
 						if IsTrue(IsTrue(isFromFundingAccount) && IsTrue(GetIndexOf(msg, "You are not authorized"))) {
 							panic(PermissionDenied(Add(Add(this.Id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)))
 						}
@@ -2447,7 +2447,7 @@ func (this *GrvtCore) loadAccountInfosBody(ch chan any) any {
 	//         }
 	//     }
 	//
-	var accountIsUndefined any = IsEqual(this.SafeString(this.Options, "accountId"), nil)
+	var accountIsUndefined bool = IsEqual(this.SafeString(this.Options, "accountId"), nil)
 	if IsTrue(accountIsUndefined) {
 		AppendToArray(&promises, this.PrivateTradingPostFullV1GetSubAccounts())
 	}
@@ -2464,7 +2464,7 @@ func (this *GrvtCore) loadAccountInfosBody(ch chan any) any {
 	AddElementToObject(this.Options, "userMainAccountId", mainAccountId)
 	if IsTrue(accountIsUndefined) {
 		var subAccountIds any = this.SafeList(GetValue(responses, 1), "sub_account_ids", []any{})
-		var length any = GetArrayLength(subAccountIds)
+		var length int = GetArrayLength(subAccountIds)
 		if IsTrue(IsLessThan(length, 1)) {
 			panic(ArgumentsRequired(Add(this.Id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")))
 		}
@@ -2689,7 +2689,7 @@ func (this *GrvtCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 		})
 		params = this.Omit(params, []any{"triggerDirection", "triggerPriceType", "closePosition"})
 	}
-	var eipType any = "EIP712_ORDER_TYPE"
+	var eipType string = "EIP712_ORDER_TYPE"
 	var builderFee any = this.SafeBool(params, "builderFee", this.SafeBool(this.Options, "builderFee", true))
 	if IsTrue(builderFee) {
 		eipType = "EIP712_ORDER_WITH_BUILDER_TYPE"
@@ -2773,7 +2773,7 @@ func (this *GrvtCore) ConvertToBigIntCustom(x any) any {
 	return ParseInt(x)
 }
 func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
-	var priceMultiplier any = "1000000000"
+	var priceMultiplier string = "1000000000"
 	var orderLegs any = this.SafeList(order, "legs", []any{})
 	var legs any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orderLegs)); i++ {
@@ -2781,13 +2781,13 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 		var market any = this.Market(GetValue(leg, "instrument"))
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
 		var precisionValue any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
-		var precisionValueStr any = ToString(precisionValue)
-		var sizeMultiplier any = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
+		var precisionValueStr string = ToString(precisionValue)
+		var sizeMultiplier float64 = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
 		var size any = GetValue(leg, "size")
-		var sizeParts any = Split(size, ".")
+		var sizeParts []string = Split(size, ".")
 		var sizeDec any = this.SafeString(sizeParts, 1, "")
 		var sizeDecLength any = Add(GetLength(sizeDec), 0) // php tr
-		var sizeDecLengthStr any = ToString(sizeDecLength)
+		var sizeDecLengthStr string = ToString(sizeDecLength)
 		var sizeInteger any = Divide(Multiply(this.ConvertToBigIntCustom(Replace(size, ".", "")), sizeMultiplier), (MathPow(bigInt10, this.ConvertToBigIntCustom(sizeDecLengthStr))))
 		var legOrder any = map[string]any{
 			"assetID":          GetValue(GetValue(market, "info"), "instrument_hash"),
@@ -2797,10 +2797,10 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 		var limitPrice any = this.SafeString(leg, "limit_price")
 		if IsTrue(!IsEqual(this.OmitZero(limitPrice), nil)) {
 			var price any = GetValue(leg, "limit_price")
-			var limitParts any = Split(price, ".")
+			var limitParts []string = Split(price, ".")
 			var limitDec any = this.SafeString(limitParts, 1, "")
 			var limitDecLength any = Add(GetLength(limitDec), 0) // php tr
-			var limitDecLengthStr any = ToString(limitDecLength)
+			var limitDecLengthStr string = ToString(limitDecLength)
 			var powerNum any = Ternary(IsTrue((IsEqual(limitDecLengthStr, "0"))), 0, this.ConvertToBigIntCustom(limitDecLengthStr))
 			var priceInteger any = (Divide(Multiply(this.ConvertToBigIntCustom(Replace(price, ".", "")), this.ConvertToBigIntCustom(priceMultiplier)), (MathPow(bigInt10, powerNum))))
 			AddElementToObject(legOrder, "limitPrice", this.ParseToInt(priceInteger))
@@ -3810,7 +3810,7 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var timestamp any = this.SafeIntegerProduct(metadata, "create_time", 0.000001)
 	// const triggerDetails = this.safeDict (metadata, 'trigger', {});
-	var legsLength any = GetArrayLength(legs)
+	var legsLength int = GetArrayLength(legs)
 	return this.SafeOrder(map[string]any{
 		"isMultiLeg":          (IsGreaterThan(legsLength, 1)),
 		"id":                  this.SafeString(order, "order_id"),
@@ -4117,15 +4117,15 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 		}
 		// an empty params dict must serialize as an empty json object, not an empty json array,
 		// php json_encode would produce [] here which the venue rejects with the same 1003 error
-		var paramsKeys any = ObjectKeys(params)
-		var paramsKeysLength any = GetArrayLength(paramsKeys)
+		var paramsKeys []string = ObjectKeys(params)
+		var paramsKeysLength int = GetArrayLength(paramsKeys)
 		if IsTrue(IsEqual(paramsKeysLength, 0)) {
 			body = "{}"
 		} else {
 			body = this.Json(params)
 		}
 	}
-	var isPrivate any = StartsWith(api, "private")
+	var isPrivate bool = StartsWith(api, "private")
 	if IsTrue(isPrivate) {
 		this.CheckRequiredCredentials()
 		if IsTrue(!IsEqual(queryString, "")) {

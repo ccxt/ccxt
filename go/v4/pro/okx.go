@@ -256,7 +256,7 @@ func (this *OkxCore) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
 	}
@@ -286,7 +286,7 @@ func (this *OkxCore) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		"op":   "subscribe",
 		"args": topics,
 	}
-	var access any = "public"
+	var access string = "public"
 	if ccxt.IsTrue(ccxt.IsEqual(channel, "trades-all")) {
 		access = "business"
 
@@ -354,7 +354,7 @@ func (this *OkxCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		"op":   "unsubscribe",
 		"args": topics,
 	}
-	var access any = "public"
+	var access string = "public"
 	if ccxt.IsTrue(ccxt.IsEqual(channel, "trades-all")) {
 		access = "business"
 
@@ -505,7 +505,7 @@ func (this *OkxCore) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError(retRes39812)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var channel any = "funding-rate"
+	var channel string = "funding-rate"
 	var topics any = []any{}
 	var messageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1004,7 +1004,7 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 		ccxt.PanicOnError(retRes75312)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var messageHash any = "liquidations"
+	var messageHash string = "liquidations"
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1019,7 +1019,7 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchliquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var channel any = "liquidation-orders"
+	var channel string = "liquidation-orders"
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
 		typeVar = "SWAP"
 	} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
@@ -1028,7 +1028,7 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchLiquidationsForSymbols() type is required")))
 	}
-	var uppercaseType any = ccxt.ToUpper(typeVar)
+	var uppercaseType string = ccxt.ToUpper(typeVar)
 	var request any = map[string]any{
 		"op": "subscribe",
 		"args": []any{map[string]any{
@@ -1131,7 +1131,7 @@ func (this *OkxCore) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 	}))
 	ccxt.PanicOnError(retRes8578)
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var messageHash any = "myLiquidations"
+	var messageHash string = "myLiquidations"
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1141,7 +1141,7 @@ func (this *OkxCore) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 	} else {
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	}
-	var channel any = "balance_and_position"
+	var channel string = "balance_and_position"
 	var request any = map[string]any{
 		"op": "subscribe",
 		"args": []any{map[string]any{
@@ -1406,7 +1406,7 @@ func (this *OkxCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 	}
@@ -1468,7 +1468,7 @@ func (this *OkxCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 	}
@@ -2006,17 +2006,17 @@ func (this *OkxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var access any = this.SafeString(params, "access", "private")
 	params = this.Omit(params, []any{"access"})
 	var url any = this.GetUrl("users", access)
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var client any = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-		var timestamp any = ccxt.ToString(this.Seconds())
-		var method any = "GET"
-		var path any = "/users/self/verify"
+		var timestamp string = ccxt.ToString(this.Seconds())
+		var method string = "GET"
+		var path string = "/users/self/verify"
 		var auth any = ccxt.Add(ccxt.Add(timestamp, method), path)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
-		var operation any = "login"
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
+		var operation string = "login"
 		var request any = map[string]any{
 			"op": operation,
 			"args": []any{map[string]any{
@@ -2167,7 +2167,7 @@ func (this *OkxCore) HandleBalance(client any, message any) {
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel any = this.SafeString(arg, "channel")
 	var balance any = this.ParseTradingBalance(message)
-	var newBalance any = this.DeepExtend(this.Balance, balance)
+	var newBalance map[string]any = this.DeepExtend(this.Balance, balance)
 	this.Balance = this.SafeBalance(newBalance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
 }
@@ -2177,7 +2177,7 @@ func (this *OkxCore) OrderToTrade(order any, optionalArgs ...any) any {
 	var info any = this.SafeValue(order, "info", map[string]any{})
 	var timestamp any = this.SafeInteger(info, "fillTime")
 	var feeMarketId any = this.SafeString(info, "fillFeeCcy")
-	var isTaker any = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
+	var isTaker bool = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
 	return this.SafeTrade(map[string]any{
 		"info":         info,
 		"timestamp":    timestamp,
@@ -2260,7 +2260,7 @@ func (this *OkxCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchMyTrades() type is required")))
 	}
-	var uppercaseType any = ccxt.ToUpper(typeVar)
+	var uppercaseType string = ccxt.ToUpper(typeVar)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchMyTrades", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
@@ -2323,14 +2323,14 @@ func (this *OkxCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	var request any = map[string]any{
 		"instType": "ANY",
 	}
-	var channel any = "positions"
+	var channel string = "positions"
 	var newPositions any = nil
 	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
 		var arg any = map[string]any{
 			"channel":  "positions",
 			"instType": "ANY",
 		}
-		var args any = []any{this.Extend(arg, params)}
+		var args []any = []any{this.Extend(arg, params)}
 		var nonSymbolRequest any = map[string]any{
 			"op":   "subscribe",
 			"args": args,
@@ -2510,7 +2510,7 @@ func (this *OkxCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() type is required")))
 	}
-	var uppercaseType any = ccxt.ToUpper(typeVar)
+	var uppercaseType string = ccxt.ToUpper(typeVar)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
@@ -2593,7 +2593,7 @@ func (this *OkxCore) HandleOrders(client any, message any) {
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel any = this.SafeString(arg, "channel")
 	var orders any = this.SafeValue(message, "data", []any{})
-	var ordersLength any = ccxt.GetArrayLength(orders)
+	var ordersLength int = ccxt.GetArrayLength(orders)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ordersLength, 0)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
@@ -2685,7 +2685,7 @@ func (this *OkxCore) HandleMyTrades(client any, message any) {
 			ccxt.AppendToArray(&filteredOrders, order)
 		}
 	}
-	var tradesLength any = ccxt.GetArrayLength(filteredOrders)
+	var tradesLength int = ccxt.GetArrayLength(filteredOrders)
 	if ccxt.IsTrue(ccxt.IsEqual(tradesLength, 0)) {
 		return
 	}
@@ -2706,16 +2706,16 @@ func (this *OkxCore) HandleMyTrades(client any, message any) {
 	}
 	var messageHash any = ccxt.Add(channel, "::myTrades")
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
-	var tradeSymbols any = ccxt.ObjectKeys(symbols)
+	var tradeSymbols []string = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tradeSymbols)); i++ {
 		var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.GetValue(tradeSymbols, i))
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 	}
 }
 func (this *OkxCore) RequestId() any {
-	var ts any = ccxt.ToString(this.Milliseconds())
+	var ts string = ccxt.ToString(this.Milliseconds())
 	var randomNumber any = this.RandNumber(4)
-	var randomPart any = ccxt.ToString(randomNumber)
+	var randomPart string = ccxt.ToString(randomNumber)
 	return ccxt.Add(ts, randomPart)
 }
 
@@ -2962,7 +2962,7 @@ func (this *OkxCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...an
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var idsLength any = ccxt.GetArrayLength(ids)
+	var idsLength int = ccxt.GetArrayLength(ids)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(idsLength, 20)) {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrdersWs() accepts up to 20 ids at a time")))
 	}
@@ -2986,7 +2986,7 @@ func (this *OkxCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...an
 		"instIdCode": instIdCode,
 	}
 	for i := 0; ccxt.IsLessThan(i, idsLength); i++ {
-		var arg any = this.Extend(instParams, map[string]any{
+		var arg map[string]any = this.Extend(instParams, map[string]any{
 			"ordId": ccxt.GetValue(ids, i),
 		})
 		ccxt.AppendToArray(&args, arg)

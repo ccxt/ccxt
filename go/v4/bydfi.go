@@ -721,7 +721,7 @@ func (this *BydfiCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var orderBook any = this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount")
 	AddElementToObject(orderBook, "nonce", this.SafeInteger(data, "lastUpdateId"))
 
@@ -729,7 +729,7 @@ func (this *BydfiCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	return nil
 }
 func (this *BydfiCore) GetClosestLimit(limit any) any {
-	var limits any = []any{5, 10, 20, 50, 100, 500, 1000}
+	var limits []any = []any{5, 10, 20, 50, 100, 500, 1000}
 	var result any = 1000
 	for i := 0; IsLessThan(i, GetArrayLength(limits)); i++ {
 		if IsTrue(IsEqual(limit, nil)) {
@@ -1039,7 +1039,7 @@ func (this *BydfiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	var duration any = Multiply(this.ParseTimeframe(timeframe), 1000)
 	var timeDelta any = Multiply(duration, numberOfCandles)
 	if IsTrue(IsTrue(IsEqual(startTime, nil)) && IsTrue(IsEqual(until, nil))) {
@@ -1656,7 +1656,7 @@ func (this *BydfiCore) createOrdersBody(ch chan any, orders any, optionalArgs ..
 		retRes137012 := (<-this.LoadMarkets())
 		PanicOnError(retRes137012)
 	}
-	var length any = GetArrayLength(orders)
+	var length int = GetArrayLength(orders)
 	if IsTrue(IsGreaterThan(length, 5)) {
 		panic(BadRequest(Add(this.Id, " createOrders() accepts a maximum of 5 orders")))
 	}
@@ -1764,7 +1764,7 @@ func (this *BydfiCore) editOrdersBody(ch chan any, orders any, optionalArgs ...a
 		retRes144012 := (<-this.LoadMarkets())
 		PanicOnError(retRes144012)
 	}
-	var length any = GetArrayLength(orders)
+	var length int = GetArrayLength(orders)
 	if IsTrue(IsGreaterThan(length, 5)) {
 		panic(BadRequest(Add(this.Id, " editOrders() accepts a maximum of 5 orders")))
 	}
@@ -2201,7 +2201,7 @@ func (this *BydfiCore) HandleSinceAndUntil(methodName any, optionalArgs ...any) 
 	untilparamsVariable := this.HandleOptionAndParams2(params, methodName, "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	var sevenDays any = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000) // the maximum range is 7 days
 	var startTime any = since
 	if IsTrue(IsEqual(startTime, nil)) {
@@ -2300,8 +2300,8 @@ func (this *BydfiCore) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp any = this.SafeInteger2(order, "createTime", "ctime")
 	var rawType any = this.SafeString(order, "orderType")
 	var stopPrice any = this.SafeStringN(order, []any{"stopPrice", "activatePrice", "triggerPrice"})
-	var isStopLossOrder any = IsTrue(IsTrue((IsEqual(rawType, "STOP"))) || IsTrue((IsEqual(rawType, "STOP_MARKET")))) || IsTrue((IsEqual(rawType, "TRAILING_STOP_MARKET")))
-	var isTakeProfitOrder any = IsTrue((IsEqual(rawType, "TAKE_PROFIT"))) || IsTrue((IsEqual(rawType, "TAKE_PROFIT_MARKET")))
+	var isStopLossOrder bool = IsTrue(IsTrue((IsEqual(rawType, "STOP"))) || IsTrue((IsEqual(rawType, "STOP_MARKET")))) || IsTrue((IsEqual(rawType, "TRAILING_STOP_MARKET")))
+	var isTakeProfitOrder bool = IsTrue((IsEqual(rawType, "TAKE_PROFIT"))) || IsTrue((IsEqual(rawType, "TAKE_PROFIT_MARKET")))
 	var rawTimeInForce any = this.SafeString(order, "timeInForce")
 	var timeInForce any = this.ParseOrderTimeInForce(rawTimeInForce)
 	var postOnly any = nil
@@ -2668,7 +2668,7 @@ func (this *BydfiCore) ParsePosition(position any, optionalArgs ...any) any {
 	var rawPositionSide any = this.SafeStringLower(position, "positionSide")
 	var positionSide any = this.ParsePositionSide(buyOrSell)
 	var hedged any = nil
-	var isFetchPositionsHistory any = false
+	var isFetchPositionsHistory bool = false
 	if IsTrue(!IsEqual(rawPositionSide, nil)) {
 		isFetchPositionsHistory = true
 		if IsTrue(!IsEqual(rawPositionSide, "both")) {
@@ -3145,7 +3145,7 @@ func (this *BydfiCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) a
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var hedged any = IsEqual(this.SafeString(data, "positionType"), "HEDGE")
+	var hedged bool = IsEqual(this.SafeString(data, "positionType"), "HEDGE")
 
 	ch <- map[string]any{
 		"info":   response,
@@ -3254,7 +3254,7 @@ func (this *BydfiCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *BydfiCore) ParseBalance(response any) any {
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var result any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
@@ -3325,7 +3325,7 @@ func (this *BydfiCore) transferBody(ch chan any, code any, amount any, fromAccou
 	var transferOptions any = this.SafeDict(this.Options, "transfer", map[string]any{})
 	var fillResponseFromRequest any = this.SafeBool(transferOptions, "fillResponseFromRequest", true)
 	if IsTrue(fillResponseFromRequest) {
-		var timestamp any = this.Milliseconds()
+		var timestamp int64 = this.Milliseconds()
 		AddElementToObject(transfer, "timestamp", timestamp)
 		AddElementToObject(transfer, "datetime", this.Iso8601(timestamp))
 		AddElementToObject(transfer, "currency", code)
@@ -3592,7 +3592,7 @@ func (this *BydfiCore) fetchTransactionsHelperBody(ch chan any, typeVar any, cod
 	untilparamsVariable := this.HandleOptionAndParams2(params, "fetchTransfers", "until", "endTime")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	var sevenDays any = Multiply(Multiply(Multiply(Multiply(7, 24), 60), 60), 1000) // the maximum range is 7 days
 	var startTime any = since
 	if IsTrue(IsEqual(startTime, nil)) {
@@ -3736,7 +3736,7 @@ func (this *BydfiCore) Sign(path any, optionalArgs ...any) any {
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
 	var endpoint any = Add("/", path)
 	var query any = ""
-	var sortedParams any = this.Keysort(params)
+	var sortedParams map[string]any = this.Keysort(params)
 	if IsTrue(IsEqual(method, "GET")) {
 		query = this.Urlencode(sortedParams)
 		if IsTrue(!IsEqual(GetLength(query), 0)) {
@@ -3745,10 +3745,10 @@ func (this *BydfiCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp any = ToString(this.Milliseconds())
+		var timestamp string = ToString(this.Milliseconds())
 		if IsTrue(IsEqual(method, "GET")) {
 			var payload any = Add(Add(this.ApiKey, timestamp), query)
-			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
+			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"X-API-KEY":       this.ApiKey,
 				"X-API-TIMESTAMP": timestamp,
@@ -3757,7 +3757,7 @@ func (this *BydfiCore) Sign(path any, optionalArgs ...any) any {
 		} else {
 			body = this.Json(sortedParams)
 			var payload any = Add(Add(this.ApiKey, timestamp), body)
-			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
+			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "hex")
 			headers = map[string]any{
 				"Content-Type":    "application/json",
 				"X-API-KEY":       this.ApiKey,

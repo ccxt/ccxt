@@ -811,7 +811,7 @@ func (this *BittradeCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	//    }
 	//
 	var markets any = this.SafeValue(response, "data", []any{})
-	var numMarkets any = GetArrayLength(markets)
+	var numMarkets int = GetArrayLength(markets)
 	if IsTrue(IsLessThan(numMarkets, 1)) {
 		panic(NetworkError(Add(Add(this.Id, " fetchMarkets() returned empty response: "), this.Json(markets))))
 	}
@@ -825,7 +825,7 @@ func (this *BittradeCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 		var state any = this.SafeString(market, "state")
 		var leverageRatio any = this.SafeString(market, "leverage-ratio", "1")
 		var superLeverageRatio any = this.SafeString(market, "super-margin-leverage-ratio", "1")
-		var margin any = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
+		var margin bool = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
 		var fee any = Ternary(IsTrue((IsEqual(base, "OMG"))), this.ParseNumber("0"), this.ParseNumber("0.002"))
 		if IsTrue(IsEqual(baseId, nil)) {
 			panic(ExchangeError(Add(this.Id, " fetchMarkets() missing baseId")))
@@ -1196,7 +1196,7 @@ func (this *BittradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeString(trade, "direction")
 	var typeVar any = this.SafeString(trade, "type")
 	if IsTrue(!IsEqual(typeVar, nil)) {
-		var typeParts any = Split(typeVar, "-")
+		var typeParts []string = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)
 	}
@@ -1597,7 +1597,7 @@ func (this *BittradeCore) ParseCurrency(currency any) any {
 	var countryDisabled any = this.SafeValue(currency, "country-disabled")
 	var visible any = this.SafeBool(currency, "visible", false)
 	var state any = this.SafeString(currency, "state")
-	var active any = IsTrue(IsTrue(IsTrue(IsTrue(visible) && IsTrue(depositEnabled)) && IsTrue(withdrawEnabled)) && IsTrue((IsEqual(state, "online")))) && !IsTrue(countryDisabled)
+	var active bool = IsTrue(IsTrue(IsTrue(IsTrue(visible) && IsTrue(depositEnabled)) && IsTrue(withdrawEnabled)) && IsTrue((IsEqual(state, "online")))) && !IsTrue(countryDisabled)
 	var name any = this.SafeString(currency, "display-name")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision")))
 	return this.SafeCurrencyStructure(map[string]any{
@@ -2060,7 +2060,7 @@ func (this *BittradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var status any = nil
 	if IsTrue(InOp(order, "type")) {
-		var orderType any = Split(GetValue(order, "type"), "-")
+		var orderType []string = Split(GetValue(order, "type"), "-")
 		side = GetValue(orderType, 0)
 		typeVar = GetValue(orderType, 1)
 		status = this.ParseOrderStatus(this.SafeString(order, "state"))
@@ -2498,7 +2498,7 @@ func (this *BittradeCore) ParseDepositAddress(depositAddress any, optionalArgs .
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var networkId any = this.SafeString(depositAddress, "chain")
 	var networks any = this.SafeValue(currency, "networks", map[string]any{})
-	var networksById any = this.IndexBy(networks, "id")
+	var networksById map[string]any = this.IndexBy(networks, "id")
 	var networkValue any = this.SafeValue(networksById, networkId, networkId)
 	var network any = this.SafeString(networkValue, "network")
 	this.CheckAddress(address)
@@ -2818,7 +2818,7 @@ func (this *BittradeCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsTrue(IsEqual(api, "private")) || IsTrue(IsEqual(api, "v2Private"))) {
 		this.CheckRequiredCredentials()
-		var timestamp any = this.Ymdhms(this.Milliseconds(), "T")
+		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
 		var request any = map[string]any{
 			"SignatureMethod":  "HmacSHA256",
 			"SignatureVersion": "2",
@@ -2828,13 +2828,13 @@ func (this *BittradeCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(!IsEqual(method, "POST")) {
 			request = this.Extend(request, query)
 		}
-		var requestSorted any = this.Keysort(request)
+		var requestSorted map[string]any = this.Keysort(request)
 		var auth any = this.Urlencode(requestSorted)
 		// unfortunately, PHP demands double quotes for the escaped newline symbol
-		var content any = []any{method, this.Hostname, url, auth}
+		var content []any = []any{method, this.Hostname, url, auth}
 		// eslint-disable-next-line quotes
 		var payload any = Join(content, "\n")
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 			"Signature": signature,
 		})))

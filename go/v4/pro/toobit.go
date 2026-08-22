@@ -460,7 +460,7 @@ func (this *ToobitCore) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
-	var resolveData any = []any{symbol, timeframe, stored}
+	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *ToobitCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -807,7 +807,7 @@ func (this *ToobitCore) HandleOrderBookPartialSnapshot(client any, message any) 
 }
 func (this *ToobitCore) SetOrderBookSnapshot(client any, message any, channel any) {
 	var data any = this.SafeList(message, "data", []any{})
-	var length any = ccxt.GetArrayLength(data)
+	var length int = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
 		return
 	}
@@ -861,10 +861,10 @@ func (this *ToobitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
 	var isSpot any = (ccxt.IsEqual(marketType, "spot"))
 	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "contract")
-	var spotSubHash any = "spot:balance"
-	var swapSubHash any = "contract:private"
-	var spotMessageHash any = "spot:balance"
-	var swapMessageHash any = "contract:balance"
+	var spotSubHash string = "spot:balance"
+	var swapSubHash string = "contract:private"
+	var spotMessageHash string = "spot:balance"
+	var swapMessageHash string = "contract:balance"
 	var messageHash any = ccxt.Ternary(ccxt.IsTrue(isSpot), spotMessageHash, swapMessageHash)
 	var subscriptionHash any = ccxt.Ternary(ccxt.IsTrue(isSpot), spotSubHash, swapSubHash)
 	if ccxt.IsTrue(ccxt.IsEqual(subscriptionHash, nil)) {
@@ -1374,7 +1374,7 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 	//     }
 	// ]
 	//
-	var subscriptions any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	var accountType any = ccxt.GetValue(subscriptions, 0)
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = map[string]any{}
@@ -1396,9 +1396,9 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(accountType, ":positions::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts any = ccxt.Split(messageHash, "::")
+		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols any = ccxt.Split(symbolsString, ",")
+		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !ccxt.IsTrue(this.IsEmpty(positions)) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
@@ -1448,12 +1448,12 @@ func (this *ToobitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var client any = this.Client(this.GetUserStreamUrl())
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
 		this.CheckRequiredCredentials()
-		var time any = this.Milliseconds()
+		var time int64 = this.Milliseconds()
 		var lastAuthenticatedTime any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
 		var listenKeyRefreshRate any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
 		var delay any = this.Sum(listenKeyRefreshRate, 10000)
@@ -1526,7 +1526,7 @@ func (this *ToobitCore) keepAliveListenKeyBody(ch chan any, optionalArgs ...any)
 						// catch block:
 						var url any = this.GetUserStreamUrl()
 						var client any = this.Client(url)
-						var messageHashes any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 						for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 							var messageHash any = ccxt.GetValue(messageHashes, i)
 							client.(ccxt.ClientInterface).Reject(error, messageHash)

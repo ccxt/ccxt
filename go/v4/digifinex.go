@@ -702,7 +702,7 @@ func (this *DigifinexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var data any = this.SafeList(response, "data", []any{})
-	var groupedById any = this.GroupBy(data, "currency")
+	var groupedById map[string]any = this.GroupBy(data, "currency")
 	var values any = ObjectValues(groupedById)
 
 	ch <- this.ParseCurrencies(values)
@@ -888,7 +888,7 @@ func (this *DigifinexCore) fetchMarketsV2Body(ch chan any, optionalArgs ...any) 
 		//
 		var isAllowed any = this.SafeInteger(market, "is_allow", 1)
 		var typeVar any = Ternary(IsTrue((IsEqual(defaultType, "margin"))), "margin", "spot")
-		var spot any = IsEqual(settle, nil)
+		var spot bool = IsEqual(settle, nil)
 		var swap any = !IsTrue(spot)
 		var margin any = Ternary(IsTrue((!IsEqual(marginMode, nil))), true, nil)
 		var symbol any = Add(Add(base, "/"), quote)
@@ -1390,7 +1390,7 @@ func (this *DigifinexCore) fetchTickersBody(ch chan any, optionalArgs ...any) an
 	var tickers any = this.SafeValue2(response, "ticker", "data", []any{})
 	var date any = this.SafeInteger(response, "date")
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-		var rawTicker any = this.Extend(map[string]any{
+		var rawTicker map[string]any = this.Extend(map[string]any{
 			"date": date,
 		}, GetValue(tickers, i))
 		var ticker any = this.ParseTicker(rawTicker)
@@ -1687,7 +1687,7 @@ func (this *DigifinexCore) ParseTrade(trade any, optionalArgs ...any) any {
 		if IsTrue(IsEqual(side, nil)) {
 			panic(ExchangeError(Add(this.Id, " parseTrade() returned no side")))
 		}
-		var parts any = Split(side, "_")
+		var parts []string = Split(side, "_")
 		side = this.SafeString(parts, 0)
 		typeVar = this.SafeString(parts, 1)
 		if IsTrue(IsEqual(typeVar, nil)) {
@@ -2310,7 +2310,7 @@ func (this *DigifinexCore) CreateOrderRequest(symbol any, typeVar any, side any,
 	} else {
 		postOnlyParsed = Ternary(IsTrue((IsEqual(postOnly, true))), 1, 2)
 		AddElementToObject(request, "market", marketType)
-		var suffix any = ""
+		var suffix string = ""
 		if IsTrue(IsEqual(typeVar, "market")) {
 			suffix = "_market"
 		} else {
@@ -2484,7 +2484,7 @@ func (this *DigifinexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	//
 	if IsTrue(IsTrue((IsEqual(marketType, "spot"))) || IsTrue((IsEqual(marketType, "margin")))) {
 		var canceledOrders any = this.SafeValue(response, "success", []any{})
-		var numCanceledOrders any = GetArrayLength(canceledOrders)
+		var numCanceledOrders int = GetArrayLength(canceledOrders)
 		if IsTrue(!IsEqual(numCanceledOrders, 1)) {
 			panic(OrderNotFound(Add(Add(Add(this.Id, " cancelOrder() "), id), " not found")))
 		}
@@ -2693,8 +2693,8 @@ func (this *DigifinexCore) ParseOrder(order any, optionalArgs ...any) any {
 		timestamp = this.SafeTimestamp(order, "created_date")
 		lastTradeTimestamp = this.SafeTimestamp(order, "finished_date")
 		if IsTrue(!IsEqual(side, nil)) {
-			var parts any = Split(side, "_")
-			var numParts any = GetArrayLength(parts)
+			var parts []string = Split(side, "_")
+			var numParts int = GetArrayLength(parts)
 			if IsTrue(IsGreaterThan(numParts, 1)) {
 				side = GetValue(parts, 0)
 				typeVar = GetValue(parts, 1)
@@ -4133,7 +4133,7 @@ func (this *DigifinexCore) ParseBorrowRate(info any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var currencyId any = this.SafeString(info, "currency")
 	return map[string]any{
 		"currency":  this.SafeCurrencyCode(currencyId, currency),
@@ -4486,7 +4486,7 @@ func (this *DigifinexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) 
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var symbol any = nil
 		if IsTrue(IsArray(symbols)) {
-			var symbolsLength any = GetArrayLength(symbols)
+			var symbolsLength int = GetArrayLength(symbols)
 			if IsTrue(IsGreaterThan(symbolsLength, 1)) {
 				panic(BadRequest(Add(this.Id, " fetchPositions() symbols argument cannot contain more than 1 symbol")))
 			}
@@ -5264,7 +5264,7 @@ func (this *DigifinexCore) ParseDepositWithdrawFees(response any, optionalArgs .
 			}
 		}
 	}
-	var depositWithdrawCodes any = ObjectKeys(depositWithdrawFees)
+	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; IsLessThan(i, GetArrayLength(depositWithdrawCodes)); i++ {
 		var code any = GetValue(depositWithdrawCodes, i)
 		var currency any = this.Currency(code)
@@ -5555,7 +5555,7 @@ func (this *DigifinexCore) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var signed any = IsEqual(GetValue(api, 0), "private")
+	var signed bool = IsEqual(GetValue(api, 0), "private")
 	var endpoint any = GetValue(api, 1)
 	var pathPart any = Ternary(IsTrue((IsEqual(endpoint, "spot"))), "/v3", "/swap/v2")
 	var request any = Add("/", this.ImplodeParams(path, params))
@@ -5585,7 +5585,7 @@ func (this *DigifinexCore) Sign(path any, optionalArgs ...any) any {
 			nonce = ToString(this.Nonce())
 			auth = urlencoded
 		}
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		if IsTrue(IsEqual(method, "GET")) {
 			if IsTrue(urlencoded) {
 				url = Add(url, Add("?", urlencoded))
@@ -5627,7 +5627,7 @@ func (this *DigifinexCore) HandleErrors(statusCode any, statusText any, url any,
 	if IsTrue(IsEqual(code, nil)) {
 		panic(BadResponse(feedback))
 	}
-	var unknownError any = []any{ExchangeError, feedback}
+	var unknownError []any = []any{ExchangeError, feedback}
 	ExceptionClassmessageVariable := this.SafeValue(GetValue(this.Exceptions, "exact"), code, unknownError)
 	ExceptionClass := GetValue(ExceptionClassmessageVariable, 0)
 	message := GetValue(ExceptionClassmessageVariable, 1)

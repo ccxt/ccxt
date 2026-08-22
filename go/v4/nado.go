@@ -502,7 +502,7 @@ func (this *NadoCore) createOrderRequestBody(ch chan any, symbol any, typeVar an
 	var isStopLossOrder any = !IsEqual(stopLossTriggerPrice, nil)
 	var isTakeProfitOrder any = !IsEqual(takeProfitTriggerPrice, nil)
 	var isStopOrder any = !IsEqual(triggerPrice, nil)
-	var isTriggerOrder any = IsTrue(IsTrue(isStopOrder) || IsTrue(isStopLossOrder)) || IsTrue(isTakeProfitOrder)
+	var isTriggerOrder bool = IsTrue(IsTrue(isStopOrder) || IsTrue(isStopLossOrder)) || IsTrue(isTakeProfitOrder)
 	if IsTrue(isStopOrder) {
 		var triggerDirection any = this.SafeStringLower(params, "triggerDirection")
 		if IsTrue(IsEqual(triggerDirection, nil)) {
@@ -1585,7 +1585,7 @@ func (this *NadoCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	//
 	var matches any = this.SafeList(response, "matches", []any{})
 	var txs any = this.SafeList(response, "txs", []any{})
-	var txsBySubmission any = this.IndexBy(txs, "submission_idx")
+	var txsBySubmission map[string]any = this.IndexBy(txs, "submission_idx")
 	var trades any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(matches)); i++ {
 		var match any = GetValue(matches, i)
@@ -1826,7 +1826,7 @@ func (this *NadoCore) queryTransactionsByEventTypeBody(ch chan any, eventType an
 				break
 			}
 		}
-		var transaction any = this.Extend(map[string]any{}, tx)
+		var transaction map[string]any = this.Extend(map[string]any{}, tx)
 		transaction = this.Extend(transaction, event)
 		AddElementToObject(transaction, "transaction_type", transactionType)
 		AppendToArray(&transactions, this.ParseTransaction(transaction, currency))
@@ -2502,7 +2502,7 @@ func (this *NadoCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	//         }
 	//     }
 	//
-	var tickers any = ObjectKeys(response)
+	var tickers []string = ObjectKeys(response)
 	var rates any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var ticker any = GetValue(tickers, i)
@@ -2625,7 +2625,7 @@ func (this *NadoCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	//         }
 	//     }
 	//
-	var tickers any = ObjectKeys(response)
+	var tickers []string = ObjectKeys(response)
 	var interests any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var ticker any = GetValue(tickers, i)
@@ -3582,7 +3582,7 @@ func (this *NadoCore) CreateSubaccount(walletAddress any, optionalArgs ...any) a
 	if IsTrue(IsEqual(subaccount, nil)) {
 		subaccount = "default"
 	}
-	var address any = ToLower(this.Remove0xPrefix(walletAddress))
+	var address string = ToLower(this.Remove0xPrefix(walletAddress))
 	if IsTrue(!IsEqual(GetArrayLength(address), 40)) {
 		panic(BadRequest(Add(this.Id, " createOrder() requires a 20-byte walletAddress")))
 	}
@@ -3629,7 +3629,7 @@ func (this *NadoCore) PadHex(value any, length any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(length, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " padHex() requires length")))
 	}
-	var zeros any = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
 	var padded any = Ternary(IsTrue(left), (Add(zeros, value)), (Add(value, zeros)))
 	if IsTrue(left) {
 		var start any = Subtract(GetLength(padded), length)
@@ -3745,7 +3745,7 @@ func (this *NadoCore) SignHash(hash any, privateKey any) any {
 	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = ToLower(this.IntToBase16(this.Sum(27, GetValue(signature, "v"))))
+	var v string = ToLower(this.IntToBase16(this.Sum(27, GetValue(signature, "v"))))
 	return Add(Add(Add("0x", this.PadHex(r, 64)), this.PadHex(s, 64)), v)
 }
 func (this *NadoCore) RemoveMarketSuffix(marketId any) any {

@@ -497,7 +497,7 @@ func (this *IndodaxCore) ParseBalance(response any) any {
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var currencyIds any = ObjectKeys(free)
+	var currencyIds []string = ObjectKeys(free)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -751,7 +751,7 @@ func (this *IndodaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.PublicGetApiTickerAll(params))
 	PanicOnError(response)
 	var tickers any = this.SafeDict(response, "tickers", map[string]any{})
-	var keys any = ObjectKeys(tickers)
+	var keys []string = ObjectKeys(tickers)
 	var parsedTickers any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
@@ -878,7 +878,7 @@ func (this *IndodaxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	}
 	var market any = this.Market(symbol)
 	var selectedTimeframe any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var now any = this.Seconds()
+	var now int64 = this.Seconds()
 	var until any = this.SafeInteger(params, "until", now)
 	params = this.Omit(params, []any{"until"})
 	var request any = map[string]any{
@@ -1128,7 +1128,7 @@ func (this *IndodaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		return nil
 	}
 	// { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-	var marketIds any = ObjectKeys(rawOrders)
+	var marketIds []string = ObjectKeys(rawOrders)
 	var exchangeOrders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
@@ -1228,8 +1228,8 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"type":  side,
 		"price": price,
 	}
-	var priceIsRequired any = false
-	var quantityIsRequired any = false
+	var priceIsRequired bool = false
+	var quantityIsRequired bool = false
 	if IsTrue(IsEqual(typeVar, "market")) {
 		if IsTrue(IsEqual(side, "buy")) {
 			var quoteAmount any = nil
@@ -1483,7 +1483,7 @@ func (this *IndodaxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	}
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
-		var startTime any = this.Yyyymmdd(since)
+		var startTime string = this.Yyyymmdd(since)
 		AddElementToObject(request, "start", startTime)
 		AddElementToObject(request, "end", this.Yyyymmdd(this.Milliseconds()))
 	}
@@ -1553,7 +1553,7 @@ func (this *IndodaxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	var transactions any = []any{}
 	var currency any = nil
 	if IsTrue(IsEqual(code, nil)) {
-		var keys any = ObjectKeys(withdraw)
+		var keys []string = ObjectKeys(withdraw)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var key any = GetValue(keys, i)
 			transactions = this.ArrayConcat(transactions, GetValue(withdraw, key))
@@ -1799,7 +1799,7 @@ func (this *IndodaxCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	var data any = this.SafeDict(response, "return")
 	var addresses any = this.SafeDict(data, "address", map[string]any{})
 	var networks any = this.SafeDict(data, "network", map[string]any{})
-	var addressKeys any = ObjectKeys(addresses)
+	var addressKeys []string = ObjectKeys(addresses)
 	var result any = map[string]any{
 		"info": data,
 	}
@@ -1820,7 +1820,7 @@ func (this *IndodaxCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 					if IsTrue(IsEqual(networkId, nil)) {
 						panic(ExchangeError(Add(this.Id, " fetchDepositAddresses() missing networkId")))
 					}
-					var networkIds any = Split(networkId, ",")
+					var networkIds []string = Split(networkId, ",")
 					for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
 						var _netIdTmp any = this.NetworkIdToCode(GetValue(networkIds, j), code)
 						if IsTrue(!IsEqual(_netIdTmp, nil)) {

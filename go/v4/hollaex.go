@@ -419,7 +419,7 @@ func (this *HollaexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var pairs any = this.SafeValue(response, "pairs", map[string]any{})
-	var keys any = ObjectKeys(pairs)
+	var keys []string = ObjectKeys(pairs)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
@@ -584,7 +584,7 @@ func (this *HollaexCore) ParseCurrency(rawCurrency any) any {
 	var typeVar any = Ternary(IsTrue((IsEqual(rawType, "blockchain"))), "crypto", "other")
 	var rawNetworks any = this.SafeDict(rawCurrency, "withdrawal_fees", map[string]any{})
 	var networks any = map[string]any{}
-	var networkIds any = ObjectKeys(rawNetworks)
+	var networkIds []string = ObjectKeys(rawNetworks)
 	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
 		var networkId any = GetValue(networkIds, j)
 		var networkEntry any = this.SafeDict(rawNetworks, networkId)
@@ -667,7 +667,7 @@ func (this *HollaexCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) a
 	response := (<-this.PublicGetOrderbooks(params))
 	PanicOnError(response)
 	var result any = map[string]any{}
-	var marketIds any = ObjectKeys(response)
+	var marketIds []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var orderbook any = this.SafeDict(response, marketId, map[string]any{})
@@ -842,7 +842,7 @@ func (this *HollaexCore) ParseTickers(tickers any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	var result any = map[string]any{}
-	var keys any = ObjectKeys(tickers)
+	var keys []string = ObjectKeys(tickers)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var ticker any = GetValue(tickers, key)
@@ -1158,7 +1158,7 @@ func (this *HollaexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	var until any = this.SafeInteger(params, "until")
 	var timeDelta any = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
 	var start any = since
-	var now any = this.Milliseconds()
+	var now int64 = this.Milliseconds()
 	if IsTrue(IsEqual(until, nil)) {
 		until = now // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
 	}
@@ -1215,7 +1215,7 @@ func (this *HollaexCore) ParseBalance(response any) any {
 	if IsTrue(IsEqual(currenciesById, nil)) {
 		panic(ExchangeError(Add(this.Id, " currencies not loaded")))
 	}
-	var currencyIds any = ObjectKeys(currenciesById)
+	var currencyIds []string = ObjectKeys(currenciesById)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -1672,7 +1672,7 @@ func (this *HollaexCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
 	var meta any = this.SafeValue(params, "meta", map[string]any{})
 	var exchangeSpecificParam any = this.SafeBool(meta, "post_only", false)
-	var isMarketOrder any = IsEqual(typeVar, "market")
+	var isMarketOrder bool = IsEqual(typeVar, "market")
 	var postOnly any = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
 	if !IsTrue(isMarketOrder) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
@@ -1907,7 +1907,7 @@ func (this *HollaexCore) ParseDepositAddress(depositAddress any, optionalArgs ..
 	var address any = this.SafeString(depositAddress, "address")
 	var tag any = nil
 	if IsTrue(!IsEqual(address, nil)) {
-		var parts any = Split(address, ":")
+		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 	}
@@ -2273,7 +2273,7 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var tagTo any = nil
 	var tagFrom any = nil
 	if IsTrue(!IsEqual(address, nil)) {
-		var parts any = Split(address, ":")
+		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 		addressTo = address
@@ -2446,8 +2446,8 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 	}
 	var withdrawalFees any = this.SafeValue(fee, "withdrawal_fees")
 	if IsTrue(!IsEqual(withdrawalFees, nil)) {
-		var keys any = ObjectKeys(withdrawalFees)
-		var keysLength any = GetArrayLength(keys)
+		var keys []string = ObjectKeys(withdrawalFees)
+		var keysLength int = GetArrayLength(keys)
 		for i := 0; IsLessThan(i, keysLength); i++ {
 			var key any = GetValue(keys, i)
 			var value any = GetValue(withdrawalFees, key)
@@ -2457,7 +2457,7 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 			if IsTrue(IsEqual(networkCode, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " requires a networkCode argument")))
 			}
-			var networkCodeUpper any = ToUpper(networkCode) // default to the upper case network code
+			var networkCodeUpper string = ToUpper(networkCode) // default to the upper case network code
 			var withdrawalFee any = this.SafeNumber(value, "value")
 			AddElementToObject(GetValue(result, "networks"), networkCodeUpper, map[string]any{
 				"deposit":  nil,
@@ -2555,7 +2555,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var defaultExpires any = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)
-		var expiresString any = ToString(expires)
+		var expiresString string = ToString(expires)
 		var auth any = Add(Add(method, path), expiresString)
 		headers = map[string]any{
 			"api-key":     this.ApiKey,
@@ -2568,7 +2568,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 				auth = Add(auth, body)
 			}
 		}
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "api-signature", signature)
 	}
 	return map[string]any{
@@ -2596,7 +2596,7 @@ func (this *HollaexCore) HandleErrors(code any, reason any, url any, method any,
 		var feedback any = Add(Add(this.Id, " "), body)
 		var message any = this.SafeString(response, "message")
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
-		var status any = ToString(code)
+		var status string = ToString(code)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), status, feedback)
 	}
 	return nil

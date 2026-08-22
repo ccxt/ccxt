@@ -126,7 +126,7 @@ func (this *ApexCore) watchTradesForSymbolsBody(ch chan any, symbols any, option
 		ccxt.PanicOnError(retRes8512)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
 	}
@@ -177,7 +177,7 @@ func (this *ApexCore) HandleTrades(client any, message any) {
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var topic any = this.SafeString(message, "topic")
 	var trades any = data
-	var parts any = ccxt.Split(topic, ".")
+	var parts []string = ccxt.Split(topic, ".")
 	var marketId any = this.SafeString(parts, 2)
 	var market any = this.SafeMarket(marketId, nil, nil)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -187,7 +187,7 @@ func (this *ApexCore) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var length any = ccxt.GetArrayLength(trades)
+	var length int = ccxt.GetArrayLength(trades)
 	for j := 0; ccxt.IsLessThan(j, length); j++ {
 		var index any = ccxt.Subtract(ccxt.Subtract(length, j), 1)
 		var parsed any = this.ParseWsTrade(ccxt.GetValue(trades, index), market)
@@ -293,7 +293,7 @@ func (this *ApexCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 		retRes22112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes22112)
 	}
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() requires a non-empty array of symbols")))
 	}
@@ -364,7 +364,7 @@ func (this *ApexCore) GetWsPublicUrl() any {
 	// Cache it per exchange instance.
 	var url any = this.SafeString(this.Options, "wsPublicUrl")
 	if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
-		var timeStamp any = ccxt.ToString(this.Milliseconds())
+		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "&timestamp="), timeStamp)
 		ccxt.AddElementToObject(this.Options, "wsPublicUrl", url)
 	}
@@ -373,7 +373,7 @@ func (this *ApexCore) GetWsPublicUrl() any {
 func (this *ApexCore) GetWsPrivateUrl() any {
 	var url any = this.SafeString(this.Options, "wsPrivateUrl")
 	if ccxt.IsTrue(ccxt.IsEqual(url, nil)) {
-		var timeStamp any = ccxt.ToString(this.Milliseconds())
+		var timeStamp string = ccxt.ToString(this.Milliseconds())
 		url = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "&timestamp="), timeStamp)
 		ccxt.AddElementToObject(this.Options, "wsPrivateUrl", url)
 	}
@@ -478,7 +478,7 @@ func (this *ApexCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	var url any = this.GetWsPublicUrl()
 	var messageHash any = ccxt.Add("ticker:", symbol)
 	var topic any = ccxt.Add(ccxt.Add("instrumentInfo", ".H."), ccxt.GetValue(market, "id2"))
-	var topics any = []any{topic}
+	var topics []any = []any{topic}
 
 	retRes38715 := (<-this.WatchTopics(url, []any{messageHash}, topics, params))
 	ccxt.PanicOnError(retRes38715)
@@ -569,14 +569,14 @@ func (this *ApexCore) HandleTicker(client any, message any) {
 		parsed = this.ParseTicker(data)
 		symbol = ccxt.GetValue(parsed, "symbol")
 	} else if ccxt.IsTrue(ccxt.IsEqual(updateType, "delta")) {
-		var topicParts any = ccxt.Split(topic, ".")
-		var topicLength any = ccxt.GetArrayLength(topicParts)
+		var topicParts []string = ccxt.Split(topic, ".")
+		var topicLength int = ccxt.GetArrayLength(topicParts)
 		var marketId any = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
 		var market any = this.SafeMarket(marketId, nil, nil)
 		symbol = ccxt.GetValue(market, "symbol")
 		var ticker any = this.SafeDict(this.Tickers, symbol, map[string]any{})
 		var rawTicker any = this.SafeDict(ticker, "info", map[string]any{})
-		var merged any = this.Extend(rawTicker, data)
+		var merged map[string]any = this.Extend(rawTicker, data)
 		parsed = this.ParseTicker(merged)
 	}
 	var timestamp any = this.SafeIntegerProduct(message, "ts", 0.001)
@@ -704,12 +704,12 @@ func (this *ApexCore) HandleOHLCV(client any, message any) {
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var topic any = this.SafeString(message, "topic")
-	var topicParts any = ccxt.Split(topic, ".")
-	var topicLength any = ccxt.GetArrayLength(topicParts)
+	var topicParts []string = ccxt.Split(topic, ".")
+	var topicLength int = ccxt.GetArrayLength(topicParts)
 	var timeframeId any = this.SafeString(topicParts, 1)
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var marketId any = this.SafeString(topicParts, ccxt.Subtract(topicLength, 1))
-	var isSpot any = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
+	var isSpot bool = ccxt.IsGreaterThan(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "spot"), ccxt.OpNeg(1))
 	var marketType any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "contract")
 	var market any = this.SafeMarket(marketId, nil, nil, marketType)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -726,7 +726,7 @@ func (this *ApexCore) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
-	var resolveData any = []any{symbol, timeframe, stored}
+	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *ApexCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -856,7 +856,7 @@ func (this *ApexCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
 	}
-	var topics any = []any{"positions"}
+	var topics []any = []any{"positions"}
 
 	newPositions := (<-this.WatchTopics(url, []any{messageHash}, topics, params))
 	ccxt.PanicOnError(newPositions)
@@ -911,7 +911,7 @@ func (this *ApexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes6938 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes6938)
-	var topics any = []any{"orders"}
+	var topics []any = []any{"orders"}
 
 	orders := (<-this.WatchTopics(url, []any{messageHash}, topics, params))
 	ccxt.PanicOnError(orders)
@@ -953,13 +953,13 @@ func (this *ApexCore) HandleMyTrades(client any, lists any) {
 		ccxt.AddElementToObject(symbols, symbol, true)
 		trades.(ccxt.Appender).Append(parsed)
 	}
-	var keys any = ccxt.ObjectKeys(symbols)
+	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var currentMessageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *ApexCore) HandleOrder(client any, lists any) {
@@ -1004,12 +1004,12 @@ func (this *ApexCore) HandleOrder(client any, lists any) {
 		ccxt.AddElementToObject(symbols, symbol, true)
 		orders.(ccxt.Appender).Append(parsed)
 	}
-	var symbolsArray any = ccxt.ObjectKeys(symbols)
+	var symbolsArray []string = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsArray)); i++ {
 		var currentMessageHash any = ccxt.Add("orders:", ccxt.GetValue(symbolsArray, i))
 		client.(ccxt.ClientInterface).Resolve(orders, currentMessageHash)
 	}
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
 func (this *ApexCore) SetPositionsCache(client any, optionalArgs ...any) {
@@ -1018,7 +1018,7 @@ func (this *ApexCore) SetPositionsCache(client any, optionalArgs ...any) {
 	if ccxt.IsTrue(!ccxt.IsEqual(this.Positions, nil)) {
 		return
 	}
-	var messageHash any = "fetchPositionsSnapshot"
+	var messageHash string = "fetchPositionsSnapshot"
 	if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 		client.(ccxt.ClientInterface).Future(messageHash)
 		this.Spawn(this.LoadPositionsSnapshot, client, messageHash)
@@ -1033,7 +1033,7 @@ func (this *ApexCore) loadPositionsSnapshotBody(ch chan any, client any, message
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// as only one ws channel gives positions for all types, for snapshot must load all positions
-	var fetchFunctions any = []any{this.FetchPositions()}
+	var fetchFunctions []any = []any{this.FetchPositions()}
 
 	promises := (<-ccxt.PromiseAll(fetchFunctions))
 	ccxt.PanicOnError(promises)
@@ -1105,9 +1105,9 @@ func (this *ApexCore) HandlePositions(client any, lists any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), "positions::")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts any = ccxt.Split(messageHash, "::")
+		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols any = ccxt.Split(symbolsString, ",")
+		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !ccxt.IsTrue(this.IsEmpty(positions)) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
@@ -1126,12 +1126,12 @@ func (this *ApexCore) authenticateBody(ch chan any, url any, optionalArgs ...any
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
-	var timestamp any = ccxt.ToString(this.Milliseconds())
-	var request_path any = "/ws/accounts"
-	var http_method any = "GET"
+	var timestamp string = ccxt.ToString(this.Milliseconds())
+	var request_path string = "/ws/accounts"
+	var http_method string = "GET"
 	var messageString any = (ccxt.Add(ccxt.Add(timestamp, http_method), request_path))
-	var signature any = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), ccxt.Sha256, "base64")
-	var messageHash any = "authenticated"
+	var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), ccxt.Sha256, "base64")
+	var messageHash string = "authenticated"
 	var client any = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1215,7 +1215,7 @@ func (this *ApexCore) HandleErrorMessage(client any, message any) any {
 					ret_ = func(this *ApexCore) any {
 						// catch block:
 						if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
-							var messageHash any = "authenticated"
+							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1291,7 +1291,7 @@ func (this *ApexCore) HandleMessage(client any, message any) {
 		ccxt.CallDynamically(exacMethod, client, message)
 		return
 	}
-	var keys any = ccxt.ObjectKeys(methods)
+	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0)) {
@@ -1307,7 +1307,7 @@ func (this *ApexCore) HandleMessage(client any, message any) {
 	}
 }
 func (this *ApexCore) Ping(client any) any {
-	var timeStamp any = this.Milliseconds()
+	var timeStamp int64 = this.Milliseconds()
 	client.(ccxt.ClientInterface).SetLastPong(timeStamp)
 	return map[string]any{
 		"args": []any{ccxt.ToString(timeStamp)},
@@ -1325,7 +1325,7 @@ func (this *ApexCore) pongBody(ch chan any, client any, message any) any {
 	//
 	//     {"op": "ping", "args": ["1761069137485"]}
 	//
-	var timeStamp any = this.Milliseconds()
+	var timeStamp int64 = this.Milliseconds()
 
 	{
 		func(this *ApexCore) (ret_ any) {
@@ -1398,7 +1398,7 @@ func (this *ApexCore) HandleAuthenticate(client any, message any) any {
 	//
 	var success any = this.SafeValue(message, "success")
 	var code any = this.SafeInteger(message, "retCode")
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	if ccxt.IsTrue(ccxt.IsTrue(success) || ccxt.IsTrue(ccxt.IsEqual(code, 0))) {
 		var future any = this.SafeValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
 		future.(*ccxt.Future).Resolve(true)

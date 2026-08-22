@@ -225,7 +225,7 @@ func (this *LighterCore) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "order_book", map[string]any{})
 	var channel any = this.SafeString(message, "channel", "")
-	var parts any = ccxt.Split(channel, ":")
+	var parts []string = ccxt.Split(channel, ":")
 	var marketId any = ccxt.GetValue(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -376,7 +376,7 @@ func (this *LighterCore) HandleTicker(client any, message any) {
 	var data any = this.SafeDict(message, "market_stats", map[string]any{})
 	var channel any = this.SafeString(message, "channel")
 	if ccxt.IsTrue(ccxt.IsEqual(channel, "market_stats:all")) {
-		var marketIds any = ccxt.ObjectKeys(data)
+		var marketIds []string = ccxt.ObjectKeys(data)
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketIds)); i++ {
 			var marketId any = ccxt.GetValue(marketIds, i)
 			var market any = this.SafeMarket(marketId)
@@ -762,13 +762,13 @@ func (this *LighterCore) HandleTrades(client any, message any) {
 	//     }
 	//
 	var liquidationData any = this.SafeList(message, "liquidation_trades", []any{})
-	var liquidationDataLength any = ccxt.GetArrayLength(liquidationData)
+	var liquidationDataLength int = ccxt.GetArrayLength(liquidationData)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(liquidationDataLength, 0)) {
 		this.HandleLiquidation(client, message)
 	}
 	var data any = this.SafeList(message, "trades", []any{})
 	var channel any = this.SafeString(message, "channel", "")
-	var parts any = ccxt.Split(channel, ":")
+	var parts []string = ccxt.Split(channel, ":")
 	var marketId any = ccxt.GetValue(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -778,7 +778,7 @@ func (this *LighterCore) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var dataLength any = ccxt.GetArrayLength(data)
+	var dataLength int = ccxt.GetArrayLength(data)
 	for i := 0; ccxt.IsLessThan(i, dataLength); i++ {
 		var iReversed any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
 		var trade any = this.ParseWsTrade(ccxt.GetValue(data, iReversed), market)
@@ -988,11 +988,11 @@ func (this *LighterCore) HandleMyTrades(client any, message any) any {
 	//     }
 	//
 	var channel any = this.SafeString(message, "channel", "")
-	var parts any = ccxt.Split(channel, ":")
+	var parts []string = ccxt.Split(channel, ":")
 	var accountIndex any = ccxt.GetValue(parts, 1)
 	var data any = this.SafeDict(message, "trades", map[string]any{})
-	var marketIds any = ccxt.ObjectKeys(data)
-	var idsLength any = ccxt.GetArrayLength(marketIds)
+	var marketIds []string = ccxt.ObjectKeys(data)
+	var idsLength int = ccxt.GetArrayLength(marketIds)
 	if ccxt.IsTrue(ccxt.IsEqual(idsLength, 0)) {
 		return false // nothing to process
 	}
@@ -1006,7 +1006,7 @@ func (this *LighterCore) HandleMyTrades(client any, message any) any {
 		var marketId any = ccxt.GetValue(marketIds, i)
 		var market any = this.SafeMarket(marketId)
 		var trades any = this.SafeList(data, marketId, []any{})
-		var tradesLength any = ccxt.GetArrayLength(trades)
+		var tradesLength int = ccxt.GetArrayLength(trades)
 		for j := 0; ccxt.IsLessThan(j, tradesLength); j++ {
 			var jReversed any = ccxt.Subtract(ccxt.Subtract(tradesLength, 1), j)
 			var tradeRaw any = ccxt.GetValue(trades, jReversed)
@@ -1217,7 +1217,7 @@ func (this *LighterCore) HandleLiquidation(client any, message any) {
 	//
 	var data any = this.SafeList(message, "liquidation_trades", []any{})
 	var channel any = this.SafeString(message, "channel", "")
-	var parts any = ccxt.Split(channel, ":")
+	var parts []string = ccxt.Split(channel, ":")
 	var marketId any = ccxt.GetValue(parts, 1)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1227,7 +1227,7 @@ func (this *LighterCore) HandleLiquidation(client any, message any) {
 		this.Liquidations = ccxt.NewArrayCache(limit)
 		stored = this.Liquidations
 	}
-	var dataLength any = ccxt.GetArrayLength(data)
+	var dataLength int = ccxt.GetArrayLength(data)
 	for i := 0; ccxt.IsLessThan(i, dataLength); i++ {
 		var iReversed any = ccxt.Subtract(ccxt.Subtract(dataLength, 1), i)
 		var liquidation any = this.ParseWsLiquidation(ccxt.GetValue(data, iReversed), market)
@@ -1386,14 +1386,14 @@ func (this *LighterCore) HandleBalance(client any, message any) any {
 	//    }
 	//
 	var channel any = this.SafeString(message, "channel", "")
-	var typeVar any = "spot"
+	var typeVar string = "spot"
 	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(channel, "user_stats:"), 0)) {
 		typeVar = "swap"
 	}
 	var balance any = this.SafeDict(this.Balance, typeVar, map[string]any{})
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
 		var assets any = this.SafeDict(message, "assets", map[string]any{})
-		var assetIds any = ccxt.ObjectKeys(assets)
+		var assetIds []string = ccxt.ObjectKeys(assets)
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(assetIds)); i++ {
 			var assetId any = ccxt.GetValue(assetIds, i)
 			var asset any = ccxt.GetValue(assets, assetId)
@@ -1721,8 +1721,8 @@ func (this *LighterCore) HandleOrders(client any, message any) any {
 	//    }
 	//
 	var data any = this.SafeDict(message, "orders", map[string]any{})
-	var marketIds any = ccxt.ObjectKeys(data)
-	var idsLength any = ccxt.GetArrayLength(marketIds)
+	var marketIds []string = ccxt.ObjectKeys(data)
+	var idsLength int = ccxt.GetArrayLength(marketIds)
 	if ccxt.IsTrue(ccxt.IsEqual(idsLength, 0)) {
 		return false // nothing to process
 	}
@@ -1771,7 +1771,7 @@ func (this *LighterCore) HandleErrorMessage(client any, message any) any {
 						// catch block:
 						var id any = this.SafeString(message, "id")
 						if ccxt.IsTrue(!ccxt.IsEqual(id, nil)) {
-							var subscriptionKeys any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+							var subscriptionKeys []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 							for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(subscriptionKeys)); i++ {
 								var subscriptionHash any = ccxt.GetValue(subscriptionKeys, i)
 								var subscriptionId any = this.SafeString(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash), "id")
@@ -1867,7 +1867,7 @@ func (this *LighterCore) HandleSubscriptionStatus(client any, message any) any {
 	//
 	var typeVar any = this.SafeString(message, "type", "")
 	var id any = this.SafeString(message, "session_id")
-	var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
+	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
 	var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "unsubscribed")) {
 		this.HandleUnSubscription(client, subscription)

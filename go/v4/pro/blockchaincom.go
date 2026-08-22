@@ -82,13 +82,13 @@ func (this *BlockchaincomCore) watchBalanceBody(ch chan any, optionalArgs ...any
 
 	retRes648 := (<-this.Authenticate(params))
 	ccxt.PanicOnError(retRes648)
-	var messageHash any = "balance"
+	var messageHash string = "balance"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var subscribe any = map[string]any{
 		"action":  "subscribe",
 		"channel": "balances",
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	retRes7215 := (<-this.Watch(url, messageHash, request, messageHash, request))
 	ccxt.PanicOnError(retRes7215)
@@ -144,7 +144,7 @@ func (this *BlockchaincomCore) HandleBalance(client any, message any) {
 			ccxt.AddElementToObject(result, code, account)
 		}
 	}
-	var messageHash any = "balance"
+	var messageHash string = "balance"
 	this.Balance = this.SafeBalance(result)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
@@ -544,8 +544,8 @@ func (this *BlockchaincomCore) watchOrdersBody(ch chan any, optionalArgs ...any)
 		"action":  "subscribe",
 		"channel": "trading",
 	}
-	var messageHash any = "orders"
-	var request any = this.DeepExtend(message, params)
+	var messageHash string = "orders"
+	var request map[string]any = this.DeepExtend(message, params)
 
 	orders := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orders)
@@ -631,7 +631,7 @@ func (this *BlockchaincomCore) HandleOrders(client any, message any) {
 	//     }
 	//
 	var event any = this.SafeString(message, "event")
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var cachedOrders any = this.Orders
 	if ccxt.IsTrue(ccxt.IsEqual(cachedOrders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -780,7 +780,7 @@ func (this *BlockchaincomCore) watchOrderBookBody(ch chan any, symbol any, optio
 		"channel": typeVar,
 		"symbol":  ccxt.GetValue(market, "id"),
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	orderbook := (<-this.Watch(url, messageHash, request, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -910,7 +910,7 @@ func (this *BlockchaincomCore) authenticateBody(ch chan any, optionalArgs ...any
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var client any = this.Client(url)
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var isAuthenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(isAuthenticated, nil)) {

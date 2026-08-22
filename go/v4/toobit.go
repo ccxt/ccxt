@@ -1172,7 +1172,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "symbol")
 	var baseId any = this.SafeString(market, "baseAsset", "")
 	var quoteId any = this.SafeString(market, "quoteAsset")
-	var baseParts any = Split(baseId, "-")
+	var baseParts []string = Split(baseId, "-")
 	var baseIdClean any = GetValue(baseParts, 0)
 	var base any = this.SafeCurrencyCode(baseIdClean)
 	var quote any = this.SafeCurrencyCode(quoteId)
@@ -1181,7 +1181,7 @@ func (this *ToobitCore) ParseMarket(market any) any {
 	var status any = this.SafeString(market, "status")
 	var active any = (IsEqual(status, "TRADING"))
 	var filters any = this.SafeList(market, "filters", []any{})
-	var filtersByType any = this.IndexBy(filters, "filterType")
+	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var priceFilter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
 	var lotSizeFilter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
 	var minNotionalFilter any = this.SafeDict(filtersByType, "MIN_NOTIONAL", map[string]any{})
@@ -1590,7 +1590,7 @@ func (this *ToobitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var length any = GetArrayLength(symbols)
+		var length int = GetArrayLength(symbols)
 		if IsTrue(IsTrue((IsEqual(length, 1))) && IsTrue((!IsEqual(market, nil)))) {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 		}
@@ -1694,7 +1694,7 @@ func (this *ToobitCore) fetchLastPricesBody(ch chan any, optionalArgs ...any) an
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length any = GetArrayLength(symbols)
+		var length int = GetArrayLength(symbols)
 		if IsTrue(IsEqual(length, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1760,7 +1760,7 @@ func (this *ToobitCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length any = GetArrayLength(symbols)
+		var length int = GetArrayLength(symbols)
 		if IsTrue(IsEqual(length, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1792,7 +1792,7 @@ func (this *ToobitCore) ParseBidsAsksCustom(tickers any, optionalArgs ...any) an
 	var results any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var parsedTicker any = this.ParseBidAskCustom(GetValue(tickers, i))
-		var ticker any = this.Extend(parsedTicker, params)
+		var ticker map[string]any = this.Extend(parsedTicker, params)
 		AppendToArray(&results, ticker)
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -1839,7 +1839,7 @@ func (this *ToobitCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 	symbols = this.MarketSymbols(symbols)
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length any = GetArrayLength(symbols)
+		var length int = GetArrayLength(symbols)
 		if IsTrue(IsEqual(length, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2316,7 +2316,7 @@ func (this *ToobitCore) ParseOrder(order any, optionalArgs ...any) any {
 		// contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
 		// the suffix is the only signal that carries reduceOnly, so read
 		// it before discarding it (spot sides have no suffix: undefined)
-		var sideParts any = Split(rawSideLower, "_")
+		var sideParts []string = Split(rawSideLower, "_")
 		var sideSuffix any = this.SafeString(sideParts, 1)
 		if IsTrue(!IsEqual(sideSuffix, nil)) {
 			reduceOnly = (IsEqual(sideSuffix, "close"))
@@ -3067,7 +3067,7 @@ func (this *ToobitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var after any = this.SafeNumber(item, "total")
 	var amountRaw any = this.SafeString(item, "change", "")
 	var amount any = this.ParseNumber(Precise.StringAbs(amountRaw))
-	var direction any = "in"
+	var direction string = "in"
 	if IsTrue(StartsWith(amountRaw, "-")) {
 		direction = "out"
 	}
@@ -3703,7 +3703,7 @@ func (this *ToobitCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	var request any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var length any = GetArrayLength(symbols)
+		var length int = GetArrayLength(symbols)
 		if IsTrue(IsGreaterThan(length, 1)) {
 			panic(BadRequest(Add(this.Id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")))
 		}
@@ -3790,8 +3790,8 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), this.ImplodeParams(path, params))
-	var isPost any = IsEqual(method, "POST")
-	var isDelete any = IsEqual(method, "DELETE")
+	var isPost bool = IsEqual(method, "POST")
+	var isDelete bool = IsEqual(method, "DELETE")
 	var extraQuery any = map[string]any{}
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(!IsEqual(api, "private")) {
@@ -3803,11 +3803,11 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var timestamp any = this.Milliseconds()
+		var timestamp int64 = this.Milliseconds()
 		// Add timestamp to parameters for signed endpoints
 		AddElementToObject(extraQuery, "recvWindow", this.SafeString(this.Options, "recvWindow", "5000"))
 		AddElementToObject(extraQuery, "timestamp", ToString(timestamp))
-		var queryExtended any = this.Extend(query, extraQuery)
+		var queryExtended map[string]any = this.Extend(query, extraQuery)
 		var queryString any = ""
 		if IsTrue(IsTrue(isPost) || IsTrue(isDelete)) {
 			// everything else except Batch-Orders

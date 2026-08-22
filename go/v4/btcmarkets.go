@@ -591,8 +591,8 @@ func (this *BtcmarketsCore) ParseTransaction(transaction any, optionalArgs ...an
 	var address any = this.SafeString(cryptoPaymentDetail, "address")
 	var tag any = nil
 	if IsTrue(!IsEqual(address, nil)) {
-		var addressParts any = Split(address, "?dt=")
-		var numParts any = GetArrayLength(addressParts)
+		var addressParts []string = Split(address, "?dt=")
+		var numParts int = GetArrayLength(addressParts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			address = GetValue(addressParts, 0)
 			tag = GetValue(addressParts, 1)
@@ -1240,7 +1240,7 @@ func (this *BtcmarketsCore) createOrderBody(ch chan any, symbol any, typeVar any
 		"amount":   this.AmountToPrecision(symbol, amount),
 		"side":     Ternary(IsTrue((IsEqual(side, "buy"))), "Bid", "Ask"),
 	}
-	var lowercaseType any = ToLower(typeVar)
+	var lowercaseType string = ToLower(typeVar)
 	var orderTypes any = this.SafeValue(this.Options, "orderTypes", map[string]any{
 		"limit":       "Limit",
 		"market":      "Market",
@@ -1249,8 +1249,8 @@ func (this *BtcmarketsCore) createOrderBody(ch chan any, symbol any, typeVar any
 		"take profit": "Take Profit",
 	})
 	AddElementToObject(request, "type", this.SafeString(orderTypes, lowercaseType, typeVar))
-	var priceIsRequired any = false
-	var triggerPriceIsRequired any = false
+	var priceIsRequired bool = false
+	var triggerPriceIsRequired bool = false
 	if IsTrue(IsEqual(lowercaseType, "limit")) {
 		priceIsRequired = true
 	} else if IsTrue(IsEqual(lowercaseType, "stop limit")) {
@@ -1863,10 +1863,10 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var request any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var query any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
+	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var secret any = this.Base64ToBinary(this.Secret)
 		var auth any = Add(Add(method, request), nonce)
 		if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
@@ -1877,7 +1877,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 			auth = Add(auth, body)
 		}
-		var signature any = this.Hmac(this.Encode(auth), secret, sha512, "base64")
+		var signature string = this.Hmac(this.Encode(auth), secret, sha512, "base64")
 		headers = map[string]any{
 			"Accept":            "application/json",
 			"Accept-Charset":    "UTF-8",

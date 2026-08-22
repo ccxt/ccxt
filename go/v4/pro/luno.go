@@ -88,7 +88,7 @@ func (this *LunoCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	trades := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
 	ccxt.PanicOnError(trades)
@@ -116,7 +116,7 @@ func (this *LunoCore) HandleTrades(client any, message any, subscription any) {
 	//     }
 	//
 	var rawTrades any = this.SafeValue(message, "trade_updates", []any{})
-	var length any = ccxt.GetArrayLength(rawTrades)
+	var length int = ccxt.GetArrayLength(rawTrades)
 	if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
 		return
 	}
@@ -210,7 +210,7 @@ func (this *LunoCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		"api_key_id":     this.ApiKey,
 		"api_key_secret": this.Secret,
 	}
-	var request any = this.DeepExtend(subscribe, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	orderbook := (<-this.Watch(url, messageHash, request, subscriptionHash, subscription))
 	ccxt.PanicOnError(orderbook)
@@ -394,7 +394,7 @@ func (this *LunoCore) HandleMessage(client any, message any) {
 		return
 	}
 	var subscriptions any = ccxt.ObjectValues(client.(ccxt.ClientInterface).GetSubscriptions())
-	var handlers any = []any{this.HandleOrderBook, this.HandleTrades}
+	var handlers []any = []any{this.HandleOrderBook, this.HandleTrades}
 	for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(handlers)); j++ {
 		var handler any = ccxt.GetValue(handlers, j)
 		ccxt.CallDynamically(handler, client, message, ccxt.GetValue(subscriptions, 0))

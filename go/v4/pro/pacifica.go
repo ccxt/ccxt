@@ -175,7 +175,7 @@ func (this *PacificaCore) createOrderWsBody(ch chan any, symbol any, typeVar any
 	// }
 	//
 	var code any = this.SafeInteger(response, "code")
-	var success any = false
+	var success bool = false
 	if ccxt.IsTrue(ccxt.IsEqual(code, 200)) {
 		success = true
 	}
@@ -231,7 +231,7 @@ func (this *PacificaCore) editOrderWsBody(ch chan any, id any, symbol any, typeV
 	_ = price
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var batchOperationType any = "edit_order"
+	var batchOperationType string = "edit_order"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
 		retRes19012 := (<-this.LoadMarkets())
@@ -260,7 +260,7 @@ func (this *PacificaCore) editOrderWsBody(ch chan any, id any, symbol any, typeV
 	//   "type": "edit_order"
 	// }
 	var code any = this.SafeInteger(response, "code")
-	var success any = false
+	var success bool = false
 	if ccxt.IsTrue(ccxt.IsEqual(code, 200)) {
 		success = true
 	}
@@ -311,7 +311,7 @@ func (this *PacificaCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs 
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var batchOperationType any = "batch_orders"
+	var batchOperationType string = "batch_orders"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
 		retRes24712 := (<-this.LoadMarkets())
@@ -410,7 +410,7 @@ func (this *PacificaCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ..
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var operationType any = "cancel_order"
+	var operationType string = "cancel_order"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
 		retRes32312 := (<-this.LoadMarkets())
@@ -443,7 +443,7 @@ func (this *PacificaCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ..
 	// }
 	//
 	var code any = this.SafeInteger(response, "code")
-	var success any = false
+	var success bool = false
 	if ccxt.IsTrue(ccxt.IsEqual(code, 200)) {
 		success = true
 	}
@@ -497,7 +497,7 @@ func (this *PacificaCore) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any
 		retRes38112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes38112)
 	}
-	var operationType any = "cancel_all_orders"
+	var operationType string = "cancel_all_orders"
 	var request any = this.CancelAllOrdersRequest(symbol, params)
 	params = this.Omit(params, []any{"excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow"})
 	var isTestnet any = this.IsSandboxModeEnabled
@@ -571,7 +571,7 @@ func (this *PacificaCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 			"agg_level": aggLevel,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orderbook)
@@ -623,7 +623,7 @@ func (this *PacificaCore) unWatchOrderBookBody(ch chan any, symbol any, optional
 			"agg_level": aggLevel,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes47615 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes47615)
@@ -744,7 +744,7 @@ func (this *PacificaCore) watchTickersBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError(retRes56412)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
-	var messageHash any = "tickers"
+	var messageHash string = "tickers"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
@@ -794,7 +794,7 @@ func (this *PacificaCore) unWatchTickersBody(ch chan any, optionalArgs ...any) a
 		ccxt.PanicOnError(retRes59512)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true)
-	var subMessageHash any = "tickers"
+	var subMessageHash string = "tickers"
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
@@ -864,7 +864,7 @@ func (this *PacificaCore) watchMyTradesBody(ch chan any, optionalArgs ...any) an
 			"account": userAddress,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
@@ -910,7 +910,7 @@ func (this *PacificaCore) unWatchMyTradesBody(ch chan any, optionalArgs ...any) 
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("unWatchMyTrades", params)
 	userAddress = ccxt.GetValue(userAddressparamsVariable, 0)
 	params = ccxt.GetValue(userAddressparamsVariable, 1)
-	var messageHash any = "unsubscribe:myTrades"
+	var messageHash string = "unsubscribe:myTrades"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
@@ -921,7 +921,7 @@ func (this *PacificaCore) unWatchMyTradesBody(ch chan any, optionalArgs ...any) 
 			"account": userAddress,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes68415 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes68415)
@@ -960,7 +960,7 @@ func (this *PacificaCore) HandleWsTickers(client any, message any) any {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 		ccxt.AppendToArray(&parsedTickers, ticker)
 	}
-	var tickers any = this.IndexBy(parsedTickers, "symbol")
+	var tickers map[string]any = this.IndexBy(parsedTickers, "symbol")
 	client.(ccxt.ClientInterface).Resolve(tickers, "tickers")
 	return true
 }
@@ -1001,7 +1001,7 @@ func (this *PacificaCore) HandleMyTrades(client any, message any) {
 	var trades any = this.MyTrades
 	var symbols any = map[string]any{}
 	var data any = this.SafeList(message, "data", []any{})
-	var dataLength any = ccxt.GetArrayLength(data)
+	var dataLength int = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
 		return
 	}
@@ -1014,13 +1014,13 @@ func (this *PacificaCore) HandleMyTrades(client any, message any) {
 		}
 		trades.(ccxt.Appender).Append(parsed)
 	}
-	var keys any = ccxt.ObjectKeys(symbols)
+	var keys []string = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var currentMessageHash any = ccxt.Add("myTrades:", ccxt.GetValue(keys, i))
 		client.(ccxt.ClientInterface).Resolve(trades, currentMessageHash)
 	}
 	// non-symbol specific
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 
@@ -1067,7 +1067,7 @@ func (this *PacificaCore) watchTradesBody(ch chan any, symbol any, optionalArgs 
 			"symbol": ccxt.GetValue(market, "id"),
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(trades)
@@ -1117,7 +1117,7 @@ func (this *PacificaCore) unWatchTradesBody(ch chan any, symbol any, optionalArg
 			"symbol": ccxt.GetValue(market, "id"),
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes84715 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes84715)
@@ -1294,7 +1294,7 @@ func (this *PacificaCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		},
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", parsedTf), ":"), symbol)
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	ohlcv := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(ohlcv)
@@ -1348,7 +1348,7 @@ func (this *PacificaCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs
 	}
 	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add("candles:", timeframe), ":"), symbol)
 	var messagehash any = ccxt.Add("unsubscribe:", subMessageHash)
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes103715 := (<-this.Watch(url, messagehash, message, messagehash))
 	ccxt.PanicOnError(retRes103715)
@@ -1451,7 +1451,7 @@ func (this *PacificaCore) watchOrdersBody(ch chan any, optionalArgs ...any) any 
 			"account": userAddress,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orders := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(orders)
@@ -1493,7 +1493,7 @@ func (this *PacificaCore) unWatchOrdersBody(ch chan any, optionalArgs ...any) an
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		panic(ccxt.NotSupported(ccxt.Add(this.Id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")))
 	}
-	var messageHash any = "unsubscribe:order"
+	var messageHash string = "unsubscribe:order"
 	var isTestnet any = this.IsSandboxModeEnabled
 	var urlKey any = ccxt.Ternary(ccxt.IsTrue((isTestnet)), "test", "api")
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, urlKey), "ws"), "public")
@@ -1508,7 +1508,7 @@ func (this *PacificaCore) unWatchOrdersBody(ch chan any, optionalArgs ...any) an
 			"account": userAddress,
 		},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes115615 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes115615)
@@ -1548,12 +1548,12 @@ func (this *PacificaCore) HandleOrder(client any, message any) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var dataLength any = ccxt.GetArrayLength(data)
+	var dataLength int = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
 		return
 	}
 	var stored any = this.Orders
-	var messageHash any = "order"
+	var messageHash string = "order"
 	var marketSymbols any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var rawOrder any = ccxt.GetValue(data, i)
@@ -1564,7 +1564,7 @@ func (this *PacificaCore) HandleOrder(client any, message any) {
 			ccxt.AddElementToObject(marketSymbols, symbol, true)
 		}
 	}
-	var keys any = ccxt.ObjectKeys(marketSymbols)
+	var keys []string = ccxt.ObjectKeys(marketSymbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var symbol any = ccxt.GetValue(keys, i)
 		var innerMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
@@ -1631,10 +1631,10 @@ func (this *PacificaCore) HandleTradesUnsubscription(client any, subscription an
 	}
 }
 func (this *PacificaCore) HandleTickersUnsubscription(client any, subscription any) {
-	var subMessageHash any = "tickers"
+	var subMessageHash string = "tickers"
 	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
-	var symbols any = ccxt.ObjectKeys(this.Tickers)
+	var symbols []string = ccxt.ObjectKeys(this.Tickers)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		ccxt.Remove(this.Tickers, ccxt.GetValue(symbols, i))
 	}
@@ -1658,7 +1658,7 @@ func (this *PacificaCore) HandleOHLCVUnsubscription(client any, subscription any
 	}
 }
 func (this *PacificaCore) HandleOrderUnsubscription(client any, subscription any) {
-	var subHash any = "order"
+	var subHash string = "order"
 	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure any = map[string]any{
@@ -1667,7 +1667,7 @@ func (this *PacificaCore) HandleOrderUnsubscription(client any, subscription any
 	this.CleanCache(topicStructure)
 }
 func (this *PacificaCore) HandleMyTradesUnsubscription(client any, subscription any) {
-	var subHash any = "myTrades"
+	var subHash string = "myTrades"
 	var unSubHash any = ccxt.Add("unsubscribe:", subHash)
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
 	var topicStructure any = map[string]any{
@@ -1754,7 +1754,7 @@ func (this *PacificaCore) HandleMessage(client any, message any) {
 		this.HandleWsPost(client, message)
 		return
 	}
-	var keys any = ccxt.ObjectKeys(methods)
+	var keys []string = ccxt.ObjectKeys(methods)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(topic, ccxt.GetValue(keys, i)), 0)) {

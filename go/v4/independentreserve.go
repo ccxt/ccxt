@@ -1487,14 +1487,14 @@ func (this *IndependentreserveCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var nonce any = this.Nonce()
 		var auth any = []any{url, Add("apiKey=", this.ApiKey), Add("nonce=", ToString(nonce))}
-		var keys any = ObjectKeys(params)
+		var keys []string = ObjectKeys(params)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var key any = GetValue(keys, i)
-			var value any = ToString(GetValue(params, key))
+			var value string = ToString(GetValue(params, key))
 			AppendToArray(&auth, Add(Add(key, "="), value))
 		}
 		var message any = Join(auth, ",")
-		var signature any = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(message), this.Encode(this.Secret), sha256)
 		var query any = map[string]any{}
 		AddElementToObject(query, "apiKey", this.ApiKey)
 		AddElementToObject(query, "nonce", nonce)

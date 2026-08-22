@@ -469,7 +469,7 @@ func (this *UpbitCore) fetchCurrencyByIdBody(ch chan any, id any, optionalArgs .
 	var walletState any = this.SafeString(currencyInfo, "wallet_state")
 	var walletLocked any = this.SafeValue(memberInfo, "wallet_locked")
 	var locked any = this.SafeValue(memberInfo, "locked")
-	var active any = true
+	var active bool = true
 	if IsTrue(IsTrue((!IsEqual(canWithdraw, nil))) && !IsTrue(canWithdraw)) {
 		active = false
 	} else if IsTrue(!IsEqual(walletState, "working")) {
@@ -1493,7 +1493,7 @@ func (this *UpbitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		AddElementToObject(request, "to", this.Iso8601(this.Sum(since, Multiply(Multiply(timeframePeriod, limit), 1000))))
 	}
 	if IsTrue(IsEqual(timeframeValue, "minutes")) {
-		var numMinutes any = MathRound(Divide(timeframePeriod, 60))
+		var numMinutes float64 = MathRound(Divide(timeframePeriod, 60))
 		AddElementToObject(request, "unit", numMinutes)
 
 		response = (<-this.PublicGetCandlesTimeframeUnit(this.Extend(request, params)))
@@ -2372,11 +2372,11 @@ func (this *UpbitCore) ParseOrder(order any, optionalArgs ...any) any {
 		"order": id,
 		"type":  typeVar,
 	})
-	var numTrades any = GetArrayLength(trades)
+	var numTrades int = GetArrayLength(trades)
 	if IsTrue(IsGreaterThan(numTrades, 0)) {
 		// the timestamp in fetchOrder trades is missing
 		lastTradeTimestamp = GetValue(GetValue(trades, Subtract(numTrades, 1)), "timestamp")
-		var getFeesFromTrades any = false
+		var getFeesFromTrades bool = false
 		if IsTrue(IsEqual(feeCost, nil)) {
 			getFeesFromTrades = true
 			feeCost = "0"
@@ -3040,12 +3040,12 @@ func (this *UpbitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		headers = map[string]any{}
-		var nonce any = this.Uuid()
+		var nonce string = this.Uuid()
 		var request any = map[string]any{
 			"access_key": this.ApiKey,
 			"nonce":      nonce,
 		}
-		var hasQuery any = GetArrayLength(ObjectKeys(query))
+		var hasQuery int = GetArrayLength(ObjectKeys(query))
 		var auth any = nil
 		if IsTrue(IsTrue((!IsEqual(method, "GET"))) && IsTrue((!IsEqual(method, "DELETE")))) {
 			body = this.Json(params)

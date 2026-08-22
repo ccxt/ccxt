@@ -723,12 +723,12 @@ func (this *BitvavoCore) ParseCurrency(rawCurrency any) any {
 	var fiatCurrencies any = this.HandleOption("fetchCurrencies", "fiatCurrencies", []any{})
 	var id any = this.SafeString(rawCurrency, "symbol")
 	var code any = this.SafeCurrencyCode(id)
-	var isFiat any = this.InArray(code, fiatCurrencies)
+	var isFiat bool = this.InArray(code, fiatCurrencies)
 	var networks any = map[string]any{}
 	var networksArray any = this.SafeList(rawCurrency, "networks", []any{})
-	var deposit any = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
-	var withdrawal any = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
-	var active any = IsTrue(deposit) && IsTrue(withdrawal)
+	var deposit bool = IsEqual(this.SafeString(rawCurrency, "depositStatus"), "OK")
+	var withdrawal bool = IsEqual(this.SafeString(rawCurrency, "withdrawalStatus"), "OK")
+	var active bool = IsTrue(deposit) && IsTrue(withdrawal)
 	var withdrawFee any = this.SafeNumber(rawCurrency, "withdrawalFee")
 	var precision any = this.SafeString(rawCurrency, "decimals", "8")
 	var minWithdraw any = this.SafeNumber(rawCurrency, "withdrawalMinAmount")
@@ -1841,8 +1841,8 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		"side":      side,
 		"orderType": typeVar,
 	}
-	var isMarketOrder any = IsTrue(IsTrue((IsEqual(typeVar, "market"))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "takeProfit")))
-	var isLimitOrder any = IsTrue(IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
+	var isMarketOrder bool = IsTrue(IsTrue((IsEqual(typeVar, "market"))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "takeProfit")))
+	var isLimitOrder bool = IsTrue(IsTrue((IsEqual(typeVar, "limit"))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
 	var timeInForce any = this.SafeString(params, "timeInForce")
 	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "triggerAmount"})
 	var postOnly any = this.IsPostOnly(isMarketOrder, false, params)
@@ -1870,8 +1870,8 @@ func (this *BitvavoCore) CreateOrderRequest(symbol any, typeVar any, side any, a
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	var isTakeProfit any = IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) || IsTrue((IsEqual(typeVar, "takeProfit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
-	var isStopLoss any = IsTrue(IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue((!IsTrue(isTakeProfit))))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))
+	var isTakeProfit bool = IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) || IsTrue((IsEqual(typeVar, "takeProfit")))) || IsTrue((IsEqual(typeVar, "takeProfitLimit")))
+	var isStopLoss bool = IsTrue(IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue((!IsTrue(isTakeProfit))))) || IsTrue((IsEqual(typeVar, "stopLoss")))) || IsTrue((IsEqual(typeVar, "stopLossLimit")))
 	if IsTrue(isStopLoss) {
 		if IsTrue(!IsEqual(stopLossPrice, nil)) {
 			triggerPrice = stopLossPrice
@@ -2872,7 +2872,7 @@ func (this *BitvavoCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = this.ParseLedgerEntryType(rawType)
 	var currencyId any = this.SafeString(item, "receivedCurrency")
 	var amount any = this.SafeString(item, "receivedAmount")
-	var direction any = "in"
+	var direction string = "in"
 	if IsTrue(IsEqual(amount, nil)) {
 		currencyId = this.SafeString(item, "sentCurrency")
 		amount = this.SafeString(item, "sentAmount")
@@ -3350,7 +3350,7 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var getOrDelete any = IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))
+	var getOrDelete bool = IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))
 	if IsTrue(getOrDelete) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			url = Add(url, Add("?", this.Urlencode(query)))
@@ -3365,9 +3365,9 @@ func (this *BitvavoCore) Sign(path any, optionalArgs ...any) any {
 				payload = body
 			}
 		}
-		var timestamp any = ToString(this.Milliseconds())
+		var timestamp string = ToString(this.Milliseconds())
 		var auth any = Add(Add(Add(timestamp, method), url), payload)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		var accessWindow any = this.SafeString2(this.Options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000")
 		headers = map[string]any{
 			"BITVAVO-ACCESS-KEY":       this.ApiKey,
