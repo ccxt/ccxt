@@ -239,7 +239,8 @@ class Transpiler {
     // Naming: `do_<method>` + `private` (not `_impl` / leading underscore). PSR-12 forbids
     // underscore prefixes as a visibility marker; CCXT PHP is snake_case; `do_*` is the
     // usual "public facade, do the work" helper shape in PHP frameworks. `private` keeps
-    // the body non-overridable (stubs and bodies are always emitted as a pair).
+    // the body non-overridable; the phpInnerAsyncLayerMethods collapse targets are `protected`
+    // instead, because a subclass body calls them directly.
     //
     // Async\async() stays on the public edge, so public signatures still return
     // PromiseInterface and Promise\all() still overlaps; only the closure, its `use (...)`
@@ -1559,6 +1560,44 @@ class Transpiler {
         }).join (', ')
     }
 
+    // Emitted PHP (CI regen), e.g. do_request:
+    //   -return Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+    //   +return $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
+    static phpInnerAsyncLayerMethods = [ 'fetch2' ]
+
+    phpCollapseInnerAsyncLayers (phpBody: string) {
+        for (const name of Transpiler.phpInnerAsyncLayerMethods) {
+            const opener = 'Async\\await($this->' + name + '('
+            let index = phpBody.indexOf (opener)
+            while (index > -1) {
+                // walk from the callee's "(" to its matching ")", then require the await's own ")"
+                let depth = 0
+                let cursor = index + opener.length - 1
+                while (cursor < phpBody.length) {
+                    const char = phpBody[cursor]
+                    if (char === '(') {
+                        depth++
+                    } else if (char === ')') {
+                        depth--
+                        if (depth === 0) {
+                            break
+                        }
+                    }
+                    cursor++
+                }
+                if (depth !== 0 || phpBody[cursor + 1] !== ')') {
+                    index = phpBody.indexOf (opener, index + 1)
+                    continue
+                }
+                const args = phpBody.slice (index + opener.length, cursor)
+                const replacement = '$this->do_' + name + '(' + args + ')'
+                phpBody = phpBody.slice (0, index) + replacement + phpBody.slice (cursor + 2)
+                index = phpBody.indexOf (opener, index + replacement.length)
+            }
+        }
+        return phpBody
+    }
+
     transpileJavaScriptToPHP ({ js, variables }: any, async = false) {
 
         // match all local variables (let, const or var)
@@ -1638,6 +1677,9 @@ class Transpiler {
         }
         if (async && js.indexOf (' await ') > -1) {
             this.phpAsyncBodyWasFlattened = true
+            // the flat body runs inside the public stub's fiber already, so sequential awaits
+            // on the base HTTP chain call the sibling do_* directly instead of opening another one
+            phpBody = this.phpCollapseInnerAsyncLayers (phpBody)
         }
         phpBody = phpBody.replaceAll(/parent::\$market/g, 'parent::market')
         return phpBody
@@ -2345,7 +2387,10 @@ class Transpiler {
                     // the body helper is intentionally untyped on the return: after
                     // `Async\await(...)` it yields the resolved value, not a promise, so the
                     // public method's `: PromiseInterface` must not be repeated here.
-                    phpAsync.push ('    ' + 'private function ' + doMethod + '(' + phpArgs + ') {');
+                    // Emitted: `private function do_fetch2(...)` → `protected function do_fetch2(...)`.
+                    // Other do_* stay private so PHP skips the LSP signature check.
+                    const visibility = Transpiler.phpInnerAsyncLayerMethods.includes (method) ? 'protected' : 'private'
+                    phpAsync.push ('    ' + visibility + ' function ' + doMethod + '(' + phpArgs + ') {');
                 } else {
                     phpAsync.push (asyncPhpSignature);
                 }
