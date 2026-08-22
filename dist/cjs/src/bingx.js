@@ -1326,6 +1326,9 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (market['inverse']) {
+            throw new errors.NotSupported(this.id + ' fetchTrades() is not supported for inverse swap markets');
+        }
         const request = {
             'symbol': market['id'],
         };
