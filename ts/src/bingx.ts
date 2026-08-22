@@ -1721,7 +1721,13 @@ export default class bingx extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeDict (response, 'data');
+        let data: Dict;
+        if (market['inverse']) {
+            const dataList = this.safeList (response, 'data', []);
+            data = this.safeDict (dataList, 0, {});
+        } else {
+            data = this.safeDict (response, 'data', {});
+        }
         return this.parseFundingRate (data, market);
     }
 
