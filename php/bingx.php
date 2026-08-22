@@ -1711,7 +1711,12 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        if ($market['inverse']) {
+            $dataList = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($dataList, 0, array());
+        } else {
+            $data = $this->safe_dict($response, 'data', array());
+        }
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -2986,7 +2991,7 @@ class bingx extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
             'notional' => $this->safe_number($position, 'positionValue'),
             'marginMode' => $marginMode,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
