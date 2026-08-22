@@ -1,0 +1,35 @@
+[package]
+name = "comparison-ccxt-binance-rs"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+# Self-contained comparison example: ccxt-rust (typed WS layer) vs the
+# third-party `binance-rs` crate, both watching the BTC/USDT order book.
+# Kept OUT of the main `examples/rust` workspace on purpose so the CI examples
+# build never pulls the `binance` crate (native-tls, heavy). Build/run it
+# explicitly from this directory — see README.md.
+
+[dependencies]
+# ccxt typed layer: `ccxt_pro::Binance` exposes `watch_order_book(...) -> Result<OrderBook>`.
+ccxt = { path = "../../../rust/ccxt" }
+ccxt-pro = { path = "../../../rust/ccxt-pro" }
+# The third-party baseline.
+binance = "0.21"
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+
+[[bin]]
+name = "ccxt_side"
+path = "src/ccxt_side.rs"
+
+[[bin]]
+name = "binance_rs_side"
+path = "src/binance_rs_side.rs"
+
+[profile.release]
+# Keep the big generated `ccxt` crate within a modest RAM budget while staying
+# optimized (opt-level 3 needs ~11GB+ for ccxt_base on this tree).
+debug = false
+opt-level = 2
+codegen-units = 256
