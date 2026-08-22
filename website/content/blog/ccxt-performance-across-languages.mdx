@@ -44,8 +44,29 @@ is just the wire.
 **PHP is the outlier at ~205 ms — but its parse tail is 3.1 ms, same as everyone else.** The
 other ~200 ms is its ReactPHP HTTP client, which opens a fresh connection per request (no
 keep-alive pool), so it pays the TCP+TLS handshake every call — not order-book parsing. For REST,
-then, latency is the network; the language barely matters. (We instrumented four languages here;
-C# and Java call the same unified methods and are equally network-bound.)
+then, latency is the network; the language barely matters.
+
+One detail worth pulling out, because it cuts against the section's own framing: **Go has the
+slowest CCXT processing here (5.8 ms) and yet the fastest total (41.2 ms, vs 43.0 for Python and
+44.9 for JavaScript).** Slower in the library, faster end to end. If you only care about
+wall-clock, that ordering is the one that matters.
+
+We'd still be cautious about concluding "Go's HTTP client is faster," for two reasons. The margin
+is a few milliseconds against a network that swings from ~35 ms at p50 to ~90 ms at p90 — small
+next to its own noise. And the split isn't measured identically: JavaScript, Python, and PHP wrap
+the whole `fetch()` method (request building, signing, the round trip, reading the body), while
+Go's `Profile` hook starts its timer immediately before `httpClient.Do(req)`. Go's "network" is
+therefore a slightly narrower window than everyone else's, and its "processing" absorbs the
+request-building the others count as network. The **totals** are measured the same way everywhere,
+so Go's end-to-end win is real; the attribution behind it is the part we wouldn't lean on.
+
+**Why only four languages in this section and the next?** The REST and WebSocket harnesses were
+built for JavaScript, Python, PHP, and Go; C# and Java implement only the offline parse test. They
+call the same unified methods, so there's no reason to expect them to behave differently on a
+network-bound path — but we haven't measured it, so we haven't charted it. Adding them now would
+mean running them on a different machine than the other four (see the methodology), which would
+make the comparison worse rather than better; a clean six-language REST run is the right way to
+close that gap.
 
 ## 2. Latency with the network removed — where languages actually diverge
 
@@ -265,4 +286,6 @@ and hover any span for its exact share of the trace.
 Pick your language for the workload, not the benchmark. If you're calling REST endpoints, the
 network dwarfs everything and any of the six will do. If you're parsing at volume or merging deep
 order books, the runtime's JIT and the shape of the generated code decide it — and that ordering
-has little to do with whether the language is compiled.
+has little to do with whether the language is compiled. Several of the costs above are ours to
+fix, not the languages': the CCXT team is committed to continuously improving the library, and
+the numbers here are a roadmap as much as a report.
