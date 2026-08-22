@@ -1,0 +1,41 @@
+{
+    "BTC/USD:USDC": {
+        "id": "BTC-USD",
+        "symbol": "BTC/USD:USDC",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "USDC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "USDC",
+        "type": "swap",
+        "spot": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "contract": true,
+        "linear": true,
+        "subType": "linear",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "symbol": "BTC-USD",
+            "base_currency": "BTC",
+            "quote_currency": "USD",
+            "settlement_currency": "USDC"
+        }
+    }
+}
