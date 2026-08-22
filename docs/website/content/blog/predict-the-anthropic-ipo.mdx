@@ -1,50 +1,47 @@
 ---
 title: "Front-running the S-1: trading the Anthropic-vs-OpenAI IPO race with CCXT"
-description: A hands-on tour of CCXT's prediction-market API, built on the live binary market "Will Anthropic or OpenAI IPO first?" — reading odds across venues, a tweet-driven signal, and the risk-free cross-venue arbitrage.
+description: A walk through CCXT's prediction-market API using the binary market "Will Anthropic or OpenAI IPO first?" — reading odds across venues, a tweet-based signal, and cross-venue arbitrage.
 author: CCXT Team
 date: 2026-08-21T12:00:00Z
 tags: [tutorials, prediction-markets]
 ---
 
-Somewhere on the internet right now, people are betting real money on a wonderfully nerdy
-question:
+There's a market for the question "Will Anthropic or OpenAI IPO first?", and it trades on
+several prediction venues right now. It's binary — one company files first, the other doesn't —
+which makes it a good, simple case for walking through CCXT's prediction-market support. This
+post reads the odds off a few venues, builds a toy signal, and shows where a cross-venue
+arbitrage would come from.
 
-> **Will Anthropic or OpenAI IPO first?**
+## Prices are probabilities
 
-It's a real, live market on several prediction venues. And because it's binary — one of them
-files first, the other doesn't — it's the perfect little playground for CCXT's
-prediction-market support. Let's trade it.
+A prediction market share is different from a stock. A YES share trades between `0.00` and
+`1.00` and settles at exactly `1.00 USDC` if the event happens, or `0.00` if it doesn't. The
+price is therefore the market's estimate of the probability. If "Anthropic IPOs first" trades at
+`0.55`, the market is pricing a 55% chance. Ten YES shares cost `5.50`; if Anthropic lists first
+they pay `10.00`, otherwise nothing.
 
-## The one idea you need: prices are probabilities
-
-Forget candles. On a prediction market, a **YES** share trades between `0.00` and `1.00` and
-pays out **exactly 1.00 USDC** if the thing happens — otherwise zero. So the price *is* the
-crowd's probability. "Will Anthropic IPO first?" trading at `0.55` means the market thinks
-there's a **55%** chance. Buy 10 YES at `0.55` → you stake `5.50`; if Anthropic lists first
-you collect `10.00`, if not you get `0`.
-
-In CCXT terms it maps cleanly onto concepts you already know:
+The mapping onto the rest of CCXT is straightforward:
 
 | Crypto exchange | Prediction exchange |
 |---|---|
 | a `symbol` (`BTC/USDT`) | an `outcome` handle (`ANTHROPIC_FIRST:YES`) |
-| price in dollars | price = **probability, 0.00–1.00** |
-| you sell to exit | it **settles** at 1.00 or 0.00 |
+| price in dollars | price = probability, `0.00`–`1.00` |
+| you sell to exit | it settles at `1.00` or `0.00` |
 
-The data model has three layers, and the bottom one is what you trade:
+Data is organized in three levels, and the tradeable unit is the bottom one:
 
-- **event** — *"Which AI lab IPOs first?"* → `fetchEvents`
-- **market** — the binary question → a `PredictionMarket`
-- **outcome** — YES / NO → the tradeable handle (`outcome.outcome`)
+- **event** — the question, e.g. "Which AI lab IPOs first?", returned by `fetchEvents`
+- **market** — the binary question inside the event, a `PredictionMarket`
+- **outcome** — the YES or NO leg, addressed by its `outcome` handle
 
-## Step 1 — the fun part: let Dario pick your side 🐦
+## A signal from the founder's timeline
 
-Here's a terrible, wonderful trading strategy: **read the CEO's tweets.** A founder who just
-posted "excited to share we filed our S-1, roadshow next week" is telling you something the
-order book may not have fully priced yet. A tiny keyword scanner turns that into a lean:
+Before the market data, one non-serious idea. Founders sometimes telegraph a filing. If a CEO
+posts "we filed our S-1, roadshow next week", that's information, and a keyword scan is enough to
+turn it into a directional guess:
 
 ```ts
-// YES on this market = "Anthropic IPOs first", so filing/listing chatter leans YES
+// YES on this market means "Anthropic IPOs first", so filing/listing words point at YES
 const BULLISH = [ 's-1', 'roadshow', 'filing', 'filed', 'prospectus', 'listing', 'nasdaq', 'ipo' ];
 const BEARISH = [ 'no plans', 'staying private', 'delay', 'next year' ];
 
@@ -60,15 +57,14 @@ darioSignal ('excited to share we confidentially filed our S-1 — roadshow soon
 // => 'buy YES'
 ```
 
-> **Honesty check:** CCXT does **not** read Twitter/X. `darioSignal()` is a *bring-your-own-feed*
-> stub — you pipe in tweet text from wherever you get it. Everything below that touches money
-> is real CCXT. Your alpha being "a founder's typing habits" is a joke; the plumbing is not.
+To be clear, CCXT does not read Twitter/X. `darioSignal()` is a placeholder for whatever tweet
+source you plug in; the point of the post is the parts below it, which are real CCXT calls. Treat
+the signal as a joke and the plumbing as the lesson.
 
-## Step 2 — read the odds, across every venue, with one loop
+## Reading the odds across venues
 
-The same binary market is listed on more than one exchange — each with its own crowd, and
-therefore its **own price** for the identical real-world event. In CCXT that isn't four
-integrations; it's a loop over the *same* code.
+The same market is listed on more than one exchange, and each has its own order book, so the
+prices differ. In CCXT you read all of them with the same code, changing only the exchange id:
 
 ```ts
 import ccxt from 'ccxt';
@@ -78,7 +74,7 @@ async function readYes (venueId: string) {
     try {
         const events = await ex.fetchEvents ({ 'query': 'Anthropic IPO', 'sort': 'volume' });
         const market = events[0].markets[0];
-        // labels are lowercase on some venues (e.g. Limitless), Capitalized on others (Polymarket)
+        // labels are lowercase on some venues (e.g. Limitless), capitalized on others (Polymarket)
         const yes = market.outcomes.find ((o) => o.label.toLowerCase () === 'yes');
         const ob = await ex.fetchOrderBook (yes.outcome);        // yes.outcome is the tradeable handle
         return { venueId, 'bid': ob.bids[0]?.[0], 'ask': ob.asks[0]?.[0] };
@@ -90,7 +86,7 @@ async function readYes (venueId: string) {
 const board = await Promise.all ([ 'polymarket', 'limitless', 'myriad' ].map (readYes));
 ```
 
-One clean board, several regulatory regimes, zero special-casing:
+The result is one table across three venues, without per-venue parsing:
 
 ```text
 polymarket   YES 0.54 / 0.55   (~55%)
@@ -98,15 +94,15 @@ limitless    YES 0.51 / 0.52   (~52%)
 myriad       YES 0.56 / 0.57   (~57%)
 ```
 
-That normalization *is* the point: write the strategy once, and every venue speaks the same
-dialect. Now look at those prices disagreeing — a door just opened.
+You write the strategy once and let the library handle each venue's quirks. When the prices line
+up unevenly like this, there may be an arbitrage.
 
-## Step 3 — the free lunch: a cross-venue dutch book
+## Where the cross-venue arbitrage comes from
 
-A binary market has two shares, YES and NO, and **exactly one pays 1.00 USDC**. Buying a NO
-share is the same as selling a YES share, so a NO costs `1 - (YES bid)`. If you can grab one
-YES on the cheap venue and one NO on another for a combined cost **below 1.00**, you've locked
-in profit no matter who actually IPOs first:
+A binary market has two shares, YES and NO, and exactly one of them settles at `1.00 USDC`.
+Buying a NO share is equivalent to selling a YES share, so a NO costs `1 - (YES bid)`. If you buy
+one YES on the cheaper venue and one NO on another for a combined cost below `1.00`, the pair
+pays `1.00` at settlement regardless of who files first, so the difference is locked in:
 
 ```ts
 function findArb (board) {
@@ -114,52 +110,46 @@ function findArb (board) {
         if (a.venueId === b.venueId) continue;
         const noAsk = 1 - b.bid;         // buy NO on venue B = sell YES on venue B
         const cost  = a.ask + noAsk;     // one YES leg + one NO leg
-        const edge  = 1 - cost;          // payout is always exactly 1.00
+        const edge  = 1 - cost;          // settlement always pays exactly 1.00
         if (edge > 0) console.log (`BUY YES @${a.venueId} + NO @${b.venueId} => +${(edge * 100).toFixed (1)}% risk-free`);
     }
 }
 ```
 
-It doesn't care who wins the IPO race. It collects the gap between two crowds who haven't
-noticed they disagree.
+A few caveats, because this is where the idea usually breaks. Both legs have to settle on the
+same event: pairing "Anthropic IPOs in 2026?" with "Anthropic or OpenAI first?" is not a hedge,
+it's an open position, so match the exact head-to-head market on every venue. Fees and slippage
+eat into a thin edge, both orders have to actually fill, and the capital is tied up until the
+market resolves. In practice real edges are small and short-lived, and most of the time the scan
+returns nothing, which is the correct answer for an efficient market. The advantage of doing it
+in code is that a `Promise.all` across venues checks faster than you can by hand.
 
-> **The catch (why this isn't free money):** the two legs must settle on the *identical* event
-> (pairing "Anthropic IPOs in 2026?" with "Anthropic *or OpenAI* first?" is a naked position, not
-> a hedge) — so match the exact head-to-head market on every venue. On top of that, fees and
-> slippage eat thin edges, both legs must actually fill, and your capital is locked until the
-> market resolves. Real arbs are smaller
-> and rarer than the toy numbers here — but a bot scanning every venue in a `Promise.all` finds
-> them faster than you can refresh a tab. Efficient markets show **no** edge most of the time,
-> and that's the normal, honest result.
+## Placing and settling
 
-## Step 4 — place the bet, and collect at settlement
-
-Trading needs credentials (a wallet on the on-chain venues). Placing an order is one call —
-`amount` in shares, `price` as a probability:
+Trading needs credentials — a wallet on the on-chain venues. An order is a single call, with the
+amount in shares and the price as a probability:
 
 ```ts
 const poly = new ccxt.prediction.polymarket ({ privateKey, walletAddress });
 
-// "buy 5 YES (Anthropic first), but only at 0.25 or better"
+// buy 5 YES (Anthropic first) at 0.25 or better
 const order = await poly.createOrder (outcome, 'limit', 'buy', 5, 0.25);
 
-// after one of them files — the fields that only exist because prediction positions RESOLVE
+// after one company files, positions carry fields that only make sense once a market resolves
 const [ pos ] = await poly.fetchPositions ([ outcome ]);
-console.log (pos.resolved ? (pos.won ? `WON — payout ${pos.payout}` : 'lost') : `open, PnL ${pos.unrealizedPnl}`);
+console.log (pos.resolved ? (pos.won ? `won — payout ${pos.payout}` : 'lost') : `open, PnL ${pos.unrealizedPnl}`);
 ```
 
-`resolved`, `won`, `payout` — a normal exchange has no concept of these, because a `BTC/USDT`
-position never "comes true." A prediction position does. On venues that expose it (e.g.
-Kalshi), `fetchSettlements()` closes the loop with the booked result.
+`resolved`, `won`, and `payout` don't exist on a normal exchange, because a `BTC/USDT` position
+never comes true. A prediction position does, and on venues that support it `fetchSettlements()`
+gives you the booked result. If you wire this up for real, place a limit order well below the
+book so it can't fill, keep it under a small per-trade cap, and cancel it afterward — the same
+round-trip the other prediction examples use.
 
-When you actually wire this up, do it the safe way: place a **resting limit order that sits far
-below the book so it cannot fill**, under a hard per-trade notional cap, then cancel it — the
-same round-trip the other prediction examples use.
+## Other languages and the CLI
 
-## Any language, and the terminal
-
-The identical unified surface transpiles everywhere — prototype in Python, ship in Go, no API
-to relearn:
+The same API transpiles to every supported language, so you can prototype in Python and deploy in
+Go without relearning anything:
 
 ```python
 import ccxt.prediction            # prediction classes are async-only: ccxt.prediction.<id>
@@ -172,23 +162,21 @@ print (f"market-implied: {ticker['last'] * 100:.1f}%")
 await ex.close ()
 ```
 
-Prefer the terminal? Every CLI takes `-p` / `--prediction`:
+From the terminal, every CLI takes `-p` / `--prediction`:
 
 ```bash
 npm run cli.ts -- -p polymarket fetchEvents '{"query":"Anthropic IPO"}'
 ```
 
-And to react the instant an S-1 hits the wire, venues with WebSocket support stream the same
-shape via `watchTicker(outcome)` — a loop that pushes on every reprice.
+For live updates when news breaks, venues with WebSocket support expose `watchTicker(outcome)`,
+which pushes on every price change.
 
-## The final word
+## Summary
 
-Prediction markets turn *"who do you think files first?"* from a Slack argument into a priced,
-tradeable, settleable position — and CCXT turns **every** prediction venue into one interface,
-so your strategy sees all of them at once and pounces where they disagree.
+A prediction market puts a settleable price on a yes/no question, and CCXT gives every venue the
+same interface, so one strategy can read all of them and act on the differences. These are real
+markets with real money, fees, and settlement risk, so treat the arbitrage as something to look
+for rather than something that's always there.
 
-Bet responsibly: these are real markets with real money, fees, and settlement risk. Read "free
-lunch" as "find an edge," not "print cash." May your outcomes settle YES. 🚀
-
-The full [Prediction Markets guide](/docs/prediction) covers every venue, the complete
-data model, and the unified methods used above.
+The [Prediction Markets guide](/docs/prediction) covers every venue, the full data model, and the
+unified methods used above.
