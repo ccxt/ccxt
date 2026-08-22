@@ -43,14 +43,16 @@ let gofmtMissingWarned = false;
 //
 //     func (this *Bit2cCore) FetchBalance(...) <- chan any {
 //         ch := make(chan any, 1)
-//         go func() any {
-//             defer close(ch)
-//             defer ReturnPanicError(ch)
-//             ...
-//             ch <- value
-//             return nil
-//         }()
+//         go this.fetchBalanceBody(ch)
 //         return ch
+//     }
+//
+//     func (this *Bit2cCore) fetchBalanceBody(ch chan any, ...) any {
+//         defer close(ch)
+//         defer ReturnPanicError(ch)
+//         ...
+//         ch <- value
+//         return nil
 //     }
 //
 // Buffering the channel and shaping the body are therefore the emitter's job now and
