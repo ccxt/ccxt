@@ -117,6 +117,7 @@ namespace ccxtbench
             int iters = EnvInt("BENCH_REST_ITERS", 60);
             int sleepMs = EnvInt("BENCH_SLEEP_MS", 250);
             var ex = new TracedCoinbase();
+            ex.enableRateLimit = false;   // match the other harnesses: measure work, not throttle sleep
             await ex.LoadMarkets();
             for (int w = 0; w < 3; w++) await ex.fetchOrderBook(symbol, null, null);  // warmup: connection + JIT
 
