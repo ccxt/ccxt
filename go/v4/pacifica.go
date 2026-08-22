@@ -662,96 +662,102 @@ func (this *PacificaCore) Describe() any {
 	})
 }
 func (this *PacificaCore) InitializeClient() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-
-		{
-			func(this *PacificaCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *PacificaCore) any {
-							// catch block:
-
-							ch <- false
-							return nil
-
-						}(this)
-					}
-				}()
-				// try block:
-
-				retRes54212 := (<-this.HandleBuilderFeeApproval())
-				PanicOnError(retRes54212)
-				return nil
-			}(this)
-
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.initializeClientBody(ch)
 	return ch
 }
-func (this *PacificaCore) HandleBuilderFeeApproval() <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		if IsTrue(this.IsSandboxModeEnabled) {
+func (this *PacificaCore) initializeClientBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	chSent := false
+	_ = chSent
 
-			ch <- false
-			return nil
-		}
-		var buildFee any = this.SafeBool(this.Options, "builderFee", true)
-		if !IsTrue(buildFee) {
-
-			ch <- false // skip if builder fee is not enabled
-			return nil
-		}
-		var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
-		if IsTrue(approvedBuilderFee) {
-
-			ch <- true // skip if builder fee is already approved
-			return nil
-		}
-
-		{
-			func(this *PacificaCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *PacificaCore) any {
-							// catch block:
-							AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
-							return nil
-						}(this)
+	{
+		func(this *PacificaCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
 					}
-				}()
-				// try block:
-				var builder any = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
-				var maxFeeRate any = this.SafeString(this.Options, "feeRate", "0.01")
+					ret_ = func(this *PacificaCore) any {
+						// catch block:
 
-				retRes56412 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
-				PanicOnError(retRes56412)
-				AddElementToObject(this.Options, "approvedBuilderFee", true)
-				return nil
-			}(this)
+						ch <- false
+						chSent = true
+						return nil
 
+					}(this)
+				}
+			}()
+			// try block:
+
+			retRes54212 := (<-this.HandleBuilderFeeApproval())
+			PanicOnError(retRes54212)
+			return nil
+		}(this)
+		if chSent {
+			return nil
 		}
 
-		ch <- true
-		return nil
+	}
 
-	}()
+	ch <- true
+	return nil
+}
+func (this *PacificaCore) HandleBuilderFeeApproval() <-chan any {
+	ch := make(chan any, 1)
+	go this.handleBuilderFeeApprovalBody(ch)
 	return ch
+}
+func (this *PacificaCore) handleBuilderFeeApprovalBody(ch chan any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if IsTrue(this.IsSandboxModeEnabled) {
+
+		ch <- false
+		return nil
+	}
+	var buildFee any = this.SafeBool(this.Options, "builderFee", true)
+	if !IsTrue(buildFee) {
+
+		ch <- false // skip if builder fee is not enabled
+		return nil
+	}
+	var approvedBuilderFee any = this.SafeBool(this.Options, "approvedBuilderFee", false)
+	if IsTrue(approvedBuilderFee) {
+
+		ch <- true // skip if builder fee is already approved
+		return nil
+	}
+
+	{
+		func(this *PacificaCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *PacificaCore) any {
+						// catch block:
+						AddElementToObject(this.Options, "builderFee", false) // disable builder fee if an error occurs
+						return nil
+					}(this)
+				}
+			}()
+			// try block:
+			var builder any = this.SafeString(this.Options, "builderCode", "CCXT") // case sensitive
+			var maxFeeRate any = this.SafeString(this.Options, "feeRate", "0.01")
+
+			retRes56412 := (<-this.ApproveBuilderCode(builder, maxFeeRate))
+			PanicOnError(retRes56412)
+			AddElementToObject(this.Options, "approvedBuilderFee", true)
+			return nil
+		}(this)
+
+	}
+
+	ch <- true
+	return nil
 }
 
 /**
@@ -763,61 +769,61 @@ func (this *PacificaCore) HandleBuilderFeeApproval() <-chan any {
  * @returns {object[]} an array of [market structures](https://docs.ccxt.com/#/?id=market-structure)
  */
 func (this *PacificaCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetInfo(params))
-		PanicOnError(response) // meta
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "symbol": "BTC",
-		//       "tick_size": "1",
-		//       "min_tick": "0",
-		//       "max_tick": "1000000",
-		//       "lot_size": "0.00001",
-		//       "max_leverage": 50,
-		//       "isolated_only": false,
-		//       "min_order_size": "10",
-		//       "max_order_size": "5000000",
-		//       "funding_rate": "0.0000125",
-		//       "next_funding_rate": "0.0000125",
-		//       "created_at": 1748881333944,
-		//       "instrument_type": "perpetual",
-		//       "base_asset": "BTC"
-		//     },
-		//     {
-		//       "symbol": "SOL-USDC",
-		//       "tick_size": "0.01",
-		//       "min_tick": "0",
-		//       "max_tick": "1000000",
-		//       "lot_size": "0.001",
-		//       "max_leverage": 1,
-		//       "isolated_only": false,
-		//       "min_order_size": "10",
-		//       "max_order_size": "1000000",
-		//       "funding_rate": "0",
-		//       "next_funding_rate": "0",
-		//       "created_at": 1776615970246,
-		//       "instrument_type": "spot",
-		//       "base_asset": "SOL"
-		//     },
-		//   ],
-		//   "error": null,
-		//   "code": null
-		// }
-		var markets any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseMarkets(markets)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetInfo(params))
+	PanicOnError(response) // meta
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "symbol": "BTC",
+	//       "tick_size": "1",
+	//       "min_tick": "0",
+	//       "max_tick": "1000000",
+	//       "lot_size": "0.00001",
+	//       "max_leverage": 50,
+	//       "isolated_only": false,
+	//       "min_order_size": "10",
+	//       "max_order_size": "5000000",
+	//       "funding_rate": "0.0000125",
+	//       "next_funding_rate": "0.0000125",
+	//       "created_at": 1748881333944,
+	//       "instrument_type": "perpetual",
+	//       "base_asset": "BTC"
+	//     },
+	//     {
+	//       "symbol": "SOL-USDC",
+	//       "tick_size": "0.01",
+	//       "min_tick": "0",
+	//       "max_tick": "1000000",
+	//       "lot_size": "0.001",
+	//       "max_leverage": 1,
+	//       "isolated_only": false,
+	//       "min_order_size": "10",
+	//       "max_order_size": "1000000",
+	//       "funding_rate": "0",
+	//       "next_funding_rate": "0",
+	//       "created_at": 1776615970246,
+	//       "instrument_type": "spot",
+	//       "base_asset": "SOL"
+	//     },
+	//   ],
+	//   "error": null,
+	//   "code": null
+	// }
+	var markets any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseMarkets(markets)
+	return nil
 }
 
 /**
@@ -829,21 +835,21 @@ func (this *PacificaCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *PacificaCore) FetchSwapMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		markets := (<-this.FetchMarkets(params))
-		PanicOnError(markets)
-
-		ch <- this.FilterBy(markets, "type", "swap")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	markets := (<-this.FetchMarkets(params))
+	PanicOnError(markets)
+
+	ch <- this.FilterBy(markets, "type", "swap")
+	return nil
 }
 func (this *PacificaCore) ParseMarket(market any) any {
 	//     {
@@ -992,66 +998,66 @@ func (this *PacificaCore) ParseMarket(market any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *PacificaCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var userAccount any = nil
-		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchBalance", params)
-		userAccount = GetValue(userAccountparamsVariable, 0)
-		params = GetValue(userAccountparamsVariable, 1)
-		var request any = map[string]any{
-			"account": userAccount,
-		}
-
-		response := (<-this.PublicGetAccount(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": {
-		//     "balance": "2000.000000",
-		//     "fee_level": 0,
-		//     "maker_fee": "0.00015",
-		//     "taker_fee": "0.0004",
-		//     "account_equity": "2150.250000",
-		//     "available_to_spend": "1800.750000",
-		//     "available_to_withdraw": "1500.850000",
-		//     "pending_balance": "0.000000",
-		//     "total_margin_used": "349.500000",
-		//     "cross_mmr": "420.690000",
-		//     "positions_count": 2,
-		//     "orders_count": 3,
-		//     "stop_orders_count": 1,
-		//     "updated_at": 1716200000000,
-		//     "use_ltp_for_stop_orders": false
-		//   },
-		//   "error": null,
-		//   "code": null
-		// }
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var result any = map[string]any{
-			"info": data,
-		}
-		AddElementToObject(result, "free", map[string]any{})
-		AddElementToObject(result, "used", map[string]any{})
-		AddElementToObject(result, "total", map[string]any{})
-		var totalBalance any = this.SafeNumber(data, "account_equity")
-		var usedMargin any = this.SafeNumber(data, "total_margin_used")
-		var freeBalance any = this.SafeNumber(data, "available_to_spend")
-		AddElementToObject(GetValue(result, "total"), "USDC", totalBalance)
-		AddElementToObject(GetValue(result, "used"), "USDC", usedMargin)
-		AddElementToObject(GetValue(result, "free"), "USDC", freeBalance)
-		var timestamp any = this.SafeInteger(data, "updated_at")
-		AddElementToObject(result, "timestamp", timestamp)
-		AddElementToObject(result, "datetime", this.Iso8601(timestamp))
-
-		ch <- this.SafeBalance(result)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAccount any = nil
+	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchBalance", params)
+	userAccount = GetValue(userAccountparamsVariable, 0)
+	params = GetValue(userAccountparamsVariable, 1)
+	var request any = map[string]any{
+		"account": userAccount,
+	}
+
+	response := (<-this.PublicGetAccount(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": {
+	//     "balance": "2000.000000",
+	//     "fee_level": 0,
+	//     "maker_fee": "0.00015",
+	//     "taker_fee": "0.0004",
+	//     "account_equity": "2150.250000",
+	//     "available_to_spend": "1800.750000",
+	//     "available_to_withdraw": "1500.850000",
+	//     "pending_balance": "0.000000",
+	//     "total_margin_used": "349.500000",
+	//     "cross_mmr": "420.690000",
+	//     "positions_count": 2,
+	//     "orders_count": 3,
+	//     "stop_orders_count": 1,
+	//     "updated_at": 1716200000000,
+	//     "use_ltp_for_stop_orders": false
+	//   },
+	//   "error": null,
+	//   "code": null
+	// }
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var result any = map[string]any{
+		"info": data,
+	}
+	AddElementToObject(result, "free", map[string]any{})
+	AddElementToObject(result, "used", map[string]any{})
+	AddElementToObject(result, "total", map[string]any{})
+	var totalBalance any = this.SafeNumber(data, "account_equity")
+	var usedMargin any = this.SafeNumber(data, "total_margin_used")
+	var freeBalance any = this.SafeNumber(data, "available_to_spend")
+	AddElementToObject(GetValue(result, "total"), "USDC", totalBalance)
+	AddElementToObject(GetValue(result, "used"), "USDC", usedMargin)
+	AddElementToObject(GetValue(result, "free"), "USDC", freeBalance)
+	var timestamp any = this.SafeInteger(data, "updated_at")
+	AddElementToObject(result, "timestamp", timestamp)
+	AddElementToObject(result, "datetime", this.Iso8601(timestamp))
+
+	ch <- this.SafeBalance(result)
+	return nil
 }
 
 /**
@@ -1065,52 +1071,52 @@ func (this *PacificaCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *PacificaCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes8438 := (<-this.LoadAccountSettings())
-		PanicOnError(retRes8438)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes84512 := (<-this.LoadMarkets())
-			PanicOnError(retRes84512)
-		}
-		var market any = this.Market(symbol)
-		var userAccount any = nil
-		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
-		userAccount = GetValue(userAccountparamsVariable, 0)
-		params = GetValue(userAccountparamsVariable, 1)
-		var cacheAddress any = this.WalletAddress
-		var settings any = nil
-		if IsTrue(IsEqual(userAccount, cacheAddress)) {
-			settings = this.HandleOption("fetchLeverage", "settings")
-		} else {
-			var request any = map[string]any{
-				"account": userAccount,
-			}
-
-			settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
-			PanicOnError(settings)
-		}
-		var setting any = this.SafeDict(settings, symbol)
-		if IsTrue(IsEqual(setting, nil)) {
-
-			// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
-			// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
-			ch <- this.ParseLeverageFromMarket(market)
-			return nil
-		} else {
-
-			ch <- this.ParseLeverageFromSetting(symbol, setting)
-			return nil
-		}
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes8438 := (<-this.LoadAccountSettings())
+	PanicOnError(retRes8438)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes84512 := (<-this.LoadMarkets())
+		PanicOnError(retRes84512)
+	}
+	var market any = this.Market(symbol)
+	var userAccount any = nil
+	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchLeverage", params)
+	userAccount = GetValue(userAccountparamsVariable, 0)
+	params = GetValue(userAccountparamsVariable, 1)
+	var cacheAddress any = this.WalletAddress
+	var settings any = nil
+	if IsTrue(IsEqual(userAccount, cacheAddress)) {
+		settings = this.HandleOption("fetchLeverage", "settings")
+	} else {
+		var request any = map[string]any{
+			"account": userAccount,
+		}
+
+		settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
+		PanicOnError(settings)
+	}
+	var setting any = this.SafeDict(settings, symbol)
+	if IsTrue(IsEqual(setting, nil)) {
+
+		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
+		// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
+		ch <- this.ParseLeverageFromMarket(market)
+		return nil
+	} else {
+
+		ch <- this.ParseLeverageFromSetting(symbol, setting)
+		return nil
+	}
 }
 func (this *PacificaCore) ParseLeverageFromSetting(symbol any, setting any) any {
 	// {
@@ -1155,63 +1161,64 @@ func (this *PacificaCore) ParseLeverageFromMarket(market any) any {
  * @returns {object} Dict repacked from list by symbol key
  */
 func (this *PacificaCore) FetchAccountSettings(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var userAccount any = nil
-		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchAccountSettings", params)
-		userAccount = GetValue(userAccountparamsVariable, 0)
-		params = GetValue(userAccountparamsVariable, 1)
-		var request any = map[string]any{
-			"account": userAccount,
-		}
-
-		response := (<-this.PublicGetAccountSettings(this.Extend(request, params)))
-		PanicOnError(response)
-
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "symbol": "WLFI",
-		//       "isolated": false,
-		//       "leverage": 5,
-		//       "created_at": 1758085929703,
-		//       "updated_at": 1758086074002
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null
-		// }
-		ch <- this.ParseAccountSettings(this.SafeList(response, "data", []any{}))
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchAccountSettingsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *PacificaCore) LoadAccountSettings(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		refresh := GetArg(optionalArgs, 0, false)
-		_ = refresh
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var settings any = this.HandleOption("loadAccountSettings", "settings")
-		if IsTrue(IsTrue((IsEqual(settings, nil))) || IsTrue((IsEqual(refresh, true)))) {
-			AddElementToObject(this.Options, "settings", this.CreateSafeDictionary())
+func (this *PacificaCore) fetchAccountSettingsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var userAccount any = nil
+	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchAccountSettings", params)
+	userAccount = GetValue(userAccountparamsVariable, 0)
+	params = GetValue(userAccountparamsVariable, 1)
+	var request any = map[string]any{
+		"account": userAccount,
+	}
 
-			settings = (<-this.FetchAccountSettings(params))
-			PanicOnError(settings)
-			AddElementToObject(this.Options, "settings", settings)
-		}
-		return nil
-	}()
+	response := (<-this.PublicGetAccountSettings(this.Extend(request, params)))
+	PanicOnError(response)
+
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "symbol": "WLFI",
+	//       "isolated": false,
+	//       "leverage": 5,
+	//       "created_at": 1758085929703,
+	//       "updated_at": 1758086074002
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null
+	// }
+	ch <- this.ParseAccountSettings(this.SafeList(response, "data", []any{}))
+	return nil
+}
+func (this *PacificaCore) LoadAccountSettings(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.loadAccountSettingsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) loadAccountSettingsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	refresh := GetArg(optionalArgs, 0, false)
+	_ = refresh
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var settings any = this.HandleOption("loadAccountSettings", "settings")
+	if IsTrue(IsTrue((IsEqual(settings, nil))) || IsTrue((IsEqual(refresh, true)))) {
+		AddElementToObject(this.Options, "settings", this.CreateSafeDictionary())
+
+		settings = (<-this.FetchAccountSettings(params))
+		PanicOnError(settings)
+		AddElementToObject(this.Options, "settings", settings)
+	}
+	return nil
 }
 func (this *PacificaCore) ParseAccountSettings(settings any) any {
 	var settingsLen any = GetArrayLength(settings)
@@ -1239,58 +1246,58 @@ func (this *PacificaCore) ParseAccountSettings(settings any) any {
  * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
  */
 func (this *PacificaCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes9728 := (<-this.LoadAccountSettings())
-		PanicOnError(retRes9728)
-		var userAccount any = nil
-		userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
-		userAccount = GetValue(userAccountparamsVariable, 0)
-		params = GetValue(userAccountparamsVariable, 1)
-		var cacheAddress any = this.WalletAddress
-		var settings any = nil
-		if IsTrue(IsEqual(userAccount, cacheAddress)) {
-			settings = this.HandleOption("fetchMarginMode", "settings")
-		} else {
-			var request any = map[string]any{
-				"account": userAccount,
-			}
-
-			settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
-			PanicOnError(settings)
-		}
-		// {
-		//   "WLFI/USDC:USDC": {
-		//       "symbol": "WLFI",
-		//       "isolated": false,
-		//       "leverage": 5,
-		//       "created_at": 1758085929703,
-		//       "updated_at": 1758086074002
-		//    },
-		// }
-		var setting any = this.SafeDict(settings, symbol)
-		if IsTrue(IsEqual(setting, nil)) {
-
-			// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
-			// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
-			ch <- map[string]any{
-				"symbol":     symbol,
-				"marginMode": this.HandleOption("fetchMarginMode", "defaultMarginMode", "cross"),
-			}
-			return nil
-		} else {
-
-			ch <- this.ParseMarginModeFromSetting(symbol, setting)
-			return nil
-		}
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes9728 := (<-this.LoadAccountSettings())
+	PanicOnError(retRes9728)
+	var userAccount any = nil
+	userAccountparamsVariable := this.HandleOriginAndSingleAddress("fetchMarginMode", params)
+	userAccount = GetValue(userAccountparamsVariable, 0)
+	params = GetValue(userAccountparamsVariable, 1)
+	var cacheAddress any = this.WalletAddress
+	var settings any = nil
+	if IsTrue(IsEqual(userAccount, cacheAddress)) {
+		settings = this.HandleOption("fetchMarginMode", "settings")
+	} else {
+		var request any = map[string]any{
+			"account": userAccount,
+		}
+
+		settings = (<-this.FetchAccountSettings(this.Extend(request, params)))
+		PanicOnError(settings)
+	}
+	// {
+	//   "WLFI/USDC:USDC": {
+	//       "symbol": "WLFI",
+	//       "isolated": false,
+	//       "leverage": 5,
+	//       "created_at": 1758085929703,
+	//       "updated_at": 1758086074002
+	//    },
+	// }
+	var setting any = this.SafeDict(settings, symbol)
+	if IsTrue(IsEqual(setting, nil)) {
+
+		// NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
+		// When querying this endpoint, all markets with default margin and leverage settings on this account will return blank.
+		ch <- map[string]any{
+			"symbol":     symbol,
+			"marginMode": this.HandleOption("fetchMarginMode", "defaultMarginMode", "cross"),
+		}
+		return nil
+	} else {
+
+		ch <- this.ParseMarginModeFromSetting(symbol, setting)
+		return nil
+	}
 }
 func (this *PacificaCore) ParseMarginModeFromSetting(symbol any, setting any) any {
 	// {
@@ -1322,79 +1329,79 @@ func (this *PacificaCore) ParseMarginModeFromSetting(symbol any, setting any) an
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes103812 := (<-this.LoadMarkets())
-			PanicOnError(retRes103812)
-		}
-		var market any = this.Market(symbol)
-		var aggLevel any = nil
-		aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
-		aggLevel = GetValue(aggLevelparamsVariable, 0)
-		params = GetValue(aggLevelparamsVariable, 1)
-		var request any = map[string]any{
-			"symbol":    GetValue(market, "id"),
-			"agg_level": aggLevel,
-		}
-
-		response := (<-this.PublicGetBook(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": {
-		//     "s": "BTC",
-		//     "l": [
-		//       [
-		//         {
-		//           "p": "106504",
-		//           "a": "0.26203",
-		//           "n": 1
-		//         },
-		//         {
-		//           "p": "106498",
-		//           "a": "0.29281",
-		//           "n": 1
-		//         }
-		//       ],
-		//       [
-		//         {
-		//           "p": "106559",
-		//           "a": "0.26802",
-		//           "n": 1
-		//         },
-		//         {
-		//           "p": "106564",
-		//           "a": "0.3002",
-		//           "n": 1
-		//         },
-		//       ]
-		//     ],
-		//     "t": 1751370536325
-		//   },
-		//   "error": null,
-		//   "code": null
-		// }
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var levels any = this.SafeList(data, "l", []any{})
-		var result any = map[string]any{
-			"bids": this.SafeList(levels, 0, []any{}),
-			"asks": this.SafeList(levels, 1, []any{}),
-		}
-		var timestamp any = this.SafeInteger(data, "t")
-
-		ch <- this.ParseOrderBook(result, this.SafeSymbol(nil, market), timestamp, "bids", "asks", "p", "a")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes103812 := (<-this.LoadMarkets())
+		PanicOnError(retRes103812)
+	}
+	var market any = this.Market(symbol)
+	var aggLevel any = nil
+	aggLevelparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "aggLevel", 1)
+	aggLevel = GetValue(aggLevelparamsVariable, 0)
+	params = GetValue(aggLevelparamsVariable, 1)
+	var request any = map[string]any{
+		"symbol":    GetValue(market, "id"),
+		"agg_level": aggLevel,
+	}
+
+	response := (<-this.PublicGetBook(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": {
+	//     "s": "BTC",
+	//     "l": [
+	//       [
+	//         {
+	//           "p": "106504",
+	//           "a": "0.26203",
+	//           "n": 1
+	//         },
+	//         {
+	//           "p": "106498",
+	//           "a": "0.29281",
+	//           "n": 1
+	//         }
+	//       ],
+	//       [
+	//         {
+	//           "p": "106559",
+	//           "a": "0.26802",
+	//           "n": 1
+	//         },
+	//         {
+	//           "p": "106564",
+	//           "a": "0.3002",
+	//           "n": 1
+	//         },
+	//       ]
+	//     ],
+	//     "t": 1751370536325
+	//   },
+	//   "error": null,
+	//   "code": null
+	// }
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var levels any = this.SafeList(data, "l", []any{})
+	var result any = map[string]any{
+		"bids": this.SafeList(levels, 0, []any{}),
+		"asks": this.SafeList(levels, 1, []any{}),
+	}
+	var timestamp any = this.SafeInteger(data, "t")
+
+	ch <- this.ParseOrderBook(result, this.SafeSymbol(nil, market), timestamp, "bids", "asks", "p", "a")
+	return nil
 }
 
 /**
@@ -1407,45 +1414,45 @@ func (this *PacificaCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan
  * @returns {object[]} an array of objects representing market data
  */
 func (this *PacificaCore) FetchFundingRates(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetInfoPrices(params))
-		PanicOnError(response)
-		//
-		//  {
-		//     "success": true,
-		//     "data": [
-		//         {
-		//         "funding": "0.00010529",
-		//         "mark": "1.084819",
-		//         "mid": "1.08615",
-		//         "next_funding": "0.00011096",
-		//         "open_interest": "3634796",
-		//         "oracle": "1.084524",
-		//         "symbol": "XPL",
-		//         "timestamp": 1759222967974,
-		//         "volume_24h": "20896698.0672",
-		//         "yesterday_price": "1.3412"
-		//         }
-		//     ],
-		//     "error": null,
-		//     "code": null
-		//   }
-		//
-		var result any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseFundingRates(result, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetInfoPrices(params))
+	PanicOnError(response)
+	//
+	//  {
+	//     "success": true,
+	//     "data": [
+	//         {
+	//         "funding": "0.00010529",
+	//         "mark": "1.084819",
+	//         "mid": "1.08615",
+	//         "next_funding": "0.00011096",
+	//         "open_interest": "3634796",
+	//         "oracle": "1.084524",
+	//         "symbol": "XPL",
+	//         "timestamp": 1759222967974,
+	//         "volume_24h": "20896698.0672",
+	//         "yesterday_price": "1.3412"
+	//         }
+	//     ],
+	//     "error": null,
+	//     "code": null
+	//   }
+	//
+	var result any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseFundingRates(result, symbols)
+	return nil
 }
 func (this *PacificaCore) ParseFundingRate(info any, optionalArgs ...any) any {
 	//
@@ -1510,96 +1517,96 @@ func (this *PacificaCore) ParseFundingRate(info any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *PacificaCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(since, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"since\" argument")))
-		}
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"symbol\" argument")))
-		}
-		var defaultMaxLimit any = 3950 // 4000 by docs, but in fact >~3960 returns error
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes119812 := (<-this.LoadMarkets())
-			PanicOnError(retRes119812)
-		}
-		var market any = this.Market(symbol)
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes120419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
-			PanicOnError(retRes120419)
-			ch <- retRes120419
-			return nil
-		}
-		var tf any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var request any = map[string]any{
-			"symbol":     GetValue(market, "id"),
-			"interval":   tf,
-			"start_time": since,
-		}
-		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		var nowMillis any = this.Milliseconds()
-		var until any = this.SafeInteger(request, "end_time")
-		if IsTrue(IsEqual(until, nil)) {
-			if IsTrue(!IsEqual(limit, nil)) {
-				until = Subtract(Add(since, (Multiply(limit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
-			}
-			if IsTrue(IsEqual(until, nil)) {
-				until = Subtract(Add(since, (Multiply(defaultMaxLimit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
-			}
-			if IsTrue(IsGreaterThan(until, nowMillis)) {
-				until = nowMillis
-			}
-			AddElementToObject(request, "end_time", until)
-		}
-
-		response := (<-this.PublicGetKline(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "t": 1748954160000,
-		//       "T": 1748954220000,
-		//       "s": "BTC",
-		//       "i": "1m",
-		//       "o": "105376",
-		//       "c": "105376",
-		//       "h": "105376",
-		//       "l": "105376",
-		//       "v": "0.00022",
-		//       "n": 2
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null
-		// }
-		//
-		var candles any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(since, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"since\" argument")))
+	}
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"symbol\" argument")))
+	}
+	var defaultMaxLimit any = 3950 // 4000 by docs, but in fact >~3960 returns error
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes119812 := (<-this.LoadMarkets())
+		PanicOnError(retRes119812)
+	}
+	var market any = this.Market(symbol)
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes120419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, defaultMaxLimit))
+		PanicOnError(retRes120419)
+		ch <- retRes120419
+		return nil
+	}
+	var tf any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var request any = map[string]any{
+		"symbol":     GetValue(market, "id"),
+		"interval":   tf,
+		"start_time": since,
+	}
+	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	var nowMillis any = this.Milliseconds()
+	var until any = this.SafeInteger(request, "end_time")
+	if IsTrue(IsEqual(until, nil)) {
+		if IsTrue(!IsEqual(limit, nil)) {
+			until = Subtract(Add(since, (Multiply(limit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
+		}
+		if IsTrue(IsEqual(until, nil)) {
+			until = Subtract(Add(since, (Multiply(defaultMaxLimit, (Multiply(this.ParseTimeframe(tf), 1000))))), 1)
+		}
+		if IsTrue(IsGreaterThan(until, nowMillis)) {
+			until = nowMillis
+		}
+		AddElementToObject(request, "end_time", until)
+	}
+
+	response := (<-this.PublicGetKline(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "t": 1748954160000,
+	//       "T": 1748954220000,
+	//       "s": "BTC",
+	//       "i": "1m",
+	//       "o": "105376",
+	//       "c": "105376",
+	//       "h": "105376",
+	//       "l": "105376",
+	//       "v": "0.00022",
+	//       "n": 2
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null
+	// }
+	//
+	var candles any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
+	return nil
 }
 func (this *PacificaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1633,53 +1640,53 @@ func (this *PacificaCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *PacificaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes129112 := (<-this.LoadMarkets())
-			PanicOnError(retRes129112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "event_type": "fulfill_taker",
-		//       "price": "104721",
-		//       "amount": "0.0001",
-		//       "side": "close_long",
-		//       "cause": "normal",
-		//       "created_at": 1765006315306
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null,
-		//   "last_order_id": 1557404170
-		// }
-		//
-		var recentTrades any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTrades(recentTrades, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes129112 := (<-this.LoadMarkets())
+		PanicOnError(retRes129112)
+	}
+	var market any = this.Market(symbol)
+	var request any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "event_type": "fulfill_taker",
+	//       "price": "104721",
+	//       "amount": "0.0001",
+	//       "side": "close_long",
+	//       "cause": "normal",
+	//       "created_at": 1765006315306
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null,
+	//   "last_order_id": 1557404170
+	// }
+	//
+	var recentTrades any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTrades(recentTrades, market, since, limit)
+	return nil
 }
 
 /**
@@ -1698,92 +1705,92 @@ func (this *PacificaCore) FetchTrades(symbol any, optionalArgs ...any) <-chan an
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *PacificaCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes133712 := (<-this.LoadMarkets())
-			PanicOnError(retRes133712)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		var defaultLimit any = 100 // Default max limit
-		if IsTrue(paginate) {
-
-			retRes134919 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes134919)
-			ch <- retRes134919
-			return nil
-		}
-		var request any = map[string]any{}
-		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		AddElementToObject(request, "account", userAddress)
-		if IsTrue(!IsEqual(symbol, nil)) {
-			AddElementToObject(request, "symbol", this.SafeString(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_time", since)
-		}
-
-		response := (<-this.PublicGetTradesHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "history_id": 19329801,
-		//       "order_id": 315293920,
-		//       "client_order_id": "acf...",
-		//       "symbol": "LDO",
-		//       "amount": "0.1",
-		//       "price": "1.1904",
-		//       "entry_price": "1.176247",
-		//       "fee": "0",
-		//       "pnl": "-0.001415",
-		//       "event_type": "fulfill_maker",
-		//       "side": "close_short",
-		//       "created_at": 1759215599188,
-		//       "cause": "normal"
-		//     },
-		//     ...
-		//   ],
-		//   "next_cursor": "11111Z5RK", // not included to info!
-		//   "has_more": true   // not included to info!
-		// }
-		//
-		var data any = this.AddPaginationCursorToResult(response)
-
-		ch <- this.ParseTrades(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes133712 := (<-this.LoadMarkets())
+		PanicOnError(retRes133712)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	var defaultLimit any = 100 // Default max limit
+	if IsTrue(paginate) {
+
+		retRes134919 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes134919)
+		ch <- retRes134919
+		return nil
+	}
+	var request any = map[string]any{}
+	requestparamsVariable := this.HandleUntilOption("end_time", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	AddElementToObject(request, "account", userAddress)
+	if IsTrue(!IsEqual(symbol, nil)) {
+		AddElementToObject(request, "symbol", this.SafeString(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_time", since)
+	}
+
+	response := (<-this.PublicGetTradesHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "history_id": 19329801,
+	//       "order_id": 315293920,
+	//       "client_order_id": "acf...",
+	//       "symbol": "LDO",
+	//       "amount": "0.1",
+	//       "price": "1.1904",
+	//       "entry_price": "1.176247",
+	//       "fee": "0",
+	//       "pnl": "-0.001415",
+	//       "event_type": "fulfill_maker",
+	//       "side": "close_short",
+	//       "created_at": 1759215599188,
+	//       "cause": "normal"
+	//     },
+	//     ...
+	//   ],
+	//   "next_cursor": "11111Z5RK", // not included to info!
+	//   "has_more": true   // not included to info!
+	// }
+	//
+	var data any = this.AddPaginationCursorToResult(response)
+
+	ch <- this.ParseTrades(data, market, since, limit)
+	return nil
 }
 func (this *PacificaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1886,72 +1893,72 @@ func (this *PacificaCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes149312 := (<-this.LoadMarkets())
-			PanicOnError(retRes149312)
-		}
-
-		retRes14958 := (<-this.InitializeClient())
-		PanicOnError(retRes14958)
-		requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		request := GetValue(requestoperationTypeVariable, 0)
-		operationType := GetValue(requestoperationTypeVariable, 1)
-		params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"})
-		var response any = nil
-		if IsTrue(IsEqual(operationType, "create_market_order")) {
-
-			response = (<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(operationType, "create_stop_order")) {
-
-			response = (<-this.PrivatePostOrdersStopCreate(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(operationType, "set_position_tpsl")) {
-
-			response = (<-this.PrivatePostPositionsTpsl(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostOrdersCreate(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		// {
-		//   'success': true,
-		//   'data': {
-		//    "order_id": 12345
-		//    },
-		// }
-		//
-		var success any = this.SafeBool(response, "success", false)
-		var status any = nil
-		if !IsTrue(success) {
-			status = "rejected"
-		} else {
-			status = "open"
-		}
-		var order any = this.SafeDict(response, "data", map[string]any{})
-		var orderId any = this.SafeString(order, "order_id")
-
-		ch <- this.SafeOrder(map[string]any{
-			"id":     orderId,
-			"status": status,
-			"info":   response,
-			"symbol": symbol,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes149312 := (<-this.LoadMarkets())
+		PanicOnError(retRes149312)
+	}
+
+	retRes14958 := (<-this.InitializeClient())
+	PanicOnError(retRes14958)
+	requestoperationTypeVariable := this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	request := GetValue(requestoperationTypeVariable, 0)
+	operationType := GetValue(requestoperationTypeVariable, 1)
+	params = this.Omit(params, []any{"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"})
+	var response any = nil
+	if IsTrue(IsEqual(operationType, "create_market_order")) {
+
+		response = (<-this.PrivatePostOrdersCreateMarket(this.Extend(request, params)))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(operationType, "create_stop_order")) {
+
+		response = (<-this.PrivatePostOrdersStopCreate(this.Extend(request, params)))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(operationType, "set_position_tpsl")) {
+
+		response = (<-this.PrivatePostPositionsTpsl(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostOrdersCreate(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	// {
+	//   'success': true,
+	//   'data': {
+	//    "order_id": 12345
+	//    },
+	// }
+	//
+	var success any = this.SafeBool(response, "success", false)
+	var status any = nil
+	if !IsTrue(success) {
+		status = "rejected"
+	} else {
+		status = "open"
+	}
+	var order any = this.SafeDict(response, "data", map[string]any{})
+	var orderId any = this.SafeString(order, "order_id")
+
+	ch <- this.SafeOrder(map[string]any{
+		"id":     orderId,
+		"status": status,
+		"info":   response,
+		"symbol": symbol,
+	})
+	return nil
 }
 func (this *PacificaCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
@@ -2154,68 +2161,68 @@ func (this *PacificaCore) CreateOrdersRequest(orders any, optionalArgs ...any) a
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes172912 := (<-this.LoadMarkets())
-			PanicOnError(retRes172912)
-		}
-
-		retRes17318 := (<-this.InitializeClient())
-		PanicOnError(retRes17318)
-		var request any = this.CreateOrdersRequest(orders)
-
-		response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": {
-		//     "results": [
-		//       {
-		//         "success": true,
-		//         "order_id": 470506,
-		//         "error": null
-		//       },
-		//       {
-		//         "success": true,
-		//       }
-		//     ]
-		//   },
-		//     "error": null,
-		//     "code": null
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var results any = this.SafeList(data, "results", []any{})
-		var ordersToReturn any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
-			var order any = GetValue(results, i)
-			var error any = this.SafeString(order, "error")
-			var success any = this.SafeBool(order, "success", false)
-			var status any = nil
-			if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
-				status = "rejected"
-			} else {
-				status = "open"
-			}
-			var orderId any = this.SafeString(order, "order_id")
-			AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
-				"info":   order,
-				"id":     orderId,
-				"status": status,
-			}))
-		}
-
-		ch <- ordersToReturn
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes172912 := (<-this.LoadMarkets())
+		PanicOnError(retRes172912)
+	}
+
+	retRes17318 := (<-this.InitializeClient())
+	PanicOnError(retRes17318)
+	var request any = this.CreateOrdersRequest(orders)
+
+	response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": {
+	//     "results": [
+	//       {
+	//         "success": true,
+	//         "order_id": 470506,
+	//         "error": null
+	//       },
+	//       {
+	//         "success": true,
+	//       }
+	//     ]
+	//   },
+	//     "error": null,
+	//     "code": null
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var results any = this.SafeList(data, "results", []any{})
+	var ordersToReturn any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
+		var order any = GetValue(results, i)
+		var error any = this.SafeString(order, "error")
+		var success any = this.SafeBool(order, "success", false)
+		var status any = nil
+		if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
+			status = "rejected"
+		} else {
+			status = "open"
+		}
+		var orderId any = this.SafeString(order, "order_id")
+		AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
+			"info":   order,
+			"id":     orderId,
+			"status": status,
+		}))
+	}
+
+	ch <- ordersToReturn
+	return nil
 }
 
 /**
@@ -2231,74 +2238,74 @@ func (this *PacificaCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes178512 := (<-this.LoadMarkets())
-			PanicOnError(retRes178512)
-		}
-
-		retRes17878 := (<-this.InitializeClient())
-		PanicOnError(retRes17878)
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
-		}
-		var request any = this.CancelOrdersRequest(ids, symbol, params)
-		params = this.Omit(params, []any{"expiryWindow", "clientOrderIds"})
-
-		response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": {
-		//     "results": [
-		//       {
-		//         "success": true,
-		//         "order_id": 470506,
-		//         "error": null
-		//       },
-		//       {
-		//         "success": true,
-		//       }
-		//     ]
-		//   },
-		//     "error": null,
-		//     "code": null
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var results any = this.SafeList(data, "results", []any{})
-		var ordersToReturn any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
-			var order any = GetValue(results, i)
-			var error any = this.SafeString(order, "error")
-			var success any = this.SafeBool(order, "success", false)
-			var status any = nil
-			if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
-				status = "closed"
-			} else {
-				status = "canceled"
-			}
-			AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
-				"info":   order,
-				"status": status,
-				"symbol": symbol,
-			}))
-		}
-
-		ch <- ordersToReturn
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes178512 := (<-this.LoadMarkets())
+		PanicOnError(retRes178512)
+	}
+
+	retRes17878 := (<-this.InitializeClient())
+	PanicOnError(retRes17878)
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a \"symbol\" argument!")))
+	}
+	var request any = this.CancelOrdersRequest(ids, symbol, params)
+	params = this.Omit(params, []any{"expiryWindow", "clientOrderIds"})
+
+	response := (<-this.PrivatePostOrdersBatch(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": {
+	//     "results": [
+	//       {
+	//         "success": true,
+	//         "order_id": 470506,
+	//         "error": null
+	//       },
+	//       {
+	//         "success": true,
+	//       }
+	//     ]
+	//   },
+	//     "error": null,
+	//     "code": null
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var results any = this.SafeList(data, "results", []any{})
+	var ordersToReturn any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
+		var order any = GetValue(results, i)
+		var error any = this.SafeString(order, "error")
+		var success any = this.SafeBool(order, "success", false)
+		var status any = nil
+		if IsTrue(IsTrue((!IsEqual(error, nil))) || IsTrue((!IsTrue(success)))) {
+			status = "closed"
+		} else {
+			status = "canceled"
+		}
+		AppendToArray(&ordersToReturn, this.SafeOrder(map[string]any{
+			"info":   order,
+			"status": status,
+			"symbol": symbol,
+		}))
+	}
+
+	ch <- ordersToReturn
+	return nil
 }
 func (this *PacificaCore) CancelOrdersRequest(ids any, optionalArgs ...any) any {
 	symbol := GetArg(optionalArgs, 0, nil)
@@ -2344,45 +2351,45 @@ func (this *PacificaCore) CancelOrdersRequest(ids any, optionalArgs ...any) any 
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes187212 := (<-this.LoadMarkets())
-			PanicOnError(retRes187212)
-		}
-
-		retRes18748 := (<-this.InitializeClient())
-		PanicOnError(retRes18748)
-		var request any = this.CancelAllOrdersRequest(symbol, params)
-		params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
-
-		response := (<-this.PrivatePostOrdersCancelAll(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		// {
-		//   success: true,
-		//   data: {
-		//     "cancelled_count": 5,
-		//   },
-		//   code: null,
-		//   error: null
-		// }
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes187212 := (<-this.LoadMarkets())
+		PanicOnError(retRes187212)
+	}
+
+	retRes18748 := (<-this.InitializeClient())
+	PanicOnError(retRes18748)
+	var request any = this.CancelAllOrdersRequest(symbol, params)
+	params = this.Omit(params, []any{"excludeReduceOnly", "expiryWindow"})
+
+	response := (<-this.PrivatePostOrdersCancelAll(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	// {
+	//   success: true,
+	//   data: {
+	//     "cancelled_count": 5,
+	//   },
+	//   code: null,
+	//   error: null
+	// }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 func (this *PacificaCore) CancelAllOrdersRequest(symbol any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
@@ -2417,58 +2424,58 @@ func (this *PacificaCore) CancelAllOrdersRequest(symbol any, optionalArgs ...any
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes192712 := (<-this.LoadMarkets())
-			PanicOnError(retRes192712)
-		}
-
-		retRes19298 := (<-this.InitializeClient())
-		PanicOnError(retRes19298)
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
-		}
-		var request any = this.CancelOrderRequest(id, symbol, params)
-		var isStopOrder any = this.SafeBool2(params, "trigger", "stop", false)
-		params = this.Omit(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"})
-		var response any = nil
-		if IsTrue(isStopOrder) {
-
-			response = (<-this.PrivatePostOrdersStopCancel(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostOrdersCancel(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		// response:
-		// {
-		//   "success": true,
-		//   "data": null
-		// }
-		//
-		var success any = this.SafeBool(response, "success", false)
-		var status any = Ternary(IsTrue(success), "canceled", "closed")
-
-		ch <- this.SafeOrder(map[string]any{
-			"id":     id,
-			"status": status,
-			"info":   response,
-			"symbol": symbol,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes192712 := (<-this.LoadMarkets())
+		PanicOnError(retRes192712)
+	}
+
+	retRes19298 := (<-this.InitializeClient())
+	PanicOnError(retRes19298)
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+	}
+	var request any = this.CancelOrderRequest(id, symbol, params)
+	var isStopOrder any = this.SafeBool2(params, "trigger", "stop", false)
+	params = this.Omit(params, []any{"expiryWindow", "trigger", "stop", "clientOrderId"})
+	var response any = nil
+	if IsTrue(isStopOrder) {
+
+		response = (<-this.PrivatePostOrdersStopCancel(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostOrdersCancel(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	// response:
+	// {
+	//   "success": true,
+	//   "data": null
+	// }
+	//
+	var success any = this.SafeBool(response, "success", false)
+	var status any = Ternary(IsTrue(success), "canceled", "closed")
+
+	ch <- this.SafeOrder(map[string]any{
+		"id":     id,
+		"status": status,
+		"info":   response,
+		"symbol": symbol,
+	})
+	return nil
 }
 func (this *PacificaCore) CancelOrderRequest(id any, optionalArgs ...any) any {
 	symbol := GetArg(optionalArgs, 0, nil)
@@ -2513,49 +2520,49 @@ func (this *PacificaCore) CancelOrderRequest(id any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes199412 := (<-this.LoadMarkets())
-			PanicOnError(retRes199412)
-		}
-
-		retRes19968 := (<-this.InitializeClient())
-		PanicOnError(retRes19968)
-		var market any = this.Market(symbol)
-		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
-		params = this.Omit(params, []any{"expiryWindow", "clientOrderId"})
-
-		response := (<-this.PrivatePostOrdersEdit(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     'data': {
-		//         "order_id": 123498765
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var orderId any = this.SafeString(data, "order_id")
-
-		ch <- this.SafeOrder(map[string]any{
-			"id":     orderId,
-			"info":   response,
-			"symbol": symbol,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes199412 := (<-this.LoadMarkets())
+		PanicOnError(retRes199412)
+	}
+
+	retRes19968 := (<-this.InitializeClient())
+	PanicOnError(retRes19968)
+	var market any = this.Market(symbol)
+	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, market, params)
+	params = this.Omit(params, []any{"expiryWindow", "clientOrderId"})
+
+	response := (<-this.PrivatePostOrdersEdit(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     'data': {
+	//         "order_id": 123498765
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var orderId any = this.SafeString(data, "order_id")
+
+	ch <- this.SafeOrder(map[string]any{
+		"id":     orderId,
+		"info":   response,
+		"symbol": symbol,
+	})
+	return nil
 }
 func (this *PacificaCore) EditOrderRequest(id any, symbol any, typeVar any, side any, amount any, price any, market any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 0, map[string]any{})
@@ -2604,86 +2611,86 @@ func (this *PacificaCore) EditOrderRequest(id any, symbol any, typeVar any, side
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *PacificaCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes205912 := (<-this.LoadMarkets())
-			PanicOnError(retRes205912)
-		}
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
-		}
-		var market any = this.Market(symbol)
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		var defaultLimit any = 100 // Default max limit
-		if IsTrue(paginate) {
-
-			retRes206919 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes206919)
-			ch <- retRes206919
-			return nil
-		}
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetFundingRateHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "oracle_price": "117170.410304",
-		//       "bid_impact_price": "117126",
-		//       "ask_impact_price": "117142",
-		//       "funding_rate": "0.0000125",
-		//       "next_funding_rate": "0.0000125",
-		//       "created_at": 1753806934249
-		//     },
-		//     ...
-		//   ],
-		//   "next_cursor": "11114Lz77",
-		//   "has_more": true
-		// }
-		//
-		var data any = this.AddPaginationCursorToResult(response)
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var timestamp any = this.SafeInteger(entry, "created_at")
-			AppendToArray(&result, map[string]any{
-				"info":        entry,
-				"symbol":      GetValue(market, "symbol"),
-				"fundingRate": this.SafeNumber(entry, "funding_rate"),
-				"timestamp":   timestamp,
-				"datetime":    this.Iso8601(timestamp),
-			})
-		}
-		var sorted any = this.SortBy(result, "timestamp")
-
-		ch <- this.FilterBySinceLimit(sorted, since, limit, "timestamp")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes205912 := (<-this.LoadMarkets())
+		PanicOnError(retRes205912)
+	}
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
+	}
+	var market any = this.Market(symbol)
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	var defaultLimit any = 100 // Default max limit
+	if IsTrue(paginate) {
+
+		retRes206919 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes206919)
+		ch <- retRes206919
+		return nil
+	}
+	var request any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetFundingRateHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "oracle_price": "117170.410304",
+	//       "bid_impact_price": "117126",
+	//       "ask_impact_price": "117142",
+	//       "funding_rate": "0.0000125",
+	//       "next_funding_rate": "0.0000125",
+	//       "created_at": 1753806934249
+	//     },
+	//     ...
+	//   ],
+	//   "next_cursor": "11114Lz77",
+	//   "has_more": true
+	// }
+	//
+	var data any = this.AddPaginationCursorToResult(response)
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		var timestamp any = this.SafeInteger(entry, "created_at")
+		AppendToArray(&result, map[string]any{
+			"info":        entry,
+			"symbol":      GetValue(market, "symbol"),
+			"fundingRate": this.SafeNumber(entry, "funding_rate"),
+			"timestamp":   timestamp,
+			"datetime":    this.Iso8601(timestamp),
+		})
+	}
+	var sorted any = this.SortBy(result, "timestamp")
+
+	ch <- this.FilterBySinceLimit(sorted, since, limit, "timestamp")
+	return nil
 }
 
 /**
@@ -2696,60 +2703,60 @@ func (this *PacificaCore) FetchFundingRateHistory(optionalArgs ...any) <-chan an
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *PacificaCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes212412 := (<-this.LoadMarkets())
-			PanicOnError(retRes212412)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.PublicGetInfoPrices(params))
-		PanicOnError(response)
-		//
-		//  {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "funding": "0.00010529",
-		//       "mark": "1.084819",
-		//       "mid": "1.08615",
-		//       "next_funding": "0.00011096",
-		//       "open_interest": "3634796",
-		//       "oracle": "1.084524",
-		//       "symbol": "XPL",
-		//       "timestamp": 1759222967974,
-		//       "volume_24h": "20896698.0672",
-		//       "yesterday_price": "1.3412"
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null
-		// }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var info any = GetValue(data, i)
-			var ticker any = this.ParseTicker(info)
-			var symbol any = this.SafeString(ticker, "symbol")
-			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(result, symbol, ticker)
-			}
-		}
-
-		ch <- this.FilterByArrayTickers(result, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes212412 := (<-this.LoadMarkets())
+		PanicOnError(retRes212412)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.PublicGetInfoPrices(params))
+	PanicOnError(response)
+	//
+	//  {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "funding": "0.00010529",
+	//       "mark": "1.084819",
+	//       "mid": "1.08615",
+	//       "next_funding": "0.00011096",
+	//       "open_interest": "3634796",
+	//       "oracle": "1.084524",
+	//       "symbol": "XPL",
+	//       "timestamp": 1759222967974,
+	//       "volume_24h": "20896698.0672",
+	//       "yesterday_price": "1.3412"
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null
+	// }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = map[string]any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var info any = GetValue(data, i)
+		var ticker any = this.ParseTicker(info)
+		var symbol any = this.SafeString(ticker, "symbol")
+		if IsTrue(!IsEqual(symbol, nil)) {
+			AddElementToObject(result, symbol, ticker)
+		}
+	}
+
+	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	return nil
 }
 func (this *PacificaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -2798,33 +2805,33 @@ func (this *PacificaCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes220812 := (<-this.LoadMarkets())
-			PanicOnError(retRes220812)
-		}
-
-		orders := (<-this.FetchOrders(symbol, nil, nil, params))
-		PanicOnError(orders) // don't filter here because we don't want to catch open orders
-		var closedOrders any = this.FilterByArray(orders, "status", []any{"closed"}, false)
-
-		ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes220812 := (<-this.LoadMarkets())
+		PanicOnError(retRes220812)
+	}
+
+	orders := (<-this.FetchOrders(symbol, nil, nil, params))
+	PanicOnError(orders) // don't filter here because we don't want to catch open orders
+	var closedOrders any = this.FilterByArray(orders, "status", []any{"closed"}, false)
+
+	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -2840,33 +2847,33 @@ func (this *PacificaCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes222912 := (<-this.LoadMarkets())
-			PanicOnError(retRes222912)
-		}
-
-		orders := (<-this.FetchOrders(symbol, nil, nil, params))
-		PanicOnError(orders) // don't filter here because we don't want to catch open orders
-		var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled"}, false)
-
-		ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes222912 := (<-this.LoadMarkets())
+		PanicOnError(retRes222912)
+	}
+
+	orders := (<-this.FetchOrders(symbol, nil, nil, params))
+	PanicOnError(orders) // don't filter here because we don't want to catch open orders
+	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled"}, false)
+
+	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -2882,33 +2889,33 @@ func (this *PacificaCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes225012 := (<-this.LoadMarkets())
-			PanicOnError(retRes225012)
-		}
-
-		orders := (<-this.FetchOrders(symbol, nil, nil, params))
-		PanicOnError(orders) // don't filter here because we don't want to catch open orders
-		var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled", "closed", "rejected"}, false)
-
-		ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCanceledAndClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes225012 := (<-this.LoadMarkets())
+		PanicOnError(retRes225012)
+	}
+
+	orders := (<-this.FetchOrders(symbol, nil, nil, params))
+	PanicOnError(orders) // don't filter here because we don't want to catch open orders
+	var closedOrders any = this.FilterByArray(orders, "status", []any{"canceled", "closed", "rejected"}, false)
+
+	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -2924,70 +2931,70 @@ func (this *PacificaCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-ch
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes227112 := (<-this.LoadMarkets())
-			PanicOnError(retRes227112)
-		}
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		var request any = map[string]any{
-			"account": userAddress,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-
-		response := (<-this.PublicGetOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "order_id": 315979358,
-		//       "client_order_id": "add9a4b5-c7f7-4124-b57f-86982d86d479",
-		//       "symbol": "ASTER",
-		//       "side": "ask",
-		//       "price": "1.836",
-		//       "initial_amount": "85.33",
-		//       "filled_amount": "0",
-		//       "cancelled_amount": "0",
-		//       "stop_price": null,
-		//       "order_type": "limit",
-		//       "stop_parent_order_id": null,
-		//       "reduce_only": false,
-		//       "created_at": 1759224706737,
-		//       "updated_at": 1759224706737
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null,
-		//   "last_order_id": 1557370337
-		// }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes227112 := (<-this.LoadMarkets())
+		PanicOnError(retRes227112)
+	}
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOpenOrders", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	var request any = map[string]any{
+		"account": userAddress,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+
+	response := (<-this.PublicGetOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "order_id": 315979358,
+	//       "client_order_id": "add9a4b5-c7f7-4124-b57f-86982d86d479",
+	//       "symbol": "ASTER",
+	//       "side": "ask",
+	//       "price": "1.836",
+	//       "initial_amount": "85.33",
+	//       "filled_amount": "0",
+	//       "cancelled_amount": "0",
+	//       "stop_price": null,
+	//       "order_type": "limit",
+	//       "stop_parent_order_id": null,
+	//       "reduce_only": false,
+	//       "created_at": 1759224706737,
+	//       "updated_at": 1759224706737
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null,
+	//   "last_order_id": 1557370337
+	// }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -3005,88 +3012,88 @@ func (this *PacificaCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes232912 := (<-this.LoadMarkets())
-			PanicOnError(retRes232912)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		var defaultLimit any = 100 // max default 100
-		if IsTrue(paginate) {
-
-			retRes233519 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes233519)
-			ch <- retRes233519
-			return nil
-		}
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOrders", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"account": userAddress,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetOrdersHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "order_id": 315992721,
-		//       "client_order_id": "ade",
-		//       "symbol": "XPL",
-		//       "side": "ask",
-		//       "initial_price": "1.0865",
-		//       "average_filled_price": "0",
-		//       "amount": "984",
-		//       "filled_amount": "0",
-		//       "order_status": "open",
-		//       "order_type": "limit",
-		//       "stop_price": null,
-		//       "stop_parent_order_id": null,
-		//       "reduce_only": false,
-		//       "reason": null,
-		//       "created_at": 1759224893638,
-		//       "updated_at": 1759224893638
-		//     },
-		//     ...
-		//   ],
-		//   "next_cursor": "1111Hyd74",
-		//   "has_more": true
-		// }
-		//
-		var data any = this.AddPaginationCursorToResult(response)
-		var orders any = this.ParseOrders(data, market, since, limit)
-
-		ch <- orders
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes232912 := (<-this.LoadMarkets())
+		PanicOnError(retRes232912)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	var defaultLimit any = 100 // max default 100
+	if IsTrue(paginate) {
+
+		retRes233519 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes233519)
+		ch <- retRes233519
+		return nil
+	}
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchOrders", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request any = map[string]any{
+		"account": userAddress,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetOrdersHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "order_id": 315992721,
+	//       "client_order_id": "ade",
+	//       "symbol": "XPL",
+	//       "side": "ask",
+	//       "initial_price": "1.0865",
+	//       "average_filled_price": "0",
+	//       "amount": "984",
+	//       "filled_amount": "0",
+	//       "order_status": "open",
+	//       "order_type": "limit",
+	//       "stop_price": null,
+	//       "stop_parent_order_id": null,
+	//       "reduce_only": false,
+	//       "reason": null,
+	//       "created_at": 1759224893638,
+	//       "updated_at": 1759224893638
+	//     },
+	//     ...
+	//   ],
+	//   "next_cursor": "1111Hyd74",
+	//   "has_more": true
+	// }
+	//
+	var data any = this.AddPaginationCursorToResult(response)
+	var orders any = this.ParseOrders(data, market, since, limit)
+
+	ch <- orders
+	return nil
 }
 func (this *PacificaCore) AddPaginationCursorToResult(response any) any {
 	var data any = this.SafeList(response, "data", []any{})
@@ -3115,88 +3122,88 @@ func (this *PacificaCore) AddPaginationCursorToResult(response any) any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *PacificaCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes241112 := (<-this.LoadMarkets())
-			PanicOnError(retRes241112)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.PublicGetOrdersHistoryById(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "history_id": 641452639,
-		//       "order_id": 315992721,
-		//       "client_order_id": "ade1aa6...",
-		//       "symbol": "XPL",
-		//       "side": "ask",
-		//       "price": "1.0865",
-		//       "initial_amount": "984",
-		//       "filled_amount": "0",
-		//       "cancelled_amount": "984",
-		//       "event_type": "cancel",
-		//       "order_type": "limit",
-		//       "order_status": "cancelled",
-		//       "stop_price": null,
-		//       "stop_parent_order_id": null,
-		//       "reduce_only": false,
-		//       "created_at": 1759224895038
-		//     },
-		//     {
-		//       "history_id": 641452513,
-		//       "order_id": 315992721,
-		//       "client_order_id": "ade1aa6...",
-		//       "symbol": "XPL",
-		//       "side": "ask",
-		//       "price": "1.0865",
-		//       "initial_amount": "984",
-		//       "filled_amount": "0",
-		//       "cancelled_amount": "0",
-		//       "event_type": "make",
-		//       "order_type": "limit",
-		//       "order_status": "open",
-		//       "stop_price": null,
-		//       "stop_parent_order_id": null,
-		//       "reduce_only": false,
-		//       "created_at": 1759224893638
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null
-		// }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		// return last state
-		var sorted any = this.SortBy(data, "created_at")
-		var lastIdx any = GetArrayLength(sorted)
-		var lastInfo any = map[string]any{}
-		if IsTrue(IsGreaterThan(lastIdx, 0)) {
-			lastInfo = GetValue(sorted, 0)
-		}
-
-		ch <- this.ParseOrder(lastInfo, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes241112 := (<-this.LoadMarkets())
+		PanicOnError(retRes241112)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.PublicGetOrdersHistoryById(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "history_id": 641452639,
+	//       "order_id": 315992721,
+	//       "client_order_id": "ade1aa6...",
+	//       "symbol": "XPL",
+	//       "side": "ask",
+	//       "price": "1.0865",
+	//       "initial_amount": "984",
+	//       "filled_amount": "0",
+	//       "cancelled_amount": "984",
+	//       "event_type": "cancel",
+	//       "order_type": "limit",
+	//       "order_status": "cancelled",
+	//       "stop_price": null,
+	//       "stop_parent_order_id": null,
+	//       "reduce_only": false,
+	//       "created_at": 1759224895038
+	//     },
+	//     {
+	//       "history_id": 641452513,
+	//       "order_id": 315992721,
+	//       "client_order_id": "ade1aa6...",
+	//       "symbol": "XPL",
+	//       "side": "ask",
+	//       "price": "1.0865",
+	//       "initial_amount": "984",
+	//       "filled_amount": "0",
+	//       "cancelled_amount": "0",
+	//       "event_type": "make",
+	//       "order_type": "limit",
+	//       "order_status": "open",
+	//       "stop_price": null,
+	//       "stop_parent_order_id": null,
+	//       "reduce_only": false,
+	//       "created_at": 1759224893638
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null
+	// }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	// return last state
+	var sorted any = this.SortBy(data, "created_at")
+	var lastIdx any = GetArrayLength(sorted)
+	var lastInfo any = map[string]any{}
+	if IsTrue(IsGreaterThan(lastIdx, 0)) {
+		lastInfo = GetValue(sorted, 0)
+	}
+
+	ch <- this.ParseOrder(lastInfo, market)
+	return nil
 }
 func (this *PacificaCore) ParseOrderStatus(status any) any {
 	var statuses any = map[string]any{
@@ -3384,21 +3391,21 @@ func (this *PacificaCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *PacificaCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		positions := (<-this.FetchPositions([]any{symbol}, params))
-		PanicOnError(positions)
-
-		ch <- this.SafeDict(positions, 0, map[string]any{})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	positions := (<-this.FetchPositions([]any{symbol}, params))
+	PanicOnError(positions)
+
+	ch <- this.SafeDict(positions, 0, map[string]any{})
+	return nil
 }
 
 /**
@@ -3412,60 +3419,60 @@ func (this *PacificaCore) FetchPosition(symbol any, optionalArgs ...any) <-chan 
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *PacificaCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes268112 := (<-this.LoadMarkets())
-			PanicOnError(retRes268112)
-		}
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		symbols = this.MarketSymbols(symbols)
-		var request any = map[string]any{
-			"account": userAddress,
-		}
-
-		response := (<-this.PublicGetPositions(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "symbol": "AAVE",
-		//       "side": "ask",
-		//       "amount": "223.72",
-		//       "entry_price": "279.283134",
-		//       "margin": "0", // only shown for isolated margin
-		//       "funding": "13.159593",
-		//       "isolated": false,
-		//       "created_at": 1754928414996,
-		//       "updated_at": 1759223365538
-		//     }
-		//   ],
-		//   "error": null,
-		//   "code": null,
-		//   "last_order_id": 1557431179
-		// }
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			AppendToArray(&result, this.ParsePosition(GetValue(data, i), nil))
-		}
-
-		ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes268112 := (<-this.LoadMarkets())
+		PanicOnError(retRes268112)
+	}
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchPositions", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	symbols = this.MarketSymbols(symbols)
+	var request any = map[string]any{
+		"account": userAddress,
+	}
+
+	response := (<-this.PublicGetPositions(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "symbol": "AAVE",
+	//       "side": "ask",
+	//       "amount": "223.72",
+	//       "entry_price": "279.283134",
+	//       "margin": "0", // only shown for isolated margin
+	//       "funding": "13.159593",
+	//       "isolated": false,
+	//       "created_at": 1754928414996,
+	//       "updated_at": 1759223365538
+	//     }
+	//   ],
+	//   "error": null,
+	//   "code": null,
+	//   "last_order_id": 1557431179
+	// }
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		AppendToArray(&result, this.ParsePosition(GetValue(data, i), nil))
+	}
+
+	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+	return nil
 }
 func (this *PacificaCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -3533,43 +3540,43 @@ func (this *PacificaCore) ParsePosition(position any, optionalArgs ...any) any {
  * @returns {object} response from the exchange
  */
 func (this *PacificaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var operationType any = "update_margin_mode"
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes278612 := (<-this.LoadMarkets())
-			PanicOnError(retRes278612)
-		}
-		var market any = this.Market(symbol)
-		var isIsolated any = (IsEqual(marginMode, "isolated"))
-		var sigPayload any = map[string]any{
-			"symbol":      GetValue(market, "id"),
-			"is_isolated": isIsolated,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-		params = this.Omit(params, []any{"expiryWindow"})
-
-		response := (<-this.PrivatePostAccountMargin(request))
-		PanicOnError(response)
-
-		// {
-		//     "success": true
-		// }
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var operationType any = "update_margin_mode"
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes278612 := (<-this.LoadMarkets())
+		PanicOnError(retRes278612)
+	}
+	var market any = this.Market(symbol)
+	var isIsolated any = (IsEqual(marginMode, "isolated"))
+	var sigPayload any = map[string]any{
+		"symbol":      GetValue(market, "id"),
+		"is_isolated": isIsolated,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+	params = this.Omit(params, []any{"expiryWindow"})
+
+	response := (<-this.PrivatePostAccountMargin(request))
+	PanicOnError(response)
+
+	// {
+	//     "success": true
+	// }
+	ch <- response
+	return nil
 }
 
 /**
@@ -3584,42 +3591,42 @@ func (this *PacificaCore) SetMarginMode(marginMode any, optionalArgs ...any) <-c
  * @returns {object} response from the exchange
  */
 func (this *PacificaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var operationType any = "update_leverage"
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes282012 := (<-this.LoadMarkets())
-			PanicOnError(retRes282012)
-		}
-		var market any = this.Market(symbol)
-		var sigPayload any = map[string]any{
-			"symbol":   GetValue(market, "id"),
-			"leverage": leverage,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-		params = this.Omit(params, []any{"expiryWindow"})
-
-		response := (<-this.PrivatePostAccountLeverage(request))
-		PanicOnError(response)
-
-		// {
-		//     "success": true
-		// }
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var operationType any = "update_leverage"
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes282012 := (<-this.LoadMarkets())
+		PanicOnError(retRes282012)
+	}
+	var market any = this.Market(symbol)
+	var sigPayload any = map[string]any{
+		"symbol":   GetValue(market, "id"),
+		"leverage": leverage,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+	params = this.Omit(params, []any{"expiryWindow"})
+
+	response := (<-this.PrivatePostAccountLeverage(request))
+	PanicOnError(response)
+
+	// {
+	//     "success": true
+	// }
+	ch <- response
+	return nil
 }
 
 /**
@@ -3636,37 +3643,37 @@ func (this *PacificaCore) SetLeverage(leverage any, optionalArgs ...any) <-chan 
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *PacificaCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var operationType any = "withdraw"
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes285212 := (<-this.LoadMarkets())
-			PanicOnError(retRes285212)
-		}
-		this.CheckAddress(address)
-		var sigPayload any = map[string]any{
-			"amount": ToString(amount),
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-		params = this.Omit(params, []any{"expiryWindow"})
-
-		response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- map[string]any{
-			"info": response,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var operationType any = "withdraw"
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes285212 := (<-this.LoadMarkets())
+		PanicOnError(retRes285212)
+	}
+	this.CheckAddress(address)
+	var sigPayload any = map[string]any{
+		"amount": ToString(amount),
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+	params = this.Omit(params, []any{"expiryWindow"})
+
+	response := (<-this.PrivatePostAccountWithdraw(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- map[string]any{
+		"info": response,
+	}
+	return nil
 }
 
 /**
@@ -3680,57 +3687,57 @@ func (this *PacificaCore) Withdraw(code any, amount any, address any, optionalAr
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *PacificaCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes287612 := (<-this.LoadMarkets())
-			PanicOnError(retRes287612)
-		}
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"account": userAddress,
-		}
-
-		response := (<-this.PublicGetAccount(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": {
-		//     "balance": "2000.000000",
-		//     "fee_level": 0,
-		//     "maker_fee": "0.00015",
-		//     "taker_fee": "0.0004",
-		//     "account_equity": "2150.250000",
-		//     "available_to_spend": "1800.750000",
-		//     "available_to_withdraw": "1500.850000",
-		//     "pending_balance": "0.000000",
-		//     "total_margin_used": "349.500000",
-		//     "cross_mmr": "420.690000",
-		//     "positions_count": 2,
-		//     "orders_count": 3,
-		//     "stop_orders_count": 1,
-		//     "updated_at": 1716200000000,
-		//     "use_ltp_for_stop_orders": false
-		//   },
-		//   "error": null,
-		//   "code": null
-		// }
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.ParseTradingFee(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes287612 := (<-this.LoadMarkets())
+		PanicOnError(retRes287612)
+	}
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchTradingFee", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	var market any = this.Market(symbol)
+	var request any = map[string]any{
+		"account": userAddress,
+	}
+
+	response := (<-this.PublicGetAccount(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": {
+	//     "balance": "2000.000000",
+	//     "fee_level": 0,
+	//     "maker_fee": "0.00015",
+	//     "taker_fee": "0.0004",
+	//     "account_equity": "2150.250000",
+	//     "available_to_spend": "1800.750000",
+	//     "available_to_withdraw": "1500.850000",
+	//     "pending_balance": "0.000000",
+	//     "total_margin_used": "349.500000",
+	//     "cross_mmr": "420.690000",
+	//     "positions_count": 2,
+	//     "orders_count": 3,
+	//     "stop_orders_count": 1,
+	//     "updated_at": 1716200000000,
+	//     "use_ltp_for_stop_orders": false
+	//   },
+	//   "error": null,
+	//   "code": null
+	// }
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParseTradingFee(data, market)
+	return nil
 }
 func (this *PacificaCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	//
@@ -3776,29 +3783,29 @@ func (this *PacificaCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *PacificaCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes295412 := (<-this.LoadMarkets())
-			PanicOnError(retRes295412)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		swapMarkets := (<-this.FetchSwapMarkets())
-		PanicOnError(swapMarkets)
-
-		ch <- this.ParseOpenInterests(swapMarkets, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes295412 := (<-this.LoadMarkets())
+		PanicOnError(retRes295412)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	swapMarkets := (<-this.FetchSwapMarkets())
+	PanicOnError(swapMarkets)
+
+	ch <- this.ParseOpenInterests(swapMarkets, symbols)
+	return nil
 }
 
 /**
@@ -3811,27 +3818,27 @@ func (this *PacificaCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
  * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *PacificaCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		symbol = this.Symbol(symbol)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes297312 := (<-this.LoadMarkets())
-			PanicOnError(retRes297312)
-		}
-
-		ois := (<-this.FetchOpenInterests([]any{symbol}, params))
-		PanicOnError(ois)
-
-		ch <- GetValue(ois, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	symbol = this.Symbol(symbol)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes297312 := (<-this.LoadMarkets())
+		PanicOnError(retRes297312)
+	}
+
+	ois := (<-this.FetchOpenInterests([]any{symbol}, params))
+	PanicOnError(ois)
+
+	ch <- GetValue(ois, symbol)
+	return nil
 }
 func (this *PacificaCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
@@ -3888,70 +3895,70 @@ func (this *PacificaCore) ParseOpenInterest(interest any, optionalArgs ...any) a
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *PacificaCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes303312 := (<-this.LoadMarkets())
-			PanicOnError(retRes303312)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchLedger", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		var defaultLimit any = 100 // Default max limit
-		if IsTrue(paginate) {
-
-			retRes304119 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes304119)
-			ch <- retRes304119
-			return nil
-		}
-		var request any = map[string]any{
-			"account": userAddress,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetAccountBalanceHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "amount": "100.000000",
-		//       "balance": "1200.000000",
-		//       "pending_balance": "0.000000",
-		//       "event_type": "deposit",
-		//       "created_at": 1716200000000
-		//     }
-		//     ...
-		//   ],
-		//   "next_cursor": "11114Lz77",
-		//   "has_more": true
-		// }
-		var data any = this.AddPaginationCursorToResult(response)
-
-		ch <- this.ParseLedger(data, nil, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes303312 := (<-this.LoadMarkets())
+		PanicOnError(retRes303312)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchLedger", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	var defaultLimit any = 100 // Default max limit
+	if IsTrue(paginate) {
+
+		retRes304119 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes304119)
+		ch <- retRes304119
+		return nil
+	}
+	var request any = map[string]any{
+		"account": userAddress,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetAccountBalanceHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "amount": "100.000000",
+	//       "balance": "1200.000000",
+	//       "pending_balance": "0.000000",
+	//       "event_type": "deposit",
+	//       "created_at": 1716200000000
+	//     }
+	//     ...
+	//   ],
+	//   "next_cursor": "11114Lz77",
+	//   "has_more": true
+	// }
+	var data any = this.AddPaginationCursorToResult(response)
+
+	ch <- this.ParseLedger(data, nil, since, limit)
+	return nil
 }
 func (this *PacificaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
@@ -4023,76 +4030,76 @@ func (this *PacificaCore) ParseLedgerEntryType(typeVar any) any {
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *PacificaCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes313912 := (<-this.LoadMarkets())
-			PanicOnError(retRes313912)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		var userAddress any = nil
-		userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchFundingHistory", params)
-		userAddress = GetValue(userAddressparamsVariable, 0)
-		params = GetValue(userAddressparamsVariable, 1)
-		var request any = map[string]any{
-			"account": userAddress,
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-		var defaultLimit any = 100
-		if IsTrue(paginate) {
-
-			retRes315719 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
-			PanicOnError(retRes315719)
-			ch <- retRes315719
-			return nil
-		}
-
-		response := (<-this.PublicGetFundingHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "success": true,
-		//   "data": [
-		//     {
-		//       "history_id": 2287920,
-		//       "symbol": "PUMP",
-		//       "side": "ask",
-		//       "amount": "39033804",
-		//       "payout": "2.617479",
-		//       "rate": "0.0000125",
-		//       "created_at": 1759222804122
-		//     },
-		//     ...
-		//   ],
-		//   "next_cursor": "11114Lz77",
-		//   "has_more": true
-		// }
-		var data any = this.AddPaginationCursorToResult(response)
-
-		ch <- this.ParseIncomes(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes313912 := (<-this.LoadMarkets())
+		PanicOnError(retRes313912)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate", false)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	var userAddress any = nil
+	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchFundingHistory", params)
+	userAddress = GetValue(userAddressparamsVariable, 0)
+	params = GetValue(userAddressparamsVariable, 1)
+	var request any = map[string]any{
+		"account": userAddress,
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	var defaultLimit any = 100
+	if IsTrue(paginate) {
+
+		retRes315719 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
+		PanicOnError(retRes315719)
+		ch <- retRes315719
+		return nil
+	}
+
+	response := (<-this.PublicGetFundingHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "success": true,
+	//   "data": [
+	//     {
+	//       "history_id": 2287920,
+	//       "symbol": "PUMP",
+	//       "side": "ask",
+	//       "amount": "39033804",
+	//       "payout": "2.617479",
+	//       "rate": "0.0000125",
+	//       "created_at": 1759222804122
+	//     },
+	//     ...
+	//   ],
+	//   "next_cursor": "11114Lz77",
+	//   "has_more": true
+	// }
+	var data any = this.AddPaginationCursorToResult(response)
+
+	ch <- this.ParseIncomes(data, market, since, limit)
+	return nil
 }
 func (this *PacificaCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
@@ -4142,38 +4149,38 @@ func (this *PacificaCore) ParseIncome(income any, optionalArgs ...any) any {
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *PacificaCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "transfer_funds"
-		var sigPayload any = map[string]any{
-			"to_account": toAccount,
-			"amount":     amount,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-		params = this.Omit(params, []any{"expiryWindow"})
-		var response any = this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params))
-		//
-		// {
-		//   "success": true,
-		//   "data": {
-		//     "success": true,
-		//     "error": null
-		//   },
-		//   "error": null,
-		//   "code": null
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.ParseTransfer(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "transfer_funds"
+	var sigPayload any = map[string]any{
+		"to_account": toAccount,
+		"amount":     amount,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+	params = this.Omit(params, []any{"expiryWindow"})
+	var response any = this.PrivatePostAccountSubaccountTransfer(this.Extend(request, params))
+	//
+	// {
+	//   "success": true,
+	//   "data": {
+	//     "success": true,
+	//     "error": null
+	//   },
+	//   "error": null,
+	//   "code": null
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParseTransfer(data)
+	return nil
 }
 func (this *PacificaCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
@@ -4215,228 +4222,228 @@ func (this *PacificaCore) ParseTransfer(transfer any, optionalArgs ...any) any {
  * @returns {object} a response object
  */
 func (this *PacificaCore) CreateSubAccount(name any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var finalHeaders any = map[string]any{}
-		var agentAddress any = nil
-		agentAddressparamsVariable := this.HandleOption("createSubAccount", "agentAddress")
-		agentAddress = GetValue(agentAddressparamsVariable, 0)
-		params = GetValue(agentAddressparamsVariable, 1)
-		var originAddress any = nil
-		originAddressparamsVariable := this.HandleOriginAndSingleAddress("createSubAccount", params)
-		originAddress = GetValue(originAddressparamsVariable, 0)
-		params = GetValue(originAddressparamsVariable, 1)
-		if IsTrue(IsEqual(originAddress, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))
-		}
-		if IsTrue(!IsEqual(agentAddress, nil)) {
-			AddElementToObject(finalHeaders, "agent_wallet", agentAddress)
-		}
-		var subAccountAddress any = nil
-		subAccountAddressparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "subAccountAddress")
-		subAccountAddress = GetValue(subAccountAddressparamsVariable, 0)
-		params = GetValue(subAccountAddressparamsVariable, 1)
-		var subAccountPrivateKey any = nil
-		subAccountPrivateKeyparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "subAccountPrivateKey")
-		subAccountPrivateKey = GetValue(subAccountPrivateKeyparamsVariable, 0)
-		params = GetValue(subAccountPrivateKeyparamsVariable, 1)
-		if IsTrue(IsEqual(subAccountAddress, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountAddress\"!")))
-		}
-		if IsTrue(IsEqual(subAccountPrivateKey, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountPrivateKey\"!")))
-		}
-		var timestamp any = this.Milliseconds()
-		var expiryWindow any = nil
-		expiryWindowparamsVariable := this.HandleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
-		expiryWindow = GetValue(expiryWindowparamsVariable, 0)
-		params = GetValue(expiryWindowparamsVariable, 1)
-		var subaccountSignatureHeader any = map[string]any{
-			"timestamp":     timestamp,
-			"expiry_window": expiryWindow,
-			"type":          "subaccount_initiate",
-		}
-		var subSigPayload any = map[string]any{
-			"account": originAddress,
-		}
-		var subaccountSignature any = this.SignMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey)
-		var mainSignatureHeader any = map[string]any{
-			"timestamp":     timestamp,
-			"expiry_window": expiryWindow,
-			"type":          "subaccount_confirm",
-		}
-		var mainSigPayload any = map[string]any{
-			"signature": subaccountSignature,
-		}
-		var main_signature any = this.SignMessage(mainSignatureHeader, mainSigPayload, this.PrivateKey)
-		AddElementToObject(finalHeaders, "main_account", originAddress)
-		AddElementToObject(finalHeaders, "subaccount", subAccountAddress)
-		AddElementToObject(finalHeaders, "sub_signature", subaccountSignature)
-		AddElementToObject(finalHeaders, "main_signature", main_signature)
-		AddElementToObject(finalHeaders, "timestamp", timestamp)
-		AddElementToObject(finalHeaders, "expiry_window", expiryWindow)
-		var request any = finalHeaders
-
-		response := (<-this.PrivatePostAccountSubaccountCreate(request))
-		PanicOnError(response)
-
-		//
-		// {
-		//   "success": true,
-		//   "data": null,
-		//   "error": null,
-		//   "code": null,
-		// }
-		//
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createSubAccountBody(ch, name, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) createSubAccountBody(ch chan any, name any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var finalHeaders any = map[string]any{}
+	var agentAddress any = nil
+	agentAddressparamsVariable := this.HandleOption("createSubAccount", "agentAddress")
+	agentAddress = GetValue(agentAddressparamsVariable, 0)
+	params = GetValue(agentAddressparamsVariable, 1)
+	var originAddress any = nil
+	originAddressparamsVariable := this.HandleOriginAndSingleAddress("createSubAccount", params)
+	originAddress = GetValue(originAddressparamsVariable, 0)
+	params = GetValue(originAddressparamsVariable, 1)
+	if IsTrue(IsEqual(originAddress, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires \"originAddress\" in params or \"walletAddress\" in requiredCredentials")))
+	}
+	if IsTrue(!IsEqual(agentAddress, nil)) {
+		AddElementToObject(finalHeaders, "agent_wallet", agentAddress)
+	}
+	var subAccountAddress any = nil
+	subAccountAddressparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "subAccountAddress")
+	subAccountAddress = GetValue(subAccountAddressparamsVariable, 0)
+	params = GetValue(subAccountAddressparamsVariable, 1)
+	var subAccountPrivateKey any = nil
+	subAccountPrivateKeyparamsVariable := this.HandleOptionAndParams(params, "createSubAccount", "subAccountPrivateKey")
+	subAccountPrivateKey = GetValue(subAccountPrivateKeyparamsVariable, 0)
+	params = GetValue(subAccountPrivateKeyparamsVariable, 1)
+	if IsTrue(IsEqual(subAccountAddress, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountAddress\"!")))
+	}
+	if IsTrue(IsEqual(subAccountPrivateKey, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createSubAccount() requires a \"subAccountPrivateKey\"!")))
+	}
+	var timestamp any = this.Milliseconds()
+	var expiryWindow any = nil
+	expiryWindowparamsVariable := this.HandleOptionAndParams2(params, "createSubAccount", "expiryWindow", "expiry_window", 5000)
+	expiryWindow = GetValue(expiryWindowparamsVariable, 0)
+	params = GetValue(expiryWindowparamsVariable, 1)
+	var subaccountSignatureHeader any = map[string]any{
+		"timestamp":     timestamp,
+		"expiry_window": expiryWindow,
+		"type":          "subaccount_initiate",
+	}
+	var subSigPayload any = map[string]any{
+		"account": originAddress,
+	}
+	var subaccountSignature any = this.SignMessage(subaccountSignatureHeader, subSigPayload, subAccountPrivateKey)
+	var mainSignatureHeader any = map[string]any{
+		"timestamp":     timestamp,
+		"expiry_window": expiryWindow,
+		"type":          "subaccount_confirm",
+	}
+	var mainSigPayload any = map[string]any{
+		"signature": subaccountSignature,
+	}
+	var main_signature any = this.SignMessage(mainSignatureHeader, mainSigPayload, this.PrivateKey)
+	AddElementToObject(finalHeaders, "main_account", originAddress)
+	AddElementToObject(finalHeaders, "subaccount", subAccountAddress)
+	AddElementToObject(finalHeaders, "sub_signature", subaccountSignature)
+	AddElementToObject(finalHeaders, "main_signature", main_signature)
+	AddElementToObject(finalHeaders, "timestamp", timestamp)
+	AddElementToObject(finalHeaders, "expiry_window", expiryWindow)
+	var request any = finalHeaders
+
+	response := (<-this.PrivatePostAccountSubaccountCreate(request))
+	PanicOnError(response)
+
+	//
+	// {
+	//   "success": true,
+	//   "data": null,
+	//   "error": null,
+	//   "code": null,
+	// }
+	//
+	ch <- response
+	return nil
 }
 func (this *PacificaCore) BindAgentWallet(agentAddress any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "bind_agent_wallet"
-		var sigPayload any = map[string]any{
-			"agent_wallet": agentAddress,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-
-		retRes335515 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
-		PanicOnError(retRes335515)
-		ch <- retRes335515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.bindAgentWalletBody(ch, agentAddress, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) bindAgentWalletBody(ch chan any, agentAddress any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "bind_agent_wallet"
+	var sigPayload any = map[string]any{
+		"agent_wallet": agentAddress,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+
+	retRes335515 := (<-this.PrivatePostAgentBind(this.Extend(request, params)))
+	PanicOnError(retRes335515)
+	ch <- retRes335515
+	return nil
 }
 func (this *PacificaCore) CreateApiKey(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "create_api_key"
-		var sigPayload any = map[string]any{}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-
-		retRes336215 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
-		PanicOnError(retRes336215)
-		ch <- retRes336215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createApiKeyBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) createApiKeyBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "create_api_key"
+	var sigPayload any = map[string]any{}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+
+	retRes336215 := (<-this.PrivatePostAccountApiKeysCreate(this.Extend(request, params)))
+	PanicOnError(retRes336215)
+	ch <- retRes336215
+	return nil
 }
 func (this *PacificaCore) RevokeApiKey(apiKey any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "revoke_api_key"
-		var sigPayload any = map[string]any{
-			"api_key": apiKey,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-
-		retRes337115 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
-		PanicOnError(retRes337115)
-		ch <- retRes337115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.revokeApiKeyBody(ch, apiKey, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) revokeApiKeyBody(ch chan any, apiKey any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "revoke_api_key"
+	var sigPayload any = map[string]any{
+		"api_key": apiKey,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+
+	retRes337115 := (<-this.PrivatePostAccountApiKeysRevoke(this.Extend(request, params)))
+	PanicOnError(retRes337115)
+	ch <- retRes337115
+	return nil
 }
 func (this *PacificaCore) FetchApiKeys(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "list_api_keys"
-		var sigPayload any = map[string]any{}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-
-		retRes337815 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
-		PanicOnError(retRes337815)
-		ch <- retRes337815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchApiKeysBody(ch, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) fetchApiKeysBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "list_api_keys"
+	var sigPayload any = map[string]any{}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+
+	retRes337815 := (<-this.PrivatePostAccountApiKeys(this.Extend(request, params)))
+	PanicOnError(retRes337815)
+	ch <- retRes337815
+	return nil
 }
 func (this *PacificaCore) ApproveBuilderCode(builderCode any, maxFeeRate any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "approve_builder_code"
-		var sigPayload any = map[string]any{
-			"builder_code": builderCode,
-			"max_fee_rate": maxFeeRate,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-
-		retRes338815 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
-		PanicOnError(retRes338815)
-		ch <- retRes338815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.approveBuilderCodeBody(ch, builderCode, maxFeeRate, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) approveBuilderCodeBody(ch chan any, builderCode any, maxFeeRate any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "approve_builder_code"
+	var sigPayload any = map[string]any{
+		"builder_code": builderCode,
+		"max_fee_rate": maxFeeRate,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+
+	retRes338815 := (<-this.PrivatePostAccountBuilderCodesApprove(this.Extend(request, params)))
+	PanicOnError(retRes338815)
+	ch <- retRes338815
+	return nil
 }
 func (this *PacificaCore) FetchBuilderApprovals(address any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var request any = map[string]any{
-			"account": address,
-		}
-
-		retRes339515 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
-		PanicOnError(retRes339515)
-		ch <- retRes339515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBuilderApprovalsBody(ch, address)
 	return ch
 }
+func (this *PacificaCore) fetchBuilderApprovalsBody(ch chan any, address any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var request any = map[string]any{
+		"account": address,
+	}
+
+	retRes339515 := (<-this.PublicGetAccountBuilderCodesApprovals(this.Extend(request)))
+	PanicOnError(retRes339515)
+	ch <- retRes339515
+	return nil
+}
 func (this *PacificaCore) RevokeBuilderCode(builderCode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var operationType any = "revoke_builder_code"
-		var sigPayload any = map[string]any{
-			"builder_code": builderCode,
-		}
-		var request any = this.PostActionRequest(operationType, sigPayload, params)
-
-		retRes340415 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
-		PanicOnError(retRes340415)
-		ch <- retRes340415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.revokeBuilderCodeBody(ch, builderCode, optionalArgs...)
 	return ch
+}
+func (this *PacificaCore) revokeBuilderCodeBody(ch chan any, builderCode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var operationType any = "revoke_builder_code"
+	var sigPayload any = map[string]any{
+		"builder_code": builderCode,
+	}
+	var request any = this.PostActionRequest(operationType, sigPayload, params)
+
+	retRes340415 := (<-this.PrivatePostAccountBuilderCodesRevoke(this.Extend(request, params)))
+	PanicOnError(retRes340415)
+	ch <- retRes340415
+	return nil
 }
 func (this *PacificaCore) HandleOriginAndSingleAddress(methodName any, params any) any {
 	var address any = nil

@@ -6,23 +6,23 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchFundingRateHistory(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchFundingRateHistory"
-
-		fundingRatesHistory := (<-exchange.FetchFundingRateHistory(symbol))
-		PanicOnError(fundingRatesHistory)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol)
-		for i := 0; IsLessThan(i, GetArrayLength(fundingRatesHistory)); i++ {
-			TestFundingRateHistory(exchange, skippedProperties, method, GetValue(fundingRatesHistory, i), symbol)
-		}
-		AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchFundingRateHistoryBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchFundingRateHistoryBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchFundingRateHistory"
+
+	fundingRatesHistory := (<-exchange.FetchFundingRateHistory(symbol))
+	PanicOnError(fundingRatesHistory)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol)
+	for i := 0; IsLessThan(i, GetArrayLength(fundingRatesHistory)); i++ {
+		TestFundingRateHistory(exchange, skippedProperties, method, GetValue(fundingRatesHistory, i), symbol)
+	}
+	AssertTimestampOrder(exchange, method, symbol, fundingRatesHistory)
+
+	ch <- true
+	return nil
 }

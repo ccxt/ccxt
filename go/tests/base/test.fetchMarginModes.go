@@ -6,26 +6,26 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchMarginModes(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchMarginModes"
-
-		marginModes := (<-exchange.FetchMarginModes([]any{symbol}))
-		PanicOnError(marginModes)
-		AssertDictionaryResponse(exchange, method, marginModes, symbol)
-		var marginModeKeys any = ObjectKeys(marginModes)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol)
-		for i := 0; IsLessThan(i, GetArrayLength(marginModeKeys)); i++ {
-			var marginMode any = GetValue(marginModes, GetValue(marginModeKeys, i))
-			AssertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol)
-			TestMarginMode(exchange, skippedProperties, method, marginMode)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchMarginModesBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchMarginModesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchMarginModes"
+
+	marginModes := (<-exchange.FetchMarginModes([]any{symbol}))
+	PanicOnError(marginModes)
+	AssertDictionaryResponse(exchange, method, marginModes, symbol)
+	var marginModeKeys any = ObjectKeys(marginModes)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol)
+	for i := 0; IsLessThan(i, GetArrayLength(marginModeKeys)); i++ {
+		var marginMode any = GetValue(marginModes, GetValue(marginModeKeys, i))
+		AssertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol)
+		TestMarginMode(exchange, skippedProperties, method, marginMode)
+	}
+
+	ch <- true
+	return nil
 }

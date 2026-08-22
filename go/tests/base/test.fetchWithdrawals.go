@@ -6,24 +6,24 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchWithdrawals(exchange ccxt.ICoreExchange, skippedProperties any, code any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchWithdrawals"
-
-		transactions := (<-exchange.FetchWithdrawals(code))
-		PanicOnError(transactions)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code)
-		var now any = exchange.Milliseconds()
-		for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
-			TestDepositWithdrawal(exchange, skippedProperties, method, GetValue(transactions, i), code, now)
-		}
-		AssertTimestampOrder(exchange, method, code, transactions)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchWithdrawalsBody(ch, exchange, skippedProperties, code)
 	return ch
+}
+func testFetchWithdrawalsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchWithdrawals"
+
+	transactions := (<-exchange.FetchWithdrawals(code))
+	PanicOnError(transactions)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code)
+	var now any = exchange.Milliseconds()
+	for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
+		TestDepositWithdrawal(exchange, skippedProperties, method, GetValue(transactions, i), code, now)
+	}
+	AssertTimestampOrder(exchange, method, code, transactions)
+
+	ch <- true
+	return nil
 }

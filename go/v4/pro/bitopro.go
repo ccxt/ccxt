@@ -56,19 +56,19 @@ func (this *BitoproCore) Describe() any {
 	})
 }
 func (this *BitoproCore) WatchPublic(path any, messageHash any, marketId any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "public"), "/"), path), "/"), marketId)
-
-		retRes5315 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes5315)
-		ch <- retRes5315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPublicBody(ch, path, messageHash, marketId)
 	return ch
+}
+func (this *BitoproCore) watchPublicBody(ch chan any, path any, messageHash any, marketId any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "public"), "/"), path), "/"), marketId)
+
+	retRes5315 := (<-this.Watch(url, messageHash, nil, messageHash))
+	ccxt.PanicOnError(retRes5315)
+	ch <- retRes5315
+	return nil
 }
 
 /**
@@ -82,42 +82,42 @@ func (this *BitoproCore) WatchPublic(path any, messageHash any, marketId any) <-
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitoproCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, 5))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 10)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 20)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 50)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 100)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 500)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 1000)))) {
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")))
-			}
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes7312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes7312)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add(ccxt.Add("ORDER_BOOK", ":"), symbol)
-		var endPart any = nil
-		if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
-			endPart = ccxt.GetValue(market, "id")
-		} else {
-			endPart = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), ":"), this.NumberToString(limit))
-		}
-
-		orderbook := (<-this.WatchPublic("order-books", messageHash, endPart))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitoproCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, 5))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 10)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 20)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 50)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 100)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 500)))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 1000)))) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")))
+		}
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes7312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes7312)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add(ccxt.Add("ORDER_BOOK", ":"), symbol)
+	var endPart any = nil
+	if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
+		endPart = ccxt.GetValue(market, "id")
+	} else {
+		endPart = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), ":"), this.NumberToString(limit))
+	}
+
+	orderbook := (<-this.WatchPublic("order-books", messageHash, endPart))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *BitoproCore) HandleOrderBook(client any, message any) {
 	//
@@ -168,36 +168,36 @@ func (this *BitoproCore) HandleOrderBook(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitoproCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes13812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes13812)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add(ccxt.Add("TRADE", ":"), symbol)
-
-		trades := (<-this.WatchPublic("trades", messageHash, ccxt.GetValue(market, "id")))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitoproCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes13812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes13812)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add(ccxt.Add("TRADE", ":"), symbol)
+
+	trades := (<-this.WatchPublic("trades", messageHash, ccxt.GetValue(market, "id")))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BitoproCore) HandleTrade(client any, message any) {
 	//
@@ -250,43 +250,43 @@ func (this *BitoproCore) HandleTrade(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitoproCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes20312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes20312)
-		}
-		var messageHash any = "USER_TRADE"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
-		}
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
-		this.Authenticate(url)
-
-		trades := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitoproCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes20312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes20312)
+	}
+	var messageHash any = "USER_TRADE"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		messageHash = ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(market, "symbol"))
+	}
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "user-trades")
+	this.Authenticate(url)
+
+	trades := (<-this.Watch(url, messageHash, nil, messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BitoproCore) HandleMyTrade(client any, message any) {
 	//
@@ -416,28 +416,28 @@ func (this *BitoproCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitoproCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes34712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes34712)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add(ccxt.Add("TICKER", ":"), symbol)
-
-		retRes35215 := (<-this.WatchPublic("tickers", messageHash, ccxt.GetValue(market, "id")))
-		ccxt.PanicOnError(retRes35215)
-		ch <- retRes35215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitoproCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes34712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes34712)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add(ccxt.Add("TICKER", ":"), symbol)
+
+	retRes35215 := (<-this.WatchPublic("tickers", messageHash, ccxt.GetValue(market, "id")))
+	ccxt.PanicOnError(retRes35215)
+	ch <- retRes35215
+	return nil
 }
 func (this *BitoproCore) HandleTicker(client any, message any) {
 	//
@@ -518,29 +518,29 @@ func (this *BitoproCore) Authenticate(url any) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BitoproCore) WatchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes43712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes43712)
-		}
-		var messageHash any = "ACCOUNT_BALANCE"
-		var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
-		this.Authenticate(url)
-
-		retRes44215 := (<-this.Watch(url, messageHash, nil, messageHash))
-		ccxt.PanicOnError(retRes44215)
-		ch <- retRes44215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitoproCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes43712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes43712)
+	}
+	var messageHash any = "ACCOUNT_BALANCE"
+	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
+	this.Authenticate(url)
+
+	retRes44215 := (<-this.Watch(url, messageHash, nil, messageHash))
+	ccxt.PanicOnError(retRes44215)
+	ch <- retRes44215
+	return nil
 }
 func (this *BitoproCore) HandleBalance(client any, message any) {
 	//

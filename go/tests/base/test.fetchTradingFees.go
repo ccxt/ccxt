@@ -6,24 +6,24 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchTradingFees(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchTradingFees"
-
-		fees := (<-exchange.FetchTradingFees())
-		PanicOnError(fees)
-		var symbols any = ObjectKeys(fees)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, symbols)
-		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-			var symbol any = GetValue(symbols, i)
-			TestTradingFee(exchange, skippedProperties, method, symbol, GetValue(fees, symbol))
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchTradingFeesBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testFetchTradingFeesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchTradingFees"
+
+	fees := (<-exchange.FetchTradingFees())
+	PanicOnError(fees)
+	var symbols any = ObjectKeys(fees)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, symbols)
+	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+		var symbol any = GetValue(symbols, i)
+		TestTradingFee(exchange, skippedProperties, method, symbol, GetValue(fees, symbol))
+	}
+
+	ch <- true
+	return nil
 }

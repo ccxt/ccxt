@@ -6,19 +6,19 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchMarginMode(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchMarginMode"
-
-		marginMode := (<-exchange.FetchMarginMode(symbol))
-		PanicOnError(marginMode)
-		TestMarginMode(exchange, skippedProperties, method, marginMode)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchMarginModeBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchMarginModeBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchMarginMode"
+
+	marginMode := (<-exchange.FetchMarginMode(symbol))
+	PanicOnError(marginMode)
+	TestMarginMode(exchange, skippedProperties, method, marginMode)
+
+	ch <- true
+	return nil
 }

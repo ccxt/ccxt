@@ -6,25 +6,25 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchOrders(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchOrders"
-
-		orders := (<-exchange.FetchOrders(symbol))
-		PanicOnError(orders)
-		Assert(IsArray(orders), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(orders)))
-		AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
-		var now any = exchange.Milliseconds()
-		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			TestOrder(exchange, skippedProperties, method, GetValue(orders, i), symbol, now)
-		}
-		AssertTimestampOrder(exchange, method, symbol, orders)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchOrdersBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchOrders"
+
+	orders := (<-exchange.FetchOrders(symbol))
+	PanicOnError(orders)
+	Assert(IsArray(orders), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(orders)))
+	AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
+	var now any = exchange.Milliseconds()
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+		TestOrder(exchange, skippedProperties, method, GetValue(orders, i), symbol, now)
+	}
+	AssertTimestampOrder(exchange, method, symbol, orders)
+
+	ch <- true
+	return nil
 }

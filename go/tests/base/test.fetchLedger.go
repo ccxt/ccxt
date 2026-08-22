@@ -6,24 +6,24 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchLedger(exchange ccxt.ICoreExchange, skippedProperties any, code any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchLedger"
-
-		items := (<-exchange.FetchLedger(code))
-		PanicOnError(items)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
-		var now any = exchange.Milliseconds()
-		for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
-			TestLedgerEntry(exchange, skippedProperties, method, GetValue(items, i), code, now)
-		}
-		AssertTimestampOrder(exchange, method, code, items)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchLedgerBody(ch, exchange, skippedProperties, code)
 	return ch
+}
+func testFetchLedgerBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchLedger"
+
+	items := (<-exchange.FetchLedger(code))
+	PanicOnError(items)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
+	var now any = exchange.Milliseconds()
+	for i := 0; IsLessThan(i, GetArrayLength(items)); i++ {
+		TestLedgerEntry(exchange, skippedProperties, method, GetValue(items, i), code, now)
+	}
+	AssertTimestampOrder(exchange, method, code, items)
+
+	ch <- true
+	return nil
 }

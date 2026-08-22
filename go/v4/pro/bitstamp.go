@@ -65,40 +65,40 @@ func (this *BitstampCore) Describe() any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitstampCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes6012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes6012)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("orderbook:", symbol)
-		var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
-		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-		var request any = map[string]any{
-			"event": "bts:subscribe",
-			"data": map[string]any{
-				"channel": channel,
-			},
-		}
-		var message any = this.Extend(request, params)
-
-		orderbook := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes6012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes6012)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add("orderbook:", symbol)
+	var channel any = ccxt.Add("diff_order_book_", ccxt.GetValue(market, "id"))
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var request any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": channel,
+		},
+	}
+	var message any = this.Extend(request, params)
+
+	orderbook := (<-this.Watch(url, messageHash, message, messageHash))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *BitstampCore) HandleOrderBook(client any, message any) {
 	//
@@ -205,45 +205,45 @@ func (this *BitstampCore) GetCacheIndex(orderbook any, deltas any) any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitstampCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes18712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes18712)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("trades:", symbol)
-		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-		var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
-		var request any = map[string]any{
-			"event": "bts:subscribe",
-			"data": map[string]any{
-				"channel": channel,
-			},
-		}
-		var message any = this.Extend(request, params)
-
-		trades := (<-this.Watch(url, messageHash, message, messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes18712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes18712)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add("trades:", symbol)
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+	var channel any = ccxt.Add("live_trades_", ccxt.GetValue(market, "id"))
+	var request any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": channel,
+		},
+	}
+	var message any = this.Extend(request, params)
+
+	trades := (<-this.Watch(url, messageHash, message, messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BitstampCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
@@ -342,48 +342,48 @@ func (this *BitstampCore) HandleTrade(client any, message any) {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() requires a symbol argument")))
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes30812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes30812)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var channel any = "private-my_orders"
-		var messageHash any = ccxt.Add(ccxt.Add(channel, "_"), ccxt.GetValue(market, "id"))
-		var subscription any = map[string]any{
-			"symbol": symbol,
-			"limit":  limit,
-			"type":   channel,
-			"params": params,
-		}
-
-		orders := (<-this.SubscribePrivate(subscription, messageHash, params))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() requires a symbol argument")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes30812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes30812)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var channel any = "private-my_orders"
+	var messageHash any = ccxt.Add(ccxt.Add(channel, "_"), ccxt.GetValue(market, "id"))
+	var subscription any = map[string]any{
+		"symbol": symbol,
+		"limit":  limit,
+		"type":   channel,
+		"params": params,
+	}
+
+	orders := (<-this.SubscribePrivate(subscription, messageHash, params))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(orders, since, limit, "timestamp", true)
+	return nil
 }
 func (this *BitstampCore) HandleOrders(client any, message any) {
 	//
@@ -643,120 +643,121 @@ func (this *BitstampCore) HandleMessage(client any, message any) {
 	}
 }
 func (this *BitstampCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		var time any = this.Milliseconds()
-		var expiresIn any = this.SafeInteger(this.Options, "expiresIn")
-		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(expiresIn, nil))) || ccxt.IsTrue((ccxt.IsGreaterThan(time, expiresIn)))) {
-			// single-flight leader election on a never-dialed client, see
-			// https://github.com/ccxt/ccxt/issues/29393: the websocket token is
-			// minted by a private REST call and cached in this.options, so N
-			// concurrent subscribePrivate () calls on a cold instance all pass
-			// the staleness check above and each mint their own token - the
-			// tokens are short lived (valid_sec is 60), so this burns the
-			// private endpoint and only the last write survives.
-			// the flight is registered in client.futures and settled through
-			// client.resolve / client.reject, so every mutation of that map
-			// goes through the client's own accessors in the ported languages
-			var messageHash any = "authenticateFlight"
-			var client any = this.Client("authenticationFlights")
-			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-				// a flight is already in progress - wake when the leader
-				// settles it: the token is then in this.options
-
-				retRes60916 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-				ccxt.PanicOnError(retRes60916)
-
-				return nil
-			}
-			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-
-			{
-				func(this *BitstampCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *BitstampCore) any {
-								// catch block:
-								// reject the flight - all waiters throw and the next caller
-								// re-leads instead of deadlocking on a dead flight
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-
-					response := (<-this.PrivatePostWebsocketsToken(params))
-					ccxt.PanicOnError(response)
-					//
-					// {
-					//     "valid_sec":60,
-					//     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
-					//     "user_id":4848701
-					// }
-					//
-					var sessionToken any = this.SafeString(response, "token")
-					if ccxt.IsTrue(ccxt.IsEqual(sessionToken, nil)) {
-						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
-					}
-					var userId any = this.SafeString(response, "user_id")
-					var validity any = this.SafeIntegerProduct(response, "valid_sec", 1000)
-					ccxt.AddElementToObject(this.Options, "expiresIn", this.Sum(time, validity))
-					ccxt.AddElementToObject(this.Options, "userId", userId)
-					ccxt.AddElementToObject(this.Options, "wsSessionToken", sessionToken)
-					// settle the flight: client.resolve deletes the future from
-					// client.futures and wakes every waiter parked on it
-					client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)
-					return nil
-				}(this)
-
-			}
-			// rethrows to the leader and marks the promise handled, so an
-			// alone leader's rejection is never unhandled
-
-			retRes64512 := <-future.(*ccxt.Future).Await()
-			ccxt.PanicOnError(retRes64512)
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BitstampCore) SubscribePrivate(subscription any, messageHash any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+func (this *BitstampCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var time any = this.Milliseconds()
+	var expiresIn any = this.SafeInteger(this.Options, "expiresIn")
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(expiresIn, nil))) || ccxt.IsTrue((ccxt.IsGreaterThan(time, expiresIn)))) {
+		// single-flight leader election on a never-dialed client, see
+		// https://github.com/ccxt/ccxt/issues/29393: the websocket token is
+		// minted by a private REST call and cached in this.options, so N
+		// concurrent subscribePrivate () calls on a cold instance all pass
+		// the staleness check above and each mint their own token - the
+		// tokens are short lived (valid_sec is 60), so this burns the
+		// private endpoint and only the last write survives.
+		// the flight is registered in client.futures and settled through
+		// client.resolve / client.reject, so every mutation of that map
+		// goes through the client's own accessors in the ported languages
+		var messageHash any = "authenticateFlight"
+		var client any = this.Client("authenticationFlights")
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader
+			// settles it: the token is then in this.options
 
-		retRes6518 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes6518)
-		messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
-		var request any = map[string]any{
-			"event": "bts:subscribe",
-			"data": map[string]any{
-				"channel": messageHash,
-				"auth":    ccxt.GetValue(this.Options, "wsSessionToken"),
-			},
+			retRes60916 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes60916)
+
+			return nil
 		}
-		ccxt.AddElementToObject(subscription, "messageHash", messageHash)
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
-		retRes66115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes66115)
-		ch <- retRes66115
-		return nil
+		{
+			func(this *BitstampCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *BitstampCore) any {
+							// catch block:
+							// reject the flight - all waiters throw and the next caller
+							// re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
 
-	}()
+				response := (<-this.PrivatePostWebsocketsToken(params))
+				ccxt.PanicOnError(response)
+				//
+				// {
+				//     "valid_sec":60,
+				//     "token":"siPaT4m6VGQCdsDCVbLBemiphHQs552e",
+				//     "user_id":4848701
+				// }
+				//
+				var sessionToken any = this.SafeString(response, "token")
+				if ccxt.IsTrue(ccxt.IsEqual(sessionToken, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
+				}
+				var userId any = this.SafeString(response, "user_id")
+				var validity any = this.SafeIntegerProduct(response, "valid_sec", 1000)
+				ccxt.AddElementToObject(this.Options, "expiresIn", this.Sum(time, validity))
+				ccxt.AddElementToObject(this.Options, "userId", userId)
+				ccxt.AddElementToObject(this.Options, "wsSessionToken", sessionToken)
+				// settle the flight: client.resolve deletes the future from
+				// client.futures and wakes every waiter parked on it
+				client.(ccxt.ClientInterface).Resolve(sessionToken, messageHash)
+				return nil
+			}(this)
+
+		}
+		// rethrows to the leader and marks the promise handled, so an
+		// alone leader's rejection is never unhandled
+
+		retRes64512 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes64512)
+	}
+	return nil
+}
+func (this *BitstampCore) SubscribePrivate(subscription any, messageHash any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.subscribePrivateBody(ch, subscription, messageHash, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) subscribePrivateBody(ch chan any, subscription any, messageHash any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
+
+	retRes6518 := (<-this.Authenticate())
+	ccxt.PanicOnError(retRes6518)
+	messageHash = ccxt.Add(messageHash, ccxt.Add("-", ccxt.GetValue(this.Options, "userId")))
+	var request any = map[string]any{
+		"event": "bts:subscribe",
+		"data": map[string]any{
+			"channel": messageHash,
+			"auth":    ccxt.GetValue(this.Options, "wsSessionToken"),
+		},
+	}
+	ccxt.AddElementToObject(subscription, "messageHash", messageHash)
+
+	retRes66115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes66115)
+	ch <- retRes66115
+	return nil
 }
 
 func (this *BitstampCore) Init(userConfig map[string]any) {

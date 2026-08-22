@@ -6,60 +6,60 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchTrades"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		var maxIdleTime any = 5000
-		var idle any = false
-		for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
-			var response any = []any{}
-			var success any = true
-			var startTime any = exchange.Milliseconds()
+	ch := make(chan any, 1)
+	go testWatchTradesBody(ch, exchange, skippedProperties, symbol)
+	return ch
+}
+func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "watchTrades"
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	var maxIdleTime any = 5000
+	var idle any = false
+	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+		var response any = []any{}
+		var success any = true
+		var startTime any = exchange.Milliseconds()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								success = false
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchTrades(symbol)))
-					PanicOnError(response)
-					return nil
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							success = false
+							return nil
+						}()
+					}
 				}()
+				// try block:
 
+				response = (UnWrapType(<-exchange.WatchTrades(symbol)))
+				PanicOnError(response)
+				return nil
+			}()
+
+		}
+		now = exchange.Milliseconds()
+		if IsTrue(IsEqual(success, true)) {
+			AssertNonEmtpyArray(exchange, skippedProperties, method, response)
+			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+				TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 			}
-			now = exchange.Milliseconds()
-			if IsTrue(IsEqual(success, true)) {
-				AssertNonEmtpyArray(exchange, skippedProperties, method, response)
-				for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-					TestTrade(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
-				}
-				if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
-					idle = true
-				}
+			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+				idle = true
 			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }

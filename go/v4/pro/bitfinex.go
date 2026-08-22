@@ -56,116 +56,116 @@ func (this *BitfinexCore) Describe() any {
 	})
 }
 func (this *BitfinexCore) Subscribe(channel any, symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes5312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes5312)
-		}
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-		var client any = this.Client(url)
-		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
-		var request any = map[string]any{
-			"event":   "subscribe",
-			"channel": channel,
-			"symbol":  marketId,
-		}
-
-		result := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, map[string]any{
-			"checksum": false,
-		}))
-		ccxt.PanicOnError(result)
-		var checksum any = this.SafeBool(this.Options, "checksum", true)
-		if ccxt.IsTrue(ccxt.IsTrue(checksum) && ccxt.IsTrue((ccxt.IsEqual(channel, "book")))) {
-			var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-			if ccxt.IsTrue(ccxt.IsTrue(sub) && !ccxt.IsTrue(ccxt.GetValue(sub, "checksum"))) {
-				ccxt.AddElementToObject(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash), "checksum", true)
-
-				retRes7116 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
-					"event": "conf",
-					"flags": 131072,
-				}))
-				ccxt.PanicOnError(retRes7116)
-			}
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.subscribeBody(ch, channel, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) subscribeBody(ch chan any, channel any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes5312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes5312)
+	}
+	var market any = this.Market(symbol)
+	var marketId any = ccxt.GetValue(market, "id")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var client any = this.Client(url)
+	var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var request any = map[string]any{
+		"event":   "subscribe",
+		"channel": channel,
+		"symbol":  marketId,
+	}
+
+	result := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, map[string]any{
+		"checksum": false,
+	}))
+	ccxt.PanicOnError(result)
+	var checksum any = this.SafeBool(this.Options, "checksum", true)
+	if ccxt.IsTrue(ccxt.IsTrue(checksum) && ccxt.IsTrue((ccxt.IsEqual(channel, "book")))) {
+		var sub any = ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+		if ccxt.IsTrue(ccxt.IsTrue(sub) && !ccxt.IsTrue(ccxt.GetValue(sub, "checksum"))) {
+			ccxt.AddElementToObject(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash), "checksum", true)
+
+			retRes7116 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				"event": "conf",
+				"flags": 131072,
+			}))
+			ccxt.PanicOnError(retRes7116)
+		}
+	}
+
+	ch <- result
+	return nil
 }
 func (this *BitfinexCore) UnSubscribe(channel any, topic any, symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes8212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes8212)
-		}
-		var market any = this.Market(symbol)
-		var marketId any = ccxt.GetValue(market, "id")
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-		var client any = this.Client(url)
-		var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), marketId)
-		var unSubTopic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe", ":"), topic), ":"), symbol)
-		var channelId any = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubTopic)
-		var request any = map[string]any{
-			"event":  "unsubscribe",
-			"chanId": channelId,
-		}
-		var unSubChanMsg any = ccxt.Add("unsubscribe:", channelId)
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChanMsg, subMessageHash)
-		var subscription any = map[string]any{
-			"messageHashes":    []any{messageHash},
-			"subMessageHashes": []any{subMessageHash},
-			"topic":            topic,
-			"unsubscribe":      true,
-			"symbols":          []any{symbol},
-		}
-
-		retRes10515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes10515)
-		ch <- retRes10515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unSubscribeBody(ch, channel, topic, symbol, optionalArgs...)
 	return ch
 }
+func (this *BitfinexCore) unSubscribeBody(ch chan any, channel any, topic any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes8212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes8212)
+	}
+	var market any = this.Market(symbol)
+	var marketId any = ccxt.GetValue(market, "id")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var client any = this.Client(url)
+	var subMessageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), marketId)
+	var unSubTopic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe", ":"), topic), ":"), symbol)
+	var channelId any = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), unSubTopic)
+	var request any = map[string]any{
+		"event":  "unsubscribe",
+		"chanId": channelId,
+	}
+	var unSubChanMsg any = ccxt.Add("unsubscribe:", channelId)
+	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChanMsg, subMessageHash)
+	var subscription any = map[string]any{
+		"messageHashes":    []any{messageHash},
+		"subMessageHashes": []any{subMessageHash},
+		"topic":            topic,
+		"unsubscribe":      true,
+		"symbols":          []any{symbol},
+	}
+
+	retRes10515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes10515)
+	ch <- retRes10515
+	return nil
+}
 func (this *BitfinexCore) SubscribePrivate(messageHash any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes11012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes11012)
-		}
-
-		retRes1128 := (<-this.Authenticate())
-		ccxt.PanicOnError(retRes1128)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-
-		retRes11415 := (<-this.Watch(url, messageHash, nil, 1))
-		ccxt.PanicOnError(retRes11415)
-		ch <- retRes11415
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.subscribePrivateBody(ch, messageHash)
 	return ch
+}
+func (this *BitfinexCore) subscribePrivateBody(ch chan any, messageHash any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes11012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes11012)
+	}
+
+	retRes1128 := (<-this.Authenticate())
+	ccxt.PanicOnError(retRes1128)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+
+	retRes11415 := (<-this.Watch(url, messageHash, nil, 1))
+	ccxt.PanicOnError(retRes11415)
+	ch <- retRes11415
+	return nil
 }
 
 /**
@@ -180,48 +180,48 @@ func (this *BitfinexCore) SubscribePrivate(messageHash any) <-chan any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BitfinexCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes13012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes13012)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var channel any = "candles"
-		var key any = ccxt.Add(ccxt.Add(ccxt.Add("trade:", interval), ":"), ccxt.GetValue(market, "id"))
-		var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), ccxt.GetValue(market, "id"))
-		var request any = map[string]any{
-			"event":   "subscribe",
-			"channel": channel,
-			"key":     key,
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-		// not using subscribe here because this message has a different format
-
-		ohlcv := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
-		ccxt.PanicOnError(ohlcv)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes13012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes13012)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var channel any = "candles"
+	var key any = ccxt.Add(ccxt.Add(ccxt.Add("trade:", interval), ":"), ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), ccxt.GetValue(market, "id"))
+	var request any = map[string]any{
+		"event":   "subscribe",
+		"channel": channel,
+		"key":     key,
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	// not using subscribe here because this message has a different format
+
+	ohlcv := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash))
+	ccxt.PanicOnError(ohlcv)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	return nil
 }
 
 /**
@@ -234,50 +234,50 @@ func (this *BitfinexCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any
  * @returns {bool} true if successfully unsubscribed, false otherwise
  */
 func (this *BitfinexCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes16312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes16312)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		var channel any = "candles"
-		var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), ccxt.GetValue(market, "id"))
-		var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
-		var client any = this.Client(url)
-		var subId any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:trade:", interval), ":"), ccxt.GetValue(market, "id")) // trade here because we use the key
-		var channelId any = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), subId)
-		var request any = map[string]any{
-			"event":  "unsubscribe",
-			"chanId": channelId,
-		}
-		var unSubChanMsg any = ccxt.Add("unsubscribe:", channelId)
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChanMsg, subMessageHash)
-		var subscription any = map[string]any{
-			"messageHashes":    []any{messageHash},
-			"subMessageHashes": []any{subMessageHash},
-			"topic":            "ohlcv",
-			"unsubscribe":      true,
-			"symbols":          []any{symbol},
-		}
-
-		retRes18815 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
-		ccxt.PanicOnError(retRes18815)
-		ch <- retRes18815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes16312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes16312)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	var channel any = "candles"
+	var subMessageHash any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(channel, ":"), interval), ":"), ccxt.GetValue(market, "id"))
+	var messageHash any = ccxt.Add("unsubscribe:", subMessageHash)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+	var client any = this.Client(url)
+	var subId any = ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:trade:", interval), ":"), ccxt.GetValue(market, "id")) // trade here because we use the key
+	var channelId any = this.SafeString(client.(ccxt.ClientInterface).GetSubscriptions(), subId)
+	var request any = map[string]any{
+		"event":  "unsubscribe",
+		"chanId": channelId,
+	}
+	var unSubChanMsg any = ccxt.Add("unsubscribe:", channelId)
+	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), unSubChanMsg, subMessageHash)
+	var subscription any = map[string]any{
+		"messageHashes":    []any{messageHash},
+		"subMessageHashes": []any{subMessageHash},
+		"topic":            "ohlcv",
+		"unsubscribe":      true,
+		"symbols":          []any{symbol},
+	}
+
+	retRes18815 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes18815)
+	ch <- retRes18815
+	return nil
 }
 func (this *BitfinexCore) HandleOHLCV(client any, message any, subscription any) {
 	//
@@ -373,28 +373,28 @@ func (this *BitfinexCore) HandleOHLCV(client any, message any, subscription any)
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitfinexCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		trades := (<-this.Subscribe("trades", symbol, params))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	trades := (<-this.Subscribe("trades", symbol, params))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 
 /**
@@ -406,20 +406,20 @@ func (this *BitfinexCore) WatchTrades(symbol any, optionalArgs ...any) <-chan an
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitfinexCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes30115 := (<-this.UnSubscribe("trades", "trades", symbol, params))
-		ccxt.PanicOnError(retRes30115)
-		ch <- retRes30115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes30115 := (<-this.UnSubscribe("trades", "trades", symbol, params))
+	ccxt.PanicOnError(retRes30115)
+	ch <- retRes30115
+	return nil
 }
 
 /**
@@ -433,40 +433,40 @@ func (this *BitfinexCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan 
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitfinexCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes31612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes31612)
-		}
-		var messageHash any = "myTrade"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
-		}
-
-		trades := (<-this.SubscribePrivate(messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes31612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes31612)
+	}
+	var messageHash any = "myTrade"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
+	}
+
+	trades := (<-this.SubscribePrivate(messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	return nil
 }
 
 /**
@@ -478,20 +478,20 @@ func (this *BitfinexCore) WatchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitfinexCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes33915 := (<-this.Subscribe("ticker", symbol, params))
-		ccxt.PanicOnError(retRes33915)
-		ch <- retRes33915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes33915 := (<-this.Subscribe("ticker", symbol, params))
+	ccxt.PanicOnError(retRes33915)
+	ch <- retRes33915
+	return nil
 }
 
 /**
@@ -503,20 +503,20 @@ func (this *BitfinexCore) WatchTicker(symbol any, optionalArgs ...any) <-chan an
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitfinexCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes35115 := (<-this.UnSubscribe("ticker", "ticker", symbol, params))
-		ccxt.PanicOnError(retRes35115)
-		ch <- retRes35115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes35115 := (<-this.UnSubscribe("ticker", "ticker", symbol, params))
+	ccxt.PanicOnError(retRes35115)
+	ch <- retRes35115
+	return nil
 }
 func (this *BitfinexCore) HandleMyTrade(client any, message any, optionalArgs ...any) {
 	//
@@ -813,38 +813,38 @@ func (this *BitfinexCore) ParseWsTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitfinexCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, 25))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 100)))) {
-				panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 25 or 100")))
-			}
-		}
-		var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
-		var prec any = this.SafeString(options, "prec", "P0")
-		var freq any = this.SafeString(options, "freq", "F0")
-		var request any = map[string]any{
-			"prec": prec,
-			"freq": freq,
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			ccxt.AddElementToObject(request, "len", limit) // string, number of price points, '25', '100', default = '25'
-		}
-
-		orderbook := (<-this.Subscribe("book", symbol, this.DeepExtend(request, params)))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(limit, 25))) && ccxt.IsTrue((!ccxt.IsEqual(limit, 100)))) {
+			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 25 or 100")))
+		}
+	}
+	var options any = this.SafeValue(this.Options, "watchOrderBook", map[string]any{})
+	var prec any = this.SafeString(options, "prec", "P0")
+	var freq any = this.SafeString(options, "freq", "F0")
+	var request any = map[string]any{
+		"prec": prec,
+		"freq": freq,
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		ccxt.AddElementToObject(request, "len", limit) // string, number of price points, '25', '100', default = '25'
+	}
+
+	orderbook := (<-this.Subscribe("book", symbol, this.DeepExtend(request, params)))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *BitfinexCore) HandleOrderBook(client any, message any, subscription any) {
 	//
@@ -1002,28 +1002,28 @@ func (this *BitfinexCore) HandleChecksum(client any, message any, subscription a
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BitfinexCore) WatchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes82412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes82412)
-		}
-		var balanceType any = this.SafeString(params, "wallet", "exchange") // exchange, margin
-		params = this.Omit(params, "wallet")
-		var messageHash any = ccxt.Add("balance:", balanceType)
-
-		retRes82915 := (<-this.SubscribePrivate(messageHash))
-		ccxt.PanicOnError(retRes82915)
-		ch <- retRes82915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes82412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes82412)
+	}
+	var balanceType any = this.SafeString(params, "wallet", "exchange") // exchange, margin
+	params = this.Omit(params, "wallet")
+	var messageHash any = ccxt.Add("balance:", balanceType)
+
+	retRes82915 := (<-this.SubscribePrivate(messageHash))
+	ccxt.PanicOnError(retRes82915)
+	ch <- retRes82915
+	return nil
 }
 func (this *BitfinexCore) HandleBalance(client any, message any, subscription any) {
 	//
@@ -1218,40 +1218,40 @@ func (this *BitfinexCore) HandleSubscriptionStatus(client any, message any) any 
 	return message
 }
 func (this *BitfinexCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-		var client any = this.Client(url)
-		var messageHash any = "authenticated"
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-			var nonce any = this.Milliseconds()
-			var payload any = ccxt.Add("AUTH", ccxt.ToString(nonce))
-			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384, "hex")
-			var event any = "auth"
-			var request any = map[string]any{
-				"apiKey":      this.ApiKey,
-				"authSig":     signature,
-				"authNonce":   nonce,
-				"authPayload": payload,
-				"event":       event,
-			}
-			var message any = this.Extend(request, params)
-			this.Watch(url, messageHash, message, messageHash)
-		}
-
-		retRes105015 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes105015)
-		ch <- retRes105015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var client any = this.Client(url)
+	var messageHash any = "authenticated"
+	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+		var nonce any = this.Milliseconds()
+		var payload any = ccxt.Add("AUTH", ccxt.ToString(nonce))
+		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha384, "hex")
+		var event any = "auth"
+		var request any = map[string]any{
+			"apiKey":      this.ApiKey,
+			"authSig":     signature,
+			"authNonce":   nonce,
+			"authPayload": payload,
+			"event":       event,
+		}
+		var message any = this.Extend(request, params)
+		this.Watch(url, messageHash, message, messageHash)
+	}
+
+	retRes105015 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes105015)
+	ch <- retRes105015
+	return nil
 }
 func (this *BitfinexCore) HandleAuthenticationMessage(client any, message any) {
 	var messageHash any = "authenticated"
@@ -1281,40 +1281,40 @@ func (this *BitfinexCore) HandleAuthenticationMessage(client any, message any) {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitfinexCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes108212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes108212)
-		}
-		var messageHash any = "orders"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
-		}
-
-		orders := (<-this.SubscribePrivate(messageHash))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitfinexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes108212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes108212)
+	}
+	var messageHash any = "orders"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
+	}
+
+	orders := (<-this.SubscribePrivate(messageHash))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	return nil
 }
 func (this *BitfinexCore) HandleOrders(client any, message any, subscription any) {
 	//

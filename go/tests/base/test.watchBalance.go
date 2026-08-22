@@ -6,51 +6,52 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchBalance(exchange ccxt.ICoreExchange, skippedProperties any, code any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchBalance"
-		var now any = exchange.Milliseconds()
-		var ends any = Add(now, 15000)
-		for IsLessThan(now, ends) {
-			var response any = map[string]any{}
-			var success any = true
-
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								if !IsTrue(IsTemporaryFailure(e)) {
-									panic(e)
-								}
-								now = exchange.Milliseconds()
-								// continue;
-								success = false
-								return nil
-							}()
-						}
-					}()
-					// try block:
-
-					response = (UnWrapType(<-exchange.WatchBalance()))
-					PanicOnError(response)
-					return nil
-				}()
-
-			}
-			if IsTrue(IsEqual(success, false)) {
-				continue
-			}
-			TestBalance(exchange, skippedProperties, method, response)
-			now = exchange.Milliseconds()
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go testWatchBalanceBody(ch, exchange, skippedProperties, code)
 	return ch
+}
+func testWatchBalanceBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "watchBalance"
+	var now any = exchange.Milliseconds()
+	var ends any = Add(now, 15000)
+	for IsLessThan(now, ends) {
+		var response any = map[string]any{}
+		var success any = true
+
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func() any {
+							// catch block:
+							if !IsTrue(IsTemporaryFailure(e)) {
+								panic(e)
+							}
+							now = exchange.Milliseconds()
+							// continue;
+							success = false
+							return nil
+						}()
+					}
+				}()
+				// try block:
+
+				response = (UnWrapType(<-exchange.WatchBalance()))
+				PanicOnError(response)
+				return nil
+			}()
+
+		}
+		if IsTrue(IsEqual(success, false)) {
+			continue
+		}
+		TestBalance(exchange, skippedProperties, method, response)
+		now = exchange.Milliseconds()
+	}
+	return nil
 }

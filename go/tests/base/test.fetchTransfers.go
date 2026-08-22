@@ -6,23 +6,23 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchTransfers(exchange ccxt.ICoreExchange, skippedProperties any, code any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchTransfers"
-
-		transfers := (<-exchange.FetchTransfers(code))
-		PanicOnError(transfers)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code)
-		for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
-			TestTransfer(exchange, skippedProperties, method, GetValue(transfers, i), code)
-		}
-		AssertTimestampOrder(exchange, method, code, transfers)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchTransfersBody(ch, exchange, skippedProperties, code)
 	return ch
+}
+func testFetchTransfersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchTransfers"
+
+	transfers := (<-exchange.FetchTransfers(code))
+	PanicOnError(transfers)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, transfers, code)
+	for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
+		TestTransfer(exchange, skippedProperties, method, GetValue(transfers, i), code)
+	}
+	AssertTimestampOrder(exchange, method, code, transfers)
+
+	ch <- true
+	return nil
 }

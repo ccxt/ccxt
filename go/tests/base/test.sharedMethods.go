@@ -421,114 +421,114 @@ func CheckPrecisionAccuracy(exchange ccxt.ICoreExchange, skippedProperties any, 
 	}
 }
 func FetchBestBidAsk(exchange ccxt.ICoreExchange, method any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var logText any = LogTemplate(exchange, method, map[string]any{})
-		// find out best bid/ask price
-		var bestBid any = nil
-		var bestAsk any = nil
-		var usedMethod any = nil
-		if IsTrue(GetValue(exchange.GetHas(), "fetchOrderBook")) {
-			usedMethod = "fetchOrderBook"
-
-			orderbook := (<-exchange.FetchOrderBook(symbol))
-			PanicOnError(orderbook)
-			var bids any = exchange.SafeList(orderbook, "bids")
-			var asks any = exchange.SafeList(orderbook, "asks")
-			var bestBidArray any = exchange.SafeList(bids, 0)
-			var bestAskArray any = exchange.SafeList(asks, 0)
-			bestBid = exchange.SafeNumber(bestBidArray, 0)
-			bestAsk = exchange.SafeNumber(bestAskArray, 0)
-		} else if IsTrue(GetValue(exchange.GetHas(), "fetchBidsAsks")) {
-			usedMethod = "fetchBidsAsks"
-
-			tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsks([]any{symbol}))
-			PanicOnError(tickers)
-			var ticker any = exchange.SafeDict(tickers, symbol)
-			bestBid = exchange.SafeNumber(ticker, "bid")
-			bestAsk = exchange.SafeNumber(ticker, "ask")
-		} else if IsTrue(GetValue(exchange.GetHas(), "fetchTicker")) {
-			usedMethod = "fetchTicker"
-
-			ticker := (<-exchange.FetchTicker(symbol))
-			PanicOnError(ticker)
-			bestBid = exchange.SafeNumber(ticker, "bid")
-			bestAsk = exchange.SafeNumber(ticker, "ask")
-		} else if IsTrue(GetValue(exchange.GetHas(), "fetchTickers")) {
-			usedMethod = "fetchTickers"
-
-			tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickers([]any{symbol}))
-			PanicOnError(tickers)
-			var ticker any = exchange.SafeDict(tickers, symbol)
-			bestBid = exchange.SafeNumber(ticker, "bid")
-			bestAsk = exchange.SafeNumber(ticker, "ask")
-		}
-		//
-		Assert(IsTrue(!IsEqual(bestBid, nil)) && IsTrue(!IsEqual(bestAsk, nil)), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
-
-		ch <- []any{bestBid, bestAsk}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go fetchBestBidAskBody(ch, exchange, method, symbol)
 	return ch
 }
-func FetchOrder(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var fetchedOrder any = nil
-		var originalId any = orderId
-		// set 'since' to 5 minute ago for optimal results
-		var sinceTime any = Subtract(exchange.Milliseconds(), Multiply(Multiply(1000, 60), 5))
-		// iterate
-		var methods_singular any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
-		for i := 0; IsLessThan(i, GetArrayLength(methods_singular)); i++ {
-			var singularFetchName any = GetValue(methods_singular, i)
-			if IsTrue(GetValue(exchange.GetHas(), singularFetchName)) {
+func fetchBestBidAskBody(ch chan any, exchange ccxt.ICoreExchange, method any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var logText any = LogTemplate(exchange, method, map[string]any{})
+	// find out best bid/ask price
+	var bestBid any = nil
+	var bestAsk any = nil
+	var usedMethod any = nil
+	if IsTrue(GetValue(exchange.GetHas(), "fetchOrderBook")) {
+		usedMethod = "fetchOrderBook"
 
-				currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
-				PanicOnError(currentOrder)
-				// if there is an id inside the order, it means the order was fetched successfully
-				if IsTrue(IsEqual(GetValue(currentOrder, "id"), originalId)) {
-					fetchedOrder = currentOrder
+		orderbook := (<-exchange.FetchOrderBook(symbol))
+		PanicOnError(orderbook)
+		var bids any = exchange.SafeList(orderbook, "bids")
+		var asks any = exchange.SafeList(orderbook, "asks")
+		var bestBidArray any = exchange.SafeList(bids, 0)
+		var bestAskArray any = exchange.SafeList(asks, 0)
+		bestBid = exchange.SafeNumber(bestBidArray, 0)
+		bestAsk = exchange.SafeNumber(bestAskArray, 0)
+	} else if IsTrue(GetValue(exchange.GetHas(), "fetchBidsAsks")) {
+		usedMethod = "fetchBidsAsks"
+
+		tickers := (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsks([]any{symbol}))
+		PanicOnError(tickers)
+		var ticker any = exchange.SafeDict(tickers, symbol)
+		bestBid = exchange.SafeNumber(ticker, "bid")
+		bestAsk = exchange.SafeNumber(ticker, "ask")
+	} else if IsTrue(GetValue(exchange.GetHas(), "fetchTicker")) {
+		usedMethod = "fetchTicker"
+
+		ticker := (<-exchange.FetchTicker(symbol))
+		PanicOnError(ticker)
+		bestBid = exchange.SafeNumber(ticker, "bid")
+		bestAsk = exchange.SafeNumber(ticker, "ask")
+	} else if IsTrue(GetValue(exchange.GetHas(), "fetchTickers")) {
+		usedMethod = "fetchTickers"
+
+		tickers := (<-exchange.(ccxt.IFetchTickers).FetchTickers([]any{symbol}))
+		PanicOnError(tickers)
+		var ticker any = exchange.SafeDict(tickers, symbol)
+		bestBid = exchange.SafeNumber(ticker, "bid")
+		bestAsk = exchange.SafeNumber(ticker, "ask")
+	}
+	//
+	Assert(IsTrue(!IsEqual(bestBid, nil)) && IsTrue(!IsEqual(bestAsk, nil)), Add(Add(Add(Add(Add(Add(Add(Add(logText, " "), exchange.GetId()), " could not get best bid/ask for "), symbol), " using "), usedMethod), " while testing "), method))
+
+	ch <- []any{bestBid, bestAsk}
+	return nil
+}
+func FetchOrder(exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) <-chan any {
+	ch := make(chan any, 1)
+	go fetchOrderBody(ch, exchange, symbol, orderId, skippedProperties)
+	return ch
+}
+func fetchOrderBody(ch chan any, exchange ccxt.ICoreExchange, symbol any, orderId any, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var fetchedOrder any = nil
+	var originalId any = orderId
+	// set 'since' to 5 minute ago for optimal results
+	var sinceTime any = Subtract(exchange.Milliseconds(), Multiply(Multiply(1000, 60), 5))
+	// iterate
+	var methods_singular any = []any{"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"}
+	for i := 0; IsLessThan(i, GetArrayLength(methods_singular)); i++ {
+		var singularFetchName any = GetValue(methods_singular, i)
+		if IsTrue(GetValue(exchange.GetHas(), singularFetchName)) {
+
+			currentOrder := (<-callDynamically(singularFetchName, originalId, symbol))
+			PanicOnError(currentOrder)
+			// if there is an id inside the order, it means the order was fetched successfully
+			if IsTrue(IsEqual(GetValue(currentOrder, "id"), originalId)) {
+				fetchedOrder = currentOrder
+				break
+			}
+		}
+	}
+	//
+	// search through plural methods
+	if IsTrue(IsEqual(fetchedOrder, nil)) {
+		var methods_plural any = []any{"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"}
+		for i := 0; IsLessThan(i, GetArrayLength(methods_plural)); i++ {
+			var pluralFetchName any = GetValue(methods_plural, i)
+			if IsTrue(GetValue(exchange.GetHas(), pluralFetchName)) {
+
+				orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))
+				PanicOnError(orders)
+				var found any = false
+				for j := 0; IsLessThan(j, GetArrayLength(orders)); j++ {
+					var currentOrder any = GetValue(orders, j)
+					if IsTrue(IsEqual(GetValue(currentOrder, "id"), originalId)) {
+						fetchedOrder = currentOrder
+						found = true
+						break
+					}
+				}
+				if IsTrue(found) {
 					break
 				}
 			}
 		}
-		//
-		// search through plural methods
-		if IsTrue(IsEqual(fetchedOrder, nil)) {
-			var methods_plural any = []any{"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"}
-			for i := 0; IsLessThan(i, GetArrayLength(methods_plural)); i++ {
-				var pluralFetchName any = GetValue(methods_plural, i)
-				if IsTrue(GetValue(exchange.GetHas(), pluralFetchName)) {
+	}
 
-					orders := (<-callDynamically(pluralFetchName, symbol, sinceTime))
-					PanicOnError(orders)
-					var found any = false
-					for j := 0; IsLessThan(j, GetArrayLength(orders)); j++ {
-						var currentOrder any = GetValue(orders, j)
-						if IsTrue(IsEqual(GetValue(currentOrder, "id"), originalId)) {
-							fetchedOrder = currentOrder
-							found = true
-							break
-						}
-					}
-					if IsTrue(found) {
-						break
-					}
-				}
-			}
-		}
-
-		ch <- fetchedOrder
-		return nil
-
-	}()
-	return ch
+	ch <- fetchedOrder
+	return nil
 }
 func AssertOrderState(exchange ccxt.ICoreExchange, skippedProperties any, method any, order any, AssertedStatus any, strictCheck any) {
 	// note, `strictCheck` is `true` only from "fetchOrder" cases

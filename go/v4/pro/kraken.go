@@ -288,46 +288,46 @@ func (this *KrakenCore) OrderRequestWs(method any, symbol any, typeVar any, requ
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		price := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes2828 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes2828)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var market any = this.Market(symbol)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var messageHash any = this.NumberToString(requestId)
-		var request any = map[string]any{
-			"method": "add_order",
-			"params": map[string]any{
-				"order_type": typeVar,
-				"side":       side,
-				"order_qty":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
-				"symbol":     ccxt.GetValue(market, "symbol"),
-				"token":      token,
-			},
-			"req_id": requestId,
-		}
-		requestparamsVariable := this.OrderRequestWs("createOrderWs", symbol, typeVar, request, amount, price, params)
-		request = ccxt.GetValue(requestparamsVariable, 0)
-		params = ccxt.GetValue(requestparamsVariable, 1)
-
-		retRes30015 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes30015)
-		ch <- retRes30015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	price := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes2828 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes2828)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var market any = this.Market(symbol)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var messageHash any = this.NumberToString(requestId)
+	var request any = map[string]any{
+		"method": "add_order",
+		"params": map[string]any{
+			"order_type": typeVar,
+			"side":       side,
+			"order_qty":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
+			"symbol":     ccxt.GetValue(market, "symbol"),
+			"token":      token,
+		},
+		"req_id": requestId,
+	}
+	requestparamsVariable := this.OrderRequestWs("createOrderWs", symbol, typeVar, request, amount, price, params)
+	request = ccxt.GetValue(requestparamsVariable, 0)
+	params = ccxt.GetValue(requestparamsVariable, 1)
+
+	retRes30015 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(retRes30015)
+	ch <- retRes30015
+	return nil
 }
 func (this *KrakenCore) HandleCreateEditOrder(client any, message any) {
 	//
@@ -377,45 +377,45 @@ func (this *KrakenCore) HandleCreateEditOrder(client any, message any) {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) EditOrderWs(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		amount := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes3518 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes3518)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var messageHash any = this.NumberToString(requestId)
-		var request any = map[string]any{
-			"method": "amend_order",
-			"params": map[string]any{
-				"order_id":  id,
-				"order_qty": this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
-				"token":     token,
-			},
-			"req_id": requestId,
-		}
-		requestparamsVariable := this.OrderRequestWs("editOrderWs", symbol, typeVar, request, amount, price, params)
-		request = ccxt.GetValue(requestparamsVariable, 0)
-		params = ccxt.GetValue(requestparamsVariable, 1)
-
-		retRes36615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes36615)
-		ch <- retRes36615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes3518 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes3518)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var messageHash any = this.NumberToString(requestId)
+	var request any = map[string]any{
+		"method": "amend_order",
+		"params": map[string]any{
+			"order_id":  id,
+			"order_qty": this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
+			"token":     token,
+		},
+		"req_id": requestId,
+	}
+	requestparamsVariable := this.OrderRequestWs("editOrderWs", symbol, typeVar, request, amount, price, params)
+	request = ccxt.GetValue(requestparamsVariable, 0)
+	params = ccxt.GetValue(requestparamsVariable, 1)
+
+	retRes36615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(retRes36615)
+	ch <- retRes36615
+	return nil
 }
 
 /**
@@ -429,42 +429,42 @@ func (this *KrakenCore) EditOrderWs(id any, symbol any, typeVar any, side any, o
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) CancelOrdersWs(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelOrdersWs () does not support cancelling orders for a specific symbol.")))
-		}
-
-		retRes3838 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes3838)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var messageHash any = this.NumberToString(requestId)
-		var request any = map[string]any{
-			"method": "cancel_order",
-			"params": map[string]any{
-				"order_id": ids,
-				"token":    token,
-			},
-			"req_id": requestId,
-		}
-
-		retRes39615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes39615)
-		ch <- retRes39615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersWsBody(ch, ids, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelOrdersWs () does not support cancelling orders for a specific symbol.")))
+	}
+
+	retRes3838 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes3838)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var messageHash any = this.NumberToString(requestId)
+	var request any = map[string]any{
+		"method": "cancel_order",
+		"params": map[string]any{
+			"order_id": ids,
+			"token":    token,
+		},
+		"req_id": requestId,
+	}
+
+	retRes39615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(retRes39615)
+	ch <- retRes39615
+	return nil
 }
 
 /**
@@ -478,42 +478,42 @@ func (this *KrakenCore) CancelOrdersWs(ids any, optionalArgs ...any) <-chan any 
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) CancelOrderWs(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelOrderWs () does not support cancelling orders for a specific symbol.")))
-		}
-
-		retRes4138 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes4138)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var messageHash any = this.NumberToString(requestId)
-		var request any = map[string]any{
-			"method": "cancel_order",
-			"params": map[string]any{
-				"order_id": []any{id},
-				"token":    token,
-			},
-			"req_id": requestId,
-		}
-
-		retRes42615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes42615)
-		ch <- retRes42615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelOrderWs () does not support cancelling orders for a specific symbol.")))
+	}
+
+	retRes4138 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes4138)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var messageHash any = this.NumberToString(requestId)
+	var request any = map[string]any{
+		"method": "cancel_order",
+		"params": map[string]any{
+			"order_id": []any{id},
+			"token":    token,
+		},
+		"req_id": requestId,
+	}
+
+	retRes42615 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(retRes42615)
+	ch <- retRes42615
+	return nil
 }
 func (this *KrakenCore) HandleCancelOrder(client any, message any) {
 	//
@@ -542,41 +542,41 @@ func (this *KrakenCore) HandleCancelOrder(client any, message any) {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelAllOrdersWs () does not support cancelling orders in a specific market.")))
-		}
-
-		retRes4598 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes4598)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var messageHash any = this.NumberToString(requestId)
-		var request any = map[string]any{
-			"method": "cancel_all",
-			"params": map[string]any{
-				"token": token,
-			},
-			"req_id": requestId,
-		}
-
-		retRes47115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes47115)
-		ch <- retRes47115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " cancelAllOrdersWs () does not support cancelling orders in a specific market.")))
+	}
+
+	retRes4598 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes4598)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var messageHash any = this.NumberToString(requestId)
+	var request any = map[string]any{
+		"method": "cancel_all",
+		"params": map[string]any{
+			"token": token,
+		},
+		"req_id": requestId,
+	}
+
+	retRes47115 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(retRes47115)
+	ch <- retRes47115
+	return nil
 }
 func (this *KrakenCore) HandleCancelAllOrders(client any, message any) {
 	//
@@ -757,25 +757,25 @@ func (this *KrakenCore) RequestId() any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KrakenCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes6648 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes6648)
-		symbol = this.Symbol(symbol)
-
-		tickers := (<-this.WatchTickers([]any{symbol}, params))
-		ccxt.PanicOnError(tickers)
-
-		ch <- ccxt.GetValue(tickers, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes6648 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes6648)
+	symbol = this.Symbol(symbol)
+
+	tickers := (<-this.WatchTickers([]any{symbol}, params))
+	ccxt.PanicOnError(tickers)
+
+	ch <- ccxt.GetValue(tickers, symbol)
+	return nil
 }
 
 /**
@@ -788,34 +788,34 @@ func (this *KrakenCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KrakenCore) WatchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes6808 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes6808)
-		symbols = this.MarketSymbols(symbols, nil, false)
-
-		ticker := (<-this.WatchMultiHelper("ticker", "ticker", symbols, nil, params))
-		ccxt.PanicOnError(ticker)
-		if ccxt.IsTrue(this.NewUpdates) {
-			var result any = map[string]any{}
-			ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
-
-			ch <- result
-			return nil
-		}
-
-		ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes6808 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes6808)
+	symbols = this.MarketSymbols(symbols, nil, false)
+
+	ticker := (<-this.WatchMultiHelper("ticker", "ticker", symbols, nil, params))
+	ccxt.PanicOnError(ticker)
+	if ccxt.IsTrue(this.NewUpdates) {
+		var result any = map[string]any{}
+		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+
+		ch <- result
+		return nil
+	}
+
+	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -828,35 +828,35 @@ func (this *KrakenCore) WatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KrakenCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes7018 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes7018)
-		symbols = this.MarketSymbols(symbols, nil, false)
-		ccxt.AddElementToObject(params, "event_trigger", "bbo")
-
-		ticker := (<-this.WatchMultiHelper("bidask", "ticker", symbols, nil, params))
-		ccxt.PanicOnError(ticker)
-		if ccxt.IsTrue(this.NewUpdates) {
-			var result any = map[string]any{}
-			ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
-
-			ch <- result
-			return nil
-		}
-
-		ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBidsAsksBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes7018 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes7018)
+	symbols = this.MarketSymbols(symbols, nil, false)
+	ccxt.AddElementToObject(params, "event_trigger", "bbo")
+
+	ticker := (<-this.WatchMultiHelper("bidask", "ticker", symbols, nil, params))
+	ccxt.PanicOnError(ticker)
+	if ccxt.IsTrue(this.NewUpdates) {
+		var result any = map[string]any{}
+		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
+
+		ch <- result
+		return nil
+	}
+
+	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -871,24 +871,24 @@ func (this *KrakenCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *KrakenCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes72515 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes72515)
-		ch <- retRes72515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes72515 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+	ccxt.PanicOnError(retRes72515)
+	ch <- retRes72515
+	return nil
 }
 
 /**
@@ -903,30 +903,30 @@ func (this *KrakenCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *KrakenCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		trades := (<-this.WatchMultiHelper("trade", "trade", symbols, nil, params))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			var first any = this.SafeList(trades, 0)
-			var tradeSymbol any = this.SafeString(first, "symbol")
-			limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	trades := (<-this.WatchMultiHelper("trade", "trade", symbols, nil, params))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		var first any = this.SafeList(trades, 0)
+		var tradeSymbol any = this.SafeString(first, "symbol")
+		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 
 /**
@@ -940,22 +940,22 @@ func (this *KrakenCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) 
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes76015 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes76015)
-		ch <- retRes76015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes76015 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+	ccxt.PanicOnError(retRes76015)
+	ch <- retRes76015
+	return nil
 }
 
 /**
@@ -969,33 +969,33 @@ func (this *KrakenCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan a
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *KrakenCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var requiredParams any = map[string]any{}
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			if ccxt.IsTrue(this.InArray(limit, []any{10, 25, 100, 500, 1000})) {
-				ccxt.AddElementToObject(requiredParams, "depth", limit) // default 10, valid options 10, 25, 100, 500, 1000
-			} else {
-				panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")))
-			}
-		}
-
-		orderbook := (<-this.WatchMultiHelper("orderbook", "book", symbols, map[string]any{
-			"limit": limit,
-		}, this.Extend(requiredParams, params)))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var requiredParams any = map[string]any{}
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		if ccxt.IsTrue(this.InArray(limit, []any{10, 25, 100, 500, 1000})) {
+			ccxt.AddElementToObject(requiredParams, "depth", limit) // default 10, valid options 10, 25, 100, 500, 1000
+		} else {
+			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only")))
+		}
+	}
+
+	orderbook := (<-this.WatchMultiHelper("orderbook", "book", symbols, map[string]any{
+		"limit": limit,
+	}, this.Extend(requiredParams, params)))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 
 /**
@@ -1011,83 +1011,83 @@ func (this *KrakenCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...an
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *KrakenCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes7998 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes7998)
-		var name any = "ohlc"
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
-		var requestId any = this.RequestId()
-		var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
-		var subscribe any = map[string]any{
-			"method": "subscribe",
-			"params": map[string]any{
-				"channel":  name,
-				"symbol":   []any{symbol},
-				"interval": this.SafeValue(this.Timeframes, timeframe, timeframe),
-			},
-			"req_id": requestId,
-		}
-		var request any = this.DeepExtend(subscribe, params)
-
-		ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
-		ccxt.PanicOnError(ohlcv)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(ohlcv, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
 }
+func (this *KrakenCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes7998 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes7998)
+	var name any = "ohlc"
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
+	var requestId any = this.RequestId()
+	var messageHash any = this.GetMessageHash("ohlcv", nil, symbol)
+	var subscribe any = map[string]any{
+		"method": "subscribe",
+		"params": map[string]any{
+			"channel":  name,
+			"symbol":   []any{symbol},
+			"interval": this.SafeValue(this.Timeframes, timeframe, timeframe),
+		},
+		"req_id": requestId,
+	}
+	var request any = this.DeepExtend(subscribe, params)
+
+	ohlcv := (<-this.Watch(url, messageHash, request, messageHash))
+	ccxt.PanicOnError(ohlcv)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(ohlcv, since, limit, "timestamp", true)
+	return nil
+}
 func (this *KrakenCore) LoadMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		reload := ccxt.GetArg(optionalArgs, 0, false)
-		_ = reload
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		markets := (<-this.base.LoadMarkets(reload, params))
-		ccxt.PanicOnError(markets)
-		var marketsByWsName any = this.SafeValue(this.Options, "marketsByWsName")
-		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(marketsByWsName, nil))) || ccxt.IsTrue(reload)) {
-			marketsByWsName = map[string]any{}
-			var symbols any = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
-			if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-					var symbol any = ccxt.GetValue(symbols, i)
-					var market any = this.Market(symbol)
-					var info any = this.SafeValue(market, "info", map[string]any{})
-					var wsName any = this.SafeString(info, "wsname")
-					ccxt.AddElementToObject(marketsByWsName, wsName, market)
-				}
-			}
-			ccxt.AddElementToObject(this.Options, "marketsByWsName", marketsByWsName)
-		}
-
-		ch <- markets
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.loadMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) loadMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	reload := ccxt.GetArg(optionalArgs, 0, false)
+	_ = reload
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	markets := (<-this.base.LoadMarkets(reload, params))
+	ccxt.PanicOnError(markets)
+	var marketsByWsName any = this.SafeValue(this.Options, "marketsByWsName")
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(marketsByWsName, nil))) || ccxt.IsTrue(reload)) {
+		marketsByWsName = map[string]any{}
+		var symbols any = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+				var symbol any = ccxt.GetValue(symbols, i)
+				var market any = this.Market(symbol)
+				var info any = this.SafeValue(market, "info", map[string]any{})
+				var wsName any = this.SafeString(info, "wsname")
+				ccxt.AddElementToObject(marketsByWsName, wsName, market)
+			}
+		}
+		ccxt.AddElementToObject(this.Options, "marketsByWsName", marketsByWsName)
+	}
+
+	ch <- markets
+	return nil
 }
 func (this *KrakenCore) Ping(client any) any {
 	var url any = client.(ccxt.ClientInterface).GetUrl()
@@ -1104,25 +1104,25 @@ func (this *KrakenCore) HandlePong(client any, message any) any {
 	return message
 }
 func (this *KrakenCore) WatchHeartbeat(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes8608 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes8608)
-		var event any = "heartbeat"
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
-
-		retRes86315 := (<-this.Watch(url, event))
-		ccxt.PanicOnError(retRes86315)
-		ch <- retRes86315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchHeartbeatBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchHeartbeatBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes8608 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes8608)
+	var event any = "heartbeat"
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
+
+	retRes86315 := (<-this.Watch(url, event))
+	ccxt.PanicOnError(retRes86315)
+	ch <- retRes86315
+	return nil
 }
 func (this *KrakenCore) HandleHeartbeat(client any, message any) {
 	//
@@ -1315,152 +1315,152 @@ func (this *KrakenCore) HandleSystemStatus(client any, message any) any {
 	return message
 }
 func (this *KrakenCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
-		var client any = this.Client(url)
-		var authenticated any = "authenticated"
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
-		var now any = this.Seconds()
-		var start any = this.SafeInteger(subscription, "start")
-		var expires any = this.SafeInteger(subscription, "expires")
-		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(subscription, nil))) || ccxt.IsTrue((ccxt.IsTrue((!ccxt.IsEqual(subscription, nil))) && ccxt.IsTrue(ccxt.IsLessThanOrEqual((ccxt.Add(start, expires)), now))))) {
-			// single-flight leader election, see
-			// https://github.com/ccxt/ccxt/issues/29393: the staleness gate
-			// above is followed by an awaited privatePostGetWebSocketsToken (),
-			// so N concurrent watchPrivate () calls on a cold instance each
-			// pass the gate and each burn a rate-limited private REST call to
-			// mint a separate token. client.futures is the flight registry
-			// itself, namespaced away from the real subscription keys on the
-			// same client that already caches the token, and settlement goes
-			// through client.resolve () / client.reject () so every write to
-			// that map stays behind the client's own lock
-			var messageHash any = "authenticateFlight"
-			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-				// a flight is already in progress - wake when the leader
-				// settles it: the token is then in the subscriptions bucket
-
-				retRes109216 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-				ccxt.PanicOnError(retRes109216)
-				subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
-
-				ch <- this.SafeString(subscription, "token")
-				return nil
-			}
-			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-
-			{
-				func(this *KrakenCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *KrakenCore) any {
-								// catch block:
-								// reject the flight - all waiters throw and the next caller
-								// re-leads instead of deadlocking on a dead flight
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-					// https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-
-					response := (<-this.PrivatePostGetWebSocketsToken(params))
-					ccxt.PanicOnError(response)
-					//
-					//     {
-					//         "error":[],
-					//         "result":{
-					//             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-					//             "expires":900
-					//         }
-					//     }
-					//
-					subscription = this.SafeDict(response, "result")
-					var token any = this.SafeString(subscription, "token")
-					if ccxt.IsTrue(ccxt.IsEqual(token, nil)) {
-						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
-					}
-					ccxt.AddElementToObject(subscription, "start", now)
-					ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated, subscription)
-					// settle the flight and wake every waiter - resolve () also
-					// clears the registry entry, so the next refresh re-leads
-					client.(ccxt.ClientInterface).Resolve(token, messageHash)
-					return nil
-				}(this)
-
-			}
-			// rethrows the leader's own failure and attaches the handler that
-			// keeps an alone leader's rejection from killing the process
-
-			retRes112812 := <-future.(*ccxt.Future).Await()
-			ccxt.PanicOnError(retRes112812)
-			subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
-		}
-
-		ch <- this.SafeString(subscription, "token")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
 	return ch
 }
+func (this *KrakenCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private")
+	var client any = this.Client(url)
+	var authenticated any = "authenticated"
+	var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+	var now any = this.Seconds()
+	var start any = this.SafeInteger(subscription, "start")
+	var expires any = this.SafeInteger(subscription, "expires")
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(subscription, nil))) || ccxt.IsTrue((ccxt.IsTrue((!ccxt.IsEqual(subscription, nil))) && ccxt.IsTrue(ccxt.IsLessThanOrEqual((ccxt.Add(start, expires)), now))))) {
+		// single-flight leader election, see
+		// https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+		// above is followed by an awaited privatePostGetWebSocketsToken (),
+		// so N concurrent watchPrivate () calls on a cold instance each
+		// pass the gate and each burn a rate-limited private REST call to
+		// mint a separate token. client.futures is the flight registry
+		// itself, namespaced away from the real subscription keys on the
+		// same client that already caches the token, and settlement goes
+		// through client.resolve () / client.reject () so every write to
+		// that map stays behind the client's own lock
+		var messageHash any = "authenticateFlight"
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader
+			// settles it: the token is then in the subscriptions bucket
+
+			retRes109216 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes109216)
+			subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+
+			ch <- this.SafeString(subscription, "token")
+			return nil
+		}
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *KrakenCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *KrakenCore) any {
+							// catch block:
+							// reject the flight - all waiters throw and the next caller
+							// re-leads instead of deadlocking on a dead flight
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+				// https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+
+				response := (<-this.PrivatePostGetWebSocketsToken(params))
+				ccxt.PanicOnError(response)
+				//
+				//     {
+				//         "error":[],
+				//         "result":{
+				//             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+				//             "expires":900
+				//         }
+				//     }
+				//
+				subscription = this.SafeDict(response, "result")
+				var token any = this.SafeString(subscription, "token")
+				if ccxt.IsTrue(ccxt.IsEqual(token, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty token")))
+				}
+				ccxt.AddElementToObject(subscription, "start", now)
+				ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated, subscription)
+				// settle the flight and wake every waiter - resolve () also
+				// clears the registry entry, so the next refresh re-leads
+				client.(ccxt.ClientInterface).Resolve(token, messageHash)
+				return nil
+			}(this)
+
+		}
+		// rethrows the leader's own failure and attaches the handler that
+		// keeps an alone leader's rejection from killing the process
+
+		retRes112812 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes112812)
+		subscription = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), authenticated)
+	}
+
+	ch <- this.SafeString(subscription, "token")
+	return nil
+}
 func (this *KrakenCore) WatchPrivate(name any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes11358 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes11358)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var subscriptionHash any = "executions"
-		var messageHash any = name
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			symbol = this.Symbol(symbol)
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var subscribe any = map[string]any{
-			"method": "subscribe",
-			"params": map[string]any{
-				"channel": "executions",
-				"token":   token,
-			},
-			"req_id": requestId,
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(params, nil)) {
-			ccxt.AddElementToObject(subscribe, "params", this.DeepExtend(ccxt.GetValue(subscribe, "params"), params))
-		}
-
-		result := (<-this.Watch(url, messageHash, subscribe, subscriptionHash))
-		ccxt.PanicOnError(result)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(result).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPrivateBody(ch, name, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchPrivateBody(ch chan any, name any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes11358 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes11358)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var subscriptionHash any = "executions"
+	var messageHash any = name
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		symbol = this.Symbol(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var subscribe any = map[string]any{
+		"method": "subscribe",
+		"params": map[string]any{
+			"channel": "executions",
+			"token":   token,
+		},
+		"req_id": requestId,
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(params, nil)) {
+		ccxt.AddElementToObject(subscribe, "params", this.DeepExtend(ccxt.GetValue(subscribe, "params"), params))
+	}
+
+	result := (<-this.Watch(url, messageHash, subscribe, subscriptionHash))
+	ccxt.PanicOnError(result)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(result).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(result, symbol, since, limit, true)
+	return nil
 }
 
 /**
@@ -1475,27 +1475,27 @@ func (this *KrakenCore) WatchPrivate(name any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *KrakenCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		ccxt.AddElementToObject(params, "snap_trades", true)
-
-		retRes117615 := (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
-		ccxt.PanicOnError(retRes117615)
-		ch <- retRes117615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	ccxt.AddElementToObject(params, "snap_trades", true)
+
+	retRes117615 := (<-this.WatchPrivate("myTrades", symbol, since, limit, params))
+	ccxt.PanicOnError(retRes117615)
+	ch <- retRes117615
+	return nil
 }
 func (this *KrakenCore) HandleMyTrades(client any, message any, optionalArgs ...any) {
 	//
@@ -1628,28 +1628,28 @@ func (this *KrakenCore) ParseWsTrade(trade any, optionalArgs ...any) any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		retRes130715 := (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]any{
-			"snap_orders": true,
-		})))
-		ccxt.PanicOnError(retRes130715)
-		ch <- retRes130715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	retRes130715 := (<-this.WatchPrivate("orders", symbol, since, limit, this.Extend(params, map[string]any{
+		"snap_orders": true,
+	})))
+	ccxt.PanicOnError(retRes130715)
+	ch <- retRes130715
+	return nil
 }
 func (this *KrakenCore) HandleOrders(client any, message any, optionalArgs ...any) {
 	//
@@ -1798,52 +1798,52 @@ func (this *KrakenCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	})
 }
 func (this *KrakenCore) WatchMultiHelper(unifiedName any, channelName any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		subscriptionArgs := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = subscriptionArgs
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes14558 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes14558)
-		// symbols are required
-		symbols = this.MarketSymbols(symbols, nil, false, true, false)
-		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-
-			return nil
-		}
-		var messageHashes any = []any{}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-			var eventTrigger any = this.SafeString(params, "event_trigger")
-			if ccxt.IsTrue(!ccxt.IsEqual(eventTrigger, nil)) {
-				ccxt.AppendToArray(&messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(ccxt.GetValue(symbols, i))))
-			} else {
-				ccxt.AppendToArray(&messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbols, i))))
-			}
-		}
-		var request any = map[string]any{
-			"method": "subscribe",
-			"params": map[string]any{
-				"channel": channelName,
-				"symbol":  symbols,
-			},
-			"req_id": this.RequestId(),
-		}
-		ccxt.AddElementToObject(request, "params", this.DeepExtend(ccxt.GetValue(request, "params"), params))
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
-
-		retRes148015 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
-		ccxt.PanicOnError(retRes148015)
-		ch <- retRes148015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMultiHelperBody(ch, unifiedName, channelName, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchMultiHelperBody(ch chan any, unifiedName any, channelName any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	subscriptionArgs := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = subscriptionArgs
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes14558 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes14558)
+	// symbols are required
+	symbols = this.MarketSymbols(symbols, nil, false, true, false)
+	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+
+		return nil
+	}
+	var messageHashes any = []any{}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+		var eventTrigger any = this.SafeString(params, "event_trigger")
+		if ccxt.IsTrue(!ccxt.IsEqual(eventTrigger, nil)) {
+			ccxt.AppendToArray(&messageHashes, this.GetMessageHash(channelName, nil, this.Symbol(ccxt.GetValue(symbols, i))))
+		} else {
+			ccxt.AppendToArray(&messageHashes, this.GetMessageHash(unifiedName, nil, this.Symbol(ccxt.GetValue(symbols, i))))
+		}
+	}
+	var request any = map[string]any{
+		"method": "subscribe",
+		"params": map[string]any{
+			"channel": channelName,
+			"symbol":  symbols,
+		},
+		"req_id": this.RequestId(),
+	}
+	ccxt.AddElementToObject(request, "params", this.DeepExtend(ccxt.GetValue(request, "params"), params))
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "publicV2")
+
+	retRes148015 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscriptionArgs))
+	ccxt.PanicOnError(retRes148015)
+	ch <- retRes148015
+	return nil
 }
 
 /**
@@ -1855,38 +1855,38 @@ func (this *KrakenCore) WatchMultiHelper(unifiedName any, channelName any, optio
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *KrakenCore) WatchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes14928 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes14928)
-
-		token := (<-this.Authenticate())
-		ccxt.PanicOnError(token)
-		var messageHash any = "balances"
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-		var requestId any = this.RequestId()
-		var subscribe any = map[string]any{
-			"method": "subscribe",
-			"req_id": requestId,
-			"params": map[string]any{
-				"channel": "balances",
-				"token":   token,
-			},
-		}
-		var request any = this.DeepExtend(subscribe, params)
-
-		retRes150615 := (<-this.Watch(url, messageHash, request, messageHash))
-		ccxt.PanicOnError(retRes150615)
-		ch <- retRes150615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KrakenCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes14928 := (<-this.LoadMarkets())
+	ccxt.PanicOnError(retRes14928)
+
+	token := (<-this.Authenticate())
+	ccxt.PanicOnError(token)
+	var messageHash any = "balances"
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
+	var requestId any = this.RequestId()
+	var subscribe any = map[string]any{
+		"method": "subscribe",
+		"req_id": requestId,
+		"params": map[string]any{
+			"channel": "balances",
+			"token":   token,
+		},
+	}
+	var request any = this.DeepExtend(subscribe, params)
+
+	retRes150615 := (<-this.Watch(url, messageHash, request, messageHash))
+	ccxt.PanicOnError(retRes150615)
+	ch <- retRes150615
+	return nil
 }
 func (this *KrakenCore) HandleBalance(client any, message any) {
 	//

@@ -6,24 +6,24 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchMyTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbol any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchMyTrades"
-
-		trades := (<-exchange.FetchMyTrades(symbol))
-		PanicOnError(trades)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol)
-		var now any = exchange.Milliseconds()
-		for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
-			TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now)
-		}
-		AssertTimestampOrder(exchange, method, symbol, trades)
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchMyTradesBody(ch, exchange, skippedProperties, symbol)
 	return ch
+}
+func testFetchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method any = "fetchMyTrades"
+
+	trades := (<-exchange.FetchMyTrades(symbol))
+	PanicOnError(trades)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, trades, symbol)
+	var now any = exchange.Milliseconds()
+	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
+		TestTrade(exchange, skippedProperties, method, GetValue(trades, i), symbol, now)
+	}
+	AssertTimestampOrder(exchange, method, symbol, trades)
+
+	ch <- true
+	return nil
 }

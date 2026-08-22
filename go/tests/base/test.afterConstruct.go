@@ -6,19 +6,19 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		if !IsTrue((InOp(skippedProperties, "networks"))) {
-			TestOptionsNetworks(exchange, skippedProperties)
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testAfterConstructBody(ch, exchange, skippedProperties)
 	return ch
+}
+func testAfterConstructBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	if !IsTrue((InOp(skippedProperties, "networks"))) {
+		TestOptionsNetworks(exchange, skippedProperties)
+	}
+
+	ch <- true
+	return nil
 }
 func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 	if !IsTrue((InOp(skippedProperties, "networks"))) {

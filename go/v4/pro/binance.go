@@ -334,31 +334,31 @@ func (this *BinanceCore) GetStockUnifiedSymbol(stockSymbol any, optionalArgs ...
  * @returns {object} the raw stream subscription response
  */
 func (this *BinanceCore) WatchStockMarketStream(streams any, messageHashes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var url any = this.GetStockWsUrl("market")
-		var requestId any = this.RequestId(url)
-		var query any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
-		var request any = map[string]any{
-			"method": "SUBSCRIBE",
-			"params": streams,
-			"id":     requestId,
-		}
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-
-		retRes35015 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
-		ccxt.PanicOnError(retRes35015)
-		ch <- retRes35015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchStockMarketStreamBody(ch, streams, messageHashes, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchStockMarketStreamBody(ch chan any, streams any, messageHashes any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = this.GetStockWsUrl("market")
+	var requestId any = this.RequestId(url)
+	var query any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
+	var request any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": streams,
+		"id":     requestId,
+	}
+	var subscribe any = map[string]any{
+		"id": requestId,
+	}
+
+	retRes35015 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
+	ccxt.PanicOnError(retRes35015)
+	ch <- retRes35015
+	return nil
 }
 
 /**
@@ -374,24 +374,24 @@ func (this *BinanceCore) WatchStockMarketStream(streams any, messageHashes any, 
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BinanceCore) WatchLiquidations(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes36615 := (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes36615)
-		ch <- retRes36615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes36615 := (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
+	ccxt.PanicOnError(retRes36615)
+	ch <- retRes36615
+	return nil
 }
 
 /**
@@ -407,78 +407,78 @@ func (this *BinanceCore) WatchLiquidations(symbol any, optionalArgs ...any) <-ch
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BinanceCore) WatchLiquidationsForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes38312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes38312)
-		}
-		var subscriptionHashes any = []any{}
-		var messageHashes any = []any{}
-		var streamHash any = "liquidations"
-		symbols = this.MarketSymbols(symbols, nil, true, true)
-		if ccxt.IsTrue(this.IsEmpty(symbols)) {
-			ccxt.AppendToArray(&subscriptionHashes, ccxt.Add("!", "forceOrder@arr"))
-			ccxt.AppendToArray(&messageHashes, "liquidations")
-		} else {
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var market any = this.Market(ccxt.GetValue(symbols, i))
-				ccxt.AppendToArray(&subscriptionHashes, ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@forceOrder"))
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("liquidations::", ccxt.GetValue(symbols, i)))
-			}
-			streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
-		}
-		var firstMarket any = nil
-		if !ccxt.IsTrue(this.IsEmpty(symbols)) {
-			firstMarket = this.GetMarketFromSymbols(symbols)
-		}
-		var resolvedAuth any = this.ResolveAuthType("watchLiquidationsForSymbols", firstMarket, params)
-		var typeVar any = ccxt.GetValue(resolvedAuth, 0)
-		params = ccxt.GetValue(resolvedAuth, 2)
-		// the spot check runs on the RESOLVED type: a spot default combined
-		// with a linear or inverse defaultSubType means the caller wants the
-		// matching derivatives stream, so the rewrite is allowed to route it
-		// there and only a request that still resolves to spot throws
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchLiquidationsForSymbols is not supported for spot symbols")))
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")))
-		}
-		var numSubscriptions any = ccxt.GetArrayLength(subscriptionHashes)
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("forceOrder")), "/"), this.Stream(typeVar, streamHash, numSubscriptions))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "SUBSCRIBE",
-			"params": subscriptionHashes,
-			"id":     requestId,
-		}
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-
-		newLiquidations := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), subscriptionHashes, subscribe))
-		ccxt.PanicOnError(newLiquidations)
-		if ccxt.IsTrue(this.NewUpdates) {
-
-			ch <- newLiquidations
-			return nil
-		}
-
-		ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchLiquidationsForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes38312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes38312)
+	}
+	var subscriptionHashes any = []any{}
+	var messageHashes any = []any{}
+	var streamHash any = "liquidations"
+	symbols = this.MarketSymbols(symbols, nil, true, true)
+	if ccxt.IsTrue(this.IsEmpty(symbols)) {
+		ccxt.AppendToArray(&subscriptionHashes, ccxt.Add("!", "forceOrder@arr"))
+		ccxt.AppendToArray(&messageHashes, "liquidations")
+	} else {
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var market any = this.Market(ccxt.GetValue(symbols, i))
+			ccxt.AppendToArray(&subscriptionHashes, ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@forceOrder"))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("liquidations::", ccxt.GetValue(symbols, i)))
+		}
+		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+	}
+	var firstMarket any = nil
+	if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+		firstMarket = this.GetMarketFromSymbols(symbols)
+	}
+	var resolvedAuth any = this.ResolveAuthType("watchLiquidationsForSymbols", firstMarket, params)
+	var typeVar any = ccxt.GetValue(resolvedAuth, 0)
+	params = ccxt.GetValue(resolvedAuth, 2)
+	// the spot check runs on the RESOLVED type: a spot default combined
+	// with a linear or inverse defaultSubType means the caller wants the
+	// matching derivatives stream, so the rewrite is allowed to route it
+	// there and only a request that still resolves to spot throws
+	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchLiquidationsForSymbols is not supported for spot symbols")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+		panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")))
+	}
+	var numSubscriptions any = ccxt.GetArrayLength(subscriptionHashes)
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("forceOrder")), "/"), this.Stream(typeVar, streamHash, numSubscriptions))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subscriptionHashes,
+		"id":     requestId,
+	}
+	var subscribe any = map[string]any{
+		"id": requestId,
+	}
+
+	newLiquidations := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), subscriptionHashes, subscribe))
+	ccxt.PanicOnError(newLiquidations)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- newLiquidations
+		return nil
+	}
+
+	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit, true)
+	return nil
 }
 func (this *BinanceCore) HandleLiquidation(client any, message any) {
 	//
@@ -641,24 +641,24 @@ func (this *BinanceCore) ParseWsLiquidation(liquidation any, optionalArgs ...any
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BinanceCore) WatchMyLiquidations(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-
-		retRes59515 := (<-this.WatchMyLiquidationsForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes59515)
-		ch <- retRes59515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyLiquidationsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchMyLiquidationsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+
+	retRes59515 := (<-this.WatchMyLiquidationsForSymbols([]any{symbol}, since, limit, params))
+	ccxt.PanicOnError(retRes59515)
+	ch <- retRes59515
+	return nil
 }
 
 /**
@@ -674,63 +674,63 @@ func (this *BinanceCore) WatchMyLiquidations(symbol any, optionalArgs ...any) <-
  * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
  */
 func (this *BinanceCore) WatchMyLiquidationsForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes61212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes61212)
-		}
-		symbols = this.MarketSymbols(symbols, nil, true, true, true)
-		var market any = this.GetMarketFromSymbols(symbols)
-		var messageHashes any = []any{"myLiquidations"}
-		if !ccxt.IsTrue(this.IsEmpty(symbols)) {
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("myLiquidations::", symbol))
-			}
-		}
-		var typeVar any = nil
-		var subType any = nil
-		typeVarsubTypeparamsVariable := this.ResolveAuthType("watchMyLiquidationsForSymbols", market, params)
-		typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
-		subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
-		params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
-		// hand the resolved type forward: the helper already omitted type and
-		// subType from params, so a bare authenticate would re-derive from
-		// options.defaultType and seed a different bucket than the listenKey
-		// read below indexes - the derive-first shape watchBalance uses
-
-		retRes6308 := (<-this.Authenticate(this.Extend(map[string]any{
-			"type":    typeVar,
-			"subType": subType,
-		}, params)))
-		ccxt.PanicOnError(retRes6308)
-		var listenKey any = ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey")
-		var url any = this.GetPrivateWsUrl(typeVar, listenKey)
-		var message any = nil
-
-		newLiquidations := (<-this.WatchMultiple(url, messageHashes, message, []any{typeVar}))
-		ccxt.PanicOnError(newLiquidations)
-		if ccxt.IsTrue(this.NewUpdates) {
-
-			ch <- newLiquidations
-			return nil
-		}
-
-		ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyLiquidationsForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes61212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes61212)
+	}
+	symbols = this.MarketSymbols(symbols, nil, true, true, true)
+	var market any = this.GetMarketFromSymbols(symbols)
+	var messageHashes any = []any{"myLiquidations"}
+	if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("myLiquidations::", symbol))
+		}
+	}
+	var typeVar any = nil
+	var subType any = nil
+	typeVarsubTypeparamsVariable := this.ResolveAuthType("watchMyLiquidationsForSymbols", market, params)
+	typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
+	subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
+	params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
+	// hand the resolved type forward: the helper already omitted type and
+	// subType from params, so a bare authenticate would re-derive from
+	// options.defaultType and seed a different bucket than the listenKey
+	// read below indexes - the derive-first shape watchBalance uses
+
+	retRes6308 := (<-this.Authenticate(this.Extend(map[string]any{
+		"type":    typeVar,
+		"subType": subType,
+	}, params)))
+	ccxt.PanicOnError(retRes6308)
+	var listenKey any = ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey")
+	var url any = this.GetPrivateWsUrl(typeVar, listenKey)
+	var message any = nil
+
+	newLiquidations := (<-this.WatchMultiple(url, messageHashes, message, []any{typeVar}))
+	ccxt.PanicOnError(newLiquidations)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- newLiquidations
+		return nil
+	}
+
+	ch <- this.FilterBySymbolsSinceLimit(this.Liquidations, symbols, since, limit)
+	return nil
 }
 func (this *BinanceCore) HandleMyLiquidation(client any, message any) {
 	//
@@ -813,59 +813,59 @@ func (this *BinanceCore) HandleMyLiquidation(client any, message any) {
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		//
-		// todo add support for <levels>-snapshots (depth)
-		// https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-		// valid <levels> are 5, 10, or 20
-		//
-		// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-		//
-		// notice the differences between trading futures and spot trading
-		// the algorithms use different urls in step 1
-		// delta caching and merging also differs in steps 4, 5, 6
-		//
-		// spot/margin
-		// https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-		//
-		// 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-		// 2. Buffer the events you receive from the stream.
-		// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-		// 4. Drop any event where u is <= lastUpdateId in the snapshot.
-		// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-		// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-		// 7. The data in each event is the absolute quantity for a price level.
-		// 8. If the quantity is 0, remove the price level.
-		// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-		//
-		// futures
-		// https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-		//
-		// 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-		// 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-		// 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-		// 4. Drop any event where u is < lastUpdateId in the snapshot.
-		// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-		// 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-		// 7. The data in each event is the absolute quantity for a price level.
-		// 8. If the quantity is 0, remove the price level.
-		// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-		//
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes75915 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes75915)
-		ch <- retRes75915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	//
+	// todo add support for <levels>-snapshots (depth)
+	// https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
+	// valid <levels> are 5, 10, or 20
+	//
+	// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+	//
+	// notice the differences between trading futures and spot trading
+	// the algorithms use different urls in step 1
+	// delta caching and merging also differs in steps 4, 5, 6
+	//
+	// spot/margin
+	// https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
+	//
+	// 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
+	// 2. Buffer the events you receive from the stream.
+	// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+	// 4. Drop any event where u is <= lastUpdateId in the snapshot.
+	// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
+	// 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
+	// 7. The data in each event is the absolute quantity for a price level.
+	// 8. If the quantity is 0, remove the price level.
+	// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+	//
+	// futures
+	// https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
+	//
+	// 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
+	// 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
+	// 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
+	// 4. Drop any event where u is < lastUpdateId in the snapshot.
+	// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+	// 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
+	// 7. The data in each event is the absolute quantity for a price level.
+	// 8. If the quantity is 0, remove the price level.
+	// 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
+	//
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes75915 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+	ccxt.PanicOnError(retRes75915)
+	ch <- retRes75915
+	return nil
 }
 
 /**
@@ -886,87 +886,87 @@ func (this *BinanceCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan 
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes78112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes78112)
-		}
-		symbols = this.MarketSymbols(symbols, nil, false, true, true)
-		var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-		var typeVar any = ccxt.GetValue(firstMarket, "type")
-		if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
-			typeVar = "option"
-		} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
-		}
-		var name any = "depth"
-		var streamHash any = "multipleOrderbook"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			var symbolsLength any = ccxt.GetArrayLength(symbols)
-			if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 200)) {
-				panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times")))
-			}
-			streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
-		}
-		var watchOrderBookRate any = nil
-		watchOrderBookRateparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
-		watchOrderBookRate = ccxt.GetValue(watchOrderBookRateparamsVariable, 0)
-		params = ccxt.GetValue(watchOrderBookRateparamsVariable, 1)
-		var rpi any = nil
-		rpiparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "rpi", false)
-		rpi = ccxt.GetValue(rpiparamsVariable, 0)
-		params = ccxt.GetValue(rpiparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsTrue(rpi) && ccxt.IsTrue(ccxt.IsEqual(typeVar, "future"))) {
-			name = "rpiDepth"
-			watchOrderBookRate = "500"
-		}
-		var subParams any = []any{}
-		var messageHashes any = []any{}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook::", symbol))
-			var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@"), name)
-			if ccxt.IsTrue(ccxt.IsEqual(watchOrderBookRate, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() watchOrderBookRate is required")))
-			}
-			var symbolHash any = ccxt.Add(ccxt.Add(ccxt.Add(subscriptionHash, "@"), ccxt.ToString(watchOrderBookRate)), "ms")
-			ccxt.AppendToArray(&subParams, symbolHash)
-		}
-		var messageHashesLength any = ccxt.GetArrayLength(messageHashes)
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, messageHashesLength))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "SUBSCRIBE",
-			"params": subParams,
-			"id":     requestId,
-		}
-		var subscription any = map[string]any{
-			"id":      ccxt.ToString(requestId),
-			"name":    name,
-			"symbols": symbols,
-			"method":  this.HandleOrderBookSubscription,
-			"limit":   limit,
-			"type":    typeVar,
-			"params":  params,
-		}
-
-		orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes78112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes78112)
+	}
+	symbols = this.MarketSymbols(symbols, nil, false, true, true)
+	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
+		typeVar = "option"
+	} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
+	}
+	var name any = "depth"
+	var streamHash any = "multipleOrderbook"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		var symbolsLength any = ccxt.GetArrayLength(symbols)
+		if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 200)) {
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times")))
+		}
+		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+	}
+	var watchOrderBookRate any = nil
+	watchOrderBookRateparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "watchOrderBookRate", "100")
+	watchOrderBookRate = ccxt.GetValue(watchOrderBookRateparamsVariable, 0)
+	params = ccxt.GetValue(watchOrderBookRateparamsVariable, 1)
+	var rpi any = nil
+	rpiparamsVariable := this.HandleOptionAndParams(params, "watchOrderBookForSymbols", "rpi", false)
+	rpi = ccxt.GetValue(rpiparamsVariable, 0)
+	params = ccxt.GetValue(rpiparamsVariable, 1)
+	if ccxt.IsTrue(ccxt.IsTrue(rpi) && ccxt.IsTrue(ccxt.IsEqual(typeVar, "future"))) {
+		name = "rpiDepth"
+		watchOrderBookRate = "500"
+	}
+	var subParams any = []any{}
+	var messageHashes any = []any{}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+		var symbol any = ccxt.GetValue(symbols, i)
+		var market any = this.Market(symbol)
+		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook::", symbol))
+		var subscriptionHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@"), name)
+		if ccxt.IsTrue(ccxt.IsEqual(watchOrderBookRate, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() watchOrderBookRate is required")))
+		}
+		var symbolHash any = ccxt.Add(ccxt.Add(ccxt.Add(subscriptionHash, "@"), ccxt.ToString(watchOrderBookRate)), "ms")
+		ccxt.AppendToArray(&subParams, symbolHash)
+	}
+	var messageHashesLength any = ccxt.GetArrayLength(messageHashes)
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, messageHashesLength))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subParams,
+		"id":     requestId,
+	}
+	var subscription any = map[string]any{
+		"id":      ccxt.ToString(requestId),
+		"name":    name,
+		"symbols": symbols,
+		"method":  this.HandleOrderBookSubscription,
+		"limit":   limit,
+		"type":    typeVar,
+		"params":  params,
+	}
+
+	orderbook := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 
 /**
@@ -984,68 +984,68 @@ func (this *BinanceCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...a
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes85812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes85812)
-		}
-		symbols = this.MarketSymbols(symbols, nil, false, true, true)
-		var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-		var typeVar any = ccxt.GetValue(firstMarket, "type")
-		if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
-			typeVar = "option"
-		} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
-		}
-		var name any = "depth"
-		var streamHash any = "multipleOrderbook"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
-		}
-		var watchOrderBookRate any = this.SafeString(this.Options, "watchOrderBookRate", "100")
-		var subParams any = []any{}
-		var subMessageHashes any = []any{}
-		var messageHashes any = []any{}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-			var symbol any = ccxt.GetValue(symbols, i)
-			var market any = this.Market(symbol)
-			ccxt.AppendToArray(&subMessageHashes, ccxt.Add("orderbook::", symbol))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:orderbook:", symbol))
-			var streamId any = ccxt.GetValue(market, "lowercaseId")
-			var subscriptionHash any = ccxt.Add(ccxt.Add(streamId, "@"), name)
-			var symbolHash any = ccxt.Add(ccxt.Add(ccxt.Add(subscriptionHash, "@"), watchOrderBookRate), "ms")
-			ccxt.AppendToArray(&subParams, symbolHash)
-		}
-		var messageHashesLength any = ccxt.GetArrayLength(subMessageHashes)
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("depth")), "/"), this.Stream(typeVar, streamHash, messageHashesLength))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "UNSUBSCRIBE",
-			"params": subParams,
-			"id":     requestId,
-		}
-		var subscription any = map[string]any{
-			"unsubscribe":      true,
-			"id":               ccxt.ToString(requestId),
-			"symbols":          symbols,
-			"subMessageHashes": subMessageHashes,
-			"messageHashes":    messageHashes,
-			"topic":            "orderbook",
-		}
-
-		retRes90315 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
-		ccxt.PanicOnError(retRes90315)
-		ch <- retRes90315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchOrderBookForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes85812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes85812)
+	}
+	symbols = this.MarketSymbols(symbols, nil, false, true, true)
+	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
+		typeVar = "option"
+	} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
+	}
+	var name any = "depth"
+	var streamHash any = "multipleOrderbook"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+	}
+	var watchOrderBookRate any = this.SafeString(this.Options, "watchOrderBookRate", "100")
+	var subParams any = []any{}
+	var subMessageHashes any = []any{}
+	var messageHashes any = []any{}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+		var symbol any = ccxt.GetValue(symbols, i)
+		var market any = this.Market(symbol)
+		ccxt.AppendToArray(&subMessageHashes, ccxt.Add("orderbook::", symbol))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:orderbook:", symbol))
+		var streamId any = ccxt.GetValue(market, "lowercaseId")
+		var subscriptionHash any = ccxt.Add(ccxt.Add(streamId, "@"), name)
+		var symbolHash any = ccxt.Add(ccxt.Add(ccxt.Add(subscriptionHash, "@"), watchOrderBookRate), "ms")
+		ccxt.AppendToArray(&subParams, symbolHash)
+	}
+	var messageHashesLength any = ccxt.GetArrayLength(subMessageHashes)
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("depth")), "/"), this.Stream(typeVar, streamHash, messageHashesLength))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subParams,
+		"id":     requestId,
+	}
+	var subscription any = map[string]any{
+		"unsubscribe":      true,
+		"id":               ccxt.ToString(requestId),
+		"symbols":          symbols,
+		"subMessageHashes": subMessageHashes,
+		"messageHashes":    messageHashes,
+		"topic":            "orderbook",
+	}
+
+	retRes90315 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscription))
+	ccxt.PanicOnError(retRes90315)
+	ch <- retRes90315
+	return nil
 }
 
 /**
@@ -1063,20 +1063,20 @@ func (this *BinanceCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ..
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes92115 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
-		ccxt.PanicOnError(retRes92115)
-		ch <- retRes92115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes92115 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+	ccxt.PanicOnError(retRes92115)
+	ch <- retRes92115
+	return nil
 }
 
 /**
@@ -1091,57 +1091,57 @@ func (this *BinanceCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-cha
  * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BinanceCore) FetchOrderBookWs(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes93712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes93712)
-		}
-		var market any = this.Market(symbol)
-		var payload any = map[string]any{
-			"symbol": ccxt.GetValue(market, "id"),
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			ccxt.AddElementToObject(payload, "limit", limit)
-		}
-		var marketType any = this.GetMarketType("fetchOrderBookWs", market, params)
-		if ccxt.IsTrue(!ccxt.IsEqual(marketType, "future")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrderBookWs only supports swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
-		params = this.Omit(params, "test")
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "depth",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleFetchOrderBook,
-		}
-
-		orderbook := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(orderbook)
-		ccxt.AddElementToObject(orderbook, "symbol", ccxt.GetValue(market, "symbol"))
-
-		ch <- orderbook
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookWsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchOrderBookWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes93712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes93712)
+	}
+	var market any = this.Market(symbol)
+	var payload any = map[string]any{
+		"symbol": ccxt.GetValue(market, "id"),
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		ccxt.AddElementToObject(payload, "limit", limit)
+	}
+	var marketType any = this.GetMarketType("fetchOrderBookWs", market, params)
+	if ccxt.IsTrue(!ccxt.IsEqual(marketType, "future")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrderBookWs only supports swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	params = this.Omit(params, "test")
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "depth",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleFetchOrderBook,
+	}
+
+	orderbook := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(orderbook)
+	ccxt.AddElementToObject(orderbook, "symbol", ccxt.GetValue(market, "symbol"))
+
+	ch <- orderbook
+	return nil
 }
 func (this *BinanceCore) HandleFetchOrderBook(client any, message any) {
 	//
@@ -1175,87 +1175,88 @@ func (this *BinanceCore) HandleFetchOrderBook(client any, message any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func (this *BinanceCore) FetchOrderBookSnapshot(client any, message any, subscription any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		var symbol any = this.SafeString(subscription, "symbol")
-		var messageHash any = ccxt.Add("orderbook::", symbol)
+	ch := make(chan any, 1)
+	go this.fetchOrderBookSnapshotBody(ch, client, message, subscription)
+	return ch
+}
+func (this *BinanceCore) fetchOrderBookSnapshotBody(ch chan any, client any, message any, subscription any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var symbol any = this.SafeString(subscription, "symbol")
+	var messageHash any = ccxt.Add("orderbook::", symbol)
 
-		{
-			func(this *BinanceCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *BinanceCore) any {
-							// catch block:
-							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							return nil
-						}(this)
+	{
+		func(this *BinanceCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
 					}
-				}()
-				// try block:
-				var defaultLimit any = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
-				var typeVar any = this.SafeValue(subscription, "type")
-				var limit any = this.SafeInteger(subscription, "limit", defaultLimit)
-				var params any = this.SafeValue(subscription, "params")
-				// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-				// todo: this is a synch blocking call - make it async
-				// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-
-				snapshot := (<-this.FetchRestOrderBookSafe(symbol, limit, params))
-				ccxt.PanicOnError(snapshot)
-				if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil)) {
-
-					return nil
+					ret_ = func(this *BinanceCore) any {
+						// catch block:
+						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						return nil
+					}(this)
 				}
-				var orderbook any = this.SafeValue(this.Orderbooks, symbol)
-				orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-				// unroll the accumulated deltas
-				var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
-				orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
-				for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messages)); i++ {
-					var messageItem any = ccxt.GetValue(messages, i)
-					var U any = this.SafeInteger(messageItem, "U")
-					var u any = this.SafeInteger(messageItem, "u")
-					if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(U, nil))) || ccxt.IsTrue((ccxt.IsEqual(u, nil)))) {
+			}()
+			// try block:
+			var defaultLimit any = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
+			var typeVar any = this.SafeValue(subscription, "type")
+			var limit any = this.SafeInteger(subscription, "limit", defaultLimit)
+			var params any = this.SafeValue(subscription, "params")
+			// 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
+			// todo: this is a synch blocking call - make it async
+			// default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
+
+			snapshot := (<-this.FetchRestOrderBookSafe(symbol, limit, params))
+			ccxt.PanicOnError(snapshot)
+			if ccxt.IsTrue(ccxt.IsEqual(this.SafeValue(this.Orderbooks, symbol), nil)) {
+
+				return nil
+			}
+			var orderbook any = this.SafeValue(this.Orderbooks, symbol)
+			orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
+			// unroll the accumulated deltas
+			var messages any = orderbook.(ccxt.OrderBookInterface).GetCache()
+			orderbook.(ccxt.OrderBookInterface).SetCache([]any{})
+			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messages)); i++ {
+				var messageItem any = ccxt.GetValue(messages, i)
+				var U any = this.SafeInteger(messageItem, "U")
+				var u any = this.SafeInteger(messageItem, "u")
+				if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(U, nil))) || ccxt.IsTrue((ccxt.IsEqual(u, nil)))) {
+					continue
+				}
+				var pu any = this.SafeInteger(messageItem, "pu")
+				if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
+					// 4. Drop any event where u is < lastUpdateId in the snapshot
+					if ccxt.IsTrue(ccxt.IsLessThan(u, ccxt.GetValue(orderbook, "nonce"))) {
 						continue
 					}
-					var pu any = this.SafeInteger(messageItem, "pu")
-					if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
-						// 4. Drop any event where u is < lastUpdateId in the snapshot
-						if ccxt.IsTrue(ccxt.IsLessThan(u, ccxt.GetValue(orderbook, "nonce"))) {
-							continue
-						}
-						// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-						if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsLessThanOrEqual(U, ccxt.GetValue(orderbook, "nonce")))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(u, ccxt.GetValue(orderbook, "nonce"))))) || ccxt.IsTrue((ccxt.IsEqual(pu, ccxt.GetValue(orderbook, "nonce"))))) {
-							this.HandleOrderBookMessage(client, messageItem, orderbook)
-						}
-					} else {
-						// 4. Drop any event where u is <= lastUpdateId in the snapshot
-						if ccxt.IsTrue(ccxt.IsLessThanOrEqual(u, ccxt.GetValue(orderbook, "nonce"))) {
-							continue
-						}
-						// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
-						if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), ccxt.GetValue(orderbook, "nonce")))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), ccxt.GetValue(orderbook, "nonce"))))) {
-							this.HandleOrderBookMessage(client, messageItem, orderbook)
-						}
+					// 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
+					if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((ccxt.IsLessThanOrEqual(U, ccxt.GetValue(orderbook, "nonce")))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(u, ccxt.GetValue(orderbook, "nonce"))))) || ccxt.IsTrue((ccxt.IsEqual(pu, ccxt.GetValue(orderbook, "nonce"))))) {
+						this.HandleOrderBookMessage(client, messageItem, orderbook)
+					}
+				} else {
+					// 4. Drop any event where u is <= lastUpdateId in the snapshot
+					if ccxt.IsTrue(ccxt.IsLessThanOrEqual(u, ccxt.GetValue(orderbook, "nonce"))) {
+						continue
+					}
+					// 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
+					if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsLessThanOrEqual((ccxt.Subtract(U, 1)), ccxt.GetValue(orderbook, "nonce")))) && ccxt.IsTrue((ccxt.IsGreaterThanOrEqual((ccxt.Subtract(u, 1)), ccxt.GetValue(orderbook, "nonce"))))) {
+						this.HandleOrderBookMessage(client, messageItem, orderbook)
 					}
 				}
-				if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-					ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
-				}
-				client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
-				return nil
-			}(this)
+			}
+			if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+				ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
+			}
+			client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
+			return nil
+		}(this)
 
-		}
-		return nil
-	}()
-	return ch
+	}
+	return nil
 }
 func (this *BinanceCore) HandleDelta(bookside any, delta any) {
 	var price any = this.SafeFloat(delta, 0)
@@ -1472,96 +1473,96 @@ func (this *BinanceCore) HandleUnSubscription(client any, subscription any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BinanceCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes126712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes126712)
-		}
-		symbols = this.MarketSymbols(symbols, nil, false, true, true)
-		var streamHash any = "multipleTrades"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			var symbolsLength any = ccxt.GetArrayLength(symbols)
-			if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 200)) {
-				panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")))
-			}
-			streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
-		}
-		var name any = nil
-		nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
-		name = ccxt.GetValue(nameparamsVariable, 0)
-		params = ccxt.GetValue(nameparamsVariable, 1)
-		params = this.Omit(params, "callerMethodName")
-		var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-		var typeVar any = ccxt.GetValue(firstMarket, "type")
-		var isOption any = ccxt.GetValue(firstMarket, "option")
-		if ccxt.IsTrue(isOption) {
-			typeVar = "option"
-		} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
-		}
-		var messageHashes any = []any{}
-		var subParams any = []any{}
-		if ccxt.IsTrue(isOption) {
-			// eOptions: always subscribe per-underlying (<underlying>@optionTrade)
-			// handleTrade filters to the correct symbol via the 's' field
-			var seenUnderlyings any = map[string]any{}
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				var market any = this.Market(symbol)
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", symbol))
-				var baseIdLower any = this.SafeStringLower(market, "baseId", "")
-				var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
-				var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
-				if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, underlying))) {
-					ccxt.AddElementToObject(seenUnderlyings, underlying, true)
-					ccxt.AppendToArray(&subParams, ccxt.Add(underlying, "@optionTrade"))
-				}
-			}
-		} else {
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				var market any = this.Market(symbol)
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", symbol))
-				var rawHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@"), name)
-				ccxt.AppendToArray(&subParams, rawHash)
-			}
-		}
-		var query any = this.Omit(params, "type")
-		var subParamsLength any = ccxt.GetArrayLength(subParams)
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "SUBSCRIBE",
-			"params": subParams,
-			"id":     requestId,
-		}
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-
-		trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			var first any = this.SafeValue(trades, 0)
-			var tradeSymbol any = this.SafeString(first, "symbol")
-			limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes126712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes126712)
+	}
+	symbols = this.MarketSymbols(symbols, nil, false, true, true)
+	var streamHash any = "multipleTrades"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		var symbolsLength any = ccxt.GetArrayLength(symbols)
+		if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 200)) {
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")))
+		}
+		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+	}
+	var name any = nil
+	nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
+	name = ccxt.GetValue(nameparamsVariable, 0)
+	params = ccxt.GetValue(nameparamsVariable, 1)
+	params = this.Omit(params, "callerMethodName")
+	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var isOption any = ccxt.GetValue(firstMarket, "option")
+	if ccxt.IsTrue(isOption) {
+		typeVar = "option"
+	} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
+	}
+	var messageHashes any = []any{}
+	var subParams any = []any{}
+	if ccxt.IsTrue(isOption) {
+		// eOptions: always subscribe per-underlying (<underlying>@optionTrade)
+		// handleTrade filters to the correct symbol via the 's' field
+		var seenUnderlyings any = map[string]any{}
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", symbol))
+			var baseIdLower any = this.SafeStringLower(market, "baseId", "")
+			var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
+			var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+			if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, underlying))) {
+				ccxt.AddElementToObject(seenUnderlyings, underlying, true)
+				ccxt.AppendToArray(&subParams, ccxt.Add(underlying, "@optionTrade"))
+			}
+		}
+	} else {
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", symbol))
+			var rawHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@"), name)
+			ccxt.AppendToArray(&subParams, rawHash)
+		}
+	}
+	var query any = this.Omit(params, "type")
+	var subParamsLength any = ccxt.GetArrayLength(subParams)
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": subParams,
+		"id":     requestId,
+	}
+	var subscribe any = map[string]any{
+		"id": requestId,
+	}
+
+	trades := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscribe))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		var first any = this.SafeValue(trades, 0)
+		var tradeSymbol any = this.SafeString(first, "symbol")
+		limit = ccxt.ToGetsLimit(trades).GetLimit(tradeSymbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 
 /**
@@ -1578,94 +1579,94 @@ func (this *BinanceCore) WatchTradesForSymbols(symbols any, optionalArgs ...any)
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BinanceCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes135212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes135212)
-		}
-		symbols = this.MarketSymbols(symbols, nil, false, true, true)
-		var streamHash any = "multipleTrades"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			var symbolsLength any = ccxt.GetArrayLength(symbols)
-			if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 200)) {
-				panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")))
-			}
-			streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
-		}
-		var name any = nil
-		nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
-		name = ccxt.GetValue(nameparamsVariable, 0)
-		params = ccxt.GetValue(nameparamsVariable, 1)
-		params = this.Omit(params, "callerMethodName")
-		var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
-		var typeVar any = ccxt.GetValue(firstMarket, "type")
-		var isOption any = ccxt.GetValue(firstMarket, "option")
-		if ccxt.IsTrue(isOption) {
-			typeVar = "option"
-		} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
-		}
-		var subMessageHashes any = []any{}
-		var subParams any = []any{}
-		var messageHashes any = []any{}
-		if ccxt.IsTrue(isOption) {
-			// eOptions: always subscribe per-underlying (<underlying>@optionTrade)
-			// handleTrade filters to the correct symbol via the 's' field
-			var seenUnderlyings any = map[string]any{}
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				var market any = this.Market(symbol)
-				ccxt.AppendToArray(&subMessageHashes, ccxt.Add("trade::", symbol))
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trade:", symbol))
-				var baseIdLower any = this.SafeStringLower(market, "baseId", "")
-				var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
-				var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
-				if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, underlying))) {
-					ccxt.AddElementToObject(seenUnderlyings, underlying, true)
-					ccxt.AppendToArray(&subParams, ccxt.Add(underlying, "@optionTrade"))
-				}
-			}
-		} else {
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				var market any = this.Market(symbol)
-				ccxt.AppendToArray(&subMessageHashes, ccxt.Add("trade::", symbol))
-				ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trade:", symbol))
-				var rawHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@"), name)
-				ccxt.AppendToArray(&subParams, rawHash)
-			}
-		}
-		var query any = this.Omit(params, "type")
-		var subParamsLength any = ccxt.GetArrayLength(subParams)
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "UNSUBSCRIBE",
-			"params": subParams,
-			"id":     requestId,
-		}
-		var subscription any = map[string]any{
-			"unsubscribe":      true,
-			"id":               ccxt.ToString(requestId),
-			"subMessageHashes": subMessageHashes,
-			"messageHashes":    messageHashes,
-			"symbols":          symbols,
-			"topic":            "trades",
-		}
-
-		retRes142115 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscription))
-		ccxt.PanicOnError(retRes142115)
-		ch <- retRes142115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes135212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes135212)
+	}
+	symbols = this.MarketSymbols(symbols, nil, false, true, true)
+	var streamHash any = "multipleTrades"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		var symbolsLength any = ccxt.GetArrayLength(symbols)
+		if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 200)) {
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")))
+		}
+		streamHash = ccxt.Add(streamHash, ccxt.Add("::", ccxt.Join(symbols, ",")))
+	}
+	var name any = nil
+	nameparamsVariable := this.HandleOptionAndParams(params, "watchTradesForSymbols", "name", "trade")
+	name = ccxt.GetValue(nameparamsVariable, 0)
+	params = ccxt.GetValue(nameparamsVariable, 1)
+	params = this.Omit(params, "callerMethodName")
+	var firstMarket any = this.Market(ccxt.GetValue(symbols, 0))
+	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var isOption any = ccxt.GetValue(firstMarket, "option")
+	if ccxt.IsTrue(isOption) {
+		typeVar = "option"
+	} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
+	}
+	var subMessageHashes any = []any{}
+	var subParams any = []any{}
+	var messageHashes any = []any{}
+	if ccxt.IsTrue(isOption) {
+		// eOptions: always subscribe per-underlying (<underlying>@optionTrade)
+		// handleTrade filters to the correct symbol via the 's' field
+		var seenUnderlyings any = map[string]any{}
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			ccxt.AppendToArray(&subMessageHashes, ccxt.Add("trade::", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trade:", symbol))
+			var baseIdLower any = this.SafeStringLower(market, "baseId", "")
+			var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
+			var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+			if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, underlying))) {
+				ccxt.AddElementToObject(seenUnderlyings, underlying, true)
+				ccxt.AppendToArray(&subParams, ccxt.Add(underlying, "@optionTrade"))
+			}
+		}
+	} else {
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			ccxt.AppendToArray(&subMessageHashes, ccxt.Add("trade::", symbol))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:trade:", symbol))
+			var rawHash any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "lowercaseId"), "@"), name)
+			ccxt.AppendToArray(&subParams, rawHash)
+		}
+	}
+	var query any = this.Omit(params, "type")
+	var subParamsLength any = ccxt.GetArrayLength(subParams)
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)), "/"), this.Stream(typeVar, streamHash, subParamsLength))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": subParams,
+		"id":     requestId,
+	}
+	var subscription any = map[string]any{
+		"unsubscribe":      true,
+		"id":               ccxt.ToString(requestId),
+		"subMessageHashes": subMessageHashes,
+		"messageHashes":    messageHashes,
+		"symbols":          symbols,
+		"topic":            "trades",
+	}
+
+	retRes142115 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, query), messageHashes, subscription))
+	ccxt.PanicOnError(retRes142115)
+	ch <- retRes142115
+	return nil
 }
 
 /**
@@ -1682,20 +1683,20 @@ func (this *BinanceCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...an
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BinanceCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes143815 := (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
-		ccxt.PanicOnError(retRes143815)
-		ch <- retRes143815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes143815 := (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+	ccxt.PanicOnError(retRes143815)
+	ch <- retRes143815
+	return nil
 }
 
 /**
@@ -1714,25 +1715,25 @@ func (this *BinanceCore) UnWatchTrades(symbol any, optionalArgs ...any) <-chan a
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BinanceCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
-
-		retRes145815 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-		ccxt.PanicOnError(retRes145815)
-		ch <- retRes145815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	ccxt.AddElementToObject(params, "callerMethodName", "watchTrades")
+
+	retRes145815 := (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+	ccxt.PanicOnError(retRes145815)
+	ch <- retRes145815
+	return nil
 }
 func (this *BinanceCore) ParseWsTrade(trade any, optionalArgs ...any) any {
 	//
@@ -1939,45 +1940,45 @@ func (this *BinanceCore) HandleTrade(client any, message any) {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BinanceCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes166612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes166612)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var stock any = this.SafeBool(market, "stock", false)
-		stockparamsVariable := this.HandleOptionAndParams(params, "watchOHLCV", "stock")
-		stock = ccxt.GetValue(stockparamsVariable, 0)
-		params = ccxt.GetValue(stockparamsVariable, 1)
-		if ccxt.IsTrue(stock) {
-			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, "5m"))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1M")))) {
-				panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")))
-			}
-			ccxt.AddElementToObject(params, "stock", true)
-		}
-		ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
-
-		result := (<-this.WatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, since, limit, params))
-		ccxt.PanicOnError(result)
-
-		ch <- ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes166612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes166612)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var stock any = this.SafeBool(market, "stock", false)
+	stockparamsVariable := this.HandleOptionAndParams(params, "watchOHLCV", "stock")
+	stock = ccxt.GetValue(stockparamsVariable, 0)
+	params = ccxt.GetValue(stockparamsVariable, 1)
+	if ccxt.IsTrue(stock) {
+		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, "5m"))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1M")))) {
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOHLCV only supports 5m, 1h, 1d, 1w, and 1M timeframes")))
+		}
+		ccxt.AddElementToObject(params, "stock", true)
+	}
+	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+
+	result := (<-this.WatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, since, limit, params))
+	ccxt.PanicOnError(result)
+
+	ch <- ccxt.GetValue(ccxt.GetValue(result, symbol), timeframe)
+	return nil
 }
 
 /**
@@ -1997,129 +1998,129 @@ func (this *BinanceCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any 
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BinanceCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes170112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes170112)
-		}
-		var stock any = false
-		stockparamsVariable := this.HandleOptionAndParams(params, "watchOHLCVForSymbols", "stock", false)
-		stock = ccxt.GetValue(stockparamsVariable, 0)
-		params = ccxt.GetValue(stockparamsVariable, 1)
-		if ccxt.IsTrue(stock) {
-			var stockStreams any = []any{}
-			var stockMessageHashes any = []any{}
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
-				var stockSymAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
-				var stockSymbolString any = this.Symbol(ccxt.GetValue(stockSymAndTf, 0))
-				var stockMarket any = this.Market(stockSymbolString)
-				var stockTicker any = this.SafeString2(stockMarket, "base", "id")
-				var stockTickerString any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(stockTicker, nil))), "", ccxt.ToLower(stockTicker))
-				var stockTimeframeString any = ccxt.GetValue(stockSymAndTf, 1)
-				var stockInterval any = this.SafeString(this.Timeframes, stockTimeframeString, stockTimeframeString)
-				if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "5m"))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1M")))) {
-					panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")))
-				}
-				ccxt.AppendToArray(&stockStreams, ccxt.Add(ccxt.Add(stockTickerString, "@kline_"), stockInterval))
-				ccxt.AppendToArray(&stockMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(stockMarket, "symbol")), "::"), stockTimeframeString))
-			}
-
-			stockRes := (<-this.WatchStockMarketStream(stockStreams, stockMessageHashes, params))
-			ccxt.PanicOnError(stockRes)
-			stockSymbolstockTimeframestockCandlesVariable := stockRes
-			stockSymbol := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 0)
-			stockTimeframe := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 1)
-			stockCandles := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 2)
-			if ccxt.IsTrue(this.NewUpdates) {
-				limit = ccxt.ToGetsLimit(stockCandles).GetLimit(stockSymbol, limit)
-			}
-			var stockFiltered any = this.FilterBySinceLimit(stockCandles, since, limit, 0, true)
-
-			ch <- this.CreateOHLCVObject(stockSymbol, stockTimeframe, stockFiltered)
-			return nil
-		}
-		var klineType any = nil
-		klineTypeparamsVariable := this.HandleParamString2(params, "channel", "name", "kline")
-		klineType = ccxt.GetValue(klineTypeparamsVariable, 0)
-		params = ccxt.GetValue(klineTypeparamsVariable, 1)
-		var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
-		var marketSymbols any = this.MarketSymbols(symbols, nil, false, false, true)
-		var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
-		var typeVar any = ccxt.GetValue(firstMarket, "type")
-		var wsUrlType any = typeVar
-		if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
-			typeVar = "option"
-			wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
-		} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
-			wsUrlType = typeVar
-		}
-		var isSpot any = (ccxt.IsEqual(typeVar, "spot"))
-		var timezone any = nil
-		timezoneparamsVariable := this.HandleParamString(params, "timezone")
-		timezone = ccxt.GetValue(timezoneparamsVariable, 0)
-		params = ccxt.GetValue(timezoneparamsVariable, 1)
-		var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
-		var rawHashes any = []any{}
-		var messageHashes any = []any{}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
-			var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
-			var symbolString any = ccxt.GetValue(symAndTf, 0)
-			var timeframeString any = ccxt.GetValue(symAndTf, 1)
-			var interval any = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-			var market any = this.Market(symbolString)
-			var marketId any = ccxt.GetValue(market, "lowercaseId")
-			if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() marketId is required")))
-			}
-			if ccxt.IsTrue(ccxt.IsEqual(klineType, "indexPriceKline")) {
-				// weird behavior for index price kline we can't use the perp suffix
-				marketId = ccxt.Replace(marketId, "_perp", "")
-			}
-			var shouldUseUTC8 any = (ccxt.IsTrue(isUtc8) && ccxt.IsTrue(isSpot))
-			var suffix any = "@+08:00"
-			var utcSuffix any = ccxt.Ternary(ccxt.IsTrue(shouldUseUTC8), suffix, "")
-			ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), klineType), "_"), interval), utcSuffix))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), timeframeString))
-		}
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "SUBSCRIBE",
-			"params": rawHashes,
-			"id":     requestId,
-		}
-		var subscribe any = map[string]any{
-			"id": requestId,
-		}
-		params = this.Omit(params, "callerMethodName")
-
-		res := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscribe))
-		ccxt.PanicOnError(res)
-		symboltimeframecandlesVariable := res
-		symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
-		timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
-		candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
-		}
-		var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)
-
-		ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes170112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes170112)
+	}
+	var stock any = false
+	stockparamsVariable := this.HandleOptionAndParams(params, "watchOHLCVForSymbols", "stock", false)
+	stock = ccxt.GetValue(stockparamsVariable, 0)
+	params = ccxt.GetValue(stockparamsVariable, 1)
+	if ccxt.IsTrue(stock) {
+		var stockStreams any = []any{}
+		var stockMessageHashes any = []any{}
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
+			var stockSymAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
+			var stockSymbolString any = this.Symbol(ccxt.GetValue(stockSymAndTf, 0))
+			var stockMarket any = this.Market(stockSymbolString)
+			var stockTicker any = this.SafeString2(stockMarket, "base", "id")
+			var stockTickerString any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(stockTicker, nil))), "", ccxt.ToLower(stockTicker))
+			var stockTimeframeString any = ccxt.GetValue(stockSymAndTf, 1)
+			var stockInterval any = this.SafeString(this.Timeframes, stockTimeframeString, stockTimeframeString)
+			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "5m"))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(stockInterval, "1M")))) {
+				panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOHLCVForSymbols only supports 5m, 1h, 1d, 1w, and 1M timeframes")))
+			}
+			ccxt.AppendToArray(&stockStreams, ccxt.Add(ccxt.Add(stockTickerString, "@kline_"), stockInterval))
+			ccxt.AppendToArray(&stockMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(stockMarket, "symbol")), "::"), stockTimeframeString))
+		}
+
+		stockRes := (<-this.WatchStockMarketStream(stockStreams, stockMessageHashes, params))
+		ccxt.PanicOnError(stockRes)
+		stockSymbolstockTimeframestockCandlesVariable := stockRes
+		stockSymbol := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 0)
+		stockTimeframe := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 1)
+		stockCandles := ccxt.GetValue(stockSymbolstockTimeframestockCandlesVariable, 2)
+		if ccxt.IsTrue(this.NewUpdates) {
+			limit = ccxt.ToGetsLimit(stockCandles).GetLimit(stockSymbol, limit)
+		}
+		var stockFiltered any = this.FilterBySinceLimit(stockCandles, since, limit, 0, true)
+
+		ch <- this.CreateOHLCVObject(stockSymbol, stockTimeframe, stockFiltered)
+		return nil
+	}
+	var klineType any = nil
+	klineTypeparamsVariable := this.HandleParamString2(params, "channel", "name", "kline")
+	klineType = ccxt.GetValue(klineTypeparamsVariable, 0)
+	params = ccxt.GetValue(klineTypeparamsVariable, 1)
+	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
+	var marketSymbols any = this.MarketSymbols(symbols, nil, false, false, true)
+	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
+	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var wsUrlType any = typeVar
+	if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
+		typeVar = "option"
+		wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
+	} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
+		wsUrlType = typeVar
+	}
+	var isSpot any = (ccxt.IsEqual(typeVar, "spot"))
+	var timezone any = nil
+	timezoneparamsVariable := this.HandleParamString(params, "timezone")
+	timezone = ccxt.GetValue(timezoneparamsVariable, 0)
+	params = ccxt.GetValue(timezoneparamsVariable, 1)
+	var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
+	var rawHashes any = []any{}
+	var messageHashes any = []any{}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
+		var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolString any = ccxt.GetValue(symAndTf, 0)
+		var timeframeString any = ccxt.GetValue(symAndTf, 1)
+		var interval any = this.SafeString(this.Timeframes, timeframeString, timeframeString)
+		var market any = this.Market(symbolString)
+		var marketId any = ccxt.GetValue(market, "lowercaseId")
+		if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() marketId is required")))
+		}
+		if ccxt.IsTrue(ccxt.IsEqual(klineType, "indexPriceKline")) {
+			// weird behavior for index price kline we can't use the perp suffix
+			marketId = ccxt.Replace(marketId, "_perp", "")
+		}
+		var shouldUseUTC8 any = (ccxt.IsTrue(isUtc8) && ccxt.IsTrue(isSpot))
+		var suffix any = "@+08:00"
+		var utcSuffix any = ccxt.Ternary(ccxt.IsTrue(shouldUseUTC8), suffix, "")
+		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), klineType), "_"), interval), utcSuffix))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), timeframeString))
+	}
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "SUBSCRIBE",
+		"params": rawHashes,
+		"id":     requestId,
+	}
+	var subscribe any = map[string]any{
+		"id": requestId,
+	}
+	params = this.Omit(params, "callerMethodName")
+
+	res := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscribe))
+	ccxt.PanicOnError(res)
+	symboltimeframecandlesVariable := res
+	symbol := ccxt.GetValue(symboltimeframecandlesVariable, 0)
+	timeframe := ccxt.GetValue(symboltimeframecandlesVariable, 1)
+	candles := ccxt.GetValue(symboltimeframecandlesVariable, 2)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(candles).GetLimit(symbol, limit)
+	}
+	var filtered any = this.FilterBySinceLimit(candles, since, limit, 0, true)
+
+	ch <- this.CreateOHLCVObject(symbol, timeframe, filtered)
+	return nil
 }
 
 /**
@@ -2135,88 +2136,88 @@ func (this *BinanceCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optional
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BinanceCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes180412 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes180412)
-		}
-		var klineType any = nil
-		klineTypeparamsVariable := this.HandleParamString2(params, "channel", "name", "kline")
-		klineType = ccxt.GetValue(klineTypeparamsVariable, 0)
-		params = ccxt.GetValue(klineTypeparamsVariable, 1)
-		var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
-		var marketSymbols any = this.MarketSymbols(symbols, nil, false, false, true)
-		var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
-		var typeVar any = ccxt.GetValue(firstMarket, "type")
-		var wsUrlType any = typeVar
-		if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
-			typeVar = "option"
-			wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
-		} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
-			wsUrlType = typeVar
-		}
-		var isSpot any = (ccxt.IsEqual(typeVar, "spot"))
-		var timezone any = nil
-		timezoneparamsVariable := this.HandleParamString(params, "timezone")
-		timezone = ccxt.GetValue(timezoneparamsVariable, 0)
-		params = ccxt.GetValue(timezoneparamsVariable, 1)
-		var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
-		var rawHashes any = []any{}
-		var subMessageHashes any = []any{}
-		var messageHashes any = []any{}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
-			var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
-			var symbolString any = ccxt.GetValue(symAndTf, 0)
-			var timeframeString any = ccxt.GetValue(symAndTf, 1)
-			var interval any = this.SafeString(this.Timeframes, timeframeString, timeframeString)
-			var market any = this.Market(symbolString)
-			var marketId any = ccxt.GetValue(market, "lowercaseId")
-			if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() marketId is required")))
-			}
-			if ccxt.IsTrue(ccxt.IsEqual(klineType, "indexPriceKline")) {
-				// weird behavior for index price kline we can't use the perp suffix
-				marketId = ccxt.Replace(marketId, "_perp", "")
-			}
-			var shouldUseUTC8 any = (ccxt.IsTrue(isUtc8) && ccxt.IsTrue(isSpot))
-			var suffix any = "@+08:00"
-			var utcSuffix any = ccxt.Ternary(ccxt.IsTrue(shouldUseUTC8), suffix, "")
-			ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), klineType), "_"), interval), utcSuffix))
-			ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), timeframeString))
-			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", ccxt.GetValue(market, "symbol")), "::"), timeframeString))
-		}
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": "UNSUBSCRIBE",
-			"params": rawHashes,
-			"id":     requestId,
-		}
-		var subscribe any = map[string]any{
-			"unsubscribe":          true,
-			"id":                   ccxt.ToString(requestId),
-			"symbols":              symbols,
-			"symbolsAndTimeframes": symbolsAndTimeframes,
-			"subMessageHashes":     subMessageHashes,
-			"messageHashes":        messageHashes,
-			"topic":                "ohlcv",
-		}
-		params = this.Omit(params, "callerMethodName")
-
-		retRes186515 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscribe))
-		ccxt.PanicOnError(retRes186515)
-		ch <- retRes186515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchOHLCVForSymbolsBody(ch, symbolsAndTimeframes, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes180412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes180412)
+	}
+	var klineType any = nil
+	klineTypeparamsVariable := this.HandleParamString2(params, "channel", "name", "kline")
+	klineType = ccxt.GetValue(klineTypeparamsVariable, 0)
+	params = ccxt.GetValue(klineTypeparamsVariable, 1)
+	var symbols any = this.GetListFromObjectValues(symbolsAndTimeframes, 0)
+	var marketSymbols any = this.MarketSymbols(symbols, nil, false, false, true)
+	var firstMarket any = this.Market(ccxt.GetValue(marketSymbols, 0))
+	var typeVar any = ccxt.GetValue(firstMarket, "type")
+	var wsUrlType any = typeVar
+	if ccxt.IsTrue(ccxt.GetValue(firstMarket, "option")) {
+		typeVar = "option"
+		wsUrlType = "optionMarket" // eOptions klines are served from /market/ws
+	} else if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue(ccxt.GetValue(firstMarket, "linear")), "future", "delivery")
+		wsUrlType = typeVar
+	}
+	var isSpot any = (ccxt.IsEqual(typeVar, "spot"))
+	var timezone any = nil
+	timezoneparamsVariable := this.HandleParamString(params, "timezone")
+	timezone = ccxt.GetValue(timezoneparamsVariable, 0)
+	params = ccxt.GetValue(timezoneparamsVariable, 1)
+	var isUtc8 any = ccxt.IsTrue((!ccxt.IsEqual(timezone, nil))) && ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(timezone, "+08:00"))) || ccxt.IsTrue(ccxt.Precise.StringEq(timezone, "8"))))
+	var rawHashes any = []any{}
+	var subMessageHashes any = []any{}
+	var messageHashes any = []any{}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
+		var symAndTf any = ccxt.GetValue(symbolsAndTimeframes, i)
+		var symbolString any = ccxt.GetValue(symAndTf, 0)
+		var timeframeString any = ccxt.GetValue(symAndTf, 1)
+		var interval any = this.SafeString(this.Timeframes, timeframeString, timeframeString)
+		var market any = this.Market(symbolString)
+		var marketId any = ccxt.GetValue(market, "lowercaseId")
+		if ccxt.IsTrue(ccxt.IsEqual(marketId, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() marketId is required")))
+		}
+		if ccxt.IsTrue(ccxt.IsEqual(klineType, "indexPriceKline")) {
+			// weird behavior for index price kline we can't use the perp suffix
+			marketId = ccxt.Replace(marketId, "_perp", "")
+		}
+		var shouldUseUTC8 any = (ccxt.IsTrue(isUtc8) && ccxt.IsTrue(isSpot))
+		var suffix any = "@+08:00"
+		var utcSuffix any = ccxt.Ternary(ccxt.IsTrue(shouldUseUTC8), suffix, "")
+		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), klineType), "_"), interval), utcSuffix))
+		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), timeframeString))
+		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::ohlcv::", ccxt.GetValue(market, "symbol")), "::"), timeframeString))
+	}
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)), "/"), this.Stream(wsUrlType, "multipleOHLCV"))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": "UNSUBSCRIBE",
+		"params": rawHashes,
+		"id":     requestId,
+	}
+	var subscribe any = map[string]any{
+		"unsubscribe":          true,
+		"id":                   ccxt.ToString(requestId),
+		"symbols":              symbols,
+		"symbolsAndTimeframes": symbolsAndTimeframes,
+		"subMessageHashes":     subMessageHashes,
+		"messageHashes":        messageHashes,
+		"topic":                "ohlcv",
+	}
+	params = this.Omit(params, "callerMethodName")
+
+	retRes186515 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscribe))
+	ccxt.PanicOnError(retRes186515)
+	ch <- retRes186515
+	return nil
 }
 
 /**
@@ -2233,30 +2234,30 @@ func (this *BinanceCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, option
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BinanceCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes188312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes188312)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
-
-		retRes188815 := (<-this.UnWatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, params))
-		ccxt.PanicOnError(retRes188815)
-		ch <- retRes188815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes188312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes188312)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	ccxt.AddElementToObject(params, "callerMethodName", "watchOHLCV")
+
+	retRes188815 := (<-this.UnWatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, params))
+	ccxt.PanicOnError(retRes188815)
+	ch <- retRes188815
+	return nil
 }
 func (this *BinanceCore) HandleOHLCV(client any, message any) {
 	//
@@ -2332,55 +2333,55 @@ func (this *BinanceCore) HandleOHLCV(client any, message any) {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) FetchTickerWs(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes197312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes197312)
-		}
-		var market any = this.Market(symbol)
-		var payload any = map[string]any{
-			"symbol": ccxt.GetValue(market, "id"),
-		}
-		var typeVar any = this.GetMarketType("fetchTickerWs", market, params)
-		if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchTickerWs only supports swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var subscription any = map[string]any{
-			"method": this.HandleTickerWs,
-		}
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchTickerWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
-		params = this.Omit(params, "test")
-		var method any = nil
-		methodparamsVariable := this.HandleOptionAndParams(params, "fetchTickerWs", "method", "ticker.book")
-		method = ccxt.GetValue(methodparamsVariable, 0)
-		params = ccxt.GetValue(methodparamsVariable, 1)
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": method,
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-
-		ticker := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(ticker)
-
-		ch <- ticker
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerWsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchTickerWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes197312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes197312)
+	}
+	var market any = this.Market(symbol)
+	var payload any = map[string]any{
+		"symbol": ccxt.GetValue(market, "id"),
+	}
+	var typeVar any = this.GetMarketType("fetchTickerWs", market, params)
+	if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchTickerWs only supports swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var subscription any = map[string]any{
+		"method": this.HandleTickerWs,
+	}
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchTickerWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	params = this.Omit(params, "test")
+	var method any = nil
+	methodparamsVariable := this.HandleOptionAndParams(params, "fetchTickerWs", "method", "ticker.book")
+	method = ccxt.GetValue(methodparamsVariable, 0)
+	params = ccxt.GetValue(methodparamsVariable, 1)
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": method,
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+
+	ticker := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(ticker)
+
+	ch <- ticker
+	return nil
 }
 
 /**
@@ -2400,67 +2401,67 @@ func (this *BinanceCore) FetchTickerWs(symbol any, optionalArgs ...any) <-chan a
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BinanceCore) FetchOHLCVWs(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes202212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes202212)
-		}
-		var market any = this.Market(symbol)
-		var marketType any = this.GetMarketType("fetchOHLCVWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "future"))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOHLCVWs only supports spot or swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCVWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-			"interval":         ccxt.GetValue(this.Timeframes, timeframe),
-		}
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, "until")
-		if ccxt.IsTrue(!ccxt.IsEqual(since, nil)) {
-			ccxt.AddElementToObject(payload, "startTime", since)
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			ccxt.AddElementToObject(payload, "limit", limit)
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(until, nil)) {
-			ccxt.AddElementToObject(payload, "endTime", until)
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "klines",
-			"params": this.Extend(payload, params),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleFetchOHLCV,
-		}
-
-		retRes205815 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes205815)
-		ch <- retRes205815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVWsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchOHLCVWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes202212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes202212)
+	}
+	var market any = this.Market(symbol)
+	var marketType any = this.GetMarketType("fetchOHLCVWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "future"))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOHLCVWs only supports spot or swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCVWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+		"interval":         ccxt.GetValue(this.Timeframes, timeframe),
+	}
+	var until any = this.SafeInteger(params, "until")
+	params = this.Omit(params, "until")
+	if ccxt.IsTrue(!ccxt.IsEqual(since, nil)) {
+		ccxt.AddElementToObject(payload, "startTime", since)
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		ccxt.AddElementToObject(payload, "limit", limit)
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(until, nil)) {
+		ccxt.AddElementToObject(payload, "endTime", until)
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "klines",
+		"params": this.Extend(payload, params),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleFetchOHLCV,
+	}
+
+	retRes205815 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes205815)
+	ch <- retRes205815
+	return nil
 }
 func (this *BinanceCore) HandleFetchOHLCV(client any, message any) {
 	//
@@ -2519,29 +2520,29 @@ func (this *BinanceCore) HandleFetchOHLCV(client any, message any) {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes211912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes211912)
-		}
-		symbol = this.Symbol(symbol)
-
-		tickers := (<-this.WatchTickers([]any{symbol}, this.Extend(params, map[string]any{
-			"callerMethodName": "watchTicker",
-		})))
-		ccxt.PanicOnError(tickers)
-
-		ch <- ccxt.GetValue(tickers, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes211912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes211912)
+	}
+	symbol = this.Symbol(symbol)
+
+	tickers := (<-this.WatchTickers([]any{symbol}, this.Extend(params, map[string]any{
+		"callerMethodName": "watchTicker",
+	})))
+	ccxt.PanicOnError(tickers)
+
+	ch <- ccxt.GetValue(tickers, symbol)
+	return nil
 }
 
 /**
@@ -2555,29 +2556,29 @@ func (this *BinanceCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) WatchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes213812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes213812)
-		}
-		symbol = this.Symbol(symbol)
-
-		tickers := (<-this.WatchMarkPrices([]any{symbol}, this.Extend(params, map[string]any{
-			"callerMethodName": "watchMarkPrice",
-		})))
-		ccxt.PanicOnError(tickers)
-
-		ch <- ccxt.GetValue(tickers, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes213812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes213812)
+	}
+	symbol = this.Symbol(symbol)
+
+	tickers := (<-this.WatchMarkPrices([]any{symbol}, this.Extend(params, map[string]any{
+		"callerMethodName": "watchMarkPrice",
+	})))
+	ccxt.PanicOnError(tickers)
+
+	ch <- ccxt.GetValue(tickers, symbol)
+	return nil
 }
 
 /**
@@ -2591,35 +2592,35 @@ func (this *BinanceCore) WatchMarkPrice(symbol any, optionalArgs ...any) <-chan 
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) WatchMarkPrices(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var channelName any = nil
-		// for now watchmarkPrice uses the same messageHash as watchTicker
-		// so it's impossible to watch both at the same time
-		// refactor this to use different messageHashes
-		channelNameparamsVariable := this.HandleOptionAndParams(params, "watchMarkPrices", "name", "markPrice")
-		channelName = ccxt.GetValue(channelNameparamsVariable, 0)
-		params = ccxt.GetValue(channelNameparamsVariable, 1)
-
-		newTickers := (<-this.WatchMultiTickerHelper("watchMarkPrices", channelName, symbols, params))
-		ccxt.PanicOnError(newTickers)
-		if ccxt.IsTrue(this.NewUpdates) {
-
-			ch <- newTickers
-			return nil
-		}
-
-		ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMarkPricesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchMarkPricesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var channelName any = nil
+	// for now watchmarkPrice uses the same messageHash as watchTicker
+	// so it's impossible to watch both at the same time
+	// refactor this to use different messageHashes
+	channelNameparamsVariable := this.HandleOptionAndParams(params, "watchMarkPrices", "name", "markPrice")
+	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
+	params = ccxt.GetValue(channelNameparamsVariable, 1)
+
+	newTickers := (<-this.WatchMultiTickerHelper("watchMarkPrices", channelName, symbols, params))
+	ccxt.PanicOnError(newTickers)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- newTickers
+		return nil
+	}
+
+	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -2639,56 +2640,56 @@ func (this *BinanceCore) WatchMarkPrices(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) WatchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var stock any = false
-		stockparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "stock", false)
-		stock = ccxt.GetValue(stockparamsVariable, 0)
-		params = ccxt.GetValue(stockparamsVariable, 1)
-		if ccxt.IsTrue(stock) {
-			if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTickers() with stock stream requires symbols")))
-			}
-			symbols = this.MarketSymbols(symbols, nil, false, false, true)
-
-			stockResult := (<-this.WatchStockMarketStream([]any{"price"}, []any{"stock:price"}, params))
-			ccxt.PanicOnError(stockResult)
-			if ccxt.IsTrue(this.NewUpdates) {
-
-				ch <- stockResult
-				return nil
-			}
-
-			ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
-			return nil
+	ch := make(chan any, 1)
+	go this.watchTickersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *BinanceCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var stock any = false
+	stockparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "stock", false)
+	stock = ccxt.GetValue(stockparamsVariable, 0)
+	params = ccxt.GetValue(stockparamsVariable, 1)
+	if ccxt.IsTrue(stock) {
+		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTickers() with stock stream requires symbols")))
 		}
-		var channelName any = nil
-		channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "miniTicker")
-		channelName = ccxt.GetValue(channelNameparamsVariable, 0)
-		params = ccxt.GetValue(channelNameparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsEqual(channelName, "bookTicker")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")))
-		}
+		symbols = this.MarketSymbols(symbols, nil, false, false, true)
 
-		newTickers := (<-this.WatchMultiTickerHelper("watchTickers", channelName, symbols, params))
-		ccxt.PanicOnError(newTickers)
+		stockResult := (<-this.WatchStockMarketStream([]any{"price"}, []any{"stock:price"}, params))
+		ccxt.PanicOnError(stockResult)
 		if ccxt.IsTrue(this.NewUpdates) {
 
-			ch <- newTickers
+			ch <- stockResult
 			return nil
 		}
 
 		ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
 		return nil
+	}
+	var channelName any = nil
+	channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "miniTicker")
+	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
+	params = ccxt.GetValue(channelNameparamsVariable, 1)
+	if ccxt.IsTrue(ccxt.IsEqual(channelName, "bookTicker")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")))
+	}
 
-	}()
-	return ch
+	newTickers := (<-this.WatchMultiTickerHelper("watchTickers", channelName, symbols, params))
+	ccxt.PanicOnError(newTickers)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- newTickers
+		return nil
+	}
+
+	ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
+	return nil
 }
 
 /**
@@ -2706,29 +2707,29 @@ func (this *BinanceCore) WatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var channelName any = nil
-		channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "ticker")
-		channelName = ccxt.GetValue(channelNameparamsVariable, 0)
-		params = ccxt.GetValue(channelNameparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsEqual(channelName, "bookTicker")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")))
-		}
-
-		retRes223015 := (<-this.WatchMultiTickerHelper("unWatchTickers", channelName, symbols, params, true))
-		ccxt.PanicOnError(retRes223015)
-		ch <- retRes223015
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var channelName any = nil
+	channelNameparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "name", "ticker")
+	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
+	params = ccxt.GetValue(channelNameparamsVariable, 1)
+	if ccxt.IsTrue(ccxt.IsEqual(channelName, "bookTicker")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")))
+	}
+
+	retRes223015 := (<-this.WatchMultiTickerHelper("unWatchTickers", channelName, symbols, params, true))
+	ccxt.PanicOnError(retRes223015)
+	ch <- retRes223015
+	return nil
 }
 
 /**
@@ -2741,31 +2742,31 @@ func (this *BinanceCore) UnWatchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchMarkPrices(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var channelName any = nil
-		channelNameparamsVariable := this.HandleOptionAndParams(params, "watchMarkPrices", "name", "markPrice")
-		channelName = ccxt.GetValue(channelNameparamsVariable, 0)
-		params = ccxt.GetValue(channelNameparamsVariable, 1)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes224612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes224612)
-		}
-
-		retRes224815 := (<-this.WatchMultiTickerHelper("unWatchMarkPrices", channelName, symbols, params, true))
-		ccxt.PanicOnError(retRes224815)
-		ch <- retRes224815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchMarkPricesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchMarkPricesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var channelName any = nil
+	channelNameparamsVariable := this.HandleOptionAndParams(params, "watchMarkPrices", "name", "markPrice")
+	channelName = ccxt.GetValue(channelNameparamsVariable, 0)
+	params = ccxt.GetValue(channelNameparamsVariable, 1)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes224612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes224612)
+	}
+
+	retRes224815 := (<-this.WatchMultiTickerHelper("unWatchMarkPrices", channelName, symbols, params, true))
+	ccxt.PanicOnError(retRes224815)
+	ch <- retRes224815
+	return nil
 }
 
 /**
@@ -2778,20 +2779,20 @@ func (this *BinanceCore) UnWatchMarkPrices(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes226115 := (<-this.UnWatchMarkPrices([]any{symbol}, params))
-		ccxt.PanicOnError(retRes226115)
-		ch <- retRes226115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes226115 := (<-this.UnWatchMarkPrices([]any{symbol}, params))
+	ccxt.PanicOnError(retRes226115)
+	ch <- retRes226115
+	return nil
 }
 
 /**
@@ -2805,22 +2806,22 @@ func (this *BinanceCore) UnWatchMarkPrice(symbol any, optionalArgs ...any) <-cha
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchBidsAsks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		retRes227515 := (<-this.WatchMultiTickerHelper("unWatchBidsAsks", "bookTicker", symbols, params, true))
-		ccxt.PanicOnError(retRes227515)
-		ch <- retRes227515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchBidsAsksBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	retRes227515 := (<-this.WatchMultiTickerHelper("unWatchBidsAsks", "bookTicker", symbols, params, true))
+	ccxt.PanicOnError(retRes227515)
+	ch <- retRes227515
+	return nil
 }
 
 /**
@@ -2838,20 +2839,20 @@ func (this *BinanceCore) UnWatchBidsAsks(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes229315 := (<-this.UnWatchTickers([]any{symbol}, params))
-		ccxt.PanicOnError(retRes229315)
-		ch <- retRes229315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.unWatchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) unWatchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes229315 := (<-this.UnWatchTickers([]any{symbol}, params))
+	ccxt.PanicOnError(retRes229315)
+	ch <- retRes229315
+	return nil
 }
 
 /**
@@ -2868,265 +2869,265 @@ func (this *BinanceCore) UnWatchTicker(symbol any, optionalArgs ...any) <-chan a
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BinanceCore) WatchBidsAsks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.watchBidsAsksBody(ch, optionalArgs...)
+	return ch
+}
+func (this *BinanceCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes231112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes231112)
+		retRes231112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes231112)
+	}
+	var stock any = false
+	stockparamsVariable := this.HandleOptionAndParams(params, "watchBidsAsks", "stock", false)
+	stock = ccxt.GetValue(stockparamsVariable, 0)
+	params = ccxt.GetValue(stockparamsVariable, 1)
+	if ccxt.IsTrue(stock) {
+		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchBidsAsks() with stock stream requires symbols")))
 		}
-		var stock any = false
-		stockparamsVariable := this.HandleOptionAndParams(params, "watchBidsAsks", "stock", false)
-		stock = ccxt.GetValue(stockparamsVariable, 0)
-		params = ccxt.GetValue(stockparamsVariable, 1)
-		if ccxt.IsTrue(stock) {
-			if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchBidsAsks() with stock stream requires symbols")))
-			}
-			symbols = this.MarketSymbols(symbols, nil, false, false, true)
-			var stockStreams any = []any{}
-			var stockMessageHashes any = []any{}
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var stockTicker any = this.GetStockTickerFromSymbol(ccxt.GetValue(symbols, i))
-				ccxt.AppendToArray(&stockStreams, ccxt.Add(stockTicker, "@quote"))
-				ccxt.AppendToArray(&stockMessageHashes, ccxt.Add("stock:quote:", ccxt.GetValue(symbols, i)))
-			}
-
-			stockResult := (<-this.WatchStockMarketStream(stockStreams, stockMessageHashes, params))
-			ccxt.PanicOnError(stockResult)
-			if ccxt.IsTrue(this.NewUpdates) {
-
-				ch <- stockResult
-				return nil
-			}
-
-			ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
-			return nil
+		symbols = this.MarketSymbols(symbols, nil, false, false, true)
+		var stockStreams any = []any{}
+		var stockMessageHashes any = []any{}
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var stockTicker any = this.GetStockTickerFromSymbol(ccxt.GetValue(symbols, i))
+			ccxt.AppendToArray(&stockStreams, ccxt.Add(stockTicker, "@quote"))
+			ccxt.AppendToArray(&stockMessageHashes, ccxt.Add("stock:quote:", ccxt.GetValue(symbols, i)))
 		}
-		symbols = this.MarketSymbols(symbols, nil, true, false, true)
 
-		result := (<-this.WatchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, params))
-		ccxt.PanicOnError(result)
+		stockResult := (<-this.WatchStockMarketStream(stockStreams, stockMessageHashes, params))
+		ccxt.PanicOnError(stockResult)
 		if ccxt.IsTrue(this.NewUpdates) {
 
-			ch <- result
+			ch <- stockResult
 			return nil
 		}
 
 		ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
 		return nil
+	}
+	symbols = this.MarketSymbols(symbols, nil, true, false, true)
 
-	}()
-	return ch
+	result := (<-this.WatchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, params))
+	ccxt.PanicOnError(result)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- result
+		return nil
+	}
+
+	ch <- this.FilterByArray(this.Bidsasks, "symbol", symbols)
+	return nil
 }
 func (this *BinanceCore) WatchMultiTickerHelper(methodName any, channelName any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		isUnsubscribe := ccxt.GetArg(optionalArgs, 2, false)
-		_ = isUnsubscribe
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.watchMultiTickerHelperBody(ch, methodName, channelName, optionalArgs...)
+	return ch
+}
+func (this *BinanceCore) watchMultiTickerHelperBody(ch chan any, methodName any, channelName any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	isUnsubscribe := ccxt.GetArg(optionalArgs, 2, false)
+	_ = isUnsubscribe
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes234312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes234312)
-		}
-		symbols = this.MarketSymbols(symbols, nil, true, false, true)
-		var isBidAsk any = (ccxt.IsEqual(channelName, "bookTicker"))
-		var isMarkPrice any = (ccxt.IsEqual(channelName, "markPrice"))
-		var use1sFreq any = this.SafeBool(params, "use1sFreq", true)
-		var firstMarket any = nil
-		var marketType any = nil
-		var symbolsDefined any = (!ccxt.IsEqual(symbols, nil))
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			firstMarket = this.Market(ccxt.GetValue(symbols, 0))
-		}
-		var userDefaultType any = this.SafeString(this.Options, "defaultType")
-		var defaultMarket any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(isMarkPrice) && ccxt.IsTrue(!ccxt.IsEqual(userDefaultType, "option")))), "swap", nil)
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket)
-		marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
-		params = ccxt.GetValue(marketTypeparamsVariable, 1)
-		var subType any = nil
-		subTypeparamsVariable := this.HandleSubTypeAndParams(methodName, firstMarket, params)
-		subType = ccxt.GetValue(subTypeparamsVariable, 0)
-		params = ccxt.GetValue(subTypeparamsVariable, 1)
-		// use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
-		var isOptionMarkPrice any = (ccxt.IsTrue(isMarkPrice) && ccxt.IsTrue(ccxt.IsEqual(marketType, "option")))
-		var rawMarketType any = nil
-		if ccxt.IsTrue(ccxt.IsEqual(marketType, "option")) {
-			// check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
-			// eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
-			rawMarketType = ccxt.Ternary(ccxt.IsTrue((isOptionMarkPrice)), "optionMarket", "option")
-		} else if ccxt.IsTrue(this.IsLinear(marketType, subType)) {
-			rawMarketType = "future"
-		} else if ccxt.IsTrue(this.IsInverse(marketType, subType)) {
-			rawMarketType = "delivery"
-		} else if ccxt.IsTrue(ccxt.IsEqual(marketType, "spot")) {
-			rawMarketType = marketType
-		} else {
-			panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() does not support options markets")))
-		}
-		// eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
-		// so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
-		var isOptionTicker any = (ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(marketType, "option")) && !ccxt.IsTrue(isMarkPrice)) && !ccxt.IsTrue(isBidAsk))
-		if ccxt.IsTrue(ccxt.IsTrue(isMarkPrice) && !ccxt.IsTrue(this.InArray(marketType, []any{"swap", "future", "option"}))) {
-			panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() does not support "), marketType), " markets yet")))
-		}
-		var subscriptionArgs any = []any{}
-		var messageHashes any = []any{}
-		var unsubscribeMessageHashes any = []any{}
-		var suffix any = ""
-		if ccxt.IsTrue(ccxt.IsTrue(isMarkPrice) && !ccxt.IsTrue(isOptionMarkPrice)) {
-			suffix = ccxt.Ternary(ccxt.IsTrue((use1sFreq)), "@1s", "")
-		}
-		var unifiedPrefix any = nil
-		if ccxt.IsTrue(isBidAsk) {
-			unifiedPrefix = "bidask"
-		} else if ccxt.IsTrue(isMarkPrice) {
-			unifiedPrefix = "markPrice"
-		} else {
-			unifiedPrefix = "ticker"
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			var seenUnderlyings any = map[string]any{}
-			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
-				var symbol any = ccxt.GetValue(symbols, i)
-				var market any = this.Market(symbol)
-				ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(unifiedPrefix, ":"), channelName), "@"), symbol))
-				if ccxt.IsTrue(isUnsubscribe) {
-					ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::", unifiedPrefix), ":"), channelName), "@"), symbol))
-				}
-				if ccxt.IsTrue(isOptionMarkPrice) {
-					// subscribe per underlying, not per contract
-					var baseIdLower any = this.SafeStringLower(market, "baseId", "")
-					var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
-					var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
-					if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, underlying))) {
-						ccxt.AddElementToObject(seenUnderlyings, underlying, true)
-						ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(underlying, "@optionMarkPrice"))
-					}
-				} else if ccxt.IsTrue(isOptionTicker) {
-					// eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
-					// market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
-					var marketId any = this.SafeString(market, "id", "")
-					var parts any = ccxt.Split(marketId, "-")
-					var expiryDate any = this.SafeString(parts, 1)
-					var baseIdLower any = this.SafeStringLower(market, "baseId", "")
-					var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
-					var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
-					var subscriptionArg any = ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expiryDate)
-					if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, subscriptionArg))) {
-						ccxt.AddElementToObject(seenUnderlyings, subscriptionArg, true)
-						ccxt.AppendToArray(&subscriptionArgs, subscriptionArg)
-					}
-				} else {
-					var streamId any = ccxt.GetValue(market, "lowercaseId")
-					ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(ccxt.Add(streamId, "@"), channelName), suffix))
-				}
+		retRes234312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes234312)
+	}
+	symbols = this.MarketSymbols(symbols, nil, true, false, true)
+	var isBidAsk any = (ccxt.IsEqual(channelName, "bookTicker"))
+	var isMarkPrice any = (ccxt.IsEqual(channelName, "markPrice"))
+	var use1sFreq any = this.SafeBool(params, "use1sFreq", true)
+	var firstMarket any = nil
+	var marketType any = nil
+	var symbolsDefined any = (!ccxt.IsEqual(symbols, nil))
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		firstMarket = this.Market(ccxt.GetValue(symbols, 0))
+	}
+	var userDefaultType any = this.SafeString(this.Options, "defaultType")
+	var defaultMarket any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsTrue(isMarkPrice) && ccxt.IsTrue(!ccxt.IsEqual(userDefaultType, "option")))), "swap", nil)
+	marketTypeparamsVariable := this.HandleMarketTypeAndParams(methodName, firstMarket, params, defaultMarket)
+	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
+	params = ccxt.GetValue(marketTypeparamsVariable, 1)
+	var subType any = nil
+	subTypeparamsVariable := this.HandleSubTypeAndParams(methodName, firstMarket, params)
+	subType = ccxt.GetValue(subTypeparamsVariable, 0)
+	params = ccxt.GetValue(subTypeparamsVariable, 1)
+	// use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
+	var isOptionMarkPrice any = (ccxt.IsTrue(isMarkPrice) && ccxt.IsTrue(ccxt.IsEqual(marketType, "option")))
+	var rawMarketType any = nil
+	if ccxt.IsTrue(ccxt.IsEqual(marketType, "option")) {
+		// check option first — isLinear returns true for linear-settled options, which would incorrectly route to futures
+		// eOptions: mark price and klines stream from /market/stream; tickers/bids-asks/depth/trades from /public/stream
+		rawMarketType = ccxt.Ternary(ccxt.IsTrue((isOptionMarkPrice)), "optionMarket", "option")
+	} else if ccxt.IsTrue(this.IsLinear(marketType, subType)) {
+		rawMarketType = "future"
+	} else if ccxt.IsTrue(this.IsInverse(marketType, subType)) {
+		rawMarketType = "delivery"
+	} else if ccxt.IsTrue(ccxt.IsEqual(marketType, "spot")) {
+		rawMarketType = marketType
+	} else {
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() does not support options markets")))
+	}
+	// eOptions tickers have a different stream name (@optionTicker) but the same event type (24hrTicker)
+	// so only the subscription arg changes — channelName stays as-is to keep messageHashes aligned
+	var isOptionTicker any = (ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(marketType, "option")) && !ccxt.IsTrue(isMarkPrice)) && !ccxt.IsTrue(isBidAsk))
+	if ccxt.IsTrue(ccxt.IsTrue(isMarkPrice) && !ccxt.IsTrue(this.InArray(marketType, []any{"swap", "future", "option"}))) {
+		panic(ccxt.NotSupported(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() does not support "), marketType), " markets yet")))
+	}
+	var subscriptionArgs any = []any{}
+	var messageHashes any = []any{}
+	var unsubscribeMessageHashes any = []any{}
+	var suffix any = ""
+	if ccxt.IsTrue(ccxt.IsTrue(isMarkPrice) && !ccxt.IsTrue(isOptionMarkPrice)) {
+		suffix = ccxt.Ternary(ccxt.IsTrue((use1sFreq)), "@1s", "")
+	}
+	var unifiedPrefix any = nil
+	if ccxt.IsTrue(isBidAsk) {
+		unifiedPrefix = "bidask"
+	} else if ccxt.IsTrue(isMarkPrice) {
+		unifiedPrefix = "markPrice"
+	} else {
+		unifiedPrefix = "ticker"
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		var seenUnderlyings any = map[string]any{}
+		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
+			var symbol any = ccxt.GetValue(symbols, i)
+			var market any = this.Market(symbol)
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(unifiedPrefix, ":"), channelName), "@"), symbol))
+			if ccxt.IsTrue(isUnsubscribe) {
+				ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe::", unifiedPrefix), ":"), channelName), "@"), symbol))
 			}
-		} else {
-			if ccxt.IsTrue(ccxt.IsEqual(marketType, "option")) {
-				var underlying any = this.SafeStringLower(params, "underlying")
-				if ccxt.IsTrue(ccxt.IsEqual(underlying, nil)) {
-					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")))
-				}
-				if ccxt.IsTrue(isOptionTicker) {
-					// eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
-					var expirationDate any = this.SafeString(params, "expirationDate")
-					if ccxt.IsTrue(ccxt.IsEqual(expirationDate, nil)) {
-						panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")))
-					}
-					ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expirationDate))
-				} else {
-					// isOptionMarkPrice: one stream covers all contracts for the underlying
+			if ccxt.IsTrue(isOptionMarkPrice) {
+				// subscribe per underlying, not per contract
+				var baseIdLower any = this.SafeStringLower(market, "baseId", "")
+				var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
+				var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+				if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, underlying))) {
+					ccxt.AddElementToObject(seenUnderlyings, underlying, true)
 					ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(underlying, "@optionMarkPrice"))
 				}
-				ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
-				ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
-			} else if ccxt.IsTrue(isBidAsk) {
-				if ccxt.IsTrue(ccxt.IsEqual(marketType, "spot")) {
-					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires symbols for this channel for spot markets")))
+			} else if ccxt.IsTrue(isOptionTicker) {
+				// eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
+				// market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
+				var marketId any = this.SafeString(market, "id", "")
+				var parts any = ccxt.Split(marketId, "-")
+				var expiryDate any = this.SafeString(parts, 1)
+				var baseIdLower any = this.SafeStringLower(market, "baseId", "")
+				var quoteIdLower any = this.SafeStringLower(market, "quoteId", "")
+				var underlying any = ccxt.Add(ccxt.Add(baseIdLower, ""), quoteIdLower)
+				var subscriptionArg any = ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expiryDate)
+				if !ccxt.IsTrue((ccxt.InOp(seenUnderlyings, subscriptionArg))) {
+					ccxt.AddElementToObject(seenUnderlyings, subscriptionArg, true)
+					ccxt.AppendToArray(&subscriptionArgs, subscriptionArg)
 				}
-				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add("!", channelName))
-				ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
-				ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
-			} else if ccxt.IsTrue(isMarkPrice) {
-				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(ccxt.Add("!", channelName), "@arr"), suffix))
-				ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
-				ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
 			} else {
-				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add("!", channelName), "@arr"))
-				ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
-				ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+				var streamId any = ccxt.GetValue(market, "lowercaseId")
+				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(ccxt.Add(streamId, "@"), channelName), suffix))
 			}
 		}
-		var streamHash any = channelName
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			streamHash = ccxt.Add(ccxt.Add(channelName, "::"), ccxt.Join(symbols, ","))
-		}
-		var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channelName)), "/"), this.Stream(rawMarketType, streamHash))
-		var requestId any = this.RequestId(url)
-		var request any = map[string]any{
-			"method": ccxt.Ternary(ccxt.IsTrue(isUnsubscribe), "UNSUBSCRIBE", "SUBSCRIBE"),
-			"params": subscriptionArgs,
-			"id":     requestId,
-		}
-		var hashes any = messageHashes
-		var subscription any = map[string]any{
-			"id": requestId,
-		}
-		if ccxt.IsTrue(isUnsubscribe) {
-			subscription = map[string]any{
-				"unsubscribe":      true,
-				"id":               ccxt.ToString(requestId),
-				"subMessageHashes": messageHashes,
-				"messageHashes":    unsubscribeMessageHashes,
-				"symbols":          symbols,
-				"topic":            "ticker",
+	} else {
+		if ccxt.IsTrue(ccxt.IsEqual(marketType, "option")) {
+			var underlying any = this.SafeStringLower(params, "underlying")
+			if ccxt.IsTrue(ccxt.IsEqual(underlying, nil)) {
+				panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")))
 			}
-			hashes = unsubscribeMessageHashes
-		}
-		// for option mark prices, the underlying stream delivers all contracts in one array message
-		// wait on the batch hash so the resolved value is the full dict of new tickers
-		var waitHashes any = hashes
-		if ccxt.IsTrue(ccxt.IsTrue(isOptionMarkPrice) && !ccxt.IsTrue(isUnsubscribe)) {
-			waitHashes = []any{ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName)}
-		}
-
-		result := (<-this.WatchMultiple(url, waitHashes, this.DeepExtend(request, params), hashes, subscription))
-		ccxt.PanicOnError(result)
-		if ccxt.IsTrue(isUnsubscribe) {
-
-			ch <- result
-			return nil
-		}
-		// for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
-		// ticker dict comes in, otherwise all-tickers dict comes in
-		// isOptionMarkPrice always resolves on a batch hash → result is already a dict
-		if ccxt.IsTrue(!ccxt.IsTrue(symbolsDefined) || ccxt.IsTrue(isOptionMarkPrice)) {
-
-			ch <- result
-			return nil
+			if ccxt.IsTrue(isOptionTicker) {
+				// eOptions tickers are per underlying+expiry: <underlying>@optionTicker@<YYMMDD>
+				var expirationDate any = this.SafeString(params, "expirationDate")
+				if ccxt.IsTrue(ccxt.IsEqual(expirationDate, nil)) {
+					panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires params[\"expirationDate\"] (e.g. \"260227\") for eOptions tickers when no symbols are provided")))
+				}
+				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(underlying, "@optionTicker@"), expirationDate))
+			} else {
+				// isOptionMarkPrice: one stream covers all contracts for the underlying
+				ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(underlying, "@optionMarkPrice"))
+			}
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
+			ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+		} else if ccxt.IsTrue(isBidAsk) {
+			if ccxt.IsTrue(ccxt.IsEqual(marketType, "spot")) {
+				panic(ccxt.ArgumentsRequired(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " "), methodName), "() requires symbols for this channel for spot markets")))
+			}
+			ccxt.AppendToArray(&subscriptionArgs, ccxt.Add("!", channelName))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
+			ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
+		} else if ccxt.IsTrue(isMarkPrice) {
+			ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add(ccxt.Add("!", channelName), "@arr"), suffix))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
+			ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
 		} else {
-			var newDict any = map[string]any{}
-			ccxt.AddElementToObject(newDict, ccxt.GetValue(result, "symbol"), result)
-
-			ch <- newDict
-			return nil
+			ccxt.AppendToArray(&subscriptionArgs, ccxt.Add(ccxt.Add("!", channelName), "@arr"))
+			ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName))
+			ccxt.AppendToArray(&unsubscribeMessageHashes, ccxt.Add("unsubscribe::", channelName))
 		}
+	}
+	var streamHash any = channelName
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		streamHash = ccxt.Add(ccxt.Add(channelName, "::"), ccxt.Join(symbols, ","))
+	}
+	var url any = ccxt.Add(ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(channelName)), "/"), this.Stream(rawMarketType, streamHash))
+	var requestId any = this.RequestId(url)
+	var request any = map[string]any{
+		"method": ccxt.Ternary(ccxt.IsTrue(isUnsubscribe), "UNSUBSCRIBE", "SUBSCRIBE"),
+		"params": subscriptionArgs,
+		"id":     requestId,
+	}
+	var hashes any = messageHashes
+	var subscription any = map[string]any{
+		"id": requestId,
+	}
+	if ccxt.IsTrue(isUnsubscribe) {
+		subscription = map[string]any{
+			"unsubscribe":      true,
+			"id":               ccxt.ToString(requestId),
+			"subMessageHashes": messageHashes,
+			"messageHashes":    unsubscribeMessageHashes,
+			"symbols":          symbols,
+			"topic":            "ticker",
+		}
+		hashes = unsubscribeMessageHashes
+	}
+	// for option mark prices, the underlying stream delivers all contracts in one array message
+	// wait on the batch hash so the resolved value is the full dict of new tickers
+	var waitHashes any = hashes
+	if ccxt.IsTrue(ccxt.IsTrue(isOptionMarkPrice) && !ccxt.IsTrue(isUnsubscribe)) {
+		waitHashes = []any{ccxt.Add(ccxt.Add(unifiedPrefix, "s:"), channelName)}
+	}
 
-	}()
-	return ch
+	result := (<-this.WatchMultiple(url, waitHashes, this.DeepExtend(request, params), hashes, subscription))
+	ccxt.PanicOnError(result)
+	if ccxt.IsTrue(isUnsubscribe) {
+
+		ch <- result
+		return nil
+	}
+	// for efficiency, we have two type of returned structure here - if symbols array was provided, then individual
+	// ticker dict comes in, otherwise all-tickers dict comes in
+	// isOptionMarkPrice always resolves on a batch hash → result is already a dict
+	if ccxt.IsTrue(!ccxt.IsTrue(symbolsDefined) || ccxt.IsTrue(isOptionMarkPrice)) {
+
+		ch <- result
+		return nil
+	} else {
+		var newDict any = map[string]any{}
+		ccxt.AddElementToObject(newDict, ccxt.GetValue(result, "symbol"), result)
+
+		ch <- newDict
+		return nil
+	}
 }
 func (this *BinanceCore) ParseWsTicker(message any, marketType any) any {
 	// markPrice
@@ -3435,75 +3436,76 @@ func (this *BinanceCore) SignParams(optionalArgs ...any) any {
  * @returns Promise<number> The subscription ID for the user data stream
  */
 func (this *BinanceCore) EnsureUserDataStreamWsSubscribeSignature(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		marketType := ccxt.GetArg(optionalArgs, 0, "spot")
-		_ = marketType
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-		var client any = this.Client(url)
-		var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
-		var subscriptionsKeys any = ccxt.ObjectKeys(subscriptions)
-		var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
-		if ccxt.IsTrue(ccxt.IsEqual(accountType, marketType)) {
-
-			return nil
-		}
-		// the subscriptions flag is raised before the subscribe request is confirmed,
-		// so a concurrent caller would otherwise return onto an unauthenticated stream
-		var messageHash any = ccxt.Add("authenticate:signature:", marketType)
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-			// another caller is already subscribing, wait for it instead of subscribing again
-
-			retRes284212 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes284212)
-
-			return nil
-		}
-		client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
-		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
-		var requestId any = this.RequestId(url)
-		var requestHash any = ccxt.ToString(requestId)
-		var message any = map[string]any{
-			"id":     requestHash,
-			"method": "userDataStream.subscribe.signature",
-			"params": this.SignParams(map[string]any{}),
-		}
-		var subscription any = map[string]any{
-			"id":           requestHash,
-			"method":       this.HandleUserDataStreamSubscribe,
-			"subscription": marketType,
-		}
-
-		{
-			func(this *BinanceCore) (ret_ any) {
-				defer func() {
-					if e := recover(); e != nil {
-						if e == "break" {
-							return
-						}
-						ret_ = func(this *BinanceCore) any {
-							// catch block:
-							ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), marketType)
-							client.(ccxt.ClientInterface).Reject(e, messageHash)
-							panic(e)
-
-						}(this)
-					}
-				}()
-				// try block:
-
-				retRes286012 := (<-this.Watch(url, requestHash, message, requestHash, subscription))
-				ccxt.PanicOnError(retRes286012)
-				client.(ccxt.ClientInterface).Resolve(marketType, messageHash)
-				return nil
-			}(this)
-
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.ensureUserDataStreamWsSubscribeSignatureBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) ensureUserDataStreamWsSubscribeSignatureBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	marketType := ccxt.GetArg(optionalArgs, 0, "spot")
+	_ = marketType
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
+	var client any = this.Client(url)
+	var subscriptions any = client.(ccxt.ClientInterface).GetSubscriptions()
+	var subscriptionsKeys any = ccxt.ObjectKeys(subscriptions)
+	var accountType any = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
+	if ccxt.IsTrue(ccxt.IsEqual(accountType, marketType)) {
+
+		return nil
+	}
+	// the subscriptions flag is raised before the subscribe request is confirmed,
+	// so a concurrent caller would otherwise return onto an unauthenticated stream
+	var messageHash any = ccxt.Add("authenticate:signature:", marketType)
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		// another caller is already subscribing, wait for it instead of subscribing again
+
+		retRes284212 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes284212)
+
+		return nil
+	}
+	client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
+	ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), marketType, true)
+	var requestId any = this.RequestId(url)
+	var requestHash any = ccxt.ToString(requestId)
+	var message any = map[string]any{
+		"id":     requestHash,
+		"method": "userDataStream.subscribe.signature",
+		"params": this.SignParams(map[string]any{}),
+	}
+	var subscription any = map[string]any{
+		"id":           requestHash,
+		"method":       this.HandleUserDataStreamSubscribe,
+		"subscription": marketType,
+	}
+
+	{
+		func(this *BinanceCore) (ret_ any) {
+			defer func() {
+				if e := recover(); e != nil {
+					if e == "break" {
+						return
+					}
+					ret_ = func(this *BinanceCore) any {
+						// catch block:
+						ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), marketType)
+						client.(ccxt.ClientInterface).Reject(e, messageHash)
+						panic(e)
+
+					}(this)
+				}
+			}()
+			// try block:
+
+			retRes286012 := (<-this.Watch(url, requestHash, message, requestHash, subscription))
+			ccxt.PanicOnError(retRes286012)
+			client.(ccxt.ClientInterface).Resolve(marketType, messageHash)
+			return nil
+		}(this)
+
+	}
+	return nil
 }
 func (this *BinanceCore) HandleUserDataStreamSubscribe(client any, message any) {
 	//
@@ -3542,465 +3544,469 @@ func (this *BinanceCore) HandleUserDataStreamSubscribe(client any, message any) 
  * @returns Promise<void>
  */
 func (this *BinanceCore) EnsureUserDataStreamWsSubscribeListenToken(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		marketType := ccxt.GetArg(optionalArgs, 0, "margin")
-		_ = marketType
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
-		var options any = this.SafeDict(this.Options, marketType, map[string]any{})
-		var lastAuthenticatedTime any = this.SafeInteger(options, "lastAuthenticatedTime", 0)
-		var listenTokenRefreshRate any = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
-		var time any = this.Milliseconds()
-		var delay any = this.Sum(listenTokenRefreshRate, 10000)
-		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
-			// the future covers the REST create plus the ws subscribe, including the
-			// renewal timer re-entry through renewListenToken, so a concurrent caller
-			// waits for the leader rather than minting a second listenToken
-			var client any = this.Client(url)
-			var messageHash any = ccxt.Add(ccxt.Add("authenticate:", marketType), ":listenToken")
-			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-				// another caller is already fetching, wait for it instead of fetching again
-
-				retRes292016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-				ccxt.PanicOnError(retRes292016)
-
-				return nil
-			}
-			client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
-
-			{
-				func(this *BinanceCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *BinanceCore) any {
-								// catch block:
-								ccxt.AddElementToObject(this.Options, marketType, this.Extend(options, map[string]any{
-									"lastAuthenticatedTime": 0,
-								}))
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								panic(e)
-
-							}(this)
-						}
-					}()
-					// try block:
-					// Step 1: Create listenToken via REST API
-					var symbol any = this.SafeString(params, "symbol")
-					var isIsolated any = this.SafeBool(params, "isIsolated", false)
-					var validity any = this.SafeInteger(params, "validity")
-					var request any = map[string]any{}
-					if ccxt.IsTrue(isIsolated) {
-						if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-							panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")))
-						}
-						var marketId any = this.MarketId(symbol)
-						ccxt.AddElementToObject(request, "symbol", marketId)
-						ccxt.AddElementToObject(request, "isIsolated", true)
-					}
-					if ccxt.IsTrue(!ccxt.IsEqual(validity, nil)) {
-						ccxt.AddElementToObject(request, "validity", validity)
-					}
-
-					response := (<-this.SapiPostUserListenToken(request))
-					ccxt.PanicOnError(response)
-					var listenToken any = this.SafeString(response, "token")
-					if ccxt.IsTrue(ccxt.IsEqual(listenToken, nil)) {
-						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken")))
-					}
-					var expirationTime any = this.SafeInteger(response, "expirationTime")
-					// Step 2: Subscribe to user data stream via WebSocket API
-					var requestId any = this.RequestId(url)
-					var requestHash any = ccxt.ToString(requestId)
-					var message any = map[string]any{
-						"id":     requestHash,
-						"method": "userDataStream.subscribe.listenToken",
-						"params": map[string]any{
-							"listenToken": listenToken,
-						},
-					}
-					var subscription any = map[string]any{
-						"id":           requestHash,
-						"method":       this.HandleUserDataStreamSubscribe,
-						"subscription": marketType,
-					}
-
-					retRes296216 := (<-this.Watch(url, requestHash, message, requestHash, subscription))
-					ccxt.PanicOnError(retRes296216)
-					ccxt.AddElementToObject(this.Options, marketType, this.Extend(options, map[string]any{
-						"listenToken":           listenToken,
-						"expirationTime":        expirationTime,
-						"lastAuthenticatedTime": time,
-						"symbol":                symbol,
-						"isIsolated":            isIsolated,
-						"validity":              validity,
-					}))
-					// Schedule token renewal before expiration
-					if ccxt.IsTrue(!ccxt.IsEqual(expirationTime, nil)) {
-						var renewalTime any = ccxt.Subtract(ccxt.Subtract(expirationTime, time), 60000) // Renew 1 minute before expiration
-						if ccxt.IsTrue(ccxt.IsGreaterThan(renewalTime, 0)) {
-							var extendedParams any = this.Extend(params, map[string]any{
-								"type": marketType,
-							})
-							this.Delay(renewalTime, this.RenewListenToken, extendedParams)
-						}
-					}
-					client.(ccxt.ClientInterface).Resolve(listenToken, messageHash)
-					return nil
-				}(this)
-
-			}
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.ensureUserDataStreamWsSubscribeListenTokenBody(ch, optionalArgs...)
 	return ch
 }
-func (this *BinanceCore) RenewListenToken(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var typeVar any = this.SafeString(params, "type", "margin")
-		var options any = this.SafeDict(this.Options, typeVar, map[string]any{})
-		var symbol any = this.SafeString(options, "symbol")
-		var isIsolated any = this.SafeBool(options, "isIsolated", false)
-		var validity any = this.SafeInteger(options, "validity")
-		var renewParams any = map[string]any{}
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			ccxt.AddElementToObject(renewParams, "symbol", symbol)
-		}
-		if ccxt.IsTrue(isIsolated) {
-			ccxt.AddElementToObject(renewParams, "isIsolated", isIsolated)
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(validity, nil)) {
-			ccxt.AddElementToObject(renewParams, "validity", validity)
-		}
+func (this *BinanceCore) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	marketType := ccxt.GetArg(optionalArgs, 0, "margin")
+	_ = marketType
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
+	var options any = this.SafeDict(this.Options, marketType, map[string]any{})
+	var lastAuthenticatedTime any = this.SafeInteger(options, "lastAuthenticatedTime", 0)
+	var listenTokenRefreshRate any = this.SafeInteger(this.Options, "listenTokenRefreshRate", 82800000) // 23 hours default
+	var time any = this.Milliseconds()
+	var delay any = this.Sum(listenTokenRefreshRate, 10000)
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
+		// the future covers the REST create plus the ws subscribe, including the
+		// renewal timer re-entry through renewListenToken, so a concurrent caller
+		// waits for the leader rather than minting a second listenToken
+		var client any = this.Client(url)
+		var messageHash any = ccxt.Add(ccxt.Add("authenticate:", marketType), ":listenToken")
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// another caller is already fetching, wait for it instead of fetching again
 
-		retRes30068 := (<-this.EnsureUserDataStreamWsSubscribeListenToken(typeVar, renewParams))
-		ccxt.PanicOnError(retRes30068)
-		return nil
-	}()
-	return ch
-}
-func (this *BinanceCore) Authenticate(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var time any = this.Milliseconds()
-		var resolvedAuth any = this.ResolveAuthType("authenticate", nil, params)
-		var typeVar any = ccxt.GetValue(resolvedAuth, 0)
-		params = ccxt.GetValue(resolvedAuth, 2)
-		var isPortfolioMargin any = nil
-		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "authenticate", "papi", "portfolioMargin", false)
-		isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
-		params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
-		// For spot use WebSocket API signature subscription
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
-
-			retRes301812 := (<-this.EnsureUserDataStreamWsSubscribeSignature("spot"))
-			ccxt.PanicOnError(retRes301812)
+			retRes292016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes292016)
 
 			return nil
 		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("authenticate", params)
-		marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-		params = ccxt.GetValue(marginModeparamsVariable, 1)
-		var isIsolatedMargin any = (ccxt.IsEqual(marginMode, "isolated"))
-		var symbol any = this.SafeString(params, "symbol")
-		// For margin use WebSocket API listenToken subscription
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) || ccxt.IsTrue(isIsolatedMargin)) {
-			var marginParams any = map[string]any{}
-			if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-				ccxt.AddElementToObject(marginParams, "symbol", symbol)
-			}
-			if ccxt.IsTrue(isIsolatedMargin) {
-				ccxt.AddElementToObject(marginParams, "isIsolated", true)
-			}
-
-			retRes303412 := (<-this.EnsureUserDataStreamWsSubscribeListenToken("margin", marginParams))
-			ccxt.PanicOnError(retRes303412)
-
-			return nil
-		}
-		params = this.Omit(params, "symbol")
-		var isStock any = (ccxt.IsEqual(typeVar, "stock"))
-		var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
-		var lastAuthenticatedTime any = this.SafeInteger(options, "lastAuthenticatedTime", 0)
-		var refreshRateKey any = ccxt.Ternary(ccxt.IsTrue(isStock), "stockListenKeyRefreshRate", "listenKeyRefreshRate")
-		var listenKeyRefreshRate any = this.SafeInteger(this.Options, refreshRateKey, 1200000)
-		var delay any = this.Sum(listenKeyRefreshRate, 10000)
-		if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
-			// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
-			// the flight is registered on a never-dialed client because the
-			// user-data url embeds the listenKey, so no real client exists
-			// before the fetch and no listenKey-free parking url is needed.
-			// client.futures is the registry: client.future () is the atomic
-			// check-and-insert and client.resolve () / client.reject () settle
-			// and remove the entry under the same lock in every port
-			var messageHash any = ccxt.Add("authenticate:", typeVar)
-			var client any = this.Client("authenticationFlights")
-			if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-				// a flight is already in progress - wake when the leader
-				// settles it: the listenKey is then in the bucket
-
-				retRes305716 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-				ccxt.PanicOnError(retRes305716)
-
-				return nil
-			}
-			// reusableFuture (), not future () - the two match in
-			// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
-			// that the trailing suspension point below would panic on
-			var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-
-			{
-				func(this *BinanceCore) (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func(this *BinanceCore) any {
-								// catch block:
-								// reject the flight - waiters throw and the next caller re-leads.
-								// no rethrow here, the trailing suspension point rethrows to this
-								// caller AND attaches the handler an alone leader needs
-								client.(ccxt.ClientInterface).Reject(e, messageHash)
-								return nil
-							}(this)
-						}
-					}()
-					// try block:
-					var response any = nil
-					if ccxt.IsTrue(isStock) {
-						var requestParams any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
-
-						response = (<-this.SapiPostEquityListenKey(requestParams))
-						ccxt.PanicOnError(response)
-					} else if ccxt.IsTrue(isPortfolioMargin) {
-
-						response = (<-this.PapiPostListenKey(params))
-						ccxt.PanicOnError(response)
-						params = this.Extend(params, map[string]any{
-							"portfolioMargin": true,
-						})
-					} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
-
-						response = (<-this.FapiPrivatePostListenKey(params))
-						ccxt.PanicOnError(response)
-					} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "delivery")) {
-
-						response = (<-this.DapiPrivatePostListenKey(params))
-						ccxt.PanicOnError(response)
-					} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-
-						response = (<-this.EapiPrivatePostListenKey(params))
-						ccxt.PanicOnError(response)
-					} else {
-
-						response = (<-this.PublicPostUserDataStream(params))
-						ccxt.PanicOnError(response)
-					}
-					var listenKey any = this.SafeString(response, "listenKey")
-					if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
-						panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
-					}
-					ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
-						"listenKey":             listenKey,
-						"lastAuthenticatedTime": time,
-					}))
-					// hoisted out of the delay call: the transpilers garble an inline
-					// dict literal nested inside a delay argument
-					var delayParams any = params
-					if ccxt.IsTrue(isStock) {
-						delayParams = this.Extend(params, map[string]any{
-							"type":        "stock",
-							"defaultType": "stock",
-						})
-					}
-					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, delayParams)
-					// settle the flight: client.resolve () removes the future from
-					// client.futures and wakes every waiter
-					client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
-					return nil
-				}(this)
-
-			}
-
-			retRes311112 := <-future.(*ccxt.Future).Await()
-			ccxt.PanicOnError(retRes311112)
-		}
-		return nil
-	}()
-	return ch
-}
-func (this *BinanceCore) KeepAliveListenKey(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		// https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var typeVar any = this.SafeString2(this.Options, "defaultType", "authenticate", "spot")
-		typeVar = this.SafeString(params, "type", typeVar)
-		var isPortfolioMargin any = nil
-		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "keepAliveListenKey", "papi", "portfolioMargin", false)
-		isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
-		params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
-		var subTypeInfo any = this.HandleSubTypeAndParams("keepAliveListenKey", nil, params)
-		var subType any = ccxt.GetValue(subTypeInfo, 0)
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "option")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "stock"))) {
-			// guard options first: isLinear returns true for linear-settled options (subType='linear')
-			// which would incorrectly convert type='option' to 'future'.
-			// stock needs the same exemption: with a defaultSubType of 'linear' -
-			// always on binanceusdm, common on mixed instances - isLinear keys off
-			// subType alone and would flip 'stock' to 'future' - the stock branch
-			// below would never run, and the bucket lookup would renew the
-			// FUTURES listen key while the stock key silently expires
-			if ccxt.IsTrue(this.IsLinear(typeVar, subType)) {
-				typeVar = "future"
-			} else if ccxt.IsTrue(this.IsInverse(typeVar, subType)) {
-				typeVar = "delivery"
-			}
-		}
-		// For margin, token renewal is handled by renewListenToken method
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) {
-
-			return nil
-		}
-		var isStock any = (ccxt.IsEqual(typeVar, "stock"))
-		var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
-		var listenKey any = this.SafeString(options, "listenKey")
-		if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
-
-			return nil
-		}
-		var request any = map[string]any{}
-		params = this.Omit(params, []any{"type", "symbol"})
-		var time any = this.Milliseconds()
+		client.(ccxt.ClientInterface).Future(messageHash) // created ahead of the request below, so concurrent callers can find it
 
 		{
 			func(this *BinanceCore) (ret_ any) {
 				defer func() {
-					if error := recover(); error != nil {
-						if error == "break" {
+					if e := recover(); e != nil {
+						if e == "break" {
 							return
 						}
 						ret_ = func(this *BinanceCore) any {
 							// catch block:
-							var url any = nil
-							if ccxt.IsTrue(isStock) {
-								// the stock user stream lives on a fixed url and subscribes to
-								// listenKey@orderReport, so the client is addressable without the key
-								url = this.GetStockWsUrl("user")
-							} else {
-								var urlType any = typeVar
-								if ccxt.IsTrue(isPortfolioMargin) {
-									urlType = "papi"
-								}
-								if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-									urlType = "optionPrivate"
-								}
-								var cachedListenKey any = ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey")
-								url = this.GetPrivateWsUrl(urlType, cachedListenKey)
-							}
-							var client any = this.Client(url)
-							var messageHashes any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
-							for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
-								var messageHash any = ccxt.GetValue(messageHashes, i)
-								client.(ccxt.ClientInterface).Reject(error, messageHash)
-							}
-							ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
-								"listenKey":             nil,
+							ccxt.AddElementToObject(this.Options, marketType, this.Extend(options, map[string]any{
 								"lastAuthenticatedTime": 0,
 							}))
-
-							return nil
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							panic(e)
 
 						}(this)
 					}
 				}()
 				// try block:
-				if ccxt.IsTrue(isStock) {
-					// the equity endpoint is create-or-renew: with an active key this
-					// POST extends the validity of that same key
-					var requestParams any = this.Omit(params, []any{"stock", "name", "callerMethodName", "subType", "timeframe"})
+				// Step 1: Create listenToken via REST API
+				var symbol any = this.SafeString(params, "symbol")
+				var isIsolated any = this.SafeBool(params, "isIsolated", false)
+				var validity any = this.SafeInteger(params, "validity")
+				var request any = map[string]any{}
+				if ccxt.IsTrue(isIsolated) {
+					if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+						panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " ensureUserDataStreamWsSubscribeListenToken() requires a symbol argument for isolated margin mode")))
+					}
+					var marketId any = this.MarketId(symbol)
+					ccxt.AddElementToObject(request, "symbol", marketId)
+					ccxt.AddElementToObject(request, "isIsolated", true)
+				}
+				if ccxt.IsTrue(!ccxt.IsEqual(validity, nil)) {
+					ccxt.AddElementToObject(request, "validity", validity)
+				}
 
-					retRes315916 := (<-this.SapiPostEquityListenKey(requestParams))
-					ccxt.PanicOnError(retRes315916)
+				response := (<-this.SapiPostUserListenToken(request))
+				ccxt.PanicOnError(response)
+				var listenToken any = this.SafeString(response, "token")
+				if ccxt.IsTrue(ccxt.IsEqual(listenToken, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " ensureUserDataStreamWsSubscribeListenToken() failed to obtain a listenToken")))
+				}
+				var expirationTime any = this.SafeInteger(response, "expirationTime")
+				// Step 2: Subscribe to user data stream via WebSocket API
+				var requestId any = this.RequestId(url)
+				var requestHash any = ccxt.ToString(requestId)
+				var message any = map[string]any{
+					"id":     requestHash,
+					"method": "userDataStream.subscribe.listenToken",
+					"params": map[string]any{
+						"listenToken": listenToken,
+					},
+				}
+				var subscription any = map[string]any{
+					"id":           requestHash,
+					"method":       this.HandleUserDataStreamSubscribe,
+					"subscription": marketType,
+				}
+
+				retRes296216 := (<-this.Watch(url, requestHash, message, requestHash, subscription))
+				ccxt.PanicOnError(retRes296216)
+				ccxt.AddElementToObject(this.Options, marketType, this.Extend(options, map[string]any{
+					"listenToken":           listenToken,
+					"expirationTime":        expirationTime,
+					"lastAuthenticatedTime": time,
+					"symbol":                symbol,
+					"isIsolated":            isIsolated,
+					"validity":              validity,
+				}))
+				// Schedule token renewal before expiration
+				if ccxt.IsTrue(!ccxt.IsEqual(expirationTime, nil)) {
+					var renewalTime any = ccxt.Subtract(ccxt.Subtract(expirationTime, time), 60000) // Renew 1 minute before expiration
+					if ccxt.IsTrue(ccxt.IsGreaterThan(renewalTime, 0)) {
+						var extendedParams any = this.Extend(params, map[string]any{
+							"type": marketType,
+						})
+						this.Delay(renewalTime, this.RenewListenToken, extendedParams)
+					}
+				}
+				client.(ccxt.ClientInterface).Resolve(listenToken, messageHash)
+				return nil
+			}(this)
+
+		}
+	}
+	return nil
+}
+func (this *BinanceCore) RenewListenToken(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.renewListenTokenBody(ch, optionalArgs...)
+	return ch
+}
+func (this *BinanceCore) renewListenTokenBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var typeVar any = this.SafeString(params, "type", "margin")
+	var options any = this.SafeDict(this.Options, typeVar, map[string]any{})
+	var symbol any = this.SafeString(options, "symbol")
+	var isIsolated any = this.SafeBool(options, "isIsolated", false)
+	var validity any = this.SafeInteger(options, "validity")
+	var renewParams any = map[string]any{}
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		ccxt.AddElementToObject(renewParams, "symbol", symbol)
+	}
+	if ccxt.IsTrue(isIsolated) {
+		ccxt.AddElementToObject(renewParams, "isIsolated", isIsolated)
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(validity, nil)) {
+		ccxt.AddElementToObject(renewParams, "validity", validity)
+	}
+
+	retRes30068 := (<-this.EnsureUserDataStreamWsSubscribeListenToken(typeVar, renewParams))
+	ccxt.PanicOnError(retRes30068)
+	return nil
+}
+func (this *BinanceCore) Authenticate(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, optionalArgs...)
+	return ch
+}
+func (this *BinanceCore) authenticateBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var time any = this.Milliseconds()
+	var resolvedAuth any = this.ResolveAuthType("authenticate", nil, params)
+	var typeVar any = ccxt.GetValue(resolvedAuth, 0)
+	params = ccxt.GetValue(resolvedAuth, 2)
+	var isPortfolioMargin any = nil
+	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "authenticate", "papi", "portfolioMargin", false)
+	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
+	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
+	// For spot use WebSocket API signature subscription
+	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
+
+		retRes301812 := (<-this.EnsureUserDataStreamWsSubscribeSignature("spot"))
+		ccxt.PanicOnError(retRes301812)
+
+		return nil
+	}
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("authenticate", params)
+	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
+	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	var isIsolatedMargin any = (ccxt.IsEqual(marginMode, "isolated"))
+	var symbol any = this.SafeString(params, "symbol")
+	// For margin use WebSocket API listenToken subscription
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) || ccxt.IsTrue(isIsolatedMargin)) {
+		var marginParams any = map[string]any{}
+		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+			ccxt.AddElementToObject(marginParams, "symbol", symbol)
+		}
+		if ccxt.IsTrue(isIsolatedMargin) {
+			ccxt.AddElementToObject(marginParams, "isIsolated", true)
+		}
+
+		retRes303412 := (<-this.EnsureUserDataStreamWsSubscribeListenToken("margin", marginParams))
+		ccxt.PanicOnError(retRes303412)
+
+		return nil
+	}
+	params = this.Omit(params, "symbol")
+	var isStock any = (ccxt.IsEqual(typeVar, "stock"))
+	var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
+	var lastAuthenticatedTime any = this.SafeInteger(options, "lastAuthenticatedTime", 0)
+	var refreshRateKey any = ccxt.Ternary(ccxt.IsTrue(isStock), "stockListenKeyRefreshRate", "listenKeyRefreshRate")
+	var listenKeyRefreshRate any = this.SafeInteger(this.Options, refreshRateKey, 1200000)
+	var delay any = this.Sum(listenKeyRefreshRate, 10000)
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
+		// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+		// the flight is registered on a never-dialed client because the
+		// user-data url embeds the listenKey, so no real client exists
+		// before the fetch and no listenKey-free parking url is needed.
+		// client.futures is the registry: client.future () is the atomic
+		// check-and-insert and client.resolve () / client.reject () settle
+		// and remove the entry under the same lock in every port
+		var messageHash any = ccxt.Add("authenticate:", typeVar)
+		var client any = this.Client("authenticationFlights")
+		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+			// a flight is already in progress - wake when the leader
+			// settles it: the listenKey is then in the bucket
+
+			retRes305716 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes305716)
+
+			return nil
+		}
+		// reusableFuture (), not future () - the two match in
+		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
+		// that the trailing suspension point below would panic on
+		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+
+		{
+			func(this *BinanceCore) (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
+						}
+						ret_ = func(this *BinanceCore) any {
+							// catch block:
+							// reject the flight - waiters throw and the next caller re-leads.
+							// no rethrow here, the trailing suspension point rethrows to this
+							// caller AND attaches the handler an alone leader needs
+							client.(ccxt.ClientInterface).Reject(e, messageHash)
+							return nil
+						}(this)
+					}
+				}()
+				// try block:
+				var response any = nil
+				if ccxt.IsTrue(isStock) {
+					var requestParams any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
+
+					response = (<-this.SapiPostEquityListenKey(requestParams))
+					ccxt.PanicOnError(response)
 				} else if ccxt.IsTrue(isPortfolioMargin) {
 
-					retRes316116 := (<-this.PapiPutListenKey(this.Extend(request, params)))
-					ccxt.PanicOnError(retRes316116)
+					response = (<-this.PapiPostListenKey(params))
+					ccxt.PanicOnError(response)
 					params = this.Extend(params, map[string]any{
 						"portfolioMargin": true,
 					})
 				} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
 
-					retRes316416 := (<-this.FapiPrivatePutListenKey(this.Extend(request, params)))
-					ccxt.PanicOnError(retRes316416)
+					response = (<-this.FapiPrivatePostListenKey(params))
+					ccxt.PanicOnError(response)
 				} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "delivery")) {
 
-					retRes316616 := (<-this.DapiPrivatePutListenKey(this.Extend(request, params)))
-					ccxt.PanicOnError(retRes316616)
+					response = (<-this.DapiPrivatePostListenKey(params))
+					ccxt.PanicOnError(response)
 				} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
 
-					retRes316816 := (<-this.EapiPrivatePutListenKey(this.Extend(request, params)))
-					ccxt.PanicOnError(retRes316816)
+					response = (<-this.EapiPrivatePostListenKey(params))
+					ccxt.PanicOnError(response)
 				} else {
-					ccxt.AddElementToObject(request, "listenKey", listenKey)
 
-					retRes317116 := (<-this.PublicPutUserDataStream(this.Extend(request, params)))
-					ccxt.PanicOnError(retRes317116)
+					response = (<-this.PublicPostUserDataStream(params))
+					ccxt.PanicOnError(response)
 				}
+				var listenKey any = this.SafeString(response, "listenKey")
+				if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+					panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " authenticate() received an empty listenKey")))
+				}
+				ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
+					"listenKey":             listenKey,
+					"lastAuthenticatedTime": time,
+				}))
+				// hoisted out of the delay call: the transpilers garble an inline
+				// dict literal nested inside a delay argument
+				var delayParams any = params
+				if ccxt.IsTrue(isStock) {
+					delayParams = this.Extend(params, map[string]any{
+						"type":        "stock",
+						"defaultType": "stock",
+					})
+				}
+				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, delayParams)
+				// settle the flight: client.resolve () removes the future from
+				// client.futures and wakes every waiter
+				client.(ccxt.ClientInterface).Resolve(listenKey, messageHash)
 				return nil
 			}(this)
 
 		}
-		ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
-			"listenKey":             listenKey,
-			"lastAuthenticatedTime": time,
-		}))
-		// whether or not to schedule another listenKey keepAlive request
-		var clients any = ccxt.ObjectValues(this.Clients)
-		var refreshRateKey any = ccxt.Ternary(ccxt.IsTrue(isStock), "stockListenKeyRefreshRate", "listenKeyRefreshRate")
-		var listenKeyRefreshRate any = this.SafeInteger(this.Options, refreshRateKey, 1200000)
-		var delayParams any = params
-		if ccxt.IsTrue(isStock) {
-			// params had type omitted above - restore it so the next cycle routes back here
-			delayParams = this.Extend(params, map[string]any{
-				"type": "stock",
-			})
-		}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(clients)); i++ {
-			var client any = ccxt.GetValue(clients, i)
-			var clientSubscriptions any = this.SafeDict(client, "subscriptions", map[string]any{})
-			var subscriptionKeys any = ccxt.ObjectKeys(clientSubscriptions)
-			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(subscriptionKeys)); j++ {
-				var subscribeType any = ccxt.GetValue(subscriptionKeys, j)
-				if ccxt.IsTrue(ccxt.IsEqual(subscribeType, typeVar)) {
-					this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, delayParams)
 
-					return nil
+		retRes311112 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes311112)
+	}
+	return nil
+}
+func (this *BinanceCore) KeepAliveListenKey(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.keepAliveListenKeyBody(ch, optionalArgs...)
+	return ch
+}
+func (this *BinanceCore) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	// https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var typeVar any = this.SafeString2(this.Options, "defaultType", "authenticate", "spot")
+	typeVar = this.SafeString(params, "type", typeVar)
+	var isPortfolioMargin any = nil
+	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "keepAliveListenKey", "papi", "portfolioMargin", false)
+	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
+	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
+	var subTypeInfo any = this.HandleSubTypeAndParams("keepAliveListenKey", nil, params)
+	var subType any = ccxt.GetValue(subTypeInfo, 0)
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "option")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "stock"))) {
+		// guard options first: isLinear returns true for linear-settled options (subType='linear')
+		// which would incorrectly convert type='option' to 'future'.
+		// stock needs the same exemption: with a defaultSubType of 'linear' -
+		// always on binanceusdm, common on mixed instances - isLinear keys off
+		// subType alone and would flip 'stock' to 'future' - the stock branch
+		// below would never run, and the bucket lookup would renew the
+		// FUTURES listen key while the stock key silently expires
+		if ccxt.IsTrue(this.IsLinear(typeVar, subType)) {
+			typeVar = "future"
+		} else if ccxt.IsTrue(this.IsInverse(typeVar, subType)) {
+			typeVar = "delivery"
+		}
+	}
+	// For margin, token renewal is handled by renewListenToken method
+	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) {
+
+		return nil
+	}
+	var isStock any = (ccxt.IsEqual(typeVar, "stock"))
+	var options any = this.SafeValue(this.Options, typeVar, map[string]any{})
+	var listenKey any = this.SafeString(options, "listenKey")
+	if ccxt.IsTrue(ccxt.IsEqual(listenKey, nil)) {
+
+		return nil
+	}
+	var request any = map[string]any{}
+	params = this.Omit(params, []any{"type", "symbol"})
+	var time any = this.Milliseconds()
+
+	{
+		func(this *BinanceCore) (ret_ any) {
+			defer func() {
+				if error := recover(); error != nil {
+					if error == "break" {
+						return
+					}
+					ret_ = func(this *BinanceCore) any {
+						// catch block:
+						var url any = nil
+						if ccxt.IsTrue(isStock) {
+							// the stock user stream lives on a fixed url and subscribes to
+							// listenKey@orderReport, so the client is addressable without the key
+							url = this.GetStockWsUrl("user")
+						} else {
+							var urlType any = typeVar
+							if ccxt.IsTrue(isPortfolioMargin) {
+								urlType = "papi"
+							}
+							if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+								urlType = "optionPrivate"
+							}
+							var cachedListenKey any = ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey")
+							url = this.GetPrivateWsUrl(urlType, cachedListenKey)
+						}
+						var client any = this.Client(url)
+						var messageHashes any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+						for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
+							var messageHash any = ccxt.GetValue(messageHashes, i)
+							client.(ccxt.ClientInterface).Reject(error, messageHash)
+						}
+						ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
+							"listenKey":             nil,
+							"lastAuthenticatedTime": 0,
+						}))
+
+						return nil
+
+					}(this)
 				}
+			}()
+			// try block:
+			if ccxt.IsTrue(isStock) {
+				// the equity endpoint is create-or-renew: with an active key this
+				// POST extends the validity of that same key
+				var requestParams any = this.Omit(params, []any{"stock", "name", "callerMethodName", "subType", "timeframe"})
+
+				retRes315916 := (<-this.SapiPostEquityListenKey(requestParams))
+				ccxt.PanicOnError(retRes315916)
+			} else if ccxt.IsTrue(isPortfolioMargin) {
+
+				retRes316116 := (<-this.PapiPutListenKey(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes316116)
+				params = this.Extend(params, map[string]any{
+					"portfolioMargin": true,
+				})
+			} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
+
+				retRes316416 := (<-this.FapiPrivatePutListenKey(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes316416)
+			} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "delivery")) {
+
+				retRes316616 := (<-this.DapiPrivatePutListenKey(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes316616)
+			} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+
+				retRes316816 := (<-this.EapiPrivatePutListenKey(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes316816)
+			} else {
+				ccxt.AddElementToObject(request, "listenKey", listenKey)
+
+				retRes317116 := (<-this.PublicPutUserDataStream(this.Extend(request, params)))
+				ccxt.PanicOnError(retRes317116)
+			}
+			return nil
+		}(this)
+
+	}
+	ccxt.AddElementToObject(this.Options, typeVar, this.Extend(options, map[string]any{
+		"listenKey":             listenKey,
+		"lastAuthenticatedTime": time,
+	}))
+	// whether or not to schedule another listenKey keepAlive request
+	var clients any = ccxt.ObjectValues(this.Clients)
+	var refreshRateKey any = ccxt.Ternary(ccxt.IsTrue(isStock), "stockListenKeyRefreshRate", "listenKeyRefreshRate")
+	var listenKeyRefreshRate any = this.SafeInteger(this.Options, refreshRateKey, 1200000)
+	var delayParams any = params
+	if ccxt.IsTrue(isStock) {
+		// params had type omitted above - restore it so the next cycle routes back here
+		delayParams = this.Extend(params, map[string]any{
+			"type": "stock",
+		})
+	}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(clients)); i++ {
+		var client any = ccxt.GetValue(clients, i)
+		var clientSubscriptions any = this.SafeDict(client, "subscriptions", map[string]any{})
+		var subscriptionKeys any = ccxt.ObjectKeys(clientSubscriptions)
+		for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(subscriptionKeys)); j++ {
+			var subscribeType any = ccxt.GetValue(subscriptionKeys, j)
+			if ccxt.IsTrue(ccxt.IsEqual(subscribeType, typeVar)) {
+				this.Delay(listenKeyRefreshRate, this.KeepAliveListenKey, delayParams)
+
+				return nil
 			}
 		}
-		return nil
-	}()
-	return ch
+	}
+	return nil
 }
 func (this *BinanceCore) SetBalanceCache(client any, typeVar any, optionalArgs ...any) {
 	isPortfolioMargin := ccxt.GetArg(optionalArgs, 0, false)
@@ -4021,29 +4027,30 @@ func (this *BinanceCore) SetBalanceCache(client any, typeVar any, optionalArgs .
 	}
 }
 func (this *BinanceCore) LoadBalanceSnapshot(client any, messageHash any, typeVar any, isPortfolioMargin any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		var params any = map[string]any{
-			"type": typeVar,
-		}
-		if ccxt.IsTrue(isPortfolioMargin) {
-			ccxt.AddElementToObject(params, "portfolioMargin", true)
-		}
-
-		response := (<-this.FetchBalance(params))
-		ccxt.PanicOnError(response)
-		ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
-		// don't remove the future from the .futures cache
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-			var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-			future.(*ccxt.Future).Resolve()
-			client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, isPortfolioMargin)
 	return ch
+}
+func (this *BinanceCore) loadBalanceSnapshotBody(ch chan any, client any, messageHash any, typeVar any, isPortfolioMargin any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params any = map[string]any{
+		"type": typeVar,
+	}
+	if ccxt.IsTrue(isPortfolioMargin) {
+		ccxt.AddElementToObject(params, "portfolioMargin", true)
+	}
+
+	response := (<-this.FetchBalance(params))
+	ccxt.PanicOnError(response)
+	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeValue(this.Balance, typeVar, map[string]any{})))
+	// don't remove the future from the .futures cache
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		future.(*ccxt.Future).Resolve()
+		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+	}
+	return nil
 }
 
 /**
@@ -4061,51 +4068,51 @@ func (this *BinanceCore) LoadBalanceSnapshot(client any, messageHash any, typeVa
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BinanceCore) FetchBalanceWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes327912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes327912)
-		}
-		var typeVar any = this.GetMarketType("fetchBalanceWs", nil, params)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "delivery"))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchBalanceWs only supports spot or swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchBalanceWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"returnRateLimits": returnRateLimits,
-		}
-		var method any = nil
-		methodparamsVariable := this.HandleOptionAndParams(params, "fetchBalanceWs", "method", "account.status")
-		method = ccxt.GetValue(methodparamsVariable, 0)
-		params = ccxt.GetValue(methodparamsVariable, 1)
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": method,
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(method, "account.status"))), this.HandleAccountStatusWs, this.HandleBalanceWs),
-		}
-
-		retRes330315 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes330315)
-		ch <- retRes330315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchBalanceWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes327912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes327912)
+	}
+	var typeVar any = this.GetMarketType("fetchBalanceWs", nil, params)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "delivery"))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchBalanceWs only supports spot or swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchBalanceWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"returnRateLimits": returnRateLimits,
+	}
+	var method any = nil
+	methodparamsVariable := this.HandleOptionAndParams(params, "fetchBalanceWs", "method", "account.status")
+	method = ccxt.GetValue(methodparamsVariable, 0)
+	params = ccxt.GetValue(methodparamsVariable, 1)
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": method,
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(method, "account.status"))), this.HandleAccountStatusWs, this.HandleBalanceWs),
+	}
+
+	retRes330315 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes330315)
+	ch <- retRes330315
+	return nil
 }
 func (this *BinanceCore) HandleBalanceWs(client any, message any) {
 	//
@@ -4186,20 +4193,20 @@ func (this *BinanceCore) HandleAccountStatusWs(client any, message any) {
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BinanceCore) FetchPositionWs(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes338615 := (<-this.FetchPositionsWs([]any{symbol}, params))
-		ccxt.PanicOnError(retRes338615)
-		ch <- retRes338615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionWsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchPositionWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes338615 := (<-this.FetchPositionsWs([]any{symbol}, params))
+	ccxt.PanicOnError(retRes338615)
+	ch <- retRes338615
+	return nil
 }
 
 /**
@@ -4215,67 +4222,67 @@ func (this *BinanceCore) FetchPositionWs(symbol any, optionalArgs ...any) <-chan
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *BinanceCore) FetchPositionsWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes340312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes340312)
-		}
-		var payload any = map[string]any{}
-		var market any = nil
-		symbols = this.MarketSymbols(symbols, "swap", true, true, true)
-		if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
-			var symbolsLength any = ccxt.GetArrayLength(symbols)
-			if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 1)) {
-				market = this.Market(ccxt.GetValue(symbols, 0))
-				ccxt.AddElementToObject(payload, "symbol", ccxt.GetValue(market, "id"))
-			}
-		}
-		var typeVar any = this.GetMarketType("fetchPositionsWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) && ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot")))) {
-			// when symbols aren't provide
-			// we shouldn't rely on the defaultType
-			typeVar = "future"
-		}
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "delivery"))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchPositionsWs only supports swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
-		var method any = nil
-		methodparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsWs", "method", "account.position")
-		method = ccxt.GetValue(methodparamsVariable, 0)
-		params = ccxt.GetValue(methodparamsVariable, 1)
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": method,
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandlePositionsWs,
-		}
-
-		result := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(result)
-
-		ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchPositionsWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes340312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes340312)
+	}
+	var payload any = map[string]any{}
+	var market any = nil
+	symbols = this.MarketSymbols(symbols, "swap", true, true, true)
+	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
+		var symbolsLength any = ccxt.GetArrayLength(symbols)
+		if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 1)) {
+			market = this.Market(ccxt.GetValue(symbols, 0))
+			ccxt.AddElementToObject(payload, "symbol", ccxt.GetValue(market, "id"))
+		}
+	}
+	var typeVar any = this.GetMarketType("fetchPositionsWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) && ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot")))) {
+		// when symbols aren't provide
+		// we shouldn't rely on the defaultType
+		typeVar = "future"
+	}
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "delivery"))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchPositionsWs only supports swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	var method any = nil
+	methodparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsWs", "method", "account.position")
+	method = ccxt.GetValue(methodparamsVariable, 0)
+	params = ccxt.GetValue(methodparamsVariable, 1)
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": method,
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandlePositionsWs,
+	}
+
+	result := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(result)
+
+	ch <- this.FilterByArrayPositions(result, "symbol", symbols, false)
+	return nil
 }
 func (this *BinanceCore) HandlePositionsWs(client any, message any) {
 	//
@@ -4330,75 +4337,75 @@ func (this *BinanceCore) HandlePositionsWs(client any, message any) {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BinanceCore) WatchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes349812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes349812)
-		}
-		// derive BEFORE authenticating and pass the result in: authenticate
-		// re-derives from its own method scope, so without this a method-scoped
-		// options.watchBalance.type seeds one bucket while the read below
-		// indexes another - the same derive-first shape watchOrders uses
-		var typeVar any = nil
-		var subType any = nil
-		typeVarsubTypeparamsVariable := this.ResolveAuthType("watchBalance", nil, params)
-		typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
-		subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
-		params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
-
-		retRes35078 := (<-this.Authenticate(this.Extend(map[string]any{
-			"type":    typeVar,
-			"subType": subType,
-		}, params)))
-		ccxt.PanicOnError(retRes35078)
-		var isPortfolioMargin any = nil
-		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchBalance", "papi", "portfolioMargin", false)
-		isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
-		params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
-		var url any = ""
-		var urlType any = typeVar
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
-			// route to WebSocket API connection where the user data stream is subscribed
-			url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
-		} else {
-			if ccxt.IsTrue(isPortfolioMargin) {
-				urlType = "papi"
-			} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-				var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
-				if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
-					panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchBalance() does not support option markets in demo/testnet mode")))
-				}
-				urlType = "optionPrivate"
-			}
-			url = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
-		}
-		var client any = this.Client(url)
-		this.SetBalanceCache(client, typeVar, isPortfolioMargin)
-		this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
-		var options any = this.SafeDict(this.Options, "watchBalance")
-		var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
-		var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
-		if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
-
-			retRes353412 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-			ccxt.PanicOnError(retRes353412)
-		}
-		var messageHash any = ccxt.Add(typeVar, ":balance")
-		var message any = nil
-
-		retRes353815 := (<-this.Watch(url, messageHash, message, typeVar))
-		ccxt.PanicOnError(retRes353815)
-		ch <- retRes353815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes349812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes349812)
+	}
+	// derive BEFORE authenticating and pass the result in: authenticate
+	// re-derives from its own method scope, so without this a method-scoped
+	// options.watchBalance.type seeds one bucket while the read below
+	// indexes another - the same derive-first shape watchOrders uses
+	var typeVar any = nil
+	var subType any = nil
+	typeVarsubTypeparamsVariable := this.ResolveAuthType("watchBalance", nil, params)
+	typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
+	subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
+	params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
+
+	retRes35078 := (<-this.Authenticate(this.Extend(map[string]any{
+		"type":    typeVar,
+		"subType": subType,
+	}, params)))
+	ccxt.PanicOnError(retRes35078)
+	var isPortfolioMargin any = nil
+	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchBalance", "papi", "portfolioMargin", false)
+	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
+	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
+	var url any = ""
+	var urlType any = typeVar
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
+		// route to WebSocket API connection where the user data stream is subscribed
+		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
+	} else {
+		if ccxt.IsTrue(isPortfolioMargin) {
+			urlType = "papi"
+		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+			var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
+			if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
+				panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchBalance() does not support option markets in demo/testnet mode")))
+			}
+			urlType = "optionPrivate"
+		}
+		url = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
+	}
+	var client any = this.Client(url)
+	this.SetBalanceCache(client, typeVar, isPortfolioMargin)
+	this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
+	var options any = this.SafeDict(this.Options, "watchBalance")
+	var fetchBalanceSnapshot any = this.SafeBool(options, "fetchBalanceSnapshot", false)
+	var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
+	if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
+
+		retRes353412 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+		ccxt.PanicOnError(retRes353412)
+	}
+	var messageHash any = ccxt.Add(typeVar, ":balance")
+	var message any = nil
+
+	retRes353815 := (<-this.Watch(url, messageHash, message, typeVar))
+	ccxt.PanicOnError(retRes353815)
+	ch <- retRes353815
+	return nil
 }
 func (this *BinanceCore) HandleBalance(client any, message any) {
 	//
@@ -4599,76 +4606,76 @@ func (this *BinanceCore) GetMarketType(method any, market any, optionalArgs ...a
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		price := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes373012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes373012)
-		}
-		var market any = this.Market(symbol)
-		var marketType any = this.GetMarketType("createOrderWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "delivery"))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " createOrderWs only supports spot or swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var sor any = this.SafeBool2(params, "sor", "SOR", false)
-		params = this.Omit(params, "sor", "SOR")
-		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
-		var stopLossPrice any = this.SafeString(params, "stopLossPrice", triggerPrice)
-		var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
-		var trailingDelta any = this.SafeString(params, "trailingDelta")
-		var trailingPercent any = this.SafeStringN(params, []any{"trailingPercent", "callbackRate", "trailingDelta"})
-		var isTrailingPercentOrder any = !ccxt.IsEqual(trailingPercent, nil)
-		var isStopLoss any = ccxt.IsTrue(!ccxt.IsEqual(stopLossPrice, nil)) || ccxt.IsTrue(!ccxt.IsEqual(trailingDelta, nil))
-		var isTakeProfit any = !ccxt.IsEqual(takeProfitPrice, nil)
-		var isTriggerOrder any = !ccxt.IsEqual(triggerPrice, nil)
-		var isConditional any = ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(isTriggerOrder) || ccxt.IsTrue(isTrailingPercentOrder)) || ccxt.IsTrue(isStopLoss)) || ccxt.IsTrue(isTakeProfit)
-		var payload any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "createOrderWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
-		var test any = this.SafeBool(params, "test", false)
-		params = this.Omit(params, "test")
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.GetValue(market, "linear")) && ccxt.IsTrue(ccxt.GetValue(market, "swap"))) && ccxt.IsTrue(isConditional)) {
-			ccxt.AddElementToObject(payload, "algoType", "CONDITIONAL")
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "order.place",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		if ccxt.IsTrue(test) {
-			if ccxt.IsTrue(sor) {
-				ccxt.AddElementToObject(message, "method", "sor.order.test")
-			} else {
-				ccxt.AddElementToObject(message, "method", "order.test")
-			}
-		}
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.GetValue(market, "linear")) && ccxt.IsTrue(ccxt.GetValue(market, "swap"))) && ccxt.IsTrue(isConditional)) {
-			ccxt.AddElementToObject(message, "method", "algoOrder.place")
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleOrderWs,
-		}
-
-		retRes377915 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes377915)
-		ch <- retRes377915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderWsBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) createOrderWsBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	price := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes373012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes373012)
+	}
+	var market any = this.Market(symbol)
+	var marketType any = this.GetMarketType("createOrderWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "delivery"))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " createOrderWs only supports spot or swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var sor any = this.SafeBool2(params, "sor", "SOR", false)
+	params = this.Omit(params, "sor", "SOR")
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var stopLossPrice any = this.SafeString(params, "stopLossPrice", triggerPrice)
+	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
+	var trailingDelta any = this.SafeString(params, "trailingDelta")
+	var trailingPercent any = this.SafeStringN(params, []any{"trailingPercent", "callbackRate", "trailingDelta"})
+	var isTrailingPercentOrder any = !ccxt.IsEqual(trailingPercent, nil)
+	var isStopLoss any = ccxt.IsTrue(!ccxt.IsEqual(stopLossPrice, nil)) || ccxt.IsTrue(!ccxt.IsEqual(trailingDelta, nil))
+	var isTakeProfit any = !ccxt.IsEqual(takeProfitPrice, nil)
+	var isTriggerOrder any = !ccxt.IsEqual(triggerPrice, nil)
+	var isConditional any = ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(isTriggerOrder) || ccxt.IsTrue(isTrailingPercentOrder)) || ccxt.IsTrue(isStopLoss)) || ccxt.IsTrue(isTakeProfit)
+	var payload any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "createOrderWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	var test any = this.SafeBool(params, "test", false)
+	params = this.Omit(params, "test")
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.GetValue(market, "linear")) && ccxt.IsTrue(ccxt.GetValue(market, "swap"))) && ccxt.IsTrue(isConditional)) {
+		ccxt.AddElementToObject(payload, "algoType", "CONDITIONAL")
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "order.place",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	if ccxt.IsTrue(test) {
+		if ccxt.IsTrue(sor) {
+			ccxt.AddElementToObject(message, "method", "sor.order.test")
+		} else {
+			ccxt.AddElementToObject(message, "method", "order.test")
+		}
+	}
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.GetValue(market, "linear")) && ccxt.IsTrue(ccxt.GetValue(market, "swap"))) && ccxt.IsTrue(isConditional)) {
+		ccxt.AddElementToObject(message, "method", "algoOrder.place")
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleOrderWs,
+	}
+
+	retRes377915 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes377915)
+	ch <- retRes377915
+	return nil
 }
 func (this *BinanceCore) HandleOrderWs(client any, message any) {
 	//
@@ -4784,57 +4791,57 @@ func (this *BinanceCore) HandleOrdersWs(client any, message any) {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) EditOrderWs(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		amount := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes389812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes389812)
-		}
-		var market any = this.Market(symbol)
-		var marketType any = this.GetMarketType("editOrderWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "delivery"))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " editOrderWs only supports spot or swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var isSwap any = (ccxt.IsTrue(ccxt.IsEqual(marketType, "future")) || ccxt.IsTrue(ccxt.IsEqual(marketType, "delivery")))
-		var payload any = map[string]any{}
-		if ccxt.IsTrue(ccxt.IsEqual(marketType, "spot")) {
-			payload = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
-		} else {
-			payload = this.EditContractOrderRequest(id, symbol, typeVar, side, amount, price, params)
-		}
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "editOrderWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": ccxt.Ternary(ccxt.IsTrue((isSwap)), "order.modify", "order.cancelReplace"),
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleEditOrderWs,
-		}
-
-		retRes392615 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes392615)
-		ch <- retRes392615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderWsBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) editOrderWsBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	amount := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes389812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes389812)
+	}
+	var market any = this.Market(symbol)
+	var marketType any = this.GetMarketType("editOrderWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(marketType, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(marketType, "delivery"))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " editOrderWs only supports spot or swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), marketType)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var isSwap any = (ccxt.IsTrue(ccxt.IsEqual(marketType, "future")) || ccxt.IsTrue(ccxt.IsEqual(marketType, "delivery")))
+	var payload any = map[string]any{}
+	if ccxt.IsTrue(ccxt.IsEqual(marketType, "spot")) {
+		payload = this.EditSpotOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	} else {
+		payload = this.EditContractOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	}
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "editOrderWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	ccxt.AddElementToObject(payload, "returnRateLimits", returnRateLimits)
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": ccxt.Ternary(ccxt.IsTrue((isSwap)), "order.modify", "order.cancelReplace"),
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleEditOrderWs,
+	}
+
+	retRes392615 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes392615)
+	ch <- retRes392615
+	return nil
 }
 func (this *BinanceCore) HandleEditOrderWs(client any, message any) {
 	//
@@ -4963,71 +4970,71 @@ func (this *BinanceCore) HandleEditOrderWs(client any, message any) {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) CancelOrderWs(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes405712 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes405712)
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs requires a symbol")))
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("cancelOrderWs", market, params)
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "cancelOrderWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-		}
-		var isConditional any = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
-		var clientOrderId any = this.SafeStringN(params, []any{"clientAlgoId", "origClientOrderId", "clientOrderId"})
-		var shouldUseAlgoOrder any = ccxt.IsTrue(ccxt.IsTrue(ccxt.GetValue(market, "linear")) && ccxt.IsTrue(ccxt.GetValue(market, "swap"))) && ccxt.IsTrue(isConditional)
-		if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
-			if ccxt.IsTrue(shouldUseAlgoOrder) {
-				ccxt.AddElementToObject(payload, "clientAlgoId", clientOrderId)
-			} else {
-				ccxt.AddElementToObject(payload, "origClientOrderId", clientOrderId)
-			}
-		} else {
-			if ccxt.IsTrue(shouldUseAlgoOrder) {
-				ccxt.AddElementToObject(payload, "algoId", this.NumberToString(id))
-			} else {
-				ccxt.AddElementToObject(payload, "orderId", this.NumberToString(id))
-			}
-		}
-		params = this.Omit(params, []any{"origClientOrderId", "clientOrderId", "stop", "trigger", "conditional"})
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "order.cancel",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		if ccxt.IsTrue(shouldUseAlgoOrder) {
-			ccxt.AddElementToObject(message, "method", "algoOrder.cancel")
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleOrderWs,
-		}
-
-		retRes410115 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes410115)
-		ch <- retRes410115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderWsBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes405712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes405712)
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs requires a symbol")))
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("cancelOrderWs", market, params)
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "cancelOrderWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+	}
+	var isConditional any = this.SafeBoolN(params, []any{"stop", "trigger", "conditional"})
+	var clientOrderId any = this.SafeStringN(params, []any{"clientAlgoId", "origClientOrderId", "clientOrderId"})
+	var shouldUseAlgoOrder any = ccxt.IsTrue(ccxt.IsTrue(ccxt.GetValue(market, "linear")) && ccxt.IsTrue(ccxt.GetValue(market, "swap"))) && ccxt.IsTrue(isConditional)
+	if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
+		if ccxt.IsTrue(shouldUseAlgoOrder) {
+			ccxt.AddElementToObject(payload, "clientAlgoId", clientOrderId)
+		} else {
+			ccxt.AddElementToObject(payload, "origClientOrderId", clientOrderId)
+		}
+	} else {
+		if ccxt.IsTrue(shouldUseAlgoOrder) {
+			ccxt.AddElementToObject(payload, "algoId", this.NumberToString(id))
+		} else {
+			ccxt.AddElementToObject(payload, "orderId", this.NumberToString(id))
+		}
+	}
+	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId", "stop", "trigger", "conditional"})
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "order.cancel",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	if ccxt.IsTrue(shouldUseAlgoOrder) {
+		ccxt.AddElementToObject(message, "method", "algoOrder.cancel")
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleOrderWs,
+	}
+
+	retRes410115 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes410115)
+	ch <- retRes410115
+	return nil
 }
 
 /**
@@ -5040,54 +5047,54 @@ func (this *BinanceCore) CancelOrderWs(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelAllOrdersWs() requires a symbol argument")))
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes411812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes411812)
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("cancelAllOrdersWs", market, params)
-		if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs only supports spot markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "openOrders.cancelAll",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleOrdersWs,
-		}
-
-		retRes414215 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes414215)
-		ch <- retRes414215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " cancelAllOrdersWs() requires a symbol argument")))
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes411812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes411812)
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("cancelAllOrdersWs", market, params)
+	if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelAllOrdersWs only supports spot markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "cancelAllOrdersWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "openOrders.cancelAll",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleOrdersWs,
+	}
+
+	retRes414215 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes414215)
+	ch <- retRes414215
+	return nil
 }
 
 /**
@@ -5103,60 +5110,60 @@ func (this *BinanceCore) CancelAllOrdersWs(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) FetchOrderWs(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes415912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes415912)
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs requires a symbol")))
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("fetchOrderWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "delivery"))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrderWs only supports spot or swap markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-		}
-		var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
-		if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
-			ccxt.AddElementToObject(payload, "origClientOrderId", clientOrderId)
-		} else {
-			ccxt.AddElementToObject(payload, "orderId", this.NumberToString(id))
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "order.status",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleOrderWs,
-		}
-
-		retRes419215 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(retRes419215)
-		ch <- retRes419215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderWsBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchOrderWsBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes415912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes415912)
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrderWs requires a symbol")))
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("fetchOrderWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "delivery"))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrderWs only supports spot or swap markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrderWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+	}
+	var clientOrderId any = this.SafeString2(params, "origClientOrderId", "clientOrderId")
+	if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
+		ccxt.AddElementToObject(payload, "origClientOrderId", clientOrderId)
+	} else {
+		ccxt.AddElementToObject(payload, "orderId", this.NumberToString(id))
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "order.status",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleOrderWs,
+	}
+
+	retRes419215 := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(retRes419215)
+	ch <- retRes419215
+	return nil
 }
 
 /**
@@ -5175,59 +5182,59 @@ func (this *BinanceCore) FetchOrderWs(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) FetchOrdersWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes421212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes421212)
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrdersWs requires a symbol")))
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("fetchOrdersWs", market, params)
-		if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrdersWs only supports spot markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "allOrders",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleOrdersWs,
-		}
-
-		orders := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(orders)
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchOrdersWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes421212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes421212)
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrdersWs requires a symbol")))
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("fetchOrdersWs", market, params)
+	if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOrdersWs only supports spot markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "allOrders",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleOrdersWs,
+	}
+
+	orders := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(orders)
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -5242,34 +5249,34 @@ func (this *BinanceCore) FetchOrdersWs(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) FetchClosedOrdersWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		orders := (<-this.FetchOrdersWs(symbol, since, limit, params))
-		ccxt.PanicOnError(orders)
-		var closedOrders any = []any{}
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
-			var order any = ccxt.GetValue(orders, i)
-			if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed")) {
-				ccxt.AppendToArray(&closedOrders, order)
-			}
-		}
-
-		ch <- closedOrders
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchClosedOrdersWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	orders := (<-this.FetchOrdersWs(symbol, since, limit, params))
+	ccxt.PanicOnError(orders)
+	var closedOrders any = []any{}
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
+		var order any = ccxt.GetValue(orders, i)
+		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(order, "status"), "closed")) {
+			ccxt.AppendToArray(&closedOrders, order)
+		}
+	}
+
+	ch <- closedOrders
+	return nil
 }
 
 /**
@@ -5284,58 +5291,58 @@ func (this *BinanceCore) FetchClosedOrdersWs(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) FetchOpenOrdersWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes427912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes427912)
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("fetchOpenOrdersWs", market, params)
-		if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrdersWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"returnRateLimits": returnRateLimits,
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			ccxt.AddElementToObject(payload, "symbol", this.MarketId(symbol))
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "openOrders.status",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleOrdersWs,
-		}
-
-		orders := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(orders)
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchOpenOrdersWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes427912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes427912)
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("fetchOpenOrdersWs", market, params)
+	if ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchOpenOrdersWs only supports spot markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrdersWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"returnRateLimits": returnRateLimits,
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		ccxt.AddElementToObject(payload, "symbol", this.MarketId(symbol))
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "openOrders.status",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleOrdersWs,
+	}
+
+	orders := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(orders)
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -5357,131 +5364,131 @@ func (this *BinanceCore) FetchOpenOrdersWs(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BinanceCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes432912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes432912)
-		}
-		var stock any = false
-		stockparamsVariable := this.HandleOptionAndParams(params, "watchOrders", "stock", false)
-		stock = ccxt.GetValue(stockparamsVariable, 0)
-		params = ccxt.GetValue(stockparamsVariable, 1)
-		if ccxt.IsTrue(stock) {
-			// literal on top: a stray type in the caller params must not override
-			// the forced stock, the removed authenticateStock ignored it entirely
-
-			retRes433612 := (<-this.Authenticate(this.Extend(params, map[string]any{
-				"type": "stock",
-			})))
-			ccxt.PanicOnError(retRes433612)
-			var stockOptions any = this.SafeDict(this.Options, "stock", map[string]any{})
-			var stockListenKey any = this.SafeString(stockOptions, "listenKey")
-			if ccxt.IsTrue(ccxt.IsEqual(stockListenKey, nil)) {
-				panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOrders() failed to initialize stock listenKey")))
-			}
-			var stockUrl any = this.GetStockWsUrl("user")
-			var stockStreamName any = ccxt.Add(stockListenKey, "@orderReport")
-			var stockRequestId any = this.RequestId(stockUrl)
-			var stockMessageHash any = "orders"
-			if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-				stockMessageHash = ccxt.Add("orders:", this.Symbol(symbol))
-			}
-			var stockRequest any = map[string]any{
-				"method": "SUBSCRIBE",
-				"params": []any{stockStreamName},
-				"id":     stockRequestId,
-			}
-			var stockQuery any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
-			var stockSubscribe any = map[string]any{
-				"id": stockRequestId,
-			}
-
-			stockOrders := (<-this.Watch(stockUrl, stockMessageHash, this.Extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe))
-			ccxt.PanicOnError(stockOrders)
-			if ccxt.IsTrue(this.NewUpdates) {
-				limit = ccxt.ToGetsLimit(stockOrders).GetLimit(symbol, limit)
-			}
-
-			ch <- this.FilterBySymbolSinceLimit(stockOrders, symbol, since, limit, true)
-			return nil
-		}
-		var messageHash any = "orders"
-		var market any = nil
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			symbol = ccxt.GetValue(market, "symbol")
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		}
-		var typeVar any = nil
-		var subType any = nil
-		typeVarsubTypeparamsVariable := this.ResolveAuthType("watchOrders", market, params)
-		typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
-		subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
-		params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
-		params = this.Extend(params, map[string]any{
-			"type":    typeVar,
-			"symbol":  symbol,
-			"subType": subType,
-		}) // needed inside authenticate for isolated margin
-
-		retRes43758 := (<-this.Authenticate(params))
-		ccxt.PanicOnError(retRes43758)
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
-		marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
-		params = ccxt.GetValue(marginModeparamsVariable, 1)
-		var urlType any = typeVar
-		if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "margin"))) || ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) && ccxt.IsTrue((!ccxt.IsEqual(marginMode, nil)))))) {
-			urlType = "spot" // spot-margin shares the same stream as regular spot
-		}
-		var isPortfolioMargin any = nil
-		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchOrders", "papi", "portfolioMargin", false)
-		isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
-		params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
-		var url any = ""
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
-			// route orders to ws-api user data stream
-			url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
-		} else {
-			if ccxt.IsTrue(isPortfolioMargin) {
-				urlType = "papi"
-			} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-				var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
-				if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
-					panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOrders() does not support option markets in demo/testnet mode")))
-				}
-				urlType = "optionPrivate"
-			}
-			url = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
-		}
-		var client any = this.Client(url)
-		this.SetBalanceCache(client, typeVar, isPortfolioMargin)
-		this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
-		var message any = nil
-
-		orders := (<-this.Watch(url, messageHash, message, typeVar))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes432912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes432912)
+	}
+	var stock any = false
+	stockparamsVariable := this.HandleOptionAndParams(params, "watchOrders", "stock", false)
+	stock = ccxt.GetValue(stockparamsVariable, 0)
+	params = ccxt.GetValue(stockparamsVariable, 1)
+	if ccxt.IsTrue(stock) {
+		// literal on top: a stray type in the caller params must not override
+		// the forced stock, the removed authenticateStock ignored it entirely
+
+		retRes433612 := (<-this.Authenticate(this.Extend(params, map[string]any{
+			"type": "stock",
+		})))
+		ccxt.PanicOnError(retRes433612)
+		var stockOptions any = this.SafeDict(this.Options, "stock", map[string]any{})
+		var stockListenKey any = this.SafeString(stockOptions, "listenKey")
+		if ccxt.IsTrue(ccxt.IsEqual(stockListenKey, nil)) {
+			panic(ccxt.BadRequest(ccxt.Add(this.Id, " watchOrders() failed to initialize stock listenKey")))
+		}
+		var stockUrl any = this.GetStockWsUrl("user")
+		var stockStreamName any = ccxt.Add(stockListenKey, "@orderReport")
+		var stockRequestId any = this.RequestId(stockUrl)
+		var stockMessageHash any = "orders"
+		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+			stockMessageHash = ccxt.Add("orders:", this.Symbol(symbol))
+		}
+		var stockRequest any = map[string]any{
+			"method": "SUBSCRIBE",
+			"params": []any{stockStreamName},
+			"id":     stockRequestId,
+		}
+		var stockQuery any = this.Omit(params, []any{"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"})
+		var stockSubscribe any = map[string]any{
+			"id": stockRequestId,
+		}
+
+		stockOrders := (<-this.Watch(stockUrl, stockMessageHash, this.Extend(stockRequest, stockQuery), stockMessageHash, stockSubscribe))
+		ccxt.PanicOnError(stockOrders)
+		if ccxt.IsTrue(this.NewUpdates) {
+			limit = ccxt.ToGetsLimit(stockOrders).GetLimit(symbol, limit)
+		}
+
+		ch <- this.FilterBySymbolSinceLimit(stockOrders, symbol, since, limit, true)
+		return nil
+	}
+	var messageHash any = "orders"
+	var market any = nil
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		symbol = ccxt.GetValue(market, "symbol")
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+	}
+	var typeVar any = nil
+	var subType any = nil
+	typeVarsubTypeparamsVariable := this.ResolveAuthType("watchOrders", market, params)
+	typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
+	subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
+	params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
+	params = this.Extend(params, map[string]any{
+		"type":    typeVar,
+		"symbol":  symbol,
+		"subType": subType,
+	}) // needed inside authenticate for isolated margin
+
+	retRes43758 := (<-this.Authenticate(params))
+	ccxt.PanicOnError(retRes43758)
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
+	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
+	params = ccxt.GetValue(marginModeparamsVariable, 1)
+	var urlType any = typeVar
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(typeVar, "margin"))) || ccxt.IsTrue((ccxt.IsTrue((ccxt.IsEqual(typeVar, "spot"))) && ccxt.IsTrue((!ccxt.IsEqual(marginMode, nil)))))) {
+		urlType = "spot" // spot-margin shares the same stream as regular spot
+	}
+	var isPortfolioMargin any = nil
+	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchOrders", "papi", "portfolioMargin", false)
+	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
+	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
+	var url any = ""
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
+		// route orders to ws-api user data stream
+		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
+	} else {
+		if ccxt.IsTrue(isPortfolioMargin) {
+			urlType = "papi"
+		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+			var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
+			if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
+				panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOrders() does not support option markets in demo/testnet mode")))
+			}
+			urlType = "optionPrivate"
+		}
+		url = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
+	}
+	var client any = this.Client(url)
+	this.SetBalanceCache(client, typeVar, isPortfolioMargin)
+	this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
+	var message any = nil
+
+	orders := (<-this.Watch(url, messageHash, message, typeVar))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	return nil
 }
 func (this *BinanceCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	//
@@ -6037,99 +6044,99 @@ func (this *BinanceCore) HandleOptionsOrderUpdate(client any, message any) {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func (this *BinanceCore) WatchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbols := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes496812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes496812)
-		}
-		var market any = nil
-		var messageHash any = ""
-		symbols = this.MarketSymbols(symbols)
-		if !ccxt.IsTrue(this.IsEmpty(symbols)) {
-			market = this.GetMarketFromSymbols(symbols)
-			if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-				panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPositions() symbols is required")))
-			}
-			messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
-		}
-		var typeVar any = nil
-		var subType any = nil
-		typeVarsubTypeparamsVariable := this.ResolveAuthType("watchPositions", market, params)
-		typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
-		subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
-		params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
-		// spot and margin have no positions - whatever still RESOLVES to spot
-		// or margin after the helper falls through to the derivatives stream
-		// matching the subType. requests a defaultSubType already rewrote
-		// arrive here as future or delivery and pass untouched, which lands on
-		// the same stream the old raw-type ordering produced in every case
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
-			typeVar = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(subType, "inverse"))), "delivery", "future")
-		}
-		// 'option' stays as 'option', don't redirect to 'future' - the helper's
-		// guard finally makes this comment true
-		var marketTypeObject any = map[string]any{}
-		ccxt.AddElementToObject(marketTypeObject, "type", typeVar)
-		ccxt.AddElementToObject(marketTypeObject, "subType", subType)
-
-		retRes49968 := (<-this.Authenticate(this.Extend(marketTypeObject, params)))
-		ccxt.PanicOnError(retRes49968)
-		messageHash = ccxt.Add(ccxt.Add(typeVar, ":positions"), messageHash)
-		var isPortfolioMargin any = nil
-		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchPositions", "papi", "portfolioMargin", false)
-		isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
-		params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
-		var urlType any = typeVar
-		if ccxt.IsTrue(isPortfolioMargin) {
-			urlType = "papi"
-		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-			var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
-			if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
-				panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchPositions() does not support option markets in demo/testnet mode")))
-			}
-			urlType = "optionPrivate"
-		}
-		var url any = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
-		var client any = this.Client(url)
-		this.SetBalanceCache(client, typeVar, isPortfolioMargin)
-		this.SetPositionsCache(client, typeVar, symbols, isPortfolioMargin)
-		var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-		var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
-		var cache any = this.SafeValue(this.Positions, typeVar)
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(cache, nil))) {
-
-			snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
-			ccxt.PanicOnError(snapshot)
-
-			ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
-			return nil
-		}
-
-		newPositions := (<-this.Watch(url, messageHash, nil, typeVar))
-		ccxt.PanicOnError(newPositions)
-		if ccxt.IsTrue(this.NewUpdates) {
-
-			ch <- newPositions
-			return nil
-		}
-
-		ch <- this.FilterBySymbolsSinceLimit(cache, symbols, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbols := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes496812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes496812)
+	}
+	var market any = nil
+	var messageHash any = ""
+	symbols = this.MarketSymbols(symbols)
+	if !ccxt.IsTrue(this.IsEmpty(symbols)) {
+		market = this.GetMarketFromSymbols(symbols)
+		if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPositions() symbols is required")))
+		}
+		messageHash = ccxt.Add("::", ccxt.Join(symbols, ","))
+	}
+	var typeVar any = nil
+	var subType any = nil
+	typeVarsubTypeparamsVariable := this.ResolveAuthType("watchPositions", market, params)
+	typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
+	subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
+	params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
+	// spot and margin have no positions - whatever still RESOLVES to spot
+	// or margin after the helper falls through to the derivatives stream
+	// matching the subType. requests a defaultSubType already rewrote
+	// arrive here as future or delivery and pass untouched, which lands on
+	// the same stream the old raw-type ordering produced in every case
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
+		typeVar = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(subType, "inverse"))), "delivery", "future")
+	}
+	// 'option' stays as 'option', don't redirect to 'future' - the helper's
+	// guard finally makes this comment true
+	var marketTypeObject any = map[string]any{}
+	ccxt.AddElementToObject(marketTypeObject, "type", typeVar)
+	ccxt.AddElementToObject(marketTypeObject, "subType", subType)
+
+	retRes49968 := (<-this.Authenticate(this.Extend(marketTypeObject, params)))
+	ccxt.PanicOnError(retRes49968)
+	messageHash = ccxt.Add(ccxt.Add(typeVar, ":positions"), messageHash)
+	var isPortfolioMargin any = nil
+	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchPositions", "papi", "portfolioMargin", false)
+	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
+	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
+	var urlType any = typeVar
+	if ccxt.IsTrue(isPortfolioMargin) {
+		urlType = "papi"
+	} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+		var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
+		if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
+			panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchPositions() does not support option markets in demo/testnet mode")))
+		}
+		urlType = "optionPrivate"
+	}
+	var url any = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
+	var client any = this.Client(url)
+	this.SetBalanceCache(client, typeVar, isPortfolioMargin)
+	this.SetPositionsCache(client, typeVar, symbols, isPortfolioMargin)
+	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
+	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var cache any = this.SafeValue(this.Positions, typeVar)
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(fetchPositionsSnapshot) && ccxt.IsTrue(awaitPositionsSnapshot)) && ccxt.IsTrue(ccxt.IsEqual(cache, nil))) {
+
+		snapshot := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot")))
+		ccxt.PanicOnError(snapshot)
+
+		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
+		return nil
+	}
+
+	newPositions := (<-this.Watch(url, messageHash, nil, typeVar))
+	ccxt.PanicOnError(newPositions)
+	if ccxt.IsTrue(this.NewUpdates) {
+
+		ch <- newPositions
+		return nil
+	}
+
+	ch <- this.FilterBySymbolsSinceLimit(cache, symbols, since, limit, true)
+	return nil
 }
 func (this *BinanceCore) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
@@ -6157,37 +6164,38 @@ func (this *BinanceCore) SetPositionsCache(client any, typeVar any, optionalArgs
 	}
 }
 func (this *BinanceCore) LoadPositionsSnapshot(client any, messageHash any, typeVar any, isPortfolioMargin any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		var params any = map[string]any{
-			"type": typeVar,
-		}
-		if ccxt.IsTrue(isPortfolioMargin) {
-			ccxt.AddElementToObject(params, "portfolioMargin", true)
-		}
-
-		positions := (<-this.FetchPositions(nil, params))
-		ccxt.PanicOnError(positions)
-		ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
-		var cache any = ccxt.GetValue(this.Positions, typeVar)
-		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
-			var position any = ccxt.GetValue(positions, i)
-			var contracts any = this.SafeNumber(position, "contracts", 0)
-			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(contracts, nil))) && ccxt.IsTrue((ccxt.IsGreaterThan(contracts, 0)))) {
-				cache.(ccxt.Appender).Append(position)
-			}
-		}
-		// don't remove the future from the .futures cache
-		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
-			var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
-			future.(*ccxt.Future).Resolve(cache)
-			client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":position"))
-		}
-		return nil
-	}()
+	ch := make(chan any, 1)
+	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar, isPortfolioMargin)
 	return ch
+}
+func (this *BinanceCore) loadPositionsSnapshotBody(ch chan any, client any, messageHash any, typeVar any, isPortfolioMargin any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	var params any = map[string]any{
+		"type": typeVar,
+	}
+	if ccxt.IsTrue(isPortfolioMargin) {
+		ccxt.AddElementToObject(params, "portfolioMargin", true)
+	}
+
+	positions := (<-this.FetchPositions(nil, params))
+	ccxt.PanicOnError(positions)
+	ccxt.AddElementToObject(this.Positions, typeVar, ccxt.NewArrayCacheBySymbolBySide())
+	var cache any = ccxt.GetValue(this.Positions, typeVar)
+	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positions)); i++ {
+		var position any = ccxt.GetValue(positions, i)
+		var contracts any = this.SafeNumber(position, "contracts", 0)
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(contracts, nil))) && ccxt.IsTrue((ccxt.IsGreaterThan(contracts, 0)))) {
+			cache.(ccxt.Appender).Append(position)
+		}
+	}
+	// don't remove the future from the .futures cache
+	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
+		var future any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), messageHash)
+		future.(*ccxt.Future).Resolve(cache)
+		client.(ccxt.ClientInterface).Resolve(cache, ccxt.Add(typeVar, ":position"))
+	}
+	return nil
 }
 func (this *BinanceCore) HandlePositions(client any, message any) {
 	//
@@ -6374,69 +6382,69 @@ func (this *BinanceCore) ParseWsOptionsPosition(position any, optionalArgs ...an
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BinanceCore) FetchMyTradesWs(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes525912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes525912)
-		}
-		if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchMyTradesWs requires a symbol")))
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("fetchMyTradesWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " fetchMyTradesWs does not support "), typeVar), " markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchMyTradesWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(since, nil)) {
-			ccxt.AddElementToObject(payload, "startTime", since)
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			ccxt.AddElementToObject(payload, "limit", limit)
-		}
-		var fromId any = this.SafeInteger(params, "fromId")
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(fromId, nil)) && ccxt.IsTrue(!ccxt.IsEqual(since, nil))) {
-			panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")))
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "myTrades",
-			"params": this.SignParams(this.Extend(payload, params)),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleTradesWs,
-		}
-
-		trades := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(trades)
-
-		ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesWsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchMyTradesWsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes525912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes525912)
+	}
+	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchMyTradesWs requires a symbol")))
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("fetchMyTradesWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
+		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " fetchMyTradesWs does not support "), typeVar), " markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchMyTradesWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(since, nil)) {
+		ccxt.AddElementToObject(payload, "startTime", since)
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		ccxt.AddElementToObject(payload, "limit", limit)
+	}
+	var fromId any = this.SafeInteger(params, "fromId")
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(fromId, nil)) && ccxt.IsTrue(!ccxt.IsEqual(since, nil))) {
+		panic(ccxt.BadRequest(ccxt.Add(this.Id, " fetchMyTradesWs does not support fetching by both fromId and since parameters at the same time")))
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "myTrades",
+		"params": this.SignParams(this.Extend(payload, params)),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleTradesWs,
+	}
+
+	trades := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(trades)
+
+	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -6454,57 +6462,57 @@ func (this *BinanceCore) FetchMyTradesWs(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BinanceCore) FetchTradesWs(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes531612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes531612)
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = this.GetMarketType("fetchTradesWs", market, params)
-		if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
-			panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " fetchTradesWs does not support "), typeVar), " markets")))
-		}
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
-		var requestId any = this.RequestId(url)
-		var messageHash any = ccxt.ToString(requestId)
-		var returnRateLimits any = false
-		returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchTradesWs", "returnRateLimits", false)
-		returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
-		params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
-		var payload any = map[string]any{
-			"symbol":           this.MarketId(symbol),
-			"returnRateLimits": returnRateLimits,
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
-			ccxt.AddElementToObject(payload, "limit", limit)
-		}
-		var message any = map[string]any{
-			"id":     messageHash,
-			"method": "trades.historical",
-			"params": this.Extend(payload, params),
-		}
-		var subscription any = map[string]any{
-			"method": this.HandleTradesWs,
-		}
-
-		trades := (<-this.Watch(url, messageHash, message, messageHash, subscription))
-		ccxt.PanicOnError(trades)
-
-		ch <- this.FilterBySinceLimit(trades, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesWsBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) fetchTradesWsBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes531612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes531612)
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = this.GetMarketType("fetchTradesWs", market, params)
+	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(typeVar, "spot")) && ccxt.IsTrue(!ccxt.IsEqual(typeVar, "future"))) {
+		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " fetchTradesWs does not support "), typeVar), " markets")))
+	}
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), typeVar)
+	var requestId any = this.RequestId(url)
+	var messageHash any = ccxt.ToString(requestId)
+	var returnRateLimits any = false
+	returnRateLimitsparamsVariable := this.HandleOptionAndParams(params, "fetchTradesWs", "returnRateLimits", false)
+	returnRateLimits = ccxt.GetValue(returnRateLimitsparamsVariable, 0)
+	params = ccxt.GetValue(returnRateLimitsparamsVariable, 1)
+	var payload any = map[string]any{
+		"symbol":           this.MarketId(symbol),
+		"returnRateLimits": returnRateLimits,
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(limit, nil)) {
+		ccxt.AddElementToObject(payload, "limit", limit)
+	}
+	var message any = map[string]any{
+		"id":     messageHash,
+		"method": "trades.historical",
+		"params": this.Extend(payload, params),
+	}
+	var subscription any = map[string]any{
+		"method": this.HandleTradesWs,
+	}
+
+	trades := (<-this.Watch(url, messageHash, message, messageHash, subscription))
+	ccxt.PanicOnError(trades)
+
+	ch <- this.FilterBySinceLimit(trades, since, limit)
+	return nil
 }
 func (this *BinanceCore) HandleTradesWs(client any, message any) {
 	//
@@ -6570,89 +6578,89 @@ func (this *BinanceCore) HandleTradesWs(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BinanceCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes541212 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes541212)
-		}
-		var typeVar any = nil
-		var market any = nil
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var marketResolved any = this.Market(symbol)
-			market = marketResolved
-			symbol = ccxt.GetValue(market, "symbol")
-		}
-		var subType any = nil
-		typeVarsubTypeparamsVariable := this.ResolveAuthType("watchMyTrades", market, params)
-		typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
-		subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
-		params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
-		var messageHash any = "myTrades"
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((!ccxt.IsEqual(market, nil)))) {
-			symbol = this.Symbol(symbol)
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-			params = this.Extend(params, map[string]any{
-				"type":   ccxt.GetValue(market, "type"),
-				"symbol": symbol,
-			})
-		}
-
-		retRes54298 := (<-this.Authenticate(this.Extend(map[string]any{
-			"type":    typeVar,
-			"subType": subType,
-		}, params)))
-		ccxt.PanicOnError(retRes54298)
-		var urlType any = typeVar // we don't change type because the listening key is different
-		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) {
-			urlType = "spot" // spot-margin shares the same stream as regular spot
-		}
-		var isPortfolioMargin any = nil
-		isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchMyTrades", "papi", "portfolioMargin", false)
-		isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
-		params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
-		var url any = ""
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
-			url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
-		} else {
-			if ccxt.IsTrue(isPortfolioMargin) {
-				urlType = "papi"
-			} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
-				var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
-				if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
-					panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMyTrades() does not support option markets in demo/testnet mode")))
-				}
-				urlType = "optionPrivate"
-			}
-			url = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
-		}
-		var client any = this.Client(url)
-		this.SetBalanceCache(client, typeVar, isPortfolioMargin)
-		this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
-		var message any = nil
-
-		trades := (<-this.Watch(url, messageHash, message, typeVar))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BinanceCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes541212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes541212)
+	}
+	var typeVar any = nil
+	var market any = nil
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var marketResolved any = this.Market(symbol)
+		market = marketResolved
+		symbol = ccxt.GetValue(market, "symbol")
+	}
+	var subType any = nil
+	typeVarsubTypeparamsVariable := this.ResolveAuthType("watchMyTrades", market, params)
+	typeVar = ccxt.GetValue(typeVarsubTypeparamsVariable, 0)
+	subType = ccxt.GetValue(typeVarsubTypeparamsVariable, 1)
+	params = ccxt.GetValue(typeVarsubTypeparamsVariable, 2)
+	var messageHash any = "myTrades"
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(symbol, nil))) && ccxt.IsTrue((!ccxt.IsEqual(market, nil)))) {
+		symbol = this.Symbol(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+		params = this.Extend(params, map[string]any{
+			"type":   ccxt.GetValue(market, "type"),
+			"symbol": symbol,
+		})
+	}
+
+	retRes54298 := (<-this.Authenticate(this.Extend(map[string]any{
+		"type":    typeVar,
+		"subType": subType,
+	}, params)))
+	ccxt.PanicOnError(retRes54298)
+	var urlType any = typeVar // we don't change type because the listening key is different
+	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin")) {
+		urlType = "spot" // spot-margin shares the same stream as regular spot
+	}
+	var isPortfolioMargin any = nil
+	isPortfolioMarginparamsVariable := this.HandleOptionAndParams2(params, "watchMyTrades", "papi", "portfolioMargin", false)
+	isPortfolioMargin = ccxt.GetValue(isPortfolioMarginparamsVariable, 0)
+	params = ccxt.GetValue(isPortfolioMarginparamsVariable, 1)
+	var url any = ""
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) || ccxt.IsTrue(ccxt.IsEqual(typeVar, "margin"))) {
+		url = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "ws-api"), "spot")
+	} else {
+		if ccxt.IsTrue(isPortfolioMargin) {
+			urlType = "papi"
+		} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "option")) {
+			var demoMode any = this.SafeBool(this.Options, "enableDemoTrading", false)
+			if ccxt.IsTrue(ccxt.IsTrue(demoMode) || ccxt.IsTrue(this.IsSandboxModeEnabled)) {
+				panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMyTrades() does not support option markets in demo/testnet mode")))
+			}
+			urlType = "optionPrivate"
+		}
+		url = this.GetPrivateWsUrl(urlType, ccxt.GetValue(ccxt.GetValue(this.Options, typeVar), "listenKey"))
+	}
+	var client any = this.Client(url)
+	this.SetBalanceCache(client, typeVar, isPortfolioMargin)
+	this.SetPositionsCache(client, typeVar, nil, isPortfolioMargin)
+	var message any = nil
+
+	trades := (<-this.Watch(url, messageHash, message, typeVar))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(trades, symbol, since, limit, true)
+	return nil
 }
 func (this *BinanceCore) HandleMyTrade(client any, message any) {
 	var messageHash any = "myTrades"
