@@ -3362,6 +3362,19 @@ export default class lighter extends Exchange {
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
+        return this.parseBatchOrders (response, infos);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#parseBatchOrders
+     * @description merges a batch response with the signed requests it was built from
+     * @param {object} response a sendTxBatch response, its tx_hash is a list aligned with infos
+     * @param {any[]} infos the per transaction payloads collected by signBatchTransactions
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    parseBatchOrders (response: Dict, infos: List): Order[] {
         const txHashes = this.safeList (response, 'tx_hash', []);
         const code = this.safeInteger (response, 'code');
         const message = this.safeString (response, 'message');
@@ -3417,6 +3430,20 @@ export default class lighter extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        const transactions = this.createOrdersTransactions (orders);
+        const signedBatch = await this.signBatchTransactions ('createOrders', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#createOrdersTransactions
+     * @description converts a list of unified order requests into batch transactions
+     * @param {Array} orders list of orders to create
+     * @returns {object[]} a list of batch transactions
+     */
+    createOrdersTransactions (orders: OrderRequest[]): Dict[] {
         const transactions: List = [];
         const ordersLength = orders.length;
         for (let i = 0; i < ordersLength; i++) {
@@ -3431,8 +3458,7 @@ export default class lighter extends Exchange {
                 'params': this.safeDict (rawOrder, 'params', {}),
             });
         }
-        const signedBatch = await this.signBatchTransactions ('createOrders', transactions, params);
-        return await this.sendSignedTxBatch (signedBatch);
+        return transactions;
     }
 
     /**
@@ -3449,8 +3475,24 @@ export default class lighter extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrders (ids: string[], symbol: Str = undefined, params = {}): Promise<Order[]> {
+        const transactions = this.cancelOrdersTransactions ('cancelOrders', ids, symbol);
+        const signedBatch = await this.signBatchTransactions ('cancelOrders', transactions, params);
+        return await this.sendSignedTxBatch (signedBatch);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name lighter#cancelOrdersTransactions
+     * @description converts a list of order ids of a single market into batch transactions
+     * @param {string} method the name of the calling unified method, used in error messages
+     * @param {string[]} ids order ids
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @returns {object[]} a list of batch transactions
+     */
+    cancelOrdersTransactions (method: string, ids: string[], symbol: Str = undefined): Dict[] {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + method + '() requires a symbol argument');
         }
         const transactions: List = [];
         const idsLength = ids.length;
@@ -3461,8 +3503,7 @@ export default class lighter extends Exchange {
                 'symbol': symbol,
             });
         }
-        const signedBatch = await this.signBatchTransactions ('cancelOrders', transactions, params);
-        return await this.sendSignedTxBatch (signedBatch);
+        return transactions;
     }
 
     /**
