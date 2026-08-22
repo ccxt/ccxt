@@ -2505,12 +2505,13 @@ public partial class bingx : Exchange
         object id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
+        object inverse = this.safeBool(market, "inverse", false);
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "baseVolume", null },
             { "quoteVolume", null },
-            { "openInterestAmount", null },
-            { "openInterestValue", openInterest },
+            { "openInterestAmount", ((bool) isTrue(inverse)) ? openInterest : null },
+            { "openInterestValue", ((bool) isTrue(inverse)) ? null : openInterest },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", interest },
