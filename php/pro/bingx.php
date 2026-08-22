@@ -1431,6 +1431,9 @@ class bingx extends \ccxt\async\bingx {
         }
         $cache = $this->positions;
         $data = $this->safe_dict($message, 'a', array());
+        if (!(is_array($data) && array_key_exists('P' ?? '', $data))) {
+            return;
+        }
         $rawPositions = $this->safe_list($data, 'P', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
