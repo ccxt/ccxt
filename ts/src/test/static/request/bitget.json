@@ -619,6 +619,19 @@
                     }
                 ],
                 "output": { "symbol": "LTCUSDT", "orderType": "limit", "price": "100", "force": "GTC", "marginCoin": "USDT", "size": "0.2", "productType": "USDT-FUTURES", "presetStopLossPrice": "90", "presetStopLossExecutePrice": "89", "presetStopSurplusPrice": "120", "presetStopSurplusExecutePrice": "119", "marginMode": "crossed", "side": "buy" }
+            },
+            {
+                "description": "tokenized stock createOrder",
+                "method": "createOrder",
+                "url": "https://api.bitget.com/api/v3/trade/place-reality-order",
+                "input": [
+                    "RGOOGL/USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    330
+                ],
+                "output": "{\"category\":\"SPOT\",\"symbol\":\"RGOOGLUSDT\",\"qty\":\"1\",\"side\":\"buy\",\"price\":\"330\",\"orderType\":\"limit\",\"timeInForce\":\"gtc\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -1390,6 +1403,17 @@
                         "type": "funding"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchBalance",
+                "method": "fetchBalance",
+                "url": "https://api.bitget.com/api/v3/account/assets",
+                "input": [
+                    {
+                        "stock": true
+                    }
+                ],
+                "output": null
             }
         ],
         "transfer": [
@@ -1760,6 +1784,16 @@
                     }
                 ],
                 "output": { "symbol": "BTCUSDT", "productType": "USDT-FUTURES", "orderIdList": [ { "clientOid": "a1b2c3" } ], "planType": "track_plan" }
+            },
+            {
+                "description": "tokenized stock cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bitget.com/api/v3/trade/cancel-reality-order",
+                "input": [
+                    "1473934618137948160",
+                    "RGOOGL/USDT"
+                ],
+                "output": "{\"symbol\":\"RGOOGLUSDT\",\"orderId\":\"1473934618137948160\"}"
             }
         ],
         "cancelOrders": [
@@ -2345,6 +2379,18 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchOHLCV",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitget.com/api/v3/market/candles?symbol=RGOOGLUSDT&interval=1m&limit=3&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT",
+                    "1m",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchCanceledAndClosedOrders": [
@@ -2411,6 +2457,15 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchOrderBook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitget.com/api/v3/account/reality-orderbook?symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "output": null
             }
         ],
         "fetchTrades": [
@@ -2489,6 +2544,17 @@
                         "marginMode": "cross"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stocks fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitget.com/api/v3/account/reality-fills?limit=3&symbol=RGOOGLUSDT",
+                "input": [
+                    "RGOOGL/USDT",
+                    null,
+                    3
+                ],
+                "output": null
             }
         ],
         "fetchTradingFee": [
@@ -2677,6 +2743,15 @@
                         "uta": true
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    "RGOOGL/USDT"
+                ],
+                "output": null
             }
         ],
         "fetchTickers": [
@@ -2773,6 +2848,17 @@
                         "subType": "linear"
                     }
                 ]
+            },
+            {
+                "description": "tokenized stock fetchTickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitget.com/api/v3/market/tickers?symbol=RGOOGLUSDT&category=SPOT",
+                "input": [
+                    [
+                        "RGOOGL/USDT"
+                    ]
+                ],
+                "output": null
             }
         ],
         "fetchFundingRateHistory": [
