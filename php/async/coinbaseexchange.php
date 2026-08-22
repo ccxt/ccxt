@@ -2320,7 +2320,7 @@ class coinbaseexchange extends Exchange {
     }
 
     private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         if (gettype($response) !== 'string') {
             if (is_array($response) && array_key_exists('message' ?? '', $response)) {
                 throw new ExchangeError($this->id . ' ' . $this->json($response));

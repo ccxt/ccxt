@@ -4064,7 +4064,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return Async\async(self::do_fetch2(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_fetch2(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    protected function do_fetch2(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             Async\await($this->throttle($cost));
@@ -4086,7 +4086,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $fetchData['request'] = $request;
                 }
                 $this->set_last_request($request);
-                $response = Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
+                $response = $this->do_fetch($request['url'], $request['method'], $request['headers'], $request['body']);
                 if ($fetchDataCacheEnabled && ($fetchData !== null)) {
                     $fetchData['response']['body'] = $response;
                     $this->add_fetch_cache($fetchData);
@@ -4122,7 +4122,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     private function do_request(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        return Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        return $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
     }
 
     public function load_accounts($reload = false, $params = array()) {

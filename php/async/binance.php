@@ -13579,7 +13579,7 @@ class binance extends Exchange {
     }
 
     private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if ($api === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
