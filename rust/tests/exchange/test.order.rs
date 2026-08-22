@@ -78,8 +78,8 @@ pub fn testOrder(mut exchange: Value, mut skippedProperties: Value, mut method: 
         if !is_equal(&get_value(&entry, &Value::Str("trades".to_string())), &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1400: bool = true;
-                while { if !__for_first_1400 { i = add(&i, &Value::Int(1)); } __for_first_1400 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("trades".to_string())))) } {
+                let mut __for_first_1402: bool = true;
+                while { if !__for_first_1402 { i = add(&i, &Value::Int(1)); } __for_first_1402 = false; is_less_than(&i, &get_array_length(&get_value(&entry, &Value::Str("trades".to_string())))) } {
                 testTrade(exchange.clone(), skippedNew.clone(), method.clone(), get_value(&get_value(&entry, &Value::Str("trades".to_string())), &i), symbol.clone(), now.clone());
             }
             }

@@ -1421,9 +1421,12 @@ impl UpbitCore {
  * @name upbit#fetchTickers
  * @see https://docs.upbit.com/kr/reference/list-tickers
  * @see https://global-docs.upbit.com/reference/list-tickers
+ * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+ * @see https://global-docs.upbit.com/reference/tickers_by_quote
  * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
@@ -1436,53 +1439,63 @@ impl UpbitCore {
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut ids: Value = ternary(is_true(&(!is_equal(&symbols, &Value::Null))), self.market_ids(&[symbols.clone()]), self.ids.clone());
-        let mut promises: Value = Value::List(vec![]);
-        let mut queries: Value = self.ids_query_strings(ids.clone(), Value::Int(6400)); // seems upbit server limitations
-        {
-                        let mut i: Value = Value::Int(0);
-            let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { i = add(&i, &Value::Int(1)); } __for_first_1063 = false; is_less_than(&i, &get_array_length(&queries)) } {
-            let mut idsQuery: Value = get_value(&queries, &i);
-            let mut idsQuery: Value = get_value(&queries, &i);
-            append_to_array(&mut promises, self.public_get_ticker(&[Value::Map({
+        let mut tickers: Value = Value::List(vec![]);
+        if is_equal(&symbols, &Value::Null) {
+            // ticker/all returns every market of the requested quote currencies with a single request
+            let mut quoteIds: Value = Value::List(vec![]);
+            let mut marketSymbols: Value = self.symbols.clone();
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1063: bool = true;
+                while { if !__for_first_1063 { i = add(&i, &Value::Int(1)); } __for_first_1063 = false; is_less_than(&i, &get_array_length(&marketSymbols)) } {
+                let mut market: Value = self.market(get_value(&marketSymbols, &i));
+                let mut quoteId: Value = get_value(&market, &Value::Str("quoteId".to_string()));
+                if !is_true(&self.in_array(quoteId.clone(), quoteIds.clone())) {
+                    append_to_array(&mut quoteIds, quoteId.clone());
+                }
+            }
+            }
+            let mut sortedQuoteIds: Value = self.sort(quoteIds.clone(), &[]); // market iteration order differs per language
+            let mut quoteCurrencies: Value = Value::Str("".to_string());
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1064: bool = true;
+                while { if !__for_first_1064 { i = add(&i, &Value::Int(1)); } __for_first_1064 = false; is_less_than(&i, &get_array_length(&sortedQuoteIds)) } {
+                if !is_equal(&quoteCurrencies, &Value::Str("".to_string())) {
+                    quoteCurrencies = add(&quoteCurrencies, &Value::Str(",".to_string()));
+                }
+                quoteCurrencies = add(&quoteCurrencies, &get_value(&sortedQuoteIds, &i));
+            }
+            }
+            let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("markets".to_string(), idsQuery.clone());
+                    m.insert("quote_currencies".to_string(), quoteCurrencies.clone());
                 m
-            })]).await);
+            });
+            let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
+            tickers = self.public_get_ticker_all(&[__ws_arg_3]).await;
+        }  else {
+            let mut ids: Value = self.market_ids(&[symbols.clone()]);
+            let mut promises: Value = Value::List(vec![]);
+            let mut queries: Value = self.ids_query_strings(ids.clone(), Value::Int(4000)); // the url is limited to about 8000 characters once the commas are percent-encoded
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_1065: bool = true;
+                while { if !__for_first_1065 { i = add(&i, &Value::Int(1)); } __for_first_1065 = false; is_less_than(&i, &get_array_length(&queries)) } {
+                let mut idsQuery: Value = get_value(&queries, &i);
+                let mut idsQuery: Value = get_value(&queries, &i);
+                let __ws_arg_4 = self.extend(Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("markets".to_string(), idsQuery.clone());
+                    m
+                }), &[params.clone()]);
+                append_to_array(&mut promises, self.public_get_ticker(&[__ws_arg_4]).await);
+            }
+            }
+            let mut responses: Value = promise_all(&promises).await;
+            tickers = self.arrays_concat(responses.clone());
         }
-        }
-        let mut responses: Value = promise_all(&promises).await;
-        //
-        //     [ {                market: "BTC-ETH",
-        //                    "trade_date": "20181122",
-        //                    "trade_time": "104543",
-        //                "trade_date_kst": "20181122",
-        //                "trade_time_kst": "194543",
-        //               "trade_timestamp":  1542883543097,
-        //                 "opening_price":  0.02976455,
-        //                    "high_price":  0.02992577,
-        //                     "low_price":  0.02934283,
-        //                   "trade_price":  0.02947773,
-        //            "prev_closing_price":  0.02966,
-        //                        "change": "FALL",
-        //                  "change_price":  0.00018227,
-        //                   "change_rate":  0.0061453136,
-        //           "signed_change_price":  -0.00018227,
-        //            "signed_change_rate":  -0.0061453136,
-        //                  "trade_volume":  1.00000005,
-        //               "acc_trade_price":  100.95825586,
-        //           "acc_trade_price_24h":  289.58650166,
-        //              "acc_trade_volume":  3409.85311036,
-        //          "acc_trade_volume_24h":  9754.40510513,
-        //         "highest_52_week_price":  0.12345678,
-        //          "highest_52_week_date": "2018-02-01",
-        //          "lowest_52_week_price":  0.023936,
-        //           "lowest_52_week_date": "2017-12-08",
-        //                     "timestamp":  1542883543813  } ]
-        //
-        let mut concated: Value = self.arrays_concat(responses.clone());
-        return self.parse_tickers(concated.clone(), &[symbols.clone()]);
+        return self.parse_tickers(tickers.clone(), &[symbols.clone()]);
 
     Value::Null
 }
@@ -1495,8 +1508,8 @@ impl UpbitCore {
         let mut queries: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1064: bool = true;
-            while { if !__for_first_1064 { i = add(&i, &Value::Int(1)); } __for_first_1064 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_1066: bool = true;
+            while { if !__for_first_1066 { i = add(&i, &Value::Int(1)); } __for_first_1066 = false; is_less_than(&i, &get_array_length(&ids)) } {
             let mut id: Value = get_value(&ids, &i);
             let mut id: Value = get_value(&ids, &i);
             if !is_equal(&idsString, &Value::Str("".to_string())) {
@@ -1649,8 +1662,8 @@ impl UpbitCore {
                 m.insert("count".to_string(), limit.clone());
             m
         });
-        let __ws_arg_3 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_3]).await;
+        let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.public_get_trades_ticks(&[__ws_arg_5]).await;
         return self.parse_trades(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1680,8 +1693,8 @@ impl UpbitCore {
                 m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let __ws_arg_4 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_orders_chance(&[__ws_arg_4]).await;
+        let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_chance(&[__ws_arg_6]).await;
         //
         //     {
         //         "bid_fee": "0.0005",
@@ -1758,8 +1771,8 @@ impl UpbitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1065: bool = true;
-            while { if !__for_first_1065 { i = add(&i, &Value::Int(1)); } __for_first_1065 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
+            let mut __for_first_1067: bool = true;
+            while { if !__for_first_1067 { i = add(&i, &Value::Int(1)); } __for_first_1067 = false; is_less_than(&i, &get_array_length(&fetchMarketResponse)) } {
             let mut element: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1833,11 +1846,11 @@ impl UpbitCore {
         if is_equal(&timeframeValue, &Value::Str("minutes".to_string())) {
             let mut numMinutes: Value = math_round(&divide(&timeframePeriod, &Value::Int(60)));
             add_element_to_object(&mut request, &Value::Str("unit".to_string()), numMinutes.clone());
-            let __ws_arg_5 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_get_candles_timeframe_unit(&[__ws_arg_5]).await;
+            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_candles_timeframe_unit(&[__ws_arg_7]).await;
         }  else {
-            let __ws_arg_6 = self.extend(request.clone(), &[params.clone()]);
-            response = self.public_get_candles_timeframe(&[__ws_arg_6]).await;
+            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
+            response = self.public_get_candles_timeframe(&[__ws_arg_8]).await;
         }
         //
         //     [
@@ -2017,11 +2030,11 @@ impl UpbitCore {
         let mut response: Value = Value::Null;
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string()), Value::Str("time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("smp_type".to_string()), Value::Str("test".to_string())]), &[]);
         if is_true(&test) {
-            let __ws_arg_7 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_orders_test(&[__ws_arg_7]).await;
+            let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_orders_test(&[__ws_arg_9]).await;
         }  else {
-            let __ws_arg_8 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_orders(&[__ws_arg_8]).await;
+            let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_orders(&[__ws_arg_10]).await;
         }
         return self.parse_order(response.clone(), &[]);
 
@@ -2053,8 +2066,8 @@ impl UpbitCore {
                 m.insert("uuid".to_string(), id.clone());
             m
         });
-        let __ws_arg_9 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_delete_order(&[__ws_arg_9]).await;
+        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_delete_order(&[__ws_arg_11]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -2169,8 +2182,8 @@ impl UpbitCore {
         }
         params = self.omit(params.clone(), Value::List(vec![Value::Str("newTimeInForce".to_string()), Value::Str("new_time_in_force".to_string()), Value::Str("postOnly".to_string()), Value::Str("newClientOrderId".to_string()), Value::Str("cost".to_string()), Value::Str("selfTradePrevention".to_string()), Value::Str("new_smp_type".to_string())]), &[]);
         // console.log ('check the each request params: ', request);
-        let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_orders_cancel_and_new(&[__ws_arg_10]).await;
+        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_orders_cancel_and_new(&[__ws_arg_12]).await;
         //   {
         //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
         //     side: 'bid',                                         //previous order data
@@ -2239,8 +2252,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default is 100
         }
-        let __ws_arg_11 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_deposits(&[__ws_arg_11]).await;
+        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposits(&[__ws_arg_13]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2277,8 +2290,8 @@ impl UpbitCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let __ws_arg_12 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_deposit(&[__ws_arg_12]).await;
+        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_deposit(&[__ws_arg_14]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -2319,8 +2332,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone()); // default is 100
         }
-        let __ws_arg_13 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_withdraws(&[__ws_arg_13]).await;
+        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_withdraws(&[__ws_arg_15]).await;
         return self.parse_transactions(response.clone(), &[currency.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2357,8 +2370,8 @@ impl UpbitCore {
             currency = self.currency(code.clone());
             add_element_to_object(&mut request, &Value::Str("currency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
         }
-        let __ws_arg_14 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_withdraw(&[__ws_arg_14]).await;
+        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_withdraw(&[__ws_arg_16]).await;
         return self.parse_transaction(response.clone(), &[currency.clone()]);
 
     Value::Null
@@ -2546,10 +2559,10 @@ impl UpbitCore {
         //        new_order_identifier: '22'
         //      }
         let mut id: Value = self.safe_string_k(order.clone(), "uuid", &[]);
-        let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
+        let mut side: Value = self.safe_string_lower(order.clone(), Value::Str("side".to_string()), &[]);
         if is_equal(&side, &Value::Str("bid".to_string())) {
             side = Value::Str("buy".to_string());
-        }  else {
+        }  else if is_equal(&side, &Value::Str("ask".to_string())) {
             side = Value::Str("sell".to_string());
         }
         let mut identifier: Value = self.safe_string_k(order.clone(), "identifier", &[]);
@@ -2591,8 +2604,8 @@ impl UpbitCore {
             cost = Value::Str("0".to_string());
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1066: bool = true;
-                while { if !__for_first_1066 { i = add(&i, &Value::Int(1)); } __for_first_1066 = false; is_less_than(&i, &numTrades) } {
+                let mut __for_first_1068: bool = true;
+                while { if !__for_first_1068 { i = add(&i, &Value::Int(1)); } __for_first_1068 = false; is_less_than(&i, &numTrades) } {
                 let mut trade: Value = get_value(&trades, &i);
                 let mut trade: Value = get_value(&trades, &i);
                 cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(trade.clone(), "cost", &[]));
@@ -2683,8 +2696,8 @@ impl UpbitCore {
         if !is_equal(&limit, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
-        let __ws_arg_15 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_orders_open(&[__ws_arg_15]).await;
+        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_open(&[__ws_arg_17]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2731,8 +2744,8 @@ impl UpbitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let __ws_arg_16 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_16]).await;
+        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_18]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2779,8 +2792,8 @@ impl UpbitCore {
             add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
         }
         { let __destr_tmp = self.handle_until_option(Value::Str("end_time".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let __ws_arg_17 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_17]).await;
+        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_orders_closed(&[__ws_arg_19]).await;
         return self.parse_orders(response.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -2811,8 +2824,8 @@ impl UpbitCore {
                 m.insert("uuid".to_string(), id.clone());
             m
         });
-        let __ws_arg_18 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_order(&[__ws_arg_18]).await;
+        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_get_order(&[__ws_arg_20]).await;
         return self.parse_order(response.clone(), &[]);
 
     Value::Null
@@ -2897,13 +2910,13 @@ impl UpbitCore {
         if is_equal(&networkCode, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchDepositAddress requires params[\"network\"]".to_string()))));
         }
-        let __ws_arg_19 = self.extend(Value::Map({
+        let __ws_arg_21 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), get_value(&currency, &Value::Str("id".to_string())));
                 m.insert("net_type".to_string(), self.network_code_to_id(networkCode.clone(), &[get_value(&currency, &Value::Str("code".to_string()))]));
             m
         }), &[params.clone()]);
-        let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_19]).await;
+        let mut response: Value = self.private_get_deposits_coin_address(&[__ws_arg_21]).await;
         return self.parse_deposit_address(response.clone(), &[]);
 
     Value::Null
@@ -2934,8 +2947,8 @@ impl UpbitCore {
             m
         });
         // https://github.com/ccxt/ccxt/issues/6452
-        let __ws_arg_20 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_post_deposits_generate_coin_address(&[__ws_arg_20]).await;
+        let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
+        let mut response: Value = self.private_post_deposits_generate_coin_address(&[__ws_arg_22]).await;
         //
         // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
         // can be any of the two responses:
@@ -3005,11 +3018,11 @@ impl UpbitCore {
                 add_element_to_object(&mut request, &Value::Str("secondary_address".to_string()), tag.clone());
             }
             params = self.omit(params.clone(), Value::Str("network".to_string()), &[]);
-            let __ws_arg_21 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_withdraws_coin(&[__ws_arg_21]).await;
+            let __ws_arg_23 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdraws_coin(&[__ws_arg_23]).await;
         }  else {
-            let __ws_arg_22 = self.extend(request.clone(), &[params.clone()]);
-            response = self.private_post_withdraws_krw(&[__ws_arg_22]).await;
+            let __ws_arg_24 = self.extend(request.clone(), &[params.clone()]);
+            response = self.private_post_withdraws_krw(&[__ws_arg_24]).await;
         }
         return self.parse_transaction(response.clone(), &[]);
 

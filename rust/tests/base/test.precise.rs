@@ -141,6 +141,16 @@ pub fn testPrecise() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("3".to_string()), &Value::Int(5)), &Value::Str("0.33333".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("-1".to_string()), &Value::Str("3".to_string()), &Value::Int(5)), &Value::Str("-0.33333".to_string()))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("7".to_string()), &Value::Int(25)), &Value::Str("0.1428571428571428571428571".to_string()))))));
+    // negative distance (more decimals than precision) truncates to zero
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDiv(&Value::Str("0.00000000000000000000000000001".to_string()), &Value::Str("1".to_string())), &Value::Str("0".to_string()))))));
+    // precision around the boundary of implementations with a precomputed
+    // power-of-ten table (js/python cover exponents up to 128, then fall
+    // back to exponentiation — the results must not differ)
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("3".to_string()), &Value::Int(128)), &Value::Str("0.33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("3".to_string()), &Value::Int(129)), &Value::Str("0.333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringDivPrec(&Value::Str("1".to_string()), &Value::Str("3".to_string()), &Value::Int(130)), &Value::Str("0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333".to_string()))))));
+    // uppercase negative exponent marker
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&ccxt::precise::Precise::stringMul(&Value::Str("-1.5E-3".to_string()), &Value::Str("2".to_string())), &Value::Str("-0.003".to_string()))))));
     // comparisons with scientific notation
     assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&Value::Str("1e3".to_string()), &Value::Str("999.999".to_string())))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(!is_true(&ccxt::precise::Precise::stringLt(&Value::Str("1e-3".to_string()), &Value::Str("0.001".to_string()))))))); // equal values, different representation

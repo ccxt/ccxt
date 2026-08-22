@@ -2799,6 +2799,9 @@ impl BingxCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
+        if is_true(&get_value(&market, &Value::Str("inverse".to_string()))) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchTrades() is not supported for inverse swap markets".to_string()))));
+        }
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -3603,13 +3606,14 @@ impl BingxCore {
         let mut id: Value = self.safe_string_k(interest.clone(), "symbol", &[]);
         let mut symbol: Value = self.safe_symbol(id.clone(), &[market.clone(), Value::Str("-".to_string()), Value::Str("swap".to_string())]);
         let mut openInterest: Value = self.safe_number_k(interest.clone(), "openInterest", &[]);
+        let mut inverse: Value = self.safe_bool_k(market.clone(), "inverse", &[Value::Bool(false)]);
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("openInterestAmount".to_string(), Value::Null);
-        m.insert("openInterestValue".to_string(), openInterest.clone());
+        m.insert("openInterestAmount".to_string(), ternary(is_true(&inverse), openInterest.clone(), Value::Null));
+        m.insert("openInterestValue".to_string(), ternary(is_true(&inverse), Value::Null, openInterest.clone()));
         m.insert("timestamp".to_string(), timestamp.clone());
         m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
         m.insert("info".to_string(), interest.clone());
