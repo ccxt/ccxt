@@ -37,36 +37,39 @@ let shouldTranspileTests = true;
 
 let gofmtMissingWarned = false;
 
-// ast-transpiler emits every async method core flat, on a capacity-1 channel, with a
-// named result (ccxt/ast-transpiler#64):
+// ast-transpiler emits every async method core as a trampoline over a capacity-1
+// channel (ccxt/ast-transpiler#67): the function makes the channel, launches the body
+// in a goroutine and returns the channel immediately, with an *unnamed* result:
 //
-//     func (this *Bit2cCore) FetchBalance(...) (out <-chan any) {
+//     func (this *Bit2cCore) FetchBalance(...) <- chan any {
 //         ch := make(chan any, 1)
-//         out = ch
-//         defer close(ch)
-//         defer ReturnPanicError(ch)
-//         ...
-//         ch <- value
+//         go func() any {
+//             defer close(ch)
+//             defer ReturnPanicError(ch)
+//             ...
+//             ch <- value
+//             return nil
+//         }()
 //         return ch
 //     }
 //
-// Buffering the channel and inlining the body are therefore the emitter's job now and
+// Buffering the channel and shaping the body are therefore the emitter's job now and
 // CCXT no longer post-processes either. One thing the emitter does not do is stop a
 // core after its first send.
 //
 // `try { ... return x } catch (e) { ... }` is emulated with a synthetic, immediately
 // invoked closure, so the `return` inside it only leaves that *closure* — in TypeScript
-// the same `return` leaves the whole async function. While the core body still ran in
-// its own goroutine that difference was survivable: execution carried on, reached a
-// second `ch <-`, and the send merely parked a goroutine nobody read. Running inline on
-// a capacity-1 channel the second send has nowhere to go and blocks the *caller*, so
-// the same shape turns from wasted work into a deadlock.
+// the same `return` leaves the whole async function. Execution therefore carries on
+// round the enclosing retry loop and reaches a second `ch <-`; the channel holds one
+// value, so that send blocks forever. Under the trampoline it parks the body goroutine
+// rather than the caller, but it is still a leaked goroutine — and, worse, the loop has
+// already re-issued the network request to get there.
 //
 // Four base methods have that shape today — Fetch2, FetchWebEndpoint,
 // SafeDeterministicCall and FetchRestOrderBookSafe — each sending from inside a retry
 // loop's try block. The guard threads a `chSent` flag through exactly those cores and
-// leaves as soon as the closure produced a value, which is what the TypeScript said in
-// the first place:
+// leaves the body goroutine as soon as the closure produced a value, which is what the
+// TypeScript said in the first place:
 //
 //     for … {                                     for … {
 //         {                                           {
@@ -78,9 +81,13 @@ let gofmtMissingWarned = false;
 //         }                                               }(this)
 //     }                                               }
 //                                                     if chSent {
-//                                                         return ch
+//                                                         return nil
 //                                                     }
 //                                                 }
+//
+// `return nil` (not `return ch`) is the right early exit: it leaves the body closure,
+// whose result type is `any`, and `defer close(ch)` still runs — the trampoline handed
+// the channel to the caller long before.
 //
 // That also repairs a real bug the port has today, independent of the emitter: with
 // `maxRetries` at its default 3, `SafeDeterministicCall` and `FetchRestOrderBookSafe`
@@ -91,14 +98,21 @@ let gofmtMissingWarned = false;
 // Cores that send only at their own level — the vast majority — are left byte-identical,
 // and any core whose shape is not fully understood is skipped, so a parse we do not
 // fully trust degrades to exactly what ast-transpiler emitted.
-const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[A-Za-z_]\w*\s*\(.*\)\s*\(\s*out\d*\s+<-\s?chan\s+any\s*\)\s*\{$/;
+//
+// Everything here matches the *raw* emitted text: this runs before gofmt, which is what
+// later normalises `<- chan any` to `<-chan any` and 4-space indentation to tabs.
+const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[A-Za-z_]\w*\s*\(.*\)\s*<-\s*chan\s+any\s*\{$/;
 const GO_CORE_MAKE = /^([ \t]*)ch := make\(chan\s+[^(),\n]+,\s*1\)$/;
-const GO_CORE_OUT = /^([ \t]*)out\d* = ch$/;
+// the trampoline's goroutine opener, `go func() any {`, sits at the same indent as the make
+const GO_CORE_GO = /^([ \t]*)go func\(\)\s+\S+\s*\{$/;
 const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
 // the panic helper is package-qualified in the prediction namespace (ccxt.ReturnPanicError)
 const GO_CORE_PANIC = /^([ \t]*)defer (?:[A-Za-z_][A-Za-z0-9_.]*\.)?ReturnPanicError\(ch\)$/;
 // generated cores are always top-level funcs, so the core ends at a brace in column 0
 const GO_CORE_END = /^\}\s*$/;
+// the trampoline tail, between the body and that column-0 brace: `}()` then `return ch`
+const GO_CORE_GO_END = /^\s*\}\(\)\s*$/;
+const GO_CORE_RETURN_CH = /^\s*return ch\s*$/;
 const GO_CORE_SEND = /^ch\s*<-/;
 const GO_FUNC_LITERAL = /\bfunc\s*(?:\([^()]*\))?\s*\(/g;
 // the try/catch shim closes as an immediately-invoked literal, `}()` or `}(this)`
@@ -228,16 +242,19 @@ function isBalancedGoLine (line: string): boolean {
 }
 
 // Thread the sent-flag through one core. `lines[start]` is the `ch := make(chan T, 1)`
-// line and the three lines after it are the rest of the core prologue. Returns the
-// replacement body (flag declaration + rewritten lines) and the index of the core's
-// closing brace, or null when any safety gate fails.
+// line and the three lines after it are the rest of the core prologue (`go func() any {`
+// and the two defers inside it). Returns the replacement body (flag declaration +
+// rewritten lines + the untouched trampoline tail) and the index of the core's closing
+// brace, or null when any safety gate fails.
 function guardMultiSendCore (lines: string[], start: number): { 'body': string[]; 'end': number } | null {
     const indent = (GO_CORE_MAKE.exec (lines[start]) as RegExpExecArray)[1];
-    // the whole prologue sits at one indentation level; anything else is a shape we
-    // did not emit and do not understand
+    // the goroutine opener sits at the make's level, the two defers one level inside it;
+    // anything else is a shape we did not emit and do not understand
+    const bodyIndent = indent + GO_INDENT_UNIT;
     for (const offset of [ 1, 2, 3 ]) {
-        const prologue = [ GO_CORE_OUT, GO_CORE_CLOSE, GO_CORE_PANIC ][offset - 1];
-        if ((prologue.exec (lines[start + offset]) as RegExpExecArray)[1] !== indent) {
+        const prologue = [ GO_CORE_GO, GO_CORE_CLOSE, GO_CORE_PANIC ][offset - 1];
+        const expected = (offset === 1) ? indent : bodyIndent;
+        if ((prologue.exec (lines[start + offset]) as RegExpExecArray)[1] !== expected) {
             return null;
         }
     }
@@ -249,7 +266,26 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
     if (end >= lines.length) {
         return null;
     }
-    const body = lines.slice (bodyStart, end);
+    // the trampoline's own tail — `}()` closing the goroutine, then `return ch` — sits
+    // between the body and that column-0 brace. Exclude it from the scan: the goroutine
+    // is a func literal too, and counting it would shift every literal depth by one and
+    // break the `closesTo === 0` test that spots the outermost try/catch shim.
+    let returnIndex = end - 1;
+    while (returnIndex > bodyStart && lines[returnIndex].trim () === '') {
+        returnIndex--;
+    }
+    if (returnIndex <= bodyStart || !GO_CORE_RETURN_CH.test (lines[returnIndex])) {
+        return null;
+    }
+    let goEndIndex = returnIndex - 1;
+    while (goEndIndex > bodyStart && lines[goEndIndex].trim () === '') {
+        goEndIndex--;
+    }
+    if (goEndIndex <= bodyStart || !GO_CORE_GO_END.test (lines[goEndIndex])) {
+        return null;
+    }
+    const tail = lines.slice (goEndIndex, end);
+    const body = lines.slice (bodyStart, goEndIndex);
     const scan = scanCoreBody (body);
     if (scan === null || !scan.sendsInLiteral) {
         // nothing to guard: the core only ever sends at its own level
@@ -277,14 +313,17 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
         }
         if (scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
             // the outermost try/catch shim just returned: if it produced a value the
-            // core is done, exactly as the `return` inside the TypeScript `try` meant
+            // core is done, exactly as the `return` inside the TypeScript `try` meant.
+            // `return nil` leaves the body goroutine (whose result is `any`); the
+            // trampoline already handed the channel to the caller and `defer close`
+            // still runs
             rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
-            rewritten.push (lineIndent + GO_INDENT_UNIT + 'return ch');
+            rewritten.push (lineIndent + GO_INDENT_UNIT + 'return nil');
             rewritten.push (lineIndent + '}');
         }
     }
-    const declaration = [ indent + GO_SENT_FLAG + ' := false', indent + '_ = ' + GO_SENT_FLAG ];
-    return { 'body': declaration.concat (rewritten), 'end': end };
+    const declaration = [ bodyIndent + GO_SENT_FLAG + ' := false', bodyIndent + '_ = ' + GO_SENT_FLAG ];
+    return { 'body': declaration.concat (rewritten).concat (tail), 'end': end };
 }
 
 function guardMultiSendCores (content: string): string {
@@ -297,7 +336,7 @@ function guardMultiSendCores (content: string): string {
     while (index < lines.length) {
         const isCore = (index + 4 < lines.length)
             && GO_CORE_MAKE.test (lines[index])
-            && GO_CORE_OUT.test (lines[index + 1])
+            && GO_CORE_GO.test (lines[index + 1])
             && GO_CORE_CLOSE.test (lines[index + 2])
             && GO_CORE_PANIC.test (lines[index + 3])
             && result.length > 0
@@ -2259,22 +2298,6 @@ ${constStatements.join('\n')}
         const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
         const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
 
-        // ast-transpiler wraps a deferred async call as `this.Spawn(this.Method, args).Await()`
-        // so a later Promise.all fans out. On a VIRTUAL base method that wrap is wrong: it
-        // freezes a method value bound to the embedded *BaseExchange*, so the venue override is
-        // lost and the base stub runs instead (`grvt.signIn()` reached BaseExchange.SignIn and
-        // panicked `NotSupported`, failing the Go request tests). Go has no virtual dispatch on
-        // `this`, so these calls have to go back through callInternal / DerivedExchange below,
-        // which resolve against the concrete instance. Undo the wrap before those rewrites run.
-        const virtualByCapitalized: any = {};
-        for (const name of allVirtual) {
-            virtualByCapitalized[capitalize(name)] = name;
-        }
-        baseClass = baseClass.replace(
-            new RegExp(`this\\.Spawn\\(this\\.(${Object.keys(virtualByCapitalized).join('|')})(,[^)]*)?\\)\\.Await\\(\\)`, 'gm'),
-            (_match: any, p1: string, p2: string) => `<-this.callInternal("${virtualByCapitalized[p1]}"${p2 || ''})`
-        );
-
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         // console.log(syncRegex)
         // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
@@ -2419,17 +2442,6 @@ ${constStatements.join('\n')}
         let baseClass = baseFile.content as any;
         const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
         const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
-        // same reason as in the main base pass: `this.Spawn(this.Method, …).Await()` freezes a
-        // method value bound to the embedded base, losing the venue override, so virtual base
-        // methods go back through callInternal / DerivedExchange before the rewrites below.
-        const virtualByCapitalized: any = {};
-        for (const name of allVirtual) {
-            virtualByCapitalized[capitalize(name)] = name;
-        }
-        baseClass = baseClass.replace(
-            new RegExp(`this\\.Spawn\\(this\\.(${Object.keys(virtualByCapitalized).join('|')})(,[^)]*)?\\)\\.Await\\(\\)`, 'gm'),
-            (_match: any, p1: string, p2: string) => `<-this.callInternal("${virtualByCapitalized[p1]}"${p2 || ''})`
-        );
         const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})", (.+)\\)`, 'gm');
         baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2})`);
         const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})", (.+)\\)`, 'gm');
