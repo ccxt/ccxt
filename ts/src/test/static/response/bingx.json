@@ -827,6 +827,71 @@
                 }
             }
         ],
+        "fetchOpenInterest": [
+            {
+                "description": "fetch open interest linear",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "data": {
+                        "openInterest": "3289641547.10",
+                        "symbol": "BTC-USDT",
+                        "time": 1672026617364
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterestAmount": null,
+                    "openInterestValue": 3289641547.1,
+                    "timestamp": 1672026617364,
+                    "datetime": "2022-12-26T03:50:17.364Z",
+                    "info": {
+                        "openInterest": "3289641547.10",
+                        "symbol": "BTC-USDT",
+                        "time": 1672026617364
+                    }
+                }
+            },
+            {
+                "description": "fetch open interest inverse",
+                "method": "fetchOpenInterest",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456489,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "openInterest": "1152.6776",
+                            "timestamp": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USD:BTC",
+                    "baseVolume": null,
+                    "quoteVolume": null,
+                    "openInterestAmount": 1152.6776,
+                    "openInterestValue": null,
+                    "timestamp": 1787356800000,
+                    "datetime": "2026-08-22T00:00:00.000Z",
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "openInterest": "1152.6776",
+                        "timestamp": 1787356800000
+                    }
+                }
+            }
+        ],
         "fetchTransfers": [
             {
                 "description": "fetch USDT transfers from spot to swap",

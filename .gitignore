@@ -60,3 +60,8 @@ go/cli/cli
 # Local per-machine Claude Code agent settings (should never be committed)
 .claude/settings.local.json
 **/.claude/settings.local.json
+
+# --- mcp sub-package build output ---
+mcp/js/
+mcp/*.mcpb
+mcp/mcpb/staging/

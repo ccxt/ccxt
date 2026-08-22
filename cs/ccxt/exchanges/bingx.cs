@@ -1732,6 +1732,10 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(getValue(market, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
@@ -2501,12 +2505,13 @@ public partial class bingx : Exchange
         object id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
+        object inverse = this.safeBool(market, "inverse", false);
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "baseVolume", null },
             { "quoteVolume", null },
-            { "openInterestAmount", null },
-            { "openInterestValue", openInterest },
+            { "openInterestAmount", ((bool) isTrue(inverse)) ? openInterest : null },
+            { "openInterestValue", ((bool) isTrue(inverse)) ? null : openInterest },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", interest },

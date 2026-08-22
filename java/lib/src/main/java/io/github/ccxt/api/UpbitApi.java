@@ -232,9 +232,9 @@ public class UpbitApi extends Exchange
      * Calls the publicGetTickerAll endpoint.
      *
      * @param optionalArgs the request parameters
-     * @return a JSON object
+     * @return a JSON array
      */
-    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTickerAll (Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetTickerAll (Object... optionalArgs)
     {
         return this.callAsync ("publicGetTickerAll", optionalArgs);
     }

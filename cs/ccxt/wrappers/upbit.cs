@@ -130,11 +130,19 @@ public partial class upbit
     /// <remarks>
     /// See <see href="https://docs.upbit.com/kr/reference/list-tickers"/>  <br/>
     /// See <see href="https://global-docs.upbit.com/reference/list-tickers"/>  <br/>
+    /// See <see href="https://docs.upbit.com/kr/reference/tickers_by_quote"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/tickers_by_quote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.quote_currencies</term>
+    /// <description>
+    /// string : comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
     /// </description>
     /// </item>
     /// </list>

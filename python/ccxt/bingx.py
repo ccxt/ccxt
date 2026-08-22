@@ -1310,6 +1310,8 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        if market['inverse']:
+            raise NotSupported(self.id + ' fetchTrades() is not supported for inverse swap markets')
         request = {
             'symbol': market['id'],
         }
@@ -1965,12 +1967,13 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')
+        inverse = self.safe_bool(market, 'inverse', False)
         return self.safe_open_interest({
             'symbol': symbol,
             'baseVolume': None,
             'quoteVolume': None,  # deprecated
-            'openInterestAmount': None,
-            'openInterestValue': openInterest,
+            'openInterestAmount': openInterest if inverse else None,
+            'openInterestValue': None if inverse else openInterest,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,

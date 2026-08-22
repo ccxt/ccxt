@@ -139,6 +139,16 @@ function testPrecise() {
     assert(Precise.stringDiv('1', '3', 5) === '0.33333');
     assert(Precise.stringDiv('-1', '3', 5) === '-0.33333');
     assert(Precise.stringDiv('1', '7', 25) === '0.1428571428571428571428571');
+    // negative distance (more decimals than precision) truncates to zero
+    assert(Precise.stringDiv('0.00000000000000000000000000001', '1') === '0');
+    // precision around the boundary of implementations with a precomputed
+    // power-of-ten table (js/python cover exponents up to 128, then fall
+    // back to exponentiation — the results must not differ)
+    assert(Precise.stringDiv('1', '3', 128) === '0.33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+    assert(Precise.stringDiv('1', '3', 129) === '0.333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+    assert(Precise.stringDiv('1', '3', 130) === '0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+    // uppercase negative exponent marker
+    assert(Precise.stringMul('-1.5E-3', '2') === '-0.003');
     // comparisons with scientific notation
     assert(Precise.stringGt('1e3', '999.999'));
     assert(!Precise.stringLt('1e-3', '0.001')); // equal values, different representation

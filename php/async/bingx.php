@@ -1370,6 +1370,9 @@ class bingx extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' fetchTrades() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
@@ -2077,7 +2080,7 @@ class bingx extends Exchange {
         //         "time" => 1672026617364
         //     }
         //
-        // inverse swap
+        // $inverse swap
         //
         //     {
         //         "symbol" => "BTC-USD",
@@ -2089,12 +2092,13 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
+        $inverse = $this->safe_bool($market, 'inverse', false);
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'baseVolume' => null,
             'quoteVolume' => null,  // deprecated
-            'openInterestAmount' => null,
-            'openInterestValue' => $openInterest,
+            'openInterestAmount' => $inverse ? $openInterest : null,
+            'openInterestValue' => $inverse ? null : $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
