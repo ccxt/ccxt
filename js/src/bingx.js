@@ -2027,12 +2027,13 @@ export default class bingx extends Exchange {
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
+        const inverse = this.safeBool(market, 'inverse', false);
         return this.safeOpenInterest({
             'symbol': symbol,
             'baseVolume': undefined,
             'quoteVolume': undefined, // deprecated
-            'openInterestAmount': undefined,
-            'openInterestValue': openInterest,
+            'openInterestAmount': inverse ? openInterest : undefined,
+            'openInterestValue': inverse ? undefined : openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
