@@ -3295,7 +3295,7 @@ export default class bitget extends Exchange {
             if (limit !== undefined) {
                 throw new BadRequest (this.id + ' fetchOrderBook() does not support limit for tokenized stock markets');
             }
-            if (this.apiKey === undefined) {
+            if (!this.checkRequiredCredentials (false)) {
                 throw new BadRequest (this.id + ' fetchOrderBook() requires a whitelisted API key for tokenized stock markets');
             }
             response = await this.privateUtaGetV3AccountRealityOrderbook (this.extend (request, params));
@@ -4088,7 +4088,7 @@ export default class bitget extends Exchange {
             if (since !== undefined) {
                 throw new BadRequest (this.id + ' fetchTrades() does not support since for tokenized stock markets');
             }
-            if (this.apiKey === undefined) {
+            if (!this.checkRequiredCredentials (false)) {
                 throw new BadRequest (this.id + ' fetchTrades() requires a whitelisted API key for tokenized stock markets');
             }
             params = this.omit (params, [ 'until', 'idLessThan' ]);
