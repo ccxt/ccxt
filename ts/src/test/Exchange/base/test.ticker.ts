@@ -142,6 +142,54 @@ function testTicker (exchange: Exchange, skippedProperties: object, method: stri
             assert (Precise.stringLe (quoteVolume, baseHigh), 'quoteVolume should be <= baseVolume * high' + logText);
         }
     }
+    //
+    // change & percentage
+    //
+    // the Manual defines these two against each other and against open:
+    //   change      absolute change, `last - open`
+    //   percentage  relative change, `(change/open) * 100`
+    // neither was asserted anywhere, and a parser that fills one of them from a
+    // field measuring a different window or carrying a ratio instead of a
+    // percentage produces a ticker that contradicts itself while every existing
+    // check passes
+    const changeString = exchange.safeString (entry, 'change');
+    const percentageString = exchange.safeString (entry, 'percentage');
+    if ((changeString !== undefined) && (open !== undefined) && (close !== undefined) && !('compareChange' in skippedProperties)) {
+        // two different roundings have to be forgiven here, so the window is the
+        // larger of the two. safeTicker derives change from open and last when the
+        // exchange omits it, and the result carries float residue past any real
+        // precision, latoken reporting 1190.9514953271027 against a true
+        // 1190.9514953271: that needs a part per million of the price. an exchange
+        // that rounds the field it does report needs the other one, xt returning
+        // "0.00000000015" for a true 0.00000000014 on a price of 0.00000002652,
+        // where a part per million is 1e-14 and the gap is 1e-11. the reported
+        // string reveals its own rounding step, the same way the quoteVolume check
+        // above reads one
+        const pricePart = Precise.stringDiv (Precise.stringAbs (close), '1000000');
+        const changeDecimals = exchange.precisionFromString (changeString);
+        let changeQuantum = exchange.parsePrecision (exchange.numberToString (changeDecimals));
+        // a reported change of "0" prints no decimals at all, so its apparent step is a
+        // whole unit: on bitbns, which reports "0" for micro-priced assets, that would be
+        // 123000% of the price and the check would accept anything. cap the step at a
+        // per cent of the price, which still covers an exchange reporting whole units on
+        // a price in the tens of thousands
+        const quantumCap = Precise.stringDiv (Precise.stringAbs (close), '100');
+        changeQuantum = Precise.stringMin (changeQuantum, quantumCap);
+        const changeWindow = Precise.stringMax (pricePart, changeQuantum);
+        const difference = Precise.stringAbs (Precise.stringSub (changeString, Precise.stringSub (close, open)));
+        assert (Precise.stringLe (difference, changeWindow), '`change` should be `last - open`' + logText);
+    }
+    if ((changeString !== undefined) && (percentageString !== undefined) && (open !== undefined) && !('comparePercentage' in skippedProperties)) {
+        const derived = Precise.stringMul (Precise.stringDiv (changeString, open), '100');
+        // exchanges round the percentage they report, so allow one part in fifty
+        // of the derived value plus an absolute floor for moves near zero. a
+        // ratio reported where a percentage belongs is out by a hundred and
+        // clears this by three orders of magnitude
+        const relative = Precise.stringDiv (Precise.stringAbs (derived), '50');
+        const allowed = Precise.stringMax (relative, '0.01');
+        const gap = Precise.stringAbs (Precise.stringSub (percentageString, derived));
+        assert (Precise.stringLe (gap, allowed), '`percentage` should be `(change/open) * 100`' + logText);
+    }
     // open and close should be between High & Low
     if (high !== undefined && low !== undefined && !('compareOHLC' in skippedProperties)) {
         if (open !== undefined) {
