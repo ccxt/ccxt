@@ -118,7 +118,6 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     private $proxyDictionaries = [];
-    private static $fetchHookOverridden = array();
 
     public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
         $connection_options_for_proxy = null;
@@ -157,19 +156,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return React\Async\async(self::fetch_transport(...))($url, $method, $headers, $body);
     }
 
-    // inner async layers call this instead of awaiting fetch(), which saves a fiber; a subclass
-    // that only overrides the public fetch() transport hook (test mocks included) still wins,
-    // because then the hook is re-entered through its own public promise.
     protected function do_fetch($url, $method = 'GET', $headers = null, $body = null) {
-        $class = static::class;
-        if (!array_key_exists($class, self::$fetchHookOverridden)) {
-            $hook = (new \ReflectionMethod($class, 'fetch'))->getDeclaringClass()->getName();
-            $inner = (new \ReflectionMethod($class, 'do_fetch'))->getDeclaringClass()->getName();
-            self::$fetchHookOverridden[$class] = ($hook !== self::class) && ($inner === self::class);
-        }
-        if (self::$fetchHookOverridden[$class]) {
-            return React\Async\await($this->fetch($url, $method, $headers, $body));
-        }
         return self::fetch_transport($url, $method, $headers, $body);
     }
 
