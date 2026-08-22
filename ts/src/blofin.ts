@@ -1401,13 +1401,11 @@ export default class blofin extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'state'));
         const feeCostString = this.safeString (order, 'fee');
         const amount = this.safeString (order, 'size');
-        const leverage = this.safeString (order, 'leverage', '1');
         const contractSize = this.safeString (market, 'contractSize');
         const baseAmount = Precise.stringMul (contractSize, filled);
         let cost: Str = undefined;
         if (average !== undefined) {
             cost = Precise.stringMul (average, baseAmount);
-            cost = Precise.stringDiv (cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         let fee: Fee = undefined;

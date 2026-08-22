@@ -1662,6 +1662,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         }
         Object cache = this.positions;
         Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+        if (!Helpers.isTrue((Helpers.inOp(data, "P"))))
+        {
+            return;
+        }
         Object rawPositions = this.safeList(data, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)

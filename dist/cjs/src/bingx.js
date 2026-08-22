@@ -1716,7 +1716,14 @@ class bingx extends bingx$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeDict(response, 'data');
+        let data;
+        if (market['inverse']) {
+            const dataList = this.safeList(response, 'data', []);
+            data = this.safeDict(dataList, 0, {});
+        }
+        else {
+            data = this.safeDict(response, 'data', {});
+        }
         return this.parseFundingRate(data, market);
     }
     /**
@@ -3000,7 +3007,7 @@ class bingx extends bingx$1["default"] {
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
             'notional': this.safeNumber(position, 'positionValue'),
             'marginMode': marginMode,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumberOmitZero(position, 'liquidationPrice'),
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),

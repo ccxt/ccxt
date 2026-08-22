@@ -2236,7 +2236,15 @@ public class BingxCore extends BingxApi
             //        ]
             //    }
             //
-            Object data = this.safeDict(response, "data");
+            Object data = null;
+            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            {
+                Object dataList = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = this.safeDict(dataList, 0, new java.util.HashMap<String, Object>() {{}});
+            } else
+            {
+                data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            }
             return this.parseFundingRate(data, market);
         });
 
@@ -3511,7 +3519,7 @@ public class BingxCore extends BingxApi
             put( "symbol", BingxCore.this.safeSymbol(finalMarketId, market, "-", "swap") );
             put( "notional", BingxCore.this.safeNumber(position, "positionValue") );
             put( "marginMode", finalMarginMode );
-            put( "liquidationPrice", null );
+            put( "liquidationPrice", BingxCore.this.safeNumberOmitZero(position, "liquidationPrice") );
             put( "entryPrice", BingxCore.this.safeNumber2(position, "avgPrice", "entryPrice") );
             put( "unrealizedPnl", BingxCore.this.safeNumber(position, "unrealizedProfit") );
             put( "realizedPnl", BingxCore.this.safeNumber(position, "realisedProfit") );

@@ -825,6 +825,53 @@
                     "previousFundingDatetime": null,
                     "interval": null
                 }
+            },
+            {
+                "description": "fetch funding rate inverse",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USD:BTC"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "",
+                    "timestamp": 1787342456049,
+                    "data": [
+                        {
+                            "symbol": "BTC-USD",
+                            "lastFundingRate": "0.0001",
+                            "markPrice": "76881.8",
+                            "indexPrice": "76922.2",
+                            "nextFundingTime": 1787356800000
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTC-USD",
+                        "lastFundingRate": "0.0001",
+                        "markPrice": "76881.8",
+                        "indexPrice": "76922.2",
+                        "nextFundingTime": 1787356800000
+                    },
+                    "symbol": "BTC/USD:BTC",
+                    "markPrice": 76881.8,
+                    "indexPrice": 76922.2,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.0001,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": 1787356800000,
+                    "nextFundingDatetime": "2026-08-22T00:00:00.000Z",
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": null
+                }
             }
         ],
         "fetchOpenInterest": [
@@ -4609,6 +4656,86 @@
                     "initialMargin": 1.9128,
                     "initialMarginPercentage": null,
                     "leverage": 5,
+                    "marginRatio": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
+                ]
+            },
+            {
+                "description": "fetch inverse position",
+                "method": "fetchPositions",
+                "input": [
+                  [
+                    "SOL/USD:SOL"
+                  ]
+                ],
+                "httpResponse": {
+                  "code": "0",
+                  "msg": "",
+                  "data": [
+                    {
+                      "symbol": "SOL-USD",
+                      "positionId": "1813080351385337856",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "positionAmt": "1",
+                      "availableAmt": "1",
+                      "unrealizedProfit": "-0.00009074",
+                      "initialMargin": "0.00630398",
+                      "liquidationPrice": 23.968303426677032,
+                      "avgPrice": "158.63",
+                      "leverage": 10,
+                      "markPrice": "158.402",
+                      "riskRate": "0.00123783",
+                      "maxMarginReduction": "0",
+                      "updateTime": 1721107015848
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "SOL-USD",
+                      "positionId": "1813080351385337856",
+                      "positionSide": "LONG",
+                      "isolated": false,
+                      "positionAmt": "1",
+                      "availableAmt": "1",
+                      "unrealizedProfit": "-0.00009074",
+                      "initialMargin": "0.00630398",
+                      "liquidationPrice": 23.968303426677032,
+                      "avgPrice": "158.63",
+                      "leverage": 10,
+                      "markPrice": "158.402",
+                      "riskRate": "0.00123783",
+                      "maxMarginReduction": "0",
+                      "updateTime": 1721107015848
+                    },
+                    "id": "1813080351385337856",
+                    "symbol": "SOL/USD:SOL",
+                    "notional": null,
+                    "marginMode": "cross",
+                    "liquidationPrice": 23.968303426677032,
+                    "entryPrice": 158.63,
+                    "unrealizedPnl": -0.00009074,
+                    "realizedPnl": null,
+                    "percentage": -1.43,
+                    "contracts": 1,
+                    "contractSize": 1,
+                    "markPrice": 158.402,
+                    "lastPrice": null,
+                    "side": "long",
+                    "hedged": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastUpdateTimestamp": 1721107015848,
+                    "maintenanceMargin": null,
+                    "maintenanceMarginPercentage": null,
+                    "collateral": null,
+                    "initialMargin": 0.00630398,
+                    "initialMarginPercentage": null,
+                    "leverage": 10,
                     "marginRatio": null,
                     "stopLossPrice": null,
                     "takeProfitPrice": null

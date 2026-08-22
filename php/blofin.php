@@ -1394,13 +1394,11 @@ class blofin extends Exchange {
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
         $amount = $this->safe_string($order, 'size');
-        $leverage = $this->safe_string($order, 'leverage', '1');
         $contractSize = $this->safe_string($market, 'contractSize');
         $baseAmount = Precise::string_mul($contractSize, $filled);
         $cost = null;
         if ($average !== null) {
             $cost = Precise::string_mul($average, $baseAmount);
-            $cost = Precise::string_div($cost, $leverage);
         }
         // spot $market buy => "sz" can refer either to base currency units or to quote currency units
         $fee = null;

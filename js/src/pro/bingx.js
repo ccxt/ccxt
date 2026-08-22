@@ -1356,6 +1356,9 @@ export default class bingx extends bingxRest {
         }
         const cache = this.positions;
         const data = this.safeDict(message, 'a', {});
+        if (!('P' in data)) {
+            return;
+        }
         const rawPositions = this.safeList(data, 'P', []);
         const newPositions = [];
         for (let i = 0; i < rawPositions.length; i++) {
