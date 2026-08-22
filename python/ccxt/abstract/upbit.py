@@ -23,7 +23,7 @@ class ImplicitAPI:
     public_get_candles_years = publicGetCandlesYears = Entry[_List]('candles/years', 'public', 'GET', {'cost': 2})
     public_get_trades_ticks = publicGetTradesTicks = Entry[_List]('trades/ticks', 'public', 'GET', {'cost': 2})
     public_get_ticker = publicGetTicker = Entry[_List]('ticker', 'public', 'GET', {'cost': 2})
-    public_get_ticker_all = publicGetTickerAll = Entry[_Dict]('ticker/all', 'public', 'GET', {'cost': 2})
+    public_get_ticker_all = publicGetTickerAll = Entry[_List]('ticker/all', 'public', 'GET', {'cost': 2})
     public_get_orderbook = publicGetOrderbook = Entry[_List]('orderbook', 'public', 'GET', {'cost': 2})
     public_get_orderbook_instruments = publicGetOrderbookInstruments = Entry[_List]('orderbook/instruments', 'public', 'GET', {'cost': 2})
     private_get_accounts = privateGetAccounts = Entry[_Dict]('accounts', 'private', 'GET', {'cost': 0.67})
