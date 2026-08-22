@@ -147,6 +147,39 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         // }
     }
 
+    // Copy() hands back a snapshot of a side that is already sorted and already
+    // carries a built _index, so replaying storeArray for every level only
+    // rebuilds what we already have, at a bisect, an insert and two
+    // Convert.ToDecimal per row. Copying the two parallel lists straight across
+    // produces the identical object for a fraction of the work. Returns false
+    // when the source is not a same-sided sibling, or when its two lists are
+    // desynced, and the caller then falls back to the rebuild.
+    protected bool cloneSortedFrom(object source)
+    {
+        var src = source as OrderBookSide;
+        if (src == null || src.side != this.side)
+        {
+            return false;
+        }
+        var rows = new List<object>();
+        foreach (var row in src)
+        {
+            rows.Add((row is IList<object> cells) ? new List<object>(cells) : row);
+        }
+        var prices = new List<decimal>();
+        foreach (var price in src._index)
+        {
+            prices.Add(price);
+        }
+        if (rows.Count != prices.Count)
+        {
+            return false;
+        }
+        this.AddRange(rows);
+        this._index.AddRange(prices);
+        return true;
+    }
+
     public void storeArray(object delta2)
     {
         lock (this)
@@ -286,7 +319,10 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
 
         lock (this)
         {
-
+            if (this.cloneSortedFrom(deltas2))
+            {
+                return;
+            }
             var deltas = (IList<object>)deltas2;
             var copiedDeltas = new List<object>(deltas);
             for (var i = 0; i < copiedDeltas.Count; i++)
@@ -321,7 +357,10 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
         lock (this)
         {
-
+            if (this.cloneSortedFrom(deltas2))
+            {
+                return;
+            }
             var deltas = (IList<object>)deltas2;
             for (var i = 0; i < deltas.Count; i++)
             {
@@ -666,7 +705,7 @@ public class Asks : NormalOrderBookSide, IAsks
     // see OrderBookSide.CopyUnlocked
     internal new IAsks CopyUnlocked()
     {
-        var copy = new Asks(this.ToList());
+        var copy = new Asks(this);
         return copy;
     }
 }
