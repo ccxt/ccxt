@@ -730,7 +730,7 @@ func (this *WhitebitCore) ParseMarket(market any) any {
 	var settle any = nil
 	var settleId any = nil
 	var symbol any = Add(Add(base, "/"), quote)
-	var swap any = IsEqual(typeId, "futures")
+	var swap any = IsTrue((IsEqual(typeId, "futures"))) || IsTrue((IsEqual(typeId, "tradfiFutures")))
 	var margin any = IsTrue(isCollateral) && !IsTrue(swap)
 	var contract any = false
 	var amountPrecision any = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "stockPrec")))
