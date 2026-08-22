@@ -1807,6 +1807,18 @@
                   "BTC/USDT:USDT",
                   1
                 ]
+            },
+            {
+                "description": "Coin-M add margin",
+                "method": "addMargin",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/positionMargin?amount=1&positionSide=LONG&symbol=SOL-USD&timestamp=1711660769522&type=1&signature=458d505cde75249731b6e64fd35e992419332f8b5418996712729408ea463759",
+                "input": [
+                  "SOL/USD:SOL",
+                  1,
+                  {
+                    "positionSide": "LONG"
+                  }
+                ]
             }
         ],
         "reduceMargin": [
@@ -1817,6 +1829,18 @@
                 "input": [
                   "BTC/USDT:USDT",
                   1
+                ]
+            },
+            {
+                "description": "Coin-M reduce margin",
+                "method": "reduceMargin",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/positionMargin?amount=1&positionSide=LONG&symbol=SOL-USD&timestamp=1711660858980&type=2&signature=7993a15b0cca670ba19d9a7bdde51acbee1998bfd7f1aa9870151cb95a6e26a0",
+                "input": [
+                  "SOL/USD:SOL",
+                  1,
+                  {
+                    "positionSide": "LONG"
+                  }
                 ]
             }
         ],

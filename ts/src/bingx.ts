@@ -5734,9 +5734,11 @@ export default class bingx extends Exchange {
      * @name bingx#setMargin
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+     * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
      * @param {object} [params] parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     override async setMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
@@ -5751,12 +5753,18 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        const amountString = market['inverse'] ? this.currencyToPrecision (market['settle'], amount) : this.amountToPrecision (market['symbol'], amount);
         const request: Dict = {
             'symbol': market['id'],
-            'amount': this.amountToPrecision (market['symbol'], amount),
+            'amount': amountString,
             'type': type,
         };
-        const response = await this.swapV2PrivatePostTradePositionMargin (this.extend (request, params));
+        let response: Dict;
+        if (market['inverse']) {
+            response = await this.cswapV1PrivatePostTradePositionMargin (this.extend (request, params));
+        } else {
+            response = await this.swapV2PrivatePostTradePositionMargin (this.extend (request, params));
+        }
         //
         //    {
         //        "code": 0,
