@@ -62,6 +62,9 @@ public class Exchange {
     public boolean verbose = false;
     public boolean validateServerSsl = true;
     public boolean enableRateLimit = true;
+    // opt-in benchmark instrumentation (see examples/benchmarks); inert unless profile is set
+    public boolean profile = false;
+    public double profileJsonMs = 0;
     public volatile long lastRestRequestTimestamp = 0L;
     public String url = "";
     public String hostname = "";
@@ -2218,7 +2221,13 @@ public class Exchange {
 
         Object responseBody;
         try {
-            responseBody = JsonHelper.deserialize(result);
+            if (this.profile) {
+                long __t0 = System.nanoTime();
+                responseBody = JsonHelper.deserialize(result);
+                this.profileJsonMs += (System.nanoTime() - __t0) / 1e6;
+            } else {
+                responseBody = JsonHelper.deserialize(result);
+            }
             if (this.returnResponseHeaders && responseBody instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> dict = (Map<String, Object>) responseBody;

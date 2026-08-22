@@ -9,6 +9,9 @@
 package bench;
 
 import io.github.ccxt.exchanges.Coinbase;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -57,8 +60,91 @@ public class Main {
         return Math.round(v * p) / p;
     }
 
+    // Times the two base methods every request flows through, mirroring the
+    // JS/Python/PHP/C# harnesses: fetch() is the whole HTTP layer, parseJson()
+    // the JSON decode inside it. network = fetch - jsonDecode.
+    static class TracedCoinbase extends Coinbase {
+        double httpMs;
+        double jsonMs;
+
+        @Override
+        public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
+            this.profile = true;
+            this.profileJsonMs = 0;
+            long t0 = System.nanoTime();
+            return super.fetch(url2, method2, headers2, body2).thenApply(r -> {
+                this.httpMs = (System.nanoTime() - t0) / 1e6;
+                this.jsonMs = this.profileJsonMs;   // decode timed inside the HTTP layer
+                return r;
+            });
+        }
+
+
+    }
+
+    static double pct(List<Double> xs, double q) {
+        if (xs.isEmpty()) return 0;
+        List<Double> v = new ArrayList<>(xs);
+        Collections.sort(v);
+        int i = (int) Math.floor(q / 100.0 * (v.size() - 1));
+        return round(v.get(Math.min(i, v.size() - 1)), 2);
+    }
+
+    static String stats(List<Double> xs) {
+        return "{\"p50\":" + pct(xs, 50) + ",\"p90\":" + pct(xs, 90)
+             + ",\"p95\":" + pct(xs, 95) + ",\"p99\":" + pct(xs, 99) + "}";
+    }
+
+    static void benchRest(String symbol) throws Exception {
+        int iters = envInt("BENCH_REST_ITERS", 60);
+        int sleepMs = envInt("BENCH_SLEEP_MS", 250);
+        TracedCoinbase ex = new TracedCoinbase();
+        ex.enableRateLimit = false;   // match the other harnesses: measure work, not throttle sleep
+        ex.loadMarkets().get();
+        for (int w = 0; w < 3; w++) ex.fetchOrderBook((Object) symbol).get();  // warmup: connection + JIT
+
+        List<Double> latency = new ArrayList<>();
+        List<Double> network = new ArrayList<>();
+        List<Double> processing = new ArrayList<>();
+        List<Double> jsonDecode = new ArrayList<>();
+        OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        long cpu0 = os.getProcessCpuTime();
+
+        for (int i = 0; i < iters; i++) {
+            long t0 = System.nanoTime();
+            ex.fetchOrderBook((Object) symbol).get();
+            double total = (System.nanoTime() - t0) / 1e6;
+            double wire = ex.httpMs - ex.jsonMs;
+            latency.add(total);
+            network.add(wire);
+            processing.add(total - wire);
+            jsonDecode.add(ex.jsonMs);
+            Thread.sleep(sleepMs);
+        }
+        double cpu = (os.getProcessCpuTime() - cpu0) / 1e9;
+
+        StringBuilder r = new StringBuilder("##RESULT## {");
+        r.append("\"language\":\"Java\",");
+        r.append("\"runtime\":\"OpenJDK ").append(System.getProperty("java.version")).append("\",");
+        r.append("\"ccxt\":\"4.5.65\",");
+        r.append("\"mode\":\"rest\",\"exchange\":\"coinbase\",");
+        r.append("\"symbol\":\"").append(symbol).append("\",");
+        r.append("\"iterations\":").append(iters).append(',');
+        r.append("\"latencyMs\":").append(stats(latency)).append(',');
+        r.append("\"networkMs\":").append(stats(network)).append(',');
+        r.append("\"processingMs\":").append(stats(processing)).append(',');
+        r.append("\"jsonDecodeMs\":").append(stats(jsonDecode)).append(',');
+        r.append("\"cpuUserSec\":").append(round(cpu, 3)).append(',');
+        r.append("\"cpuSystemSec\":0,");
+        r.append("\"peakRssMb\":").append(round(statusKb("VmHWM") / 1024.0, 1));
+        r.append('}');
+        System.out.println(r.toString());
+    }
+
     public static void main(String[] args) throws Exception {
         String symbol = System.getenv().getOrDefault("BENCH_SYMBOL", "BTC/USD");
+        String mode = args.length > 0 ? args[0] : "load";
+        if (mode.equals("rest")) { benchRest(symbol); return; }
         int seconds = envInt("BENCH_LOAD_SECONDS", 8);
         int levels = envInt("BENCH_LOAD_LEVELS", 1000);
         int retain = envInt("BENCH_LOAD_RETAIN", 2000);
