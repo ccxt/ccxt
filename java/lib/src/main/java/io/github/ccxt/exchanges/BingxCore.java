@@ -1799,6 +1799,10 @@ public class BingxCore extends BingxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
