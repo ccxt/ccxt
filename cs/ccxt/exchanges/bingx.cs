@@ -1732,6 +1732,10 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(getValue(market, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
