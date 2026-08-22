@@ -1676,6 +1676,9 @@ func (this *BingxCore) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var data any = this.SafeDict(message, "a", map[string]any{})
+	if !ccxt.IsTrue((ccxt.InOp(data, "P"))) {
+		return
+	}
 	var rawPositions any = this.SafeList(data, "P", []any{})
 	var newPositions any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
@@ -1791,10 +1794,10 @@ func (this *BingxCore) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) 
 			}()
 			// try block:
 
-			retRes142512 := (<-this.UserAuthPrivatePutUserDataStream(map[string]any{
+			retRes142812 := (<-this.UserAuthPrivatePutUserDataStream(map[string]any{
 				"listenKey": listenKey,
 			}))
-			ccxt.PanicOnError(retRes142512) // extend the expiry
+			ccxt.PanicOnError(retRes142812) // extend the expiry
 			return nil
 		}(this)
 
@@ -1831,8 +1834,8 @@ func (this *BingxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
-			retRes146816 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes146816)
+			retRes147116 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes147116)
 
 			return nil
 		}
@@ -1877,8 +1880,8 @@ func (this *BingxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 		}
 
-		retRes149512 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes149512)
+		retRes149812 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes149812)
 	}
 	return nil
 }
@@ -1909,17 +1912,17 @@ func (this *BingxCore) pongBody(ch chan any, client any, message any) any {
 			// try block:
 			if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
 
-				retRes151116 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-				ccxt.PanicOnError(retRes151116)
+				retRes151416 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+				ccxt.PanicOnError(retRes151416)
 			} else {
 				var ping any = this.SafeString(message, "ping")
 				var time any = this.SafeString(message, "time")
 
-				retRes151516 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				retRes151816 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 					"pong": ping,
 					"time": time,
 				}))
-				ccxt.PanicOnError(retRes151516)
+				ccxt.PanicOnError(retRes151816)
 			}
 			return nil
 		}(this)
