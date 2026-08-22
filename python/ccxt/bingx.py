@@ -1677,7 +1677,12 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_dict(response, 'data')
+        data: dict
+        if market['inverse']:
+            dataList = self.safe_list(response, 'data', [])
+            data = self.safe_dict(dataList, 0, {})
+        else:
+            data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
     def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -2886,7 +2891,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
             'notional': self.safe_number(position, 'positionValue'),
             'marginMode': marginMode,
-            'liquidationPrice': None,
+            'liquidationPrice': self.safe_number_omit_zero(position, 'liquidationPrice'),
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
             'realizedPnl': self.safe_number(position, 'realisedProfit'),
