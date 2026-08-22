@@ -12,10 +12,32 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using ccxt;
 
 namespace ccxtbench
 {
+    // Times the two base methods every request flows through, mirroring the
+    // JS/Python/PHP wrappers: fetch() is the whole HTTP layer, parseJson() the
+    // JSON decode inside it. network = fetch - jsonDecode.
+    public class TracedCoinbase : coinbase
+    {
+        public double HttpMs;
+        public double JsonMs;
+
+        public override async Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
+        {
+            this.Profile = true;
+            this.ProfileJsonMs = 0;
+            var sw = Stopwatch.StartNew();
+            var r = await base.fetch(url2, method2, headers2, body2);
+            HttpMs = sw.Elapsed.TotalMilliseconds;
+            JsonMs = this.ProfileJsonMs;   // decode timed inside the HTTP layer
+            return r;
+        }
+
+    }
+
     static class Bench
     {
         static long StatusKb(string field)
@@ -30,11 +52,22 @@ namespace ccxtbench
 
         static string BuildRawBook(int levels)
         {
+            bool str = Environment.GetEnvironmentVariable("BENCH_STRING_PRICES") == "1";
             var sb = new StringBuilder();
             sb.Append("{\"bids\":[");
-            for (int i = 0; i < levels; i++) { if (i > 0) sb.Append(','); sb.Append('[').Append(1000000 - i).Append(',').Append(500 + i).Append(']'); }
+            for (int i = 0; i < levels; i++)
+            {
+                if (i > 0) sb.Append(',');
+                if (str) sb.Append("[\"").Append((112345.67 - i * 0.01).ToString("F2", CultureInfo.InvariantCulture)).Append("\",\"").Append((0.5 + i * 0.001).ToString("F8", CultureInfo.InvariantCulture)).Append("\"]");
+                else sb.Append('[').Append(1000000 - i).Append(',').Append(500 + i).Append(']');
+            }
             sb.Append("],\"asks\":[");
-            for (int i = 0; i < levels; i++) { if (i > 0) sb.Append(','); sb.Append('[').Append(1000000 + i).Append(',').Append(500 + i).Append(']'); }
+            for (int i = 0; i < levels; i++)
+            {
+                if (i > 0) sb.Append(',');
+                if (str) sb.Append("[\"").Append((112345.68 + i * 0.01).ToString("F2", CultureInfo.InvariantCulture)).Append("\",\"").Append((0.5 + i * 0.001).ToString("F8", CultureInfo.InvariantCulture)).Append("\"]");
+                else sb.Append('[').Append(1000000 + i).Append(',').Append(500 + i).Append(']');
+            }
             sb.Append("],\"timestamp\":1700000000000}");
             return sb.ToString();
         }
@@ -43,9 +76,73 @@ namespace ccxtbench
         static double NowMs() => (double)Stopwatch.GetTimestamp() / Stopwatch.Frequency * 1000.0;
         static string N(double v) => v.ToString(CultureInfo.InvariantCulture);
 
+        static double Pct(List<double> xs, double q)
+        {
+            var v = new List<double>(xs); v.Sort();
+            if (v.Count == 0) return 0;
+            int i = (int)Math.Floor(q / 100.0 * (v.Count - 1));
+            return Math.Round(v[Math.Min(i, v.Count - 1)], 2);
+        }
+
+        static string Stats(List<double> xs)
+        {
+            return "{\"p50\":" + N(Pct(xs, 50)) + ",\"p90\":" + N(Pct(xs, 90))
+                 + ",\"p95\":" + N(Pct(xs, 95)) + ",\"p99\":" + N(Pct(xs, 99)) + "}";
+        }
+
+        static async Task BenchRest(string symbol)
+        {
+            int iters = EnvInt("BENCH_REST_ITERS", 60);
+            int sleepMs = EnvInt("BENCH_SLEEP_MS", 250);
+            var ex = new TracedCoinbase();
+            await ex.LoadMarkets();
+            for (int w = 0; w < 3; w++) await ex.fetchOrderBook(symbol, null, null);  // warmup: connection + JIT
+
+            var latency = new List<double>();
+            var network = new List<double>();
+            var processing = new List<double>();
+            var jsonDecode = new List<double>();
+            var proc = Process.GetCurrentProcess();
+            var cpu0 = proc.TotalProcessorTime;
+
+            for (int i = 0; i < iters; i++)
+            {
+                double t0 = NowMs();
+                await ex.fetchOrderBook(symbol, null, null);
+                double total = NowMs() - t0;
+                double wire = ex.HttpMs - ex.JsonMs;
+                latency.Add(total);
+                network.Add(wire);
+                processing.Add(total - wire);
+                jsonDecode.Add(ex.JsonMs);
+                await Task.Delay(sleepMs);
+            }
+            proc.Refresh();
+            double cpu = (proc.TotalProcessorTime - cpu0).TotalSeconds;
+
+            var sb = new StringBuilder("##RESULT## {");
+            sb.Append("\"language\":\"C#\",");
+            sb.Append("\"runtime\":\".NET ").Append(Environment.Version).Append("\",");
+            sb.Append("\"ccxt\":\"").Append(Exchange.ccxtVersion).Append("\",");
+            sb.Append("\"mode\":\"rest\",\"exchange\":\"coinbase\",");
+            sb.Append("\"symbol\":\"").Append(symbol).Append("\",");
+            sb.Append("\"iterations\":").Append(iters).Append(',');
+            sb.Append("\"latencyMs\":").Append(Stats(latency)).Append(',');
+            sb.Append("\"networkMs\":").Append(Stats(network)).Append(',');
+            sb.Append("\"processingMs\":").Append(Stats(processing)).Append(',');
+            sb.Append("\"jsonDecodeMs\":").Append(Stats(jsonDecode)).Append(',');
+            sb.Append("\"cpuUserSec\":").Append(N(Math.Round(cpu, 3))).Append(',');
+            sb.Append("\"cpuSystemSec\":0,");
+            sb.Append("\"peakRssMb\":").Append(N(Math.Round(PeakRssKb() / 1024.0, 1)));
+            sb.Append('}');
+            Console.WriteLine(sb.ToString());
+        }
+
         static void Main(string[] args)
         {
             var symbol = Environment.GetEnvironmentVariable("BENCH_SYMBOL") ?? "BTC/USD";
+            var mode = args.Length > 0 ? args[0] : "load";
+            if (mode == "rest") { BenchRest(symbol).GetAwaiter().GetResult(); return; }
             int seconds = EnvInt("BENCH_LOAD_SECONDS", 8);
             int levels = EnvInt("BENCH_LOAD_LEVELS", 1000);
             int retain = EnvInt("BENCH_LOAD_RETAIN", 2000);

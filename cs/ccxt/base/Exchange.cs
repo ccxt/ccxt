@@ -344,7 +344,16 @@ public partial class Exchange
 
         try
         {
-            responseBody = JsonHelper.Deserialize(result);
+            if (this.Profile)
+            {
+                var __sw = System.Diagnostics.Stopwatch.StartNew();
+                responseBody = JsonHelper.Deserialize(result);
+                this.ProfileJsonMs += __sw.Elapsed.TotalMilliseconds;
+            }
+            else
+            {
+                responseBody = JsonHelper.Deserialize(result);
+            }
             if (this.returnResponseHeaders && responseBody is Dictionary<string, object> dict)
             {
                 dict["headers"] = responseHeaders;

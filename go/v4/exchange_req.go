@@ -27,6 +27,13 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 			ch <- this.FetchResponse
 			return
 		}
+		// benchmark instrumentation: start the HTTP-layer timer here so the measured
+		// window matches the other languages' wrappers, which wrap the whole fetch
+		// (request building and signing included), not just the wire call
+		var fetchStart time.Time
+		if this.Profile {
+			fetchStart = time.Now()
+		}
 		this.UpdateProxySettings() // for now this needs to be here
 
 		// Convert url to string
@@ -162,10 +169,6 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 
 		// strings.NewReader()
 		// Send the request
-		var httpStart time.Time
-		if this.Profile {
-			httpStart = time.Now()
-		}
 		resp, err := this.httpClient.Do(req)
 
 		// Read the response body
@@ -208,7 +211,7 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 		}
 
 		if this.Profile {
-			this.ProfileHttpMs = float64(time.Since(httpStart).Microseconds()) / 1000.0
+			this.ProfileHttpMs = float64(time.Since(fetchStart).Microseconds()) / 1000.0
 		}
 		responseHeaders := HeaderToMap(resp.Header)
 
