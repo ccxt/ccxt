@@ -1640,7 +1640,14 @@ export default class hyperliquid extends Exchange {
 
     override amountToPrecision (symbol: Str, amount: any) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, ROUND, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        // a size of zero is meaningful to hyperliquid, a whole position tp/sl order is sent
+        // with grouping positionTpsl and size 0, so only reject a positive amount that
+        // became zero after rounding, never an explicitly requested zero
+        if (Precise.stringEq (result, '0') && !Precise.stringEq (this.numberToString (amount), '0')) {
+            throw new InvalidOrder (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     override priceToPrecision (symbol: Str, price: any): Str {
