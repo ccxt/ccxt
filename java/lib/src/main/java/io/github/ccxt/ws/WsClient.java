@@ -148,6 +148,11 @@ public class WsClient {
     private final ExecutorService messageExecutor = Executors.newSingleThreadExecutor(
             Thread.ofVirtual().name("ws-msg-", 0).factory());
 
+    /** Grace period before a discarded client's messageExecutor shuts down; overridable in tests. */
+    public long executorShutdownDelayMs = 5000;
+
+    private final AtomicBoolean executorShutdownScheduled = new AtomicBoolean(false);
+
     public WsClient(String url, String proxy,
                     BiConsumer<WsClient, Object> handleMessage,
                     Function<WsClient, Object> ping,
@@ -439,19 +444,27 @@ public class WsClient {
             // unblocked AND preserves frame ordering per connection. Cross-frame races
             // on shared exchange state (orderbook cache, balance sub-maps, etc.) are
             // eliminated for same-client traffic.
-            messageExecutor.execute(() -> {
-                try {
-                    if (this.verbose) {
-                        System.out.println(getFormattedDate() + "OnMessage:" + message);
+            try {
+                messageExecutor.execute(() -> {
+                    try {
+                        if (this.verbose) {
+                            System.out.println(getFormattedDate() + "OnMessage:" + message);
+                        }
+                        this.handleMessageCallback.accept(this, message);
+                    } catch (Exception e) {
+                        if (this.verbose) {
+                            System.err.println("handleMessage error: " + e.getMessage());
+                        }
+                        this.reject(e);
                     }
-                    this.handleMessageCallback.accept(this, message);
-                } catch (Exception e) {
-                    if (this.verbose) {
-                        System.err.println("handleMessage error: " + e.getMessage());
-                    }
-                    this.reject(e);
+                });
+            } catch (java.util.concurrent.RejectedExecutionException e) {
+                // Client already discarded — drop late frames instead of propagating.
+                if (this.verbose) {
+                    System.out.println(getFormattedDate()
+                            + "Dropping frame after executor shutdown: " + this.url);
                 }
-            });
+            }
         }
     }
 
@@ -679,6 +692,34 @@ public class WsClient {
         }
 
         messageExecutor.shutdown();
+    }
+
+    /**
+     * Delayed graceful executor shutdown for a discarded client: a synchronous
+     * shutdown rejects in-flight frames, omitting it leaks the executor. If the
+     * client reconnects before the timer fires, the shutdown is disarmed so a
+     * later disconnect can re-arm it.
+     */
+    public void scheduleExecutorShutdown() {
+        if (executorShutdownScheduled.compareAndSet(false, true)) {
+            CompletableFuture.delayedExecutor(executorShutdownDelayMs,
+                    java.util.concurrent.TimeUnit.MILLISECONDS)
+                    .execute(() -> {
+                        // Serialize with connect()'s CAS on startedConnecting.
+                        synchronized (connectedLock) {
+                            if (this.isConnected || this.startedConnecting.get()) {
+                                executorShutdownScheduled.set(false);
+                                return;
+                            }
+                            messageExecutor.shutdown();
+                        }
+                    });
+        }
+    }
+
+    /** For tests and consumers verifying cleanup. */
+    public boolean isMessageExecutorShutdown() {
+        return messageExecutor.isShutdown();
     }
 
     // ─── Binary decompression (matches C# lines 393-471) ───
