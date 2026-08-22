@@ -2475,6 +2475,27 @@
                         "ETH/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "spot fetch tickers excludes stock symbols from the spot request",
+                "method": "fetchTickers",
+                "url": "https://api.binance.com/api/v3/ticker/24hr?symbols=%5B%22BTCUSDT%22%5D",
+                "input": [
+                    [
+                        "AAPL/USDC",
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "stock fetch tickers uses the equity quote endpoint",
+                "method": "fetchTickers",
+                "url": "https://api.binance.com/sapi/v1/equity/market/quote?timestamp=1785378371612&symbol=AAPL&recvWindow=10000&signature=51be9e25b027a14a4b7117f16ff0876104607c74c6dd2c27d1b3fa0982c981e0",
+                "input": [
+                    [
+                        "AAPL/USDC"
+                    ]
+                ]
             }
         ],
         "fetchLastPrices": [
@@ -3230,6 +3251,27 @@
                     [
                         "BTC/USDT",
                         "ETH/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "spot bidsasks excludes stock symbols from the spot request",
+                "method": "fetchBidsAsks",
+                "url": "https://api.binance.com/api/v3/ticker/bookTicker?symbols=%5B%22BTCUSDT%22%5D",
+                "input": [
+                    [
+                        "AAPL/USDC",
+                        "BTC/USDT"
+                    ]
+                ]
+            },
+            {
+                "description": "stock bidsasks uses the equity quote endpoint",
+                "method": "fetchBidsAsks",
+                "url": "https://api.binance.com/sapi/v1/equity/market/quote?timestamp=1785378371612&symbol=AAPL&recvWindow=10000&signature=51be9e25b027a14a4b7117f16ff0876104607c74c6dd2c27d1b3fa0982c981e0",
+                "input": [
+                    [
+                        "AAPL/USDC"
                     ]
                 ]
             }

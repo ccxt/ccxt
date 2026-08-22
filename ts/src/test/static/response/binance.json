@@ -4014,6 +4014,104 @@
                         }
                     }
                 }
+            },
+            {
+                "description": "stock fetch tickers",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "AAPL/USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "symbol": "AAPL",
+                    "bidPrice": "339.51",
+                    "askPrice": "339.62",
+                    "bidSize": 45,
+                    "askSize": 90
+                },
+                "parsedResponse": {
+                    "AAPL/USDC": {
+                        "symbol": "AAPL/USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": 339.51,
+                        "bidVolume": 45,
+                        "ask": 339.62,
+                        "askVolume": 90,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "AAPL",
+                            "bidPrice": "339.51",
+                            "askPrice": "339.62",
+                            "bidSize": 45,
+                            "askSize": 90
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchBidsAsks": [
+            {
+                "description": "stock fetch bids asks",
+                "method": "fetchBidsAsks",
+                "input": [
+                    [
+                        "AAPL/USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "symbol": "AAPL",
+                    "bidPrice": "339.51",
+                    "askPrice": "339.62",
+                    "bidSize": 45,
+                    "askSize": 90
+                },
+                "parsedResponse": {
+                    "AAPL/USDC": {
+                        "symbol": "AAPL/USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": null,
+                        "low": null,
+                        "bid": 339.51,
+                        "bidVolume": 45,
+                        "ask": 339.62,
+                        "askVolume": 90,
+                        "vwap": null,
+                        "open": null,
+                        "close": null,
+                        "last": null,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "AAPL",
+                            "bidPrice": "339.51",
+                            "askPrice": "339.62",
+                            "bidSize": 45,
+                            "askSize": 90
+                        }
+                    }
+                }
             }
         ],
         "fetchDepositAddress": [
