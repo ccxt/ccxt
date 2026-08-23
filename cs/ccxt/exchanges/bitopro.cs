@@ -405,7 +405,7 @@ public partial class bitopro : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object deposit = this.safeBool(rawCurrency, "deposit");
         object withdraw = this.safeBool(rawCurrency, "withdraw");
-        object isFiat = this.inArray(code, fiatCurrencies);
+        bool isFiat = this.inArray(code, fiatCurrencies);
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -469,13 +469,13 @@ public partial class bitopro : Exchange
 
     public override object parseMarket(object market)
     {
-        object active = !isTrue(this.safeBool(market, "maintain"));
+        bool active = !isTrue(this.safeBool(market, "maintain"));
         object id = this.safeString(market, "pair");
         if (isTrue(isEqual(id, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
         }
-        object uppercaseId = ((string)id).ToUpper();
+        string uppercaseId = ((string)id).ToUpper();
         object baseId = this.safeString(market, "base");
         object quoteId = this.safeString(market, "quote");
         object bs = this.safeCurrencyCode(baseId);
@@ -1008,7 +1008,7 @@ public partial class bitopro : Exchange
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        object length = getArrayLength(candles);
+        int length = getArrayLength(candles);
         if (isTrue(isEqual(length, 0)))
         {
             return candles;
@@ -1024,7 +1024,7 @@ public partial class bitopro : Exchange
             timestamp = since;
         }
         object i = 0;
-        object candleLength = getArrayLength(candles);
+        int candleLength = getArrayLength(candles);
         object resultLength = 0;
         while (isTrue((isLessThan(resultLength, limit))) && isTrue((isLessThan(i, candleLength))))
         {
@@ -1256,7 +1256,7 @@ public partial class bitopro : Exchange
             { "amount", this.amountToPrecision(symbol, amount) },
             { "timestamp", this.milliseconds() },
         };
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(orderType, "LIMIT")))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1342,7 +1342,7 @@ public partial class bitopro : Exchange
 
     public virtual object parseCancelOrders(object data)
     {
-        object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
         object orders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
         {
@@ -2078,7 +2078,7 @@ public partial class bitopro : Exchange
             {
                 body = this.json(parameters);
                 object payload = this.stringToBase64(body);
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
@@ -2088,13 +2088,13 @@ public partial class bitopro : Exchange
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
-                object nonce = this.milliseconds();
+                Int64 nonce = this.milliseconds();
                 object rawData = new Dictionary<string, object>() {
                     { "nonce", nonce },
                 };
-                object data = this.json(rawData);
+                string data = this.json(rawData);
                 object payload = this.stringToBase64(data);
-                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;

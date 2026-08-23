@@ -1436,8 +1436,8 @@ public partial class coinex : Exchange
             object fees = this.fees;
             object leverages = this.safeList(entry, "leverage", new List<object>() {});
             object subType = this.safeString(entry, "contract_type");
-            object linear = (isEqual(subType, "linear"));
-            object inverse = (isEqual(subType, "inverse"));
+            bool linear = (isEqual(subType, "linear"));
+            bool inverse = (isEqual(subType, "inverse"));
             object id = this.safeString(entry, "market");
             object baseId = this.safeString(entry, "base_ccy");
             object quoteId = this.safeString(entry, "quote_ccy");
@@ -1446,7 +1446,7 @@ public partial class coinex : Exchange
             object settleId = ((bool) isTrue((isEqual(subType, "linear")))) ? "USDT" : baseId;
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-            object leveragesLength = getArrayLength(leverages);
+            int leveragesLength = getArrayLength(leverages);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", symbol },
@@ -2322,7 +2322,7 @@ public partial class coinex : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object isMargin = isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(marketType, "margin")));
+        bool isMargin = isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(marketType, "margin")));
         if (isTrue(isEqual(marketType, "swap")))
         {
             return await this.fetchSwapBalance(parameters);
@@ -2671,7 +2671,7 @@ public partial class coinex : Exchange
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object option = this.safeString(parameters, "option");
-        object isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = isEqual(type, "market");
         object postOnly = this.isPostOnly(isMarketOrder, isEqual(option, "maker_only"), parameters);
         object timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
         object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -2687,7 +2687,7 @@ public partial class coinex : Exchange
         };
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            object defaultId = "x-167673045";
+            string defaultId = "x-167673045";
             object brokerId = this.safeString(this.options, "brokerId", defaultId);
             ((IDictionary<string,object>)request)["client_id"] = add(add(brokerId, "-"), this.uuid16());
         } else
@@ -2831,10 +2831,10 @@ public partial class coinex : Exchange
         object triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
-        object isTriggerOrder = !isEqual(triggerPrice, null);
-        object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
+        bool isTriggerOrder = !isEqual(triggerPrice, null);
+        bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(getValue(market, "spot")))
@@ -2897,8 +2897,8 @@ public partial class coinex : Exchange
         object ordersRequests = new List<object>() {};
         object symbol = null;
         object reduceOnly = false;
-        object isTriggerOrder = false;
-        object isStopLossOrTakeProfitTrigger = false;
+        bool isTriggerOrder = false;
+        bool isStopLossOrTakeProfitTrigger = false;
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
@@ -2927,8 +2927,8 @@ public partial class coinex : Exchange
             object stopLossTriggerPrice = this.safeNumber(orderParams, "stopLossPrice");
             object takeProfitTriggerPrice = this.safeNumber(orderParams, "takeProfitPrice");
             isTriggerOrder = !isEqual(triggerPrice, null);
-            object isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
-            object isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
+            bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
+            bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
             isStopLossOrTakeProfitTrigger = isTrue(isStopLossTriggerOrder) || isTrue(isTakeProfitTriggerOrder);
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
@@ -3120,7 +3120,7 @@ public partial class coinex : Exchange
         object response = null;
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"stopPrice", "triggerPrice", "trigger_price"});
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice"});
-        object isTriggerOrder = !isEqual(triggerPrice, null);
+        bool isTriggerOrder = !isEqual(triggerPrice, null);
         if (isTrue(isTriggerOrder))
         {
             ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
@@ -3200,7 +3200,7 @@ public partial class coinex : Exchange
             var marginModeorderParamsVariable = this.handleMarginModeAndParams("editOrders", orderParams);
             marginMode = ((IList<object>)marginModeorderParamsVariable)[0];
             orderParams = ((IList<object>)marginModeorderParamsVariable)[1];
-            object market_type = "SPOT";
+            string market_type = "SPOT";
             if (isTrue(getValue(market, "swap")))
             {
                 market_type = "FUTURES";
@@ -3504,8 +3504,8 @@ public partial class coinex : Exchange
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object response = null;
-        object isClosed = isTrue((isEqual(status, "finished"))) || isTrue((isEqual(status, "closed")));
-        object isOpen = isTrue((isEqual(status, "pending"))) || isTrue((isEqual(status, "open")));
+        bool isClosed = isTrue((isEqual(status, "finished"))) || isTrue((isEqual(status, "closed")));
+        bool isOpen = isTrue((isEqual(status, "pending"))) || isTrue((isEqual(status, "open")));
         if (isTrue(isEqual(marketType, "swap")))
         {
             ((IDictionary<string,object>)request)["market_type"] = "FUTURES";
@@ -3711,10 +3711,10 @@ public partial class coinex : Exchange
         //     }
         //
         object coinAddress = this.safeString(depositAddress, "address", "");
-        object parts = ((string)coinAddress).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)coinAddress).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object address = null;
         object tag = null;
-        object partsLength = getArrayLength(parts);
+        int partsLength = getArrayLength(parts);
         if (isTrue(isTrue(isGreaterThan(partsLength, 1)) && isTrue(!isEqual(getValue(parts, 0), "cfx"))))
         {
             address = getValue(parts, 0);
@@ -3828,7 +3828,7 @@ public partial class coinex : Exchange
             object symbol = null;
             if (isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object symbolsLength = getArrayLength(symbols);
+                int symbolsLength = getArrayLength(symbols);
                 if (isTrue(isGreaterThan(symbolsLength, 1)))
                 {
                     throw new BadRequest ((string)add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -4896,7 +4896,7 @@ public partial class coinex : Exchange
         object networkId = this.safeString(transaction, "chain");
         object feeCost = this.safeString(transaction, "tx_fee");
         object transferMethod = this.safeStringLower2(transaction, "withdraw_method", "deposit_method");
-        object intern = isEqual(transferMethod, "local");
+        bool intern = isEqual(transferMethod, "local");
         object amount = this.safeNumber(transaction, "actual_amount");
         if (isTrue(isEqual(amount, null)))
         {
@@ -6001,15 +6001,15 @@ public partial class coinex : Exchange
         object requestUrl = getValue(api, 1);
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), requestUrl), "/"), version), "/"), path);
         object query = this.omit(parameters, this.extractParams(path));
-        object nonce = ((object)this.nonce()).ToString();
+        string nonce = ((object)this.nonce()).ToString();
         if (isTrue(isEqual(method, "POST")))
         {
-            object parts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             object firstPart = this.safeString(parts, 0, "");
-            object numParts = getArrayLength(parts);
+            int numParts = getArrayLength(parts);
             object lastPart = this.safeString(parts, subtract(numParts, 1), "");
-            object lastWords = ((string)lastPart).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object numWords = getArrayLength(lastWords);
+            List<object> lastWords = ((string)lastPart).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            int numWords = getArrayLength(lastWords);
             object lastWord = this.safeString(lastWords, subtract(numWords, 1), "");
             if (isTrue(isTrue((isEqual(firstPart, "order"))) && isTrue((isTrue(isEqual(lastWord, "limit")) || isTrue(isEqual(lastWord, "market"))))))
             {
@@ -6025,7 +6025,7 @@ public partial class coinex : Exchange
                 object clientOrderId = this.safeString(parameters, "client_id");
                 if (isTrue(isEqual(clientOrderId, null)))
                 {
-                    object defaultId = "x-167673045";
+                    string defaultId = "x-167673045";
                     object brokerId = this.safeValue(this.options, "brokerId", defaultId);
                     ((IDictionary<string,object>)query)["client_id"] = add(add(brokerId, "_"), this.uuid16());
                 }

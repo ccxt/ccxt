@@ -16,15 +16,15 @@ public partial class upbit
         var res = await this.fetchCurrencyById(id, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<ccxt.MarketInterface> FetchMarket(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<MarketInterface> FetchMarket(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarket(symbol, parameters);
-        return res;
+        return new MarketInterface(res);
     }
-    public async Task<ccxt.MarketInterface> FetchMarketById(string id, Dictionary<string, object> parameters = null)
+    public async Task<MarketInterface> FetchMarketById(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketById(id, parameters);
-        return res;
+        return new MarketInterface(res);
     }
     /// <summary>
     /// retrieves data on all markets for upbit
@@ -63,10 +63,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return res;
+        return new Balances(res);
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
@@ -146,10 +146,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<ccxt.Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return res;
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -167,10 +167,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<ccxt.Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return res;
+        return new Ticker(res);
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -221,10 +221,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return res;
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetch the trading fees for markets
@@ -240,10 +240,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [trading fee structure]{@link https://docs.ccxt.com/?id=trading-fee-structure}.</returns>
-    public async Task<ccxt.TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return res;
+        return new TradingFees(res);
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -273,10 +273,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
     /// create a trade order
@@ -353,10 +353,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<ccxt.Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return res;
+        return new Order(res);
     }
     /// <summary>
     /// canceled existing order and create new order. It's only generated same side and symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
@@ -410,10 +410,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
-        return res;
+        return new Order(res);
     }
     /// <summary>
     /// fetch all deposits made to an account
@@ -476,10 +476,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<ccxt.Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDeposit(id, code, parameters);
-        return res;
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch all withdrawals made from an account
@@ -542,10 +542,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<ccxt.Transaction> FetchWithdrawal(string id, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> FetchWithdrawal(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawal(id, code, parameters);
-        return res;
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch all unfilled currently open orders
@@ -701,10 +701,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
-    public async Task<List<ccxt.DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -722,10 +722,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
-    public async Task<ccxt.DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return res;
+        return new DepositAddress(res);
     }
     /// <summary>
     /// create a currency deposit address
@@ -743,10 +743,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
-    public async Task<ccxt.DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return res;
+        return new DepositAddress(res);
     }
     /// <summary>
     /// make a withdrawal
@@ -764,9 +764,9 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return res;
+        return new Transaction(res);
     }
 }

@@ -507,8 +507,8 @@ public partial class luno : Exchange
         //     }
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
-        object grouped = this.groupBy(currenciesData, "native_currency");
-        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        Dictionary<string, object> grouped = this.groupBy(currenciesData, "native_currency");
+        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
         return this.parseCurrencies(values);
     }
 
@@ -1067,8 +1067,8 @@ public partial class luno : Exchange
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetTickers(parameters);
         object rawTickers = this.safeList(response, "tickers", new List<object>() {});
-        object tickers = this.indexBy(rawTickers, "pair");
-        object ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
+        List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
@@ -1556,7 +1556,7 @@ public partial class luno : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " fetchLedger() requires a currency code argument if no account id specified in params")) ;
             }
             currency = this.currency(code);
-            object accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
+            Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "currency");
             object account = this.safeValue(accountsByCurrencyCode, code);
             if (isTrue(isEqual(account, null)))
             {
@@ -1598,7 +1598,7 @@ public partial class luno : Exchange
 
     public virtual object parseLedgerComment(object comment)
     {
-        object words = ((string)comment).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+        List<object> words = ((string)comment).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
         object types = new Dictionary<string, object>() {
             { "Withdrawal", "fee" },
             { "Trading", "fee" },

@@ -502,7 +502,7 @@ public partial class bitteam : Exchange
     {
         object id = this.safeString(market, "name");
         object numericId = this.safeInteger(market, "id");
-        object parts = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -731,7 +731,7 @@ public partial class bitteam : Exchange
         object statuses = this.safeValue(statusesResponse, numericId, new Dictionary<string, object>() {});
         object deposit = this.safeValue(statuses, "depositStatus");
         object withdraw = this.safeValue(statuses, "withdrawStatus");
-        object networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
+        List<object> networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
         object networks = new Dictionary<string, object>() {};
         object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         object typeRaw = this.safeString(currency, "type");
@@ -2298,7 +2298,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         object balance = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
@@ -2306,7 +2306,7 @@ public partial class bitteam : Exchange
         };
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
-        object rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
+        List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(rawCurrencyIds)); postFixIncrement(ref i))
         {
             object rawCurrencyId = getValue(rawCurrencyIds, i);
@@ -2611,13 +2611,13 @@ public partial class bitteam : Exchange
             {
                 if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(url, "/ccxt/order/"), 0))) && isTrue((isEqual(method, "GET")))))
                 {
-                    object parts = ((string)url).Split(new [] {((string)"/order/")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = ((string)url).Split(new [] {((string)"/order/")}, StringSplitOptions.None).ToList<object>();
                     object orderId = this.safeString(parts, 1);
                     throw new OrderNotFound ((string)add(add(add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
-                    object parts = ((string)url).Split(new [] {((string)"/cmc/orderbook/")}, StringSplitOptions.None).ToList<object>();
+                    List<object> parts = ((string)url).Split(new [] {((string)"/cmc/orderbook/")}, StringSplitOptions.None).ToList<object>();
                     object symbolId = this.safeString(parts, 1);
                     throw new BadSymbol ((string)add(add(add(this.id, " symbolId "), symbolId), " not found")) ;
                 }

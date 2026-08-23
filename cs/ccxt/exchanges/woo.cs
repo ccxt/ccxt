@@ -1014,11 +1014,11 @@ public partial class woo : Exchange
     public override object parseMarket(object market)
     {
         object marketId = this.safeString(market, "symbol", "");
-        object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object first = this.safeString(parts, 0);
         object marketType = null;
-        object spot = false;
-        object swap = false;
+        bool spot = false;
+        bool swap = false;
         if (isTrue(isEqual(first, "SPOT")))
         {
             spot = true;
@@ -1038,7 +1038,7 @@ public partial class woo : Exchange
         object contractSize = null;
         object linear = null;
         object inverse = null;
-        object margin = true;
+        bool margin = true;
         object contract = swap;
         if (isTrue(contract))
         {
@@ -1050,7 +1050,7 @@ public partial class woo : Exchange
             linear = true;
             inverse = false;
         }
-        object active = isEqual(this.safeString(market, "status"), "TRADING");
+        bool active = isEqual(this.safeString(market, "status"), "TRADING");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1183,7 +1183,7 @@ public partial class woo : Exchange
         //         "isMaker": 0
         //     }
         //
-        object isFromFetchOrder = (inOp(trade, "id"));
+        bool isFromFetchOrder = (inOp(trade, "id"));
         object timestampString = this.safeString2(trade, "executed_timestamp", "executedTimestamp");
         object timestamp = null;
         if (isTrue(!isEqual(timestampString, null)))
@@ -1214,7 +1214,7 @@ public partial class woo : Exchange
         object takerOrMaker = null;
         if (isTrue(isFromFetchOrder))
         {
-            object isMaker = isEqual(this.safeString2(trade, "is_maker", "isMaker"), "1");
+            bool isMaker = isEqual(this.safeString2(trade, "is_maker", "isMaker"), "1");
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1465,9 +1465,9 @@ public partial class woo : Exchange
         var tokenNetworkResponse = ((IList<object>) tokenResponsetokenNetworkResponseVariable)[1];
         object tokenRows = this.safeList(tokenResponse, "rows", new List<object>() {});
         object tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new List<object>() {});
-        object networksById = this.groupBy(tokenNetworkRows, "token");
-        object tokensById = this.groupBy(tokenRows, "balance_token");
-        object currencyIds = new List<object>(((IDictionary<string,object>)tokensById).Keys);
+        Dictionary<string, object> networksById = this.groupBy(tokenNetworkRows, "token");
+        Dictionary<string, object> tokensById = this.groupBy(tokenRows, "balance_token");
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)tokensById).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object id = getValue(currencyIds, i);
@@ -1490,9 +1490,9 @@ public partial class woo : Exchange
     {
         object currencyId = this.safeString(rawCurrency, "_coin_id");
         object code = this.safeCurrencyCode(currencyId);
-        object tokensByNetworkId = this.indexBy(getValue(rawCurrency, "_tokens_by_id"), "network");
-        object chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
-        object keys = new List<object>(((IDictionary<string,object>)chainsByNetworkId).Keys);
+        Dictionary<string, object> tokensByNetworkId = this.indexBy(getValue(rawCurrency, "_tokens_by_id"), "network");
+        Dictionary<string, object> chainsByNetworkId = this.indexBy(getValue(rawCurrency, "_networks_by_id"), "network");
+        List<object> keys = new List<object>(((IDictionary<string,object>)chainsByNetworkId).Keys);
         object resultingNetworks = new Dictionary<string, object>() {};
         for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
         {
@@ -1697,13 +1697,13 @@ public partial class woo : Exchange
         parameters ??= new Dictionary<string, object>();
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only"});
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object orderSide = ((string)((string)side)).ToUpper();
+        string orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
@@ -1719,17 +1719,17 @@ public partial class woo : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         object algoType = this.safeString(parameters, "algoType");
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", this.numberToString(price));
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "callbackValue");
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
-        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
-        object isConditional = isTrue(isTrue(isTrue(isTrue(isTrailing) || isTrue(!isEqual(triggerPrice, null))) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object isMarket = isEqual(orderType, "MARKET");
+        bool isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
+        bool isConditional = isTrue(isTrue(isTrue(isTrue(isTrailing) || isTrue(!isEqual(triggerPrice, null))) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object clientOrderIdKey = ((bool) isTrue(isConditional)) ? "clientAlgoOrderId" : "clientOrderId";
@@ -1760,7 +1760,7 @@ public partial class woo : Exchange
             // for market buy it requires the amount of quote currency to spend
             object cost = this.safeStringN(parameters, new List<object>() {"cost", "order_amount", "orderAmount"});
             parameters = this.omit(parameters, new List<object>() {"cost", "order_amount", "orderAmount"});
-            object isPriceProvided = !isEqual(price, null);
+            bool isPriceProvided = !isEqual(price, null);
             if (isTrue(isTrue(getValue(market, "spot")) && isTrue((isTrue(isPriceProvided) || isTrue((!isEqual(cost, null)))))))
             {
                 object quoteAmount = null;
@@ -1914,7 +1914,7 @@ public partial class woo : Exchange
         }
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
-        object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
+        bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -1923,9 +1923,9 @@ public partial class woo : Exchange
         object trailingTriggerPrice = this.safeString2(parameters, "trailingTriggerPrice", "activatedPrice", this.numberToString(price));
         object trailingAmount = this.safeString2(parameters, "trailingAmount", "callbackValue");
         object trailingPercent = this.safeString2(parameters, "trailingPercent", "callbackRate");
-        object isTrailingAmountOrder = !isEqual(trailingAmount, null);
-        object isTrailingPercentOrder = !isEqual(trailingPercent, null);
-        object isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
+        bool isTrailingAmountOrder = !isEqual(trailingAmount, null);
+        bool isTrailingPercentOrder = !isEqual(trailingPercent, null);
+        bool isTrailing = isTrue(isTrailingAmountOrder) || isTrue(isTrailingPercentOrder);
         if (isTrue(isTrailing))
         {
             if (isTrue(!isEqual(trailingTriggerPrice, null)))
@@ -1943,7 +1943,7 @@ public partial class woo : Exchange
         }
         object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"});
-        object isConditional = isTrue(isTrue(isTrue(isTrigger) || isTrue(isTrailing)) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isConditional = isTrue(isTrue(isTrue(isTrigger) || isTrue(isTrailing)) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
         if (isTrue(isConditional))
         {
@@ -1976,7 +1976,7 @@ public partial class woo : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object order = this.extend(response, data);
+        Dictionary<string, object> order = this.extend(response, data);
         if (isTrue(isByClientOrder))
         {
             ((IDictionary<string,object>)order)["clientOrderId"] = clientOrderIdExchangeSpecific;
@@ -2021,7 +2021,7 @@ public partial class woo : Exchange
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
-        object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
+        bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
         if (isTrue(isTrigger))
         {
@@ -2293,7 +2293,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "INCOMPLETE" },
         });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
@@ -2323,7 +2323,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "COMPLETED" },
         });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
@@ -3009,7 +3009,7 @@ public partial class woo : Exchange
         object networkEntry = ((bool) isTrue((isEqual(networkCode, null)))) ? null : this.safeDict(getValue(currency, "networks"), networkCode);
         if (isTrue(isEqual(networkEntry, null)))
         {
-            object supportedNetworks = new List<object>(((IDictionary<string,object>)getValue(currency, "networks")).Keys);
+            List<object> supportedNetworks = new List<object>(((IDictionary<string,object>)getValue(currency, "networks")).Keys);
             throw new BadRequest ((string)add(add(this.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.json(supportedNetworks))) ;
         }
         object currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
@@ -3193,8 +3193,8 @@ public partial class woo : Exchange
             return currency;
         } else
         {
-            object parts = ((string)networkizedCode).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object partsLength = getArrayLength(parts);
+            List<object> parts = ((string)networkizedCode).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            int partsLength = getArrayLength(parts);
             object firstPart = this.safeString(parts, 0);
             object currencyId = this.safeString(parts, 1, firstPart);
             if (isTrue(isGreaterThan(partsLength, 2)))
@@ -3576,7 +3576,7 @@ public partial class woo : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object transactionData = this.extend(data, new Dictionary<string, object>() {
+        Dictionary<string, object> transactionData = this.extend(data, new Dictionary<string, object>() {
             { "id", this.safeString(data, "withdrawId") },
             { "timestamp", this.safeInteger(response, "timestamp") },
             { "currency", code },
@@ -3689,9 +3689,9 @@ public partial class woo : Exchange
                 object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (!isTrue(isSandboxMode))
                 {
-                    object applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
+                    string applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
                     object brokerId = this.safeString(this.options, "brokerId", applicationId);
-                    object isTrigger = isGreaterThan(getIndexOf(path, "algo"), -1);
+                    bool isTrigger = isGreaterThan(getIndexOf(path, "algo"), -1);
                     if (isTrue(isTrigger))
                     {
                         ((IDictionary<string,object>)parameters)["brokerId"] = brokerId;
@@ -3703,7 +3703,7 @@ public partial class woo : Exchange
                 parameters = this.keysort(parameters);
             }
             object auth = "";
-            object ts = ((object)this.nonce()).ToString();
+            string ts = ((object)this.nonce()).ToString();
             url = add(url, pathWithParams);
             headers = new Dictionary<string, object>() {
                 { "x-api-key", this.apiKey },
@@ -4429,7 +4429,7 @@ public partial class woo : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -4925,7 +4925,7 @@ public partial class woo : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -5013,7 +5013,7 @@ public partial class woo : Exchange
     {
         object currencyItem = this.currency(code);
         object networks = getValue(currencyItem, "networks");
-        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(networkKeys)); postFixIncrement(ref i))
         {
             object network = getValue(networkKeys, i);

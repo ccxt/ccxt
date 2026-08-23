@@ -337,7 +337,7 @@ public partial class mercado : Exchange
         {
             object coin = getValue(coins, i);
             object baseId = coin;
-            object quoteId = "BRL";
+            string quoteId = "BRL";
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
@@ -583,7 +583,7 @@ public partial class mercado : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -882,14 +882,14 @@ public partial class mercado : Exchange
         };
         if (isTrue(isEqual(code, "BRL")))
         {
-            object account_ref = (inOp(parameters, "account_ref"));
+            bool account_ref = (inOp(parameters, "account_ref"));
             if (!isTrue(account_ref))
             {
                 throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires account_ref parameter to withdraw "), code)) ;
             }
         } else if (isTrue(!isEqual(code, "LTC")))
         {
-            object tx_fee = (inOp(parameters, "tx_fee"));
+            bool tx_fee = (inOp(parameters, "tx_fee"));
             if (!isTrue(tx_fee))
             {
                 throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires tx_fee parameter to withdraw "), code)) ;

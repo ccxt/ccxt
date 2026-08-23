@@ -366,12 +366,12 @@ public partial class bitflyer : Exchange
         {
             object market = getValue(markets, i);
             object id = this.safeString(market, "product_code");
-            object currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object marketType = this.safeString(market, "market_type");
-            object swap = (isEqual(marketType, "FX"));
-            object future = (isEqual(marketType, "Futures"));
-            object spot = !isTrue(swap) && !isTrue(future);
-            object type = "spot";
+            bool swap = (isEqual(marketType, "FX"));
+            bool future = (isEqual(marketType, "Futures"));
+            bool spot = !isTrue(swap) && !isTrue(future);
+            string type = "spot";
             object settle = null;
             object baseId = null;
             object quoteId = null;
@@ -400,11 +400,11 @@ public partial class bitflyer : Exchange
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
-                    object splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                    List<object> splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     object currencyIds = this.safeString(splitAlias, 0);
                     baseId = slice(((string)currencyIds), 0, -3);
                     quoteId = slice(((string)currencyIds), -3, null);
-                    object splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
+                    List<object> splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
                     object expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
@@ -415,7 +415,7 @@ public partial class bitflyer : Exchange
             object symbol = add(add(bs, "/"), quote);
             object taker = getValue(getValue(this.fees, "trading"), "taker");
             object maker = getValue(getValue(this.fees, "trading"), "maker");
-            object contract = isTrue(swap) || isTrue(future);
+            bool contract = isTrue(swap) || isTrue(future);
             if (isTrue(contract))
             {
                 maker = 0;
@@ -988,7 +988,7 @@ public partial class bitflyer : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
         object orders = await this.fetchOrders(symbol);
-        object ordersById = this.indexBy(orders, "id");
+        Dictionary<string, object> ordersById = this.indexBy(orders, "id");
         if (isTrue(inOp(ordersById, id)))
         {
             return getValue(ordersById, id);
@@ -1411,7 +1411,7 @@ public partial class bitflyer : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object content = new List<object>() {nonce, method, request};
             object auth = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))

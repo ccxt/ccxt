@@ -1230,7 +1230,7 @@ public partial class xt : Exchange
         object chainsData = this.safeList(chainsResponse, "result", new List<object>() {});
         object currenciesResult = this.safeDict(currenciesResponse, "result", new Dictionary<string, object>() {});
         object currenciesData = this.safeList(currenciesResult, "currencies", new List<object>() {});
-        object chainsDataIndexed = this.indexBy(chainsData, "currency");
+        Dictionary<string, object> chainsDataIndexed = this.indexBy(chainsData, "currency");
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
         {
@@ -1644,11 +1644,11 @@ public partial class xt : Exchange
         object settleId = null;
         object settle = null;
         object expiry = null;
-        object future = false;
-        object swap = false;
-        object contract = false;
-        object spot = true;
-        object type = "spot";
+        bool future = false;
+        bool swap = false;
+        bool contract = false;
+        bool spot = true;
+        string type = "spot";
         if (isTrue(isEqual(underlyingType, "U_BASED")))
         {
             symbol = add(add(symbol, ":"), quote);
@@ -2234,9 +2234,9 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isInverse = (isEqual(subType, "inverse"));
-        object isLinear = isTrue(isTrue((isEqual(subType, "linear"))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
-        object isContract = isTrue(isInverse) || isTrue(isLinear);
+        bool isInverse = (isEqual(subType, "inverse"));
+        bool isLinear = isTrue(isTrue((isEqual(subType, "linear"))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+        bool isContract = isTrue(isInverse) || isTrue(isLinear);
         object response = null;
         if (isTrue(isInverse))
         {
@@ -2354,7 +2354,7 @@ public partial class xt : Exchange
         //
         object marketId = this.safeString(ticker, "s");
         object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : null;
-        object hasSpotKeys = isTrue((inOp(ticker, "cv"))) || isTrue((inOp(ticker, "aq")));
+        bool hasSpotKeys = isTrue((inOp(ticker, "cv"))) || isTrue((inOp(ticker, "aq")));
         if (isTrue(isEqual(marketType, null)))
         {
             marketType = ((bool) isTrue(hasSpotKeys)) ? "spot" : "contract";
@@ -2716,7 +2716,7 @@ public partial class xt : Exchange
         //
         object marketId = this.safeString2(trade, "s", "symbol");
         object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : null;
-        object hasSpotKeys = isTrue(isTrue((inOp(trade, "b"))) || isTrue((inOp(trade, "bizType")))) || isTrue((inOp(trade, "oi")));
+        bool hasSpotKeys = isTrue(isTrue((inOp(trade, "b"))) || isTrue((inOp(trade, "bizType")))) || isTrue((inOp(trade, "oi")));
         if (isTrue(isEqual(marketType, null)))
         {
             marketType = ((bool) isTrue(hasSpotKeys)) ? "spot" : "contract";
@@ -2817,7 +2817,7 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isContractWallet = (isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future"))));
+        bool isContractWallet = (isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future"))));
         if (isTrue(isEqual(subType, "inverse")))
         {
             response = await this.privateInverseGetFutureUserV1BalanceList(parameters);
@@ -3004,7 +3004,7 @@ public partial class xt : Exchange
         symbol = getValue(market, "symbol");
         if (isTrue(getValue(market, "spot")))
         {
-            object isTrailing = isTrue(isTrue((inOp(parameters, "trailingPercent"))) || isTrue((inOp(parameters, "trailingAmount")))) || isTrue((inOp(parameters, "trailingTriggerPrice")));
+            bool isTrailing = isTrue(isTrue((inOp(parameters, "trailingPercent"))) || isTrue((inOp(parameters, "trailingAmount")))) || isTrue((inOp(parameters, "trailingTriggerPrice")));
             if (isTrue(isTrailing))
             {
                 throw new NotSupported ((string)add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
@@ -3128,10 +3128,10 @@ public partial class xt : Exchange
         object trailingPercent = this.safeString(parameters, "trailingPercent");
         object trailingAmount = this.safeString(parameters, "trailingAmount");
         object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
-        object isTrigger = (!isEqual(triggerPrice, null));
-        object isStopLoss = (!isEqual(stopLoss, null));
-        object isTakeProfit = (!isEqual(takeProfit, null));
-        object isTrailing = isTrue((!isEqual(trailingPercent, null))) || isTrue((!isEqual(trailingAmount, null)));
+        bool isTrigger = (!isEqual(triggerPrice, null));
+        bool isStopLoss = (!isEqual(stopLoss, null));
+        bool isTakeProfit = (!isEqual(takeProfit, null));
+        bool isTrailing = isTrue((!isEqual(trailingPercent, null))) || isTrue((!isEqual(trailingAmount, null)));
         if (isTrue(isTrue(isTrailing) && !isTrue(getValue(market, "swap"))))
         {
             throw new NotSupported ((string)add(this.id, " createOrder() trailing orders are only supported on swap markets")) ;
@@ -3277,7 +3277,7 @@ public partial class xt : Exchange
         object trailing = this.safeBool(parameters, "trailing");
         if (isTrue(trailing))
         {
-            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            bool isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
             if (!isTrue(isContract))
             {
                 throw new NotSupported ((string)add(this.id, " fetchOrder() trailing orders are only supported on swap and future markets")) ;
@@ -3508,7 +3508,7 @@ public partial class xt : Exchange
         object trailing = this.safeBool(parameters, "trailing");
         if (isTrue(trailing))
         {
-            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            bool isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
             if (!isTrue(isContract))
             {
                 throw new NotSupported ((string)add(this.id, " fetchOrders() trailing orders are only supported on swap and future markets")) ;
@@ -3701,7 +3701,7 @@ public partial class xt : Exchange
         object trailing = this.safeBool(parameters, "trailing");
         if (isTrue(trailing))
         {
-            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            bool isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
             if (!isTrue(isContract))
             {
                 throw new NotSupported ((string)add(this.id, " fetchOrdersByStatus() trailing orders are only supported on swap and future markets")) ;
@@ -4143,7 +4143,7 @@ public partial class xt : Exchange
         object trailing = this.safeBool(parameters, "trailing");
         if (isTrue(trailing))
         {
-            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            bool isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
             if (!isTrue(isContract))
             {
                 throw new NotSupported ((string)add(this.id, " cancelOrder() trailing orders are only supported on swap and future markets")) ;
@@ -4223,7 +4223,7 @@ public partial class xt : Exchange
         //         "result": "208319789679471616"
         //     }
         //
-        object isContractResponse = (isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future"))));
+        bool isContractResponse = (isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future"))));
         object order = ((bool) isTrue(isContractResponse)) ? response : this.safeDict(response, "result", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
@@ -4272,7 +4272,7 @@ public partial class xt : Exchange
         object trailing = this.safeBool(parameters, "trailing");
         if (isTrue(trailing))
         {
-            object isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
+            bool isContract = isTrue(isTrue((!isEqual(subType, null))) || isTrue((isEqual(type, "swap")))) || isTrue((isEqual(type, "future")));
             if (!isTrue(isContract))
             {
                 throw new NotSupported ((string)add(this.id, " cancelAllOrders() trailing orders are only supported on swap and future markets")) ;
@@ -5777,7 +5777,7 @@ public partial class xt : Exchange
         var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        object isInverse = (isEqual(subType, "inverse"));
+        bool isInverse = (isEqual(subType, "inverse"));
         object response = null;
         if (isTrue(isInverse))
         {
@@ -6175,7 +6175,7 @@ public partial class xt : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -6306,7 +6306,7 @@ public partial class xt : Exchange
         object symbol = this.safeSymbol(marketId, market, null, "contract");
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         object positionType = this.safeString(position, "positionType");
-        object isCross = isTrue((isEqual(positionType, "CROSSED"))) || isTrue((isEqual(positionType, "1")));
+        bool isCross = isTrue((isEqual(positionType, "CROSSED"))) || isTrue((isEqual(positionType, "1")));
         object marginMode = ((bool) isTrue((isCross))) ? "cross" : "isolated";
         object collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
@@ -6511,8 +6511,8 @@ public partial class xt : Exchange
         object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
         object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit"});
-        object isStopLoss = (!isEqual(stopLoss, null));
-        object isTakeProfit = (!isEqual(takeProfit, null));
+        bool isStopLoss = (!isEqual(stopLoss, null));
+        bool isTakeProfit = (!isEqual(takeProfit, null));
         if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
         {
             ((IDictionary<string,object>)request)["profitId"] = id;
@@ -6641,7 +6641,7 @@ public partial class xt : Exchange
         api ??= new List<object>();
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object signed = isEqual(getValue(api, 0), "private");
+        bool signed = isEqual(getValue(api, 0), "private");
         object endpoint = getValue(api, 1);
         object request = add("/", this.implodeParams(path, parameters));
         object payload = null;
@@ -6673,7 +6673,7 @@ public partial class xt : Exchange
             body = query;
             if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(payload, "/v4/order"))) || isTrue((isEqual(payload, "/future/trade/v1/order/create")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || isTrue((isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || isTrue((isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {
-                object id = "CCXT";
+                string id = "CCXT";
                 if (isTrue(isEqual(body, null)))
                 {
                     throw new NullResponse ((string)add(this.id, " sign() returned empty body")) ;
@@ -6690,7 +6690,7 @@ public partial class xt : Exchange
                     ((IDictionary<string,object>)body)["media"] = id;
                 }
             }
-            object isUndefinedBody = (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(path, "order/{orderId}")))) || isTrue((isEqual(path, "ws-token"))));
+            bool isUndefinedBody = (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(path, "order/{orderId}")))) || isTrue((isEqual(path, "ws-token"))));
             if (isTrue(isTrue((isEqual(method, "PUT"))) && isTrue((isEqual(endpoint, "spot")))))
             {
                 isUndefinedBody = false;
@@ -6734,7 +6734,7 @@ public partial class xt : Exchange
                     payloadString = add(payloadString, add(add(add("#", payload), "#"), body));
                 }
             }
-            object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["xt-validate-appkey"] = this.apiKey;
             ((IDictionary<string,object>)headers)["xt-validate-timestamp"] = timestamp;
             ((IDictionary<string,object>)headers)["xt-validate-signature"] = signature;

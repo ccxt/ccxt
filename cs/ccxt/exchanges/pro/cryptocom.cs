@@ -489,7 +489,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object data = this.safeValue(message, "data", new List<object>() {});
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         if (isTrue(isEqual(dataLength, 0)))
         {
             return;
@@ -499,7 +499,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
-        object channelReplaced = ((string)channel).Replace((string)add(".", marketId), (string)"");
+        string channelReplaced = ((string)channel).Replace((string)add(".", marketId), (string)"");
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, symbolSpecificMessageHash});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, channelReplaced});
     }
@@ -992,7 +992,7 @@ public partial class cryptocom : ccxt.cryptocom
         object channel = this.safeString(message, "channel");
         object symbolSpecificMessageHash = this.safeString(message, "subscription");
         object orders = this.safeValue(message, "data", new List<object>() {});
-        object ordersLength = getArrayLength(orders);
+        int ordersLength = getArrayLength(orders);
         if (isTrue(isGreaterThan(ordersLength, 0)))
         {
             if (isTrue(isEqual(this.orders, null)))
@@ -1073,7 +1073,7 @@ public partial class cryptocom : ccxt.cryptocom
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isTrue(fetchPositionsSnapshot))
         {
-            object messageHash = "fetchPositionsSnapshot";
+            string messageHash = "fetchPositionsSnapshot";
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
@@ -1156,9 +1156,9 @@ public partial class cryptocom : ccxt.cryptocom
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -1179,7 +1179,7 @@ public partial class cryptocom : ccxt.cryptocom
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object messageHash = "user.balance";
+        string messageHash = "user.balance";
         return await this.watchPrivateSubscribe(messageHash, parameters);
     }
 
@@ -1418,7 +1418,7 @@ public partial class cryptocom : ccxt.cryptocom
             } },
             { "nonce", id },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -1434,7 +1434,7 @@ public partial class cryptocom : ccxt.cryptocom
             } },
             { "nonce", id },
         };
-        object message = this.deepExtend(request, parameters);
+        Dictionary<string, object> message = this.deepExtend(request, parameters);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
@@ -1459,7 +1459,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "subMessageHashes", subMessageHashes },
             { "messageHashes", messageHashes },
         };
-        object message = this.deepExtend(request, parameters);
+        Dictionary<string, object> message = this.deepExtend(request, parameters);
         return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
     }
 
@@ -1472,7 +1472,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "id", nonce },
             { "nonce", nonce },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, ((object)nonce).ToString(), message, true);
     }
 
@@ -1489,7 +1489,7 @@ public partial class cryptocom : ccxt.cryptocom
             } },
             { "nonce", id },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -1523,7 +1523,7 @@ public partial class cryptocom : ccxt.cryptocom
         {
             if (isTrue(e is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -1634,15 +1634,15 @@ public partial class cryptocom : ccxt.cryptocom
         this.checkRequiredCredentials();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
-            object method = "public/auth";
-            object nonce = ((object)this.nonce()).ToString();
+            string method = "public/auth";
+            string nonce = ((object)this.nonce()).ToString();
             object auth = add(add(add(method, nonce), this.apiKey), nonce);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             object request = new Dictionary<string, object>() {
                 { "id", nonce },
                 { "nonce", nonce },
@@ -1650,7 +1650,7 @@ public partial class cryptocom : ccxt.cryptocom
                 { "api_key", this.apiKey },
                 { "sig", signature },
             };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
         return await (future as Exchange.Future);
@@ -1673,7 +1673,7 @@ public partial class cryptocom : ccxt.cryptocom
     public virtual void handleUnsubscribe(WebSocketClient client, object message)
     {
         object id = this.safeString(message, "id");
-        object keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object messageHash = getValue(keys, i);

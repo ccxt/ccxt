@@ -780,8 +780,8 @@ public partial class woofipro : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object marketType = "swap";
+        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        string marketType = "swap";
         object baseId = this.safeString(parts, 1);
         object quoteId = this.safeString(parts, 2);
         object bs = this.safeCurrencyCode(baseId);
@@ -936,7 +936,7 @@ public partial class woofipro : Exchange
         object tokenRows = this.safeList(tokenData, "rows", new List<object>() {});
         object chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
         object chainRows = this.safeList(chainData, "rows", new List<object>() {});
-        object indexedChains = this.indexBy(chainRows, "chain_id");
+        Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
         for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
@@ -1064,7 +1064,7 @@ public partial class woofipro : Exchange
         //         "is_maker": "1"
         //     }
         //
-        object isFromFetchOrder = (inOp(trade, "id"));
+        bool isFromFetchOrder = (inOp(trade, "id"));
         object timestamp = this.safeInteger(trade, "executed_timestamp");
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
@@ -1084,7 +1084,7 @@ public partial class woofipro : Exchange
         object takerOrMaker = null;
         if (isTrue(isFromFetchOrder))
         {
-            object isMaker = isEqual(this.safeString(trade, "is_maker"), "1");
+            bool isMaker = isEqual(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
         return this.safeTrade(new Dictionary<string, object>() {
@@ -1452,7 +1452,7 @@ public partial class woofipro : Exchange
             {
                 continue;
             }
-            object ticker = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {
                 { "timestamp", timestamp },
             }, row);
             ((IList<object>)result).Add(this.parseTicker(ticker));
@@ -1576,7 +1576,7 @@ public partial class woofipro : Exchange
             {
                 continue;
             }
-            object interest = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> interest = this.extend(new Dictionary<string, object>() {
                 { "timestamp", timestamp },
             }, row);
             ((IList<object>)result).Add(this.parseOpenInterest(interest));
@@ -2027,7 +2027,7 @@ public partial class woofipro : Exchange
         {
             object first = this.safeValue(childOrders, 0);
             object innerChildOrders = this.safeValue(first, "childOrders", new List<object>() {});
-            object innerChildOrdersLength = getArrayLength(innerChildOrders);
+            int innerChildOrdersLength = getArrayLength(innerChildOrders);
             if (isTrue(isGreaterThan(innerChildOrdersLength, 0)))
             {
                 object takeProfitOrder = this.safeValue(innerChildOrders, 0);
@@ -2134,13 +2134,13 @@ public partial class woofipro : Exchange
          * @returns {object} request to be sent to the exchange
          */
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrderRequest() requires a side argument")) ;
         }
         object market = this.market(symbol);
-        object orderSide = ((string)side).ToUpper();
+        string orderSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
@@ -2148,11 +2148,11 @@ public partial class woofipro : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         object algoType = this.safeString(parameters, "algoType");
-        object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
-        object isMarket = isEqual(orderType, "MARKET");
+        bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isMarket = isEqual(orderType, "MARKET");
         object timeInForce = this.safeStringLower(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
@@ -2271,7 +2271,7 @@ public partial class woofipro : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
         if (isTrue(isConditional))
         {
@@ -2316,7 +2316,7 @@ public partial class woofipro : Exchange
             object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             object stopLoss = this.safeValue(orderParams, "stopLoss");
             object takeProfit = this.safeValue(orderParams, "takeProfit");
-            object isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
+            bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(!isEqual(stopLoss, null))) || isTrue(!isEqual(takeProfit, null))) || isTrue((!isEqual(this.safeValue(orderParams, "childOrders"), null)));
             if (isTrue(isConditional))
             {
                 throw new NotSupported ((string)add(this.id, " createOrders() only support non-stop order")) ;
@@ -2384,7 +2384,7 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        object isConditional = isTrue((!isEqual(triggerPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
+        bool isConditional = isTrue((!isEqual(triggerPrice, null))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
         object priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
         if (isTrue(!isEqual(price, null)))
@@ -2408,9 +2408,9 @@ public partial class woofipro : Exchange
         {
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             ((IDictionary<string,object>)request)["side"] = ((string)side).ToUpper();
-            object orderType = ((string)type).ToUpper();
+            string orderType = ((string)type).ToUpper();
             object timeInForce = this.safeStringLower(parameters, "timeInForce");
-            object isMarket = isEqual(orderType, "MARKET");
+            bool isMarket = isEqual(orderType, "MARKET");
             object postOnly = this.isPostOnly(isMarket, null, parameters);
             if (isTrue(postOnly))
             {
@@ -2487,7 +2487,7 @@ public partial class woofipro : Exchange
         };
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
-        object isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
+        bool isByClientOrder = !isEqual(clientOrderIdExchangeSpecific, null);
         object response = null;
         if (isTrue(trigger))
         {
@@ -2864,7 +2864,7 @@ public partial class woofipro : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "INCOMPLETE" },
         });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
@@ -2894,7 +2894,7 @@ public partial class woofipro : Exchange
         {
             await this.loadMarkets();
         }
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "COMPLETED" },
         });
         return await this.fetchOrders(symbol, since, limit, extendedParams);
@@ -4003,7 +4003,7 @@ public partial class woofipro : Exchange
                 parameters = this.keysort(parameters);
             }
             object auth = "";
-            object ts = ((object)this.nonce()).ToString();
+            string ts = ((object)this.nonce()).ToString();
             url = add(url, pathWithParams);
             object apiKey = this.apiKey;
             if (isTrue(isLessThan(getIndexOf(apiKey, "ed25519:"), 0)))
@@ -4037,7 +4037,7 @@ public partial class woofipro : Exchange
             object secret = this.secret;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(secret, "ed25519:"), 0)))
             {
-                object parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
                 secret = getValue(parts, 1);
             }
             object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);

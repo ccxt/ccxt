@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchTradingFee(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchTradingFee";
+        string method = "fetchTradingFee";
         object fee = await ((dynamic)exchange).fetchTradingFee(symbol);
         testSharedMethods.assertDictionaryResponse(exchange, method, fee, symbol);
         testTradingFee(exchange, skippedProperties, method, symbol, fee);

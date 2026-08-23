@@ -85,10 +85,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<ccxt.Account>> FetchPortfolios(Dictionary<string, object> parameters = null)
+    public async Task<List<Account>> FetchPortfolios(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPortfolios(parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
     /// create a currency deposit address
@@ -105,10 +105,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
-    public async Task<ccxt.DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.createDepositAddress(code, parameters);
-        return res;
+        return new DepositAddress(res);
     }
     /// <summary>
     /// fetch sells
@@ -137,10 +137,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<ccxt.Trade>> FetchMySells(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMySells(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMySells(symbol, since, limit, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
     /// fetch buys
@@ -169,10 +169,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<ccxt.Trade>> FetchMyBuys(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMyBuys(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyBuys(symbol, since, limit, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     public async Task<List<Transaction>> FetchTransactionsWithMethod(object method, string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
@@ -362,20 +362,20 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<ccxt.Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return res;
+        return new Tickers(res);
     }
-    public async Task<ccxt.Tickers> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersV2(symbols, parameters);
-        return res;
+        return new Tickers(res);
     }
-    public async Task<ccxt.Tickers> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickersV3(symbols, parameters);
-        return res;
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -400,20 +400,20 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<ccxt.Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return res;
+        return new Ticker(res);
     }
-    public async Task<ccxt.Ticker> FetchTickerV2(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Ticker> FetchTickerV2(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickerV2(symbol, parameters);
-        return res;
+        return new Ticker(res);
     }
-    public async Task<ccxt.Ticker> FetchTickerV3(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Ticker> FetchTickerV3(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickerV3(symbol, parameters);
-        return res;
+        return new Ticker(res);
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -450,10 +450,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return res;
+        return new Balances(res);
     }
     /// <summary>
     /// Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
@@ -514,10 +514,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
-        return res;
+        return new Order(res);
     }
     /// <summary>
     /// create a trade order
@@ -656,10 +656,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<ccxt.Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return res;
+        return new Order(res);
     }
     /// <summary>
     /// cancel multiple orders
@@ -676,10 +676,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<ccxt.Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// edit a trade order
@@ -708,10 +708,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
-        return res;
+        return new Order(res);
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -948,10 +948,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -1084,10 +1084,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<ccxt.Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBidsAsks(symbols, parameters);
-        return res;
+        return new Tickers(res);
     }
     /// <summary>
     /// make a withdrawal
@@ -1122,15 +1122,15 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return res;
+        return new Transaction(res);
     }
-    public async Task<List<ccxt.DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
     /// <summary>
     /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
@@ -1159,10 +1159,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<ccxt.Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDeposit(id, code, parameters);
-        return res;
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch the deposit id for a fiat currency associated with this account
@@ -1231,10 +1231,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
-    public async Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
-        return res;
+        return new Conversion(res);
     }
     /// <summary>
     /// convert from one currency to another
@@ -1257,10 +1257,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
-    public async Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
-        return res;
+        return new Conversion(res);
     }
     /// <summary>
     /// fetch the data for a conversion trade
@@ -1277,10 +1277,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
-    public async Task<ccxt.Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchConvertTrade(id, code, parameters);
-        return res;
+        return new Conversion(res);
     }
     /// <summary>
     /// transfer currency internally between portfolios of the same account
@@ -1297,10 +1297,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return res;
+        return new TransferEntry(res);
     }
     /// <summary>
     /// fetch all open positions
@@ -1357,10 +1357,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<ccxt.Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
-        return res;
+        return new Position(res);
     }
     /// <summary>
     /// fetch the trading fees for multiple markets
@@ -1383,10 +1383,10 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
-    public async Task<ccxt.TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
-        return res;
+        return new TradingFees(res);
     }
     /// <summary>
     /// Fetch details for a specific portfolio by UUID
@@ -1434,9 +1434,9 @@ public partial class coinbase
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code.</returns>
-    public async Task<List<ccxt.DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
-        return res;
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
 }

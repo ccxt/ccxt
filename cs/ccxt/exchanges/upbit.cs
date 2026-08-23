@@ -443,7 +443,7 @@ public partial class upbit : Exchange
         object walletState = this.safeString(currencyInfo, "wallet_state");
         object walletLocked = this.safeValue(memberInfo, "wallet_locked");
         object locked = this.safeValue(memberInfo, "locked");
-        object active = true;
+        bool active = true;
         if (isTrue(isTrue((!isEqual(canWithdraw, null))) && !isTrue(canWithdraw)))
         {
             active = false;
@@ -1298,7 +1298,7 @@ public partial class upbit : Exchange
         }
         if (isTrue(isEqual(timeframeValue, "minutes")))
         {
-            object numMinutes = Math.Round(Convert.ToDouble(divide(timeframePeriod, 60)));
+            double numMinutes = Math.Round(Convert.ToDouble(divide(timeframePeriod, 60)));
             ((IDictionary<string,object>)request)["unit"] = numMinutes;
             response = await this.publicGetCandlesTimeframeUnit(this.extend(request, parameters));
         } else
@@ -2126,12 +2126,12 @@ public partial class upbit : Exchange
             { "order", id },
             { "type", type },
         });
-        object numTrades = getArrayLength(trades);
+        int numTrades = getArrayLength(trades);
         if (isTrue(isGreaterThan(numTrades, 0)))
         {
             // the timestamp in fetchOrder trades is missing
             lastTradeTimestamp = getValue(getValue(trades, subtract(numTrades, 1)), "timestamp");
-            object getFeesFromTrades = false;
+            bool getFeesFromTrades = false;
             if (isTrue(isEqual(feeCost, null)))
             {
                 getFeesFromTrades = true;
@@ -2692,12 +2692,12 @@ public partial class upbit : Exchange
         {
             this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {};
-            object nonce = this.uuid();
+            string nonce = this.uuid();
             object request = new Dictionary<string, object>() {
                 { "access_key", this.apiKey },
                 { "nonce", nonce },
             };
-            object hasQuery = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
+            int hasQuery = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
             object auth = null;
             if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
             {

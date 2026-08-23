@@ -909,7 +909,7 @@ public partial class p2b : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currencyId = getValue(keys, i);
@@ -1339,7 +1339,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result");
         object orders = new List<object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)result).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)result).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object marketId = getValue(keys, i);

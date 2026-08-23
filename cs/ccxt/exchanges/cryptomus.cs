@@ -343,7 +343,7 @@ public partial class cryptomus : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = getValue(parts, 0);
         object quoteId = getValue(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -437,8 +437,8 @@ public partial class cryptomus : Exchange
         //     }
         //
         object coins = this.safeList(response, "result");
-        object groupedById = this.groupBy(coins, "currency_code");
-        object groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        Dictionary<string, object> groupedById = this.groupBy(coins, "currency_code");
+        List<object> groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
         return this.parseCurrencies(groupedArray);
     }
 
@@ -789,7 +789,7 @@ public partial class cryptomus : Exchange
             parameters = this.omit(parameters, "clientOrderId");
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        object sideBuy = isEqual(side, "buy");
+        bool sideBuy = isEqual(side, "buy");
         object amountToString = this.numberToString(amount);
         object priceToString = this.numberToString(price);
         object cost = null;

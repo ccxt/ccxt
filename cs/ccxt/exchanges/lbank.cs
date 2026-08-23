@@ -542,8 +542,8 @@ public partial class lbank : Exchange
         //    }
         //
         object currenciesData = this.safeList(response, "data", new List<object>() {});
-        object grouped = this.groupBy(currenciesData, "assetCode");
-        object values = new List<object>(((IDictionary<string,object>)grouped).Values);
+        Dictionary<string, object> grouped = this.groupBy(currenciesData, "assetCode");
+        List<object> values = new List<object>(((IDictionary<string,object>)grouped).Values);
         return this.parseCurrencies(values);
     }
 
@@ -653,7 +653,7 @@ public partial class lbank : Exchange
         {
             object market = getValue(data, i);
             object marketId = this.safeString(market, "symbol");
-            object parts = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)((string)marketId)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object baseId = getValue(parts, 0);
             object quoteId = getValue(parts, 1);
             object bs = this.safeCurrencyCode(baseId);
@@ -953,7 +953,7 @@ public partial class lbank : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             symbols = this.marketSymbols(symbols);
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -1112,7 +1112,7 @@ public partial class lbank : Exchange
         //     }
         //
         object orderbook = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         if (isTrue(getValue(market, "swap")))
         {
             return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
@@ -1184,7 +1184,7 @@ public partial class lbank : Exchange
         object takerOrMaker = null;
         if (isTrue(!isEqual(side, null)))
         {
-            object parts = ((string)side).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)side).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             side = this.safeString(parts, 0);
             object typePart = this.safeString(parts, 1);
             type = "limit";
@@ -1476,7 +1476,7 @@ public partial class lbank : Exchange
         {
             object used = this.safeValue(data, "freeze", new Dictionary<string, object>() {});
             object free = this.safeValue(data, "free", new Dictionary<string, object>() {});
-            object currencies = new List<object>(((IDictionary<string,object>)free).Keys);
+            List<object> currencies = new List<object>(((IDictionary<string,object>)free).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencies, i);
@@ -1511,7 +1511,7 @@ public partial class lbank : Exchange
             return this.safeBalance(result);
         }
         // from spotPrivatePostSupplementUserInfo
-        object isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (isTrue(isEqual(isArray, true)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
@@ -1845,9 +1845,9 @@ public partial class lbank : Exchange
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object ioc = (isEqual(timeInForce, "IOC"));
-        object fok = (isEqual(timeInForce, "FOK"));
-        object maker = (isTrue(postOnly) || isTrue((isEqual(timeInForce, "PO"))));
+        bool ioc = (isEqual(timeInForce, "IOC"));
+        bool fok = (isEqual(timeInForce, "FOK"));
+        bool maker = (isTrue(postOnly) || isTrue((isEqual(timeInForce, "PO"))));
         if (isTrue(isTrue((isEqual(type, "market"))) && isTrue((isTrue(isTrue(ioc) || isTrue(fok)) || isTrue(maker)))))
         {
             throw new InvalidOrder ((string)add(this.id, " createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed")) ;
@@ -2049,10 +2049,10 @@ public partial class lbank : Exchange
         object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object timeInForce = null;
-        object postOnly = false;
-        object type = "limit";
+        bool postOnly = false;
+        string type = "limit";
         object rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        object parts = ((string)((string)rawType)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)rawType)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object side = this.safeString(parts, 0);
         object typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (isTrue(isEqual(typePart, "market")))
@@ -2217,7 +2217,7 @@ public partial class lbank : Exchange
         //      }
         //
         object result = this.safeValue(response, "data", new List<object>() {});
-        object numOrders = getArrayLength(result);
+        int numOrders = getArrayLength(result);
         if (isTrue(isEqual(numOrders, 1)))
         {
             return this.parseOrder(getValue(result, 0));
@@ -3390,7 +3390,7 @@ public partial class lbank : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object timestamp = ((object)this.milliseconds()).ToString();
+            string timestamp = ((object)this.milliseconds()).ToString();
             object echostr = add(this.uuid22(), this.uuid16());
             query = this.extend(new Dictionary<string, object>() {
                 { "api_key", this.apiKey },
@@ -3411,7 +3411,7 @@ public partial class lbank : Exchange
             }, query)));
             object encoded = this.encode(auth);
             object hash = this.hash(encoded, md5);
-            object uppercaseHash = ((string)hash).ToUpper();
+            string uppercaseHash = ((string)hash).ToUpper();
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))
             {
