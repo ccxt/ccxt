@@ -529,8 +529,8 @@ class NewTranspiler {
 
     /**
      * @description Single source of truth for the C# type of an optional scalar parameter.
-     * The wrapper signature declares it as `<type>? name2 = 0` and the wrapper body declares
-     * the local bound from it as `<type>?` too, so both must be computed here and nowhere else.
+     * The wrapper signature declares it as `<type>? name = null` and passes it straight into
+     * the core call, so the nullable scalar type is computed here and nowhere else.
      * Returns undefined for parameters that are not optional numeric scalars.
      */
     optionalScalarCsharpType(param: any): string | undefined {
@@ -579,11 +579,9 @@ class NewTranspiler {
                     if (paramType  === 'bool') {
                         return `${paramType}? ${safeName} = false`
                     }
-                    // the `2` suffix marks a parameter whose value is re-bound to a local in the
-                    // wrapper body; both spellings come from optionalScalarCsharpType
                     const scalarType = this.optionalScalarCsharpType(param);
                     if (scalarType !== undefined) {
-                        return `${scalarType}? ${safeName}2 = 0`
+                        return `${scalarType}? ${safeName} = null`
                     }
                     return `${paramType}? ${safeName}`
                 }
@@ -721,24 +719,6 @@ class NewTranspiler {
         return returnStatement;
     }
 
-    getDefaultParamsWrappers(rawParameters: any []) {
-        const res: string[] = [];
-
-        rawParameters.forEach(param => {
-            // Declare the local with the SAME nullable C# type the wrapper signature gives the
-            // `<name>2` parameter instead of erasing it to `object`. The value is unchanged: a
-            // `Int64?`/`double?` binds to the core's `object` parameter by the same boxing the
-            // explicit cast performed, and a null stays a null reference.
-            const scalarType = this.optionalScalarCsharpType(param);
-            if (scalarType !== undefined) {
-                const decl =  `${this.inden(2)}${scalarType}? ${param.name} = ${param.name}2 == 0 ? null : ${param.name}2;`;
-                res.push(decl);
-            }
-        });
-
-        return res.join("\n");
-    }
-
     inden(level: number) {
         return '    '.repeat(level);
     }
@@ -766,7 +746,6 @@ class NewTranspiler {
         const method = [
             `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
