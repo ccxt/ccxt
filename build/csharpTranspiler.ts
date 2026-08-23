@@ -527,6 +527,26 @@ class NewTranspiler {
         return addTaskIfNeeded(wrappedType);
     }
 
+    /**
+     * @description Single source of truth for the C# type of an optional scalar parameter.
+     * The wrapper signature declares it as `<type>? name2 = 0` and the wrapper body declares
+     * the local bound from it as `<type>?` too, so both must be computed here and nowhere else.
+     * Returns undefined for parameters that are not optional numeric scalars.
+     */
+    optionalScalarCsharpType(param: any): string | undefined {
+        const isOptional = param.optional || param.initializer === 'undefined';
+        if (!isOptional) {
+            return undefined;
+        }
+        if (this.isIntegerType(param.type)) {
+            return 'Int64';
+        }
+        if (this.isNumberType(param.type)) {
+            return 'double';
+        }
+        return undefined;
+    }
+
     safeCsharpName(name: string): string {
         const csharpReservedWordsReplacement: dict = {
             'params': 'parameters',
@@ -559,11 +579,11 @@ class NewTranspiler {
                     if (paramType  === 'bool') {
                         return `${paramType}? ${safeName} = false`
                     }
-                    if (paramType === 'double' || paramType  === 'float') {
-                        return `${paramType}? ${safeName}2 = 0`
-                    }
-                    if (paramType  === 'Int64') {
-                        return `${paramType}? ${safeName}2 = 0`
+                    // the `2` suffix marks a parameter whose value is re-bound to a local in the
+                    // wrapper body; both spellings come from optionalScalarCsharpType
+                    const scalarType = this.optionalScalarCsharpType(param);
+                    if (scalarType !== undefined) {
+                        return `${scalarType}? ${safeName}2 = 0`
                     }
                     return `${paramType}? ${safeName}`
                 }
@@ -705,10 +725,13 @@ class NewTranspiler {
         const res: string[] = [];
 
         rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer === 'undefined';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
+            // Declare the local with the SAME nullable C# type the wrapper signature gives the
+            // `<name>2` parameter instead of erasing it to `object`. The value is unchanged: a
+            // `Int64?`/`double?` binds to the core's `object` parameter by the same boxing the
+            // explicit cast performed, and a null stays a null reference.
+            const scalarType = this.optionalScalarCsharpType(param);
+            if (scalarType !== undefined) {
+                const decl =  `${this.inden(2)}${scalarType}? ${param.name} = ${param.name}2 == 0 ? null : ${param.name}2;`;
                 res.push(decl);
             }
         });
