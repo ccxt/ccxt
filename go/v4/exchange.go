@@ -1664,9 +1664,9 @@ func (this *BaseExchange) UpdateProxySettings() {
 	if hasHttProxyDefined {
 		proxyUrlStr := ""
 		if httProxy != nil {
-			proxyUrlStr = httProxy.(string)
-		} else {
-			proxyUrlStr = httpsProxy.(string)
+			proxyUrlStr = *httProxy
+		} else if httpsProxy != nil {
+			proxyUrlStr = *httpsProxy
 		}
 		// rebuild the transport only when the proxy URL changes, otherwise a
 		// fresh transport (and connection pool) is created on every request

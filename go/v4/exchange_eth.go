@@ -327,10 +327,10 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 	}
 
 	domainTyped := apitypes.TypedDataDomain{
-		Name:              this.SafeString(domain, "name", "").(string),
-		Version:           this.SafeString(domain, "version", "").(string),
-		ChainId:           (*math.HexOrDecimal256)(big.NewInt(this.SafeInteger(domain, "chainId").(int64))),
-		VerifyingContract: this.SafeString(domain, "verifyingContract", "").(string),
+		Name:              SafeString(domain, "name", "").(string),
+		Version:           SafeString(domain, "version", "").(string),
+		ChainId:           (*math.HexOrDecimal256)(big.NewInt(SafeInteger(domain, "chainId", nil).(int64))),
+		VerifyingContract: SafeString(domain, "verifyingContract", "").(string),
 	}
 
 	messageTypesTyped := map[string][]apitypes.Type{}
@@ -587,7 +587,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 		return p
 	}
 
-	typeA := this.SafeString(converted, "type", "").(string)
+	typeA := SafeString(converted, "type", "").(string)
 
 	switch typeA {
 	case "order":

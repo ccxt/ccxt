@@ -373,12 +373,20 @@ func SafeStringN(obj any, keys []any, defaultValue any) any {
 	}
 }
 
-func (this *BaseExchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringUpperN(obj any, keys []any, defaultValue ...any) *string {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeStringUpperN(obj, keys, defVal)
+	res := SafeStringUpperN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(string); ok {
+		return &v
+	}
+	if defVal != nil {
+		v := ToString(defVal)
+		return &v
+	}
+	return nil
 }
 
 func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
@@ -617,85 +625,117 @@ func SafeBool(obj any, key any, defaultValue any) any {
 
 // private wrappers
 
-func (this *BaseExchange) SafeString(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeString(obj any, key any, defaultValue ...any) *string {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeString(obj, key, defVal)
+	res := SafeString(obj, key, defVal)
+	if v, ok := derefScalar(res).(string); ok {
+		return &v
+	}
+	if defVal != nil {
+		v := ToString(defVal)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeStringUpper(obj any, key any, defaultValue ...any) any {
-	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString(obj, key)
-	if res != nil {
-		return strings.ToUpper(res.(string))
+func (this *BaseExchange) SafeStringUpper(obj any, key any, defaultValue ...any) *string {
+	if res := this.SafeString(obj, key); res != nil {
+		v := strings.ToUpper(*res)
+		return &v
 	}
-	if len(defaultValue) > 0 {
-		return defaultValue[0]
+	if len(defaultValue) > 0 && defaultValue[0] != nil {
+		v := ToString(defaultValue[0])
+		return &v
 	}
-	return nil // check this return type
+	return nil
 }
 
-func (this *BaseExchange) SafeStringLower(obj any, key any, defaultValue ...any) any {
-	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString(obj, key)
-	if res != nil {
-		return strings.ToLower(res.(string))
+func (this *BaseExchange) SafeStringLower(obj any, key any, defaultValue ...any) *string {
+	if res := this.SafeString(obj, key); res != nil {
+		v := strings.ToLower(*res)
+		return &v
 	}
-	if len(defaultValue) > 0 {
-		return defaultValue[0]
+	if len(defaultValue) > 0 && defaultValue[0] != nil {
+		v := ToString(defaultValue[0])
+		return &v
 	}
-	return nil // check this return type
+	return nil
 }
 
-func (this *BaseExchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) any {
-	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString2(obj, key, key2)
-	if res != nil {
-		return strings.ToLower(res.(string))
+func (this *BaseExchange) SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) *string {
+	if res := this.SafeString2(obj, key, key2); res != nil {
+		v := strings.ToLower(*res)
+		return &v
 	}
-	if len(defaultValue) > 0 {
-		return defaultValue[0]
+	if len(defaultValue) > 0 && defaultValue[0] != nil {
+		v := ToString(defaultValue[0])
+		return &v
 	}
-	return nil // check this return type
+	return nil
 }
 
-func (this *BaseExchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) any {
-	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
-	res := this.SafeString2(obj, key, key2)
-	if res != nil {
-		return strings.ToUpper(res.(string))
+func (this *BaseExchange) SafeStringUpper2(obj any, key any, key2 any, defaultValue ...any) *string {
+	if res := this.SafeString2(obj, key, key2); res != nil {
+		v := strings.ToUpper(*res)
+		return &v
 	}
-	if len(defaultValue) > 0 {
-		return defaultValue[0]
+	if len(defaultValue) > 0 && defaultValue[0] != nil {
+		v := ToString(defaultValue[0])
+		return &v
 	}
-	return nil // check this return type
+	return nil
 }
 
-func (this *BaseExchange) SafeString2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeString2(obj any, key any, key2 any, defaultValue ...any) *string {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeString2(obj, key, key2, defVal)
+	res := SafeString2(obj, key, key2, defVal)
+	if v, ok := derefScalar(res).(string); ok {
+		return &v
+	}
+	if defVal != nil {
+		v := ToString(defVal)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeStringN(obj any, keys2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringN(obj any, keys2 any, defaultValue ...any) *string {
 	keys := keys2.([]any)
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeStringN(obj, keys, defVal)
+	res := SafeStringN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(string); ok {
+		return &v
+	}
+	if defVal != nil {
+		v := ToString(defVal)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeStringLowerN(obj any, keys []any, defaultValue ...any) *string {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeStringLowerN(obj, keys, defVal)
+	res := SafeStringLowerN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(string); ok {
+		return &v
+	}
+	if defVal != nil {
+		v := ToString(defVal)
+		return &v
+	}
+	return nil
 }
 
 func SafeStringLowerN(obj any, keys []any, defaultValue any) any {
@@ -706,52 +746,136 @@ func SafeStringLowerN(obj any, keys []any, defaultValue any) any {
 	return strings.ToLower(value.(string))
 }
 
-func (this *BaseExchange) SafeFloat(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeFloat(obj any, key any, defaultValue ...any) *float64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeFloat(obj, key, defVal)
+	res := SafeFloat(obj, key, defVal)
+	if v, ok := derefScalar(res).(float64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case float64:
+		return &d
+	case int64:
+		v := float64(d)
+		return &v
+	case int:
+		v := float64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeFloat2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeFloat2(obj any, key any, key2 any, defaultValue ...any) *float64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeFloat2(obj, key, key2, defVal)
+	res := SafeFloat2(obj, key, key2, defVal)
+	if v, ok := derefScalar(res).(float64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case float64:
+		return &d
+	case int64:
+		v := float64(d)
+		return &v
+	case int:
+		v := float64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeFloatN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeFloatN(obj any, keys []any, defaultValue ...any) *float64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeFloatN(obj, keys, defVal)
+	res := SafeFloatN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(float64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case float64:
+		return &d
+	case int64:
+		v := float64(d)
+		return &v
+	case int:
+		v := float64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeInteger(obj, key, defVal)
+	res := SafeInteger(obj, key, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeInteger2(obj, key, key2, defVal)
+	res := SafeInteger2(obj, key, key2, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeIntegerN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerN(obj any, keys []any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeIntegerN(obj, keys, defVal)
+	res := SafeIntegerN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
 func (this *BaseExchange) SafeValue(obj any, key any, defaultValue ...any) any {
@@ -775,52 +899,136 @@ func (this *BaseExchange) SafeValueN(obj any, keys any, defaultValue ...any) any
 	return SafeValueN(obj, keysArray, defVal)
 }
 
-func (this *BaseExchange) SafeTimestamp(obj any, key any, defaultValue ...any) any {
+func (this *BaseExchange) SafeTimestamp(obj any, key any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeTimestamp(obj, key, defVal)
+	res := SafeTimestamp(obj, key, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) any {
+func (this *BaseExchange) SafeTimestamp2(obj any, key1, key2 any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeTimestamp2(obj, key1, key2, defVal)
+	res := SafeTimestamp2(obj, key1, key2, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeTimestampN(obj any, keys []any, defaultValue ...any) any {
+func (this *BaseExchange) SafeTimestampN(obj any, keys []any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeTimestampN(obj, keys, defVal)
+	res := SafeTimestampN(obj, keys, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeIntegerProduct(obj, key, multiplier, defVal)
+	res := SafeIntegerProduct(obj, key, multiplier, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeIntegerProduct2(obj, key1, key2, multiplier, defVal)
+	res := SafeIntegerProduct2(obj, key1, key2, multiplier, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
-func (this *BaseExchange) SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) any {
+func (this *BaseExchange) SafeIntegerProductN(obj any, keys []any, multiplier any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeIntegerProductN(obj, keys, multiplier, defVal)
+	res := SafeIntegerProductN(obj, keys, multiplier, defVal)
+	if v, ok := derefScalar(res).(int64); ok {
+		return &v
+	}
+	switch d := derefScalar(defVal).(type) {
+	case int64:
+		return &d
+	case int:
+		v := int64(d)
+		return &v
+	case float64:
+		v := int64(d)
+		return &v
+	}
+	return nil
 }
 
 // func (this *BaseExchange) safeBool(obj any, key any, defaultValue ...bool) bool {
