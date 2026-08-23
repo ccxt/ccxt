@@ -4690,7 +4690,7 @@ export default class bingx extends Exchange {
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchOrders() is only supported for swap markets');
         }
-        if (subType === 'inverse') {
+        if ((subType === 'inverse') || ((market !== undefined) && market['inverse'])) {
             throw new NotSupported (this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
