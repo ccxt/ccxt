@@ -1212,7 +1212,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1235,13 +1235,13 @@ public partial class hitbtc : ccxt.hitbtc
         request = this.extend(request, parameters);
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_new_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_new_order", request));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            return await this.tradeRequest("margin_new_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_new_order", request));
         } else
         {
-            return await this.tradeRequest("spot_new_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("spot_new_order", request));
         }
     }
 
@@ -1259,7 +1259,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {bool} [params.margin] true for canceling a margin order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1284,13 +1284,13 @@ public partial class hitbtc : ccxt.hitbtc
         request = this.extend(request, query);
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_cancel_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("futures_cancel_order", request));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            return await this.tradeRequest("margin_cancel_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("margin_cancel_order", request));
         } else
         {
-            return await this.tradeRequest("spot_cancel_order", request);
+            return ccxt.BaseExchange.ToOrder(await this.tradeRequest("spot_cancel_order", request));
         }
     }
 
@@ -1306,7 +1306,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {bool} [params.margin] true for canceling margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1328,13 +1328,13 @@ public partial class hitbtc : ccxt.hitbtc
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_cancel_orders", parameters);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_cancel_orders", parameters));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
             throw new NotSupported ((string)add(this.id, " cancelAllOrdersWs is not supported for margin orders")) ;
         } else
         {
-            return await this.tradeRequest("spot_cancel_orders", parameters);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_cancel_orders", parameters));
         }
     }
 
@@ -1353,7 +1353,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {bool} [params.margin] true for fetching open margin orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1377,13 +1377,13 @@ public partial class hitbtc : ccxt.hitbtc
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "swap")))
         {
-            return await this.tradeRequest("futures_get_orders", request);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("futures_get_orders", request));
         } else if (isTrue(isTrue((isEqual(marketType, "margin"))) || isTrue((!isEqual(marginMode, null)))))
         {
-            return await this.tradeRequest("margin_get_orders", request);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("margin_get_orders", request));
         } else
         {
-            return await this.tradeRequest("spot_get_orders", request);
+            return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("spot_get_orders", request));
         }
     }
 

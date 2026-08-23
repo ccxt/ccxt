@@ -672,7 +672,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -740,7 +740,7 @@ public partial class latoken : Exchange
         }
         ((IDictionary<string,object>)result)["timestamp"] = maxTimestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(maxTimestamp);
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -881,7 +881,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -914,7 +914,7 @@ public partial class latoken : Exchange
         //        "updateTimestamp": "1693965231406"
         //    }
         //
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
     /**
@@ -926,7 +926,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -956,7 +956,7 @@ public partial class latoken : Exchange
         //        }
         //    ]
         //
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1100,7 +1100,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "fetchTradingFee", new Dictionary<string, object>() {});
@@ -1109,10 +1109,10 @@ public partial class latoken : Exchange
         parameters = this.omit(parameters, "method");
         if (isTrue(isEqual(method, "fetchPrivateTradingFee")))
         {
-            return await this.fetchPrivateTradingFee(symbol, parameters);
+            return ccxt.BaseExchange.ToTradingFeeInterface(await this.fetchPrivateTradingFee(symbol, parameters));
         } else if (isTrue(isEqual(method, "fetchPublicTradingFee")))
         {
-            return await this.fetchPublicTradingFee(symbol, parameters);
+            return ccxt.BaseExchange.ToTradingFeeInterface(await this.fetchPublicTradingFee(symbol, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " not support this method")) ;
@@ -1661,7 +1661,7 @@ public partial class latoken : Exchange
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1690,7 +1690,7 @@ public partial class latoken : Exchange
         //         "errors": { }
         //     }
         //
-        return this.parseOrder(response);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
     /**
@@ -1962,7 +1962,7 @@ public partial class latoken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2008,7 +2008,7 @@ public partial class latoken : Exchange
         //         "fee": 0
         //     }
         //
-        return this.parseTransfer(response);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
     }
 
     public override object parseTransfer(object transfer, object currency = null)

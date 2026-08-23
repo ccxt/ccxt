@@ -277,7 +277,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -297,7 +297,7 @@ public partial class bybit : ccxt.bybit
                 { "X-BAPI-RECV-WINDOW", ((object)getValue(this.options, "recvWindow")).ToString() },
             } },
         };
-        return await this.watch(url, requestId, request, requestId, true);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, requestId, request, requestId, true));
     }
 
     /**
@@ -325,7 +325,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -345,7 +345,7 @@ public partial class bybit : ccxt.bybit
                 { "X-BAPI-RECV-WINDOW", ((object)getValue(this.options, "recvWindow")).ToString() },
             } },
         };
-        return await this.watch(url, requestId, request, requestId, true);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, requestId, request, requestId, true));
     }
 
     /**
@@ -361,7 +361,7 @@ public partial class bybit : ccxt.bybit
      * @param {string} [params.orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -389,7 +389,7 @@ public partial class bybit : ccxt.bybit
                 { "X-BAPI-RECV-WINDOW", ((object)getValue(this.options, "recvWindow")).ToString() },
             } },
         };
-        return await this.watch(url, requestId, request, requestId, true);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, requestId, request, requestId, true));
     }
 
     /**

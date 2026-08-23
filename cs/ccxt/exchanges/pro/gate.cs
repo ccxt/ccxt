@@ -167,7 +167,7 @@ public partial class gate : ccxt.gate
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -184,7 +184,7 @@ public partial class gate : ccxt.gate
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, request, channel);
         object order = this.parseOrder(rawOrder, market);
-        return order;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -196,7 +196,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrdersWs(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -216,7 +216,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, request, channel);
-        return this.parseOrders(rawOrders, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market));
     }
 
     /**
@@ -230,7 +230,7 @@ public partial class gate : ccxt.gate
      * @param {string} [params.channel] the channel to use, defaults to spot.order_cancel_cp or futures.order_cancel_cp
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -258,7 +258,7 @@ public partial class gate : ccxt.gate
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return this.parseOrders(rawOrders, market);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(rawOrders, market));
     }
 
     /**
@@ -273,7 +273,7 @@ public partial class gate : ccxt.gate
      * @param {bool} [params.trigger] True if the order to be cancelled is a trigger order
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -295,7 +295,7 @@ public partial class gate : ccxt.gate
         await this.authenticate(url, messageType);
         ((IDictionary<string,object>)request)["order_id"] = ((object)id).ToString();
         object res = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return this.parseOrder(res, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(res, market));
     }
 
     /**
@@ -313,7 +313,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -327,7 +327,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, extendedRequest, channel);
-        return this.parseOrder(rawOrder, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
     }
 
     /**
@@ -345,7 +345,7 @@ public partial class gate : ccxt.gate
      * @param {string} [params.settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -361,7 +361,7 @@ public partial class gate : ccxt.gate
         object url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
-        return this.parseOrder(rawOrder, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
     }
 
     /**
@@ -375,7 +375,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatusWs("open", symbol, since, limit, parameters);
@@ -392,7 +392,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatusWs("finished", symbol, since, limit, parameters);
@@ -412,7 +412,7 @@ public partial class gate : ccxt.gate
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -439,7 +439,7 @@ public partial class gate : ccxt.gate
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
         object orders = this.parseOrders(rawOrders, market);
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
 
     /**

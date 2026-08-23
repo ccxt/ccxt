@@ -471,7 +471,7 @@ public partial class mercado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -498,7 +498,7 @@ public partial class mercado : Exchange
         //         }
         //     }
         //
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -610,7 +610,7 @@ public partial class mercado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -618,7 +618,7 @@ public partial class mercado : Exchange
             await this.loadMarkets();
         }
         object response = await this.privatePostGetAccountInfo(parameters);
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -691,7 +691,7 @@ public partial class mercado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -733,7 +733,7 @@ public partial class mercado : Exchange
         //
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
         object order = this.safeDict(responseData, "order", new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(order, market));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -863,7 +863,7 @@ public partial class mercado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
@@ -930,7 +930,7 @@ public partial class mercado : Exchange
         //
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
         object withdrawal = this.safeDict(responseData, "withdrawal");
-        return this.parseTransaction(withdrawal, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(withdrawal, currency));
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -989,7 +989,7 @@ public partial class mercado : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "15m";
         parameters ??= new Dictionary<string, object>();

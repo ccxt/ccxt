@@ -1269,7 +1269,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1282,7 +1282,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "params", parameters },
         };
         object messageHash = this.nonce();
-        return await this.watchPrivateRequest(messageHash, request);
+        return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
     /**
@@ -1300,7 +1300,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {string} [params.clientOrderId] the original client order id of the order to edit, required if id is not provided
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1313,7 +1313,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "params", parameters },
         };
         object messageHash = this.nonce();
-        return await this.watchPrivateRequest(messageHash, request);
+        return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -1345,7 +1345,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1360,7 +1360,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "params", parameters },
         };
         object messageHash = this.nonce();
-        return await this.watchPrivateRequest(messageHash, request);
+        return ccxt.BaseExchange.ToOrder(await this.watchPrivateRequest(messageHash, request));
     }
 
     /**
@@ -1372,7 +1372,7 @@ public partial class cryptocom : ccxt.cryptocom
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1390,7 +1390,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IDictionary<string,object>)getValue(request, "params"))["instrument_name"] = getValue(market, "id");
         }
         object messageHash = this.nonce();
-        return await this.watchPrivateRequest(messageHash, request);
+        return ccxt.BaseExchange.ToOrderList(await this.watchPrivateRequest(messageHash, request));
     }
 
     public virtual void handleCancelAllOrders(WebSocketClient client, object message)

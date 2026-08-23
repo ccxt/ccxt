@@ -84,7 +84,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -265,7 +265,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -283,7 +283,7 @@ public partial class lbank : ccxt.lbank
         };
         object request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
-        return await this.watch(url, messageHash, request, requestId, request);
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, requestId, request));
     }
 
     /**
@@ -411,7 +411,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -434,7 +434,7 @@ public partial class lbank : ccxt.lbank
         };
         object request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
-        return await this.watch(url, messageHash, request, requestId, request);
+        return ccxt.BaseExchange.ToTradeList(await this.watch(url, messageHash, request, requestId, request));
     }
 
     /**
@@ -826,7 +826,7 @@ public partial class lbank : ccxt.lbank
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
-    public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -849,7 +849,7 @@ public partial class lbank : ccxt.lbank
         };
         object request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
-        return (orderbook as IOrderBook).limit();
+        return ccxt.BaseExchange.ToOrderBook((orderbook as IOrderBook).limit());
     }
 
     /**

@@ -53,19 +53,257 @@ if (platform === 'win32') {
     }
 }
 
-// core methods whose `Task<object>` return is rewritten to `Task<List<OHLCV>>`, moving the
-// `new OHLCV(item)` conversion out of the PascalCase wrapper and onto the core return path
-const OHLCV_TYPED_CORES = [
-    'fetchOHLCV',
-    'fetchOHLCVWs',
-    'fetchSpotOHLCV',
-    'fetchContractOHLCV',
-    'fetchUTAOHLCV',
-    'fetchOptionOHLCV',
-    'fetchMarkOHLCV',
-    'fetchIndexOHLCV',
-    'fetchPremiumIndexOHLCV',
-];
+// core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>`,
+// moving the `new T(item)` conversion out of the PascalCase wrapper and onto the core return path.
+// only methods whose every intra-core call site is a plain `return await this.X(...);` from a core
+// of the same typed shape are listed — anything feeding an untyped helper or reflective pagination
+// (fetchPaginatedCall*, callDynamically) stays object, since there is no reverse From helper.
+const TYPED_CORES: Record<string, string> = {
+    'cancelAllOrdersWs': 'List<Order>',
+    'cancelContractOrder': 'Order',
+    'cancelOrder': 'Order',
+    'cancelOrderWithClientOrderId': 'Order',
+    'cancelOrderWs': 'Order',
+    'cancelOrders': 'List<Order>',
+    'cancelOrdersForSymbols': 'List<Order>',
+    'cancelOrdersWithClientOrderIds': 'List<Order>',
+    'cancelOrdersWs': 'List<Order>',
+    'cancelSpotOrder': 'Order',
+    'cancelTwapOrder': 'Order',
+    'cancelUnifiedOrder': 'Order',
+    'cancelUtaOrder': 'Order',
+    'cancelUtaOrders': 'List<Order>',
+    'createAmmOrder': 'PredictionOrder',
+    'createConvertTrade': 'Conversion',
+    'createDepositAddress': 'DepositAddress',
+    'createLimitBuyOrder': 'Order',
+    'createLimitBuyOrderWs': 'Order',
+    'createLimitOrder': 'Order',
+    'createLimitOrderWs': 'Order',
+    'createLimitSellOrder': 'Order',
+    'createLimitSellOrderWs': 'Order',
+    'createMarketBuyOrder': 'Order',
+    'createMarketBuyOrderWithCost': 'Order',
+    'createMarketBuyOrderWs': 'Order',
+    'createMarketOrder': 'Order',
+    'createMarketOrderWithCost': 'Order',
+    'createMarketOrderWithCostWs': 'Order',
+    'createMarketOrderWs': 'Order',
+    'createMarketSellOrder': 'Order',
+    'createMarketSellOrderWithCost': 'Order',
+    'createMarketSellOrderWs': 'Order',
+    'createOrderWithTakeProfitAndStopLoss': 'Order',
+    'createOrderWithTakeProfitAndStopLossWs': 'Order',
+    'createOrderWs': 'Order',
+    'createOrderbookOrder': 'PredictionOrder',
+    'createOrdersWs': 'List<Order>',
+    'createPostOnlyOrder': 'Order',
+    'createPostOnlyOrderWs': 'Order',
+    'createReduceOnlyOrder': 'Order',
+    'createReduceOnlyOrderWs': 'Order',
+    'createStopLimitOrder': 'Order',
+    'createStopLimitOrderWs': 'Order',
+    'createStopLossOrder': 'Order',
+    'createStopLossOrderWs': 'Order',
+    'createStopMarketOrder': 'Order',
+    'createStopMarketOrderWs': 'Order',
+    'createStopOrder': 'Order',
+    'createStopOrderWs': 'Order',
+    'createTakeProfitOrder': 'Order',
+    'createTakeProfitOrderWs': 'Order',
+    'createTrailingAmountOrder': 'Order',
+    'createTrailingAmountOrderWs': 'Order',
+    'createTrailingPercentOrder': 'Order',
+    'createTrailingPercentOrderWs': 'Order',
+    'createTriggerOrder': 'Order',
+    'createTriggerOrderWs': 'Order',
+    'createTwapOrder': 'Order',
+    'editContractOrder': 'Order',
+    'editLimitBuyOrder': 'Order',
+    'editLimitOrder': 'Order',
+    'editLimitSellOrder': 'Order',
+    'editOrder': 'Order',
+    'editOrderWithClientOrderId': 'Order',
+    'editOrderWs': 'Order',
+    'editOrders': 'List<Order>',
+    'editSpotOrder': 'Order',
+    'fetchADLRank': 'ADL',
+    'fetchAllGreeks': 'List<Greeks>',
+    'fetchAmmOrders': 'List<PredictionOrder>',
+    'fetchBalance': 'Balances',
+    'fetchBalanceWs': 'Balances',
+    'fetchBidsAsks': 'Tickers',
+    'fetchClosedOrder': 'Order',
+    'fetchClosedOrdersWs': 'List<Order>',
+    'fetchContractBalance': 'Balances',
+    'fetchContractDepositAddress': 'DepositAddress',
+    'fetchContractOHLCV': 'List<OHLCV>',
+    'fetchContractTickers': 'Tickers',
+    'fetchConvertCurrencies': 'Currencies',
+    'fetchConvertQuote': 'Conversion',
+    'fetchConvertTrade': 'Conversion',
+    'fetchConvertTradeHistory': 'List<Conversion>',
+    'fetchCrossBorrowRate': 'CrossBorrowRate',
+    'fetchCrossBorrowRates': 'CrossBorrowRates',
+    'fetchDeposit': 'Transaction',
+    'fetchDepositAddress': 'DepositAddress',
+    'fetchDepositAddressDefault': 'DepositAddress',
+    'fetchDepositAddressSupplement': 'DepositAddress',
+    'fetchDepositAddresses': 'List<DepositAddress>',
+    'fetchDepositAddressesByNetwork': 'List<DepositAddress>',
+    'fetchDepositWithdrawFee': 'DepositWithdrawFee',
+    'fetchDepositWithdrawFees': 'DepositWithdrawFees',
+    'fetchDepositsWs': 'List<Transaction>',
+    'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchEvent': 'PredictionEvent',
+    'fetchFinancialBalance': 'Balances',
+    'fetchFreeBalance': 'Balance',
+    'fetchFundingInterval': 'FundingRate',
+    'fetchFundingIntervals': 'FundingRates',
+    'fetchFundingRate': 'FundingRate',
+    'fetchFundingRates': 'FundingRates',
+    'fetchGreeks': 'Greeks',
+    'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
+    'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
+    'fetchLastPrices': 'LastPrices',
+    'fetchLedgerByEntries': 'List<LedgerEntry>',
+    'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
+    'fetchLedgerEntry': 'LedgerEntry',
+    'fetchLeverage': 'Leverage',
+    'fetchLeverageTiers': 'LeverageTiers',
+    'fetchLeverages': 'Leverages',
+    'fetchLongShortRatio': 'LongShortRatio',
+    'fetchLongShortRatioHistory': 'List<LongShortRatio>',
+    'fetchMarginAdjustmentHistory': 'List<MarginModification>',
+    'fetchMarginBalance': 'Balances',
+    'fetchMarginMode': 'MarginMode',
+    'fetchMarginModes': 'MarginModes',
+    'fetchMarkOHLCV': 'List<OHLCV>',
+    'fetchMarkPrice': 'Ticker',
+    'fetchMarkPrices': 'Tickers',
+    'fetchMarket': 'MarketInterface',
+    'fetchMarketById': 'MarketInterface',
+    'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMyBuys': 'List<Trade>',
+    'fetchMySells': 'List<Trade>',
+    'fetchMyTradesWs': 'List<Trade>',
+    'fetchOHLCV': 'List<OHLCV>',
+    'fetchOHLCVWs': 'List<OHLCV>',
+    'fetchOpenInterest': 'OpenInterest',
+    'fetchOpenInterests': 'OpenInterests',
+    'fetchOpenOrder': 'Order',
+    'fetchOpenOrdersWs': 'List<Order>',
+    'fetchOption': 'Option',
+    'fetchOptionChain': 'OptionChain',
+    'fetchOptionOHLCV': 'List<OHLCV>',
+    'fetchOrderBookWs': 'OrderBook',
+    'fetchOrderTrades': 'List<Trade>',
+    'fetchOrderWithClientOrderId': 'Order',
+    'fetchOrderWs': 'Order',
+    'fetchOrdersByIds': 'List<Order>',
+    'fetchOrdersByStatusWs': 'List<Order>',
+    'fetchOrdersWs': 'List<Order>',
+    'fetchPartialBalance': 'Balance',
+    'fetchPortfolios': 'List<Account>',
+    'fetchPosition': 'Position',
+    'fetchPositionADLRank': 'ADL',
+    'fetchPositionHistory': 'List<Position>',
+    'fetchPositionMode': 'PositionModeInfo',
+    'fetchPositionWs': 'List<Position>',
+    'fetchPositionsADLRank': 'List<ADL>',
+    'fetchPositionsForSymbolWs': 'List<Position>',
+    'fetchPositionsWs': 'List<Position>',
+    'fetchPremiumIndexOHLCV': 'List<OHLCV>',
+    'fetchRestOrderBookSafe': 'OrderBook',
+    'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotBalance': 'Balances',
+    'fetchSpotOHLCV': 'List<OHLCV>',
+    'fetchSpotOrderTrades': 'List<Trade>',
+    'fetchSpotTickers': 'Tickers',
+    'fetchSwapBalance': 'Balances',
+    'fetchTicker': 'Ticker',
+    'fetchTicker2': 'Ticker',
+    'fetchTickerV1': 'Ticker',
+    'fetchTickerV1AndV2': 'Ticker',
+    'fetchTickerV2': 'Ticker',
+    'fetchTickerV3': 'Ticker',
+    'fetchTickerWs': 'Ticker',
+    'fetchTickers': 'Tickers',
+    'fetchTickersV2': 'Tickers',
+    'fetchTickersV3': 'Tickers',
+    'fetchTickersWs': 'Tickers',
+    'fetchTotalBalance': 'Balance',
+    'fetchTradesWs': 'List<Trade>',
+    'fetchTradingFee': 'TradingFeeInterface',
+    'fetchTradingFees': 'TradingFees',
+    'fetchTradingFeesWs': 'TradingFees',
+    'fetchTransfer': 'TransferEntry',
+    'fetchUTAOHLCV': 'List<OHLCV>',
+    'fetchUnifiedOrder': 'Order',
+    'fetchUsedBalance': 'Balance',
+    'fetchUtaBalance': 'Balances',
+    'fetchWithdrawal': 'Transaction',
+    'fetchWithdrawalsWs': 'List<Transaction>',
+    'transfer': 'TransferEntry',
+    'transferBetweenMainAndSubAccount': 'TransferEntry',
+    'transferBetweenSubAccounts': 'TransferEntry',
+    'transferClassic': 'TransferEntry',
+    'transferIn': 'TransferEntry',
+    'transferOut': 'TransferEntry',
+    'transferUta': 'TransferEntry',
+    'withdraw': 'Transaction',
+    'withdrawWs': 'Transaction',
+};
+
+
+
+
+
+
+
+
+
+
+
+
+// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
+// structures, so the same method name is typed differently there — no invariance conflict
+// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
+// structures, so the same method name is typed differently there — no invariance conflict
+const PREDICTION_TYPED_CORES: Record<string, string> = {
+    'cancelOrder': 'PredictionOrder',
+    'cancelOrders': 'List<PredictionOrder>',
+    'createMarketBuyOrderWithCost': 'PredictionOrder',
+    'createMarketOrderWithCost': 'PredictionOrder',
+    'createMarketSellOrderWithCost': 'PredictionOrder',
+    'createOrder': 'PredictionOrder',
+    'createOrders': 'List<PredictionOrder>',
+    'editOrder': 'PredictionOrder',
+    'fetchCanceledOrders': 'List<PredictionOrder>',
+    'fetchClosedOrders': 'List<PredictionOrder>',
+    'fetchMyTrades': 'List<PredictionTrade>',
+    'fetchOpenInterest': 'PredictionOpenInterest',
+    'fetchOpenOrders': 'List<PredictionOrder>',
+    'fetchOrder': 'PredictionOrder',
+    'fetchOrderTrades': 'List<PredictionTrade>',
+    'fetchOrders': 'List<PredictionOrder>',
+    'fetchOrdersByIds': 'List<PredictionOrder>',
+    'fetchPosition': 'PredictionPosition',
+    'fetchPositions': 'List<PredictionPosition>',
+    'fetchTicker': 'PredictionTicker',
+    'fetchTickers': 'PredictionTickers',
+    'fetchTrades': 'List<PredictionTrade>',
+    'fetchTradingFee': 'PredictionTradingFee',
+};
+
+
+
+
+
+
+
+
 
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 // the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
@@ -667,8 +905,34 @@ class NewTranspiler {
         return !isBlackListed && startsWithAllowedPrefix;
     }
 
-    isOhlcvTypedCore (methodName: string): boolean {
-        return OHLCV_TYPED_CORES.includes (methodName);
+    // the typed C# return of a core method, or '' when the method keeps `Task<object>`
+    typedCoreType (methodName: string, isPredictionTier = false): string {
+        if (isPredictionTier && (methodName in PREDICTION_TYPED_CORES)) {
+            return PREDICTION_TYPED_CORES[methodName];
+        }
+        return TYPED_CORES[methodName] ?? '';
+    }
+
+    // the prediction tier is detected from the emitted content, not from `this.isPrediction`:
+    // the recursive prediction pass and the main pass both reach these files, and only the text
+    // reliably says which class hierarchy the method is being emitted into
+
+
+    // `List<OrderBook>` -> `List<ccxt.OrderBook>`. Required because ccxt.pro declares its own
+    // OrderBook / Trade classes, which would otherwise win name resolution inside pro files
+    qualifyTypedCoreType (csharpType: string): string {
+        if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
+            return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
+        }
+        return 'ccxt.' + csharpType;
+    }
+
+    // helper suffix used by ToXxx: `List<Order>` -> `OrderList`, `Ticker` -> `Ticker`
+    typedCoreHelperSuffix (csharpType: string): string {
+        if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
+            return csharpType.substring (5, csharpType.length - 1) + 'List';
+        }
+        return csharpType;
     }
 
     // locates the terminating `;` of a `return <expr>;` statement starting at line `start`,
@@ -695,26 +959,28 @@ class NewTranspiler {
         return [ start, lines[start].length ];
     }
 
-    // rewrites the OHLCV core family so the generated cores return `Task<List<OHLCV>>`:
-    //   - the signature `Task<object> fetchOHLCV(` becomes `Task<List<OHLCV>>`
-    //   - every return site inside it is funnelled through `BaseExchange.ToOHLCVList(...)`,
-    //     except a tail call to another already-typed core, which needs no conversion
-    //   - untyped callers (safeDeterministicCall) returning a typed core get `FromOHLCVList`
-    //     so the untyped pagination pipeline keeps seeing raw candle rows
-    typeOhlcvCores (content: string): string {
-        if (!OHLCV_TYPED_CORES.some (name => content.includes (' ' + name + '('))) {
+    // rewrites every core listed in TYPED_CORES so the generated core returns its typed shape:
+    //   - the signature `Task<object> fetchOrder(` becomes `Task<Order>`
+    //   - every return site inside it is funnelled through `BaseExchange.ToOrder(...)`,
+    //     except a tail call to another already-typed core of the same shape
+    //   - an untyped core returning a typed core needs the reverse conversion; only OHLCV has a
+    //     lossless one, so any other family reaching that branch is a table bug and throws
+    typeCores (content: string, predictionTier = this.isPrediction): string {
+        const names = Object.keys (TYPED_CORES).concat (Object.keys (PREDICTION_TYPED_CORES).filter (n => !(n in TYPED_CORES)));
+        if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
         const lines = content.split ('\n');
         const sigRe = /^(\s*)public async (virtual|override) Task<object> (\w+)\(/;
-        const typedCallRe = new RegExp ('^await this\\.(' + OHLCV_TYPED_CORES.join ('|') + ')\\(');
+        const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
             if (!sig) {
                 continue;
             }
             const [ , indent, modifier, methodName ] = sig;
-            const isTyped = this.isOhlcvTypedCore (methodName);
+            const typedType = this.typedCoreType (methodName, predictionTier);
+            const isTyped = typedType !== '';
             // the method body ends at its closing brace, which is the first line indented exactly
             // like the signature — brace counting is unusable here because generated bodies carry
             // `{`/`}` inside string literals (url templates, json payloads)
@@ -730,7 +996,7 @@ class NewTranspiler {
                 if (lines[j] === indent + '}') { bodyEnd = j; break; }
             }
             if (isTyped) {
-                lines[i] = `${indent}public async ${modifier} Task<List<OHLCV>> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
+                lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
             }
             for (let j = bodyStart + 1; j < bodyEnd; j++) {
                 if (!lines[j].trim ().startsWith ('return ')) {
@@ -741,11 +1007,15 @@ class NewTranspiler {
                 const middle = lines.slice (j + 1, lastLine);
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
-                const returnsTypedCore = typedCallRe.test (expr);
+                const calledCore = typedCallRe.exec (expr);
+                const calledType = calledCore ? this.typedCoreType (calledCore[1], predictionTier) : '';
                 let wrapper = '';
-                if (isTyped && !returnsTypedCore) {
-                    wrapper = 'ccxt.BaseExchange.ToOHLCVList';
-                } else if (!isTyped && returnsTypedCore) {
+                if (isTyped && calledType !== typedType) {
+                    wrapper = 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (typedType);
+                } else if (!isTyped && calledType !== '') {
+                    if (calledType !== 'List<OHLCV>') {
+                        throw new Error (`typeCores: untyped ${methodName} returns typed core ${calledCore[1]} (${calledType}) — drop it from TYPED_CORES or add a From helper`);
+                    }
                     wrapper = 'ccxt.BaseExchange.FromOHLCVList';
                 }
                 if (wrapper === '') {
@@ -778,9 +1048,9 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
-        // OHLCV-family cores already return List<OHLCV> (see typeOhlcvCores), so the wrapper
-        // no longer re-materialises the structs — it just forwards the typed core result
-        if (this.isOhlcvTypedCore (methodName)) {
+        // typed cores already return the struct/list (see typeCores), so the wrapper no longer
+        // re-materialises it — it just forwards the typed core result
+        if (this.typedCoreType (methodName, this.isPrediction) !== '') {
             return `return res;`;
         }
         // handle watchOrderBook exception here
@@ -850,6 +1120,10 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
+        // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
+        // exact type the core emits — unqualified `OrderBook` binds to ccxt.pro.OrderBook here
+        const typedCore = this.typedCoreType (methodName, this.isPrediction);
+        const wrapperReturnType = (typedCore !== '' && isAsync) ? `Task<${this.qualifyTypedCoreType (typedCore)}>` : returnType;
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         const params = methodWrapper.parameters.map((param: any) => this.safeCsharpName(param.name)).join(', ');
@@ -861,7 +1135,7 @@ class NewTranspiler {
             methodDoc.push(csharpComments[exchangeName][methodName]);
         }
         const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
+            `${one}public ${isAsync ? 'async ' : ''}${wrapperReturnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
@@ -1147,7 +1421,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.typeOhlcvCores (baseMethods) + "\n";
+            const file = fileHeader + this.typeCores (baseMethods, false) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -1155,7 +1429,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.typeOhlcvCores (exchangeBody) + "\n}\n";
+                const tradingFile = tradingHeader + this.typeCores (exchangeBody, false) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -1211,7 +1485,7 @@ class NewTranspiler {
             const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
             this.isPrediction = prevIsPrediction;
             const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + this.typeOhlcvCores (baseMethods) + "\n" + wrapperPartial;
+            const file = fileHeader + fields + this.typeCores (baseMethods, true) + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -1539,7 +1813,7 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
-        content = this.typeOhlcvCores (content);
+        content = this.typeCores (content);
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }

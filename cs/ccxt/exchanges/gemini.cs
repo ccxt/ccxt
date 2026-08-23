@@ -1095,7 +1095,7 @@ public partial class gemini : Exchange
         return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount");
     }
 
-    public async virtual Task<object> fetchTickerV1(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> fetchTickerV1(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1119,10 +1119,10 @@ public partial class gemini : Exchange
         //         "last":"9115.23"
         //     }
         //
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public async virtual Task<object> fetchTickerV2(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> fetchTickerV2(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1147,10 +1147,10 @@ public partial class gemini : Exchange
         //         "ask":"9115.87"
         //     }
         //
-        return this.parseTicker(response, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
-    public async virtual Task<object> fetchTickerV1AndV2(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> fetchTickerV1AndV2(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object tickerPromiseA = this.fetchTickerV1(symbol, parameters);
@@ -1158,15 +1158,7 @@ public partial class gemini : Exchange
         var tickerAtickerBVariable = await promiseAll(new List<object>() {tickerPromiseA, tickerPromiseB});
         var tickerA = ((IList<object>) tickerAtickerBVariable)[0];
         var tickerB = ((IList<object>) tickerAtickerBVariable)[1];
-        return this.deepExtend(tickerA, new Dictionary<string, object>() {
-            { "open", getValue(tickerB, "open") },
-            { "high", getValue(tickerB, "high") },
-            { "low", getValue(tickerB, "low") },
-            { "change", getValue(tickerB, "change") },
-            { "percentage", getValue(tickerB, "percentage") },
-            { "average", getValue(tickerB, "average") },
-            { "info", getValue(tickerB, "info") },
-        });
+        return ccxt.BaseExchange.ToTicker(this.deepExtend(tickerA, new Dictionary<string, object>() {             { "open", getValue(tickerB, "open") },             { "high", getValue(tickerB, "high") },             { "low", getValue(tickerB, "low") },             { "change", getValue(tickerB, "change") },             { "percentage", getValue(tickerB, "percentage") },             { "average", getValue(tickerB, "average") },             { "info", getValue(tickerB, "info") },         }));
     }
 
     /**
@@ -1180,7 +1172,7 @@ public partial class gemini : Exchange
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object method = this.safeValue(this.options, "fetchTickerMethod", "fetchTickerV1");
@@ -1303,7 +1295,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1327,7 +1319,7 @@ public partial class gemini : Exchange
         //
         object result = this.parseTickers(response, symbols);
         object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
-        return this.removeKeysFromDict(result, brokenPairs);
+        return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1471,7 +1463,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1527,7 +1519,7 @@ public partial class gemini : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     /**
@@ -1538,7 +1530,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1546,7 +1538,7 @@ public partial class gemini : Exchange
             await this.loadMarkets();
         }
         object response = await this.privatePostV1Balances(parameters);
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1944,7 +1936,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1979,7 +1971,7 @@ public partial class gemini : Exchange
         //          "remaining_amount":"0.01"
         //      }
         //
-        return this.parseOrder(response);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
     }
 
     /**
@@ -2032,7 +2024,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
@@ -2078,7 +2070,7 @@ public partial class gemini : Exchange
         {
             throw new ExchangeError ((string)add(add(this.id, " withdraw() failed: "), this.json(response))) ;
         }
-        return this.parseTransaction(response, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
     public override object nonce()
@@ -2221,7 +2213,7 @@ public partial class gemini : Exchange
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2234,7 +2226,7 @@ public partial class gemini : Exchange
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
-        return this.safeValue(networkGroup, code);
+        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(networkGroup, code));
     }
 
     /**
@@ -2247,7 +2239,7 @@ public partial class gemini : Exchange
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async override Task<List<ccxt.DepositAddress>> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2273,7 +2265,7 @@ public partial class gemini : Exchange
             { "network", networkCode },
             { "currency", code },
         });
-        return this.groupBy(results, "network");
+        return ccxt.BaseExchange.ToDepositAddressList(this.groupBy(results, "network"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2367,7 +2359,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> createDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2381,13 +2373,7 @@ public partial class gemini : Exchange
         object response = await this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters));
         object address = this.safeString(response, "address");
         this.checkAddress(address);
-        return new Dictionary<string, object>() {
-            { "currency", code },
-            { "address", address },
-            { "tag", null },
-            { "network", null },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "currency", code },             { "address", address },             { "tag", null },             { "network", null },             { "info", response },         });
     }
 
     /**
@@ -2402,7 +2388,7 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -2441,7 +2427,7 @@ public partial class gemini : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2462,7 +2448,7 @@ public partial class gemini : Exchange
         //        open_interest_notional: '42244.7837'
         //    }
         //
-        return this.parseOpenInterest(response, market);
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(response, market));
     }
 
     public override object parseOpenInterest(object interest, object market = null)

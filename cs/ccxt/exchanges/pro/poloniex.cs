@@ -218,7 +218,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {string} [params.slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -282,7 +282,7 @@ public partial class poloniex : ccxt.poloniex
         }
         object orders = await this.tradeRequest("createOrder", this.extend(request, parameters));
         object order = this.safeDict(orders, 0);
-        return order;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -296,7 +296,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -307,7 +307,7 @@ public partial class poloniex : ccxt.poloniex
         }
         object orders = await this.cancelOrdersWs(new List<object>() {id}, symbol, parameters);
         object order = this.safeDict(orders, 0);
-        return order;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -321,7 +321,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -332,7 +332,7 @@ public partial class poloniex : ccxt.poloniex
         object request = new Dictionary<string, object>() {
             { "orderIds", ids },
         };
-        return await this.tradeRequest("cancelOrders", this.extend(request, parameters));
+        return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("cancelOrders", this.extend(request, parameters)));
     }
 
     /**
@@ -344,7 +344,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -352,7 +352,7 @@ public partial class poloniex : ccxt.poloniex
             await this.loadMarkets();
         }
         await this.authenticate();
-        return await this.tradeRequest("cancelAllOrders", parameters);
+        return ccxt.BaseExchange.ToOrderList(await this.tradeRequest("cancelAllOrders", parameters));
     }
 
     public virtual void handleOrderRequest(WebSocketClient client, object message)

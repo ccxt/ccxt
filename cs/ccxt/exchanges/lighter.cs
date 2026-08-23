@@ -1223,7 +1223,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1283,7 +1283,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1762,7 +1762,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1826,7 +1826,7 @@ public partial class lighter : Exchange
         object swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
         object tickers = this.arrayConcat(spotTickers, swapTickers);
         object first = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return this.parseTicker(first, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(first, market));
     }
 
     /**
@@ -1838,7 +1838,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1850,7 +1850,7 @@ public partial class lighter : Exchange
         object spotTickers = this.safeList(response, "spot_order_book_details", new List<object>() {});
         object swapTickers = this.safeList(response, "order_book_details", new List<object>() {});
         object tickers = this.arrayConcat(spotTickers, swapTickers);
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1887,7 +1887,7 @@ public partial class lighter : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1h";
         parameters ??= new Dictionary<string, object>();
@@ -2007,7 +2007,7 @@ public partial class lighter : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2038,7 +2038,7 @@ public partial class lighter : Exchange
                 ((IList<object>)result).Add(getValue(data, i));
             }
         }
-        return this.parseFundingRates(result, symbols);
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
     }
 
     /**
@@ -2052,7 +2052,7 @@ public partial class lighter : Exchange
      * @param {string} [params.type] 'spot', 'swap', default is 'swap'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2149,7 +2149,7 @@ public partial class lighter : Exchange
                 ((IDictionary<string,object>)result)["USDC"] = perpBalance;
             }
         }
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -2163,11 +2163,11 @@ public partial class lighter : Exchange
      * @param {string} [params.value] fetch balance value, account index or l1 address
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object positions = await this.fetchPositions(new List<object>() {symbol}, parameters);
-        return this.safeDict(positions, 0, new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToPosition(this.safeDict(positions, 0, new Dictionary<string, object>() {}));
     }
 
     /**
@@ -2826,7 +2826,7 @@ public partial class lighter : Exchange
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2884,7 +2884,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseTransfer(response);
+        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response));
     }
 
     /**
@@ -3248,7 +3248,7 @@ public partial class lighter : Exchange
      * @param {int} [params.routeType] wallet type, 0: perp, 1: spot, default is 0
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3296,7 +3296,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseTransaction(response);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response));
     }
 
     /**
@@ -3645,7 +3645,7 @@ public partial class lighter : Exchange
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrder", id, symbol, parameters);
@@ -3657,7 +3657,7 @@ public partial class lighter : Exchange
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     public async virtual Task<object> signAndCancelAllOrders(object method, object symbol = null, object parameters = null)

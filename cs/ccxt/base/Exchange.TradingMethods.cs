@@ -18,7 +18,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " closeAllPositions() is not supported yet")) ;
     }
 
-    public async virtual Task<object> editOrders(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> editOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " editOrders() is not supported yet")) ;
@@ -30,7 +30,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -46,7 +46,7 @@ public partial class Exchange
         if (isTrue(getValue(this.has, "fetchPositionsHistory")))
         {
             object positions = await this.fetchPositionsHistory(new List<object>() {symbol}, since, limit, parameters);
-            return positions;
+            return ccxt.BaseExchange.ToPositionList(positions);
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
@@ -71,7 +71,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchPositionsForSymbolWs(object symbol, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> fetchPositionsForSymbolWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
@@ -95,13 +95,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchTradesForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchBidsAsks() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchMarkPrice(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> fetchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchMarkPrices")))
@@ -116,7 +116,7 @@ public partial class Exchange
                 throw new NullResponse ((string)add(add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
             } else
             {
-                return ticker;
+                return ccxt.BaseExchange.ToTicker(ticker);
             }
         } else
         {
@@ -124,7 +124,7 @@ public partial class Exchange
         }
     }
 
-    public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
@@ -166,49 +166,49 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
     }
 
-    public async virtual Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrdersWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createLimitBuyOrderWs(object symbol, object amount, object price, object parameters = null)
+    public async virtual Task<ccxt.Order> createLimitBuyOrderWs(object symbol, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrderWs(symbol, "limit", "buy", amount, price, parameters);
     }
 
-    public async virtual Task<object> createLimitOrderWs(object symbol, object side, object amount, object price, object parameters = null)
+    public async virtual Task<ccxt.Order> createLimitOrderWs(object symbol, object side, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrderWs(symbol, "limit", side, amount, price, parameters);
     }
 
-    public async virtual Task<object> createLimitSellOrderWs(object symbol, object amount, object price, object parameters = null)
+    public async virtual Task<ccxt.Order> createLimitSellOrderWs(object symbol, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrderWs(symbol, "limit", "sell", amount, price, parameters);
     }
 
-    public async virtual Task<object> createMarketBuyOrderWs(object symbol, object amount, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketBuyOrderWs(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrderWs(symbol, "market", "buy", amount, null, parameters);
     }
 
-    public async virtual Task<object> createMarketOrderWithCostWs(object symbol, object side, object cost, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketOrderWithCostWs(object symbol, object side, object cost, object parameters = null)
     {
         /**
         * @method
@@ -228,19 +228,19 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createMarketOrderWs(object symbol, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketOrderWs(object symbol, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrderWs(symbol, "market", side, amount, price, parameters);
     }
 
-    public async virtual Task<object> createMarketSellOrderWs(object symbol, object amount, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketSellOrderWs(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.createOrderWs(symbol, "market", "sell", amount, null, parameters);
     }
 
-    public async virtual Task<object> createOrderWithTakeProfitAndStopLossWs(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createOrderWithTakeProfitAndStopLossWs(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
     {
         /**
         * @method
@@ -273,19 +273,19 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createOrdersWs () is not supported yet")) ;
     }
 
-    public async virtual Task<object> createPostOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createPostOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrderWs")))
@@ -298,7 +298,7 @@ public partial class Exchange
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
 
-    public async virtual Task<object> createReduceOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createReduceOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrderWs")))
@@ -311,7 +311,7 @@ public partial class Exchange
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
 
-    public async virtual Task<object> createStopLimitOrderWs(object symbol, object side, object amount, object price, object triggerPrice, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopLimitOrderWs(object symbol, object side, object amount, object price, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopLimitOrderWs")))
@@ -324,7 +324,7 @@ public partial class Exchange
         return await this.createOrderWs(symbol, "limit", side, amount, price, query);
     }
 
-    public async virtual Task<object> createStopLossOrderWs(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopLossOrderWs(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -354,7 +354,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createStopLossOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createStopMarketOrderWs(object symbol, object side, object amount, object triggerPrice, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopMarketOrderWs(object symbol, object side, object amount, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopMarketOrderWs")))
@@ -367,7 +367,7 @@ public partial class Exchange
         return await this.createOrderWs(symbol, "market", side, amount, null, query);
     }
 
-    public async virtual Task<object> createStopOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopOrderWs")))
@@ -384,7 +384,7 @@ public partial class Exchange
         return await this.createOrderWs(symbol, type, side, amount, price, query);
     }
 
-    public async virtual Task<object> createTakeProfitOrderWs(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTakeProfitOrderWs(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -414,7 +414,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTrailingAmountOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTrailingAmountOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -447,7 +447,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTrailingPercentOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTrailingPercentOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -480,7 +480,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTriggerOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTriggerOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -510,72 +510,72 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createTriggerOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, parameters);
     }
 
-    public async virtual Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchOrdersWs")))
         {
             object orders = await this.fetchOrdersWs(symbol, since, limit, parameters);
-            return this.filterBy(orders, "status", "closed");
+            return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "closed"));
         }
         throw new NotSupported ((string)add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchMyTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> fetchMyTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchMyTradesWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchOrdersWs")))
         {
             object orders = await this.fetchOrdersWs(symbol, since, limit, parameters);
-            return this.filterBy(orders, "status", "open");
+            return ccxt.BaseExchange.ToOrderList(this.filterBy(orders, "status", "open"));
         }
         throw new NotSupported ((string)add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    public async virtual Task<ccxt.OrderBook> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBookWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> fetchOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrdersWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchPositionWs(object symbol, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> fetchPositionWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositionWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchPositionsWs(object symbols = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> fetchPositionsWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchTickersWs")))
@@ -590,7 +590,7 @@ public partial class Exchange
                 throw new NullResponse ((string)add(add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
             } else
             {
-                return ticker;
+                return ccxt.BaseExchange.ToTicker(ticker);
             }
         } else
         {
@@ -598,13 +598,13 @@ public partial class Exchange
         }
     }
 
-    public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> fetchTickersWs(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickersWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTradesWs() is not supported yet")) ;
@@ -631,13 +631,13 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchOrderBook() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async virtual Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchOpenInterests")))
         {
             object openInterests = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
-            return this.safeDict(openInterests, symbol);
+            return ccxt.BaseExchange.ToOpenInterest(this.safeDict(openInterests, symbol));
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchOpenInterest() is not supported yet")) ;
@@ -654,32 +654,32 @@ public partial class Exchange
         });
     }
 
-    public async virtual Task<object> editLimitBuyOrder(object id, object symbol, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> editLimitBuyOrder(object id, object symbol, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.editLimitOrder(id, symbol, "buy", amount, price, parameters);
     }
 
-    public async virtual Task<object> editLimitSellOrder(object id, object symbol, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> editLimitSellOrder(object id, object symbol, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.editLimitOrder(id, symbol, "sell", amount, price, parameters);
     }
 
-    public async virtual Task<object> editLimitOrder(object id, object symbol, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> editLimitOrder(object id, object symbol, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.editOrder(id, symbol, "limit", side, amount, price, parameters);
     }
 
-    public async virtual Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrder(id, symbol);
-        return await this.createOrder(symbol, type, side, amount, price, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
     }
 
-    public async virtual Task<object> editOrderWithClientOrderId(object clientOrderId, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> editOrderWithClientOrderId(object clientOrderId, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -688,7 +688,7 @@ public partial class Exchange
         return await this.editOrder("", symbol, type, side, amount, price, extendedParams);
     }
 
-    public async virtual Task<object> fetchPosition(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Position> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPosition() is not supported yet")) ;
@@ -712,7 +712,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTicker(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchTickers")))
@@ -727,7 +727,7 @@ public partial class Exchange
                 throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
             } else
             {
-                return ticker;
+                return ccxt.BaseExchange.ToTicker(ticker);
             }
         } else
         {
@@ -741,7 +741,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchTicker() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async virtual Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTickers() is not supported yet")) ;
@@ -768,13 +768,13 @@ public partial class Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> fetchOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> fetchOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderId", clientOrderId },
         });
-        return await this.fetchOrder("", symbol, extendedParams);
+        return ccxt.BaseExchange.ToOrder(await this.fetchOrder("", symbol, extendedParams));
     }
 
     public async virtual Task<object> fetchOrderStatus(object id, object symbol = null, object parameters = null)
@@ -786,10 +786,10 @@ public partial class Exchange
         return getValue(order, "status");
     }
 
-    public async virtual Task<object> fetchUnifiedOrder(object order, object parameters = null)
+    public async virtual Task<ccxt.Order> fetchUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOrder(((string)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
+        return ccxt.BaseExchange.ToOrder(await this.fetchOrder(((string)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters));
     }
 
     public async virtual Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -798,7 +798,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTrailingAmountOrder(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTrailingAmountOrder(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -826,12 +826,12 @@ public partial class Exchange
         }
         if (isTrue(getValue(this.has, "createTrailingAmountOrder")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createTrailingAmountOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTrailingPercentOrder(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTrailingPercentOrder(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -859,12 +859,12 @@ public partial class Exchange
         }
         if (isTrue(getValue(this.has, "createTrailingPercentOrder")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createTrailingPercentOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
     {
         /**
         * @method
@@ -879,12 +879,12 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.has, "createMarketOrderWithCost")) || isTrue((isTrue(getValue(this.has, "createMarketBuyOrderWithCost")) && isTrue(getValue(this.has, "createMarketSellOrderWithCost"))))))
         {
-            return await this.createOrder(symbol, "market", side, cost, 1, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", side, cost, 1, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createMarketOrderWithCost() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         /**
         * @method
@@ -898,12 +898,12 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.options, "createMarketBuyOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketBuyOrderWithCost"))))
         {
-            return await this.createOrder(symbol, "market", "buy", cost, 1, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", "buy", cost, 1, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         /**
         * @method
@@ -917,12 +917,12 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isTrue(getValue(this.options, "createMarketSellOrderRequiresPrice")) || isTrue(getValue(this.has, "createMarketSellOrderWithCost"))))
         {
-            return await this.createOrder(symbol, "market", "sell", cost, 1, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", "sell", cost, 1, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createMarketSellOrderWithCost() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTriggerOrder(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTriggerOrder(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -947,12 +947,12 @@ public partial class Exchange
         });
         if (isTrue(getValue(this.has, "createTriggerOrder")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createTriggerOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createStopLossOrder(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopLossOrder(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -977,12 +977,12 @@ public partial class Exchange
         });
         if (isTrue(getValue(this.has, "createStopLossOrder")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createStopLossOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createTakeProfitOrder(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createTakeProfitOrder(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
     {
         /**
         * @method
@@ -1007,12 +1007,12 @@ public partial class Exchange
         });
         if (isTrue(getValue(this.has, "createTakeProfitOrder")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createTakeProfitOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createOrderWithTakeProfitAndStopLoss(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createOrderWithTakeProfitAndStopLoss(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
     {
         /**
         * @method
@@ -1040,7 +1040,7 @@ public partial class Exchange
         parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
         if (isTrue(getValue(this.has, "createOrderWithTakeProfitAndStopLoss")))
         {
-            return await this.createOrder(symbol, type, side, amount, price, parameters);
+            return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, parameters));
         }
         throw new NotSupported ((string)add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")) ;
     }
@@ -1051,7 +1051,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " createOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrder() is not supported yet")) ;
@@ -1066,7 +1066,7 @@ public partial class Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> cancelOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -1075,7 +1075,7 @@ public partial class Exchange
         return await this.cancelOrder("", symbol, extendedParams);
     }
 
-    public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrders() is not supported yet")) ;
@@ -1090,7 +1090,7 @@ public partial class Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<object> cancelOrdersWithClientOrderIds(object clientOrderIds, object symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> cancelOrdersWithClientOrderIds(object clientOrderIds, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
@@ -1105,10 +1105,10 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " cancelAllOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> cancelUnifiedOrder(object order, object parameters = null)
+    public async virtual Task<ccxt.Order> cancelUnifiedOrder(object order, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.cancelOrder(((string)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters);
+        return ccxt.BaseExchange.ToOrder(this.cancelOrder(((string)this.safeString(order, "id")), this.safeString(order, "symbol"), parameters));
     }
 
     public async virtual Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1121,7 +1121,7 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " fetchOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Trade>> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderTrades() is not supported yet")) ;
@@ -1173,43 +1173,43 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " watchMyTrades() is not supported yet")) ;
     }
 
-    public async virtual Task<object> createLimitOrder(object symbol, object side, object amount, object price, object parameters = null)
+    public async virtual Task<ccxt.Order> createLimitOrder(object symbol, object side, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createOrder(symbol, "limit", side, amount, price, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "limit", side, amount, price, parameters));
     }
 
-    public async virtual Task<object> createMarketOrder(object symbol, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketOrder(object symbol, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createOrder(symbol, "market", side, amount, price, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", side, amount, price, parameters));
     }
 
-    public async virtual Task<object> createLimitBuyOrder(object symbol, object amount, object price, object parameters = null)
+    public async virtual Task<ccxt.Order> createLimitBuyOrder(object symbol, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createOrder(symbol, "limit", "buy", amount, price, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "limit", "buy", amount, price, parameters));
     }
 
-    public async virtual Task<object> createLimitSellOrder(object symbol, object amount, object price, object parameters = null)
+    public async virtual Task<ccxt.Order> createLimitSellOrder(object symbol, object amount, object price, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createOrder(symbol, "limit", "sell", amount, price, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "limit", "sell", amount, price, parameters));
     }
 
-    public async virtual Task<object> createMarketBuyOrder(object symbol, object amount, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketBuyOrder(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createOrder(symbol, "market", "buy", amount, null, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", "buy", amount, null, parameters));
     }
 
-    public async virtual Task<object> createMarketSellOrder(object symbol, object amount, object parameters = null)
+    public async virtual Task<ccxt.Order> createMarketSellOrder(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createOrder(symbol, "market", "sell", amount, null, parameters);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", "sell", amount, null, parameters));
     }
 
-    public async virtual Task<object> createPostOnlyOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createPostOnlyOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createPostOnlyOrder")))
@@ -1219,10 +1219,10 @@ public partial class Exchange
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
         });
-        return await this.createOrder(symbol, type, side, amount, price, query);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, query));
     }
 
-    public async virtual Task<object> createReduceOnlyOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createReduceOnlyOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createReduceOnlyOrder")))
@@ -1232,10 +1232,10 @@ public partial class Exchange
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
         });
-        return await this.createOrder(symbol, type, side, amount, price, query);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, query));
     }
 
-    public async virtual Task<object> createStopOrder(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopOrder(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopOrder")))
@@ -1249,10 +1249,10 @@ public partial class Exchange
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
-        return await this.createOrder(symbol, type, side, amount, price, query);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, type, side, amount, price, query));
     }
 
-    public async virtual Task<object> createStopLimitOrder(object symbol, object side, object amount, object price, object triggerPrice, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopLimitOrder(object symbol, object side, object amount, object price, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopLimitOrder")))
@@ -1262,10 +1262,10 @@ public partial class Exchange
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
-        return await this.createOrder(symbol, "limit", side, amount, price, query);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "limit", side, amount, price, query));
     }
 
-    public async virtual Task<object> createStopMarketOrder(object symbol, object side, object amount, object triggerPrice, object parameters = null)
+    public async virtual Task<ccxt.Order> createStopMarketOrder(object symbol, object side, object amount, object triggerPrice, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "createStopMarketOrder")))
@@ -1275,10 +1275,10 @@ public partial class Exchange
         object query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
-        return await this.createOrder(symbol, "market", side, amount, null, query);
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", side, amount, null, query));
     }
 
-    public async virtual Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async virtual Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchTradingFees")))
@@ -1286,7 +1286,7 @@ public partial class Exchange
             throw new NotSupported ((string)add(this.id, " fetchTradingFee() is not supported yet")) ;
         }
         object fees = await this.fetchTradingFees(parameters);
-        return this.safeDict(fees, symbol);
+        return ccxt.BaseExchange.ToTradingFeeInterface(this.safeDict(fees, symbol));
     }
 
 }

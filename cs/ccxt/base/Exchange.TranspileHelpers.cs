@@ -563,6 +563,12 @@ public partial class BaseExchange
         {
             return ((string)value).Length; // fallback that should not be used
         }
+        else if (value is System.Collections.ICollection)
+        {
+            // typed core results (List<Order>, List<OHLCV>, ...) are not IList<object>;
+            // without this they silently measured as length 0
+            return ((System.Collections.ICollection)value).Count;
+        }
         else
         {
             return 0;
@@ -1066,29 +1072,8 @@ public partial class BaseExchange
         }
     }
 
-    // OHLCV typed-core boundary. Generated OHLCV cores return Task<List<OHLCV>>, so every
-    // return site is funnelled through ToOHLCVList and untyped callers use FromOHLCVList.
-    public static List<OHLCV> ToOHLCVList(object candles)
-    {
-        if (candles == null)
-        {
-            return null;
-        }
-        if (candles is List<OHLCV>)
-        {
-            return (List<OHLCV>)candles;
-        }
-        var rows = (IList<object>)candles;
-        var result = new List<OHLCV>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is OHLCV ? (OHLCV)row : new OHLCV(row));
-        }
-        return result;
-    }
-
-    // reverses the boundary: hands a typed candle list back to the untyped object pipeline
-    // (pagination, arrayConcat, filterBySinceLimit) as plain 6-element rows
+    // reverses the typed-core boundary: hands a typed candle list back to the untyped object
+    // pipeline (pagination, arrayConcat, filterBySinceLimit) as plain 6-element rows
     public static object FromOHLCVList(object candles)
     {
         if (!(candles is List<OHLCV>))

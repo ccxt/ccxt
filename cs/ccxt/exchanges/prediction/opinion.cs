@@ -520,7 +520,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvent(object id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> fetchEvent(object id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object isSlug = (isGreaterThanOrEqual(getIndexOf(id, "-"), 0));
@@ -540,7 +540,7 @@ public partial class opinion : PredictionExchange
         object data = this.safeDict(result, "data", new Dictionary<string, object>() {});
         object eventVar = this.parseEvent(data);
         this.indexEventOutcomes(eventVar);
-        return eventVar;
+        return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }
 
     /**
@@ -692,7 +692,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<object> fetchTicker(object outcome, object parameters = null)
+    public async override Task<ccxt.PredictionTicker> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -709,7 +709,7 @@ public partial class opinion : PredictionExchange
             { "price", priceResponse },
             { "book", bookResponse },
         };
-        return this.parsePredictionTicker(response, ((object)outcomeObj));
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(response, ((object)outcomeObj)));
     }
 
     /**
@@ -782,7 +782,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcomes, null)))
@@ -822,7 +822,7 @@ public partial class opinion : PredictionExchange
                 ((IDictionary<string,object>)result)[(string)symbolKey] = ticker;
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToPredictionTickers(result);
     }
 
     /**
@@ -877,7 +877,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1d";
         parameters ??= new Dictionary<string, object>();
@@ -1123,7 +1123,7 @@ public partial class opinion : PredictionExchange
      * @param {bool} [params.postOnly] limit orders only - reject the order if it would cross the spread
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
@@ -1212,7 +1212,7 @@ public partial class opinion : PredictionExchange
         object response = await this.opinionPrivatePostOrder(orderBody);
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orderData = this.safeDict(result, "orderData", new Dictionary<string, object>() {});
-        return this.parsePredictionOrder(orderData, ((object)outcomeObj));
+        return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(orderData, ((object)outcomeObj)));
     }
 
     /**
@@ -1225,7 +1225,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
@@ -1239,11 +1239,7 @@ public partial class opinion : PredictionExchange
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
         object status = ((bool) isTrue((canceled))) ? "canceled" : null;
-        return this.safePredictionOrder(new Dictionary<string, object>() {
-            { "id", id },
-            { "status", status },
-            { "info", response },
-        });
+        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },         }));
     }
 
     /**
@@ -1338,7 +1334,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
@@ -1353,7 +1349,7 @@ public partial class opinion : PredictionExchange
         object response = await this.opinionPrivateGetOrder(this.extend(request, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orders = this.safeList(result, "list", new List<object>() {});
-        return this.parsePredictionOrders(orders, outcomeObj, since, limit);
+        return ccxt.BaseExchange.ToPredictionOrderList(this.parsePredictionOrders(orders, outcomeObj, since, limit));
     }
 
     /**
@@ -1366,7 +1362,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
@@ -1380,7 +1376,7 @@ public partial class opinion : PredictionExchange
         }, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object orderData = this.safeDict(result, "orderData", new Dictionary<string, object>() {});
-        return this.parsePredictionOrder(orderData, outcomeObj);
+        return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(orderData, outcomeObj));
     }
 
     /**
@@ -1394,7 +1390,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         // 1 = pending - open status
         parameters ??= new Dictionary<string, object>();
@@ -1415,7 +1411,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         // 2 = filled, 3 = canceled, 4 = expired, 5 = failed
         parameters ??= new Dictionary<string, object>();
@@ -1436,7 +1432,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1471,7 +1467,7 @@ public partial class opinion : PredictionExchange
                 ((IDictionary<string,object>)trade)["tokenId"] = ((bool) isTrue(isYes)) ? this.safeString(info, "yesTokenId") : this.safeString(info, "noTokenId");
             }
         }
-        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
     }
 
     /**
@@ -1559,7 +1555,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiKey();
@@ -1577,7 +1573,7 @@ public partial class opinion : PredictionExchange
             object quoteToken = await this.loadQuoteToken(quoteTokenAddress);
             ((IDictionary<string,object>)rawBalance)["symbol"] = this.safeString(quoteToken, "symbol", "USDT");
         }
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -1618,7 +1614,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.walletAddress, null)))
@@ -1641,7 +1637,7 @@ public partial class opinion : PredictionExchange
         object parsed = this.parsePredictionPositions(positions);
         if (isTrue(isEqual(outcomesLength, 0)))
         {
-            return parsed;
+            return ccxt.BaseExchange.ToPredictionPositionList(parsed);
         }
         object wantedTokenIds = new Dictionary<string, object>() {};
         // copy to a plain list so the strict null checks see one shape
@@ -1666,7 +1662,7 @@ public partial class opinion : PredictionExchange
                 ((IList<object>)filtered).Add(position);
             }
         }
-        return filtered;
+        return ccxt.BaseExchange.ToPredictionPositionList(filtered);
     }
 
     /**

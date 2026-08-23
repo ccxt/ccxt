@@ -362,7 +362,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTickerWs(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -377,7 +377,7 @@ public partial class cex : ccxt.cex
             { "oid", messageHash },
             { "data", new List<object>() {getValue(market, "base"), getValue(market, "quote")} },
         }, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -488,7 +488,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalanceWs(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -502,7 +502,7 @@ public partial class cex : ccxt.cex
             { "e", "get-balance" },
             { "oid", messageHash },
         }, parameters);
-        return await this.watch(url, messageHash, request, messageHash);
+        return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, messageHash));
     }
 
     /**
@@ -1339,7 +1339,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1363,7 +1363,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1377,7 +1377,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1401,7 +1401,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrders(response, market, since, limit, parameters);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit, parameters));
     }
 
     /**
@@ -1418,7 +1418,7 @@ public partial class cex : ccxt.cex
      * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(price, null)))
@@ -1445,7 +1445,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object rawOrder = await this.watch(url, messageHash, request, messageHash);
-        return this.parseOrder(rawOrder, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawOrder, market));
     }
 
     /**
@@ -1462,7 +1462,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(amount, null)))
@@ -1494,7 +1494,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1507,7 +1507,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1531,7 +1531,7 @@ public partial class cex : ccxt.cex
             { "data", data },
         };
         object response = await this.watch(url, messageHash, request, messageHash, messageHash);
-        return this.parseOrder(response, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
     }
 
     /**
@@ -1544,7 +1544,7 @@ public partial class cex : ccxt.cex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
@@ -1578,7 +1578,7 @@ public partial class cex : ccxt.cex
         //    }
         //
         object canceledOrders = this.safeValue(response, "cancel-orders");
-        return this.parseOrders(canceledOrders, null, null, null, parameters);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(canceledOrders, null, null, null, parameters));
     }
 
     public virtual void resolveData(WebSocketClient client, object message)

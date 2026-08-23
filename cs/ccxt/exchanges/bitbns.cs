@@ -535,7 +535,7 @@ public partial class bitbns : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -575,7 +575,7 @@ public partial class bitbns : Exchange
         //         }
         //     }
         //
-        return this.parseTickers(response, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
     }
 
     public override object parseBalance(object response)
@@ -621,7 +621,7 @@ public partial class bitbns : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -646,7 +646,7 @@ public partial class bitbns : Exchange
         //     }
         //
         // note that "Money" stands for INR - the only fiat in bitbns
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public virtual object parseStatus(object status)
@@ -835,7 +835,7 @@ public partial class bitbns : Exchange
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -860,7 +860,7 @@ public partial class bitbns : Exchange
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
         object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
-        return this.parseOrder(parsed, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(parsed, market));
     }
 
     /**
@@ -1377,7 +1377,7 @@ public partial class bitbns : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1403,13 +1403,7 @@ public partial class bitbns : Exchange
         object address = this.safeString(data, "token");
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", code },
-            { "network", null },
-            { "address", address },
-            { "tag", tag },
-        };
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
     public override object nonce()

@@ -578,7 +578,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -586,7 +586,7 @@ public partial class coinmate : Exchange
             await this.loadMarkets();
         }
         object response = await this.privatePostBalances(parameters);
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -626,7 +626,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -656,7 +656,7 @@ public partial class coinmate : Exchange
         //     }
         //
         object data = this.safeDict(response, "data");
-        return this.parseTicker(data, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
 
     /**
@@ -668,7 +668,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -705,7 +705,7 @@ public partial class coinmate : Exchange
             object ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
             ((IDictionary<string,object>)result)[(string)getValue(market, "symbol")] = ticker;
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -892,7 +892,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
@@ -974,7 +974,7 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)transaction)["type"] = "withdrawal";
             ((IDictionary<string,object>)transaction)["status"] = "pending";
         }
-        return transaction;
+        return ccxt.BaseExchange.ToTransaction(transaction);
     }
 
     /**
@@ -1135,7 +1135,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1159,14 +1159,7 @@ public partial class coinmate : Exchange
         object takerString = this.safeString(data, "taker");
         object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
         object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
-        return new Dictionary<string, object>() {
-            { "info", data },
-            { "symbol", getValue(market, "symbol") },
-            { "maker", maker },
-            { "taker", taker },
-            { "percentage", true },
-            { "tierBased", true },
-        };
+        return ccxt.BaseExchange.ToTradingFeeInterface(new Dictionary<string, object>() {             { "info", data },             { "symbol", getValue(market, "symbol") },             { "maker", maker },             { "taker", taker },             { "percentage", true },             { "tierBased", true },         });
     }
 
     /**
@@ -1445,7 +1438,7 @@ public partial class coinmate : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         parameters ??= new Dictionary<string, object>();
@@ -1464,7 +1457,7 @@ public partial class coinmate : Exchange
         //    }
         //
         object data = this.safeDict(response, "data");
-        return this.parseOrder(data);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
     public override object nonce()

@@ -406,7 +406,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -415,7 +415,7 @@ public partial class apex : Exchange
         }
         object response = await this.privateGetV3AccountBalance(parameters);
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseBalance(data);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(data));
     }
 
     public override object parseAccount(object account)
@@ -844,7 +844,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -858,7 +858,7 @@ public partial class apex : Exchange
         object response = await this.publicGetV3Ticker(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
         object rawTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return this.parseTicker(rawTicker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(rawTicker, market));
     }
 
     /**
@@ -870,7 +870,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -879,7 +879,7 @@ public partial class apex : Exchange
         }
         object response = await this.publicGetV3DataAllTickerInfo(parameters);
         object tickers = this.safeList(response, "data", new List<object>() {});
-        return this.parseTickers(tickers, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(tickers, symbols));
     }
 
     /**
@@ -895,7 +895,7 @@ public partial class apex : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1107,7 +1107,7 @@ public partial class apex : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1121,7 +1121,7 @@ public partial class apex : Exchange
         object response = await this.publicGetV3Ticker(this.extend(request, parameters));
         object tickers = this.safeList(response, "data", new List<object>() {});
         object rawTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        return this.parseOpenInterest(rawTicker, market);
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(rawTicker, market));
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -1591,7 +1591,7 @@ public partial class apex : Exchange
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1682,13 +1682,7 @@ public partial class apex : Exchange
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object currentTime = this.milliseconds();
             object parsedAmount = this.parseNumber(amount);
-            return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
-                { "timestamp", currentTime },
-                { "datetime", this.iso8601(currentTime) },
-                { "amount", parsedAmount },
-                { "fromAccount", "contract" },
-                { "toAccount", "spot" },
-            });
+            return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {                 { "timestamp", currentTime },                 { "datetime", this.iso8601(currentTime) },                 { "amount", parsedAmount },                 { "fromAccount", "contract" },                 { "toAccount", "spot" },             }));
         } else
         {
             object orderToSign = new Dictionary<string, object>() {
@@ -1724,13 +1718,7 @@ public partial class apex : Exchange
             object response = await this.privatePostV3TransferOut(this.extend(request, parameters));
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object currentTime = this.milliseconds();
-            return this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {
-                { "timestamp", currentTime },
-                { "datetime", this.iso8601(currentTime) },
-                { "amount", this.parseNumber(amount) },
-                { "fromAccount", "spot" },
-                { "toAccount", "contract" },
-            });
+            return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, this.currency(code)), new Dictionary<string, object>() {                 { "timestamp", currentTime },                 { "datetime", this.iso8601(currentTime) },                 { "amount", this.parseNumber(amount) },                 { "fromAccount", "spot" },                 { "toAccount", "contract" },             }));
         }
     }
 
@@ -1791,7 +1779,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {};
@@ -1808,7 +1796,7 @@ public partial class apex : Exchange
             response = await this.privatePostV3DeleteOrder(this.extend(request, parameters));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.safeOrder(data);
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(data));
     }
 
     /**
@@ -1933,7 +1921,7 @@ public partial class apex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1953,7 +1941,7 @@ public partial class apex : Exchange
         object response = await this.privateGetV3OrderFills(this.extend(request, parameters));
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(data, "orders", new List<object>() {});
-        return this.parseTrades(orders, null, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(orders, null, since, limit));
     }
 
     /**

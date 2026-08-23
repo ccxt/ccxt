@@ -1632,7 +1632,7 @@ public partial class phemex : Exchange
      * @param {int} [params.until] *USDT settled/ linear swaps only* end time in ms
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1826,7 +1826,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1896,7 +1896,7 @@ public partial class phemex : Exchange
         //     }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseTicker(result, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(result, market));
     }
 
     /**
@@ -1910,7 +1910,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1944,7 +1944,7 @@ public partial class phemex : Exchange
             response = await this.v2GetMdV2Ticker24hrAll(query);
         }
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseTickers(result, symbols);
+        return ccxt.BaseExchange.ToTickers(this.parseTickers(result, symbols));
     }
 
     /**
@@ -2440,7 +2440,7 @@ public partial class phemex : Exchange
      * @param {string} [params.code] *swap only* currency code of the balance to query (USD, USDT, etc), default is USDT
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2616,9 +2616,9 @@ public partial class phemex : Exchange
         //
         if (isTrue(isEqual(type, "swap")))
         {
-            return this.parseSwapBalance(response);
+            return ccxt.BaseExchange.ToBalances(this.parseSwapBalance(response));
         }
-        return this.parseSpotBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseSpotBalance(response));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -3371,7 +3371,7 @@ public partial class phemex : Exchange
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3447,7 +3447,7 @@ public partial class phemex : Exchange
             response = await this.privatePutSpotOrders(this.extend(request, parameters));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
     /**
@@ -3461,7 +3461,7 @@ public partial class phemex : Exchange
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3502,7 +3502,7 @@ public partial class phemex : Exchange
             response = await this.privateDeleteSpotOrders(this.extend(request, parameters));
         }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
     /**
@@ -4023,7 +4023,7 @@ public partial class phemex : Exchange
      * @param {string} [params.network] the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4067,13 +4067,7 @@ public partial class phemex : Exchange
         object address = this.safeString(data, "address");
         object tag = this.safeString(data, "tag");
         this.checkAddress(address);
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", code },
-            { "network", null },
-            { "address", address },
-            { "tag", tag },
-        };
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
 
     /**
@@ -4488,7 +4482,7 @@ public partial class phemex : Exchange
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4534,7 +4528,7 @@ public partial class phemex : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         object positions = this.parsePositions(data, new List<object>() {symbol});
-        return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
+        return ccxt.BaseExchange.ToPositionList(this.filterBySymbolSinceLimit(positions, symbol, since, limit));
     }
 
     public override object parsePosition(object position, object market = null)
@@ -4834,7 +4828,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4881,7 +4875,7 @@ public partial class phemex : Exchange
         //     }
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        return this.parseFundingRate(result, market);
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(result, market));
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -5123,7 +5117,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
-    public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.LeverageTiers> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5220,7 +5214,7 @@ public partial class phemex : Exchange
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object riskLimits = this.safeList(data, "riskLimits");
-        return this.parseLeverageTiers(riskLimits, symbols, "symbol");
+        return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(riskLimits, symbols, "symbol"));
     }
 
     public override object parseMarketLeverageTiers(object info, object market = null)
@@ -5394,7 +5388,7 @@ public partial class phemex : Exchange
      * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5479,7 +5473,7 @@ public partial class phemex : Exchange
                 ((IDictionary<string,object>)transfer)["currency"] = code;
             }
         }
-        return transfer;
+        return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
     /**
@@ -5728,7 +5722,7 @@ public partial class phemex : Exchange
      * @param {string} [params.network] unified network code
      * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
@@ -5799,7 +5793,7 @@ public partial class phemex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseTransaction(data, currency);
+        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(data, currency));
     }
 
     /**
@@ -5811,7 +5805,7 @@ public partial class phemex : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5849,7 +5843,7 @@ public partial class phemex : Exchange
         //    }
         //
         object result = this.safeDict(response, "result");
-        return this.parseOpenInterest(result, market);
+        return ccxt.BaseExchange.ToOpenInterest(this.parseOpenInterest(result, market));
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -5896,7 +5890,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<ccxt.Conversion> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5931,7 +5925,7 @@ public partial class phemex : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseConversion(data, fromCurrency, toCurrency);
+        return ccxt.BaseExchange.ToConversion(this.parseConversion(data, fromCurrency, toCurrency));
     }
 
     /**
@@ -5946,7 +5940,7 @@ public partial class phemex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<ccxt.Conversion> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -5986,7 +5980,7 @@ public partial class phemex : Exchange
         object fromResult = this.safeCurrency(fromCurrencyId, fromCurrency);
         object toCurrencyId = this.safeString(data, "toCurrency");
         object to = this.safeCurrency(toCurrencyId, toCurrency);
-        return this.parseConversion(data, fromResult, to);
+        return ccxt.BaseExchange.ToConversion(this.parseConversion(data, fromResult, to));
     }
 
     /**
@@ -6003,7 +5997,7 @@ public partial class phemex : Exchange
      * @param {string} [params.toCurrency] the currency that you bought and converted into
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Conversion>> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6051,7 +6045,7 @@ public partial class phemex : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", new List<object>() {});
-        return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
+        return ccxt.BaseExchange.ToConversionList(this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit));
     }
 
     public override object parseConversion(object conversion, object fromCurrency = null, object toCurrency = null)
@@ -6144,7 +6138,7 @@ public partial class phemex : Exchange
      * @param {string} [params.method] *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
      * @returns {object} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public async override Task<object> fetchPositionsADLRank(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.ADL>> fetchPositionsADLRank(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -6213,7 +6207,7 @@ public partial class phemex : Exchange
             object rank = getValue(ranks, i);
             ((IList<object>)result).Add(this.parseADLRank(rank));
         }
-        return this.filterByArrayADLRanks(result, "symbol", symbols, false);
+        return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbols, false));
     }
 
     public override object parseADLRank(object info, object market = null)

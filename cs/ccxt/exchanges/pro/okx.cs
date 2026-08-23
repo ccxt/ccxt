@@ -2432,7 +2432,7 @@ public partial class okx : ccxt.okx
      * @param {boolean} params.test test order, default false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2468,7 +2468,7 @@ public partial class okx : ccxt.okx
             { "op", op },
             { "args", new List<object>() {args} },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, request, messageHash));
     }
 
     public virtual void handlePlaceOrders(WebSocketClient client, object message)
@@ -2522,7 +2522,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2549,7 +2549,7 @@ public partial class okx : ccxt.okx
             { "op", op },
             { "args", new List<object>() {args} },
         };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     /**
@@ -2563,7 +2563,7 @@ public partial class okx : ccxt.okx
      * @param {string} [params.clOrdId] client order id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2596,7 +2596,7 @@ public partial class okx : ccxt.okx
             { "op", "cancel-order" },
             { "args", new List<object> {this.extend(arg, parameters)} },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, request, messageHash));
     }
 
     /**
@@ -2609,7 +2609,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object idsLength = getArrayLength(ids);
@@ -2646,7 +2646,7 @@ public partial class okx : ccxt.okx
             { "op", "batch-cancel-orders" },
             { "args", args },
         };
-        return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash));
     }
 
     /**
@@ -2658,7 +2658,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2685,7 +2685,7 @@ public partial class okx : ccxt.okx
     { "instFamily", getValue(market, "id") },
 }, parameters)} },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, request, messageHash));
     }
 
     public virtual void handleCancelAllOrders(WebSocketClient client, object message)

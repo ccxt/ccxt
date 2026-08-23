@@ -514,7 +514,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -537,7 +537,7 @@ public partial class hibachi : Exchange
         //     tradeTakerFeeRate: '0.00020000'
         // }
         //
-        return this.parseBalance(response);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -706,7 +706,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -743,7 +743,7 @@ public partial class hibachi : Exchange
             { "prices", pricesResponse },
             { "stats", statsResponse },
         };
-        return this.parseTicker(ticker, market);
+        return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
     public virtual object parseOrderStatus(object status)
@@ -879,7 +879,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -909,7 +909,7 @@ public partial class hibachi : Exchange
                 { "percentage", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     public virtual object orderMessage(object market, object nonce, object feeRate, object type, object side, object amount, object price = null)
@@ -1170,7 +1170,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1185,10 +1185,7 @@ public partial class hibachi : Exchange
         //
         // {}
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "id", id },
-            { "status", "pending" },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", "pending" },         }));
     }
 
     /**
@@ -1200,7 +1197,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> editOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1242,7 +1239,7 @@ public partial class hibachi : Exchange
                 { "status", "pending" },
             }));
         }
-        return ret;
+        return ccxt.BaseExchange.ToOrderList(ret);
     }
 
     public virtual object cancelOrderRequest(object id)
@@ -1268,7 +1265,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = this.cancelOrderRequest(id);
@@ -1278,11 +1275,7 @@ public partial class hibachi : Exchange
         //
         // {}
         //
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "info", response },
-            { "id", id },
-            { "status", "canceled" },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", id },             { "status", "canceled" },         }));
     }
 
     /**
@@ -1295,7 +1288,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orders = new List<object>() {};
@@ -1324,7 +1317,7 @@ public partial class hibachi : Exchange
                 { "status", "canceled" },
             }));
         }
-        return ret;
+        return ccxt.BaseExchange.ToOrderList(ret);
     }
 
     /**
@@ -1408,7 +1401,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object withdrawAddress = slice(address, -40, null);
@@ -1443,31 +1436,7 @@ public partial class hibachi : Exchange
         //
         // {}
         //
-        return new Dictionary<string, object>() {
-            { "info", null },
-            { "id", null },
-            { "txid", null },
-            { "timestamp", this.milliseconds() },
-            { "datetime", null },
-            { "address", null },
-            { "addressFrom", null },
-            { "addressTo", withdrawAddress },
-            { "tag", null },
-            { "tagFrom", null },
-            { "tagTo", null },
-            { "type", "withdrawal" },
-            { "amount", amount },
-            { "currency", code },
-            { "status", "pending" },
-            { "fee", new Dictionary<string, object>() {
-                { "currency", "USDT" },
-                { "cost", maxFees },
-            } },
-            { "network", "ARBITRUM" },
-            { "updated", null },
-            { "comment", null },
-            { "internal", null },
-        };
+        return ccxt.BaseExchange.ToTransaction(new Dictionary<string, object>() {             { "info", null },             { "id", null },             { "txid", null },             { "timestamp", this.milliseconds() },             { "datetime", null },             { "address", null },             { "addressFrom", null },             { "addressTo", withdrawAddress },             { "tag", null },             { "tagFrom", null },             { "tagTo", null },             { "type", "withdrawal" },             { "amount", amount },             { "currency", code },             { "status", "pending" },             { "fee", new Dictionary<string, object>() {                 { "currency", "USDT" },                 { "cost", maxFees },             } },             { "network", "ARBITRUM" },             { "updated", null },             { "comment", null },             { "internal", null },         });
     }
 
     public override object nonce()
@@ -1825,7 +1794,7 @@ public partial class hibachi : Exchange
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -2257,7 +2226,7 @@ public partial class hibachi : Exchange
      * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -2268,13 +2237,7 @@ public partial class hibachi : Exchange
         // {
         //     "depositAddressEvm": "0x0b95d90b9345dadf1460bd38b9f4bb0d2f4ed788"
         // }
-        return new Dictionary<string, object>() {
-            { "info", response },
-            { "currency", "USDT" },
-            { "network", "ARBITRUM" },
-            { "address", this.safeString(response, "depositAddressEvm") },
-            { "tag", null },
-        };
+        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", "USDT" },             { "network", "ARBITRUM" },             { "address", this.safeString(response, "depositAddressEvm") },             { "tag", null },         });
     }
 
     public override object parseTransaction(object transaction, object currency = null)
@@ -2527,7 +2490,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2543,14 +2506,7 @@ public partial class hibachi : Exchange
         //   { "totalQuantity" : "2.3299770166" }
         //
         object timestamp = this.milliseconds();
-        return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", symbol },
-            { "openInterestAmount", this.safeString(response, "totalQuantity") },
-            { "openInterestValue", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "info", response },
-        }, market);
+        return ccxt.BaseExchange.ToOpenInterest(this.safeOpenInterest(new Dictionary<string, object>() {             { "symbol", symbol },             { "openInterestAmount", this.safeString(response, "totalQuantity") },             { "openInterestValue", null },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "info", response },         }, market));
     }
 
     /**
@@ -2562,7 +2518,7 @@ public partial class hibachi : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2591,26 +2547,7 @@ public partial class hibachi : Exchange
         object funding = this.safeDict(response, "fundingRateEstimation", new Dictionary<string, object>() {});
         object timestamp = this.milliseconds();
         object nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
-        return new Dictionary<string, object>() {
-            { "info", funding },
-            { "symbol", getValue(market, "symbol") },
-            { "markPrice", null },
-            { "indexPrice", null },
-            { "interestRate", this.parseNumber("0") },
-            { "estimatedSettlePrice", null },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
-            { "fundingRate", this.safeNumber(funding, "estimatedFundingRate") },
-            { "fundingTimestamp", nextFundingTimestamp },
-            { "fundingDatetime", this.iso8601(nextFundingTimestamp) },
-            { "nextFundingRate", null },
-            { "nextFundingTimestamp", null },
-            { "nextFundingDatetime", null },
-            { "previousFundingRate", null },
-            { "previousFundingTimestamp", null },
-            { "previousFundingDatetime", null },
-            { "interval", "8h" },
-        };
+        return ccxt.BaseExchange.ToFundingRate(new Dictionary<string, object>() {             { "info", funding },             { "symbol", getValue(market, "symbol") },             { "markPrice", null },             { "indexPrice", null },             { "interestRate", this.parseNumber("0") },             { "estimatedSettlePrice", null },             { "timestamp", timestamp },             { "datetime", this.iso8601(timestamp) },             { "fundingRate", this.safeNumber(funding, "estimatedFundingRate") },             { "fundingTimestamp", nextFundingTimestamp },             { "fundingDatetime", this.iso8601(nextFundingTimestamp) },             { "nextFundingRate", null },             { "nextFundingTimestamp", null },             { "nextFundingDatetime", null },             { "previousFundingRate", null },             { "previousFundingTimestamp", null },             { "previousFundingDatetime", null },             { "interval", "8h" },         });
     }
 
     /**

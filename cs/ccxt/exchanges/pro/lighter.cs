@@ -1312,7 +1312,7 @@ public partial class lighter : ccxt.lighter
      * @param {int} [params.orderExpiry] orderExpiry
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1336,7 +1336,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(this.deepExtend(rawMessage, order), market));
     }
 
     /**
@@ -1351,7 +1351,7 @@ public partial class lighter : ccxt.lighter
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1374,7 +1374,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(rawMessage, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(rawMessage, market));
     }
 
     /**
@@ -1388,7 +1388,7 @@ public partial class lighter : ccxt.lighter
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1410,7 +1410,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrders(new List<object>() {rawMessage});
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {rawMessage}));
     }
 
     public virtual void handleWsSendtxApi(WebSocketClient client, object message)

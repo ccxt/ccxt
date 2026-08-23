@@ -685,7 +685,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<object> fetchTicker(object outcome, object parameters = null)
+    public async override Task<ccxt.PredictionTicker> fetchTicker(object outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -711,7 +711,7 @@ public partial class hyperliquid : PredictionExchange
         object tickerData = this.safeDict(new Dictionary<string, object>() {
             { "book", response },
         }, "book", new Dictionary<string, object>() {});
-        return this.parsePredictionTicker(tickerData, outcomeObj);
+        return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(tickerData, outcomeObj));
     }
 
     /**
@@ -723,7 +723,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async override Task<ccxt.PredictionTickers> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -782,7 +782,7 @@ public partial class hyperliquid : PredictionExchange
             }, ((object)outcomeObj));
             ((IDictionary<string,object>)tickers)[(string)outcomeHandle] = ticker;
         }
-        return tickers;
+        return ccxt.BaseExchange.ToPredictionTickers(tickers);
     }
 
     /**
@@ -925,7 +925,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [params.until] end timestamp in ms
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<OHLCV>> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1023,7 +1023,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address (defaults to this.walletAddress)
      * @returns {Balances} balance structure
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1062,7 +1062,7 @@ public partial class hyperliquid : PredictionExchange
                 ((IDictionary<string,object>)result)[(string)coin] = account;
             }
         }
-        return this.safeBalance(result);
+        return ccxt.BaseExchange.ToBalances(this.safeBalance(result));
     }
 
     /**
@@ -1075,7 +1075,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionPosition>> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -1151,7 +1151,7 @@ public partial class hyperliquid : PredictionExchange
             });
             ((IList<object>)positions).Add(this.parsePredictionPosition(enriched, outcomeObj));
         }
-        return positions;
+        return ccxt.BaseExchange.ToPredictionPositionList(positions);
     }
 
     /**
@@ -1358,7 +1358,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.initializeClient();
@@ -1482,27 +1482,7 @@ public partial class hyperliquid : PredictionExchange
         {
             orderStatus = "open";
         }
-        return this.safePredictionOrder(new Dictionary<string, object>() {
-            { "id", oid },
-            { "clientOrderId", clientOrderId },
-            { "info", response },
-            { "timestamp", nonce },
-            { "datetime", this.iso8601(nonce) },
-            { "status", orderStatus },
-            { "outcome", this.safeString(outcomeObj, "outcome", outcome) },
-            { "outcomeId", this.safeString(outcomeObj, "id") },
-            { "label", this.safeString(outcomeObj, "label") },
-            { "market", this.safeString(outcomeObj, "market") },
-            { "type", type },
-            { "side", side },
-            { "price", price },
-            { "amount", amount },
-            { "filled", this.safeNumber(filled, "totalSz") },
-            { "remaining", null },
-            { "cost", null },
-            { "fee", null },
-            { "trades", new List<object>() {} },
-        }, market);
+        return ccxt.BaseExchange.ToPredictionOrder(this.safePredictionOrder(new Dictionary<string, object>() {             { "id", oid },             { "clientOrderId", clientOrderId },             { "info", response },             { "timestamp", nonce },             { "datetime", this.iso8601(nonce) },             { "status", orderStatus },             { "outcome", this.safeString(outcomeObj, "outcome", outcome) },             { "outcomeId", this.safeString(outcomeObj, "id") },             { "label", this.safeString(outcomeObj, "label") },             { "market", this.safeString(outcomeObj, "market") },             { "type", type },             { "side", side },             { "price", price },             { "amount", amount },             { "filled", this.safeNumber(filled, "totalSz") },             { "remaining", null },             { "cost", null },             { "fee", null },             { "trades", new List<object>() {} },         }, market));
     }
 
     /**
@@ -1517,11 +1497,11 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.vaultAddress] optional subaccount/vault address to cancel on behalf of
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> cancelOrder(object id, object outcome = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> cancelOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orders = await this.cancelOrders(new List<object>() {id}, outcome, parameters);
-        return this.safeDict(orders, 0);
+        return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
 
     /**
@@ -1534,7 +1514,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> cancelOrders(object ids, object outcome = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> cancelOrders(object ids, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -1638,7 +1618,7 @@ public partial class hyperliquid : PredictionExchange
             };
             ((IList<object>)orders).Add(this.safePredictionOrder(order));
         }
-        return orders;
+        return ccxt.BaseExchange.ToPredictionOrderList(orders);
     }
 
     /**
@@ -1654,7 +1634,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1691,7 +1671,7 @@ public partial class hyperliquid : PredictionExchange
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
-        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
+        return ccxt.BaseExchange.ToPredictionOrderList(this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit));
     }
 
     /**
@@ -1706,7 +1686,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1759,7 +1739,7 @@ public partial class hyperliquid : PredictionExchange
             object outcomeObj = this.outcome(outcome);
             outcomeHandle = this.safeString(outcomeObj, "outcome");
         }
-        return this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit);
+        return ccxt.BaseExchange.ToPredictionOrderList(this.filterByOutcomeSinceLimit(parsed, outcomeHandle, since, limit));
     }
 
     /**
@@ -1774,7 +1754,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1813,7 +1793,7 @@ public partial class hyperliquid : PredictionExchange
                 throw new OrderNotFound ((string)add(add(add(add(this.id, " fetchOrder() order "), id), " is not in outcome "), expected)) ;
             }
         }
-        return parsed;
+        return ccxt.BaseExchange.ToPredictionOrder(parsed);
     }
 
     /**
@@ -1952,7 +1932,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1972,7 +1952,7 @@ public partial class hyperliquid : PredictionExchange
         {
             trades = this.toArray(response);
         }
-        return this.parsePredictionTrades(trades, outcomeObj, since, limit);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.parsePredictionTrades(trades, outcomeObj, since, limit));
     }
 
     /**
@@ -1988,7 +1968,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {int} [params.until] end timestamp in ms
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeHandle = null;
@@ -2035,7 +2015,7 @@ public partial class hyperliquid : PredictionExchange
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed
         object parsedTrades = this.parsePredictionTrades(fills, null);
-        return this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit);
+        return ccxt.BaseExchange.ToPredictionTradeList(this.filterByOutcomeSinceLimit(parsedTrades, outcomeHandle, since, limit));
     }
 
     /**

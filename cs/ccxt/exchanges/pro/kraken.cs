@@ -315,7 +315,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -338,7 +338,7 @@ public partial class kraken : ccxt.kraken
         var requestparametersVariable = this.orderRequestWs("createOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     public virtual void handleCreateEditOrder(WebSocketClient client, object message)
@@ -389,7 +389,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -409,7 +409,7 @@ public partial class kraken : ccxt.kraken
         var requestparametersVariable = this.orderRequestWs("editOrderWs", symbol, type, request, amount, price, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     /**
@@ -422,7 +422,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
@@ -442,7 +442,7 @@ public partial class kraken : ccxt.kraken
             } },
             { "req_id", requestId },
         };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     /**
@@ -455,7 +455,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
@@ -475,7 +475,7 @@ public partial class kraken : ccxt.kraken
             } },
             { "req_id", requestId },
         };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrder(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     public virtual void handleCancelOrder(WebSocketClient client, object message)
@@ -505,7 +505,7 @@ public partial class kraken : ccxt.kraken
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(symbol, null)))
@@ -524,7 +524,7 @@ public partial class kraken : ccxt.kraken
             } },
             { "req_id", requestId },
         };
-        return await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
+        return ccxt.BaseExchange.ToOrderList(await this.watch(url, messageHash, this.extend(request, parameters), messageHash));
     }
 
     public virtual void handleCancelAllOrders(WebSocketClient client, object message)

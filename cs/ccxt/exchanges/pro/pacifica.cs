@@ -105,7 +105,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -173,13 +173,7 @@ public partial class pacifica : ccxt.pacifica
         object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orderId = this.safeString(order, "i");
         object clientOrderId = this.safeString(order, "I");
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "id", orderId },
-            { "clientOrderId", clientOrderId },
-            { "status", status },
-            { "info", response },
-            { "symbol", symbol },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
     /**
@@ -200,7 +194,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object batchOperationType = "edit_order";
@@ -245,13 +239,7 @@ public partial class pacifica : ccxt.pacifica
         object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orderId = this.safeString(order, "i");
         object clientOrderId = this.safeString(order, "I");
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "id", orderId },
-            { "clientOrderId", clientOrderId },
-            { "status", status },
-            { "info", response },
-            { "symbol", symbol },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
     /**
@@ -269,7 +257,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object batchOperationType = "batch_orders";
@@ -340,7 +328,7 @@ public partial class pacifica : ccxt.pacifica
                 { "symbol", getValue(market, "symbol") },
             }));
         }
-        return ordersToReturn;
+        return ccxt.BaseExchange.ToOrderList(ordersToReturn);
     }
 
     /**
@@ -358,7 +346,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object operationType = "cancel_order";
@@ -408,13 +396,7 @@ public partial class pacifica : ccxt.pacifica
         object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object orderId = this.safeString(order, "i");
         object clientOrderId = this.safeString(order, "I");
-        return this.safeOrder(new Dictionary<string, object>() {
-            { "id", orderId },
-            { "clientOrderId", clientOrderId },
-            { "status", status },
-            { "info", response },
-            { "symbol", symbol },
-        });
+        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "clientOrderId", clientOrderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
 
     /**
@@ -430,7 +412,7 @@ public partial class pacifica : ccxt.pacifica
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -456,9 +438,7 @@ public partial class pacifica : ccxt.pacifica
         //   "type": "cancel_all_orders"
         // }
         //
-        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
     /**
