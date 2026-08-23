@@ -2063,6 +2063,224 @@
                 }
             }
         ],
+        "createOrders": [
+            {
+                "description": "spot batch with one accepted and one rejected order, live-captured",
+                "method": "createOrders",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 10000,
+                            "params": {
+                                "clientOrderId": "ccxtBatchSpot1"
+                            }
+                        },
+                        {
+                            "symbol": "BTC/USDT",
+                            "type": "limit",
+                            "side": "buy",
+                            "amount": 0.0001,
+                            "price": 9000
+                        }
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "id": "613157738154983424",
+                        "clientOrderId": "ccxtBatchSpot1"
+                    },
+                    {
+                        "code": 21322,
+                        "message": "Amount less than minAmount",
+                        "clientOrderId": ""
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "613157738154983424",
+                            "clientOrderId": "ccxtBatchSpot1"
+                        },
+                        "id": "613157738154983424",
+                        "clientOrderId": "ccxtBatchSpot1",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": 21322,
+                            "message": "Amount less than minAmount",
+                            "clientOrderId": ""
+                        },
+                        "id": null,
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": "rejected",
+                        "symbol": "BTC/USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "swap batch cancel with one success and one ORDER_NOT_EXISTS rejection",
+                "method": "cancelOrders",
+                "input": [
+                    [
+                        "613158248048390144",
+                        "613158248098721792"
+                    ],
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": [
+                        {
+                            "code": "200",
+                            "msg": "Success",
+                            "ordId": "613158248048390144",
+                            "clOrdId": "ccxtBatchSwap2"
+                        },
+                        {
+                            "code": "11008",
+                            "msg": "ORDER_NOT_EXISTS",
+                            "ordId": "613158248098721792",
+                            "clOrdId": ""
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "code": "200",
+                            "msg": "Success",
+                            "ordId": "613158248048390144",
+                            "clOrdId": "ccxtBatchSwap2"
+                        },
+                        "id": "613158248048390144",
+                        "clientOrderId": "ccxtBatchSwap2",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": null,
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    },
+                    {
+                        "info": {
+                            "code": "11008",
+                            "msg": "ORDER_NOT_EXISTS",
+                            "ordId": "613158248098721792",
+                            "clOrdId": ""
+                        },
+                        "id": "613158248098721792",
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastTradeTimestamp": null,
+                        "status": "rejected",
+                        "symbol": "BTC/USDT:USDT",
+                        "type": null,
+                        "timeInForce": null,
+                        "postOnly": false,
+                        "side": null,
+                        "price": null,
+                        "triggerPrice": null,
+                        "cost": null,
+                        "average": null,
+                        "amount": null,
+                        "filled": null,
+                        "remaining": null,
+                        "trades": [],
+                        "fee": null,
+                        "marginMode": null,
+                        "reduceOnly": null,
+                        "leverage": null,
+                        "hedged": true,
+                        "fees": [],
+                        "lastUpdateTimestamp": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "linear, market sell",
