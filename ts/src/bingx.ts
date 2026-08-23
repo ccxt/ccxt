@@ -4684,9 +4684,14 @@ export default class bingx extends Exchange {
             request['symbol'] = market['id'];
         }
         let type: Str = undefined;
+        let subType: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOrders', market, params);
         if (type !== 'swap') {
             throw new NotSupported (this.id + ' fetchOrders() is only supported for swap markets');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' fetchOrders() is not supported for inverse swap markets');
         }
         if (limit !== undefined) {
             request['limit'] = limit;
