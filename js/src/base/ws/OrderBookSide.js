@@ -150,7 +150,7 @@ class CountedOrderBookSide extends OrderBookSide {
 // stores vector arrays indexed by id (3rd value in a bidask delta array)
 class IndexedOrderBookSide extends Array {
     constructor(deltas = [], depth = Number.MAX_SAFE_INTEGER) {
-        super(deltas.length);
+        super();
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty(this, 'hashmap', {
             __proto__: null, // make it invisible
@@ -167,9 +167,12 @@ class IndexedOrderBookSide extends Array {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         });
-        // sort upon initiation
+        // sort upon initiation. storeArray maintains length itself; assigning
+        // the loop counter to it instead let a no-op delta (a zero size for an
+        // id that is not in the book) advance the length past the number of
+        // rows actually stored, leaving a hole that limit() then dereferenced
+        this.length = 0;
         for (let i = 0; i < deltas.length; i++) {
-            this.length = i;
             this.storeArray(deltas[i].slice()); // slice is muy importante
         }
     }
