@@ -1974,10 +1974,10 @@ func (this *ParadexCore) ParseOrder(order any, optionalArgs ...any) any {
 	var average any = this.OmitZero(this.SafeString(order, "avg_fill_price"))
 	var remaining any = this.OmitZero(this.SafeString(order, "remaining_size"))
 	var lastUpdateTimestamp any = this.SafeInteger(order, "last_updated_at")
-	var flags any = this.SafeList(order, "flags", []any{})
+	var flags any = this.SafeList(order, "flags")
 	var reduceOnly any = nil
-	if IsTrue(InOp(flags, "REDUCE_ONLY")) {
-		reduceOnly = true
+	if IsTrue(!IsEqual(flags, nil)) {
+		reduceOnly = this.InArray("REDUCE_ONLY", flags)
 	}
 	return this.SafeOrder(map[string]any{
 		"id":                  orderId,
