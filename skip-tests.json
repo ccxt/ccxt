@@ -2513,7 +2513,8 @@
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
-            }
+            },
+            "watchBidsAsks.go": "Go test harness repanics the NotSupported thrown for swap symbols (spot-only channel) instead of skipping it like the other languages, recheck 2026-10-01"
         }
     },
     "btse": {
