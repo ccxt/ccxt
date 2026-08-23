@@ -1446,10 +1446,10 @@ class paradex(Exchange, ImplicitAPI):
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
-        flags = self.safe_list(order, 'flags', [])
+        flags = self.safe_list(order, 'flags')
         reduceOnly = None
-        if 'REDUCE_ONLY' in flags:
-            reduceOnly = True
+        if flags is not None:
+            reduceOnly = self.in_array('REDUCE_ONLY', flags)
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
