@@ -1348,6 +1348,7 @@ export default class lighter extends lighterRest {
             }
         } catch (e) {
             const id = this.safeString (message, 'id');
+            let handled = false;
             if (id !== undefined) {
                 const subscriptionKeys = Object.keys (client.subscriptions);
                 for (let i = 0; i < subscriptionKeys.length; i++) {
@@ -1356,13 +1357,16 @@ export default class lighter extends lighterRest {
                     const subscription = this.safeString (client.subscriptions[subscriptionHash], 'subscription');
                     if (id === subscriptionId) {
                         client.reject (e, subscriptionHash);
+                        handled = true;
                         if (subscription !== undefined) {
                             delete client.subscriptions[subscription];
                         }
                     }
                 }
             }
-            client.reject (e);
+            if (!handled) {
+                client.reject (e);
+            }
         }
         return true;
     }
