@@ -5011,7 +5011,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         let market: Market = undefined;
-        const request: Dict = {};
+        let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -5095,6 +5095,13 @@ export default class bingx extends Exchange {
                 //     }
                 //
             } else if (subType === 'inverse') {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min (limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                [ request, params ] = this.handleUntilOption ('endTime', request, params);
                 response = await this.cswapV1PrivateGetTradeOrderHistory (this.extend (request, params));
                 //
                 //     {

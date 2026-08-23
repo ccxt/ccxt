@@ -1110,11 +1110,16 @@
                 ]
             },
             {
-                "description": "Inverse swap fetch closed orders",
+                "description": "Inverse swap fetch closed orders with filters",
                 "method": "fetchClosedOrders",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?endTime=1721961000000&limit=1000&startTime=1721960000000&symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
                 "input": [
-                  "SOL/USD:SOL"
+                    "SOL/USD:SOL",
+                    1721960000000,
+                    1500,
+                    {
+                        "until": 1721961000000
+                    }
                 ]
             },
             {
