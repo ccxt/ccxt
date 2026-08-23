@@ -212,6 +212,23 @@
                     }
                 ],
                 "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"timeInForce\":\"GTX\",\"positionSide\":\"LONG\",\"price\":\"50\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "postOnly wins over a conflicting explicit timeInForce and the raw keys never reach the body",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    50,
+                    {
+                        "postOnly": true,
+                        "timeInForce": "GTC"
+                    }
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"timeInForce\":\"GTX\",\"positionSide\":\"LONG\",\"price\":\"50\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"clientMedia\":\"CCXT\"}"
             }
         ],
         "fetchOrders": [

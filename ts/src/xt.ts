@@ -2630,6 +2630,7 @@ export default class xt extends Exchange {
         if (postOnly) {
             timeInForce = 'GTX';
         }
+        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
         if ((side === 'sell') || (type === 'limit')) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
@@ -2664,6 +2665,7 @@ export default class xt extends Exchange {
         if (postOnly) {
             timeInForce = 'GTX';
         }
+        params = this.omit (params, [ 'timeInForce', 'postOnly' ]);
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
@@ -3904,11 +3906,14 @@ export default class xt extends Exchange {
         const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul (this.numberToString (filledQuantity), this.numberToString (market['contractSize']));
         const lastUpdatedTimestamp = this.safeInteger (order, 'updatedTime');
         let timeInForce = this.safeString (order, 'timeInForce');
-        if (timeInForce === 'GTX') {
-            // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
-            timeInForce = 'PO';
+        let postOnly: Bool = undefined;
+        if (timeInForce !== undefined) {
+            if (timeInForce === 'GTX') {
+                // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
+                timeInForce = 'PO';
+            }
+            postOnly = (timeInForce === 'PO');
         }
-        const postOnly = (timeInForce === 'PO');
         let side = this.safeStringLower2 (order, 'side', 'orderSide');
         if (side === undefined) {
             // the stop loss and take profit entries carry only the position
