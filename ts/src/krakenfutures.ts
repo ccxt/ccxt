@@ -21,7 +21,7 @@ export default class krakenfutures extends Exchange {
             'countries': [ 'US' ],
             'version': 'v3',
             'userAgent': undefined,
-            'rateLimit': 600,
+            'rateLimit': 20, // 500 cost units per 10 seconds
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -114,61 +114,62 @@ export default class krakenfutures extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'feeschedules': { 'cost': 1 } as Endpoint<Dict>,
-                        'instruments': { 'cost': 1 } as Endpoint<Dict>,
-                        'orderbook': { 'cost': 1 } as Endpoint<Dict>,
-                        'tickers': { 'cost': 1 } as Endpoint<Dict>,
-                        'history': { 'cost': 1 } as Endpoint<Dict>,
-                        'historicalfundingrates': { 'cost': 1 } as Endpoint<Dict>,
+                        'feeschedules': { 'cost': 0 } as Endpoint<Dict>,
+                        'instruments': { 'cost': 0 } as Endpoint<Dict>,
+                        'orderbook': { 'cost': 0 } as Endpoint<Dict>,
+                        'tickers': { 'cost': 0 } as Endpoint<Dict>,
+                        'history': { 'cost': 0 } as Endpoint<Dict>,
+                        'historicalfundingrates': { 'cost': 0 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
-                        'feeschedules/volumes': { 'cost': 1 } as Endpoint<Dict>,
-                        'openpositions': { 'cost': 1 } as Endpoint<Dict>,
-                        'notifications': { 'cost': 1 } as Endpoint<Dict>,
-                        'accounts': { 'cost': 1 } as Endpoint<Dict>,
-                        'openorders': { 'cost': 1 } as Endpoint<Dict>,
-                        'recentorders': { 'cost': 1 } as Endpoint<Dict>,
-                        'fills': { 'cost': 1 } as Endpoint<Dict>,
-                        'transfers': { 'cost': 1 } as Endpoint<Dict>,
-                        'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
-                        'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
-                        'assignmentprogram/current': { 'cost': 1 } as Endpoint<Dict>,
-                        'assignmentprogram/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'feeschedules/volumes': { 'cost': 30 } as Endpoint<Dict>,
+                        'openpositions': { 'cost': 2 } as Endpoint<Dict>,
+                        'notifications': { 'cost': 30 } as Endpoint<Dict>,
+                        'accounts': { 'cost': 2 } as Endpoint<Dict>,
+                        'openorders': { 'cost': 2 } as Endpoint<Dict>,
+                        'recentorders': { 'cost': 30 } as Endpoint<Dict>,
+                        'fills': { 'cost': 2, 'withLastFillTime': 25 } as Endpoint<Dict>,
+                        'transfers': { 'cost': 30 } as Endpoint<Dict>,
+                        'leveragepreferences': { 'cost': 2 } as Endpoint<Dict>,
+                        'pnlpreferences': { 'cost': 2 } as Endpoint<Dict>,
+                        'assignmentprogram/current': { 'cost': 30 } as Endpoint<Dict>,
+                        'assignmentprogram/history': { 'cost': 30 } as Endpoint<Dict>,
                         'orders/status': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
-                        'sendorder': { 'cost': 1 } as Endpoint<Dict>,
-                        'editorder': { 'cost': 1 } as Endpoint<Dict>,
-                        'cancelorder': { 'cost': 1 } as Endpoint<Dict>,
-                        'transfer': { 'cost': 1 } as Endpoint<Dict>,
-                        'batchorder': { 'cost': 1 } as Endpoint<Dict>,
-                        'cancelallorders': { 'cost': 1 } as Endpoint<Dict>,
-                        'cancelallordersafter': { 'cost': 1 } as Endpoint<Dict>,
-                        'withdrawal': { 'cost': 1 } as Endpoint<Dict>,
-                        'assignmentprogram/add': { 'cost': 1 } as Endpoint<Dict>,
-                        'assignmentprogram/delete': { 'cost': 1 } as Endpoint<Dict>,
+                        'sendorder': { 'cost': 10 } as Endpoint<Dict>,
+                        'editorder': { 'cost': 10 } as Endpoint<Dict>,
+                        'cancelorder': { 'cost': 10 } as Endpoint<Dict>,
+                        'transfer': { 'cost': 10 } as Endpoint<Dict>,
+                        'batchorder': { 'cost': 9, 'byBatchSize': true } as Endpoint<Dict>,
+                        'cancelallorders': { 'cost': 25 } as Endpoint<Dict>,
+                        'cancelallordersafter': { 'cost': 25 } as Endpoint<Dict>,
+                        'withdrawal': { 'cost': 30 } as Endpoint<Dict>,
+                        'assignmentprogram/add': { 'cost': 30 } as Endpoint<Dict>,
+                        'assignmentprogram/delete': { 'cost': 30 } as Endpoint<Dict>,
                     },
                     'put': {
-                        'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
-                        'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'leveragepreferences': { 'cost': 10 } as Endpoint<Dict>,
+                        'pnlpreferences': { 'cost': 10 } as Endpoint<Dict>,
                     },
                 },
                 'charts': {
                     'get': {
-                        '{price_type}/{symbol}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
+                        '{price_type}/{symbol}/{interval}': { 'cost': 0 } as Endpoint<Dict>,
                     },
                 },
                 'history': {
                     'get': {
-                        'orders': { 'cost': 1 } as Endpoint<Dict>,
-                        'executions': { 'cost': 1 } as Endpoint<Dict>,
-                        'triggers': { 'cost': 1 } as Endpoint<Dict>,
-                        'accountlogcsv': { 'cost': 1 } as Endpoint<string>,
-                        'account-log': { 'cost': 1 } as Endpoint<Dict>,
-                        'market/{symbol}/orders': { 'cost': 1 } as Endpoint<Dict>,
-                        'market/{symbol}/executions': { 'cost': 1 } as Endpoint<Dict>,
+                        // history has a separate 100-unit pool replenished every 10 minutes, so one history unit equals 300 derivatives units
+                        'orders': { 'cost': 300 } as Endpoint<Dict>,
+                        'executions': { 'cost': 300 } as Endpoint<Dict>,
+                        'triggers': { 'cost': 300 } as Endpoint<Dict>,
+                        'accountlogcsv': { 'cost': 1800 } as Endpoint<string>,
+                        'account-log': { 'cost': 900, 'byLimit': [ [ 25, 300 ], [ 50, 600 ], [ 1000, 900 ], [ 5000, 1800 ], [ 100000, 3000 ] ] } as Endpoint<Dict>,
+                        'market/{symbol}/orders': { 'cost': 300 } as Endpoint<Dict>,
+                        'market/{symbol}/executions': { 'cost': 300 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -3462,6 +3463,43 @@ export default class krakenfutures extends Exchange {
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
         } as Leverage;
+    }
+
+    /**
+     * @method
+     * @ignore
+     * @name krakenfutures#calculateRateLimiterCost
+     * @description calculates the REST rate-limit cost from the endpoint configuration and request parameters
+     * @param {string} api the API namespace
+     * @param {string} method the HTTP method
+     * @param {string} path the endpoint path
+     * @param {object} params request parameters
+     * @param {object} [config] endpoint configuration
+     * @returns {number} the number of rate-limit units consumed by the request
+     */
+    override calculateRateLimiterCost (api: any, method: any, path: any, params: any, config = {}) {
+        const cost = this.safeInteger (config, 'cost', 1);
+        if ('byBatchSize' in config) {
+            const batchOrder = this.safeList (params, 'batchOrder', []);
+            const batchOrderLength = batchOrder.length;
+            return this.sum (cost, batchOrderLength);
+        } else if (('withLastFillTime' in config) && ('lastFillTime' in params)) {
+            return this.safeInteger (config, 'withLastFillTime', cost);
+        } else if ('byLimit' in config) {
+            const count = this.safeInteger (params, 'count', 500);
+            const byLimit = this.safeList (config, 'byLimit', []);
+            let tierCost = cost;
+            for (let i = 0; i < byLimit.length; i++) {
+                const entry = byLimit[i];
+                const maxCount = this.safeInteger (entry, 0);
+                tierCost = this.safeInteger (entry, 1, tierCost);
+                if ((maxCount !== undefined) && (count <= maxCount)) {
+                    return tierCost;
+                }
+            }
+            return tierCost;
+        }
+        return cost;
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
