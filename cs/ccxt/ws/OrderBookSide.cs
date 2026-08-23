@@ -147,37 +147,22 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         // }
     }
 
-    // Copy() hands back a snapshot of a side that is already sorted and already
-    // carries a built _index, so replaying storeArray for every level only
-    // rebuilds what we already have, at a bisect, an insert and two
-    // Convert.ToDecimal per row. Copying the two parallel lists straight across
-    // produces the identical object for a fraction of the work. Returns false
-    // when the source is not a same-sided sibling, or when its two lists are
-    // desynced, and the caller then falls back to the rebuild.
-    protected bool cloneSortedFrom(object source)
+    // Copy() source is already sorted and already has _index. Snapshot
+    // constructors still take IList rows and replay storeArray.
+    protected void cloneSortedFrom(OrderBookSide source)
     {
-        var src = source as OrderBookSide;
-        if (src == null || src.side != this.side)
-        {
-            return false;
-        }
         var rows = new List<object>();
-        foreach (var row in src)
+        foreach (var row in source)
         {
             rows.Add((row is IList<object> cells) ? new List<object>(cells) : row);
         }
         var prices = new List<decimal>();
-        foreach (var price in src._index)
+        foreach (var price in source._index)
         {
             prices.Add(price);
         }
-        if (rows.Count != prices.Count)
-        {
-            return false;
-        }
         this.AddRange(rows);
         this._index.AddRange(prices);
-        return true;
     }
 
     public void storeArray(object delta2)
@@ -319,10 +304,6 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
 
         lock (this)
         {
-            if (this.cloneSortedFrom(deltas2))
-            {
-                return;
-            }
             var deltas = (IList<object>)deltas2;
             var copiedDeltas = new List<object>(deltas);
             for (var i = 0; i < copiedDeltas.Count; i++)
@@ -330,6 +311,14 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
                 var delta = copiedDeltas[i] as IList<object>;
                 this.storeArray(new List<object>(delta)); // do we need to copy here??
             }
+        }
+    }
+
+    public NormalOrderBookSide(NormalOrderBookSide source, object depth = null, bool side = false) : base(source, depth, side)
+    {
+        lock (this)
+        {
+            this.cloneSortedFrom(source);
         }
     }
 
@@ -357,15 +346,19 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
         lock (this)
         {
-            if (this.cloneSortedFrom(deltas2))
-            {
-                return;
-            }
             var deltas = (IList<object>)deltas2;
             for (var i = 0; i < deltas.Count; i++)
             {
                 this.storeArray(deltas[i]); // do we need to copy here??
             }
+        }
+    }
+
+    public CountedOrderBookSide(CountedOrderBookSide source, object depth = null, bool side = false) : base(source, depth, side)
+    {
+        lock (this)
+        {
+            this.cloneSortedFrom(source);
         }
     }
 
@@ -694,6 +687,11 @@ public class Asks : NormalOrderBookSide, IAsks
         this.side = false;
     }
 
+    public Asks(Asks source) : base(source)
+    {
+        this.side = false;
+    }
+
     public IAsks Copy()
     {
         lock (this)
@@ -713,6 +711,11 @@ public class Asks : NormalOrderBookSide, IAsks
 public class Bids : NormalOrderBookSide, IBids
 {
     public Bids(object deltas2, object depth = null) : base(deltas2, depth, true)
+    {
+        this.side = true;
+    }
+
+    public Bids(Bids source) : base(source, null, true)
     {
         this.side = true;
     }
@@ -741,6 +744,11 @@ public class CountedAsks : CountedOrderBookSide, IAsks
         // super.side = false;
     }
 
+    public CountedAsks(CountedAsks source) : base(source)
+    {
+        this.side = false;
+    }
+
     public IAsks Copy()
     {
         lock (this)
@@ -760,6 +768,11 @@ public class CountedAsks : CountedOrderBookSide, IAsks
 public class CountedBids : CountedOrderBookSide, IBids
 {
     public CountedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
+    {
+        this.side = true;
+    }
+
+    public CountedBids(CountedBids source) : base(source, null, true)
     {
         this.side = true;
     }
