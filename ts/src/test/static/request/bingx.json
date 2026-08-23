@@ -651,6 +651,8 @@
             },
             {
                 "description": "Inverse swap create order with attached stop loss",
+                "disabledJava": true,
+                "disabledGO": true,
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=BOTH&price=100&quantity=1&side=BUY&stopLoss=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A1%7D&symbol=SOL-USD&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
                 "input": [
@@ -668,6 +670,8 @@
             },
             {
                 "description": "Inverse swap create order with attached take profit",
+                "disabledJava": true,
+                "disabledGO": true,
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=BOTH&price=100&quantity=1&side=BUY&symbol=SOL-USD&takeProfit=%7B%22stopPrice%22%3A110%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A1%7D&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
                 "input": [
