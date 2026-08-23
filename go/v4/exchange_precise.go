@@ -24,6 +24,8 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 		dec = math.MinInt32
 	}
 
+	// a maybe-undefined operand may arrive as a pointer; format the pointed-at value
+	number2 = derefScalar(number2)
 	number := fmt.Sprintf("%v", number2)
 	p := &PreciseStruct{
 		baseNumber: 10,
@@ -246,6 +248,7 @@ func (p *PreciseStruct) String() string {
 }
 
 func StringMul(string1, string2 any) any {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
@@ -253,6 +256,7 @@ func StringMul(string1, string2 any) any {
 }
 
 func StringDiv(string1, string2 any, precision ...any) any {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
@@ -265,6 +269,7 @@ func StringDiv(string1, string2 any, precision ...any) any {
 }
 
 func StringSub(string1, string2 any) any {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
@@ -276,6 +281,7 @@ func StringSub(string1, string2 any) any {
 // }
 
 func StringAdd(string1, string2 any) any {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
@@ -283,6 +289,7 @@ func StringAdd(string1, string2 any) any {
 }
 
 func StringOr(string1, string2 any) any {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
@@ -290,6 +297,7 @@ func StringOr(string1, string2 any) any {
 }
 
 func StringGt(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
@@ -297,6 +305,7 @@ func StringGt(a, b any) bool {
 }
 
 func StringEq(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
@@ -304,6 +313,7 @@ func StringEq(a, b any) bool {
 }
 
 func StringMax(a, b any) any {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
@@ -311,6 +321,7 @@ func StringMax(a, b any) any {
 }
 
 func StringEquals(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
@@ -318,6 +329,7 @@ func StringEquals(a, b any) bool {
 }
 
 func StringMin(string1, string2 any) any {
+	string1, string2 = derefScalar(string1), derefScalar(string2)
 	if string1 == nil || string2 == nil {
 		return nil
 	}
@@ -325,6 +337,7 @@ func StringMin(string1, string2 any) any {
 }
 
 func StringLt(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
@@ -332,6 +345,7 @@ func StringLt(a, b any) bool {
 }
 
 func StringAbs(a any) any {
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
@@ -339,6 +353,7 @@ func StringAbs(a any) any {
 }
 
 func StringNeg(a any) any {
+	a = derefScalar(a)
 	if a == nil {
 		return nil
 	}
@@ -346,6 +361,7 @@ func StringNeg(a any) any {
 }
 
 func StringLe(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
@@ -353,6 +369,7 @@ func StringLe(a, b any) bool {
 }
 
 func StringGe(a, b any) bool {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return false
 	}
@@ -360,6 +377,7 @@ func StringGe(a, b any) bool {
 }
 
 func StringMod(a, b any) any {
+	a, b = derefScalar(a), derefScalar(b)
 	if a == nil || b == nil {
 		return nil
 	}
@@ -421,65 +439,65 @@ func (p *PreciseStruct) ToString() string {
 // wrappers
 
 func (e *PreciseStruct) StringMul(string1, string2 any) any {
-	return StringMul(string1, string2)
+	return StringMul(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) any {
-	return StringDiv(string1, string2, precision...)
+	return StringDiv(derefScalar(string1), derefScalar(string2), precision...)
 }
 
 func (e *PreciseStruct) StringSub(string1, string2 any) any {
-	return StringSub(string1, string2)
+	return StringSub(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringAdd(string1, string2 any) any {
-	return StringAdd(string1, string2)
+	return StringAdd(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringOr(string1, string2 any) any {
-	return StringOr(string1, string2)
+	return StringOr(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringGt(a, b any) bool {
-	return StringGt(a, b)
+	return StringGt(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringEq(a, b any) bool {
-	return StringEq(a, b)
+	return StringEq(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringMax(a, b any) any {
-	return StringMax(a, b)
+	return StringMax(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringEquals(a, b any) bool {
-	return StringEquals(a, b)
+	return StringEquals(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringMin(string1, string2 any) any {
-	return StringMin(string1, string2)
+	return StringMin(derefScalar(string1), derefScalar(string2))
 }
 
 func (e *PreciseStruct) StringLt(a, b any) bool {
-	return StringLt(a, b)
+	return StringLt(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringAbs(a any) any {
-	return StringAbs(a)
+	return StringAbs(derefScalar(a))
 }
 
 func (e *PreciseStruct) StringNeg(a any) any {
-	return StringNeg(a)
+	return StringNeg(derefScalar(a))
 }
 
 func (e *PreciseStruct) StringLe(a, b any) bool {
-	return StringLe(a, b)
+	return StringLe(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringGe(a, b any) bool {
-	return StringGe(a, b)
+	return StringGe(derefScalar(a), derefScalar(b))
 }
 
 func (e *PreciseStruct) StringMod(a, b any) any {
-	return StringMod(a, b)
+	return StringMod(derefScalar(a), derefScalar(b))
 }

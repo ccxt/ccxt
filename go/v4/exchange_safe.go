@@ -112,12 +112,14 @@ import (
 // }
 
 func getValueFromList(list any, keys []any, defVal any) any {
+	// a maybe-undefined element travels as a pointer; unwrap it so callers keep
+	// seeing plain scalars (nil pointer -> untyped nil)
 	switch l := list.(type) {
 	case []any:
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
+					return derefScalar(l[keyInt])
 				}
 			}
 		}
@@ -125,7 +127,7 @@ func getValueFromList(list any, keys []any, defVal any) any {
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
+					return derefScalar(l[keyInt])
 				}
 			}
 		}
@@ -133,7 +135,7 @@ func getValueFromList(list any, keys []any, defVal any) any {
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
+					return derefScalar(l[keyInt])
 				}
 			}
 		}
@@ -141,7 +143,7 @@ func getValueFromList(list any, keys []any, defVal any) any {
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
+					return derefScalar(l[keyInt])
 				}
 			}
 		}
@@ -149,7 +151,7 @@ func getValueFromList(list any, keys []any, defVal any) any {
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
+					return derefScalar(l[keyInt])
 				}
 			}
 		}
@@ -157,7 +159,7 @@ func getValueFromList(list any, keys []any, defVal any) any {
 		for _, key := range keys {
 			if keyInt, err := strconv.Atoi(fmt.Sprintf("%v", key)); err == nil {
 				if keyInt >= 0 && keyInt < len(l) {
-					return l[keyInt]
+					return derefScalar(l[keyInt])
 				}
 			}
 		}
@@ -169,6 +171,22 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
+	}
+	// normalize pointer-carried container/keys before any lookup: a typed nil must
+	// read as absent and a non-nil pointer as the value it points at
+	obj = derefScalar(obj)
+	copiedKeys := false
+	for i, key := range keys {
+		switch key.(type) {
+		case *string, *int64, *float64, *bool, *int, *[]string, *[]any, *map[string]any, *any:
+			if !copiedKeys {
+				normKeys := make([]any, len(keys))
+				copy(normKeys, keys)
+				keys = normKeys
+				copiedKeys = true
+			}
+			keys[i] = derefScalar(key)
+		}
 	}
 	if obj == nil {
 		return defVal
@@ -184,6 +202,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			}
 			keyStr := fmt.Sprintf("%v", key)
 			if value, found := dict[keyStr]; found {
+				value = derefScalar(value)
 				if value != nil && value != "" {
 					addElementMu.Unlock()
 					return value
@@ -202,6 +221,7 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 			}
 			keyStr := fmt.Sprintf("%v", key)
 			if value, found := syncDict.Load(keyStr); found {
+				value = derefScalar(value)
 				if value != nil && value != "" {
 					return value
 				}

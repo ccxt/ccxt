@@ -15,8 +15,7 @@ import (
 func SafeFloatTyped(m any, key any) *float64 {
 	res := SafeFloat(m, key, math.NaN())
 
-	if res != nil {
-		resFloat := res.(float64)
+	if resFloat, ok := res.(float64); ok {
 		if math.IsNaN(resFloat) {
 			return nil
 		}
@@ -27,8 +26,7 @@ func SafeFloatTyped(m any, key any) *float64 {
 
 func SafeStringTyped(m any, key any) *string {
 	res := SafeString(m, key, nil)
-	if res != nil {
-		resStr := res.(string)
+	if resStr, ok := res.(string); ok {
 		return &resStr
 	}
 	return nil
@@ -36,8 +34,7 @@ func SafeStringTyped(m any, key any) *string {
 
 func SafeBoolTyp(m any, key any) *bool {
 	res := SafeBool(m, key, false)
-	if res != nil {
-		resBool := res.(bool)
+	if resBool, ok := res.(bool); ok {
 		return &resBool
 	}
 	return nil
@@ -45,8 +42,7 @@ func SafeBoolTyp(m any, key any) *bool {
 
 func SafeInt64Typed(m any, key any) *int64 {
 	res := SafeInteger(m, key, nil)
-	if res != nil {
-		resInt := res.(int64)
+	if resInt, ok := res.(int64); ok {
 		return &resInt
 	}
 	return nil
@@ -54,8 +50,7 @@ func SafeInt64Typed(m any, key any) *int64 {
 
 func SafeBoolTyped(m any, key any) *bool {
 	res := SafeBool(m, key, nil)
-	if res != nil {
-		resBool := res.(bool)
+	if resBool, ok := res.(bool); ok {
 		return &resBool
 	}
 	return nil
