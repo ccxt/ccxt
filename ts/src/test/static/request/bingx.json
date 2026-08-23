@@ -650,6 +650,40 @@
                 ]
             },
             {
+                "description": "Inverse swap create order with attached stop loss",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=BOTH&price=100&quantity=1&side=BUY&stopLoss=%7B%22stopPrice%22%3A90%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22STOP_MARKET%22%2C%22quantity%22%3A1%7D&symbol=SOL-USD&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100,
+                  {
+                    "stopLoss": {
+                      "triggerPrice": 90
+                    }
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap create order with attached take profit",
+                "method": "createOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/order?positionSide=BOTH&price=100&quantity=1&side=BUY&symbol=SOL-USD&takeProfit=%7B%22stopPrice%22%3A110%2C%22workingType%22%3A%22MARK_PRICE%22%2C%22type%22%3A%22TAKE_PROFIT_MARKET%22%2C%22quantity%22%3A1%7D&timestamp=1720334783819&type=LIMIT&signature=7343c8212f5cfaca9c064c80e50ecc2f071e658ac98bea4581d164e1ed5643f5",
+                "input": [
+                  "SOL/USD:SOL",
+                  "limit",
+                  "buy",
+                  1,
+                  100,
+                  {
+                    "takeProfit": {
+                      "triggerPrice": 110
+                    }
+                  }
+                ]
+            },
+            {
                 "description": "swap reduceOnly order",
                 "method": "createOrder",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/order?positionSide=BOTH&quantity=0.1&reduceOnly=true&side=SELL&symbol=LTC-USDT&timestamp=1725185164341&type=MARKET&signature=829da92de2a03fa34f28ab646785466677cb60b9792b8249a35e79225a6b7907",
