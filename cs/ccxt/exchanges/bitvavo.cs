@@ -688,12 +688,12 @@ public partial class bitvavo : Exchange
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
-        object isFiat = this.inArray(code, fiatCurrencies);
+        bool isFiat = this.inArray(code, fiatCurrencies);
         object networks = new Dictionary<string, object>() {};
         object networksArray = this.safeList(rawCurrency, "networks", new List<object>() {});
-        object deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
-        object withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
-        object active = isTrue(deposit) && isTrue(withdrawal);
+        bool deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
+        bool withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        bool active = isTrue(deposit) && isTrue(withdrawal);
         object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         object precision = this.safeString(rawCurrency, "decimals", "8");
         object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
@@ -1655,8 +1655,8 @@ public partial class bitvavo : Exchange
             { "side", side },
             { "orderType", type },
         };
-        object isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
-        object isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        bool isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
+        bool isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
         object timeInForce = this.safeString(parameters, "timeInForce");
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
@@ -1690,8 +1690,8 @@ public partial class bitvavo : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        object isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
-        object isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
+        bool isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        bool isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
         if (isTrue(isStopLoss))
         {
             if (isTrue(!isEqual(stopLossPrice, null)))
@@ -2563,7 +2563,7 @@ public partial class bitvavo : Exchange
         object type = this.parseLedgerEntryType(rawType);
         object currencyId = this.safeString(item, "receivedCurrency");
         object amount = this.safeString(item, "receivedAmount");
-        object direction = "in";
+        string direction = "in";
         if (isTrue(isEqual(amount, null)))
         {
             currencyId = this.safeString(item, "sentCurrency");
@@ -2979,7 +2979,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
-        object getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
+        bool getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
         if (isTrue(getOrDelete))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
@@ -2999,9 +2999,9 @@ public partial class bitvavo : Exchange
                     payload = body;
                 }
             }
-            object timestamp = ((object)this.milliseconds()).ToString();
+            string timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },

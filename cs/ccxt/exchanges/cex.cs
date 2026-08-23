@@ -402,8 +402,8 @@ public partial class cex : Exchange
         object responses = await promiseAll(promises);
         object dataCurrencies = this.safeList(getValue(responses, 0), "data", new List<object>() {});
         object dataNetworks = this.safeDict(getValue(responses, 1), "data", new Dictionary<string, object>() {});
-        object currenciesIndexed = this.indexBy(dataCurrencies, "currency");
-        object data = this.deepExtend(currenciesIndexed, dataNetworks);
+        Dictionary<string, object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
+        Dictionary<string, object> data = this.deepExtend(currenciesIndexed, dataNetworks);
         return this.parseCurrencies(this.toArray(data));
     }
 
@@ -415,14 +415,14 @@ public partial class cex : Exchange
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
         {
             object networkId = getValue(keys, j);
             object rawNetwork = getValue(rawNetworks, networkId);
             object networkCode = this.networkIdToCode(networkId, code);
-            object deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
-            object withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
+            bool deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
+            bool withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -958,7 +958,7 @@ public partial class cex : Exchange
     {
         useKeyAsId ??= false;
         object result = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1108,7 +1108,7 @@ public partial class cex : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object keys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1147,7 +1147,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         object request = new Dictionary<string, object>() {};
-        object isClosedOrders = (isEqual(status, "closed"));
+        bool isClosedOrders = (isEqual(status, "closed"));
         if (isTrue(isClosedOrders))
         {
             ((IDictionary<string,object>)request)["archived"] = true;
@@ -1847,7 +1847,7 @@ public partial class cex : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object fromMain = (isEqual(fromAccount, ""));
+        bool fromMain = (isEqual(fromAccount, ""));
         object targetAccount = ((bool) isTrue(fromMain)) ? toAccount : fromAccount;
         object guid = this.safeString(parameters, "guid", this.uuid());
         object request = new Dictionary<string, object>() {
@@ -2038,10 +2038,10 @@ public partial class cex : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object seconds = ((object)this.seconds()).ToString();
+            string seconds = ((object)this.seconds()).ToString();
             body = this.json(query);
             object auth = add(add(path, seconds), body);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-AGGR-KEY", this.apiKey },

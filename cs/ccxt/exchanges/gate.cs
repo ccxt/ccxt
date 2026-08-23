@@ -1829,11 +1829,11 @@ public partial class gate : Exchange
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
-        object quote = "USDT";
+        string quote = "USDT";
         object settle = quote;
-        object optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-        object marketIdBase = ((string)symbol).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> marketIdBase = ((string)symbol).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
         object expiry = this.safeString(optionParts, 1);
         if (isTrue(isGreaterThan(getIndexOf(symbol, "/"), -1)))
@@ -1896,7 +1896,7 @@ public partial class gate : Exchange
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
+        bool isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue((isGreaterThan(getIndexOf(marketId, "-C"), -1))) || isTrue((isGreaterThan(getIndexOf(marketId, "-P"), -1)))));
         if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
@@ -1962,7 +1962,7 @@ public partial class gate : Exchange
         var marginResponsespotMarketsResponseVariable = await promiseAll(new List<object>() {marginPromise, spotMarketsPromise});
         var marginResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[0];
         var spotMarketsResponse = ((IList<object>) marginResponsespotMarketsResponseVariable)[1];
-        object marginMarkets = this.indexBy(marginResponse, "id");
+        Dictionary<string, object> marginMarkets = this.indexBy(marginResponse, "id");
         //
         //  Spot
         //
@@ -2007,7 +2007,7 @@ public partial class gate : Exchange
             object spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             object id = this.safeString(spotMarket, "id");
             object marginMarket = this.safeValue(marginMarkets, id);
-            object market = this.deepExtend(marginMarket, spotMarket);
+            Dictionary<string, object> market = this.deepExtend(marginMarket, spotMarket);
             var baseIdquoteIdVariable = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
             var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
@@ -2019,10 +2019,10 @@ public partial class gate : Exchange
             object tradeStatus = this.safeString(market, "trade_status");
             object marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
             object leverage = this.safeNumber(market, "leverage");
-            object margin = !isEqual(leverage, null);
+            bool margin = !isEqual(leverage, null);
             object buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
             object createdTs = ((bool) isTrue((!isEqual(buyStart, 0)))) ? buyStart : null;
-            object active = isTrue((isEqual(tradeStatus, "tradable"))) || isTrue((isTrue(margin) && isTrue((isEqual(marginStatus, 1)))));
+            bool active = isTrue((isEqual(tradeStatus, "tradable"))) || isTrue((isTrue(margin) && isTrue((isEqual(marginStatus, 1)))));
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -2236,7 +2236,7 @@ public partial class gate : Exchange
         //    }
         //
         object id = this.safeString(market, "name");
-        object parts = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
         object date = this.safeString(parts, 2);
@@ -2245,7 +2245,7 @@ public partial class gate : Exchange
         object settle = this.safeCurrencyCode(settleId);
         object expiry = this.safeTimestamp(market, "expire_time");
         object symbol = "";
-        object marketType = "swap";
+        string marketType = "swap";
         if (isTrue(!isEqual(date, null)))
         {
             symbol = add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), this.yymmdd(expiry, ""));
@@ -2260,7 +2260,7 @@ public partial class gate : Exchange
         object maxMultiplier = Precise.stringAdd("1", priceDeviate);
         object minPrice = Precise.stringMul(minMultiplier, markPrice);
         object maxPrice = Precise.stringMul(maxMultiplier, markPrice);
-        object isLinear = isEqual(quote, settle);
+        bool isLinear = isEqual(quote, settle);
         object contractSize = this.safeString(market, "quanto_multiplier");
         // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
         if (isTrue(isEqual(contractSize, "0")))
@@ -2329,7 +2329,7 @@ public partial class gate : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(underlyings)); postFixIncrement(ref i))
         {
             object underlying = getValue(underlyings, i);
-            object query = this.extend(new Dictionary<string, object>() {}, parameters);
+            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
             ((IDictionary<string,object>)query)["underlying"] = underlying;
             object response = await this.publicOptionsGetContracts(query);
             //
@@ -2374,7 +2374,7 @@ public partial class gate : Exchange
             {
                 object market = this.safeDict(response, j, new Dictionary<string, object>() {});
                 object id = this.safeString(market, "name");
-                object parts = ((string)((string)underlying)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                List<object> parts = ((string)((string)underlying)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                 object baseId = this.safeString(parts, 0);
                 object quoteId = this.safeString(parts, 1);
                 object bs = this.safeCurrencyCode(baseId);
@@ -2508,8 +2508,8 @@ public partial class gate : Exchange
             }
         } else
         {
-            object swap = isEqual(type, "swap");
-            object future = isEqual(type, "future");
+            bool swap = isEqual(type, "swap");
+            bool future = isEqual(type, "future");
             if (isTrue(isTrue(swap) || isTrue(future)))
             {
                 object defaultSettle = ((bool) isTrue(swap)) ? "usdt" : "btc";
@@ -3278,7 +3278,7 @@ public partial class gate : Exchange
                 withdrawFees = this.safeNumber(entry, "withdraw_fix");
             } else
             {
-                object networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
+                List<object> networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                 {
                     object networkId = getValue(networkIds, j);
@@ -3371,7 +3371,7 @@ public partial class gate : Exchange
         };
         if (isTrue(!isEqual(withdrawFixOnChains, null)))
         {
-            object chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
+            List<object> chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
             {
                 object chainKey = getValue(chainKeys, i);
@@ -3680,7 +3680,7 @@ public partial class gate : Exchange
         } else if (isTrue(getValue(market, "option")))
         {
             object marketId = getValue(market, "id");
-            object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, query));
         } else
@@ -3875,7 +3875,7 @@ public partial class gate : Exchange
         {
             this.checkRequiredArgument("fetchTickers", symbols, "symbols");
             object marketId = this.safeString(market, "id");
-            object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
             response = await this.publicOptionsGetTickers(this.extend(request, requestParams));
         } else
@@ -3979,7 +3979,7 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((string)add(this.id, " fetchBalance() not support this market type")) ;
         }
-        object contract = (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option"))));
+        bool contract = (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option"))));
         if (isTrue(contract))
         {
             response = new List<object>() {response};
@@ -4179,7 +4179,7 @@ public partial class gate : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object isolated = isTrue(isEqual(marginMode, "margin")) && isTrue(isEqual(type, "spot"));
+        bool isolated = isTrue(isEqual(marginMode, "margin")) && isTrue(isEqual(type, "spot"));
         object data = response;
         if (isTrue(inOp(data, "balances")))
         {
@@ -4187,7 +4187,7 @@ public partial class gate : Exchange
             object balances = this.safeValue(data, "balances", new List<object>() {});
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
-            object keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(keys, i);
@@ -4281,7 +4281,7 @@ public partial class gate : Exchange
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
             object distance = multiply((subtract(limit, 1)), duration);
             object toTimestamp = this.sum(getValue(request, "from"), distance);
-            object currentTimestamp = this.seconds();
+            Int64 currentTimestamp = this.seconds();
             object to = mathMin(toTimestamp, currentTimestamp);
             if (isTrue(!isEqual(until, null)))
             {
@@ -4301,8 +4301,8 @@ public partial class gate : Exchange
         object response = new List<object>() {};
         if (isTrue(getValue(market, "contract")))
         {
-            object isMark = (isEqual(price, "mark"));
-            object isIndex = (isEqual(price, "index"));
+            bool isMark = (isEqual(price, "mark"));
+            bool isIndex = (isEqual(price, "index"));
             if (isTrue(isTrue(isMark) || isTrue(isIndex)))
             {
                 ((IDictionary<string,object>)request)["contract"] = add(add(price, "_"), getValue(market, "id"));
@@ -4687,7 +4687,7 @@ public partial class gate : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
+        bool contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
         if (isTrue(contract))
         {
             var requestparametersVariable = this.prepareRequest(market, type, parameters);
@@ -5332,10 +5332,10 @@ public partial class gate : Exchange
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-        object isStopLossOrder = !isEqual(stopLossPrice, null);
-        object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
-        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
+        bool isStopLossOrder = !isEqual(stopLossPrice, null);
+        bool isTakeProfitOrder = !isEqual(takeProfitPrice, null);
+        bool isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        bool nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
         if (isTrue(isTrue(getValue(market, "spot")) || isTrue(getValue(market, "margin"))))
@@ -5441,7 +5441,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         object ordersRequests = new List<object>() {};
         object orderSymbols = new List<object>() {};
-        object ordersLength = getArrayLength(orders);
+        int ordersLength = getArrayLength(orders);
         if (isTrue(isEqual(ordersLength, 0)))
         {
             throw new BadRequest ((string)add(this.id, " createOrders() requires at least one order")) ;
@@ -5460,7 +5460,7 @@ public partial class gate : Exchange
             object amount = this.safeValue(rawOrder, "amount");
             object price = this.safeValue(rawOrder, "price");
             object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
-            object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object triggerValue = this.safeValueN(orderParams, new List<object>() {"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"});
             if (isTrue(!isEqual(triggerValue, null)))
             {
@@ -5528,9 +5528,9 @@ public partial class gate : Exchange
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-        object isStopLossOrder = !isEqual(stopLossPrice, null);
-        object isTakeProfitOrder = !isEqual(takeProfitPrice, null);
-        object isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
+        bool isStopLossOrder = !isEqual(stopLossPrice, null);
+        bool isTakeProfitOrder = !isEqual(takeProfitPrice, null);
+        bool isTpsl = isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder);
         if (isTrue(isTrue(isStopLossOrder) && isTrue(isTakeProfitOrder)))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
@@ -5550,8 +5550,8 @@ public partial class gate : Exchange
         // this is because the other params will get extended into the request
         object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId"});
-        object isLimitOrder = (isEqual(type, "limit"));
-        object isMarketOrder = (isEqual(type, "market"));
+        bool isLimitOrder = (isEqual(type, "limit"));
+        bool isMarketOrder = (isEqual(type, "market"));
         if (isTrue(isTrue(isLimitOrder) && isTrue(isEqual(price, null))))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " createOrder () requires a price argument for "), type), " orders")) ;
@@ -5589,7 +5589,7 @@ public partial class gate : Exchange
             }
         }
         object request = null;
-        object nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
+        bool nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         if (isTrue(nonTriggerOrder))
         {
             if (isTrue(contract))
@@ -5862,7 +5862,7 @@ public partial class gate : Exchange
         {
             account = "unified";
         }
-        object isLimitOrder = (isEqual(type, "limit"));
+        bool isLimitOrder = (isEqual(type, "limit"));
         if (isTrue(isEqual(account, "spot")))
         {
             if (!isTrue(isLimitOrder))
@@ -6213,7 +6213,7 @@ public partial class gate : Exchange
         {
             timeInForce = "PO";
         }
-        object postOnly = (isEqual(timeInForce, "PO"));
+        bool postOnly = (isEqual(timeInForce, "PO"));
         amount = this.safeString2(order, "amount", "size", amount);
         side = this.safeString(order, "side", side);
         price = this.safeString(order, "price", price);
@@ -6228,7 +6228,7 @@ public partial class gate : Exchange
         }
         if (isTrue(contract))
         {
-            object isMarketOrder = isTrue(Precise.stringEquals(price, "0")) && isTrue((isEqual(timeInForce, "IOC")));
+            bool isMarketOrder = isTrue(Precise.stringEquals(price, "0")) && isTrue((isEqual(timeInForce, "IOC")));
             type = ((bool) isTrue(isMarketOrder)) ? "market" : "limit";
             side = ((bool) isTrue(Precise.stringGt(amount, "0"))) ? "buy" : "sell";
         }
@@ -6267,7 +6267,7 @@ public partial class gate : Exchange
                 }
             }
         }
-        object marketType = "contract";
+        string marketType = "contract";
         if (isTrue(isTrue((inOp(order, "currency_pair"))) || isTrue((inOp(order, "market")))))
         {
             marketType = "spot";
@@ -6299,8 +6299,8 @@ public partial class gate : Exchange
                 { "cost", Precise.stringNeg(rebate) },
             });
         }
-        object numFeeCurrencies = getArrayLength(fees);
-        object multipleFeeCurrencies = isGreaterThan(numFeeCurrencies, 1);
+        int numFeeCurrencies = getArrayLength(fees);
+        bool multipleFeeCurrencies = isGreaterThan(numFeeCurrencies, 1);
         object status = this.parseOrderStatus(rawStatus);
         object remaining = Precise.stringAbs(remainingString);
         // handle spot market buy
@@ -6388,7 +6388,7 @@ public partial class gate : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
+        bool contract = isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))) || isTrue((isEqual(type, "option")));
         var requestrequestParamsVariable = ((bool) isTrue(contract)) ? this.prepareRequest(market, type, query) : this.spotOrderPrepareRequest(market, trigger, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
@@ -6588,7 +6588,7 @@ public partial class gate : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
+        bool spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
         object request = new Dictionary<string, object>() {};
         var requestparametersVariable = ((bool) isTrue(spot)) ? this.multiOrderSpotPrepareRequest(market, trigger, parameters) : this.prepareRequest(market, type, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -6650,9 +6650,9 @@ public partial class gate : Exchange
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        object spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
-        object openStatus = (isEqual(status, "open"));
-        object openSpotOrders = isTrue(isTrue(spot) && isTrue(openStatus)) && !isTrue(trigger);
+        bool spot = isTrue((isEqual(type, "spot"))) || isTrue((isEqual(type, "margin")));
+        bool openStatus = (isEqual(status, "open"));
+        bool openSpotOrders = isTrue(isTrue(spot) && isTrue(openStatus)) && !isTrue(trigger);
         object response = null;
         if (isTrue(spot))
         {
@@ -7042,7 +7042,7 @@ public partial class gate : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
+        bool isSpot = (isEqual(type, "spot"));
         if (isTrue(isTrue(isSpot) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders requires a symbol argument for spot markets")) ;
@@ -7589,7 +7589,7 @@ public partial class gate : Exchange
         var requestparametersVariable = this.prepareRequest(market, getValue(market, "type"), parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object extendedRequest = this.extend(request, parameters);
+        Dictionary<string, object> extendedRequest = this.extend(request, parameters);
         object response = null;
         if (isTrue(getValue(market, "swap")))
         {
@@ -7688,7 +7688,7 @@ public partial class gate : Exchange
         symbols = this.marketSymbols(symbols, null, true, true, true);
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isGreaterThan(symbolsLength, 0)))
             {
                 market = this.market(getValue(symbols, 0));
@@ -7708,7 +7708,7 @@ public partial class gate : Exchange
             if (isTrue(!isEqual(symbols, null)))
             {
                 object marketId = this.safeString(market, "id");
-                object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
             }
         } else
@@ -8383,7 +8383,7 @@ public partial class gate : Exchange
         object authentication = getValue(api, 0); // public, private
         object type = getValue(api, 1); // spot, margin, future, delivery
         object query = this.omit(parameters, this.extractParams(path));
-        object containsSettle = isGreaterThan(getIndexOf(path, "settle"), -1);
+        bool containsSettle = isGreaterThan(getIndexOf(path, "settle"), -1);
         if (isTrue(isTrue(containsSettle) && isTrue(((string)path).EndsWith(((string)"batch_cancel_orders")))))
         {
             // special case where we need to extract the settle from the path
@@ -8433,10 +8433,10 @@ public partial class gate : Exchange
             this.checkRequiredCredentials();
             object queryString = "";
             object rawQueryString = "";
-            object requiresURLEncoding = false;
+            bool requiresURLEncoding = false;
             if (isTrue(isTrue((isTrue((isEqual(type, "futures"))) || isTrue((isEqual(type, "delivery"))))) && isTrue(isEqual(method, "POST"))))
             {
-                object pathParts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+                List<object> pathParts = ((string)path).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
                 object secondPart = ((string)this.safeString(pathParts, 1, ""));
                 requiresURLEncoding = isTrue((isGreaterThanOrEqual(getIndexOf(secondPart, "dual"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(secondPart, "positions"), 0)));
             }
@@ -8473,12 +8473,12 @@ public partial class gate : Exchange
             object bodySignature = this.hash(this.encode(bodyPayload), sha512);
             object nonce = this.nonce();
             object timestamp = this.parseToInt(divide(nonce, 1000));
-            object timestampString = ((object)timestamp).ToString();
+            string timestampString = ((object)timestamp).ToString();
             object signaturePath = add(add("/api/", this.version), entirePath);
             object payloadArray = new List<object> {((string)method).ToUpper(), signaturePath, rawQueryString, bodySignature, timestampString};
             // eslint-disable-next-line quotes
-            object payload = String.Join("\n", ((IList<object>)payloadArray).ToArray());
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            string payload = String.Join("\n", ((IList<object>)payloadArray).ToArray());
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "KEY", this.apiKey },
                 { "Timestamp", timestampString },
@@ -8735,7 +8735,7 @@ public partial class gate : Exchange
             throw new NotSupported ((string)add(this.id, " fetchSettlementHistory() supports option markets only")) ;
         }
         object marketId = getValue(market, "id");
-        object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object request = new Dictionary<string, object>() {
             { "underlying", this.safeString(optionParts, 0) },
         };
@@ -8794,8 +8794,8 @@ public partial class gate : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isOption = isEqual(type, "option");
-        object isFuture = isEqual(type, "future");
+        bool isOption = isEqual(type, "option");
+        bool isFuture = isEqual(type, "future");
         if (isTrue(!isTrue(isOption) && !isTrue(isFuture)))
         {
             throw new NotSupported ((string)add(this.id, " fetchMySettlementHistory() supports option and future markets only")) ;
@@ -8842,7 +8842,7 @@ public partial class gate : Exchange
             } else
             {
                 object marketId = getValue(market, "id");
-                object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+                List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
             }
             //
@@ -9399,7 +9399,7 @@ public partial class gate : Exchange
         } else if (isTrue(getValue(market, "option")))
         {
             object marketId = getValue(market, "id");
-            object optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> optionParts = ((string)((string)marketId)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             ((IDictionary<string,object>)request)["underlying"] = this.safeString(optionParts, 0);
         }
         if (isTrue(getValue(market, "swap")))
@@ -9745,7 +9745,7 @@ public partial class gate : Exchange
         object response = null;
         object isUnified = this.safeBool(parameters, "unified");
         parameters = this.omit(parameters, "unified");
-        object marketIdRequest = "id";
+        string marketIdRequest = "id";
         if (isTrue(isUnified))
         {
             marketIdRequest = "currency_pair";
@@ -9996,7 +9996,7 @@ public partial class gate : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 market = this.market(getValue(symbols, 0));

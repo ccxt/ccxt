@@ -291,7 +291,7 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -394,7 +394,7 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -512,12 +512,12 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object secondPart = this.safeString(parts, 1, "");
-        object timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
+        string timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
         object timeframe = this.findTimeframe(timeframeId);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -583,8 +583,8 @@ public partial class grvt : ccxt.grvt
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
-        object isSnapshot = isEqual(channel, "v1.book.s");
-        object symbolsLength = getArrayLength(symbols);
+        bool isSnapshot = isEqual(channel, "v1.book.s");
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -649,7 +649,7 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -661,8 +661,8 @@ public partial class grvt : ccxt.grvt
         object orderbook = getValue(this.orderbooks, symbol);
         object sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         object stream = this.safeString(message, "stream");
-        object isSnapshotChannel = isEqual(stream, "v1.book.s");
-        object isSnapshotMessage = isLessThanOrEqual(sequenceNumber, 0);
+        bool isSnapshotChannel = isEqual(stream, "v1.book.s");
+        bool isSnapshotMessage = isLessThanOrEqual(sequenceNumber, 0);
         if (isTrue(isTrue(isSnapshotChannel) || isTrue(isSnapshotMessage)))
         {
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -1063,7 +1063,7 @@ public partial class grvt : ccxt.grvt
         object errorCode = this.safeString(error, "code");
         if (isTrue(!isEqual(errorCode, null)))
         {
-            object body = this.json(response);
+            string body = this.json(response);
             object feedback = add(add(this.id, " "), body);
             object message = this.safeString(error, "message");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
