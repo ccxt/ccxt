@@ -1477,10 +1477,10 @@ export default class paradex extends Exchange {
         const average = this.omitZero(this.safeString(order, 'avg_fill_price'));
         const remaining = this.omitZero(this.safeString(order, 'remaining_size'));
         const lastUpdateTimestamp = this.safeInteger(order, 'last_updated_at');
-        const flags = this.safeList(order, 'flags', []);
+        const flags = this.safeList(order, 'flags');
         let reduceOnly = undefined;
-        if ('REDUCE_ONLY' in flags) {
-            reduceOnly = true;
+        if (flags !== undefined) {
+            reduceOnly = this.inArray('REDUCE_ONLY', flags);
         }
         return this.safeOrder({
             'id': orderId,
