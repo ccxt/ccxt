@@ -10,6 +10,8 @@ import { default as _Exchange } from '../../base/PredictionExchange.js';
 
 interface Exchange {
     sxbetPublicGetMetadata (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetMetadataObv3 (params?: {}): Promise<Dict | List>;
+    sxbetPublicGetOrderbookV3Snapshot (params?: {}): Promise<Dict | List>;
     sxbetPublicGetMarketsActive (params?: {}): Promise<Dict | List>;
     sxbetPublicGetMarketsFind (params?: {}): Promise<Dict | List>;
     sxbetPublicGetMarketsPopular (params?: {}): Promise<Dict | List>;
@@ -27,6 +29,22 @@ interface Exchange {
     sxbetPublicGetTeams (params?: {}): Promise<Dict | List>;
     sxbetPublicGetLiveScores (params?: {}): Promise<Dict | List>;
     sxbetPrivateGetUserRealtimeTokenApiKey (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserRealtimeTokenV3ApiKey (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserProxy (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserTransferToProxyPending (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetUserTransferToProxyStatus (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetOrdersV3 (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetOrdersV3OrderId (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetTradesV3 (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetFillsV3 (params?: {}): Promise<Dict | List>;
+    sxbetPrivateGetPositionsV3 (params?: {}): Promise<Dict | List>;
+    sxbetPrivateDeleteOrdersV3 (params?: {}): Promise<Dict | List>;
+    sxbetPrivateDeleteOrdersV3Event (params?: {}): Promise<Dict | List>;
+    sxbetPrivateDeleteOrdersV3All (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostOrdersV3 (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostUserDeployProxy (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostUserTransferToProxy (params?: {}): Promise<Dict | List>;
+    sxbetPrivatePostHeartbeatV3 (params?: {}): Promise<Dict | List>;
     sxbetPrivatePostOrdersNew (params?: {}): Promise<Dict | List>;
     sxbetPrivatePostOrdersFillV2 (params?: {}): Promise<Dict | List>;
     sxbetPrivatePostOrdersCancelV2 (params?: {}): Promise<Dict | List>;
