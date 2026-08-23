@@ -410,15 +410,6 @@ const GENERATED_TESTS_FOLDER = './go/tests';
 const goComments: { [key: string]: { [key: string]: string}} = {};
 
 const goTypeOptions: dict = {};
-// Go type of every field emitted into an option struct of THIS stage, keyed by
-// method capName → { FieldName: goType } (the type WITHOUT the leading `*`).
-// Single source of truth shared by createOptionsStruct (which writes it while emitting
-// the struct) and getDefaultParamsWrappers (which reads it to declare the wrapper's
-// optional local with the exact same type). Recorded only for structs that are DECLARED
-// in the current stage/package; aliased structs (pro, prediction re-exports) have no
-// entry and the wrapper falls back to `var x = opts.X` type inference, which yields the
-// identical pointer type without having to re-derive (and possibly mis-derive) it.
-const goOptionFieldTypes: { [key: string]: { [field: string]: string } } = {};
 // names of the options structs that live in the base ccxt package; used by the
 // prediction pass to decide between aliasing (type X = ccxt.X) and emitting a local struct
 const baseGoTypeOptionNames = new Set<string>();
@@ -1604,7 +1595,6 @@ class NewTranspiler {
 
         const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
         const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
-        const i2 = this.inden(2);
         const i1 = this.inden(1);
         const structName = capitalize(name) + 'Options';
         if (hasOptionalParams && !isOnlyParams) {
@@ -1618,28 +1608,18 @@ class NewTranspiler {
             ].map(e => e!='' ? i1 + e : e);
             res = res.concat(initOptions);
         }
-        if (!isOnlyParams) {
-            rawParameters.forEach(param => {
-
-                const isOptional =  param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}';
-                // const isOptional =  param.optional || param.initializer !== undefined;
-                if (isOptional) {
-                    const capName = capitalize(param.name);
-                    // Emit the local with the SAME Go pointer type the option struct field has,
-                    // assigned straight from the field (no deref, no `any`). When the struct for
-                    // this method was declared in this stage we know the exact field type and
-                    // spell it out; otherwise (aliased struct) we let Go infer it from the field,
-                    // which yields the identical pointer type.
-                    const fieldType = goOptionFieldTypes[structName] && goOptionFieldTypes[structName][capName];
-                    const typeDecl = fieldType ? ` *${fieldType}` : '';
-                    let decl = `
-    var ${this.safeGoName(param.name)}${typeDecl} = opts.${capName}`;
-                res.push(decl);
-                }
-            });
-
-        }
         return res.join("\n");
+    }
+
+    // True when the wrapper reads this parameter off the options struct, so the
+    // call site can hand `opts.<Field>` over directly instead of via a local.
+    isOptionStructParam(rawParameters: any[], param: any) {
+        const hasOptionalParams = rawParameters.some(p => p.optional || p.initializer !== undefined || p.initializer === 'undefined');
+        const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
+        if (!hasOptionalParams || isOnlyParams) {
+            return false;
+        }
+        return !!(param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}');
     }
 
     inden(level: number) {
@@ -1720,13 +1700,11 @@ class NewTranspiler {
                 }),
             ].join('\n');
         } else {
-            const fieldTypes: { [field: string]: string } = {};
             goTypeOptions[capName] = [
                 `type ${optionsStruct} struct {`,
                 ...optionalParams.map((param) => {
                     const fieldName = capitalize(param.name);
                     const fieldType = this.optionStructFieldGoType(param, qualify) as string;
-                    fieldTypes[fieldName] = fieldType;
                     return `${i1}${fieldName} *${fieldType}`;
                 }),
                 '}',
@@ -1755,7 +1733,6 @@ class NewTranspiler {
                 //     }
                 // }
             ].join('\n');
-            goOptionFieldTypes[options] = fieldTypes;
         }
     }
 
@@ -1811,7 +1788,13 @@ class NewTranspiler {
 
             if (methodName === 'createOrders' && param.name === 'orders') {
                 // prediction venues batch PredictionOrderRequest (outcome) not OrderRequest (symbol)
-                parsedParam = this.isPrediction ? 'ConvertPredictionOrderRequestListToArray(orders)' : 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
+                return this.isPrediction ? 'ConvertPredictionOrderRequestListToArray(orders)' : 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
+            }
+
+            // optional params live on the options struct: hand the field straight to the
+            // core call instead of hopping through an identically-typed local
+            if (this.isOptionStructParam(methodWrapper.parameters, param)) {
+                return `opts.${capitalize(param.name)}`;
             }
 
             return parsedParam;
@@ -3846,9 +3829,6 @@ func (this *${className}) Init(userConfig map[string]any) {
 function resetPerStageAccumulators () {
     for (const k of Object.keys (goTypeOptions)) {
         delete goTypeOptions[k];
-    }
-    for (const k of Object.keys (goOptionFieldTypes)) {
-        delete goOptionFieldTypes[k];
     }
     baseGoTypeOptionNames.clear ();
     predictionLocalOptionStructs.clear ();
