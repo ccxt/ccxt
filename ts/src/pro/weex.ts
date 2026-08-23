@@ -534,8 +534,10 @@ export default class weex extends weexRest {
         const symbol = (market === undefined) ? undefined : market['symbol'];
         const isBuyerMaker = this.safeBool (trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let side: Str = undefined;
+        let takerOrMaker: Str = undefined;
         if (isBuyerMaker !== undefined) {
             side = isBuyerMaker ? 'sell' : 'buy';
+            takerOrMaker = 'taker'; // a public trade is reported from the aggressor's side, same as parseTrade
         }
         return this.safeTrade ({
             'info': trade,
@@ -546,7 +548,7 @@ export default class weex extends weexRest {
             'order': undefined,
             'type': undefined,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': this.safeString (trade, 'v'),

@@ -2504,7 +2504,7 @@
                 "precision": "not provided if currency has no networks"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "exchangeInfo enableTrade marks ~3400 spot markets active but only ~1000 have tickers",
+                "checkActiveSymbols": "exchangeInfo enableTrade marks 2370 spot markets active but fetchTickers returns 1821 symbols, 549 active markets have no ticker (measured 2026-08-23)",
                 "maxIncrease": "openPrice equals lastPrice on illiquid markets while priceChange is non-zero, so change can exceed the price"
             },
             "ticker": {
