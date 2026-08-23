@@ -487,7 +487,8 @@ public partial class testMainClass : BaseTest
     {
         // ast-transpiler uses "json()" method in transpiled C# content,
         // which should pre-exist in the language-specific helpers for project
-        public object json(object a)
+        // string (not object) so generated `string x = json(...)` locals compile
+        public string json(object a)
         {
             return Exchange.Json(a);
         }
