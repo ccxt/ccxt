@@ -115,6 +115,8 @@ public partial class Exchange
     public bool Profile { get; set; } = false;
     public double ProfileJsonMs { get; set; } = 0;
 
+    public double ProfileWireMs { get; set; } = 0;
+
     private object lastReqBody = null;
     public object last_request_body
     {

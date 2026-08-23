@@ -21,6 +21,7 @@ use React\Async;
 $EXCHANGE = getenv('BENCH_EXCHANGE') ?: 'coinbase';
 $SYMBOL = getenv('BENCH_SYMBOL') ?: 'BTC/USD';
 $REST_ITERS = (int)(getenv('BENCH_REST_ITERS') ?: 60);
+$WARMUP = (int)(getenv('BENCH_REST_WARMUP') ?: 5);
 $WS_UPDATES = (int)(getenv('BENCH_WS_UPDATES') ?: 200);
 $SLEEP_MS = (int)(getenv('BENCH_SLEEP_MS') ?: 250);
 $LOAD_SECONDS = (int)(getenv('BENCH_LOAD_SECONDS') ?: 8);
@@ -119,13 +120,15 @@ function traced_exchange($exchange_id, $config) {
     return new \BenchTraced($config);
 }
 
-$bench_rest = function() use ($EXCHANGE, $SYMBOL, $REST_ITERS, $SLEEP_MS) {
+$bench_rest = function() use ($EXCHANGE, $SYMBOL, $REST_ITERS, $SLEEP_MS, $WARMUP) {
     $ex = traced_exchange($EXCHANGE, array('enableRateLimit' => false));
     $w0 = now_ms();
     Async\await($ex->load_markets());
     $load_markets_ms = now_ms() - $w0;
-    // warmup: prime the TCP/TLS connection so the first measured call is not cold
-    Async\await($ex->fetch_order_book($SYMBOL));
+    // warmup: prime the TCP/TLS connection and let tiered JITs settle before we measure
+    for ($w = 0; $w < $WARMUP; $w++) {
+        Async\await($ex->fetch_order_book($SYMBOL));
+    }
     $c0 = cpu_secs();
     $latency = array();
     $network = array();

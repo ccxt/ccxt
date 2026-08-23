@@ -231,8 +231,20 @@ public partial class Exchange
             if (method == "GET")
             {
                 request.Method = HttpMethod.Get;
-                response = await httpClient.SendAsync(request);
-                result = await response.Content.ReadAsStringAsync();
+                if (this.Profile)
+                {
+                    // wire-only window: send + body read, excluding request construction,
+                    // header assembly, JSON decode and the rest of the fetch() wrapper
+                    var __wire = System.Diagnostics.Stopwatch.StartNew();
+                    response = await httpClient.SendAsync(request);
+                    result = await response.Content.ReadAsStringAsync();
+                    this.ProfileWireMs += __wire.Elapsed.TotalMilliseconds;
+                }
+                else
+                {
+                    response = await httpClient.SendAsync(request);
+                    result = await response.Content.ReadAsStringAsync();
+                }
             }
             else
             {

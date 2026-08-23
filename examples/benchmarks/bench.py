@@ -26,6 +26,7 @@ import ccxt.pro as ccxtpro  # noqa: E402
 EXCHANGE = os.environ.get('BENCH_EXCHANGE', 'coinbase')
 SYMBOL = os.environ.get('BENCH_SYMBOL', 'BTC/USD')
 REST_ITERS = int(os.environ.get('BENCH_REST_ITERS', '60'))
+WARMUP = int(os.environ.get('BENCH_REST_WARMUP', '5'))
 WS_UPDATES = int(os.environ.get('BENCH_WS_UPDATES', '200'))
 SLEEP_MS = int(os.environ.get('BENCH_SLEEP_MS', '250'))
 LOAD_SECONDS = int(os.environ.get('BENCH_LOAD_SECONDS', '8'))
@@ -109,8 +110,9 @@ async def bench_rest():
     w0 = now_ms()
     await ex.load_markets()
     load_markets_ms = now_ms() - w0
-    # warmup: prime the TCP/TLS connection so the first measured call is not cold
-    await ex.fetch_order_book(SYMBOL)
+    # warmup: prime the TCP/TLS connection and let tiered JITs settle before we measure
+    for _ in range(WARMUP):
+        await ex.fetch_order_book(SYMBOL)
     r0 = resource.getrusage(resource.RUSAGE_SELF)
     latency = []
     network = []

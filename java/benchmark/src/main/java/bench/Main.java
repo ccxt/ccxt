@@ -66,15 +66,18 @@ public class Main {
     static class TracedCoinbase extends Coinbase {
         double httpMs;
         double jsonMs;
+        double wireMs;
 
         @Override
         public CompletableFuture<Object> fetch(Object url2, Object method2, Object headers2, Object body2) {
             this.profile = true;
             this.profileJsonMs = 0;
+            this.profileWireMs = 0;
             long t0 = System.nanoTime();
             return super.fetch(url2, method2, headers2, body2).thenApply(r -> {
                 this.httpMs = (System.nanoTime() - t0) / 1e6;
                 this.jsonMs = this.profileJsonMs;   // decode timed inside the HTTP layer
+                this.wireMs = this.profileWireMs;   // send + body read only
                 return r;
             });
         }
@@ -101,12 +104,14 @@ public class Main {
         TracedCoinbase ex = new TracedCoinbase();
         ex.enableRateLimit = false;   // match the other harnesses: measure work, not throttle sleep
         ex.loadMarkets().get();
-        for (int w = 0; w < 3; w++) ex.fetchOrderBook((Object) symbol).get();  // warmup: connection + JIT
+        int warmup = envInt("BENCH_REST_WARMUP", 5);
+        for (int w = 0; w < warmup; w++) ex.fetchOrderBook((Object) symbol).get();  // warmup: connection + JIT
 
         List<Double> latency = new ArrayList<>();
         List<Double> network = new ArrayList<>();
         List<Double> processing = new ArrayList<>();
         List<Double> jsonDecode = new ArrayList<>();
+        List<Double> wireSpan = new ArrayList<>();
         OperatingSystemMXBean os = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         long cpu0 = os.getProcessCpuTime();
 
@@ -119,6 +124,7 @@ public class Main {
             network.add(wire);
             processing.add(total - wire);
             jsonDecode.add(ex.jsonMs);
+            wireSpan.add(ex.wireMs);
             Thread.sleep(sleepMs);
         }
         double cpu = (os.getProcessCpuTime() - cpu0) / 1e9;
@@ -134,6 +140,7 @@ public class Main {
         r.append("\"networkMs\":").append(stats(network)).append(',');
         r.append("\"processingMs\":").append(stats(processing)).append(',');
         r.append("\"jsonDecodeMs\":").append(stats(jsonDecode)).append(',');
+        r.append("\"wireMs\":").append(stats(wireSpan)).append(',');
         r.append("\"cpuUserSec\":").append(round(cpu, 3)).append(',');
         r.append("\"cpuSystemSec\":0,");
         r.append("\"peakRssMb\":").append(round(statusKb("VmHWM") / 1024.0, 1));

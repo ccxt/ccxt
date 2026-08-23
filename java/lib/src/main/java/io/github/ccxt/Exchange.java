@@ -65,6 +65,7 @@ public class Exchange {
     // opt-in benchmark instrumentation (see examples/benchmarks); inert unless profile is set
     public boolean profile = false;
     public double profileJsonMs = 0;
+    public double profileWireMs = 0;
     public volatile long lastRestRequestTimestamp = 0L;
     public String url = "";
     public String hostname = "";
@@ -2161,7 +2162,16 @@ public class Exchange {
         final Map<String, Object> finalHeaders = headers;
 
         // Use sendAsync for non-blocking I/O — no thread is blocked during network I/O
+        final long __wire0 = this.profile ? System.nanoTime() : 0L;
         return this.httpClient.sendAsync(request, java.net.http.HttpResponse.BodyHandlers.ofByteArray())
+                .thenApply(response -> {
+                    // wire-only window: send + body read, excluding request construction,
+                    // header assembly, JSON decode and the rest of the fetch() wrapper
+                    if (this.profile) {
+                        this.profileWireMs += (System.nanoTime() - __wire0) / 1e6;
+                    }
+                    return response;
+                })
                 .thenApply(response -> processResponse(response, finalUrl, finalMethod, finalHeaders, body))
                 .exceptionally(e -> {
                     throw mapNetworkException(e, finalMethod, finalUrl);

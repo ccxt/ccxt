@@ -13,7 +13,7 @@
 //
 // Usage:  node bench.mjs rest   |   node bench.mjs ws
 // Config via env: BENCH_EXCHANGE, BENCH_SYMBOL, BENCH_REST_ITERS,
-//                 BENCH_WS_UPDATES, BENCH_SLEEP_MS
+//                 BENCH_REST_WARMUP, BENCH_WS_UPDATES, BENCH_SLEEP_MS
 
 import fs from 'fs';
 import ccxt, { version } from '../../js/ccxt.js';
@@ -21,6 +21,7 @@ import ccxt, { version } from '../../js/ccxt.js';
 const EXCHANGE = process.env.BENCH_EXCHANGE || 'coinbase';
 const SYMBOL = process.env.BENCH_SYMBOL || 'BTC/USD';
 const REST_ITERS = parseInt (process.env.BENCH_REST_ITERS || '60');
+const WARMUP = parseInt (process.env.BENCH_REST_WARMUP || '5');
 const WS_UPDATES = parseInt (process.env.BENCH_WS_UPDATES || '200');
 const SLEEP_MS = parseInt (process.env.BENCH_SLEEP_MS || '250');
 const LOAD_SECONDS = parseInt (process.env.BENCH_LOAD_SECONDS || '8');
@@ -99,8 +100,8 @@ async function benchRest () {
     const w0 = now ();
     await ex.loadMarkets ();
     const loadMarketsMs = now () - w0;
-    // warmup: prime the TCP/TLS connection so the first measured call is not cold
-    await ex.fetchOrderBook (SYMBOL);
+    // warmup: prime the TCP/TLS connection and let tiered JITs settle before we measure
+    for (let w = 0; w < WARMUP; w++) { await ex.fetchOrderBook (SYMBOL); }
     const cpu0 = process.cpuUsage ();
     const latency = [];
     const network = [];

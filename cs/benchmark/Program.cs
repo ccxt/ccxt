@@ -24,15 +24,18 @@ namespace ccxtbench
     {
         public double HttpMs;
         public double JsonMs;
+        public double WireMs;
 
         public override async Task<object> fetch(object url2, object method2 = null, object headers2 = null, object body2 = null)
         {
             this.Profile = true;
             this.ProfileJsonMs = 0;
+            this.ProfileWireMs = 0;
             var sw = Stopwatch.StartNew();
             var r = await base.fetch(url2, method2, headers2, body2);
             HttpMs = sw.Elapsed.TotalMilliseconds;
             JsonMs = this.ProfileJsonMs;   // decode timed inside the HTTP layer
+            WireMs = this.ProfileWireMs;   // send + body read only
             return r;
         }
 
@@ -119,12 +122,14 @@ namespace ccxtbench
             var ex = new TracedCoinbase();
             ex.enableRateLimit = false;   // match the other harnesses: measure work, not throttle sleep
             await ex.LoadMarkets();
-            for (int w = 0; w < 3; w++) await ex.fetchOrderBook(symbol, null, null);  // warmup: connection + JIT
+            int warmup = EnvInt("BENCH_REST_WARMUP", 5);
+            for (int w = 0; w < warmup; w++) await ex.fetchOrderBook(symbol, null, null);  // warmup: connection + JIT
 
             var latency = new List<double>();
             var network = new List<double>();
             var processing = new List<double>();
             var jsonDecode = new List<double>();
+            var wireSpan = new List<double>();
             var proc = Process.GetCurrentProcess();
             var cpu0 = proc.TotalProcessorTime;
 
@@ -138,6 +143,7 @@ namespace ccxtbench
                 network.Add(wire);
                 processing.Add(total - wire);
                 jsonDecode.Add(ex.JsonMs);
+                wireSpan.Add(ex.WireMs);
                 await Task.Delay(sleepMs);
             }
             proc.Refresh();
@@ -154,6 +160,7 @@ namespace ccxtbench
             sb.Append("\"networkMs\":").Append(Stats(network)).Append(',');
             sb.Append("\"processingMs\":").Append(Stats(processing)).Append(',');
             sb.Append("\"jsonDecodeMs\":").Append(Stats(jsonDecode)).Append(',');
+            sb.Append("\"wireMs\":").Append(Stats(wireSpan)).Append(',');
             sb.Append("\"cpuUserSec\":").Append(N(Math.Round(cpu, 3))).Append(',');
             sb.Append("\"cpuSystemSec\":0,");
             sb.Append("\"peakRssMb\":").Append(N(Math.Round(PeakRssKb() / 1024.0, 1)));

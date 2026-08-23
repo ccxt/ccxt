@@ -210,6 +210,7 @@ func benchLoad(exchange, symbol string) {
 
 func benchRest(exchange, symbol string) {
 	iters := envInt("BENCH_REST_ITERS", 60)
+	warmup := envInt("BENCH_REST_WARMUP", 5)
 	sleepMs := envInt("BENCH_SLEEP_MS", 250)
 	// Go has no dynamic dispatch, so instead of subclassing we flip the base
 	// Exchange's opt-in Profile flag (added in go/v4/exchange_req.go): it records
@@ -221,8 +222,10 @@ func benchRest(exchange, symbol string) {
 	w0 := nowMs()
 	ex.LoadMarkets()
 	loadMarketsMs := nowMs() - w0
-	// warmup: prime the TCP/TLS connection so the first measured call is not cold
-	ex.FetchOrderBook(symbol)
+	// warmup: prime the TCP/TLS connection and let tiered JITs settle before we measure
+	for w := 0; w < warmup; w++ {
+		ex.FetchOrderBook(symbol)
+	}
 	u0, s0 := cpuSecs()
 	latency := []float64{}
 	network := []float64{}
