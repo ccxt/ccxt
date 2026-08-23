@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestLiquidation(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":         map[string]any{},
 		"symbol":       "ETH/BTC",
 		"contracts":    exchange.ParseNumber("1.234"),
@@ -18,7 +18,7 @@ func TestLiquidation(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		"datetime":     "2017-09-01T00:00:00",
 	}
 	// todo: atm, many exchanges fail, so temporarily decrease stict mode
-	var emptyAllowedFor any = []any{"timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"}
+	var emptyAllowedFor []any = []any{"timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry)
 	var logText any = LogTemplate(exchange, method, entry)

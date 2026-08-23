@@ -213,7 +213,6 @@ export default class binance extends binanceRest {
      * @returns {object} the raw stream subscription response
      */
     watchStockMarketStream(streams: string[], messageHashes: string[], params?: Dict): Promise<any>;
-    authenticateStock(params?: Dict): Promise<void>;
     /**
      * @method
      * @name binance#watchLiquidations
@@ -727,6 +726,7 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     getAccountTypeFromSubscriptions(subscriptions: string[]): string;
+    resolveAuthType(methodName: string, market?: Market, params?: Dict): [string, Str, Dict];
     getMarketType(method: any, market: any, params?: {}): string;
     /**
      * @method

@@ -16,6 +16,21 @@ class BaseCache extends Array {
     clear() {
         this.length = 0;
     }
+    // these caches subclass Array, so the receiver is not a pristine array and
+    // Array.prototype.shift / splice fall back to their generic paths; splice
+    // additionally runs ArraySpeciesCreate, which constructs a throw-away cache
+    // instance (running every defineProperty in the constructor) just to hold
+    // the one removed element. Sliding the tail down by hand stays on the fast
+    // path and allocates nothing.
+    removeAt(index) {
+        const last = this.length - 1;
+        const removed = this[index];
+        for (let i = index; i < last; i++) {
+            this[i] = this[i + 1];
+        }
+        this.length = last;
+        return removed;
+    }
 }
 class ArrayCache extends BaseCache {
     constructor(maxSize = undefined) {
@@ -92,9 +107,9 @@ class ArrayCache extends BaseCache {
         // the keyed subclasses find existing rows through the hashmap, so a clear ()
         // that only truncates the array leaves the hashmap claiming rows that are
         // gone - the next append then merges into an orphaned reference, and the
-        // findIndex below returns -1, so the row is silently lost. The update
-        // counters have to go too, or getLimit () keeps reporting updates for rows
-        // that no longer exist.
+        // move-to-end scan below finds no row, so the row is silently lost. The
+        // update counters have to go too, or getLimit () keeps reporting updates
+        // for rows that no longer exist.
         this.hashmap = {};
         this.newUpdatesBySymbol = {};
         this.seenUpdatesBySymbol = {};
@@ -106,7 +121,7 @@ class ArrayCache extends BaseCache {
     append(item) {
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length === this.maxSize)) {
-            this.shift();
+            this.removeAt(0);
         }
         this.push(item);
         if (this.clearAllUpdates) {
@@ -184,7 +199,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         else {
             this.hashmap[item[0]] = item;
             if (this.maxSize && (this.length === this.maxSize)) {
-                const deleteReference = this.shift();
+                const deleteReference = this.removeAt(0);
                 delete this.hashmap[deleteReference[0]];
             }
             this.push(item);
@@ -220,22 +235,28 @@ class ArrayCacheBySymbolById extends ArrayCache {
                 }
             }
             item = reference;
-            // match on both the key field (e.g. symbol) and id - different symbols
-            // can share an order id (exchanges like binance use per-symbol id
-            // sequences), and matching on id alone would splice out the wrong row
-            const index = this.findIndex((x) => (x.id === item.id) && (x[this.keyField] === item[this.keyField]));
-            // move the order to the end of the array. Guard the miss: splice (-1, 1)
-            // deletes the LAST row, so a hashmap entry with no matching row would
-            // destroy an unrelated order instead of doing nothing.
-            if (index >= 0) {
-                this.splice(index, 1);
+            // move the order to the end of the array. Match on both the key field
+            // (e.g. symbol) and id - different symbols can share an order id
+            // (exchanges like binance use per-symbol id sequences), and matching on
+            // id alone would remove the wrong row. A hashmap entry with no matching
+            // row leaves the array untouched.
+            const itemId = item.id;
+            const itemKey = item[this.keyField];
+            const keyField = this.keyField;
+            const arrayLength = this.length;
+            for (let i = 0; i < arrayLength; i++) {
+                const existing = this[i];
+                if ((existing.id === itemId) && (existing[keyField] === itemKey)) {
+                    this.removeAt(i);
+                    break;
+                }
             }
         }
         else {
             byId[item.id] = item;
         }
         if (this.maxSize && (this.length === this.maxSize)) {
-            const deleteReference = this.shift();
+            const deleteReference = this.removeAt(0);
             const deleteKey = deleteReference[this.keyField];
             delete this.hashmap[deleteKey][deleteReference.id];
             // drop the outer bucket once its last id is gone, otherwise a stream with
@@ -325,11 +346,17 @@ class ArrayCacheBySymbolBySide extends ArrayCache {
                 }
             }
             item = reference;
-            const index = this.findIndex((x) => x.symbol === item.symbol && x.side === item.side);
-            // move the position to the end of the array, guarding the miss so a
-            // stale hashmap entry cannot splice (-1, 1) an unrelated row away
-            if (index >= 0) {
-                this.splice(index, 1);
+            // move the position to the end of the array; a stale hashmap entry
+            // with no matching row leaves the array untouched
+            const itemSymbol = item.symbol;
+            const itemSide = item.side;
+            const arrayLength = this.length;
+            for (let i = 0; i < arrayLength; i++) {
+                const existing = this[i];
+                if ((existing.symbol === itemSymbol) && (existing.side === itemSide)) {
+                    this.removeAt(i);
+                    break;
+                }
             }
         }
         else {

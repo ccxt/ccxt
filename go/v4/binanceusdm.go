@@ -50,38 +50,38 @@ func (this *BinanceusdmCore) Describe() any {
 	})
 }
 func (this *BinanceusdmCore) TransferIn(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// transfer from spot wallet to usdm futures wallet
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes5615 := (<-this.FuturesTransfer(code, amount, 1, params))
-		PanicOnError(retRes5615)
-		ch <- retRes5615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferInBody(ch, code, amount, optionalArgs...)
 	return ch
 }
+func (this *BinanceusdmCore) transferInBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// transfer from spot wallet to usdm futures wallet
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes5615 := (<-this.FuturesTransfer(code, amount, 1, params))
+	PanicOnError(retRes5615)
+	ch <- retRes5615
+	return nil
+}
 func (this *BinanceusdmCore) TransferOut(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// transfer from usdm futures wallet to spot wallet
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes6115 := (<-this.FuturesTransfer(code, amount, 2, params))
-		PanicOnError(retRes6115)
-		ch <- retRes6115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
+}
+func (this *BinanceusdmCore) transferOutBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// transfer from usdm futures wallet to spot wallet
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes6115 := (<-this.FuturesTransfer(code, amount, 2, params))
+	PanicOnError(retRes6115)
+	ch <- retRes6115
+	return nil
 }
 
 func (this *BinanceusdmCore) Init(userConfig map[string]any) {

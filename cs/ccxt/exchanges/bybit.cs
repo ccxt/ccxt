@@ -8669,6 +8669,12 @@ public partial class bybit : Exchange
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
+        } else if (isTrue(!isEqual(since, null)))
+        {
+            // the endpoint walks backwards from endTime and ignores a lone startTime
+            object duration = this.parseTimeframe(timeframe);
+            object requestedLimit = ((bool) isTrue((isEqual(limit, null)))) ? 50 : limit; // exchange default
+            ((IDictionary<string,object>)request)["endTime"] = this.sum(since, multiply(multiply(duration, requestedLimit), 1000));
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -8780,9 +8786,10 @@ public partial class bybit : Exchange
      * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
      * @param {string} symbol Unified market symbol
      * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-     * @param {int} [since] Not used by Bybit
+     * @param {int} [since] Timestamp in ms of the earliest open interest to fetch
      * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
      * @param {object} [params] Exchange specific parameters
+     * @param {int} [params.until] Timestamp in ms of the latest open interest to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */

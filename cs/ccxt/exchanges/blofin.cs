@@ -1636,14 +1636,12 @@ public partial class blofin : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "state"));
         object feeCostString = this.safeString(order, "fee");
         object amount = this.safeString(order, "size");
-        object leverage = this.safeString(order, "leverage", "1");
         object contractSize = this.safeString(market, "contractSize");
         object baseAmount = Precise.stringMul(contractSize, filled);
         object cost = null;
         if (isTrue(!isEqual(average, null)))
         {
             cost = Precise.stringMul(average, baseAmount);
-            cost = Precise.stringDiv(cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         object fee = null;

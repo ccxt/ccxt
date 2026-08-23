@@ -1286,16 +1286,20 @@ class bullish(Exchange, ImplicitAPI):
     async def safe_deterministic_call(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}):
         maxRetries = None
         maxRetries, params = self.handle_option_and_params(params, method, 'maxRetries', 3)
+        if (method != 'fetchOHLCV') and (method != 'fetchFundingRateHistory') and (method != 'fetchTrades'):
+            raise NotSupported(self.id + ' safeDeterministicCall() does not support the ' + method + ' method')
         errors = 0
         params = self.omit(params, 'until')
         # the exchange returns the most recent data, so we do not need to pass until into paginated calls
         # the correct util value will be calculated inside of the method
         while(errors <= maxRetries):
             try:
-                if timeframe and method != 'fetchFundingRateHistory':
-                    return await getattr(self, method)(symbol, timeframe, since, limit, params)
+                if method == 'fetchOHLCV':
+                    return await self.fetch_ohlcv(symbol, timeframe, since, limit, params)
+                elif method == 'fetchFundingRateHistory':
+                    return await self.fetch_funding_rate_history(symbol, since, limit, params)
                 else:
-                    return await getattr(self, method)(symbol, since, limit, params)
+                    return await self.fetch_trades(symbol, since, limit, params)
             except Exception as e:
                 if isinstance(e, RateLimitExceeded):
                     raise e  # if we are rate limited, we should not retry and fail fast

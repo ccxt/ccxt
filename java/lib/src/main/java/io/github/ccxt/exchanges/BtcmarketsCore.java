@@ -369,11 +369,11 @@ public class BtcmarketsCore extends BtcmarketsApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method2, Object... optionalArgs)
     {
-
+        final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object method = method3;
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
@@ -396,7 +396,17 @@ public class BtcmarketsCore extends BtcmarketsApi
             {
                 currency = this.currency(code);
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTransfers")))
+            {
+                response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "privateGetDeposits")))
+            {
+                response = (this.privateGetDeposits(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateGetWithdrawals(this.extend(request, parameters))).join();
+            }
             return this.parseTransactions(response, currency, since, limit);
         });
 

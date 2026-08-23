@@ -1279,6 +1279,8 @@ class phemex(Exchange, ImplicitAPI):
         return orderbook
 
     def to_en(self, n: object, scale: object):
+        if (n is None) or (scale is None):
+            return None
         stringN = self.number_to_string(n)
         precise = Precise(stringN)
         precise.decimals = precise.decimals - scale
@@ -1289,12 +1291,12 @@ class phemex(Exchange, ImplicitAPI):
     def to_ev(self, amount: object, market: dict | None = None):
         if (amount is None) or (market is None):
             return amount
-        return self.to_en(amount, market['valueScale'])
+        return self.to_en(amount, self.safe_integer(market, 'valueScale'))
 
     def to_ep(self, price: object, market: Market = None):
         if (price is None) or (market is None):
             return price
-        return self.to_en(price, self.safe_value(market, 'priceScale'))
+        return self.to_en(price, self.safe_integer(market, 'priceScale'))
 
     def from_en(self, en: object, scale: object):
         if en is None or scale is None:
@@ -2679,9 +2681,9 @@ class phemex(Exchange, ImplicitAPI):
             posSide = self.capitalize(posSide)
             request['posSide'] = posSide
             if isStableSettled:
-                request['orderQtyRq'] = amount
+                request['orderQtyRq'] = self.amount_to_precision(symbol, amount)
             else:
-                request['orderQty'] = self.parse_to_int(amount)
+                request['orderQty'] = self.parse_to_int(self.amount_to_precision(symbol, amount))
             if triggerPrice is not None:
                 triggerType = self.safe_string(params, 'triggerType', 'ByMarkPrice')
                 request['triggerType'] = triggerType
@@ -3634,7 +3636,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.code]: the currency code to fetch positions for, USD, BTC or USDT, USDT is the default
-        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
         if self.markets is None:
@@ -5156,7 +5158,7 @@ class phemex(Exchange, ImplicitAPI):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.code]: the currency code to fetch ranks for, USD, BTC or USDT, USDT is the default
-        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
+        :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
         if self.markets is None:

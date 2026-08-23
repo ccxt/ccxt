@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import asterRest from '../aster.js';
 import { Precise } from '../base/Precise.js';
-import { ArgumentsRequired } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class aster extends asterRest {
@@ -1246,17 +1246,56 @@ export default class aster extends asterRest {
         const listenKeyRefreshRateOptions = this.safeDict(this.options, 'listenKeyRefreshRate', {});
         const listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
         if (time - lastAuthenticatedTime > listenKeyRefreshRate) {
-            let response = {};
-            if (type === 'spot') {
-                response = await this.sapiPrivatePostV3ListenKey(params);
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: concurrent watch
+            // calls on a cold instance each passed the staleness check and
+            // fetched their own listenKey (last write wins, earlier keys
+            // orphan) - now one leader fetches per type and waiters wake when
+            // the flight settles. client.futures is the registry:
+            // client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry
+            // under the same lock in every port
+            const messageHash = 'authenticate:' + type;
+            const client = this.client('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
+                return;
             }
-            else {
-                response = await this.fapiPrivatePostV3ListenKey(params);
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture(messageHash);
+            try {
+                let response = {};
+                if (type === 'spot') {
+                    response = await this.sapiPrivatePostV3ListenKey(params);
+                }
+                else {
+                    response = await this.fapiPrivatePostV3ListenKey(params);
+                }
+                const listenKey = this.safeString(response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['listenKey'][type] = listenKey;
+                this.options['lastAuthenticatedTime'][type] = time;
+                params = this.extend({ 'type': type }, params);
+                this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve(listenKey, messageHash);
             }
-            this.options['listenKey'][type] = this.safeString(response, 'listenKey');
-            this.options['lastAuthenticatedTime'][type] = time;
-            params = this.extend({ 'type': type }, params);
-            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, params);
+            catch (e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                client.reject(e, messageHash);
+            }
+            await future;
         }
     }
     async keepAliveListenKey(params = {}) {

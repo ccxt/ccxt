@@ -836,13 +836,11 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
                 put( "quantity", BitbnsCore.this.amountToPrecision(symbol, amount) );
             }};
-            Object method = "v2PostOrders";
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 Helpers.addElementToObject(request, "rate", this.priceToPrecision(symbol, price));
             } else
             {
-                method = "v1PostPlaceMarketOrderQntySymbol";
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "quoteId"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
@@ -857,7 +855,14 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "trail_rate", this.priceToPrecision(symbol, trailRate));
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
+            {
+                response = (this.v2PostOrders(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, parameters))).join();
+            }
             //
             //     {
             //         "data":"Successfully placed bid to purchase currency",

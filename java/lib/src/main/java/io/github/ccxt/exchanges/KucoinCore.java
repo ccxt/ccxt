@@ -3464,7 +3464,7 @@ public class KucoinCore extends KucoinApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", KucoinCore.this.safeString(ticker, "priceChg") );
-            put( "percentage", KucoinCore.this.safeString(ticker, "priceChgPct") );
+            put( "percentage", Precise.stringMul(KucoinCore.this.safeString(ticker, "priceChgPct"), "100") );
             put( "average", null );
             put( "baseVolume", KucoinCore.this.safeString(ticker, "volumeOf24h") );
             put( "quoteVolume", KucoinCore.this.safeString(ticker, "turnoverOf24h") );

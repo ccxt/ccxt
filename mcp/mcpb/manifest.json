@@ -1,0 +1,174 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/mcpb/main/schemas/mcpb-manifest-v0.4.schema.json",
+  "manifest_version": "0.4",
+  "name": "ccxt-mcp",
+  "display_name": "CCXT — Crypto Exchanges",
+  "version": "0.1.0",
+  "description": "Market data, balances and (opt-in) trading across 100+ crypto exchanges and prediction markets via CCXT.",
+  "long_description": "The official CCXT MCP server. Connect an AI agent to 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API: prices, order books, candles, market search and prediction-market events with no keys; balances, orders and positions once you configure an account; and order placement when you explicitly enable it. Your API keys are stored in the OS keychain and are never visible to the model — it references accounts by name only. Trading is opt-in and sandbox-first: enabling it here allows orders on testnet/sandbox accounts only; live trading must be turned on in the config file.",
+  "author": {
+    "name": "CCXT",
+    "url": "https://ccxt.com"
+  },
+  "homepage": "https://ccxt.com",
+  "documentation": "https://docs.ccxt.com/#/mcp",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ccxt/ccxt"
+  },
+  "support": "https://github.com/ccxt/ccxt/issues",
+  "keywords": [
+    "ccxt",
+    "crypto",
+    "cryptocurrency",
+    "exchange",
+    "trading",
+    "market-data",
+    "prediction-markets"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "server/js/server.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/server/js/server.js"
+      ],
+      "env": {
+        "CCXT_MCP_CONFIG": "${user_config.config_file}",
+        "CCXT_MCP_SANDBOX": "${user_config.sandbox}",
+        "CCXT_MCP_DEMO": "${user_config.demo}",
+        "CCXT_MCP_TRADING": "${user_config.enable_trading}",
+        "CCXT_MCP_EXCHANGE": "${user_config.exchange}",
+        "CCXT_MCP_APIKEY": "${user_config.apiKey}",
+        "CCXT_MCP_SECRET": "${user_config.secret}",
+        "CCXT_MCP_PASSWORD": "${user_config.password}",
+        "CCXT_MCP_EXCHANGE_2": "${user_config.exchange_2}",
+        "CCXT_MCP_APIKEY_2": "${user_config.apiKey_2}",
+        "CCXT_MCP_SECRET_2": "${user_config.secret_2}",
+        "CCXT_MCP_PASSWORD_2": "${user_config.password_2}",
+        "CCXT_MCP_EXCHANGE_3": "${user_config.exchange_3}",
+        "CCXT_MCP_APIKEY_3": "${user_config.apiKey_3}",
+        "CCXT_MCP_SECRET_3": "${user_config.secret_3}",
+        "CCXT_MCP_PASSWORD_3": "${user_config.password_3}"
+      }
+    }
+  },
+  "user_config": {
+    "exchange": {
+      "type": "string",
+      "title": "Exchange 1",
+      "description": "First exchange id, e.g. binance, kraken, okx. Fill in as many of the three exchange slots as you want (or none, for public market data only). For a 4th+ exchange or a wallet-based venue, use the config file at the bottom.",
+      "required": false
+    },
+    "apiKey": {
+      "type": "string",
+      "title": "Exchange 1 — API key",
+      "description": "API key for exchange 1. Stored in your OS keychain, never shown to the model. Leave blank for market data only.",
+      "sensitive": true,
+      "required": false
+    },
+    "secret": {
+      "type": "string",
+      "title": "Exchange 1 — API secret",
+      "description": "API secret for exchange 1. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "password": {
+      "type": "string",
+      "title": "Exchange 1 — API passphrase (only OKX / KuCoin / Bitget)",
+      "description": "API passphrase, needed only by some exchanges (OKX, KuCoin, Bitget). Leave blank otherwise. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "exchange_2": {
+      "type": "string",
+      "title": "Exchange 2 (optional)",
+      "description": "A second exchange id. Leave blank if unused.",
+      "required": false
+    },
+    "apiKey_2": {
+      "type": "string",
+      "title": "Exchange 2 — API key",
+      "description": "API key for exchange 2. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "secret_2": {
+      "type": "string",
+      "title": "Exchange 2 — API secret",
+      "description": "API secret for exchange 2. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "password_2": {
+      "type": "string",
+      "title": "Exchange 2 — API passphrase (only OKX / KuCoin / Bitget)",
+      "description": "API passphrase for exchange 2, if it needs one. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "exchange_3": {
+      "type": "string",
+      "title": "Exchange 3 (optional)",
+      "description": "A third exchange id. Leave blank if unused. For a 4th+ exchange, use the config file below.",
+      "required": false
+    },
+    "apiKey_3": {
+      "type": "string",
+      "title": "Exchange 3 — API key",
+      "description": "API key for exchange 3. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "secret_3": {
+      "type": "string",
+      "title": "Exchange 3 — API secret",
+      "description": "API secret for exchange 3. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "password_3": {
+      "type": "string",
+      "title": "Exchange 3 — API passphrase (only OKX / KuCoin / Bitget)",
+      "description": "API passphrase for exchange 3, if it needs one. Stored in your OS keychain.",
+      "sensitive": true,
+      "required": false
+    },
+    "sandbox": {
+      "type": "boolean",
+      "title": "Sandbox / testnet mode (applies to all exchanges above)",
+      "description": "Use each exchange's testnet (fake money). Requires TESTNET API keys from the exchange's testnet portal. Leave OFF if you're using Demo trading below (they're mutually exclusive).",
+      "default": true
+    },
+    "demo": {
+      "type": "boolean",
+      "title": "Demo trading mode (use INSTEAD of Sandbox for Binance demo keys)",
+      "description": "Route to the exchange's demo-trading host (e.g. Binance demo.binance.com) instead of the testnet. Use this — not Sandbox — if your keys are from the exchange's Demo Trading portal. Turn Sandbox OFF when you enable this.",
+      "default": false
+    },
+    "enable_trading": {
+      "type": "boolean",
+      "title": "Allow placing orders — sandbox/demo only (applies to all exchanges above)",
+      "description": "Enable order placement on sandbox/testnet or demo accounts only. Live trading and withdrawals must be enabled in the config file, not here.",
+      "default": false
+    },
+    "config_file": {
+      "type": "file",
+      "title": "Config file (for 4+ exchanges, wallet venues, or live trading)",
+      "description": "Point this at a ccxt-mcp config.json with an \"accounts\" map to configure any number of exchanges, wallet-based venues (walletAddress/privateKey), or live trading/withdrawals. See https://docs.ccxt.com/#/mcp. It merges with the inline exchanges above; on a name clash the file wins.",
+      "required": false
+    }
+  },
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18"
+    }
+  }
+}

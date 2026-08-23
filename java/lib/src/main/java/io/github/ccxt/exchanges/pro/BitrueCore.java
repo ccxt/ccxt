@@ -1010,20 +1010,64 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             Object listenKey = this.safeValue(this.options, "listenKey");
             if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
             {
-                Object response = (this.openV1PrivatePostPoseidonApiV1ListenKey(parameters)).join();
-                //
-                //     {
-                //         "msg": "succ",
-                //         "code": 200,
-                //         "data": {
-                //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-                //         }
-                //     }
-                //
-                Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object key = this.safeString(data, "listenKey");
-                Helpers.addElementToObject(this.options, "listenKey", key);
-                Helpers.addElementToObject(this.options, "listenKeyUrl", Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key));
+                // single-flight leader election on a never-dialed client, see
+                // https://github.com/ccxt/ccxt/issues/29393: the key rides the
+                // stream url, so racing fetches mint several listenKeys and the
+                // losers dial '/stream?listenKey=' + an orphaned key whose
+                // subscriptions never deliver. the flight is registered in
+                // client.futures and settled through client.resolve/client.reject,
+                // so every mutation of that map happens under the ws client's own
+                // lock rather than through an unsynchronized map write
+                Object messageHash = "authenticateFlight";
+                Client client = this.client("authenticationFlights");
+                if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
+                {
+                    // a flight is already in progress - wake when the leader
+                    // settles it: the listenKey url is then in the options
+                    client.future((String)messageHash).getFuture().join();
+                    return Helpers.GetValue(this.options, "listenKeyUrl");
+                }
+                // register before the first await, so a concurrent caller entering
+                // authenticate () while this one is inside the fetch sees the flight
+                io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
+                try
+                {
+                    Object response = (this.openV1PrivatePostPoseidonApiV1ListenKey(parameters)).join();
+                    //
+                    //     {
+                    //         "msg": "succ",
+                    //         "code": 200,
+                    //         "data": {
+                    //             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+                    //         }
+                    //     }
+                    //
+                    Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    Object key = this.safeString(data, "listenKey");
+                    if (Helpers.isTrue(Helpers.isEqual(key, null)))
+                    {
+                        throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
+                    }
+                    Helpers.addElementToObject(this.options, "listenKey", key);
+                    Helpers.addElementToObject(this.options, "listenKeyUrl", Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/stream?listenKey="), key));
+                    client.resolve(key, messageHash);
+                } catch(Exception e)
+                {
+                    // reject the flight - all waiters throw and the next caller
+                    // re-leads instead of deadlocking on a dead flight
+                    client.reject(e, messageHash);
+                }
+                // rethrows to the leader on failure and attaches the handler that
+                // keeps an alone leader's rejection from crashing the process
+                ((io.github.ccxt.ws.Future)future).getFuture().join();
+                // only the leader schedules the keepalive, so a burst of watchers
+                // no longer stacks one refresh timer per racing caller. waiters
+                // early-return above, so this runs once per successful flight.
+                // it also has to stay the LAST statement of the block: master's
+                // build/csharpTranspiler.ts:154 rewrites this.delay with a greedy
+                // /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+                // so any following statement carrying a comma gets swallowed into
+                // a bogus `new object[] {...}` argument
                 Object refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
                 this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
             }

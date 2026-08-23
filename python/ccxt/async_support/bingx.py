@@ -1311,14 +1311,17 @@ class bingx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        if market['inverse']:
+            raise NotSupported(self.id + ' fetchTrades() is not supported for inverse swap markets')
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['limit'] = min(limit, 100)  # avoid API exception "limit should less than 100"
         response: dict
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchTrades', market, params)
+        if limit is not None:
+            maxLimit = 500 if (marketType == 'spot') else 1000
+            request['limit'] = min(limit, maxLimit)
         if marketType == 'spot':
             response = await self.spotV1PublicGetMarketTrades(self.extend(request, params))
         else:
@@ -1675,7 +1678,12 @@ class bingx(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_dict(response, 'data')
+        data: dict
+        if market['inverse']:
+            dataList = self.safe_list(response, 'data', [])
+            data = self.safe_dict(dataList, 0, {})
+        else:
+            data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
@@ -1965,12 +1973,13 @@ class bingx(Exchange, ImplicitAPI):
         id = self.safe_string(interest, 'symbol')
         symbol = self.safe_symbol(id, market, '-', 'swap')
         openInterest = self.safe_number(interest, 'openInterest')
+        inverse = self.safe_bool(market, 'inverse', False)
         return self.safe_open_interest({
             'symbol': symbol,
             'baseVolume': None,
             'quoteVolume': None,  # deprecated
-            'openInterestAmount': None,
-            'openInterestValue': openInterest,
+            'openInterestAmount': openInterest if inverse else None,
+            'openInterestValue': None if inverse else openInterest,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
@@ -2883,7 +2892,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
             'notional': self.safe_number(position, 'positionValue'),
             'marginMode': marginMode,
-            'liquidationPrice': None,
+            'liquidationPrice': self.safe_number_omit_zero(position, 'liquidationPrice'),
             'entryPrice': self.safe_number_2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': self.safe_number(position, 'unrealizedProfit'),
             'realizedPnl': self.safe_number(position, 'realisedProfit'),

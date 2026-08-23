@@ -1543,6 +1543,10 @@ public partial class bingx : ccxt.bingx
         }
         object cache = this.positions;
         object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
+        if (!isTrue((inOp(data, "P"))))
+        {
+            return;
+        }
         object rawPositions = this.safeList(data, "P", new List<object>() {});
         object newPositions = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
@@ -1653,10 +1657,48 @@ public partial class bingx : ccxt.bingx
         object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
         {
-            object response = await this.userAuthPrivatePostUserDataStream();
-            ((IDictionary<string,object>)this.options)["listenKey"] = this.safeString(response, "listenKey");
-            ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
-            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+            // single-flight leader election on a never-dialed client, see
+            // https://github.com/ccxt/ccxt/issues/29393: racing fetches mint
+            // different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream. client.futures is
+            // the registry: client.future () is the atomic check-and-insert
+            // and client.resolve () / ((WebSocketClient)client).reject () settle and remove the
+            // entry under the same lock in every port
+            object messageHash = "authenticate";
+            var client = this.client("authenticationFlights");
+            if (isTrue(inOp(client.futures, messageHash)))
+            {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future(messageHash);
+                return;
+            }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            var future = client.reusableFuture(messageHash);
+            try
+            {
+                object response = await this.userAuthPrivatePostUserDataStream();
+                object listenKey = this.safeString(response, "listenKey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+                ((IDictionary<string,object>)this.options)["lastAuthenticatedTime"] = time;
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+            } catch(Exception e)
+            {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                ((WebSocketClient)client).reject(e, messageHash);
+            }
+            await future;
         }
     }
 
@@ -1907,7 +1949,9 @@ public partial class bingx : ccxt.bingx
         object a = this.safeDict(message, "a", new Dictionary<string, object>() {});
         object data = this.safeList(a, "B", new List<object>() {});
         object timestamp = this.safeInteger2(message, "T", "E");
-        object type = ((bool) isTrue((inOp(a, "P")))) ? "swap" : "spot";
+        object spotUrl = this.safeString(getValue(getValue(this.urls, "api"), "ws"), "spot");
+        object isSpot = isTrue((!isEqual(spotUrl, null))) && isTrue((isEqual(getIndexOf(client.url, spotUrl), 0)));
+        object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};

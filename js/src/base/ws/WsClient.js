@@ -9,6 +9,7 @@ import WebSocket, { createWebSocketStream } from 'ws';
 import Client from './Client.js';
 import { sleep, isNode, isBun, milliseconds, selfIsDefined, } from '../../base/functions.js';
 import { Future } from './Future.js';
+import { ExchangeClosedByUser } from '../../base/errors.js';
 // bun's 'ws' polyfill does not implement the 'upgrade' event (https://github.com/oven-sh/bun/issues/5951)
 // which makes the HTTP 101 Switching Protocols response fire the error handler,
 // so under bun we use its native WebSocket implementation instead of the 'ws' package
@@ -164,6 +165,13 @@ export default class WsClient extends Client {
                 this.disconnected = Future();
             }
             this.connection.close();
+        }
+        else {
+            // a client that never dialed has no socket teardown to fire the
+            // onClose -> reset -> reject chain, so its pending futures would
+            // hang their waiters across a close - settle them here, same idea
+            // as Client.reset
+            this.reset(this.error !== undefined ? this.error : new ExchangeClosedByUser('connection closed by the user'));
         }
         return this.disconnected;
     }

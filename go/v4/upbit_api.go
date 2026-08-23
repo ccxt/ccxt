@@ -102,7 +102,7 @@ func (this *UpbitCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-// PublicGetTickerAll returns a channel that yields a JSON object.
+// PublicGetTickerAll returns a channel that yields a JSON array.
 func (this *UpbitCore) PublicGetTickerAll(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTickerAll", args...)
 }

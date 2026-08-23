@@ -1348,6 +1348,7 @@ export default class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
+                        'stock',
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': false,
@@ -3444,9 +3445,6 @@ export default class binance extends Exchange {
                     promisesRaw.push(this.sapiGetMarginAllPairs(params));
                     promisesRaw.push(this.sapiGetMarginIsolatedAllPairs(params));
                 }
-                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
-                    promisesRaw.push(this.sapiGetEquityMarketExchangeInfo(params));
-                }
             }
             else if (marketType === 'linear') {
                 promisesRaw.push(this.fapiPublicGetExchangeInfo(params));
@@ -3456,6 +3454,11 @@ export default class binance extends Exchange {
             }
             else if (marketType === 'option') {
                 promisesRaw.push(this.eapiPublicGetExchangeInfo(params));
+            }
+            else if (marketType === 'stock') {
+                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
+                    promisesRaw.push(this.sapiGetEquityMarketExchangeInfo(params));
+                }
             }
             else {
                 throw new ExchangeError(this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');

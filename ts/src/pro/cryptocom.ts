@@ -933,7 +933,7 @@ export default class cryptocom extends cryptocomRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbols.join (',');
+            messageHash = 'positions::' + symbols.join (',');
         }
         const client = this.client (url);
         this.setPositionsCache (client, symbols);

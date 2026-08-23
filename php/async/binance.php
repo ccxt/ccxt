@@ -1355,6 +1355,7 @@ class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
+                        'stock',
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ),
                     'loadAllOptions' => false,
@@ -3465,15 +3466,16 @@ class binance extends Exchange {
                     $promisesRaw[] = $this->sapiGetMarginAllPairs($params);
                     $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs($params);
                 }
-                if (!$isDemoEnv && ($this->apiKey !== null && $this->apiKey !== '')) {
-                    $promisesRaw[] = $this->sapiGetEquityMarketExchangeInfo($params);
-                }
             } elseif ($marketType === 'linear') {
                 $promisesRaw[] = $this->fapiPublicGetExchangeInfo($params);
             } elseif ($marketType === 'inverse') {
                 $promisesRaw[] = $this->dapiPublicGetExchangeInfo($params);
             } elseif ($marketType === 'option') {
                 $promisesRaw[] = $this->eapiPublicGetExchangeInfo($params);
+            } elseif ($marketType === 'stock') {
+                if (!$isDemoEnv && ($this->apiKey !== null && $this->apiKey !== '')) {
+                    $promisesRaw[] = $this->sapiGetEquityMarketExchangeInfo($params);
+                }
             } else {
                 throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
             }
@@ -13577,7 +13579,7 @@ class binance extends Exchange {
     }
 
     private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if ($api === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;

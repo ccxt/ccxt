@@ -1732,18 +1732,23 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        if (isTrue(getValue(market, "inverse")))
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        if (isTrue(!isEqual(limit, null)))
-        {
-            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 100); // avoid API exception "limit should less than 100"
-        }
         object response = null;
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        if (isTrue(!isEqual(limit, null)))
+        {
+            object maxLimit = ((bool) isTrue((isEqual(marketType, "spot")))) ? 500 : 1000;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, maxLimit);
+        }
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.spotV1PublicGetMarketTrades(this.extend(request, parameters));
@@ -2147,7 +2152,15 @@ public partial class bingx : Exchange
         //        ]
         //    }
         //
-        object data = this.safeDict(response, "data");
+        object data = null;
+        if (isTrue(getValue(market, "inverse")))
+        {
+            object dataList = this.safeList(response, "data", new List<object>() {});
+            data = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
+        } else
+        {
+            data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        }
         return this.parseFundingRate(data, market);
     }
 
@@ -2500,12 +2513,13 @@ public partial class bingx : Exchange
         object id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
+        object inverse = this.safeBool(market, "inverse", false);
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "baseVolume", null },
             { "quoteVolume", null },
-            { "openInterestAmount", null },
-            { "openInterestValue", openInterest },
+            { "openInterestAmount", ((bool) isTrue(inverse)) ? openInterest : null },
+            { "openInterestValue", ((bool) isTrue(inverse)) ? null : openInterest },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "info", interest },
@@ -3337,7 +3351,7 @@ public partial class bingx : Exchange
             { "symbol", this.safeSymbol(marketId, market, "-", "swap") },
             { "notional", this.safeNumber(position, "positionValue") },
             { "marginMode", marginMode },
-            { "liquidationPrice", null },
+            { "liquidationPrice", this.safeNumberOmitZero(position, "liquidationPrice") },
             { "entryPrice", this.safeNumber2(position, "avgPrice", "entryPrice") },
             { "unrealizedPnl", this.safeNumber(position, "unrealizedProfit") },
             { "realizedPnl", this.safeNumber(position, "realisedProfit") },

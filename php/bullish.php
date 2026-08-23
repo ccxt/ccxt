@@ -1295,16 +1295,21 @@ class bullish extends Exchange {
     public function safe_deterministic_call(string $method, ?string $symbol = null, ?int $since = null, ?int $limit = null, ?string $timeframe = null, $params = array()) {
         $maxRetries = null;
         list($maxRetries, $params) = $this->handle_option_and_params($params, $method, 'maxRetries', 3);
+        if (($method !== 'fetchOHLCV') && ($method !== 'fetchFundingRateHistory') && ($method !== 'fetchTrades')) {
+            throw new NotSupported($this->id . ' safeDeterministicCall() does not support the ' . $method . ' method');
+        }
         $errors = 0;
         $params = $this->omit($params, 'until');
         // the exchange returns the most recent data, so we do not need to pass until into paginated calls
         // the correct util value will be calculated inside of the $method
         while ($errors <= $maxRetries) {
             try {
-                if ($timeframe && $method !== 'fetchFundingRateHistory') {
-                    return $this->$method($symbol, $timeframe, $since, $limit, $params);
+                if ($method === 'fetchOHLCV') {
+                    return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $params);
+                } elseif ($method === 'fetchFundingRateHistory') {
+                    return $this->fetch_funding_rate_history($symbol, $since, $limit, $params);
                 } else {
-                    return $this->$method($symbol, $since, $limit, $params);
+                    return $this->fetch_trades($symbol, $since, $limit, $params);
                 }
             } catch (Exception $e) {
                 if ($e instanceof RateLimitExceeded) {

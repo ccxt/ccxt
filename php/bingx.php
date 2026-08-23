@@ -1326,14 +1326,18 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' fetchTrades() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($limit !== null) {
-            $request['limit'] = min($limit, 100); // avoid API exception "limit should less than 100"
-        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        if ($limit !== null) {
+            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
+            $request['limit'] = min($limit, $maxLimit);
+        }
         if ($marketType === 'spot') {
             $response = $this->spotV1PublicGetMarketTrades($this->extend($request, $params));
         } else {
@@ -1707,7 +1711,12 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        if ($market['inverse']) {
+            $dataList = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($dataList, 0, array());
+        } else {
+            $data = $this->safe_dict($response, 'data', array());
+        }
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -2008,7 +2017,7 @@ class bingx extends Exchange {
         //         "time" => 1672026617364
         //     }
         //
-        // inverse swap
+        // $inverse swap
         //
         //     {
         //         "symbol" => "BTC-USD",
@@ -2020,12 +2029,13 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
+        $inverse = $this->safe_bool($market, 'inverse', false);
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'baseVolume' => null,
             'quoteVolume' => null,  // deprecated
-            'openInterestAmount' => null,
-            'openInterestValue' => $openInterest,
+            'openInterestAmount' => $inverse ? $openInterest : null,
+            'openInterestValue' => $inverse ? null : $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
@@ -2981,7 +2991,7 @@ class bingx extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
             'notional' => $this->safe_number($position, 'positionValue'),
             'marginMode' => $marginMode,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),

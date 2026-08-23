@@ -152,12 +152,15 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 - https://docs.upbit.com/kr/reference/list-tickers
 - https://global-docs.upbit.com/reference/list-tickers
+- https://docs.upbit.com/kr/reference/tickers_by_quote
+- https://global-docs.upbit.com/reference/tickers_by_quote
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.quote_currencies | <code>string</code> | No | comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined |
 
 
 ```javascript

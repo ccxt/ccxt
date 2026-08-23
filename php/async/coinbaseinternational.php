@@ -845,10 +845,12 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = Async\await($this->handle_network_id_and_params($code, 'createDepositAddress', $params));
             $request['network_arn_id'] = $networkId;
         }
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            $response = Async\await($this->v1PrivatePostTransfersCreateCounterpartyId($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->v1PrivatePostTransfersAddress($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -2465,10 +2467,12 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            $response = Async\await($this->v1PrivatePostTransfersWithdrawCounterparty($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->v1PrivatePostTransfersWithdraw($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"

@@ -1799,18 +1799,23 @@ public class BingxCore extends BingxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
+            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchTrades() is not supported for inverse swap markets")) ;
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
-            {
-                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100)); // avoid API exception "limit should less than 100"
-            }
             Object response = null;
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
+            if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
+            {
+                Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? 500 : 1000;
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit));
+            }
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.spotV1PublicGetMarketTrades(this.extend(request, parameters))).join();
@@ -2231,7 +2236,15 @@ public class BingxCore extends BingxApi
             //        ]
             //    }
             //
-            Object data = this.safeDict(response, "data");
+            Object data = null;
+            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            {
+                Object dataList = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = this.safeDict(dataList, 0, new java.util.HashMap<String, Object>() {{}});
+            } else
+            {
+                data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            }
             return this.parseFundingRate(data, market);
         });
 
@@ -2617,12 +2630,13 @@ public class BingxCore extends BingxApi
         Object id = this.safeString(interest, "symbol");
         Object symbol = this.safeSymbol(id, market, "-", "swap");
         Object openInterest = this.safeNumber(interest, "openInterest");
+        Object inverse = this.safeBool(market, "inverse", false);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "baseVolume", null );
             put( "quoteVolume", null );
-            put( "openInterestAmount", null );
-            put( "openInterestValue", openInterest );
+            put( "openInterestAmount", ((Helpers.isTrue(inverse))) ? openInterest : null );
+            put( "openInterestValue", ((Helpers.isTrue(inverse))) ? null : openInterest );
             put( "timestamp", timestamp );
             put( "datetime", BingxCore.this.iso8601(timestamp) );
             put( "info", interest );
@@ -3505,7 +3519,7 @@ public class BingxCore extends BingxApi
             put( "symbol", BingxCore.this.safeSymbol(finalMarketId, market, "-", "swap") );
             put( "notional", BingxCore.this.safeNumber(position, "positionValue") );
             put( "marginMode", finalMarginMode );
-            put( "liquidationPrice", null );
+            put( "liquidationPrice", BingxCore.this.safeNumberOmitZero(position, "liquidationPrice") );
             put( "entryPrice", BingxCore.this.safeNumber2(position, "avgPrice", "entryPrice") );
             put( "unrealizedPnl", BingxCore.this.safeNumber(position, "unrealizedProfit") );
             put( "realizedPnl", BingxCore.this.safeNumber(position, "realisedProfit") );

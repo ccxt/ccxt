@@ -83,15 +83,9 @@ func (this *Bitstamp) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrderBook(symbol, limit, params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
@@ -116,10 +110,7 @@ func (this *Bitstamp) FetchTicker(symbol string, options ...FetchTickerOptions) 
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTicker(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -144,15 +135,9 @@ func (this *Bitstamp) FetchTickers(options ...FetchTickersOptions) (Tickers, err
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols *[]string = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTickers(symbols, params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
@@ -179,20 +164,11 @@ func (this *Bitstamp) FetchTrades(symbol string, options ...FetchTradesOptions) 
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -220,25 +196,13 @@ func (this *Bitstamp) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([
 		opt(&opts)
 	}
 
-	var timeframe any = nil
-	if opts.Timeframe != nil {
-		timeframe = *opts.Timeframe
-	}
+	var timeframe *string = opts.Timeframe
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOHLCV(symbol, timeframe, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -279,10 +243,7 @@ func (this *Bitstamp) FetchTradingFee(symbol string, options ...FetchTradingFeeO
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTradingFee(symbol, params)
 	if IsError(res) {
 		return TradingFeeInterface{}, CreateReturnError(res)
@@ -324,15 +285,9 @@ func (this *Bitstamp) FetchTransactionFees(options ...FetchTransactionFeesOption
 		opt(&opts)
 	}
 
-	var codes any = nil
-	if opts.Codes != nil {
-		codes = *opts.Codes
-	}
+	var codes *[]string = opts.Codes
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTransactionFees(codes, params)
 	if IsError(res) {
 		return map[string]any{}, CreateReturnError(res)
@@ -357,15 +312,9 @@ func (this *Bitstamp) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFe
 		opt(&opts)
 	}
 
-	var codes any = nil
-	if opts.Codes != nil {
-		codes = *opts.Codes
-	}
+	var codes *[]string = opts.Codes
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
 		return DepositWithdrawFees{}, CreateReturnError(res)
@@ -399,15 +348,9 @@ func (this *Bitstamp) CreateOrder(symbol string, typeVar string, side string, am
 		opt(&opts)
 	}
 
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
+	var price *float64 = opts.Price
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -440,20 +383,11 @@ func (this *Bitstamp) EditOrder(id string, symbol string, typeVar string, side s
 		opt(&opts)
 	}
 
-	var amount any = nil
-	if opts.Amount != nil {
-		amount = *opts.Amount
-	}
+	var amount *float64 = opts.Amount
 
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
+	var price *float64 = opts.Price
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.EditOrder(id, symbol, typeVar, side, amount, price, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -479,15 +413,9 @@ func (this *Bitstamp) CancelOrder(id string, options ...CancelOrderOptions) (Ord
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -513,15 +441,9 @@ func (this *Bitstamp) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Orde
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelAllOrders(symbol, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -536,15 +458,9 @@ func (this *Bitstamp) FetchOrderStatus(id string, options ...FetchOrderStatusOpt
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrderStatus(id, symbol, params)
 	if IsError(res) {
 		return "", CreateReturnError(res)
@@ -570,15 +486,9 @@ func (this *Bitstamp) FetchOrder(id string, options ...FetchOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -606,25 +516,13 @@ func (this *Bitstamp) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, e
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMyTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -654,25 +552,13 @@ func (this *Bitstamp) FetchFundingRateHistory(options ...FetchFundingRateHistory
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchFundingRateHistory(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -699,25 +585,13 @@ func (this *Bitstamp) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawa
 		opt(&opts)
 	}
 
-	var code any = nil
-	if opts.Code != nil {
-		code = *opts.Code
-	}
+	var code *string = opts.Code
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositsWithdrawals(code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -744,25 +618,13 @@ func (this *Bitstamp) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tr
 		opt(&opts)
 	}
 
-	var code any = nil
-	if opts.Code != nil {
-		code = *opts.Code
-	}
+	var code *string = opts.Code
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchWithdrawals(code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -789,25 +651,13 @@ func (this *Bitstamp) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry,
 		opt(&opts)
 	}
 
-	var code any = nil
-	if opts.Code != nil {
-		code = *opts.Code
-	}
+	var code *string = opts.Code
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchLedger(code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -832,10 +682,7 @@ func (this *Bitstamp) FetchFundingRate(symbol string, options ...FetchFundingRat
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchFundingRate(symbol, params)
 	if IsError(res) {
 		return FundingRate{}, CreateReturnError(res)
@@ -863,25 +710,13 @@ func (this *Bitstamp) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Orde
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOpenOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -906,10 +741,7 @@ func (this *Bitstamp) FetchDepositAddress(code string, options ...FetchDepositAd
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddress(code, params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
@@ -938,15 +770,9 @@ func (this *Bitstamp) Withdraw(code string, amount float64, address string, opti
 		opt(&opts)
 	}
 
-	var tag any = nil
-	if opts.Tag != nil {
-		tag = *opts.Tag
-	}
+	var tag *string = opts.Tag
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.Withdraw(code, amount, address, tag, params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
@@ -975,10 +801,7 @@ func (this *Bitstamp) Transfer(code string, amount float64, fromAccount string, 
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.Transfer(code, amount, fromAccount, toAccount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)

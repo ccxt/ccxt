@@ -2906,7 +2906,7 @@ public class BinanceCore extends BinanceApi
                 put( "sandboxMode", false );
                 put( "fetchMargins", true );
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse")) );
+                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse", "stock")) );
                     put( "loadAllOptions", false );
                 }} );
                 put( "fetchCurrencies", true );
@@ -4983,10 +4983,6 @@ public class BinanceCore extends BinanceApi
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetMarginAllPairs(parameters));
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetMarginIsolatedAllPairs(parameters));
                     }
-                    if (Helpers.isTrue(!Helpers.isTrue(isDemoEnv) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.apiKey, null)) && Helpers.isTrue(!Helpers.isEqual(this.apiKey, ""))))))
-                    {
-                        ((java.util.List<Object>)promisesRaw).add(this.sapiGetEquityMarketExchangeInfo(parameters));
-                    }
                 } else if (Helpers.isTrue(Helpers.isEqual(marketType, "linear")))
                 {
                     ((java.util.List<Object>)promisesRaw).add(this.fapiPublicGetExchangeInfo(parameters));
@@ -4996,6 +4992,12 @@ public class BinanceCore extends BinanceApi
                 } else if (Helpers.isTrue(Helpers.isEqual(marketType, "option")))
                 {
                     ((java.util.List<Object>)promisesRaw).add(this.eapiPublicGetExchangeInfo(parameters));
+                } else if (Helpers.isTrue(Helpers.isEqual(marketType, "stock")))
+                {
+                    if (Helpers.isTrue(!Helpers.isTrue(isDemoEnv) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.apiKey, null)) && Helpers.isTrue(!Helpers.isEqual(this.apiKey, ""))))))
+                    {
+                        ((java.util.List<Object>)promisesRaw).add(this.sapiGetEquityMarketExchangeInfo(parameters));
+                    }
                 } else
                 {
                     throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;

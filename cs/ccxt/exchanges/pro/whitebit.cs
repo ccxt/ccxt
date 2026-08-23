@@ -1084,11 +1084,47 @@ public partial class whitebit : ccxt.whitebit
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object messageHash = "authenticated";
         var client = this.client(url);
-        var future = client.reusableFuture("authenticated");
-        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(authenticated, null)))
+        object subscribeHash = "authenticated";
+        // handleAuthenticate () resolves the handshake future with 1, so 1 is
+        // the authorized sentinel authenticate () has always returned - every
+        // path below hands back that same value
+        object authorized = 1;
+        // single-flight leader election, see
+        // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+        // subscriptions['authenticated'], which watch () only registers once
+        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
+        // every concurrent cold caller used to pass that gate, burn a
+        // rate-limited private REST call for its own websocket_token and push
+        // its own authorize frame down the shared socket. the flight is
+        // registered in client.futures on the very client that carries the
+        // handshake, under a key that is not one of the exchange's own
+        // messageHashes, and is settled through client.resolve () /
+        // ((WebSocketClient)client).reject () so every write to that map goes through the
+        // client's own accessors
+        object messageHash = "authenticateFlight";
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            // a flight is already in progress - wake when the leader settles
+            // it, the socket is authorized by then. the flight gate is
+            // checked before the subscriptions one because watch () registers
+            // subscriptions['authenticated'] immediately, long before the
+            // venue acks the authorize frame
+            await client.future(messageHash);
+            return authorized;
+        }
+        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, subscribeHash);
+        if (isTrue(!isEqual(authenticated, null)))
+        {
+            // a previous flight already completed the handshake on the client
+            return authorized;
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch or the authorize round-trip finds it and waits
+        // instead of re-leading, and so ((WebSocketClient)client).reject () below always has a
+        // waiter and can never park the error in ((WebSocketClient)client).rejections
+        var future = client.reusableFuture(messageHash);
+        try
         {
             object authToken = await this.v4PrivatePostProfileWebsocketToken();
             //
@@ -1097,6 +1133,10 @@ public partial class whitebit : ccxt.whitebit
             //   }
             //
             object token = this.safeString(authToken, "websocket_token");
+            if (isTrue(isEqual(token, null)))
+            {
+                throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty websocket_token")) ;
+            }
             object id = this.nonce();
             object request = new Dictionary<string, object>() {
                 { "id", id },
@@ -1107,16 +1147,35 @@ public partial class whitebit : ccxt.whitebit
                 { "id", id },
                 { "method", this.handleAuthenticate },
             };
-            try
+            await this.watch(url, subscribeHash, request, subscribeHash, subscription);
+            // settle the flight and wake every waiter - resolve () also drops
+            // the registry entry, so a later cold call can re-lead
+            callDynamically(client as WebSocketClient, "resolve", new object[] {authorized, messageHash});
+        } catch(Exception e)
+        {
+            // drop the handshake state so the next caller can retry: watch ()
+            // registers subscriptions['authenticated'] before it connects and
+            // parks a rejected future under the same key when the dial fails,
+            // and either one left behind would make every later authenticate ()
+            // replay that failure. the stale future is settled through
+            // ((WebSocketClient)client).reject () - guarded, so it always has a waiter and the
+            // error is never parked in ((WebSocketClient)client).rejections
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, subscribeHash)))
             {
-                await this.watch(url, messageHash, request, messageHash, subscription);
-            } catch(Exception e)
-            {
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)messageHash);
-                ((Future)future).reject(e);
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscribeHash);
             }
+            if (isTrue(inOp(client.futures, subscribeHash)))
+            {
+                ((WebSocketClient)client).reject(e, subscribeHash);
+            }
+            // reject the flight - the leader and every waiter throw and the
+            // next caller re-leads instead of deadlocking on a dead flight
+            ((WebSocketClient)client).reject(e, messageHash);
         }
-        return await (future as Exchange.Future);
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
+        return authorized;
     }
 
     public virtual object handleAuthenticate(WebSocketClient client, object message)
