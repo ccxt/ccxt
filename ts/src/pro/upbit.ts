@@ -530,9 +530,10 @@ export default class upbit extends upbitRest {
                 'cost': feeCost,
             };
         }
-        // when state is trade the price and volume fields describe the fill, not the order
+        // when state is trade the price and volume fields describe the fill, not the order:
+        // fall back to the average fill price and let the order volume derive from filled + remaining
         const isTrade = (rawStatus === 'trade');
-        const price = isTrade ? undefined : this.safeString (order, 'price');
+        const price = isTrade ? this.safeString (order, 'avg_price') : this.safeString (order, 'price');
         const amount = isTrade ? undefined : this.safeString (order, 'volume');
         return this.safeOrder ({
             'info': order,
@@ -668,13 +669,16 @@ export default class upbit extends upbitRest {
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
             // fill updates carry the fill price and volume instead of the order's
-            const price = this.safeString (parsed, 'price');
-            if (price === undefined) {
-                parsed['price'] = this.safeNumber (order, 'price');
-            }
-            const amount = this.safeString (parsed, 'amount');
-            if (amount === undefined) {
-                parsed['amount'] = this.safeNumber (order, 'amount');
+            const rawStatus = this.safeString (message, 'state');
+            if (rawStatus === 'trade') {
+                const cachedPrice = this.safeNumber (order, 'price');
+                if (cachedPrice !== undefined) {
+                    parsed['price'] = cachedPrice;
+                }
+                const cachedAmount = this.safeNumber (order, 'amount');
+                if (cachedAmount !== undefined) {
+                    parsed['amount'] = cachedAmount;
+                }
             }
         }
         cachedOrders.append (parsed);
