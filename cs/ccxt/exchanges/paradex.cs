@@ -1790,11 +1790,11 @@ public partial class paradex : Exchange
         object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        object flags = this.safeList(order, "flags", new List<object>() {});
+        object flags = this.safeList(order, "flags");
         object reduceOnly = null;
-        if (isTrue(inOp(flags, "REDUCE_ONLY")))
+        if (isTrue(!isEqual(flags, null)))
         {
-            reduceOnly = true;
+            reduceOnly = this.inArray("REDUCE_ONLY", flags);
         }
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
