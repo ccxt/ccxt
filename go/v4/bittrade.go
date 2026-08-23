@@ -673,7 +673,7 @@ func (this *BittradeCore) fetchTradingLimitsBody(ch chan any, optionalArgs ...an
 	if IsTrue(IsEqual(symbols, nil)) {
 		panic(ExchangeError(Add(this.Id, " markets not loaded")))
 	}
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
 		var symbol any = GetValue(symbols, i)
 		AddElementToObject(result, symbol, (<-this.FetchTradingLimitsById(this.MarketId(symbol), params)))
@@ -692,7 +692,7 @@ func (this *BittradeCore) fetchTradingLimitsByIdBody(ch chan any, id any, option
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": id,
 	}
 
@@ -811,7 +811,7 @@ func (this *BittradeCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	//    }
 	//
 	var markets any = this.SafeValue(response, "data", []any{})
-	var numMarkets any = GetArrayLength(markets)
+	var numMarkets int = GetArrayLength(markets)
 	if IsTrue(IsLessThan(numMarkets, 1)) {
 		panic(NetworkError(Add(Add(this.Id, " fetchMarkets() returned empty response: "), this.Json(markets))))
 	}
@@ -825,7 +825,7 @@ func (this *BittradeCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 		var state any = this.SafeString(market, "state")
 		var leverageRatio any = this.SafeString(market, "leverage-ratio", "1")
 		var superLeverageRatio any = this.SafeString(market, "super-margin-leverage-ratio", "1")
-		var margin any = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
+		var margin bool = IsTrue(Precise.StringGt(leverageRatio, "1")) || IsTrue(Precise.StringGt(superLeverageRatio, "1"))
 		var fee any = Ternary(IsTrue((IsEqual(base, "OMG"))), this.ParseNumber("0"), this.ParseNumber("0.002"))
 		if IsTrue(IsEqual(baseId, nil)) {
 			panic(ExchangeError(Add(this.Id, " fetchMarkets() missing baseId")))
@@ -1006,7 +1006,7 @@ func (this *BittradeCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes73612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"type":   "step0",
 	}
@@ -1073,7 +1073,7 @@ func (this *BittradeCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes78812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -1140,7 +1140,7 @@ func (this *BittradeCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	PanicOnError(response)
 	var tickers any = this.SafeValue(response, "data", []any{})
 	var timestamp any = this.SafeInteger(response, "ts")
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var marketId any = this.SafeString(GetValue(tickers, i), "symbol")
 		var market any = this.SafeMarket(marketId)
@@ -1196,7 +1196,7 @@ func (this *BittradeCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var side any = this.SafeString(trade, "direction")
 	var typeVar any = this.SafeString(trade, "type")
 	if IsTrue(!IsEqual(typeVar, nil)) {
-		var typeParts any = Split(typeVar, "-")
+		var typeParts []string = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)
 	}
@@ -1271,7 +1271,7 @@ func (this *BittradeCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs
 		retRes94812 := (<-this.LoadMarkets())
 		PanicOnError(retRes94812)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1315,7 +1315,7 @@ func (this *BittradeCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes97012)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1365,7 +1365,7 @@ func (this *BittradeCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes100212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1463,7 +1463,7 @@ func (this *BittradeCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes108512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"period": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -1538,7 +1538,7 @@ func (this *BittradeCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"language": this.HandleOption("fetchCurrencies", "language", "en-US"),
 	}
 
@@ -1597,7 +1597,7 @@ func (this *BittradeCore) ParseCurrency(currency any) any {
 	var countryDisabled any = this.SafeValue(currency, "country-disabled")
 	var visible any = this.SafeBool(currency, "visible", false)
 	var state any = this.SafeString(currency, "state")
-	var active any = IsTrue(IsTrue(IsTrue(IsTrue(visible) && IsTrue(depositEnabled)) && IsTrue(withdrawEnabled)) && IsTrue((IsEqual(state, "online")))) && !IsTrue(countryDisabled)
+	var active bool = IsTrue(IsTrue(IsTrue(IsTrue(visible) && IsTrue(depositEnabled)) && IsTrue(withdrawEnabled)) && IsTrue((IsEqual(state, "online")))) && !IsTrue(countryDisabled)
 	var name any = this.SafeString(currency, "display-name")
 	var precision any = this.ParseNumber(this.ParsePrecision(this.SafeString(currency, "withdraw-precision")))
 	return this.SafeCurrencyStructure(map[string]any{
@@ -1630,7 +1630,7 @@ func (this *BittradeCore) ParseCurrency(currency any) any {
 }
 func (this *BittradeCore) ParseBalance(response any) any {
 	var balances any = this.SafeValue(GetValue(response, "data"), "list", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
@@ -1688,7 +1688,7 @@ func (this *BittradeCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 	retRes12698 := (<-this.LoadAccounts())
 	PanicOnError(retRes12698)
 	var method any = this.HandleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(GetValue(this.Accounts, 0), "id"),
 	}
 	var response any = nil
@@ -1724,7 +1724,7 @@ func (this *BittradeCore) fetchOrdersByStatesBody(ch chan any, states any, optio
 		retRes128512 := (<-this.LoadMarkets())
 		PanicOnError(retRes128512)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"states": states,
 	}
 	var market any = nil
@@ -1791,7 +1791,7 @@ func (this *BittradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes133312 := (<-this.LoadMarkets())
 		PanicOnError(retRes133312)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1955,7 +1955,7 @@ func (this *BittradeCore) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any
 		retRes139812 := (<-this.LoadMarkets())
 		PanicOnError(retRes139812)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2012,7 +2012,7 @@ func (this *BittradeCore) fetchOpenOrdersV2Body(ch chan any, optionalArgs ...any
 	return nil
 }
 func (this *BittradeCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"partial-filled":   "open",
 		"partial-canceled": "canceled",
 		"filled":           "closed",
@@ -2060,7 +2060,7 @@ func (this *BittradeCore) ParseOrder(order any, optionalArgs ...any) any {
 	var typeVar any = nil
 	var status any = nil
 	if IsTrue(InOp(order, "type")) {
-		var orderType any = Split(GetValue(order, "type"), "-")
+		var orderType []string = Split(GetValue(order, "type"), "-")
 		side = GetValue(orderType, 0)
 		typeVar = GetValue(orderType, 1)
 		status = this.ParseOrderStatus(this.SafeString(order, "state"))
@@ -2176,7 +2176,7 @@ func (this *BittradeCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	retRes15838 := (<-this.LoadAccounts())
 	PanicOnError(retRes15838)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"account-id": GetValue(GetValue(this.Accounts, 0), "id"),
 		"symbol":     GetValue(market, "id"),
 		"type":       Add(Add(side, "-"), typeVar),
@@ -2326,7 +2326,7 @@ func (this *BittradeCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 	}
 	var clientOrderIds any = this.SafeValue2(params, "clientOrderIds", "client-order-ids")
 	params = this.Omit(params, []any{"clientOrderIds", "client-order-ids"})
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsEqual(clientOrderIds, nil)) {
 		AddElementToObject(request, "order-ids", ids)
 	} else {
@@ -2454,7 +2454,7 @@ func (this *BittradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 		retRes180912 := (<-this.LoadMarkets())
 		PanicOnError(retRes180912)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2498,7 +2498,7 @@ func (this *BittradeCore) ParseDepositAddress(depositAddress any, optionalArgs .
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var networkId any = this.SafeString(depositAddress, "chain")
 	var networks any = this.SafeValue(currency, "networks", map[string]any{})
-	var networksById any = this.IndexBy(networks, "id")
+	var networksById map[string]any = this.IndexBy(networks, "id")
 	var networkValue any = this.SafeValue(networksById, networkId, networkId)
 	var network any = this.SafeString(networkValue, "network")
 	this.CheckAddress(address)
@@ -2549,7 +2549,7 @@ func (this *BittradeCore) fetchDepositsBody(ch chan any, optionalArgs ...any) an
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "deposit",
 		"from": 0,
 	}
@@ -2607,7 +2607,7 @@ func (this *BittradeCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any)
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "withdraw",
 		"from": 0,
 	}
@@ -2709,7 +2709,7 @@ func (this *BittradeCore) ParseTransaction(transaction any, optionalArgs ...any)
 	}
 }
 func (this *BittradeCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"unknown":         "failed",
 		"confirming":      "pending",
 		"confirmed":       "ok",
@@ -2762,7 +2762,7 @@ func (this *BittradeCore) withdrawBody(ch chan any, code any, amount any, addres
 	}
 	this.CheckAddress(address)
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address":  address,
 		"amount":   amount,
 		"currency": ToLower(GetValue(currency, "id")),
@@ -2818,8 +2818,8 @@ func (this *BittradeCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsTrue(IsEqual(api, "private")) || IsTrue(IsEqual(api, "v2Private"))) {
 		this.CheckRequiredCredentials()
-		var timestamp any = this.Ymdhms(this.Milliseconds(), "T")
-		var request any = map[string]any{
+		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
+		var request map[string]any = map[string]any{
 			"SignatureMethod":  "HmacSHA256",
 			"SignatureVersion": "2",
 			"AccessKeyId":      this.ApiKey,
@@ -2828,13 +2828,13 @@ func (this *BittradeCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(!IsEqual(method, "POST")) {
 			request = this.Extend(request, query)
 		}
-		var requestSorted any = this.Keysort(request)
+		var requestSorted map[string]any = this.Keysort(request)
 		var auth any = this.Urlencode(requestSorted)
 		// unfortunately, PHP demands double quotes for the escaped newline symbol
-		var content any = []any{method, this.Hostname, url, auth}
+		var content []any = []any{method, this.Hostname, url, auth}
 		// eslint-disable-next-line quotes
 		var payload any = Join(content, "\n")
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 		auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 			"Signature": signature,
 		})))

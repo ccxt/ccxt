@@ -13,15 +13,15 @@ func TestWatchTradesForSymbols(exchange ccxt.ICoreExchange, skippedProperties an
 func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbols any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchTradesForSymbols"
+	var method string = "watchTradesForSymbols"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	var maxIdleTime any = 5000
-	var idle any = false
+	var idle bool = false
 	var returnedSymbols any = []any{}
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = nil
-		var success any = true
+		var success bool = true
 		var startTime any = exchange.Milliseconds()
 
 		{

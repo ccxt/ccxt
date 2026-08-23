@@ -13,7 +13,7 @@ func TestFetchMarkets(exchange ccxt.ICoreExchange, skippedProperties any) <-chan
 func testFetchMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchMarkets"
+	var method string = "fetchMarkets"
 
 	markets := (<-exchange.FetchMarkets())
 	PanicOnError(markets)
@@ -30,7 +30,7 @@ func testFetchMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPrope
 }
 func DetectMarketConflicts(exchange ccxt.ICoreExchange, marketValues any) any {
 	// detect if there are markets with different ids for the same symbol
-	var ids any = map[string]any{}
+	var ids map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
 		var market any = GetValue(marketValues, i)
 		var symbol any = GetValue(market, "symbol")

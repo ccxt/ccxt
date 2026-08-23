@@ -99,8 +99,8 @@ func (this *OkxCore) GetUrl(channel any, optionalArgs ...any) any {
 	}
 	var isSandbox any = ccxt.GetValue(this.Options, "sandboxMode")
 	var sandboxSuffix any = ccxt.Ternary(ccxt.IsTrue(isSandbox), "?brokerId=9999", "")
-	var isBusiness any = (ccxt.IsEqual(access, "business"))
-	var isPublic any = (ccxt.IsEqual(access, "public"))
+	var isBusiness bool = (ccxt.IsEqual(access, "business"))
+	var isPublic bool = (ccxt.IsEqual(access, "public"))
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(isBusiness) || ccxt.IsTrue((ccxt.IsGreaterThan(ccxt.GetIndexOf(channel, "candle"), ccxt.OpNeg(1))))) || ccxt.IsTrue((ccxt.IsEqual(channel, "orders-algo")))) {
 		return ccxt.Add(ccxt.Add(url, "/business"), sandboxSuffix)
@@ -141,7 +141,7 @@ func (this *OkxCore) subscribeMultipleBody(ch chan any, access any, channel any,
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " subscribeMultiple() symbols is required")))
 		}
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
-		var arg any = map[string]any{
+		var arg map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
@@ -151,7 +151,7 @@ func (this *OkxCore) subscribeMultipleBody(ch chan any, access any, channel any,
 		}
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(channel, "::"), ccxt.GetValue(symbols, i)))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": args,
 	}
@@ -177,7 +177,7 @@ func (this *OkxCore) subscribeBody(ch chan any, access any, messageHash any, cha
 		ccxt.PanicOnError(retRes17312)
 	}
 	var url any = this.GetUrl(channel, access)
-	var firstArgument any = map[string]any{
+	var firstArgument map[string]any = map[string]any{
 		"channel": channel,
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -185,7 +185,7 @@ func (this *OkxCore) subscribeBody(ch chan any, access any, messageHash any, cha
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
 		ccxt.AddElementToObject(firstArgument, "instId", ccxt.GetValue(market, "id"))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": []any{this.DeepExtend(firstArgument, params)},
 	}
@@ -256,7 +256,7 @@ func (this *OkxCore) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchTradesForSymbols() requires a non-empty array of symbols")))
 	}
@@ -276,17 +276,17 @@ func (this *OkxCore) watchTradesForSymbolsBody(ch chan any, symbols any, optiona
 		var symbol any = ccxt.GetValue(symbols, i)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(channel, ":"), symbol))
 		var marketId any = this.MarketId(symbol)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": topics,
 	}
-	var access any = "public"
+	var access string = "public"
 	if ccxt.IsTrue(ccxt.IsEqual(channel, "trades-all")) {
 		access = "business"
 
@@ -344,17 +344,17 @@ func (this *OkxCore) unWatchTradesForSymbolsBody(ch chan any, symbols any, optio
 		var symbol any = ccxt.GetValue(symbols, i)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:", channel), ":"), symbol))
 		var marketId any = this.MarketId(symbol)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
 		"args": topics,
 	}
-	var access any = "public"
+	var access string = "public"
 	if ccxt.IsTrue(ccxt.IsEqual(channel, "trades-all")) {
 		access = "business"
 
@@ -505,20 +505,20 @@ func (this *OkxCore) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError(retRes39812)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var channel any = "funding-rate"
+	var channel string = "funding-rate"
 	var topics any = []any{}
 	var messageHashes any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var symbol any = ccxt.GetValue(symbols, i)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(channel, ":"), symbol))
 		var marketId any = this.MarketId(symbol)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": topics,
 	}
@@ -528,7 +528,7 @@ func (this *OkxCore) watchFundingRatesBody(ch chan any, optionalArgs ...any) any
 	ccxt.PanicOnError(fundingRate)
 	if ccxt.IsTrue(this.NewUpdates) {
 		var symbol any = this.SafeString(fundingRate, "symbol")
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 			ccxt.AddElementToObject(result, symbol, fundingRate)
 		}
@@ -797,13 +797,13 @@ func (this *OkxCore) unWatchTickersBody(ch chan any, optionalArgs ...any) any {
 		var symbol any = ccxt.GetValue(symbols, i)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:ticker:", symbol))
 		var marketId any = this.MarketId(symbol)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
 		"args": topics,
 	}
@@ -847,7 +847,7 @@ func (this *OkxCore) HandleTicker(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var channel any = this.SafeString(arg, "channel")
 	var data any = this.SafeValue(message, "data", []any{})
-	var newTickers any = map[string]any{}
+	var newTickers map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var ticker any = this.ParseTicker(ccxt.GetValue(data, i))
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
@@ -893,14 +893,14 @@ func (this *OkxCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	var args any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
 		var marketId any = this.MarketId(ccxt.GetValue(symbols, i))
-		var arg any = map[string]any{
+		var arg map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&args, this.Extend(arg, params))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("bidask::", ccxt.GetValue(symbols, i)))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": args,
 	}
@@ -908,7 +908,7 @@ func (this *OkxCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 	newTickers := (<-this.WatchMultiple(url, messageHashes, request, messageHashes))
 	ccxt.PanicOnError(newTickers)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var tickers any = map[string]any{}
+		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(newTickers, "symbol"), newTickers)
 
 		ch <- tickers
@@ -1004,7 +1004,7 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 		ccxt.PanicOnError(retRes75312)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var messageHash any = "liquidations"
+	var messageHash string = "liquidations"
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1019,7 +1019,7 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchliquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var channel any = "liquidation-orders"
+	var channel string = "liquidation-orders"
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {
 		typeVar = "SWAP"
 	} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "future")) {
@@ -1028,8 +1028,8 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchLiquidationsForSymbols() type is required")))
 	}
-	var uppercaseType any = ccxt.ToUpper(typeVar)
-	var request any = map[string]any{
+	var uppercaseType string = ccxt.ToUpper(typeVar)
+	var request map[string]any = map[string]any{
 		"op": "subscribe",
 		"args": []any{map[string]any{
 			"channel":  channel,
@@ -1131,7 +1131,7 @@ func (this *OkxCore) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 	}))
 	ccxt.PanicOnError(retRes8578)
 	symbols = this.MarketSymbols(symbols, nil, true, true)
-	var messageHash any = "myLiquidations"
+	var messageHash string = "myLiquidations"
 	var messageHashes any = []any{}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
@@ -1141,8 +1141,8 @@ func (this *OkxCore) watchMyLiquidationsForSymbolsBody(ch chan any, symbols any,
 	} else {
 		ccxt.AppendToArray(&messageHashes, messageHash)
 	}
-	var channel any = "balance_and_position"
-	var request any = map[string]any{
+	var channel string = "balance_and_position"
+	var request map[string]any = map[string]any{
 		"op": "subscribe",
 		"args": []any{map[string]any{
 			"channel": channel,
@@ -1406,7 +1406,7 @@ func (this *OkxCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 	}
@@ -1424,14 +1424,14 @@ func (this *OkxCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes 
 		var marketId any = this.MarketId(sym)
 		var interval any = this.SafeString(this.Timeframes, tf, tf)
 		var channel any = ccxt.Add("candle", interval)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("multi:", channel), ":"), sym))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": topics,
 	}
@@ -1468,7 +1468,7 @@ func (this *OkxCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var symbolsLength any = ccxt.GetArrayLength(symbolsAndTimeframes)
+	var symbolsLength int = ccxt.GetArrayLength(symbolsAndTimeframes)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")))
 	}
@@ -1486,14 +1486,14 @@ func (this *OkxCore) unWatchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframe
 		var marketId any = this.MarketId(sym)
 		var interval any = this.SafeString(this.Timeframes, tf, tf)
 		var channel any = ccxt.Add("candle", interval)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": channel,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("unsubscribe:multi:", channel), ":"), sym))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
 		"args": topics,
 	}
@@ -1673,13 +1673,13 @@ func (this *OkxCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, opti
 		var symbol any = ccxt.GetValue(symbols, i)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(depth, ":"), symbol))
 		var marketId any = this.MarketId(symbol)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": depth,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": topics,
 	}
@@ -1743,13 +1743,13 @@ func (this *OkxCore) unWatchOrderBookForSymbolsBody(ch chan any, symbols any, op
 		ccxt.AppendToArray(&subMessageHashes, ccxt.Add(ccxt.Add(depth, ":"), symbol))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("unsubscribe:orderbook:", symbol))
 		var marketId any = this.MarketId(symbol)
-		var topic any = map[string]any{
+		var topic map[string]any = map[string]any{
 			"channel": depth,
 			"instId":  marketId,
 		}
 		ccxt.AppendToArray(&topics, topic)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "unsubscribe",
 		"args": topics,
 	}
@@ -1949,7 +1949,7 @@ func (this *OkxCore) HandleOrderBook(client any, message any) any {
 	var marketId any = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var depths any = map[string]any{
+	var depths map[string]any = map[string]any{
 		"bbo-tbt":        1,
 		"books":          400,
 		"books5":         5,
@@ -2006,18 +2006,18 @@ func (this *OkxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	var access any = this.SafeString(params, "access", "private")
 	params = this.Omit(params, []any{"access"})
 	var url any = this.GetUrl("users", access)
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var client any = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-		var timestamp any = ccxt.ToString(this.Seconds())
-		var method any = "GET"
-		var path any = "/users/self/verify"
+		var timestamp string = ccxt.ToString(this.Seconds())
+		var method string = "GET"
+		var path string = "/users/self/verify"
 		var auth any = ccxt.Add(ccxt.Add(timestamp, method), path)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
-		var operation any = "login"
-		var request any = map[string]any{
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
+		var operation string = "login"
+		var request map[string]any = map[string]any{
 			"op": operation,
 			"args": []any{map[string]any{
 				"apiKey":     this.ApiKey,
@@ -2167,7 +2167,7 @@ func (this *OkxCore) HandleBalance(client any, message any) {
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel any = this.SafeString(arg, "channel")
 	var balance any = this.ParseTradingBalance(message)
-	var newBalance any = this.DeepExtend(this.Balance, balance)
+	var newBalance map[string]any = this.DeepExtend(this.Balance, balance)
 	this.Balance = this.SafeBalance(newBalance)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, channel)
 }
@@ -2177,7 +2177,7 @@ func (this *OkxCore) OrderToTrade(order any, optionalArgs ...any) any {
 	var info any = this.SafeValue(order, "info", map[string]any{})
 	var timestamp any = this.SafeInteger(info, "fillTime")
 	var feeMarketId any = this.SafeString(info, "fillFeeCcy")
-	var isTaker any = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
+	var isTaker bool = ccxt.IsEqual(this.SafeString(info, "execType", ""), "T")
 	return this.SafeTrade(map[string]any{
 		"info":         info,
 		"timestamp":    timestamp,
@@ -2260,7 +2260,7 @@ func (this *OkxCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchMyTrades() type is required")))
 	}
-	var uppercaseType any = ccxt.ToUpper(typeVar)
+	var uppercaseType string = ccxt.ToUpper(typeVar)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchMyTrades", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
@@ -2270,7 +2270,7 @@ func (this *OkxCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 			uppercaseType = "MARGIN"
 		}
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instType": uppercaseType,
 	}
 
@@ -2320,18 +2320,18 @@ func (this *OkxCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 	retRes18318 := (<-this.Authenticate(params))
 	ccxt.PanicOnError(retRes18318)
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instType": "ANY",
 	}
-	var channel any = "positions"
+	var channel string = "positions"
 	var newPositions any = nil
 	if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
-		var arg any = map[string]any{
+		var arg map[string]any = map[string]any{
 			"channel":  "positions",
 			"instType": "ANY",
 		}
-		var args any = []any{this.Extend(arg, params)}
-		var nonSymbolRequest any = map[string]any{
+		var args []any = []any{this.Extend(arg, params)}
+		var nonSymbolRequest map[string]any = map[string]any{
 			"op":   "subscribe",
 			"args": args,
 		}
@@ -2510,7 +2510,7 @@ func (this *OkxCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrders() type is required")))
 	}
-	var uppercaseType any = ccxt.ToUpper(typeVar)
+	var uppercaseType string = ccxt.ToUpper(typeVar)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("watchOrders", params)
 	marginMode = ccxt.GetValue(marginModeparamsVariable, 0)
@@ -2520,7 +2520,7 @@ func (this *OkxCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 			uppercaseType = "MARGIN"
 		}
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instType": uppercaseType,
 	}
 	var channel any = ccxt.Ternary(ccxt.IsTrue(isTrigger), "orders-algo", "orders")
@@ -2593,7 +2593,7 @@ func (this *OkxCore) HandleOrders(client any, message any) {
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel any = this.SafeString(arg, "channel")
 	var orders any = this.SafeValue(message, "data", []any{})
-	var ordersLength any = ccxt.GetArrayLength(orders)
+	var ordersLength int = ccxt.GetArrayLength(orders)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ordersLength, 0)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
@@ -2685,7 +2685,7 @@ func (this *OkxCore) HandleMyTrades(client any, message any) {
 			ccxt.AppendToArray(&filteredOrders, order)
 		}
 	}
-	var tradesLength any = ccxt.GetArrayLength(filteredOrders)
+	var tradesLength int = ccxt.GetArrayLength(filteredOrders)
 	if ccxt.IsTrue(ccxt.IsEqual(tradesLength, 0)) {
 		return
 	}
@@ -2694,7 +2694,7 @@ func (this *OkxCore) HandleMyTrades(client any, message any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var myTrades any = this.MyTrades
-	var symbols any = map[string]any{}
+	var symbols map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(filteredOrders)); i++ {
 		var rawTrade any = ccxt.GetValue(filteredOrders, i)
 		var trade any = this.OrderToTrade(rawTrade)
@@ -2706,16 +2706,16 @@ func (this *OkxCore) HandleMyTrades(client any, message any) {
 	}
 	var messageHash any = ccxt.Add(channel, "::myTrades")
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHash)
-	var tradeSymbols any = ccxt.ObjectKeys(symbols)
+	var tradeSymbols []string = ccxt.ObjectKeys(symbols)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tradeSymbols)); i++ {
 		var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), ccxt.GetValue(tradeSymbols, i))
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolMessageHash)
 	}
 }
 func (this *OkxCore) RequestId() any {
-	var ts any = ccxt.ToString(this.Milliseconds())
+	var ts string = ccxt.ToString(this.Milliseconds())
 	var randomNumber any = this.RandNumber(4)
-	var randomPart any = ccxt.ToString(randomNumber)
+	var randomPart string = ccxt.ToString(randomNumber)
 	return ccxt.Add(ts, randomPart)
 }
 
@@ -2773,7 +2773,7 @@ func (this *OkxCore) createOrderWsBody(ch chan any, symbol any, typeVar any, sid
 	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(op, "order"))) && ccxt.IsTrue((!ccxt.IsEqual(op, "batch-orders")))) {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id, " createOrderWs() does not support algo trading. this.options[\"createOrderWs\"][\"op\"] must be either order or privatePostTradeOrder or privatePostTradeOrderAlgo")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":   messageHash,
 		"op":   op,
 		"args": []any{args},
@@ -2868,7 +2868,7 @@ func (this *OkxCore) editOrderWsBody(ch chan any, id any, symbol any, typeVar an
 		ccxt.Remove(args, "instId")
 		ccxt.AddElementToObject(args, "instIdCode", instIdCode)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":   messageHash,
 		"op":   op,
 		"args": []any{args},
@@ -2920,7 +2920,7 @@ func (this *OkxCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	params = this.Omit(params, []any{"clientOrderId", "clOrdId"})
 	var market any = this.Market(symbol)
 	var instIdCode any = this.SafeInteger(market, "instIdCode")
-	var arg any = map[string]any{
+	var arg map[string]any = map[string]any{
 		"instIdCode": instIdCode,
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(clientOrderId, nil)) {
@@ -2928,7 +2928,7 @@ func (this *OkxCore) cancelOrderWsBody(ch chan any, id any, optionalArgs ...any)
 	} else {
 		ccxt.AddElementToObject(arg, "ordId", id)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":   messageHash,
 		"op":   "cancel-order",
 		"args": []any{this.Extend(arg, params)},
@@ -2962,7 +2962,7 @@ func (this *OkxCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...an
 	_ = symbol
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var idsLength any = ccxt.GetArrayLength(ids)
+	var idsLength int = ccxt.GetArrayLength(ids)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(idsLength, 20)) {
 		panic(ccxt.BadRequest(ccxt.Add(this.Id, " cancelOrdersWs() accepts up to 20 ids at a time")))
 	}
@@ -2982,16 +2982,16 @@ func (this *OkxCore) cancelOrdersWsBody(ch chan any, ids any, optionalArgs ...an
 	var args any = []any{}
 	var market any = this.Market(symbol)
 	var instIdCode any = this.SafeInteger(market, "instIdCode")
-	var instParams any = map[string]any{
+	var instParams map[string]any = map[string]any{
 		"instIdCode": instIdCode,
 	}
 	for i := 0; ccxt.IsLessThan(i, idsLength); i++ {
-		var arg any = this.Extend(instParams, map[string]any{
+		var arg map[string]any = this.Extend(instParams, map[string]any{
 			"ordId": ccxt.GetValue(ids, i),
 		})
 		ccxt.AppendToArray(&args, arg)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":   messageHash,
 		"op":   "batch-cancel-orders",
 		"args": args,
@@ -3041,7 +3041,7 @@ func (this *OkxCore) cancelAllOrdersWsBody(ch chan any, optionalArgs ...any) any
 	}
 	var url any = this.GetUrl("private", "private")
 	var messageHash any = this.RequestId()
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": messageHash,
 		"op": "mass-cancel",
 		"args": []any{this.Extend(map[string]any{
@@ -3218,7 +3218,7 @@ func (this *OkxCore) HandleMessage(client any, message any) {
 	// if (table === undefined) {
 	var event any = this.SafeString2(message, "event", "op")
 	if ccxt.IsTrue(!ccxt.IsEqual(event, nil)) {
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"login":              this.HandleAuthenticate,
 			"subscribe":          this.HandleSubscriptionStatus,
 			"unsubscribe":        this.HandleUnsubscription,
@@ -3239,7 +3239,7 @@ func (this *OkxCore) HandleMessage(client any, message any) {
 		if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 			return
 		}
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"bbo-tbt":              this.HandleOrderBook,
 			"books":                this.HandleOrderBook,
 			"books5":               this.HandleOrderBook,

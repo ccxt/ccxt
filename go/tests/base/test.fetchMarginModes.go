@@ -13,12 +13,12 @@ func TestFetchMarginModes(exchange ccxt.ICoreExchange, skippedProperties any, sy
 func testFetchMarginModesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchMarginModes"
+	var method string = "fetchMarginModes"
 
 	marginModes := (<-exchange.FetchMarginModes([]any{symbol}))
 	PanicOnError(marginModes)
 	AssertDictionaryResponse(exchange, method, marginModes, symbol)
-	var marginModeKeys any = ObjectKeys(marginModes)
+	var marginModeKeys []string = ObjectKeys(marginModes)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol)
 	for i := 0; IsLessThan(i, GetArrayLength(marginModeKeys)); i++ {
 		var marginMode any = GetValue(marginModes, GetValue(marginModeKeys, i))

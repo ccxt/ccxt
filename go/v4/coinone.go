@@ -471,8 +471,8 @@ func (this *CoinoneCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) a
 func (this *CoinoneCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "symbol")
 	var code any = this.SafeCurrencyCode(id)
-	var isWithdrawEnabled any = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
-	var isDepositEnabled any = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
+	var isWithdrawEnabled bool = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
+	var isDepositEnabled bool = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
 	var typeVar any = Ternary(IsTrue((!IsEqual(code, "KRW"))), "crypto", "fiat")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -517,7 +517,7 @@ func (this *CoinoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency": "KRW",
 	}
 
@@ -621,11 +621,11 @@ func (this *CoinoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *CoinoneCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.Omit(response, []any{"errorCode", "result", "normalWallets"})
-	var currencyIds any = ObjectKeys(balances)
+	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var balance any = GetValue(balances, currencyId)
@@ -699,7 +699,7 @@ func (this *CoinoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes52412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency":  GetValue(market, "quote"),
 		"target_currency": GetValue(market, "base"),
 	}
@@ -766,7 +766,7 @@ func (this *CoinoneCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes57412)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency": "KRW",
 	}
 	var market any = nil
@@ -848,7 +848,7 @@ func (this *CoinoneCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes63912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency":  GetValue(market, "quote"),
 		"target_currency": GetValue(market, "base"),
 	}
@@ -1051,7 +1051,7 @@ func (this *CoinoneCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes82112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency":  GetValue(market, "quote"),
 		"target_currency": GetValue(market, "base"),
 	}
@@ -1110,8 +1110,8 @@ func (this *CoinoneCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var orderType any = ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-	var orderSide any = ToUpper(side)    // unified lowercase order sides, same override rule
+	var orderType string = ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+	var orderSide string = ToUpper(side)    // unified lowercase order sides, same override rule
 	if IsTrue(!IsEqual(orderType, "LIMIT")) {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
@@ -1127,7 +1127,7 @@ func (this *CoinoneCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	// the v1 order/limit_buy and order/limit_sell endpoints were retired by
 	// the exchange and return 404, the v2.1 order endpoint replaces them,
 	// see https://github.com/ccxt/ccxt/issues/23174
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency":  GetValue(market, "quoteId"),
 		"target_currency": GetValue(market, "baseId"),
 		"type":            orderType,
@@ -1180,7 +1180,7 @@ func (this *CoinoneCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes91612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 		"currency": GetValue(market, "id"),
 	}
@@ -1213,7 +1213,7 @@ func (this *CoinoneCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	return nil
 }
 func (this *CoinoneCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"live":               "open",
 		"partially_filled":   "open",
 		"partially_canceled": "open",
@@ -1303,7 +1303,7 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	// https://github.com/ccxt/ccxt/pull/7067
 	if IsTrue(IsEqual(status, "live")) {
 		if IsTrue(IsTrue((!IsEqual(remainingString, nil))) && IsTrue((!IsEqual(amountString, nil)))) {
-			var isLessThan any = Precise.StringLt(remainingString, amountString)
+			var isLessThan bool = Precise.StringLt(remainingString, amountString)
 			if IsTrue(isLessThan) {
 				status = "canceled"
 			}
@@ -1382,7 +1382,7 @@ func (this *CoinoneCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes109712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quote_currency":  GetValue(market, "quoteId"),
 		"target_currency": GetValue(market, "baseId"),
 	}
@@ -1447,7 +1447,7 @@ func (this *CoinoneCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes114112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "id"),
 	}
 
@@ -1514,7 +1514,7 @@ func (this *CoinoneCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes119212 := (<-this.LoadMarkets())
 		PanicOnError(retRes119212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 		"price":    price,
 		"qty":      qty,
@@ -1578,15 +1578,15 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	//     }
 	//
 	var walletAddress any = this.SafeDict(response, "walletAddress", map[string]any{})
-	var keys any = ObjectKeys(walletAddress)
-	var result any = map[string]any{}
+	var keys []string = ObjectKeys(walletAddress)
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(walletAddress, key)
 		if IsTrue(IsTrue((!IsTrue(value))) || IsTrue((IsEqual(value, "-1")))) {
 			continue
 		}
-		var parts any = Split(key, "_")
+		var parts []string = Split(key, "_")
 		var currencyId any = this.SafeValue(parts, 0)
 		var secondPart any = this.SafeValue(parts, 1)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -1659,8 +1659,8 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 		}, params))
 		var payload any = this.StringToBase64(json)
 		body = payload
-		var secret any = ToUpper(this.Secret)
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
+		var secret string = ToUpper(this.Secret)
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
 		headers = map[string]any{
 			"Content-Type":        "application/json",
 			"X-COINONE-PAYLOAD":   payload,

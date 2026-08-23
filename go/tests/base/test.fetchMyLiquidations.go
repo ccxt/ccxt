@@ -13,7 +13,7 @@ func TestFetchMyLiquidations(exchange ccxt.ICoreExchange, skippedProperties any,
 func testFetchMyLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchMyLiquidations"
+	var method string = "fetchMyLiquidations"
 	if !IsTrue(GetValue(exchange.GetHas(), "fetchMyLiquidations")) {
 
 		ch <- true

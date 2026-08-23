@@ -864,7 +864,7 @@ func (this *DeriveCore) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"expired":         false,
 		"instrument_type": "erc20",
 	}
@@ -887,7 +887,7 @@ func (this *DeriveCore) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"expired":         false,
 		"instrument_type": "perp",
 	}
@@ -910,7 +910,7 @@ func (this *DeriveCore) fetchOptionMarketsBody(ch chan any, optionalArgs ...any)
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"expired":         false,
 		"instrument_type": "option",
 	}
@@ -926,10 +926,10 @@ func (this *DeriveCore) fetchOptionMarketsBody(ch chan any, optionalArgs ...any)
 func (this *DeriveCore) ParseMarket(market any) any {
 	var typeVar any = this.SafeString(market, "instrument_type")
 	var marketType any = nil
-	var spot any = false
-	var margin any = true
-	var swap any = false
-	var option any = false
+	var spot bool = false
+	var margin bool = true
+	var swap bool = false
+	var option bool = false
 	var linear any = nil
 	var inverse any = nil
 	var baseId any = this.SafeString(market, "base_currency")
@@ -976,7 +976,7 @@ func (this *DeriveCore) ParseMarket(market any) any {
 		inverse = false
 	}
 	var contractSize any = Ternary(IsTrue((spot)), nil, 1)
-	var isContract any = (IsTrue(swap) || IsTrue(option))
+	var isContract bool = (IsTrue(swap) || IsTrue(option))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1055,7 +1055,7 @@ func (this *DeriveCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes75112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
 
@@ -1246,7 +1246,7 @@ func (this *DeriveCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		retRes92312 := (<-this.LoadMarkets())
 		PanicOnError(retRes92312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1320,13 +1320,13 @@ func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
 		var rawTrade any = GetValue(tradesArray, i)
-		var isFetchTrades any = !IsTrue((InOp(rawTrade, "order_id")))
+		var isFetchTrades bool = !IsTrue((InOp(rawTrade, "order_id")))
 		var liquidityRole any = this.SafeString(rawTrade, "liquidity_role")
 		if IsTrue(IsTrue(isFetchTrades) && IsTrue((IsEqual(liquidityRole, "maker")))) {
 			continue
 		}
 		var parsed any = this.ParseTrade(rawTrade, market)
-		var trade any = this.Extend(parsed, params)
+		var trade map[string]any = this.Extend(parsed, params)
 		AppendToArray(&result, trade)
 	}
 	result = this.SortBy2(result, "timestamp", "id")
@@ -1369,7 +1369,7 @@ func (this *DeriveCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(trade, "instrument_name")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var timestamp any = this.SafeInteger(trade, "timestamp")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": "USDC",
 		"cost":     this.SafeString(trade, "trade_fee"),
 	}
@@ -1423,7 +1423,7 @@ func (this *DeriveCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 		PanicOnError(retRes107112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1623,9 +1623,9 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var postOnly any = this.SafeBool(params, "postOnly")
-	var orderType any = ToLower(typeVar)
-	var orderSide any = ToLower(side)
-	var nonce any = this.Milliseconds()
+	var orderType string = ToLower(typeVar)
+	var orderSide string = ToLower(side)
+	var nonce int64 = this.Milliseconds()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
 	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
@@ -1647,7 +1647,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name":      GetValue(market, "id"),
 		"direction":            orderSide,
 		"order_type":           orderType,
@@ -1822,9 +1822,9 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force")
 	var postOnly any = this.SafeBool(params, "postOnly")
-	var orderType any = ToLower(typeVar)
-	var orderSide any = ToLower(side)
-	var nonce any = this.Milliseconds()
+	var orderType string = ToLower(typeVar)
+	var orderSide string = ToLower(side)
+	var nonce int64 = this.Milliseconds()
 	var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	// TODO: subaccount id / trade module address
 	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
@@ -1839,7 +1839,7 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
 	var signature any = this.SignOrder([]any{ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.WalletAddress}, this.PrivateKey)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name":      GetValue(market, "id"),
 		"order_id_to_cancel":   id,
 		"direction":            orderSide,
@@ -1993,7 +1993,7 @@ func (this *DeriveCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
 	params = this.Omit(params, []any{"trigger", "stop"})
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instrument_name": GetValue(market, "id"),
 		"subaccount_id":   subaccountId,
 	}
@@ -2062,7 +2062,7 @@ func (this *DeriveCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	//     "id": "674e075e-1e8a-4a47-99ff-75efbdd2370f"
 	// }
 	//
-	var extendParams any = map[string]any{
+	var extendParams map[string]any = map[string]any{
 		"symbol": symbol,
 	}
 	var order any = this.SafeDict(response, "result", map[string]any{})
@@ -2110,7 +2110,7 @@ func (this *DeriveCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("cancelAllOrders", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	var response any = nil
@@ -2196,7 +2196,7 @@ func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrders", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	var market any = nil
@@ -2310,7 +2310,7 @@ func (this *DeriveCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		retRes184112 := (<-this.LoadMarkets())
 		PanicOnError(retRes184112)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "open",
 	})
 
@@ -2353,7 +2353,7 @@ func (this *DeriveCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		retRes186112 := (<-this.LoadMarkets())
 		PanicOnError(retRes186112)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "filled",
 	})
 
@@ -2396,7 +2396,7 @@ func (this *DeriveCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any
 		retRes188112 := (<-this.LoadMarkets())
 		PanicOnError(retRes188112)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "cancelled",
 	})
 
@@ -2406,7 +2406,7 @@ func (this *DeriveCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any
 	return nil
 }
 func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"gtc":       "GTC",
@@ -2416,7 +2416,7 @@ func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
 }
 func (this *DeriveCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses any = map[string]any{
+		var statuses map[string]any = map[string]any{
 			"open":        "open",
 			"untriggered": "open",
 			"filled":      "closed",
@@ -2592,7 +2592,7 @@ func (this *DeriveCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id":      id,
 		"subaccount_id": subaccountId,
 	}
@@ -2702,7 +2702,7 @@ func (this *DeriveCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchMyTrades", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	var market any = nil
@@ -2803,7 +2803,7 @@ func (this *DeriveCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	params = this.Omit(params, []any{"subaccount_id"})
@@ -2981,7 +2981,7 @@ func (this *DeriveCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchFundingHistory", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	var market any = nil
@@ -3100,7 +3100,7 @@ func (this *DeriveCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
 	deriveWalletAddress = GetValue(deriveWalletAddressparamsVariable, 0)
 	params = GetValue(deriveWalletAddressparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"wallet": deriveWalletAddress,
 	}
 
@@ -3160,7 +3160,7 @@ func (this *DeriveCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *DeriveCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -3222,7 +3222,7 @@ func (this *DeriveCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -3294,7 +3294,7 @@ func (this *DeriveCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"subaccount_id": subaccountId,
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -3372,7 +3372,7 @@ func (this *DeriveCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	}
 }
 func (this *DeriveCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"settled":  "ok",
 		"reverted": "failed",
 	}
@@ -3439,7 +3439,7 @@ func (this *DeriveCore) Sign(path any, optionalArgs ...any) any {
 			"Content-Type": "application/json",
 		}
 		if IsTrue(IsEqual(api, "private")) {
-			var now any = ToString(this.Milliseconds())
+			var now string = ToString(this.Milliseconds())
 			var signature any = this.SignMessage(now, this.PrivateKey)
 			AddElementToObject(headers, "X-LyraWallet", this.SafeString(this.Options, "deriveWalletAddress"))
 			AddElementToObject(headers, "X-LyraTimestamp", now)

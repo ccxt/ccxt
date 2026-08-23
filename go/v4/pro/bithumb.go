@@ -74,7 +74,7 @@ func (this *BithumbCore) watchTickerBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":      "ticker",
 		"symbols":   []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
 		"tickTypes": []any{this.SafeString(params, "tickTypes", "24H")},
@@ -125,17 +125,17 @@ func (this *BithumbCore) watchTickersBody(ch chan any, optionalArgs ...any) any 
 		ccxt.AppendToArray(&marketIds, ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote")))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker:", ccxt.GetValue(market, "symbol")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":      "ticker",
 		"symbols":   marketIds,
 		"tickTypes": []any{this.SafeString(params, "tickTypes", "24H")},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	newTicker := (<-this.WatchMultiple(url, messageHashes, message, messageHashes))
 	ccxt.PanicOnError(newTicker)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(newTicker, "symbol"), newTicker)
 
 		ch <- result
@@ -259,7 +259,7 @@ func (this *BithumbCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "orderbookdepth",
 		"symbols": []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
 	}
@@ -369,7 +369,7 @@ func (this *BithumbCore) watchTradesBody(ch chan any, symbol any, optionalArgs .
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var messageHash any = ccxt.Add("trade:", symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "transaction",
 		"symbols": []any{ccxt.Add(ccxt.Add(ccxt.GetValue(market, "base"), "_"), ccxt.GetValue(market, "quote"))},
 	}
@@ -521,8 +521,8 @@ func (this *BithumbCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	retRes4198 := (<-this.Authenticate())
 	ccxt.PanicOnError(retRes4198)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
-	var messageHash any = "myAsset"
-	var request any = []any{map[string]any{
+	var messageHash string = "myAsset"
+	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
 	}, map[string]any{
 		"type": messageHash,
@@ -550,7 +550,7 @@ func (this *BithumbCore) HandleBalance(client any, message any) {
 	//        "stream_type": "REALTIME"
 	//    }
 	//
-	var messageHash any = "myAsset"
+	var messageHash string = "myAsset"
 	var assets any = this.SafeList(message, "assets", []any{})
 	if ccxt.IsTrue(ccxt.IsEqual(this.Balance, nil)) {
 		this.Balance = map[string]any{}
@@ -587,7 +587,7 @@ func (this *BithumbCore) authenticateBody(ch chan any, optionalArgs ...any) any 
 	var wsOptions any = this.SafeDict(this.Options, "ws", map[string]any{})
 	var authenticated any = this.SafeString(wsOptions, "token")
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-		var payload any = map[string]any{
+		var payload map[string]any = map[string]any{
 			"access_key": this.ApiKey,
 			"nonce":      this.Uuid(),
 			"timestamp":  this.Milliseconds(),
@@ -647,7 +647,7 @@ func (this *BithumbCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
 	var messageHash any = "myOrder"
 	var codes any = this.SafeList(params, "codes", []any{})
-	var request any = []any{map[string]any{
+	var request []any = []any{map[string]any{
 		"ticket": "ccxt",
 	}, map[string]any{
 		"type":  messageHash,
@@ -693,7 +693,7 @@ func (this *BithumbCore) HandleOrders(client any, message any) {
 	//        "stream_type": "REALTIME"
 	//    }
 	//
-	var messageHash any = "myOrder"
+	var messageHash string = "myOrder"
 	var parsed any = this.ParseWsOrder(message)
 	var symbol any = this.SafeString(parsed, "symbol")
 	// const orderId = this.safeString (parsed, 'id')
@@ -805,7 +805,7 @@ func (this *BithumbCore) HandleMessage(client any, message any) {
 	}
 	var topic any = this.SafeString(message, "type")
 	if ccxt.IsTrue(!ccxt.IsEqual(topic, nil)) {
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"ticker":         this.HandleTicker,
 			"orderbookdepth": this.HandleOrderBook,
 			"transaction":    this.HandleTrades,

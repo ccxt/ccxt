@@ -576,14 +576,14 @@ func (this *CoinspotCore) Describe() any {
 	})
 }
 func (this *CoinspotCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.SafeValue2(response, "balance", "balances")
 	if IsTrue(IsArray(balances)) {
 		for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 			var currencies any = GetValue(balances, i)
-			var currencyIds any = ObjectKeys(currencies)
+			var currencyIds []string = ObjectKeys(currencies)
 			for j := 0; IsLessThan(j, GetArrayLength(currencyIds)); j++ {
 				var currencyId any = GetValue(currencyIds, j)
 				var balance any = GetValue(currencies, currencyId)
@@ -596,7 +596,7 @@ func (this *CoinspotCore) ParseBalance(response any) any {
 			}
 		}
 	} else {
-		var currencyIds any = ObjectKeys(balances)
+		var currencyIds []string = ObjectKeys(balances)
 		for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 			var currencyId any = GetValue(currencyIds, i)
 			var code any = this.SafeCurrencyCode(currencyId)
@@ -693,7 +693,7 @@ func (this *CoinspotCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes37212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"cointype": GetValue(market, "id"),
 	}
 
@@ -836,9 +836,9 @@ func (this *CoinspotCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	//        }
 	//    }
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var prices any = this.SafeDict(response, "prices", map[string]any{})
-	var ids any = ObjectKeys(prices)
+	var ids []string = ObjectKeys(prices)
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		var market any = this.SafeMarket(id)
@@ -884,7 +884,7 @@ func (this *CoinspotCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes51112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"cointype": GetValue(market, "id"),
 	}
 
@@ -936,7 +936,7 @@ func (this *CoinspotCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 		retRes54312 := (<-this.LoadMarkets())
 		PanicOnError(retRes54312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1035,7 +1035,7 @@ func (this *CoinspotCore) ParseTrade(trade any, optionalArgs ...any) any {
 		var audGst any = this.SafeString(trade, "audGst")
 		// The transaction fee which consumers pay is inclusive of GST by default
 		var feeCost any = Precise.StringAdd(audfeeExGst, audGst)
-		var feeCurrencyId any = "AUD"
+		var feeCurrencyId string = "AUD"
 		fee = map[string]any{
 			"cost":     this.ParseNumber(feeCost),
 			"currency": this.SafeCurrencyCode(feeCurrencyId),
@@ -1091,12 +1091,12 @@ func (this *CoinspotCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	var sideUpper any = ToUpper(side)
+	var sideUpper string = ToUpper(side)
 	if IsTrue(IsEqual(typeVar, "market")) {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"cointype": GetValue(market, "id"),
 		"amount":   amount,
 		"rate":     price,
@@ -1151,7 +1151,7 @@ func (this *CoinspotCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")))
 	}
 	params = this.Omit(params, "side")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 	var response any = nil
@@ -1195,7 +1195,7 @@ func (this *CoinspotCore) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var isVersionedApi any = IsArray(api)
+	var isVersionedApi bool = IsArray(api)
 	var version any = Ternary(IsTrue(isVersionedApi), GetValue(api, 0), nil)
 	var accessType any = Ternary(IsTrue(isVersionedApi), GetValue(api, 1), api)
 	var endpoint any = Add("/", this.ImplodeParams(path, params))

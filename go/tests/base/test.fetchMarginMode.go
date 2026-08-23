@@ -13,7 +13,7 @@ func TestFetchMarginMode(exchange ccxt.ICoreExchange, skippedProperties any, sym
 func testFetchMarginModeBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchMarginMode"
+	var method string = "fetchMarginMode"
 
 	marginMode := (<-exchange.FetchMarginMode(symbol))
 	PanicOnError(marginMode)

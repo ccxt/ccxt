@@ -768,8 +768,8 @@ func (this *BitrueCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//
 	//     {}
 	//
-	var keys any = ObjectKeys(response)
-	var keysLength any = GetArrayLength(keys)
+	var keys []string = ObjectKeys(response)
+	var keysLength int = GetArrayLength(keys)
 	var formattedStatus any = Ternary(IsTrue(keysLength), "maintenance", "ok")
 
 	ch <- map[string]any{
@@ -889,7 +889,7 @@ func (this *BitrueCore) ParseCurrency(rawCurrency any) any {
 	var name any = this.SafeString(rawCurrency, "coinFulName")
 	var code any = this.SafeCurrencyCode(id)
 	var networkDetails any = this.SafeList(rawCurrency, "chainDetail", []any{})
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networkDetails)); j++ {
 		var entry any = GetValue(networkDetails, j)
 		var networkId any = this.SafeString(entry, "chain")
@@ -957,7 +957,7 @@ func (this *BitrueCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var promisesRaw any = []any{}
 	var types any = nil
-	var defaultTypes any = []any{"spot", "linear", "inverse"}
+	var defaultTypes []any = []any{"spot", "linear", "inverse"}
 	var fetchMarketsOptions any = this.SafeDict(this.Options, "fetchMarkets")
 	if IsTrue(!IsEqual(fetchMarketsOptions, nil)) {
 		types = this.SafeList(fetchMarketsOptions, "types", defaultTypes)
@@ -1063,7 +1063,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "symbol", "")
 	var lowercaseId any = this.SafeStringLower(market, "symbol")
 	var side any = this.SafeInteger(market, "side") // 1 linear, 0 inverse, undefined spot
-	var typeVar any = "spot"
+	var typeVar string = "spot"
 	var isLinear any = nil
 	var isInverse any = nil
 	if IsTrue(IsEqual(side, nil)) {
@@ -1079,7 +1079,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 	var settleId any = nil
 	var settle any = nil
 	if IsTrue(isContract) {
-		var symbolSplit any = Split(id, "-")
+		var symbolSplit []string = Split(id, "-")
 		baseId = this.SafeString(symbolSplit, 1)
 		quoteId = this.SafeString(symbolSplit, 2)
 		if IsTrue(isLinear) {
@@ -1096,7 +1096,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 		symbol = Add(symbol, Add(":", settle))
 	}
 	var filters any = this.SafeList(market, "filters", []any{})
-	var filtersByType any = this.IndexBy(filters, "filterType")
+	var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 	var status any = this.SafeString(market, "status")
 	var priceFilter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
 	var amountFilter any = this.SafeDict(filtersByType, "LOT_SIZE", map[string]any{})
@@ -1113,7 +1113,7 @@ func (this *BitrueCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(minCost, nil)) {
 		minCost = this.SafeNumber(market, "minOrderMoney")
 	}
-	var isSpot any = (IsEqual(typeVar, "spot"))
+	var isSpot bool = (IsEqual(typeVar, "spot"))
 	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"lowercaseId":    lowercaseId,
@@ -1212,7 +1212,7 @@ func (this *BitrueCore) ParseBalance(response any) any {
 	//         ]
 	//     }
 	//
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var timestamp any = this.SafeInteger(response, "updateTime")
@@ -1325,7 +1325,7 @@ func (this *BitrueCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var market any = this.Market(symbol)
 	var response any = map[string]any{}
 	if IsTrue(GetValue(market, "swap")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1344,7 +1344,7 @@ func (this *BitrueCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 			PanicOnError(response)
 		}
 	} else if IsTrue(GetValue(market, "spot")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1492,7 +1492,7 @@ func (this *BitrueCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	var response any = nil
 	var data any = map[string]any{}
 	if IsTrue(GetValue(market, "swap")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 		}
 		if IsTrue(GetValue(market, "linear")) {
@@ -1506,7 +1506,7 @@ func (this *BitrueCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		}
 		data = response
 	} else if IsTrue(GetValue(market, "spot")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -1600,7 +1600,7 @@ func (this *BitrueCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var data any = []any{}
 	if IsTrue(GetValue(market, "swap")) {
 		var timeframesFuture any = this.SafeDict(timeframes, "future", map[string]any{})
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 			"interval":     this.SafeString(timeframesFuture, timeframe, "1min"),
 		}
@@ -1619,7 +1619,7 @@ func (this *BitrueCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 		data = response
 	} else if IsTrue(GetValue(market, "spot")) {
 		var timeframesSpot any = this.SafeDict(timeframes, "spot", map[string]any{})
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 			"scale":  this.SafeString(timeframesSpot, timeframe, "1m"),
 		}
@@ -1741,7 +1741,7 @@ func (this *BitrueCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 	var market any = this.Market(first)
 	var response any = nil
 	if IsTrue(GetValue(market, "swap")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 		}
 		if IsTrue(GetValue(market, "linear")) {
@@ -1754,7 +1754,7 @@ func (this *BitrueCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 			PanicOnError(response)
 		}
 	} else if IsTrue(GetValue(market, "spot")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 
@@ -1787,7 +1787,7 @@ func (this *BitrueCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any 
 	//         "time": 1699348013000
 	//     }
 	//
-	var data any = map[string]any{}
+	var data map[string]any = map[string]any{}
 	AddElementToObject(data, GetValue(market, "id"), response)
 
 	ch <- this.ParseTickers(data, symbols)
@@ -1825,7 +1825,7 @@ func (this *BitrueCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	symbols = this.MarketSymbols(symbols)
 	var response any = []any{}
 	var data any = []any{}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var typeVar any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var first any = this.SafeString(symbols, 0)
@@ -1893,7 +1893,7 @@ func (this *BitrueCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	// the exchange returns market ids with an underscore from the tickers endpoint
 	// the market ids do not have an underscore, so it has to be removed
 	// https://github.com/ccxt/ccxt/issues/13856
-	var tickers any = map[string]any{}
+	var tickers map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var ticker any = this.SafeDict(data, i, map[string]any{})
 		// skip entries without a symbol: an undefined market id would become a null
@@ -2038,7 +2038,7 @@ func (this *BitrueCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var market any = this.Market(symbol)
 	var response any = []any{}
 	if IsTrue(GetValue(market, "spot")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -2069,7 +2069,7 @@ func (this *BitrueCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	return nil
 }
 func (this *BitrueCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"INIT":             "open",
 		"PENDING_CREATE":   "open",
 		"NEW":              "open",
@@ -2171,7 +2171,7 @@ func (this *BitrueCore) ParseOrder(order any, optionalArgs ...any) any {
 	var fills any = this.SafeList(order, "fills", []any{})
 	var clientOrderId any = this.SafeString(order, "clientOrderId")
 	var timeInForce any = this.SafeString(order, "timeInForce")
-	var postOnly any = IsTrue(IsTrue((IsEqual(typeVar, "limit_maker"))) || IsTrue((IsEqual(timeInForce, "GTX")))) || IsTrue((IsEqual(typeVar, "post_only")))
+	var postOnly bool = IsTrue(IsTrue((IsEqual(typeVar, "limit_maker"))) || IsTrue((IsEqual(timeInForce, "GTX")))) || IsTrue((IsEqual(typeVar, "post_only")))
 	if IsTrue(IsEqual(typeVar, "limit_maker")) {
 		typeVar = "limit"
 	}
@@ -2283,8 +2283,8 @@ func (this *BitrueCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var market any = this.Market(symbol)
 	var response any = nil
 	var data any = map[string]any{}
-	var uppercaseType any = ToUpper(typeVar)
-	var request any = map[string]any{
+	var uppercaseType string = ToUpper(typeVar)
+	var request map[string]any = map[string]any{
 		"side": ToUpper(side),
 		"type": uppercaseType,
 	}
@@ -2295,7 +2295,7 @@ func (this *BitrueCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 	if IsTrue(GetValue(market, "swap")) {
-		var isMarket any = IsEqual(uppercaseType, "MARKET")
+		var isMarket bool = IsEqual(uppercaseType, "MARKET")
 		var timeInForce any = this.SafeStringLower(params, "timeInForce")
 		var postOnly any = this.IsPostOnly(isMarket, nil, params)
 		if IsTrue(postOnly) {
@@ -2429,7 +2429,7 @@ func (this *BitrueCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 	var response any = nil
 	var data any = map[string]any{}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsEqual(origClientOrderId, nil)) {
 		AddElementToObject(request, "orderId", id)
 	} else {
@@ -2548,7 +2548,7 @@ func (this *BitrueCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	if !IsTrue(GetValue(market, "spot")) {
 		panic(NotSupported(Add(this.Id, " fetchClosedOrders only support spot markets")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -2626,7 +2626,7 @@ func (this *BitrueCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	var market any = this.Market(symbol)
 	var response any = nil
 	var data any = []any{}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(GetValue(market, "swap")) {
 		AddElementToObject(request, "contractName", GetValue(market, "id"))
 		if IsTrue(GetValue(market, "linear")) {
@@ -2736,7 +2736,7 @@ func (this *BitrueCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	params = this.Omit(params, []any{"origClientOrderId", "clientOrderId"})
 	var response any = nil
 	var data any = map[string]any{}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsEqual(origClientOrderId, nil)) {
 		AddElementToObject(request, "orderId", id)
 	} else {
@@ -2824,7 +2824,7 @@ func (this *BitrueCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	var response any = nil
 	var data any = []any{}
 	if IsTrue(GetValue(market, "swap")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"contractName": GetValue(market, "id"),
 		}
 		if IsTrue(GetValue(market, "linear")) {
@@ -2893,7 +2893,7 @@ func (this *BitrueCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	var market any = this.Market(symbol)
 	var response any = nil
 	var data any = []any{}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
 	}
@@ -3010,7 +3010,7 @@ func (this *BitrueCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes264212)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":   GetValue(currency, "id"),
 		"status": 1,
 	}
@@ -3101,7 +3101,7 @@ func (this *BitrueCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes271712)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":   GetValue(currency, "id"),
 		"status": 5,
 	}
@@ -3145,7 +3145,7 @@ func (this *BitrueCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 func (this *BitrueCore) ParseTransactionStatusByType(status any, optionalArgs ...any) any {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
-	var statusesByType any = map[string]any{
+	var statusesByType map[string]any = map[string]any{
 		"deposit": map[string]any{
 			"0": "pending",
 			"1": "ok",
@@ -3230,12 +3230,12 @@ func (this *BitrueCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var tagFrom any = nil
 	if IsTrue(!IsEqual(tagType, nil)) {
 		if IsTrue(!IsEqual(addressTo, nil)) {
-			var parts any = Split(addressTo, "_")
+			var parts []string = Split(addressTo, "_")
 			addressTo = this.SafeString(parts, 0)
 			tagTo = this.SafeString(parts, 1)
 		}
 		if IsTrue(!IsEqual(addressFrom, nil)) {
-			var parts any = Split(addressFrom, "_")
+			var parts []string = Split(addressFrom, "_")
 			addressFrom = this.SafeString(parts, 0)
 			tagFrom = this.SafeString(parts, 1)
 		}
@@ -3243,15 +3243,15 @@ func (this *BitrueCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var txid any = this.SafeString(transaction, "txid")
 	var timestamp any = this.SafeInteger(transaction, "createdAt")
 	var updated any = this.SafeInteger(transaction, "updatedAt")
-	var payAmount any = (InOp(transaction, "payAmount"))
-	var ctime any = (InOp(transaction, "ctime"))
+	var payAmount bool = (InOp(transaction, "payAmount"))
+	var ctime bool = (InOp(transaction, "ctime"))
 	var typeVar any = Ternary(IsTrue((IsTrue(payAmount) || IsTrue(ctime))), "withdrawal", "deposit")
 	var status any = this.ParseTransactionStatusByType(this.SafeString(transaction, "status"), typeVar)
 	var amount any = this.SafeNumber(transaction, "amount")
 	var network any = nil
 	var currencyId any = this.SafeString2(transaction, "symbol", "coin")
 	if IsTrue(!IsEqual(currencyId, nil)) {
-		var parts any = Split(currencyId, "_")
+		var parts []string = Split(currencyId, "_")
 		currencyId = this.SafeString(parts, 0)
 		var networkId any = this.SafeString(parts, 1)
 		if IsTrue(!IsEqual(networkId, nil)) {
@@ -3325,7 +3325,7 @@ func (this *BitrueCore) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError(retRes292212)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":      GetValue(currency, "id"),
 		"amount":    amount,
 		"addressTo": address,
@@ -3375,8 +3375,8 @@ func (this *BitrueCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var chainDetails any = this.SafeList(fee, "chainDetail", []any{})
-	var chainDetailLength any = GetArrayLength(chainDetails)
-	var result any = map[string]any{
+	var chainDetailLength int = GetArrayLength(chainDetails)
+	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
 			"fee":        nil,
@@ -3471,7 +3471,7 @@ func (this *BitrueCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	var fromAccount any = nil
 	var toAccount any = nil
 	if IsTrue(!IsEqual(transferType, nil)) {
-		var accountSplit any = Split(transferType, "_to_")
+		var accountSplit []string = Split(transferType, "_to_")
 		fromAccount = this.SafeString(accountSplit, 0)
 		toAccount = this.SafeString(accountSplit, 1)
 	}
@@ -3525,7 +3525,7 @@ func (this *BitrueCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes307812)
 	}
 	var typeVar any = this.SafeString2(params, "type", "transferType")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"transferType": typeVar,
 	}
 	var currency any = nil
@@ -3601,7 +3601,7 @@ func (this *BitrueCore) transferBody(ch chan any, code any, amount any, fromAcco
 	var accountTypes any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var fromId any = this.SafeString(accountTypes, fromAccount, fromAccount)
 	var toId any = this.SafeString(accountTypes, toAccount, toAccount)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coinSymbol":   GetValue(currency, "id"),
 		"amount":       this.CurrencyToPrecision(code, amount),
 		"transferType": Add(Add(fromId, "_to_"), toId),
@@ -3658,7 +3658,7 @@ func (this *BitrueCore) setLeverageBody(ch chan any, leverage any, optionalArgs 
 	}
 	var market any = this.Market(symbol)
 	var response any = map[string]any{}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"contractName": GetValue(market, "id"),
 		"leverage":     leverage,
 	}
@@ -3735,7 +3735,7 @@ func (this *BitrueCore) setMarginBody(ch chan any, symbol any, amount any, optio
 		panic(NotSupported(Add(this.Id, " setMargin only support swap markets")))
 	}
 	var response any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"contractName": GetValue(market, "id"),
 		"amount":       this.ParseToNumeric(amount),
 	}
@@ -3789,7 +3789,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 				"timestamp":  this.Nonce(),
 				"recvWindow": recvWindow,
 			}, params))
-			var signature any = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
+			var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
 			query = Add(query, Add(Add("&", "signature="), signature))
 			headers = map[string]any{
 				"X-MBX-APIKEY": this.ApiKey,
@@ -3801,7 +3801,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(headers, "Content-Type", "application/x-www-form-urlencoded")
 			}
 		} else {
-			var timestamp any = ToString(this.Nonce())
+			var timestamp string = ToString(this.Nonce())
 			var signPath any = nil
 			if IsTrue(IsEqual(typeVar, "fapi")) {
 				signPath = "/fapi"
@@ -3811,12 +3811,12 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 			signPath = Add(Add(Add(Add(signPath, "/"), version), "/"), path)
 			var signMessage any = Add(Add(timestamp, method), signPath)
 			if IsTrue(IsEqual(method, "GET")) {
-				var keys any = ObjectKeys(params)
-				var keysLength any = GetArrayLength(keys)
+				var keys []string = ObjectKeys(params)
+				var keysLength int = GetArrayLength(keys)
 				if IsTrue(IsGreaterThan(keysLength, 0)) {
 					signMessage = Add(signMessage, Add("?", this.Urlencode(params)))
 				}
-				var signature any = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
+				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
 				headers = map[string]any{
 					"X-CH-APIKEY": this.ApiKey,
 					"X-CH-SIGN":   signature,
@@ -3829,7 +3829,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 				}, params)
 				body = this.Json(query)
 				signMessage = Add(signMessage, body)
-				var signature any = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
+				var signature string = this.Hmac(this.Encode(signMessage), this.Encode(this.Secret), sha256)
 				headers = map[string]any{
 					"Content-Type": "application/json",
 					"X-CH-APIKEY":  this.ApiKey,

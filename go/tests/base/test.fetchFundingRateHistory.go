@@ -13,7 +13,7 @@ func TestFetchFundingRateHistory(exchange ccxt.ICoreExchange, skippedProperties 
 func testFetchFundingRateHistoryBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchFundingRateHistory"
+	var method string = "fetchFundingRateHistory"
 
 	fundingRatesHistory := (<-exchange.FetchFundingRateHistory(symbol))
 	PanicOnError(fundingRatesHistory)

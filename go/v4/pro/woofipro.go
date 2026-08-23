@@ -98,10 +98,10 @@ func (this *WoofiproCore) watchPublicBody(ch chan any, messageHash any, message 
 	}
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public"), "/"), id)
 	var requestId any = this.RequestId(url)
-	var subscribe any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
-	var request any = this.Extend(subscribe, message)
+	var request map[string]any = this.Extend(subscribe, message)
 
 	retRes9215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
 	ccxt.PanicOnError(retRes9215)
@@ -136,14 +136,14 @@ func (this *WoofiproCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 		retRes10712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes10712)
 	}
-	var name any = "orderbook"
+	var name string = "orderbook"
 	var market any = this.Market(symbol)
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orderbook := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(orderbook)
@@ -212,15 +212,15 @@ func (this *WoofiproCore) watchTickerBody(ch chan any, symbol any, optionalArgs 
 		retRes16912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes16912)
 	}
-	var name any = "ticker"
+	var name string = "ticker"
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes18015 := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(retRes18015)
@@ -322,13 +322,13 @@ func (this *WoofiproCore) watchTickersBody(ch chan any, optionalArgs ...any) any
 		ccxt.PanicOnError(retRes26112)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var name any = "tickers"
+	var name string = "tickers"
 	var topic any = name
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	tickers := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(tickers)
@@ -399,13 +399,13 @@ func (this *WoofiproCore) watchBidsAsksBody(ch chan any, optionalArgs ...any) an
 		ccxt.PanicOnError(retRes32012)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var name any = "bbos"
+	var name string = "bbos"
 	var topic any = name
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	tickers := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(tickers)
@@ -501,13 +501,13 @@ func (this *WoofiproCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	}
 	var market any = this.Market(symbol)
 	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var name any = "kline"
+	var name string = "kline"
 	var topic any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name), "_"), interval)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	ohlcv := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(ohlcv)
@@ -544,7 +544,7 @@ func (this *WoofiproCore) HandleOHLCV(client any, message any) {
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var interval any = this.SafeString(data, "type")
 	var timeframe any = this.FindTimeframe(interval)
-	var parsed any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
+	var parsed []any = []any{this.SafeInteger(data, "startTime"), this.SafeNumber(data, "open"), this.SafeNumber(data, "high"), this.SafeNumber(data, "low"), this.SafeNumber(data, "close"), this.SafeNumber(data, "volume")}
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
 	var stored any = this.SafeValue(this.SafeValue(this.Ohlcvs, symbol), timeframe)
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
@@ -591,11 +591,11 @@ func (this *WoofiproCore) watchTradesBody(ch chan any, symbol any, optionalArgs 
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
 	var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	trades := (<-this.WatchPublic(topic, message))
 	ccxt.PanicOnError(trades)
@@ -722,7 +722,7 @@ func (this *WoofiproCore) HandleAuth(client any, message any) {
 	//         "ts": 1657463158812
 	//     }
 	//
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var success any = this.SafeValue(message, "success")
 	if ccxt.IsTrue(success) {
 		// client.resolve (message, messageHash)
@@ -750,20 +750,20 @@ func (this *WoofiproCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	this.CheckRequiredCredentials()
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
 	var client any = this.Client(url)
-	var messageHash any = "authenticated"
-	var event any = "auth"
+	var messageHash string = "authenticated"
+	var event string = "auth"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-		var ts any = ccxt.ToString(this.Nonce())
+		var ts string = ccxt.ToString(this.Nonce())
 		var auth any = ts
 		var secret any = this.Secret
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(secret, "ed25519:"), 0)) {
-			var parts any = ccxt.Split(secret, "ed25519:")
+			var parts []string = ccxt.Split(secret, "ed25519:")
 			secret = ccxt.GetValue(parts, 1)
 		}
 		var signature any = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"event": event,
 			"params": map[string]any{
 				"orderly_key": this.ApiKey,
@@ -771,7 +771,7 @@ func (this *WoofiproCore) authenticateBody(ch chan any, optionalArgs ...any) any
 				"timestamp":   ts,
 			},
 		}
-		var message any = this.Extend(request, params)
+		var message map[string]any = this.Extend(request, params)
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
@@ -795,10 +795,10 @@ func (this *WoofiproCore) watchPrivateBody(ch chan any, messageHash any, message
 	ccxt.PanicOnError(retRes6558)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
 	var requestId any = this.RequestId(url)
-	var subscribe any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
-	var request any = this.Extend(subscribe, message)
+	var request map[string]any = this.Extend(subscribe, message)
 
 	retRes66215 := (<-this.Watch(url, messageHash, request, messageHash, subscribe))
 	ccxt.PanicOnError(retRes66215)
@@ -820,10 +820,10 @@ func (this *WoofiproCore) watchPrivateMultipleBody(ch chan any, messageHashes an
 	ccxt.PanicOnError(retRes6668)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
 	var requestId any = this.RequestId(url)
-	var subscribe any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"id": requestId,
 	}
-	var request any = this.Extend(subscribe, message)
+	var request map[string]any = this.Extend(subscribe, message)
 
 	retRes67315 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
 	ccxt.PanicOnError(retRes67315)
@@ -874,11 +874,11 @@ func (this *WoofiproCore) watchOrdersBody(ch chan any, optionalArgs ...any) any 
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orders := (<-this.WatchPrivate(messageHash, message))
 	ccxt.PanicOnError(orders)
@@ -933,11 +933,11 @@ func (this *WoofiproCore) watchMyTradesBody(ch chan any, optionalArgs ...any) an
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	orders := (<-this.WatchPrivate(messageHash, message))
 	ccxt.PanicOnError(orders)
@@ -1021,7 +1021,7 @@ func (this *WoofiproCore) ParseWsOrder(order any, optionalArgs ...any) any {
 	market = this.Market(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var timestamp any = this.SafeInteger(order, "timestamp")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "totalFee"),
 		"currency": this.SafeString(order, "feeAsset"),
 	}
@@ -1180,7 +1180,7 @@ func (this *WoofiproCore) HandleMyTrade(client any, message any) {
 	//     maker: false
 	// }
 	//
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var marketId any = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -1258,7 +1258,7 @@ func (this *WoofiproCore) watchPositionsBody(ch chan any, optionalArgs ...any) a
 		ch <- this.FilterBySymbolsSinceLimit(snapshot, symbols, since, limit, true)
 		return nil
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": "position",
 	}
@@ -1279,7 +1279,7 @@ func (this *WoofiproCore) SetPositionsCache(client any, optionalArgs ...any) {
 	_ = symbols
 	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
 	if ccxt.IsTrue(fetchPositionsSnapshot) {
-		var messageHash any = "fetchPositionsSnapshot"
+		var messageHash string = "fetchPositionsSnapshot"
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
 			client.(ccxt.ClientInterface).Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshot, client, messageHash)
@@ -1466,13 +1466,13 @@ func (this *WoofiproCore) watchBalanceBody(ch chan any, optionalArgs ...any) any
 		retRes122112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes122112)
 	}
-	var topic any = "balance"
+	var topic string = "balance"
 	var messageHash any = topic
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"event": "subscribe",
 		"topic": topic,
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes123015 := (<-this.WatchPrivate(messageHash, message))
 	ccxt.PanicOnError(retRes123015)
@@ -1509,7 +1509,7 @@ func (this *WoofiproCore) HandleBalance(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "data", map[string]any{})
 	var balances any = this.SafeDict(data, "balances", map[string]any{})
-	var keys any = ccxt.ObjectKeys(balances)
+	var keys []string = ccxt.ObjectKeys(balances)
 	var ts any = this.SafeInteger(message, "ts")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", ts)
@@ -1557,7 +1557,7 @@ func (this *WoofiproCore) HandleErrorMessage(client any, message any) any {
 					ret_ = func(this *WoofiproCore) any {
 						// catch block:
 						if ccxt.IsTrue(ccxt.IsInstance(error, ccxt.AuthenticationError)) {
-							var messageHash any = "authenticated"
+							var messageHash string = "authenticated"
 							client.(ccxt.ClientInterface).Reject(error, messageHash)
 							if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)) {
 								ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -1589,7 +1589,7 @@ func (this *WoofiproCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
 		return
 	}
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"ping":                this.HandlePing,
 		"pong":                this.HandlePong,
 		"subscribe":           this.HandleSubscribe,
@@ -1618,8 +1618,8 @@ func (this *WoofiproCore) HandleMessage(client any, message any) {
 			ccxt.CallDynamically(method, client, message)
 			return
 		}
-		var splitTopic any = ccxt.Split(topic, "@")
-		var splitLength any = ccxt.GetArrayLength(splitTopic)
+		var splitTopic []string = ccxt.Split(topic, "@")
+		var splitLength int = ccxt.GetArrayLength(splitTopic)
 		if ccxt.IsTrue(ccxt.IsEqual(splitLength, 2)) {
 			var name any = this.SafeString(splitTopic, 1)
 			if ccxt.IsTrue(ccxt.IsEqual(name, nil)) {
@@ -1630,8 +1630,8 @@ func (this *WoofiproCore) HandleMessage(client any, message any) {
 				ccxt.CallDynamically(method, client, message)
 				return
 			}
-			var splitName any = ccxt.Split(name, "_")
-			var splitNameLength any = ccxt.GetArrayLength(splitTopic)
+			var splitName []string = ccxt.Split(name, "_")
+			var splitNameLength int = ccxt.GetArrayLength(splitTopic)
 			if ccxt.IsTrue(ccxt.IsEqual(splitNameLength, 2)) {
 				method = this.SafeValue(methods, this.SafeString(splitName, 0))
 				if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {

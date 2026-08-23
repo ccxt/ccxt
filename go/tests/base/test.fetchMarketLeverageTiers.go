@@ -13,7 +13,7 @@ func TestFetchMarketLeverageTiers(exchange ccxt.ICoreExchange, skippedProperties
 func testFetchMarketLeverageTiersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchMarketLeverageTiers"
+	var method string = "fetchMarketLeverageTiers"
 
 	tiers := (<-exchange.FetchMarketLeverageTiers(symbol))
 	PanicOnError(tiers)

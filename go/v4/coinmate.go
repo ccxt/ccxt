@@ -578,10 +578,10 @@ func (this *CoinmateCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 }
 func (this *CoinmateCore) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "data", map[string]any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currencyIds any = ObjectKeys(balances)
+	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -654,7 +654,7 @@ func (this *CoinmateCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes49312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currencyPair":      GetValue(market, "id"),
 		"groupByPriceLimit": "False",
 	}
@@ -693,7 +693,7 @@ func (this *CoinmateCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes51712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currencyPair": GetValue(market, "id"),
 	}
 
@@ -772,8 +772,8 @@ func (this *CoinmateCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var keys any = ObjectKeys(data)
-	var result any = map[string]any{}
+	var keys []string = ObjectKeys(data)
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var market any = this.Market(GetValue(keys, i))
 		var ticker any = this.ParseTicker(this.SafeValue(data, GetValue(keys, i)), market)
@@ -857,7 +857,7 @@ func (this *CoinmateCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs
 		retRes64312 := (<-this.LoadMarkets())
 		PanicOnError(retRes64312)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"limit": 1000,
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -879,7 +879,7 @@ func (this *CoinmateCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs
 	return nil
 }
 func (this *CoinmateCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"COMPLETED": "ok",
 		"WAITING":   "pending",
 		"SENT":      "pending",
@@ -1007,17 +1007,17 @@ func (this *CoinmateCore) withdrawBody(ch chan any, code any, amount any, addres
 	var methods any = this.SafeValue(withdrawOptions, "methods", map[string]any{})
 	var method any = this.SafeString(methods, code)
 	if IsTrue(IsEqual(method, nil)) {
-		var allowedCurrencies any = ObjectKeys(methods)
+		var allowedCurrencies []string = ObjectKeys(methods)
 		panic(ExchangeError(Add(Add(this.Id, " withdraw() only allows withdrawing the following currencies: "), Join(allowedCurrencies, ", "))))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"amount":  this.CurrencyToPrecision(code, amount),
 		"address": address,
 	}
 	if IsTrue(!IsEqual(tag, nil)) {
 		AddElementToObject(request, "destinationTag", tag)
 	}
-	var requestParams any = this.Extend(request, params)
+	var requestParams map[string]any = this.Extend(request, params)
 	var response any = nil
 	if IsTrue(IsEqual(method, "privatePostBitcoinWithdrawal")) {
 
@@ -1118,7 +1118,7 @@ func (this *CoinmateCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 1000
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"limit": limit,
 	}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1233,7 +1233,7 @@ func (this *CoinmateCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes94212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currencyPair":       GetValue(market, "id"),
 		"minutesIntoHistory": 10,
 	}
@@ -1287,7 +1287,7 @@ func (this *CoinmateCore) fetchTradingFeeBody(ch chan any, symbol any, optionalA
 		PanicOnError(retRes98112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currencyPair": GetValue(market, "id"),
 	}
 
@@ -1347,7 +1347,7 @@ func (this *CoinmateCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 
 	response := (<-this.PrivatePostOpenOrders(this.Extend(map[string]any{}, params)))
 	PanicOnError(response)
-	var extension any = map[string]any{
+	var extension map[string]any = map[string]any{
 		"status": "open",
 	}
 	var data any = this.SafeList(response, "data", []any{})
@@ -1392,7 +1392,7 @@ func (this *CoinmateCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes104412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currencyPair": GetValue(market, "id"),
 	}
 	// offset param that appears in other parts of the API doesn't appear to be supported here
@@ -1408,7 +1408,7 @@ func (this *CoinmateCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *CoinmateCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"FILLED":           "closed",
 		"CANCELLED":        "canceled",
 		"PARTIALLY_FILLED": "open",
@@ -1417,7 +1417,7 @@ func (this *CoinmateCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *CoinmateCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":  "limit",
 		"MARKET": "market",
 	}
@@ -1547,7 +1547,7 @@ func (this *CoinmateCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	}
 	var method any = Add("privatePost", this.Capitalize(side))
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currencyPair": GetValue(market, "id"),
 	}
 	if IsTrue(IsEqual(typeVar, "market")) {
@@ -1562,7 +1562,7 @@ func (this *CoinmateCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		method = Add(method, this.Capitalize(typeVar))
 	}
-	var requestParams any = this.Extend(request, params)
+	var requestParams map[string]any = this.Extend(request, params)
 	var response any = nil
 	if IsTrue(IsEqual(method, "privatePostBuyInstant")) {
 
@@ -1620,7 +1620,7 @@ func (this *CoinmateCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 		retRes123412 := (<-this.LoadMarkets())
 		PanicOnError(retRes123412)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 	var market any = nil
@@ -1659,7 +1659,7 @@ func (this *CoinmateCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 
@@ -1701,9 +1701,9 @@ func (this *CoinmateCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var auth any = Add(Add(nonce, this.Uid), this.ApiKey)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		body = this.Urlencode(this.Extend(map[string]any{
 			"clientId":  this.Uid,
 			"nonce":     nonce,

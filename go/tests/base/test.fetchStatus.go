@@ -13,7 +13,7 @@ func TestFetchStatus(exchange ccxt.ICoreExchange, skippedProperties any) <-chan 
 func testFetchStatusBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchStatus"
+	var method string = "fetchStatus"
 
 	status := (<-exchange.FetchStatus())
 	PanicOnError(status)

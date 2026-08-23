@@ -68,7 +68,7 @@ func (this *KucoinfuturesCore) fetchBidsAsksBody(ch chan any, optionalArgs ...an
 	_ = symbols
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"method": "futuresPublicGetAllTickers",
 	}
 
@@ -106,7 +106,7 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	}
 	var currency any = this.Currency(code)
 	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": this.SafeString(currency, "id"),
 		"amount":   amountToPrecision,
 	}
@@ -135,7 +135,7 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	return nil
 }
 func (this *KucoinfuturesCore) ParseTransferType(transferType any) any {
-	var transferTypes any = map[string]any{
+	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",
 	}

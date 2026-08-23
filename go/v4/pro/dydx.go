@@ -77,7 +77,7 @@ func (this *DydxCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": "v4_trades",
 		"id":      ccxt.GetValue(market, "id"),
@@ -120,7 +120,7 @@ func (this *DydxCore) unWatchTradesBody(ch chan any, symbol any, optionalArgs ..
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
 		"channel": "v4_trades",
 		"id":      ccxt.GetValue(market, "id"),
@@ -235,7 +235,7 @@ func (this *DydxCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": "v4_orderbook",
 		"id":      ccxt.GetValue(market, "id"),
@@ -275,7 +275,7 @@ func (this *DydxCore) unWatchOrderBookBody(ch chan any, symbol any, optionalArgs
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
 		"channel": "v4_orderbook",
 		"id":      ccxt.GetValue(market, "id"),
@@ -376,7 +376,7 @@ func (this *DydxCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol"))
 	var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "subscribe",
 		"channel": "v4_candles",
 		"id":      ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "/"), resolution),
@@ -424,7 +424,7 @@ func (this *DydxCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add("ohlcv:", ccxt.GetValue(market, "symbol"))
 	var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":    "unsubscribe",
 		"channel": "v4_candles",
 		"id":      ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "/"), resolution),
@@ -488,7 +488,7 @@ func (this *DydxCore) HandleOHLCV(client any, message any) {
 	// }
 	//
 	var id any = this.SafeString(message, "id", "")
-	var part any = ccxt.Split(id, "/")
+	var part []string = ccxt.Split(id, "/")
 	var interval any = this.SafeString(part, 1)
 	var timeframe any = this.FindTimeframe(interval)
 	var marketId any = this.SafeString(part, 0)
@@ -542,7 +542,7 @@ func (this *DydxCore) HandleMessage(client any, message any) {
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(typeVar, nil)) {
 		var topic any = this.SafeString(message, "channel")
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"v4_trades":    this.HandleTrades,
 			"v4_orderbook": this.HandleOrderBook,
 			"v4_candles":   this.HandleOHLCV,

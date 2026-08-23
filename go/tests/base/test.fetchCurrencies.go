@@ -13,14 +13,14 @@ func TestFetchCurrencies(exchange ccxt.ICoreExchange, skippedProperties any) <-c
 func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchCurrencies"
+	var method string = "fetchCurrencies"
 
 	currencies := (<-exchange.FetchCurrencies())
 	PanicOnError(currencies)
 	// todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
 	var numInactiveCurrencies any = 0
 	var maxInactiveCurrenciesPercentage any = exchange.SafeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50) // no more than X% currencies should be inactive
-	var requiredActiveCurrencies any = []any{"BTC", "ETH", "USDT", "USDC"}
+	var requiredActiveCurrencies []any = []any{"BTC", "ETH", "USDT", "USDC"}
 	var features any = exchange.GetFeatures()
 	var featuresSpot any = exchange.SafeDict(features, "spot", map[string]any{})
 	var fetchCurrencies any = exchange.SafeDict(featuresSpot, "fetchCurrencies", map[string]any{})
@@ -28,13 +28,13 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	if !IsTrue(isFetchCurrenciesPrivate) {
 		var values any = ObjectValues(currencies)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, values)
-		var currenciesLength any = GetArrayLength(values)
+		var currenciesLength int = GetArrayLength(values)
 		// ensure exchange returns enough length of currencies
-		var skipAmount any = (InOp(skippedProperties, "amountOfCurrencies"))
+		var skipAmount bool = (InOp(skippedProperties, "amountOfCurrencies"))
 		Assert(IsTrue(skipAmount) || IsTrue(IsGreaterThan(currenciesLength, 5)), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return at least several currencies, but it returned "), ToString(currenciesLength)))
 		// allow skipped exchanges
-		var skipActive any = (InOp(skippedProperties, "activeCurrenciesQuota"))
-		var skipMajorCurrencyCheck any = (InOp(skippedProperties, "activeMajorCurrencies"))
+		var skipActive bool = (InOp(skippedProperties, "activeCurrenciesQuota"))
+		var skipMajorCurrencyCheck bool = (InOp(skippedProperties, "activeMajorCurrencies"))
 		// loop
 		for i := 0; IsLessThan(i, currenciesLength); i++ {
 			var currency any = GetValue(values, i)
@@ -49,7 +49,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 			var withdraw any = exchange.SafeBool(currency, "withdraw")
 			var deposit any = exchange.SafeBool(currency, "deposit")
 			var isMicaCompliant any = exchange.SafeBool(exchange.GetOptions(), "mica", false)
-			var skipUsdtForMica any = IsTrue(isMicaCompliant) && IsTrue(IsEqual(code, "USDT"))
+			var skipUsdtForMica bool = IsTrue(isMicaCompliant) && IsTrue(IsEqual(code, "USDT"))
 			if IsTrue(IsTrue(IsTrue(exchange.InArray(code, requiredActiveCurrencies)) && !IsTrue(skipMajorCurrencyCheck)) && !IsTrue(skipUsdtForMica)) {
 				Assert(IsTrue(withdraw) && IsTrue(deposit), Add(Add(Add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.Json(currency)))
 			}
@@ -65,8 +65,8 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 }
 func DetectCurrencyConflicts(exchange ccxt.ICoreExchange, currencyValues any) any {
 	// detect if there are currencies with different ids for the same code
-	var ids any = map[string]any{}
-	var keys any = ObjectKeys(currencyValues)
+	var ids map[string]any = map[string]any{}
+	var keys []string = ObjectKeys(currencyValues)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var currency any = GetValue(currencyValues, key)

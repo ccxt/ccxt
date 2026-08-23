@@ -13,7 +13,7 @@ func TestFetchWithdrawals(exchange ccxt.ICoreExchange, skippedProperties any, co
 func testFetchWithdrawalsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchWithdrawals"
+	var method string = "fetchWithdrawals"
 
 	transactions := (<-exchange.FetchWithdrawals(code))
 	PanicOnError(transactions)

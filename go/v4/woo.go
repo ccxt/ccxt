@@ -1050,11 +1050,11 @@ func (this *WooCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *WooCore) ParseMarket(market any) any {
 	var marketId any = this.SafeString(market, "symbol", "")
-	var parts any = Split(marketId, "_")
+	var parts []string = Split(marketId, "_")
 	var first any = this.SafeString(parts, 0)
 	var marketType any = nil
-	var spot any = false
-	var swap any = false
+	var spot bool = false
+	var swap bool = false
 	if IsTrue(IsEqual(first, "SPOT")) {
 		spot = true
 		marketType = "spot"
@@ -1072,7 +1072,7 @@ func (this *WooCore) ParseMarket(market any) any {
 	var contractSize any = nil
 	var linear any = nil
 	var inverse any = nil
-	var margin any = true
+	var margin bool = true
 	var contract any = swap
 	if IsTrue(contract) {
 		margin = false
@@ -1083,7 +1083,7 @@ func (this *WooCore) ParseMarket(market any) any {
 		linear = true
 		inverse = false
 	}
-	var active any = IsEqual(this.SafeString(market, "status"), "TRADING")
+	var active bool = IsEqual(this.SafeString(market, "status"), "TRADING")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
@@ -1166,7 +1166,7 @@ func (this *WooCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes85512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1231,7 +1231,7 @@ func (this *WooCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder any = (InOp(trade, "id"))
+	var isFromFetchOrder bool = (InOp(trade, "id"))
 	var timestampString any = this.SafeString2(trade, "executed_timestamp", "executedTimestamp")
 	var timestamp any = nil
 	if IsTrue(!IsEqual(timestampString, nil)) {
@@ -1257,7 +1257,7 @@ func (this *WooCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var id any = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if IsTrue(isFromFetchOrder) {
-		var isMaker any = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
+		var isMaker bool = IsEqual(this.SafeString2(trade, "is_maker", "isMaker"), "1")
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
 	return this.SafeTrade(map[string]any{
@@ -1331,7 +1331,7 @@ func (this *WooCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes100412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -1414,7 +1414,7 @@ func (this *WooCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var maker any = this.SafeString(data, "makerFeeRate")
 	var taker any = this.SafeString(data, "takerFeeRate")
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var symbols any = this.Symbols
 	if IsTrue(IsEqual(symbols, nil)) {
 
@@ -1455,7 +1455,7 @@ func (this *WooCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var tokenResponsePromise any = this.V1PublicGetToken(params)
 	//
 	//    {
@@ -1536,12 +1536,12 @@ func (this *WooCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 	tokenNetworkResponse := GetValue(tokenResponsetokenNetworkResponseVariable, 1)
 	var tokenRows any = this.SafeList(tokenResponse, "rows", []any{})
 	var tokenNetworkRows any = this.SafeList(tokenNetworkResponse, "rows", []any{})
-	var networksById any = this.GroupBy(tokenNetworkRows, "token")
-	var tokensById any = this.GroupBy(tokenRows, "balance_token")
-	var currencyIds any = ObjectKeys(tokensById)
+	var networksById map[string]any = this.GroupBy(tokenNetworkRows, "token")
+	var tokensById map[string]any = this.GroupBy(tokenRows, "balance_token")
+	var currencyIds []string = ObjectKeys(tokensById)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var id any = GetValue(currencyIds, i)
-		var customCurrency any = map[string]any{
+		var customCurrency map[string]any = map[string]any{
 			"_coin_id":        id,
 			"_tokens_by_id":   GetValue(tokensById, id),
 			"_networks_by_id": GetValue(networksById, id),
@@ -1559,10 +1559,10 @@ func (this *WooCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
 func (this *WooCore) ParseCurrency(rawCurrency any) any {
 	var currencyId any = this.SafeString(rawCurrency, "_coin_id")
 	var code any = this.SafeCurrencyCode(currencyId)
-	var tokensByNetworkId any = this.IndexBy(GetValue(rawCurrency, "_tokens_by_id"), "network")
-	var chainsByNetworkId any = this.IndexBy(GetValue(rawCurrency, "_networks_by_id"), "network")
-	var keys any = ObjectKeys(chainsByNetworkId)
-	var resultingNetworks any = map[string]any{}
+	var tokensByNetworkId map[string]any = this.IndexBy(GetValue(rawCurrency, "_tokens_by_id"), "network")
+	var chainsByNetworkId map[string]any = this.IndexBy(GetValue(rawCurrency, "_networks_by_id"), "network")
+	var keys []string = ObjectKeys(chainsByNetworkId)
+	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(keys)); j++ {
 		var networkId any = GetValue(keys, j)
 		var tokenEntry any = this.SafeDict(tokensByNetworkId, networkId, map[string]any{})
@@ -1825,15 +1825,15 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	_ = params
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only"})
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes138812 := (<-this.LoadMarkets())
 		PanicOnError(retRes138812)
 	}
 	var market any = this.Market(symbol)
-	var orderSide any = ToUpper(side)
-	var request any = map[string]any{
+	var orderSide string = ToUpper(side)
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
 	}
@@ -1855,9 +1855,9 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	var trailingPercent any = this.SafeString2(params, "trailingPercent", "callbackRate")
 	var isTrailingAmountOrder any = !IsEqual(trailingAmount, nil)
 	var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
-	var isTrailing any = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
-	var isConditional any = IsTrue(IsTrue(IsTrue(IsTrue(isTrailing) || IsTrue(!IsEqual(triggerPrice, nil))) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-	var isMarket any = IsEqual(orderType, "MARKET")
+	var isTrailing bool = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
+	var isConditional bool = IsTrue(IsTrue(IsTrue(IsTrue(isTrailing) || IsTrue(!IsEqual(triggerPrice, nil))) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isMarket bool = IsEqual(orderType, "MARKET")
 	var timeInForce any = this.SafeStringLower(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var clientOrderIdKey any = Ternary(IsTrue(isConditional), "clientAlgoOrderId", "clientOrderId")
@@ -1922,7 +1922,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		}
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algoType", "BRACKET")
-		var outterOrder any = map[string]any{
+		var outterOrder map[string]any = map[string]any{
 			"symbol":      GetValue(market, "id"),
 			"reduceOnly":  false,
 			"algoType":    "POSITIONAL_TP_SL",
@@ -1932,7 +1932,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 		if IsTrue(hasStopLoss) {
 			var stopLossPrice any = this.SafeString(stopLoss, "triggerPrice", stopLoss)
-			var stopLossOrder any = map[string]any{
+			var stopLossOrder map[string]any = map[string]any{
 				"side":         closeSide,
 				"algoType":     "STOP_LOSS",
 				"triggerPrice": this.PriceToPrecision(symbol, stopLossPrice),
@@ -1943,7 +1943,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 		}
 		if IsTrue(hasTakeProfit) {
 			var takeProfitPrice any = this.SafeString(takeProfit, "triggerPrice", takeProfit)
-			var takeProfitOrder any = map[string]any{
+			var takeProfitOrder map[string]any = map[string]any{
 				"side":         closeSide,
 				"algoType":     "TAKE_PROFIT",
 				"triggerPrice": this.PriceToPrecision(symbol, takeProfitPrice),
@@ -1973,7 +1973,7 @@ func (this *WooCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	return nil
 }
 func (this *WooCore) EncodeMarginMode(mode any) any {
-	var modes any = map[string]any{
+	var modes map[string]any = map[string]any{
 		"cross":    "CROSS",
 		"isolated": "ISOLATED",
 	}
@@ -2023,7 +2023,7 @@ func (this *WooCore) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 		PanicOnError(retRes158812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(price, nil)) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
@@ -2042,7 +2042,7 @@ func (this *WooCore) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	var trailingPercent any = this.SafeString2(params, "trailingPercent", "callbackRate")
 	var isTrailingAmountOrder any = !IsEqual(trailingAmount, nil)
 	var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
-	var isTrailing any = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
+	var isTrailing bool = IsTrue(isTrailingAmountOrder) || IsTrue(isTrailingPercentOrder)
 	if IsTrue(isTrailing) {
 		if IsTrue(!IsEqual(trailingTriggerPrice, nil)) {
 			AddElementToObject(request, "activatedPrice", this.PriceToPrecision(symbol, trailingTriggerPrice))
@@ -2056,7 +2056,7 @@ func (this *WooCore) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	}
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"})
-	var isConditional any = IsTrue(IsTrue(IsTrue(isTrigger) || IsTrue(isTrailing)) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isConditional bool = IsTrue(IsTrue(IsTrue(isTrigger) || IsTrue(isTrailing)) || IsTrue((!IsEqual(triggerPrice, nil)))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
 	var response any = nil
 	if IsTrue(isConditional) {
 		if IsTrue(isByClientOrder) {
@@ -2087,7 +2087,7 @@ func (this *WooCore) editOrderBody(ch chan any, id any, symbol any, typeVar any,
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var order any = this.Extend(response, data)
+	var order map[string]any = this.Extend(response, data)
 	if IsTrue(isByClientOrder) {
 		AddElementToObject(order, "clientOrderId", clientOrderIdExchangeSpecific)
 	} else {
@@ -2136,7 +2136,7 @@ func (this *WooCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
 	params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
@@ -2213,7 +2213,7 @@ func (this *WooCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		var market any = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2270,7 +2270,7 @@ func (this *WooCore) cancelAllOrdersAfterBody(ch chan any, timeout any, optional
 		retRes178212 := (<-this.LoadMarkets())
 		PanicOnError(retRes178212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"triggerAfter": Ternary(IsTrue((IsGreaterThan(timeout, 0))), mathMin(timeout, 900000), 0),
 	}
 
@@ -2325,7 +2325,7 @@ func (this *WooCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) an
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeString2(params, "clOrdID", "clientOrderId")
 	var response any = nil
 	if IsTrue(trigger) {
@@ -2401,7 +2401,7 @@ func (this *WooCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes193419
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -2475,7 +2475,7 @@ func (this *WooCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes207012 := (<-this.LoadMarkets())
 		PanicOnError(retRes207012)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "INCOMPLETE",
 	})
 
@@ -2523,7 +2523,7 @@ func (this *WooCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 		retRes209512 := (<-this.LoadMarkets())
 		PanicOnError(retRes209512)
 	}
-	var extendedParams any = this.Extend(params, map[string]any{
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "COMPLETED",
 	})
 
@@ -2533,7 +2533,7 @@ func (this *WooCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *WooCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"post_only": "PO",
@@ -2699,7 +2699,7 @@ func (this *WooCore) ParseOrder(order any, optionalArgs ...any) any {
 }
 func (this *WooCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses any = map[string]any{
+		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
 			"EDIT_SENT":       "open",
@@ -2744,7 +2744,7 @@ func (this *WooCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes229712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -2816,7 +2816,7 @@ func (this *WooCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 		PanicOnError(retRes234812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -2905,7 +2905,7 @@ func (this *WooCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...a
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"oid": id,
 	}
 
@@ -2979,7 +2979,7 @@ func (this *WooCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ch <- retRes247019
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -3104,7 +3104,7 @@ func (this *WooCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	mainAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 0)
 	subAccountResponse := GetValue(mainAccountResponsesubAccountResponseVariable, 1)
 	var mainData any = this.SafeDict(mainAccountResponse, "data", map[string]any{})
-	var mainRows any = []any{mainData}
+	var mainRows []any = []any{mainData}
 	var subData any = this.SafeDict(subAccountResponse, "data", map[string]any{})
 	var subRows any = this.SafeList(subData, "rows", []any{})
 	var rows any = this.ArrayConcat(mainRows, subRows)
@@ -3208,7 +3208,7 @@ func (this *WooCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *WooCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.SafeList(response, "holding", []any{})
@@ -3255,7 +3255,7 @@ func (this *WooCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
 	networkCode = GetValue(networkCodeparamsVariable, 0)
 	params = GetValue(networkCodeparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"token":   GetValue(currency, "id"),
 		"network": this.NetworkCodeToId(networkCode, GetValue(currency, "code")),
 	}
@@ -3287,7 +3287,7 @@ func (this *WooCore) GetDedicatedNetworkId(currency any, params any) any {
 	networkCode = this.NetworkIdToCode(networkCode, GetValue(currency, "code"))
 	var networkEntry any = Ternary(IsTrue((IsEqual(networkCode, nil))), nil, this.SafeDict(GetValue(currency, "networks"), networkCode))
 	if IsTrue(IsEqual(networkEntry, nil)) {
-		var supportedNetworks any = ObjectKeys(GetValue(currency, "networks"))
+		var supportedNetworks []string = ObjectKeys(GetValue(currency, "networks"))
 		panic(BadRequest(Add(Add(this.Id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.Json(supportedNetworks))))
 	}
 	var currentyNetworkId any = this.SafeString(networkEntry, "currencyNetworkId")
@@ -3328,7 +3328,7 @@ func (this *WooCore) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) a
 		retRes275212 := (<-this.LoadMarkets())
 		PanicOnError(retRes275212)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -3484,7 +3484,7 @@ func (this *WooCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *WooCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
 	}
@@ -3494,8 +3494,8 @@ func (this *WooCore) GetCurrencyFromChaincode(networkizedCode any, currency any)
 	if IsTrue(!IsEqual(currency, nil)) {
 		return currency
 	} else {
-		var parts any = Split(networkizedCode, "_")
-		var partsLength any = GetArrayLength(parts)
+		var parts []string = Split(networkizedCode, "_")
+		var partsLength int = GetArrayLength(parts)
 		var firstPart any = this.SafeString(parts, 0)
 		var currencyId any = this.SafeString(parts, 1, firstPart)
 		if IsTrue(IsGreaterThan(partsLength, 2)) {
@@ -3533,7 +3533,7 @@ func (this *WooCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tokenSide": "DEPOSIT",
 	}
 
@@ -3570,7 +3570,7 @@ func (this *WooCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tokenSide": "WITHDRAW",
 	}
 
@@ -3607,7 +3607,7 @@ func (this *WooCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "BALANCE",
 	}
 
@@ -3679,7 +3679,7 @@ func (this *WooCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 	}
 }
 func (this *WooCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
 		"PROCESSING": "pending",
@@ -3717,7 +3717,7 @@ func (this *WooCore) transferBody(ch chan any, code any, amount any, fromAccount
 		PanicOnError(retRes304812)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"token":  GetValue(currency, "id"),
 		"amount": this.ParseToNumeric(amount),
 		"from": map[string]any{
@@ -3781,7 +3781,7 @@ func (this *WooCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -3933,7 +3933,7 @@ func (this *WooCore) withdrawBody(ch chan any, code any, amount any, address any
 	}
 	this.CheckAddress(address)
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"amount":  amount,
 		"address": address,
 	}
@@ -3957,7 +3957,7 @@ func (this *WooCore) withdrawBody(ch chan any, code any, amount any, address any
 	//     }
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var transactionData any = this.Extend(data, map[string]any{
+	var transactionData map[string]any = this.Extend(data, map[string]any{
 		"id":        this.SafeString(data, "withdrawId"),
 		"timestamp": this.SafeInteger(response, "timestamp"),
 		"currency":  code,
@@ -4007,7 +4007,7 @@ func (this *WooCore) repayMarginBody(ch chan any, code any, amount any, optional
 		symbol = GetValue(market, "symbol")
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"token":  GetValue(currency, "id"),
 		"amount": this.CurrencyToPrecision(code, amount),
 	}
@@ -4081,9 +4081,9 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 		if IsTrue(IsTrue(IsEqual(method, "POST")) && IsTrue((IsTrue(IsEqual(path, "trade/algoOrder")) || IsTrue(IsEqual(path, "trade/order"))))) {
 			var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 			if !IsTrue(isSandboxMode) {
-				var applicationId any = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
+				var applicationId string = "bc830de7-50f3-460b-9ee0-f430f83f9dad"
 				var brokerId any = this.SafeString(this.Options, "brokerId", applicationId)
-				var isTrigger any = IsGreaterThan(GetIndexOf(path, "algo"), OpNeg(1))
+				var isTrigger bool = IsGreaterThan(GetIndexOf(path, "algo"), OpNeg(1))
 				if IsTrue(isTrigger) {
 					AddElementToObject(params, "brokerId", brokerId)
 				} else {
@@ -4093,7 +4093,7 @@ func (this *WooCore) Sign(path any, optionalArgs ...any) any {
 			params = this.Keysort(params)
 		}
 		var auth any = ""
-		var ts any = ToString(this.Nonce())
+		var ts string = ToString(this.Nonce())
 		url = Add(url, pathWithParams)
 		headers = map[string]any{
 			"x-api-key":       this.ApiKey,
@@ -4232,7 +4232,7 @@ func (this *WooCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) a
 		ch <- retRes346719
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -4391,7 +4391,7 @@ func (this *WooCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes359612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4615,7 +4615,7 @@ func (this *WooCore) setPositionModeBody(ch chan any, hedged any, optionalArgs .
 	} else {
 		hedgeMode = "ONE_WAY"
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"positionMode": hedgeMode,
 	}
 
@@ -4666,7 +4666,7 @@ func (this *WooCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...
 		response = (<-this.V3PrivateGetAccountInfo(params))
 		PanicOnError(response)
 	} else if IsTrue(GetValue(market, "swap")) {
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"symbol": GetValue(market, "id"),
 		}
 		var marginMode any = nil
@@ -4750,7 +4750,7 @@ func (this *WooCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...
 		retRes392712 := (<-this.LoadMarkets())
 		PanicOnError(retRes392712)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"leverage": leverage,
 	}
 	var market any = nil
@@ -4851,7 +4851,7 @@ func (this *WooCore) modifyMarginHelperBody(ch chan any, symbol any, amount any,
 		PanicOnError(retRes398112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":        GetValue(market, "id"),
 		"adjust_token":  "USDT",
 		"adjust_amount": amount,
@@ -4889,7 +4889,7 @@ func (this *WooCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ...
 		PanicOnError(retRes400412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4961,9 +4961,9 @@ func (this *WooCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes405912)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength any = GetArrayLength(symbols)
+		var symbolsLength int = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -5145,7 +5145,7 @@ func (this *WooCore) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any
 		retRes422612 := (<-this.LoadMarkets())
 		PanicOnError(retRes422612)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"sellToken":    ToUpper(fromCode),
 		"buyToken":     ToUpper(toCode),
 		"sellQuantity": this.NumberToString(amount),
@@ -5208,7 +5208,7 @@ func (this *WooCore) createConvertTradeBody(ch chan any, id any, fromCode any, t
 		retRes427212 := (<-this.LoadMarkets())
 		PanicOnError(retRes427212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quoteId": id,
 	}
 
@@ -5257,7 +5257,7 @@ func (this *WooCore) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...
 		retRes430412 := (<-this.LoadMarkets())
 		PanicOnError(retRes430412)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"quoteId": id,
 	}
 
@@ -5463,7 +5463,7 @@ func (this *WooCore) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any
 	//         ]
 	//     }
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var data any = this.SafeList(response, "rows", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
@@ -5532,9 +5532,9 @@ func (this *WooCore) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any)
 		PanicOnError(retRes452012)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
-		var symbolsLength any = GetArrayLength(symbols)
+		var symbolsLength int = GetArrayLength(symbols)
 		if IsTrue(IsEqual(symbolsLength, 1)) {
 			var market any = this.Market(GetValue(symbols, 0))
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -5623,7 +5623,7 @@ func (this *WooCore) ParseADLRank(info any, optionalArgs ...any) any {
 func (this *WooCore) DefaultNetworkCodeForCurrency(code any) any {
 	var currencyItem any = this.Currency(code)
 	var networks any = GetValue(currencyItem, "networks")
-	var networkKeys any = ObjectKeys(networks)
+	var networkKeys []string = ObjectKeys(networks)
 	for i := 0; IsLessThan(i, GetArrayLength(networkKeys)); i++ {
 		var network any = GetValue(networkKeys, i)
 		if IsTrue(IsEqual(network, "ETH")) {

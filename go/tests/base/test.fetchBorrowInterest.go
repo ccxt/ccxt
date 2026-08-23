@@ -13,7 +13,7 @@ func TestFetchBorrowInterest(exchange ccxt.ICoreExchange, skippedProperties any,
 func testFetchBorrowInterestBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchBorrowInterest"
+	var method string = "fetchBorrowInterest"
 
 	borrowInterest := (<-exchange.FetchBorrowInterest(code, symbol))
 	PanicOnError(borrowInterest)

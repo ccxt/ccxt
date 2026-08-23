@@ -13,7 +13,7 @@ func TestFetchOpenOrders(exchange ccxt.ICoreExchange, skippedProperties any, sym
 func testFetchOpenOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchOpenOrders"
+	var method string = "fetchOpenOrders"
 
 	orders := (<-exchange.(ccxt.IFetchOpenOrders).FetchOpenOrders(symbol))
 	PanicOnError(orders)

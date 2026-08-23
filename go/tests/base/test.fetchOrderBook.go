@@ -13,7 +13,7 @@ func TestFetchOrderBook(exchange ccxt.ICoreExchange, skippedProperties any, symb
 func testFetchOrderBookBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchOrderBook"
+	var method string = "fetchOrderBook"
 
 	orderbook := (<-exchange.FetchOrderBook(symbol))
 	PanicOnError(orderbook)

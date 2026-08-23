@@ -611,25 +611,25 @@ func (this *DydxCore) ParseMarket(market any) any {
 	//     "defaultFundingRate1H": "0"
 	// }
 	//
-	var quoteId any = "USDC"
+	var quoteId string = "USDC"
 	var marketId any = this.SafeString(market, "ticker")
 	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
-	var parts any = Split(marketId, "-")
+	var parts []string = Split(marketId, "-")
 	var baseName any = this.SafeString(parts, 0)
 	var baseId any = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var settleId any = "USDC"
+	var settleId string = "USDC"
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	var contract any = true
-	var swap any = true
+	var contract bool = true
+	var swap bool = true
 	var amountPrecisionStr any = this.SafeString(market, "stepSize")
 	var pricePrecisionStr any = this.SafeString(market, "tickSize")
 	var status any = this.SafeString(market, "status")
-	var active any = true
+	var active bool = true
 	if IsTrue(!IsEqual(status, "ACTIVE")) {
 		active = false
 	}
@@ -705,7 +705,7 @@ func (this *DydxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 
 	response := (<-this.IndexerGetPerpetualMarkets(this.Extend(request, params)))
 	PanicOnError(response)
@@ -813,7 +813,7 @@ func (this *DydxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 		PanicOnError(retRes67712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -900,7 +900,7 @@ func (this *DydxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		PanicOnError(retRes74912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":     GetValue(market, "id"),
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -982,7 +982,7 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 		PanicOnError(retRes81012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1109,7 +1109,7 @@ func (this *DydxCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *DydxCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"UNTRIGGERED":          "open",
 		"OPEN":                 "open",
 		"FILLED":               "closed",
@@ -1119,7 +1119,7 @@ func (this *DydxCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *DydxCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":              "LIMIT",
 		"STOP_LIMIT":         "LIMIT",
 		"TAKE_PROFIT_LIMIT":  "LIMIT",
@@ -1158,7 +1158,7 @@ func (this *DydxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		retRes96812 := (<-this.LoadMarkets())
 		PanicOnError(retRes96812)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"orderId": id,
 	}
 
@@ -1211,7 +1211,7 @@ func (this *DydxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		retRes99612 := (<-this.LoadMarkets())
 		PanicOnError(retRes99612)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subAccountNumber,
 	}
@@ -1287,7 +1287,7 @@ func (this *DydxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "OPEN",
 	}
 
@@ -1326,7 +1326,7 @@ func (this *DydxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "FILLED",
 	}
 
@@ -1459,7 +1459,7 @@ func (this *DydxCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		retRes117112 := (<-this.LoadMarkets())
 		PanicOnError(retRes117112)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subAccountNumber,
 		"status":           "OPEN",
@@ -1513,15 +1513,15 @@ func (this *DydxCore) SignMessage(message any, privateKey any) any {
 	return this.SignHash(this.HashMessage(message), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *DydxCore) SignOnboardingAction() any {
-	var message any = map[string]any{
+	var message map[string]any = map[string]any{
 		"action": "dYdX Chain Onboarding",
 	}
 	var chainId any = GetValue(this.Options, "chainId")
-	var domain any = map[string]any{
+	var domain map[string]any = map[string]any{
 		"chainId": chainId,
 		"name":    "dYdX Chain",
 	}
-	var messageTypes any = map[string]any{
+	var messageTypes map[string]any = map[string]any{
 		"dYdX": []any{map[string]any{
 			"name": "action",
 			"type": "string",
@@ -1583,7 +1583,7 @@ func (this *DydxCore) fetchDydxAccountBody(ch chan any) any {
 	if !IsTrue(StartsWith(this.WalletAddress, "dydx")) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"dydxAddress": this.WalletAddress,
 	}
 	//
@@ -1632,12 +1632,12 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
 	}
-	var orderSide any = ToUpper(side)
+	var orderSide string = ToUpper(side)
 	var subaccountId any = 0
 	subaccountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
@@ -1645,8 +1645,8 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
-	var isConditional any = IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))
-	var isMarket any = IsEqual(orderType, "MARKET")
+	var isConditional bool = IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))
+	var isMarket bool = IsEqual(orderType, "MARKET")
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GTT")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
@@ -1728,7 +1728,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var sideNumber any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), 1, 2)
 	var defaultClientOrderId any = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
 	var clientOrderId any = this.SafeInteger(params, "clientOrderId", defaultClientOrderId)
-	var orderPayload any = map[string]any{
+	var orderPayload map[string]any = map[string]any{
 		"order": map[string]any{
 			"orderId": map[string]any{
 				"subaccountId": map[string]any{
@@ -1752,7 +1752,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 			"orderRouterAddress":              this.SafeString(this.Options, "routerAddress", "dydx165sfn2k3vucvq7gklauy2r3agyjw4c3m60ascn"),
 		},
 	}
-	var signingPayload any = map[string]any{
+	var signingPayload map[string]any = map[string]any{
 		"typeUrl": "/dydxprotocol.clob.MsgPlaceOrder",
 		"value":   orderPayload,
 	}
@@ -1858,7 +1858,7 @@ func (this *DydxCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	lastBlockHeight := (<-this.FetchLatestBlockHeight())
 	PanicOnError(lastBlockHeight)
 	// params['latestBlockHeight'] = lastBlockHeight;
-	var newParams any = this.Extend(params, map[string]any{
+	var newParams map[string]any = this.Extend(params, map[string]any{
 		"latestBlockHeight": lastBlockHeight,
 	})
 	var orderRequestRes any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, newParams)
@@ -1866,7 +1866,7 @@ func (this *DydxCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	var orderRequest any = GetValue(orderRequestRes, 1)
 	var chainName any = GetValue(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), orderRequest, "", chainName, account, nil)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
 	// nodeRpcGetBroadcastTxAsync
@@ -1939,7 +1939,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	if IsTrue(IsEqual(clientOrderId, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")))
 	}
-	var idString any = ToString(id)
+	var idString string = ToString(id)
 	if IsTrue(IsTrue(!IsEqual(id, nil)) && IsTrue(IsGreaterThan(GetIndexOf(idString, "-"), OpNeg(1)))) {
 		panic(NotSupported(Add(this.Id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")))
 	}
@@ -1979,7 +1979,7 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 
 	account := (<-this.FetchDydxAccount())
 	PanicOnError(account)
-	var cancelPayload any = map[string]any{
+	var cancelPayload map[string]any = map[string]any{
 		"orderId": map[string]any{
 			"subaccountId": map[string]any{
 				"owner":  this.GetWalletAddress(),
@@ -1992,13 +1992,13 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 		"goodTilBlock":     goodTillBlock,
 		"goodTilBlockTime": goodTillBlockTime,
 	}
-	var signingPayload any = map[string]any{
+	var signingPayload map[string]any = map[string]any{
 		"typeUrl": "/dydxprotocol.clob.MsgCancelOrder",
 		"value":   cancelPayload,
 	}
 	var chainName any = GetValue(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
 	// nodeRpcGetBroadcastTxAsync
@@ -2075,11 +2075,11 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 
 	account := (<-this.FetchDydxAccount())
 	PanicOnError(account)
-	var cancelOrders any = map[string]any{
+	var cancelOrders map[string]any = map[string]any{
 		"clientIds":  clientOrderIds,
 		"clobPairId": GetValue(GetValue(market, "info"), "clobPairId"),
 	}
-	var cancelPayload any = map[string]any{
+	var cancelPayload map[string]any = map[string]any{
 		"subaccountId": map[string]any{
 			"owner":  this.GetWalletAddress(),
 			"number": subAccountId,
@@ -2087,13 +2087,13 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		"shortTermCancels": []any{cancelOrders},
 		"goodTilBlock":     goodTillBlock,
 	}
-	var signingPayload any = map[string]any{
+	var signingPayload map[string]any = map[string]any{
 		"typeUrl": "/dydxprotocol.clob.MsgBatchCancel",
 		"value":   cancelPayload,
 	}
 	var chainName any = GetValue(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
 	// nodeRpcGetBroadcastTxAsync
@@ -2149,7 +2149,7 @@ func (this *DydxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes174112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -2232,7 +2232,7 @@ func (this *DydxCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *DydxCore) ParseLedgerEntryType(typeVar any) any {
-	var ledgerType any = map[string]any{
+	var ledgerType map[string]any = map[string]any{
 		"TRANSFER_IN":  "transfer",
 		"TRANSFER_OUT": "transfer",
 		"DEPOSIT":      "deposit",
@@ -2297,7 +2297,7 @@ func (this *DydxCore) estimateTxFeeBody(ch chan any, message any, memo any, acco
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var txBytes any = this.EncodeDydxTxForSimulation(message, memo, GetValue(account, "sequence"), GetValue(account, "pub_key"))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"txBytes": txBytes,
 	}
 
@@ -2331,7 +2331,7 @@ func (this *DydxCore) estimateTxFeeBody(ch chan any, message any, memo any, acco
 		gasPrice = GetValue(feeDenom, "CHAINTOKEN_GAS_PRICE")
 		denom = GetValue(feeDenom, "CHAINTOKEN_DENOM")
 	}
-	var gasLimit any = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
+	var gasLimit float64 = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 	var feeAmount any = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
 	if IsTrue(IsEqual(feeAmount, nil)) {
 		panic(ExchangeError(Add(this.Id, " estimateTxFee() missing feeAmount")))
@@ -2339,7 +2339,7 @@ func (this *DydxCore) estimateTxFeeBody(ch chan any, message any, memo any, acco
 	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(feeAmount, "."), 0)) {
 		feeAmount = this.NumberToString(MathCeil(this.ParseToNumeric(feeAmount)))
 	}
-	var feeObj any = map[string]any{
+	var feeObj map[string]any = map[string]any{
 		"amount": feeAmount,
 		"denom":  denom,
 	}
@@ -2443,7 +2443,7 @@ func (this *DydxCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	PanicOnError(txFee)
 	var chainName any = GetValue(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, "", chainName, account, nil, txFee)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
 	// nodeRpcGetBroadcastTxAsync
@@ -2660,7 +2660,7 @@ func (this *DydxCore) withdrawBody(ch chan any, code any, amount any, address an
 	account := (<-this.FetchDydxAccount())
 	PanicOnError(account)
 	var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
-	var payload any = map[string]any{
+	var payload map[string]any = map[string]any{
 		"sender": map[string]any{
 			"owner":  this.GetWalletAddress(),
 			"number": subaccountId,
@@ -2669,7 +2669,7 @@ func (this *DydxCore) withdrawBody(ch chan any, code any, amount any, address an
 		"assetId":   0,
 		"quantums":  usd,
 	}
-	var signingPayload any = map[string]any{
+	var signingPayload map[string]any = map[string]any{
 		"typeUrl": "/dydxprotocol.sending.MsgWithdrawFromSubaccount",
 		"value":   payload,
 	}
@@ -2678,7 +2678,7 @@ func (this *DydxCore) withdrawBody(ch chan any, code any, amount any, address an
 	PanicOnError(txFee)
 	var chainName any = GetValue(this.Options, "chainName")
 	var signedTx any = this.SignDydxTx(GetValue(credentials, "privateKey"), signingPayload, tag, chainName, account, nil, txFee)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"tx": signedTx,
 	}
 	// nodeRpcGetBroadcastTxAsync
@@ -2878,7 +2878,7 @@ func (this *DydxCore) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 	subAccountNumberparamsVariable := this.HandleOptionAndParams(params, methodName, "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subAccountNumber,
 	}
@@ -2936,7 +2936,7 @@ func (this *DydxCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	userAddressparamsVariable := this.HandlePublicAddress("fetchAccounts", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address": userAddress,
 	}
 
@@ -3035,7 +3035,7 @@ func (this *DydxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	subaccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "subaccountNumber", 0)
 	subaccountNumber = GetValue(subaccountNumberparamsVariable, 0)
 	params = GetValue(subaccountNumberparamsVariable, 1)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address":          userAddress,
 		"subaccountNumber": subaccountNumber,
 	}
@@ -3110,7 +3110,7 @@ func (this *DydxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *DydxCore) ParseBalance(response any) any {
 	var account any = this.Account()
 	AddElementToObject(account, "free", this.SafeString(response, "freeCollateral"))
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 		"USDC": account,
 	}

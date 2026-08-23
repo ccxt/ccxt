@@ -352,7 +352,7 @@ func (this *MercadoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
 		var coin any = GetValue(coins, i)
 		var baseId any = coin
-		var quoteId any = "BRL"
+		var quoteId string = "BRL"
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
 		if IsTrue(IsTrue((IsEqual(base, nil))) || IsTrue((IsEqual(quote, nil)))) {
@@ -441,7 +441,7 @@ func (this *MercadoCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes37712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin": GetValue(market, "base"),
 	}
 
@@ -517,7 +517,7 @@ func (this *MercadoCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes43712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin": GetValue(market, "base"),
 	}
 
@@ -607,7 +607,7 @@ func (this *MercadoCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes50712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin": GetValue(market, "base"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -635,10 +635,10 @@ func (this *MercadoCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 func (this *MercadoCore) ParseBalance(response any) any {
 	var data any = this.SafeValue(response, "response_data", map[string]any{})
 	var balances any = this.SafeValue(data, "balance", map[string]any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currencyIds any = ObjectKeys(balances)
+	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -715,7 +715,7 @@ func (this *MercadoCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes57812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin_pair": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -789,7 +789,7 @@ func (this *MercadoCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 		PanicOnError(retRes62912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin_pair": GetValue(market, "id"),
 		"order_id":  id,
 	}
@@ -826,7 +826,7 @@ func (this *MercadoCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	return nil
 }
 func (this *MercadoCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"2": "open",
 		"3": "canceled",
 		"4": "closed",
@@ -871,7 +871,7 @@ func (this *MercadoCore) ParseOrder(order any, optionalArgs ...any) any {
 	var marketId any = this.SafeString(order, "coin_pair")
 	market = this.SafeMarket(marketId, market)
 	var timestamp any = this.SafeTimestamp(order, "created_timestamp")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"cost":     this.SafeString(order, "fee"),
 		"currency": GetValue(market, "quote"),
 	}
@@ -938,7 +938,7 @@ func (this *MercadoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes76112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin_pair": GetValue(market, "id"),
 		"order_id":  ParseInt(id),
 	}
@@ -985,18 +985,18 @@ func (this *MercadoCore) withdrawBody(ch chan any, code any, amount any, address
 		PanicOnError(retRes78912)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":     GetValue(currency, "id"),
 		"quantity": ToFixed(amount, 10),
 		"address":  address,
 	}
 	if IsTrue(IsEqual(code, "BRL")) {
-		var account_ref any = (InOp(params, "account_ref"))
+		var account_ref bool = (InOp(params, "account_ref"))
 		if !IsTrue(account_ref) {
 			panic(ArgumentsRequired(Add(Add(this.Id, " withdraw() requires account_ref parameter to withdraw "), code)))
 		}
 	} else if IsTrue(!IsEqual(code, "LTC")) {
-		var tx_fee any = (InOp(params, "tx_fee"))
+		var tx_fee bool = (InOp(params, "tx_fee"))
 		if !IsTrue(tx_fee) {
 			panic(ArgumentsRequired(Add(Add(this.Id, " withdraw() requires tx_fee parameter to withdraw "), code)))
 		}
@@ -1117,7 +1117,7 @@ func (this *MercadoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes90512)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 		"symbol":     Add(Add(GetValue(market, "base"), "-"), GetValue(market, "quote")),
 	}
@@ -1176,7 +1176,7 @@ func (this *MercadoCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes94312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin_pair": GetValue(market, "id"),
 	}
 
@@ -1224,7 +1224,7 @@ func (this *MercadoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes97012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin_pair":   GetValue(market, "id"),
 		"status_list": "[2]",
 	}
@@ -1273,7 +1273,7 @@ func (this *MercadoCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 		PanicOnError(retRes99812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin_pair": GetValue(market, "id"),
 		"has_fills": true,
 	}

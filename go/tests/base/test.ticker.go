@@ -20,7 +20,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			"previousClose":     true,
 		}, skippedProperties)
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":          map[string]any{},
 		"symbol":        "ETH/BTC",
 		"timestamp":     1502962946216,
@@ -54,8 +54,8 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var logText any = LogTemplate(exchange, method, entry)
 	// check market
 	var market any = nil
-	var isUnrecognizedSymbol any = false
-	var isFetchTickerCalled any = IsEqual(method, "fetchTicker")
+	var isUnrecognizedSymbol bool = false
+	var isFetchTickerCalled bool = IsEqual(method, "fetchTicker")
 	var symbolForMarket any = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
 	if IsTrue(!IsEqual(symbolForMarket, nil)) {
 		if IsTrue(IsTrue((!IsEqual(exchange.GetMarkets(), nil))) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
@@ -76,7 +76,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		}
 	}
 	// only check "above zero" values if exchange is not supposed to have exotic index markets
-	var isStandardMarket any = (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
+	var isStandardMarket bool = (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
 	var valuesShouldBePositive any = isStandardMarket // || (market === undefined) atm, no check for index markets
 	if IsTrue(IsTrue(valuesShouldBePositive) && !IsTrue((InOp(skippedProperties, "positiveValues")))) {
 		AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
@@ -122,7 +122,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
 			var mPrecision any = exchange.SafeDict(market, "precision")
 			var amountPrecision any = exchange.SafeString(mPrecision, "amount")
-			var tolerance any = "1.0001"
+			var tolerance string = "1.0001"
 			if IsTrue(!IsEqual(amountPrecision, nil)) {
 				baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
 				baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringAdd(baseVolume, amountPrecision), high)
@@ -187,7 +187,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
 	}
 	// last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-	var allowedPercentageVariation any = "0.01"
+	var allowedPercentageVariation string = "0.01"
 	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(isFetchTickerCalled) && IsTrue(!IsEqual(lastString, nil))) && IsTrue(!IsEqual(bidString, nil))) && IsTrue(!IsEqual(askString, nil))) && !IsTrue((InOp(skippedProperties, "lastBetweenBidAsk")))) {
 		var medianPrice any = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
 		var medianLow any = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
@@ -207,7 +207,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		//
 		// percentage
 		//
-		var maxIncrease any = "1000" // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
+		var maxIncrease string = "1000" // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
 		if IsTrue(!IsEqual(percentage, nil)) {
 			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))

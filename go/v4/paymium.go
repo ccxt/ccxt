@@ -209,10 +209,10 @@ func (this *PaymiumCore) Describe() any {
 	})
 }
 func (this *PaymiumCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var currencies any = ObjectKeys(this.Currencies)
+	var currencies []string = ObjectKeys(this.Currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
 		var code any = GetValue(currencies, i)
 		var currency any = this.Currency(code)
@@ -288,7 +288,7 @@ func (this *PaymiumCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes20712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "id"),
 	}
 
@@ -374,7 +374,7 @@ func (this *PaymiumCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes27712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "id"),
 	}
 
@@ -460,7 +460,7 @@ func (this *PaymiumCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		PanicOnError(retRes34312)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(market, "id"),
 	}
 
@@ -535,7 +535,7 @@ func (this *PaymiumCore) fetchDepositAddressBody(ch chan any, code any, optional
 		retRes38912 := (<-this.LoadMarkets())
 		PanicOnError(retRes38912)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"address": code,
 	}
 
@@ -650,7 +650,7 @@ func (this *PaymiumCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		PanicOnError(retRes46812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":      Add(this.Capitalize(typeVar), "Order"),
 		"currency":  GetValue(market, "id"),
 		"direction": side,
@@ -692,7 +692,7 @@ func (this *PaymiumCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"uuid": id,
 	}
 
@@ -739,7 +739,7 @@ func (this *PaymiumCore) transferBody(ch chan any, code any, amount any, fromAcc
 	if IsTrue(IsTrue(!IsEqual(code, "BTC")) && IsTrue(!IsEqual(code, "EUR"))) {
 		panic(ExchangeError(Add(this.Id, " transfer() only allows BTC or EUR")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 		"amount":   this.CurrencyToPrecision(code, amount),
 		"email":    toAccount,
@@ -837,7 +837,7 @@ func (this *PaymiumCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *PaymiumCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"executed": "ok",
 	}
 	return this.SafeString(statuses, status, status)
@@ -861,7 +861,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 		}
 	} else {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var auth any = Add(nonce, url)
 		headers = map[string]any{
 			"Api-Key":   this.ApiKey,

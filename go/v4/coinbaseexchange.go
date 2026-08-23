@@ -662,7 +662,7 @@ func (this *CoinbaseexchangeCore) ParseCurrency(rawCurrency any) any {
 	var name any = this.SafeString(rawCurrency, "name")
 	var code any = this.SafeCurrencyCode(id)
 	var details any = this.SafeDict(rawCurrency, "details", map[string]any{})
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	var supportedNetworks any = this.SafeList(rawCurrency, "supported_networks", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(supportedNetworks)); j++ {
 		var network any = GetValue(supportedNetworks, j)
@@ -923,7 +923,7 @@ func (this *CoinbaseexchangeCore) ParseAccount(account any) any {
 	}
 }
 func (this *CoinbaseexchangeCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -1002,7 +1002,7 @@ func (this *CoinbaseexchangeCore) fetchOrderBookBody(ch chan any, symbol any, op
 	// level 1 - only the best bid and ask
 	// level 2 - top 50 bids and asks (aggregated)
 	// level 3 - full order book (non aggregated)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":    this.MarketId(symbol),
 		"level": 2,
 	}
@@ -1140,7 +1140,7 @@ func (this *CoinbaseexchangeCore) fetchTickersBody(ch chan any, optionalArgs ...
 		PanicOnError(retRes93212)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 
 	response := (<-this.PublicGetProductsSparkLines(this.Extend(request, params)))
 	PanicOnError(response)
@@ -1164,9 +1164,9 @@ func (this *CoinbaseexchangeCore) fetchTickersBody(ch chan any, optionalArgs ...
 	//         ]
 	//     }
 	//
-	var result any = map[string]any{}
-	var marketIds any = ObjectKeys(response)
-	var delimiter any = "-"
+	var result map[string]any = map[string]any{}
+	var marketIds []string = ObjectKeys(response)
+	var delimiter string = "-"
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var entry any = this.SafeValue(response, marketId, []any{})
@@ -1205,7 +1205,7 @@ func (this *CoinbaseexchangeCore) fetchTickerBody(ch chan any, symbol any, optio
 		PanicOnError(retRes98212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(market, "id"),
 	}
 	// publicGetProductsIdTicker or publicGetProductsIdStats
@@ -1288,7 +1288,7 @@ func (this *CoinbaseexchangeCore) ParseTrade(trade any, optionalArgs ...any) any
 		}
 	}
 	var feeCost any = this.SafeString2(trade, "fill_fees", "fee")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"cost":     feeCost,
 		"currency": GetValue(market, "quote"),
 		"rate":     feeRate,
@@ -1371,7 +1371,7 @@ func (this *CoinbaseexchangeCore) fetchMyTradesBody(ch chan any, optionalArgs ..
 		PanicOnError(retRes111812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"product_id": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1424,7 +1424,7 @@ func (this *CoinbaseexchangeCore) fetchTradesBody(ch chan any, symbol any, optio
 		PanicOnError(retRes115212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1484,7 +1484,7 @@ func (this *CoinbaseexchangeCore) fetchTradingFeesBody(ch chan any, optionalArgs
 	//
 	var maker any = this.SafeNumber(response, "maker_fee_rate")
 	var taker any = this.SafeNumber(response, "taker_fee_rate")
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
 		var symbol any = GetValue(this.Symbols, i)
 		AddElementToObject(result, symbol, map[string]any{
@@ -1564,7 +1564,7 @@ func (this *CoinbaseexchangeCore) fetchOHLCVBody(ch chan any, symbol any, option
 	}
 	var market any = this.Market(symbol)
 	var parsedTimeframe any = this.SafeInteger(this.Timeframes, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(parsedTimeframe, nil)) {
@@ -1639,7 +1639,7 @@ func (this *CoinbaseexchangeCore) fetchTimeBody(ch chan any, optionalArgs ...any
 	return nil
 }
 func (this *CoinbaseexchangeCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"pending":   "open",
 		"active":    "open",
 		"open":      "open",
@@ -1753,7 +1753,7 @@ func (this *CoinbaseexchangeCore) fetchOrderBody(ch chan any, id any, optionalAr
 		retRes141612 := (<-this.LoadMarkets())
 		PanicOnError(retRes141612)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_oid")
 	var response any = nil
 	if IsTrue(IsEqual(clientOrderId, nil)) {
@@ -1809,7 +1809,7 @@ func (this *CoinbaseexchangeCore) fetchOrderTradesBody(ch chan any, id any, opti
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 
@@ -1848,7 +1848,7 @@ func (this *CoinbaseexchangeCore) fetchOrdersBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "all",
 	}
 
@@ -1903,7 +1903,7 @@ func (this *CoinbaseexchangeCore) fetchOpenOrdersBody(ch chan any, optionalArgs 
 		ch <- retRes149719
 		return nil
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1956,7 +1956,7 @@ func (this *CoinbaseexchangeCore) fetchClosedOrdersBody(ch chan any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "done",
 	}
 
@@ -1997,7 +1997,7 @@ func (this *CoinbaseexchangeCore) createOrderBody(ch chan any, symbol any, typeV
 		PanicOnError(retRes155412)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":       typeVar,
 		"side":       side,
 		"product_id": GetValue(market, "id"),
@@ -2091,7 +2091,7 @@ func (this *CoinbaseexchangeCore) cancelOrderBody(ch chan any, id any, optionalA
 		retRes164712 := (<-this.LoadMarkets())
 		PanicOnError(retRes164712)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_oid")
 	if IsTrue(IsEqual(clientOrderId, nil)) {
 		AddElementToObject(request, "id", id)
@@ -2147,7 +2147,7 @@ func (this *CoinbaseexchangeCore) cancelAllOrdersBody(ch chan any, optionalArgs 
 		retRes168412 := (<-this.LoadMarkets())
 		PanicOnError(retRes168412)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -2214,7 +2214,7 @@ func (this *CoinbaseexchangeCore) withdrawBody(ch chan any, code any, amount any
 		PanicOnError(retRes171712)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 		"amount":   amount,
 	}
@@ -2244,7 +2244,7 @@ func (this *CoinbaseexchangeCore) withdrawBody(ch chan any, code any, amount any
 	return nil
 }
 func (this *CoinbaseexchangeCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"transfer":   "transfer",
 		"match":      "trade",
 		"fee":        "fee",
@@ -2308,7 +2308,7 @@ func (this *CoinbaseexchangeCore) ParseLedgerEntry(item any, optionalArgs ...any
 	} else {
 		referenceId = this.SafeString(details, "order_id")
 	}
-	var status any = "ok"
+	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
 		"info":             item,
 		"id":               id,
@@ -2369,12 +2369,12 @@ func (this *CoinbaseexchangeCore) fetchLedgerBody(ch chan any, optionalArgs ...a
 	retRes18468 := (<-this.LoadAccounts())
 	PanicOnError(retRes18468)
 	var currency any = this.Currency(code)
-	var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "code")
+	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 	var account any = this.SafeValue(accountsByCurrencyCode, code)
 	if IsTrue(IsEqual(account, nil)) {
 		panic(ExchangeError(Add(Add(this.Id, " fetchLedger() could not find account id for "), code)))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(account, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -2442,7 +2442,7 @@ func (this *CoinbaseexchangeCore) fetchDepositsWithdrawalsBody(ch chan any, opti
 	if IsTrue(IsEqual(id, nil)) {
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
-			var accountsByCurrencyCode any = this.IndexBy(this.Accounts, "code")
+			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
 			var account any = this.SafeValue(accountsByCurrencyCode, code)
 			if IsTrue(IsEqual(account, nil)) {
 				panic(ExchangeError(Add(Add(this.Id, " fetchDepositsWithdrawals() could not find account id for "), code)))
@@ -2450,7 +2450,7 @@ func (this *CoinbaseexchangeCore) fetchDepositsWithdrawalsBody(ch chan any, opti
 			id = GetValue(account, "id")
 		}
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(id, nil)) {
 		AddElementToObject(request, "id", id)
 	}
@@ -2666,7 +2666,7 @@ func (this *CoinbaseexchangeCore) ParseTransaction(transaction any, optionalArgs
 	var typeVar any = this.SafeString(transaction, "type")
 	var address any = this.SafeString(details, "crypto_address")
 	address = this.SafeString(transaction, "crypto_address", address)
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": nil,
 		"cost":     nil,
 		"rate":     nil,
@@ -2746,7 +2746,7 @@ func (this *CoinbaseexchangeCore) createDepositAddressBody(ch chan any, code any
 	if IsTrue(IsEqual(account, nil)) {
 		panic(InvalidAddress(Add(Add(Add(Add(Add(this.Id, " createDepositAddress() could not find currency code "), code), " with id = "), currencyId), " in this.options['coinbaseAccountsByCurrencyId']")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(account, "id"),
 	}
 
@@ -2785,7 +2785,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), request)
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
@@ -2816,7 +2816,7 @@ func (this *CoinbaseexchangeCore) Sign(path any, optionalArgs ...any) any {
 			}(this)
 
 		}
-		var signature any = this.Hmac(this.Encode(what), secret, sha256, "base64")
+		var signature string = this.Hmac(this.Encode(what), secret, sha256, "base64")
 		headers = map[string]any{
 			"CB-ACCESS-KEY":        this.ApiKey,
 			"CB-ACCESS-SIGN":       signature,

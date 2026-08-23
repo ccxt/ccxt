@@ -430,15 +430,15 @@ func (this *FoxbitCore) ParseCurrency(rawCurrency any) any {
 	var withdrawInfo any = this.SafeDict(rawCurrency, "withdraw_info")
 	var networks any = this.SafeList(rawCurrency, "networks", []any{})
 	var typeVar any = this.SafeStringLower(rawCurrency, "type")
-	var parsedNetworks any = map[string]any{}
+	var parsedNetworks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 		var network any = GetValue(networks, j)
 		var networkId any = this.SafeString(network, "code")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo any = this.SafeDict(network, "withdraw_info")
 		var networkDepositInfo any = this.SafeDict(network, "deposit_info")
-		var isWithdrawEnabled any = IsEqual(this.SafeString(networkWithdrawInfo, "status"), "ENABLED")
-		var isDepositEnabled any = IsEqual(this.SafeString(networkDepositInfo, "status"), "ENABLED")
+		var isWithdrawEnabled bool = IsEqual(this.SafeString(networkWithdrawInfo, "status"), "ENABLED")
+		var isDepositEnabled bool = IsEqual(this.SafeString(networkDepositInfo, "status"), "ENABLED")
 		if IsTrue(!IsEqual(networkCode, nil)) {
 			AddElementToObject(parsedNetworks, networkCode, map[string]any{
 				"info":      rawCurrency,
@@ -642,7 +642,7 @@ func (this *FoxbitCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes57012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 
@@ -777,7 +777,7 @@ func (this *FoxbitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	//     }
 	// ]
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
 		var marketId any = this.SafeString(entry, "market_symbol")
@@ -819,7 +819,7 @@ func (this *FoxbitCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	}
 	var market any = this.Market(symbol)
 	var defaultLimit any = 20
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 		"depth":  Ternary(IsTrue((IsEqual(limit, nil))), defaultLimit, limit),
 	}
@@ -887,7 +887,7 @@ func (this *FoxbitCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes74712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -949,7 +949,7 @@ func (this *FoxbitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	}
 	var market any = this.Market(symbol)
 	var interval any = this.SafeString(this.Timeframes, timeframe, timeframe)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market":   GetValue(market, "id"),
 		"interval": interval,
 	}
@@ -1022,7 +1022,7 @@ func (this *FoxbitCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	// }
 	var accounts any = this.SafeList(response, "data", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
@@ -1032,7 +1032,7 @@ func (this *FoxbitCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		var total any = this.SafeString(account, "balance")
 		var used any = this.SafeString(account, "balance_locked")
 		var free any = this.SafeString(account, "balance_available")
-		var balanceObj any = map[string]any{
+		var balanceObj map[string]any = map[string]any{
 			"free":  free,
 			"used":  used,
 			"total": total,
@@ -1157,7 +1157,7 @@ func (this *FoxbitCore) fetchOrdersByStatusBody(ch chan any, status any, optiona
 		PanicOnError(retRes90512)
 	}
 	var market any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"state": status,
 	}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1227,7 +1227,7 @@ func (this *FoxbitCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market_symbol": GetValue(market, "id"),
 		"side":          ToUpper(side),
 		"type":          typeVar,
@@ -1313,7 +1313,7 @@ func (this *FoxbitCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 		var timeInForce any = this.SafeStringUpper(orderParams, "timeInForce")
 		var postOnly any = this.SafeBool(orderParams, "postOnly", false)
 		var triggerPrice any = this.SafeNumber(orderParams, "triggerPrice")
-		var request any = map[string]any{
+		var request map[string]any = map[string]any{
 			"market_symbol": GetValue(market, "id"),
 			"side":          this.SafeStringUpper(order, "side"),
 			"type":          typeVar,
@@ -1349,7 +1349,7 @@ func (this *FoxbitCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 		}
 		AppendToArray(&ordersRequests, this.Extend(request, orderParams))
 	}
-	var createOrdersRequest any = map[string]any{
+	var createOrdersRequest map[string]any = map[string]any{
 		"data": ordersRequests,
 	}
 
@@ -1403,7 +1403,7 @@ func (this *FoxbitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		retRes110112 := (<-this.LoadMarkets())
 		PanicOnError(retRes110112)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id":   this.ParseNumber(id),
 		"type": "ID",
 	}
@@ -1451,7 +1451,7 @@ func (this *FoxbitCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 		retRes113212 := (<-this.LoadMarkets())
 		PanicOnError(retRes113212)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type": "ALL",
 	}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1504,7 +1504,7 @@ func (this *FoxbitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		retRes116812 := (<-this.LoadMarkets())
 		PanicOnError(retRes116812)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1569,7 +1569,7 @@ func (this *FoxbitCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes121112)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "market_symbol", GetValue(market, "id"))
@@ -1651,7 +1651,7 @@ func (this *FoxbitCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes127212)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"market_symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1712,7 +1712,7 @@ func (this *FoxbitCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 		PanicOnError(retRes131812)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency_symbol": GetValue(currency, "id"),
 	}
 	networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
@@ -1771,7 +1771,7 @@ func (this *FoxbitCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		retRes135512 := (<-this.LoadMarkets())
 		PanicOnError(retRes135512)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -1842,7 +1842,7 @@ func (this *FoxbitCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		retRes140512 := (<-this.LoadMarkets())
 		PanicOnError(retRes140512)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -1975,7 +1975,7 @@ func (this *FoxbitCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var attributes any = this.SafeDict(data, "attributes", map[string]any{})
 	var statusRaw any = this.SafeString(attributes, "status")
-	var statusMap any = map[string]any{
+	var statusMap map[string]any = map[string]any{
 		"NORMAL":            "ok",
 		"UNDER_MAINTENANCE": "maintenance",
 	}
@@ -2034,7 +2034,7 @@ func (this *FoxbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a side argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"mode": "ALLOW_FAILURE",
 		"cancel": map[string]any{
 			"type": "ID",
@@ -2110,7 +2110,7 @@ func (this *FoxbitCore) withdrawBody(ch chan any, code any, amount any, address 
 		PanicOnError(retRes160012)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency_symbol":     GetValue(currency, "id"),
 		"amount":              this.NumberToString(amount),
 		"destination_address": address,
@@ -2172,7 +2172,7 @@ func (this *FoxbitCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 		retRes164012 := (<-this.LoadMarkets())
 		PanicOnError(retRes164012)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(IsEqual(code, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchLedger() requires a code argument")))
 	}
@@ -2320,7 +2320,7 @@ func (this *FoxbitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var privateSideField any = this.SafeStringLower(trade, "side")
 	var side any = this.SafeStringLower(trade, "taker_side", privateSideField)
 	var cost any = Precise.StringMul(price, amount)
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": this.SafeSymbol(this.SafeString(trade, "fee_currency_symbol")),
 		"cost":     this.SafeNumber(trade, "fee"),
 		"rate":     nil,
@@ -2342,7 +2342,7 @@ func (this *FoxbitCore) ParseTrade(trade any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *FoxbitCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"PARTIALLY_CANCELED": "open",
 		"ACTIVE":             "open",
 		"PARTIALLY_FILLED":   "open",
@@ -2428,7 +2428,7 @@ func (this *FoxbitCore) ParseDepositAddress(depositAddress any, optionalArgs ...
 	}
 }
 func (this *FoxbitCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"SUBMITTING": "pending",
 		"SUBMITTED":  "pending",
 		"REJECTED":   "failed",
@@ -2454,7 +2454,7 @@ func (this *FoxbitCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var cryptoDetails any = this.SafeDict(transaction, "details_crypto")
 	var address any = this.SafeString2(cryptoDetails, "receiving_address", "destination_address")
 	var sn any = this.SafeString(transaction, "sn")
-	var typeVar any = "withdrawal"
+	var typeVar string = "withdrawal"
 	if IsTrue(IsTrue(!IsEqual(sn, nil)) && IsTrue(IsEqual(GetValue(sn, 0), "D"))) {
 		typeVar = "deposit"
 	}
@@ -2472,7 +2472,7 @@ func (this *FoxbitCore) ParseTransaction(transaction any, optionalArgs ...any) a
 		actualAmount = Precise.StringSub(amount, fee)
 	}
 	var feeRate any = Precise.StringDiv(fee, actualAmount)
-	var feeObj any = map[string]any{
+	var feeObj map[string]any = map[string]any{
 		"cost":     this.ParseNumber(fee),
 		"currency": currencyCode,
 		"rate":     this.ParseNumber(feeRate),
@@ -2501,7 +2501,7 @@ func (this *FoxbitCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	}
 }
 func (this *FoxbitCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"DEPOSITING":           "transaction",
 		"WITHDRAWING":          "transaction",
 		"TRADING":              "trade",
@@ -2531,11 +2531,11 @@ func (this *FoxbitCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var typeVar any = this.ParseLedgerEntryType(reasonType)
 	var exchangeSymbol any = this.SafeString(item, "currency_symbol")
 	var currencySymbol any = this.SafeCurrencyCode(exchangeSymbol)
-	var direction any = "in"
+	var direction string = "in"
 	var amount any = this.SafeNumber(item, "amount")
 	var realAmount any = amount
 	var balance any = this.SafeNumber(item, "balance")
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"cost":     this.SafeNumber(item, "fee"),
 		"currency": currencySymbol,
 	}
@@ -2593,12 +2593,12 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), urlPath), fullPath)
 	params = this.Omit(params, this.ExtractParams(path))
-	var timestamp any = this.Milliseconds()
+	var timestamp int64 = this.Milliseconds()
 	var query any = ""
 	var signatureQuery any = ""
 	if IsTrue(IsEqual(method, "GET")) {
-		var paramKeys any = ObjectKeys(params)
-		var paramKeysLength any = GetArrayLength(paramKeys)
+		var paramKeys []string = ObjectKeys(params)
+		var paramKeysLength int = GetArrayLength(paramKeys)
 		if IsTrue(IsGreaterThan(paramKeysLength, 0)) {
 			query = this.Urlencode(params)
 			url = Add(url, Add("?", query))
@@ -2629,7 +2629,7 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(urlPath, "private")) {
 		this.CheckRequiredCredentials()
 		var preHash any = Add(Add(Add(Add(this.NumberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature)
-		var signature any = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
+		var signature string = this.Hmac(this.Encode(preHash), this.Encode(this.Secret), sha256, "hex")
 		AddElementToObject(headers, "X-FB-ACCESS-KEY", this.ApiKey)
 		AddElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.NumberToString(timestamp))
 		AddElementToObject(headers, "X-FB-ACCESS-SIGNATURE", signature)

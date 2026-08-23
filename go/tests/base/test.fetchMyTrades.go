@@ -13,7 +13,7 @@ func TestFetchMyTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbo
 func testFetchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchMyTrades"
+	var method string = "fetchMyTrades"
 
 	trades := (<-exchange.FetchMyTrades(symbol))
 	PanicOnError(trades)

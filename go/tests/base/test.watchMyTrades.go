@@ -13,11 +13,11 @@ func TestWatchMyTrades(exchange ccxt.ICoreExchange, skippedProperties any, symbo
 func testWatchMyTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchMyTrades"
+	var method string = "watchMyTrades"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	for IsLessThan(now, ends) {
-		var success any = true
+		var success bool = true
 		var response any = []any{}
 
 		{

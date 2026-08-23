@@ -133,7 +133,7 @@ func (this *ToobitCore) HandleMessage(client any, message any) {
 		this.HandleIncomingPong(client, pongTimestamp)
 		return
 	}
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"trade":                        this.HandleTrades,
 		"kline":                        this.HandleOHLCV,
 		"realtimes":                    this.HandleTickers,
@@ -240,7 +240,7 @@ func (this *ToobitCore) watchTradesForSymbolsBody(ch chan any, symbols any, opti
 	}
 	var marketIds any = this.MarketIds(symbols)
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  "trade",
 		"event":  "sub",
@@ -394,7 +394,7 @@ func (this *ToobitCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimefram
 		ccxt.AppendToArray(&marketIds, marketId)
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbolStr), "::"), unfiedTimeframe))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  ccxt.Add("kline_", selectedTimeframe),
 		"event":  "sub",
@@ -460,7 +460,7 @@ func (this *ToobitCore) HandleOHLCV(client any, message any) {
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
-	var resolveData any = []any{symbol, timeframe, stored}
+	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *ToobitCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -556,7 +556,7 @@ func (this *ToobitCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	var marketIds any = this.MarketIds(symbols)
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  "realtimes",
 		"event":  "sub",
@@ -565,7 +565,7 @@ func (this *ToobitCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ticker := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
 	ccxt.PanicOnError(ticker)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var result any = map[string]any{}
+		var result map[string]any = map[string]any{}
 		ccxt.AddElementToObject(result, ccxt.GetValue(ticker, "symbol"), ticker)
 
 		ch <- result
@@ -615,7 +615,7 @@ func (this *ToobitCore) HandleTickers(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(data, nil)) {
 		return
 	}
-	var newTickers any = map[string]any{}
+	var newTickers map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var ticker any = ccxt.GetValue(data, i)
 		var parsed any = this.ParseWsTicker(ticker)
@@ -715,7 +715,7 @@ func (this *ToobitCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, o
 	}
 	var marketIds any = this.MarketIds(symbols)
 	var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "common"), "/quote/ws/v1")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": ccxt.Join(marketIds, ","),
 		"topic":  channel,
 		"event":  "sub",
@@ -807,7 +807,7 @@ func (this *ToobitCore) HandleOrderBookPartialSnapshot(client any, message any) 
 }
 func (this *ToobitCore) SetOrderBookSnapshot(client any, message any, channel any) {
 	var data any = this.SafeList(message, "data", []any{})
-	var length any = ccxt.GetArrayLength(data)
+	var length int = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsEqual(length, 0)) {
 		return
 	}
@@ -859,12 +859,12 @@ func (this *ToobitCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
 	marketType = ccxt.GetValue(marketTypeparamsVariable, 0)
 	params = ccxt.GetValue(marketTypeparamsVariable, 1)
-	var isSpot any = (ccxt.IsEqual(marketType, "spot"))
+	var isSpot bool = (ccxt.IsEqual(marketType, "spot"))
 	var typeVar any = ccxt.Ternary(ccxt.IsTrue(isSpot), "spot", "contract")
-	var spotSubHash any = "spot:balance"
-	var swapSubHash any = "contract:private"
-	var spotMessageHash any = "spot:balance"
-	var swapMessageHash any = "contract:balance"
+	var spotSubHash string = "spot:balance"
+	var swapSubHash string = "contract:private"
+	var spotMessageHash string = "spot:balance"
+	var swapMessageHash string = "contract:balance"
 	var messageHash any = ccxt.Ternary(ccxt.IsTrue(isSpot), spotMessageHash, swapMessageHash)
 	var subscriptionHash any = ccxt.Ternary(ccxt.IsTrue(isSpot), spotSubHash, swapSubHash)
 	if ccxt.IsTrue(ccxt.IsEqual(subscriptionHash, nil)) {
@@ -1329,7 +1329,7 @@ func (this *ToobitCore) LoadPositionsSnapshot(client any, messageHash any, typeV
 func (this *ToobitCore) loadPositionsSnapshotBody(ch chan any, client any, messageHash any, typeVar any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var params any = map[string]any{
+	var params map[string]any = map[string]any{
 		"type": typeVar,
 	}
 
@@ -1374,7 +1374,7 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 	//     }
 	// ]
 	//
-	var subscriptions any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
+	var subscriptions []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetSubscriptions())
 	var accountType any = ccxt.GetValue(subscriptions, 0)
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = map[string]any{}
@@ -1396,9 +1396,9 @@ func (this *ToobitCore) HandlePositions(client any, message any) {
 	var messageHashes any = this.FindMessageHashes(ccxt.AsClient(client), ccxt.Add(accountType, ":positions::"))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var parts any = ccxt.Split(messageHash, "::")
+		var parts []string = ccxt.Split(messageHash, "::")
 		var symbolsString any = ccxt.GetValue(parts, 1)
-		var symbols any = ccxt.Split(symbolsString, ",")
+		var symbols []string = ccxt.Split(symbolsString, ",")
 		var positions any = this.FilterByArray(newPositions, "symbol", symbols, false)
 		if !ccxt.IsTrue(this.IsEmpty(positions)) {
 			client.(ccxt.ClientInterface).Resolve(positions, messageHash)
@@ -1448,12 +1448,12 @@ func (this *ToobitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var client any = this.Client(this.GetUserStreamUrl())
-	var messageHash any = "authenticated"
+	var messageHash string = "authenticated"
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
 	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
 		this.CheckRequiredCredentials()
-		var time any = this.Milliseconds()
+		var time int64 = this.Milliseconds()
 		var lastAuthenticatedTime any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "lastAuthenticatedTime", 0)
 		var listenKeyRefreshRate any = this.SafeInteger(ccxt.GetValue(this.Options, "ws"), "listenKeyRefreshRate", 1200000)
 		var delay any = this.Sum(listenKeyRefreshRate, 10000)
@@ -1526,7 +1526,7 @@ func (this *ToobitCore) keepAliveListenKeyBody(ch chan any, optionalArgs ...any)
 						// catch block:
 						var url any = this.GetUserStreamUrl()
 						var client any = this.Client(url)
-						var messageHashes any = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
+						var messageHashes []string = ccxt.ObjectKeys(client.(ccxt.ClientInterface).GetFutures())
 						for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 							var messageHash any = ccxt.GetValue(messageHashes, i)
 							client.(ccxt.ClientInterface).Reject(error, messageHash)

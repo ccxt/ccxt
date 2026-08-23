@@ -384,7 +384,7 @@ func (this *BtcmarketsCore) fetchTransactionsWithMethodBody(ch chan any, method 
 		retRes30412 := (<-this.LoadMarkets())
 		PanicOnError(retRes30412)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
@@ -516,7 +516,7 @@ func (this *BtcmarketsCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...an
 	return nil
 }
 func (this *BtcmarketsCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Accepted":              "pending",
 		"Pending Authorization": "pending",
 		"Complete":              "ok",
@@ -526,7 +526,7 @@ func (this *BtcmarketsCore) ParseTransactionStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *BtcmarketsCore) ParseTransactionType(typeVar any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Withdraw": "withdrawal",
 		"Deposit":  "deposit",
 	}
@@ -591,8 +591,8 @@ func (this *BtcmarketsCore) ParseTransaction(transaction any, optionalArgs ...an
 	var address any = this.SafeString(cryptoPaymentDetail, "address")
 	var tag any = nil
 	if IsTrue(!IsEqual(address, nil)) {
-		var addressParts any = Split(address, "?dt=")
-		var numParts any = GetArrayLength(addressParts)
+		var addressParts []string = Split(address, "?dt=")
+		var numParts int = GetArrayLength(addressParts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			address = GetValue(addressParts, 0)
 			tag = GetValue(addressParts, 1)
@@ -777,7 +777,7 @@ func (this *BtcmarketsCore) fetchTimeBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BtcmarketsCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -874,7 +874,7 @@ func (this *BtcmarketsCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes67712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"marketId":   GetValue(market, "id"),
 		"timeWindow": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
@@ -927,7 +927,7 @@ func (this *BtcmarketsCore) fetchOrderBookBody(ch chan any, symbol any, optional
 		PanicOnError(retRes71812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"marketId": GetValue(market, "id"),
 	}
 
@@ -1034,7 +1034,7 @@ func (this *BtcmarketsCore) fetchTickerBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes80912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"marketId": GetValue(market, "id"),
 	}
 
@@ -1075,7 +1075,7 @@ func (this *BtcmarketsCore) fetchTicker2Body(ch chan any, symbol any, optionalAr
 		PanicOnError(retRes83612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": GetValue(market, "id"),
 	}
 
@@ -1185,7 +1185,7 @@ func (this *BtcmarketsCore) fetchTradesBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes92612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"marketId": GetValue(market, "id"),
 	}
 
@@ -1235,12 +1235,12 @@ func (this *BtcmarketsCore) createOrderBody(ch chan any, symbol any, typeVar any
 		PanicOnError(retRes96012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"marketId": GetValue(market, "id"),
 		"amount":   this.AmountToPrecision(symbol, amount),
 		"side":     Ternary(IsTrue((IsEqual(side, "buy"))), "Bid", "Ask"),
 	}
-	var lowercaseType any = ToLower(typeVar)
+	var lowercaseType string = ToLower(typeVar)
 	var orderTypes any = this.SafeValue(this.Options, "orderTypes", map[string]any{
 		"limit":       "Limit",
 		"market":      "Market",
@@ -1249,8 +1249,8 @@ func (this *BtcmarketsCore) createOrderBody(ch chan any, symbol any, typeVar any
 		"take profit": "Take Profit",
 	})
 	AddElementToObject(request, "type", this.SafeString(orderTypes, lowercaseType, typeVar))
-	var priceIsRequired any = false
-	var triggerPriceIsRequired any = false
+	var priceIsRequired bool = false
+	var triggerPriceIsRequired bool = false
 	if IsTrue(IsEqual(lowercaseType, "limit")) {
 		priceIsRequired = true
 	} else if IsTrue(IsEqual(lowercaseType, "stop limit")) {
@@ -1341,7 +1341,7 @@ func (this *BtcmarketsCore) cancelOrdersBody(ch chan any, ids any, optionalArgs 
 		// numericIds[i] = parseInt (ids[i]);
 		AppendToArray(&numericIds, ParseInt(GetValue(ids, i)))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"ids": numericIds,
 	}
 
@@ -1400,7 +1400,7 @@ func (this *BtcmarketsCore) cancelOrderBody(ch chan any, id any, optionalArgs ..
 		retRes110312 := (<-this.LoadMarkets())
 		PanicOnError(retRes110312)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1460,7 +1460,7 @@ func (this *BtcmarketsCore) CalculateFee(symbol any, typeVar any, side any, amou
 	}
 }
 func (this *BtcmarketsCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Accepted":            "open",
 		"Placed":              "open",
 		"Partially Matched":   "open",
@@ -1565,7 +1565,7 @@ func (this *BtcmarketsCore) fetchOrderBody(ch chan any, id any, optionalArgs ...
 		retRes124812 := (<-this.LoadMarkets())
 		PanicOnError(retRes124812)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"id": id,
 	}
 
@@ -1608,7 +1608,7 @@ func (this *BtcmarketsCore) fetchOrdersBody(ch chan any, optionalArgs ...any) an
 		retRes127012 := (<-this.LoadMarkets())
 		PanicOnError(retRes127012)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "all",
 	}
 	var market any = nil
@@ -1657,7 +1657,7 @@ func (this *BtcmarketsCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"status": "open",
 	}
 
@@ -1734,7 +1734,7 @@ func (this *BtcmarketsCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) 
 		retRes133512 := (<-this.LoadMarkets())
 		PanicOnError(retRes133512)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1814,7 +1814,7 @@ func (this *BtcmarketsCore) withdrawBody(ch chan any, code any, amount any, addr
 		PanicOnError(retRes139512)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"assetName": GetValue(currency, "id"),
 		"amount":    this.CurrencyToPrecision(code, amount),
 	}
@@ -1863,10 +1863,10 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var request any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
-	var query any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
+	var query map[string]any = this.Keysort(this.Omit(params, this.ExtractParams(path)))
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var secret any = this.Base64ToBinary(this.Secret)
 		var auth any = Add(Add(method, request), nonce)
 		if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
@@ -1877,7 +1877,7 @@ func (this *BtcmarketsCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(query)
 			auth = Add(auth, body)
 		}
-		var signature any = this.Hmac(this.Encode(auth), secret, sha512, "base64")
+		var signature string = this.Hmac(this.Encode(auth), secret, sha512, "base64")
 		headers = map[string]any{
 			"Accept":            "application/json",
 			"Accept-Charset":    "UTF-8",

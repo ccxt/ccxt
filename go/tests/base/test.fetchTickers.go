@@ -44,7 +44,7 @@ func fetchTickersHelperTestBody(ch chan any, exchange ccxt.ICoreExchange, skippe
 	defer ReturnPanicError(ch)
 	argParams := GetArg(optionalArgs, 0, map[string]any{})
 	_ = argParams
-	var method any = "fetchTickers"
+	var method string = "fetchTickers"
 
 	response := (<-exchange.(ccxt.IFetchTickers).FetchTickers(argSymbols, argParams))
 	PanicOnError(response)
@@ -98,8 +98,8 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		// ensure all "active" symbols have tickers
 		//
 		var nonInactiveMarkets any = GetActiveMarkets(exchange)
-		var notInactiveSymbolsLength any = GetArrayLength(nonInactiveMarkets)
-		var obtainedTickersLength any = GetArrayLength(tickersValues)
+		var notInactiveSymbolsLength int = GetArrayLength(nonInactiveMarkets)
+		var obtainedTickersLength int = GetArrayLength(tickersValues)
 		var minRatio any = 0.99 // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
 		Assert(IsGreaterThanOrEqual(obtainedTickersLength, Multiply(notInactiveSymbolsLength, minRatio)), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(notInactiveSymbolsLength)), " active markets"))
 		//
@@ -109,7 +109,7 @@ func FetchTickersAmountsTest(exchange ccxt.ICoreExchange, skippedProperties any,
 		if IsTrue(IsEqual(allMarkets, nil)) {
 			return
 		}
-		var allMarketsLength any = GetArrayLength(ObjectKeys(allMarkets))
+		var allMarketsLength int = GetArrayLength(ObjectKeys(allMarkets))
 		Assert(IsLessThanOrEqual(obtainedTickersLength, allMarketsLength), Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), "fetchTickers"), " must return <= than all markets, but returned: "), ToString(obtainedTickersLength)), " tickers, "), ToString(allMarketsLength)), " markets"))
 	}
 }

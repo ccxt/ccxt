@@ -94,7 +94,7 @@ func (this *GrvtCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
 		return
 	}
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"v1.ticker.s": this.HandleTicker,
 		"v1.ticker.d": this.HandleTicker,
 		"v1.mini.d":   this.HandleTicker,
@@ -128,7 +128,7 @@ func (this *GrvtCore) subscribeMultipleBody(ch chan any, messageHashes any, requ
 	defer ccxt.ReturnPanicError(ch)
 	publicOrPrivate := ccxt.GetArg(optionalArgs, 0, true)
 	_ = publicOrPrivate
-	var payload any = map[string]any{
+	var payload map[string]any = map[string]any{
 		"jsonrpc": "2.0",
 		"method":  "subscribe",
 		"params":  request,
@@ -231,7 +231,7 @@ func (this *GrvtCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(interval)))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("ticker::", ccxt.GetValue(market, "symbol")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    channel,
 		"selectors": rawHashes,
 	}
@@ -239,7 +239,7 @@ func (this *GrvtCore) watchTickersBody(ch chan any, optionalArgs ...any) any {
 	ticker := (<-this.SubscribeMultiple(messageHashes, this.Extend(params, request), rawHashes))
 	ccxt.PanicOnError(ticker)
 	if ccxt.IsTrue(this.NewUpdates) {
-		var tickers any = map[string]any{}
+		var tickers map[string]any = map[string]any{}
 		ccxt.AddElementToObject(tickers, ccxt.GetValue(ticker, "symbol"), ticker)
 
 		ch <- tickers
@@ -328,7 +328,7 @@ func (this *GrvtCore) HandleTicker(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -417,7 +417,7 @@ func (this *GrvtCore) watchTradesForSymbolsBody(ch chan any, symbols any, option
 		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), ccxt.ToString(limitRaw)))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("trade::", ccxt.GetValue(market, "symbol")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    "v1.trade",
 		"selectors": rawHashes,
 	}
@@ -458,7 +458,7 @@ func (this *GrvtCore) HandleTrades(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -563,7 +563,7 @@ func (this *GrvtCore) watchOHLCVForSymbolsBody(ch chan any, symbolsAndTimeframes
 		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(ccxt.Add(marketId, "@"), timeframeId), "-TRADE"))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", ccxt.GetValue(market, "symbol")), "::"), unfiedTimeframe))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    "v1.candle",
 		"selectors": rawHashes,
 	}
@@ -602,7 +602,7 @@ func (this *GrvtCore) HandleOHLCV(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -618,7 +618,7 @@ func (this *GrvtCore) HandleOHLCV(client any, message any) {
 	var stored any = ccxt.GetValue(ccxt.GetValue(this.Ohlcvs, symbol), timeframe)
 	var parsed any = this.ParseWsOHLCV(data, market)
 	stored.(ccxt.Appender).Append(parsed)
-	var resolveData any = []any{symbol, timeframe, stored}
+	var resolveData []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
 func (this *GrvtCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
@@ -696,8 +696,8 @@ func (this *GrvtCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 	channelparamsVariable := this.HandleOptionAndParams(params, "watchOrderBook", "channel", "v1.book.d")
 	channel = ccxt.GetValue(channelparamsVariable, 0)
 	params = ccxt.GetValue(channelparamsVariable, 1)
-	var isSnapshot any = ccxt.IsEqual(channel, "v1.book.s")
-	var symbolsLength any = ccxt.GetArrayLength(symbols)
+	var isSnapshot bool = ccxt.IsEqual(channel, "v1.book.s")
+	var symbolsLength int = ccxt.GetArrayLength(symbols)
 	if ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) {
 		panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOrderBookForSymbols() requires a non-empty array of symbols")))
 	}
@@ -721,7 +721,7 @@ func (this *GrvtCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, opt
 		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(marketId, "@"), extraPart))
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    channel,
 		"selectors": rawHashes,
 	}
@@ -761,7 +761,7 @@ func (this *GrvtCore) HandleOrderBook(client any, message any) {
 	//
 	var data any = this.SafeDict(message, "feed", map[string]any{})
 	var selector any = this.SafeString(message, "selector", "")
-	var parts any = ccxt.Split(selector, "@")
+	var parts []string = ccxt.Split(selector, "@")
 	var marketId any = this.SafeString(parts, 0)
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -772,8 +772,8 @@ func (this *GrvtCore) HandleOrderBook(client any, message any) {
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 	var sequenceNumber any = this.SafeInteger(message, "sequence_number", 0)
 	var stream any = this.SafeString(message, "stream")
-	var isSnapshotChannel any = ccxt.IsEqual(stream, "v1.book.s")
-	var isSnapshotMessage any = ccxt.IsLessThanOrEqual(sequenceNumber, 0)
+	var isSnapshotChannel bool = ccxt.IsEqual(stream, "v1.book.s")
+	var isSnapshotMessage bool = ccxt.IsLessThanOrEqual(sequenceNumber, 0)
 	if ccxt.IsTrue(ccxt.IsTrue(isSnapshotChannel) || ccxt.IsTrue(isSnapshotMessage)) {
 		var snapshot any = this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -820,7 +820,7 @@ func (this *GrvtCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(cookieValue, nil)) || ccxt.IsTrue(ccxt.IsEqual(accountId, nil))) {
 			panic(ccxt.AuthenticationError(ccxt.Add(this.Id, " : at first, you need to authenticate with exchange using signIn() method.")))
 		}
-		var defaultOptions any = map[string]any{
+		var defaultOptions map[string]any = map[string]any{
 			"ws": map[string]any{
 				"options": map[string]any{
 					"headers": map[string]any{
@@ -883,7 +883,7 @@ func (this *GrvtCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AppendToArray(&messageHashes, "myTrades")
 		ccxt.AppendToArray(&rawHashes, subAccountId)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    "v1.fill",
 		"selectors": rawHashes,
 	}
@@ -999,7 +999,7 @@ func (this *GrvtCore) watchPositionsBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AppendToArray(&messageHashes, "positions")
 		ccxt.AppendToArray(&rawHashes, subAccountId)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    "v1.position",
 		"selectors": rawHashes,
 	}
@@ -1109,7 +1109,7 @@ func (this *GrvtCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 		ccxt.AppendToArray(&messageHashes, ccxt.Add("order::", ccxt.GetValue(market, "symbol")))
 		ccxt.AppendToArray(&rawHashes, ccxt.Add(ccxt.Add(subAccountId, "-"), ccxt.GetValue(market, "id")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"stream":    "v1.order",
 		"selectors": rawHashes,
 	}

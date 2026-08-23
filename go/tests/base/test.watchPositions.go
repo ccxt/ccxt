@@ -13,12 +13,12 @@ func TestWatchPositions(exchange ccxt.ICoreExchange, skippedProperties any, symb
 func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchPositions"
+	var method string = "watchPositions"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
 	for IsLessThan(now, ends) {
 		var response any = nil
-		var success any = true
+		var success bool = true
 
 		{
 			func() (ret_ any) {
@@ -65,7 +65,7 @@ func testWatchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 		// Test with specific symbol
 		//
 		var positionsForSymbols any = nil
-		var success2 any = true
+		var success2 bool = true
 
 		{
 			func() (ret_ any) {

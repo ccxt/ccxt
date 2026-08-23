@@ -390,7 +390,7 @@ func (this *BitbnsCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var amountLimits any = this.SafeDict(marketLimits, "amount", map[string]any{})
 		var priceLimits any = this.SafeDict(marketLimits, "price", map[string]any{})
 		var costLimits any = this.SafeDict(marketLimits, "cost", map[string]any{})
-		var usdt any = (IsEqual(quoteId, "USDT"))
+		var usdt bool = (IsEqual(quoteId, "USDT"))
 		// INR markets don't need a _INR prefix
 		var uppercaseId any = Ternary(IsTrue(usdt), (Add(Add(baseId, "_"), quoteId)), baseId)
 		AppendToArray(&result, map[string]any{
@@ -476,7 +476,7 @@ func (this *BitbnsCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes36912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -634,17 +634,17 @@ func (this *BitbnsCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *BitbnsCore) ParseBalance(response any) any {
 	var timestamp any = nil
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
 	var data any = this.SafeDict(response, "data", map[string]any{})
-	var keys any = ObjectKeys(data)
+	var keys []string = ObjectKeys(data)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
-		var parts any = Split(key, "availableorder")
-		var numParts any = GetArrayLength(parts)
+		var parts []string = Split(key, "availableorder")
+		var numParts int = GetArrayLength(parts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			var currencyId any = this.SafeString(parts, 1)
 			// note that "Money" stands for INR - the only fiat in bitbns
@@ -710,7 +710,7 @@ func (this *BitbnsCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *BitbnsCore) ParseStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"-1": "cancelled",
 		"0":  "open",
 		"1":  "open",
@@ -842,7 +842,7 @@ func (this *BitbnsCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a side argument")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"side":     ToUpper(side),
 		"symbol":   GetValue(market, "uppercaseId"),
 		"quantity": this.AmountToPrecision(symbol, amount),
@@ -921,7 +921,7 @@ func (this *BitbnsCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	var market any = this.Market(symbol)
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"entry_id": id,
 		"symbol":   GetValue(market, "uppercaseId"),
 	}
@@ -970,7 +970,7 @@ func (this *BitbnsCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 		PanicOnError(retRes78712)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":   GetValue(market, "id"),
 		"entry_id": id,
 	}
@@ -1054,7 +1054,7 @@ func (this *BitbnsCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop")
 	params = this.Omit(params, []any{"trigger", "stop"})
 	var quoteSide any = Ternary(IsTrue((IsEqual(GetValue(market, "quoteId"), "USDT"))), "usdtListOpen", "listOpen")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "uppercaseId"),
 		"page":   0,
 		"side":   Ternary(IsTrue(isTrigger), (Add(quoteSide, "StopOrders")), (Add(quoteSide, "Orders"))),
@@ -1205,7 +1205,7 @@ func (this *BitbnsCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes97912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"page":   0,
 	}
@@ -1295,7 +1295,7 @@ func (this *BitbnsCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes105012)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"coin":   GetValue(market, "baseId"),
 		"market": GetValue(market, "quoteId"),
 	}
@@ -1349,7 +1349,7 @@ func (this *BitbnsCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes108312)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(currency, "id"),
 		"page":   0,
 	}
@@ -1420,7 +1420,7 @@ func (this *BitbnsCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 		PanicOnError(retRes113312)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(currency, "id"),
 		"page":   0,
 	}
@@ -1438,7 +1438,7 @@ func (this *BitbnsCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 func (this *BitbnsCore) ParseTransactionStatusByType(status any, optionalArgs ...any) any {
 	typeVar := GetArg(optionalArgs, 0, nil)
 	_ = typeVar
-	var statusesByType any = map[string]any{
+	var statusesByType map[string]any = map[string]any{
 		"deposit": map[string]any{
 			"0": "pending",
 			"1": "ok",
@@ -1553,7 +1553,7 @@ func (this *BitbnsCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 		PanicOnError(retRes124612)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(currency, "id"),
 	}
 
@@ -1610,7 +1610,7 @@ func (this *BitbnsCore) Sign(path any, optionalArgs ...any) any {
 	var baseUrl any = this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api))
 	var url any = Add(Add(baseUrl, "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var nonce any = ToString(this.Nonce())
+	var nonce string = ToString(this.Nonce())
 	if IsTrue(IsEqual(method, "GET")) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			url = Add(url, Add("?", this.Urlencode(query)))
@@ -1621,12 +1621,12 @@ func (this *BitbnsCore) Sign(path any, optionalArgs ...any) any {
 		} else {
 			body = "{}"
 		}
-		var auth any = map[string]any{
+		var auth map[string]any = map[string]any{
 			"timeStamp_nonce": nonce,
 			"body":            body,
 		}
 		var payload any = this.StringToBase64(this.Json(auth))
-		var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
 		headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 		AddElementToObject(headers, "X-BITBNS-PAYLOAD", payload)
 		AddElementToObject(headers, "X-BITBNS-SIGNATURE", signature)
@@ -1649,7 +1649,7 @@ func (this *BitbnsCore) HandleErrors(httpCode any, reason any, url any, method a
 	//
 	var code any = this.SafeString(response, "code")
 	var message any = this.SafeString(response, "msg")
-	var error any = IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "200")))) && IsTrue((!IsEqual(code, "204")))
+	var error bool = IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((!IsEqual(code, "200")))) && IsTrue((!IsEqual(code, "204")))
 	if IsTrue(IsTrue(error) || IsTrue((!IsEqual(message, nil)))) {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)

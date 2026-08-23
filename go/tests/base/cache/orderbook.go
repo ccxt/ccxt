@@ -6,14 +6,14 @@ package cache
 // --------------------------------------------------------------------------------------------------------------------
 
 func TestWsOrderBook() {
-	var orderBookInput any = map[string]any{
+	var orderBookInput map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}, []any{4.5, 13}, []any{4.5, 0}},
 		"asks":      []any{[]any{16.6, 10}, []any{15.5, 11}, []any{14.4, 12}, []any{13.3, 13}, []any{12.2, 14}, []any{11.1, 13}},
 		"timestamp": 1574827239000,
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var orderBookTarget any = map[string]any{
+	var orderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}},
 		"asks":      []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}, []any{15.5, 11}, []any{16.6, 10}},
 		"timestamp": 1574827239000,
@@ -21,7 +21,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var storeBid any = map[string]any{
+	var storeBid map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}, []any{3, 4}},
 		"asks":      []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}, []any{15.5, 11}, []any{16.6, 10}},
 		"timestamp": 1574827239000,
@@ -29,7 +29,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var limitedOrderBookTarget any = map[string]any{
+	var limitedOrderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}},
 		"asks":      []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}, []any{15.5, 11}},
 		"timestamp": 1574827239000,
@@ -37,7 +37,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var limitedDeletedOrderBookTarget any = map[string]any{
+	var limitedDeletedOrderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10}, []any{9.1, 11}, []any{8.2, 12}, []any{7.3, 13}, []any{6.4, 14}},
 		"asks":      []any{[]any{11.1, 13}, []any{12.2, 14}, []any{13.3, 13}, []any{14.4, 12}},
 		"timestamp": 1574827239000,
@@ -45,14 +45,14 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var indexedOrderBookInput any = map[string]any{
+	var indexedOrderBookInput map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}},
 		"asks":      []any{[]any{16.6, 10, "1240"}, []any{15.5, 11, "1241"}, []any{14.4, 12, "1242"}, []any{13.3, 13, "1243"}, []any{12.2, 14, "1244"}, []any{11.1, 13, "1244"}},
 		"timestamp": 1574827239000,
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var indexedOrderBookTarget any = map[string]any{
+	var indexedOrderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}},
 		"asks":      []any{[]any{11.1, 13, "1244"}, []any{13.3, 13, "1243"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
 		"timestamp": 1574827239000,
@@ -60,7 +60,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var limitedIndexedOrderBookTarget any = map[string]any{
+	var limitedIndexedOrderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}},
 		"asks":      []any{[]any{11.1, 13, "1244"}, []any{13.3, 13, "1243"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
 		"timestamp": 1574827239000,
@@ -108,7 +108,7 @@ func TestWsOrderBook() {
 	//     'nonce': 69,
 	//     'symbol': undefined,
 	// };
-	var overwrite1234 any = map[string]any{
+	var overwrite1234 map[string]any = map[string]any{
 		"bids":      []any{[]any{9.1, 11, "1235"}, []any{9, 3, "1231"}, []any{9, 1, "1232"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}, []any{4, 2, "12399"}},
 		"asks":      []any{[]any{11.1, 13, "1244"}, []any{13.3, 13, "1243"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
 		"timestamp": 1574827239000,
@@ -116,7 +116,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var overwrite1244 any = map[string]any{
+	var overwrite1244 map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, "1234"}, []any{9.1, 11, "1235"}, []any{8.2, 12, "1236"}, []any{7.3, 13, "1237"}, []any{6.4, 14, "1238"}, []any{4.5, 13, "1239"}},
 		"asks":      []any{[]any{13.3, 13, "1243"}, []any{13.5, 13, "1244"}, []any{14.4, 12, "1242"}, []any{15.5, 11, "1241"}, []any{16.6, 10, "1240"}},
 		"timestamp": 1574827239000,
@@ -124,14 +124,14 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var countedOrderBookInput any = map[string]any{
+	var countedOrderBookInput map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{7.3, 13, 1}, []any{7.3, 0, 1}, []any{6.4, 14, 5}, []any{4.5, 13, 5}, []any{4.5, 13, 1}, []any{4.5, 13, 0}},
 		"asks":      []any{[]any{16.6, 10, 1}, []any{15.5, 11, 1}, []any{14.4, 12, 1}, []any{13.3, 13, 3}, []any{12.2, 14, 3}, []any{11.1, 13, 3}, []any{11.1, 13, 12}},
 		"timestamp": 1574827239000,
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var countedOrderBookTarget any = map[string]any{
+	var countedOrderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{6.4, 14, 5}},
 		"asks":      []any{[]any{11.1, 13, 12}, []any{12.2, 14, 3}, []any{13.3, 13, 3}, []any{14.4, 12, 1}, []any{15.5, 11, 1}, []any{16.6, 10, 1}},
 		"timestamp": 1574827239000,
@@ -139,7 +139,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var storedCountedOrderbookTarget any = map[string]any{
+	var storedCountedOrderbookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{6.4, 14, 5}, []any{1, 1, 6}},
 		"asks":      []any{[]any{11.1, 13, 12}, []any{12.2, 14, 3}, []any{13.3, 13, 3}, []any{14.4, 12, 1}, []any{15.5, 11, 1}, []any{16.6, 10, 1}},
 		"timestamp": 1574827239000,
@@ -147,7 +147,7 @@ func TestWsOrderBook() {
 		"nonce":     69,
 		"symbol":    nil,
 	}
-	var limitedCountedOrderBookTarget any = map[string]any{
+	var limitedCountedOrderBookTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10, 1}, []any{9.1, 11, 1}, []any{8.2, 12, 1}, []any{6.4, 14, 5}},
 		"asks":      []any{[]any{11.1, 13, 12}, []any{12.2, 14, 3}, []any{13.3, 13, 3}, []any{14.4, 12, 1}, []any{15.5, 11, 1}},
 		"timestamp": 1574827239000,
@@ -357,7 +357,7 @@ func TestWsOrderBook() {
 	// a delete on a surviving level must remove exactly that level
 	desyncBids.StoreArray([]any{9.1, 0})
 	desyncBook.Limit()
-	var desyncTarget any = map[string]any{
+	var desyncTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 10}, []any{8.2, 12}, []any{6.4, 14}},
 		"asks":      []any{[]any{11.1, 7}, []any{12.2, 14}, []any{13.3, 13}},
 		"timestamp": 1574827239000,
@@ -368,7 +368,7 @@ func TestWsOrderBook() {
 	Assert(Equals(desyncBook, desyncTarget))
 	// every row must be a well formed price and amount pair, the php
 	// corruption produced rows holding only an amount
-	var desyncSides any = []any{GetValue(desyncBook, "bids"), GetValue(desyncBook, "asks")}
+	var desyncSides []any = []any{GetValue(desyncBook, "bids"), GetValue(desyncBook, "asks")}
 	for i := 0; IsLessThan(i, GetArrayLength(desyncSides)); i++ {
 		var side any = GetValue(desyncSides, i)
 		for k := 0; IsLessThan(k, GetArrayLength(side)); k++ {
@@ -384,14 +384,14 @@ func TestWsOrderBook() {
 	// delta arriving later for a trimmed id previously threw in js and looped
 	// in php while python handled it, an update of a trimmed id must reinsert
 	// cleanly and a delete of a trimmed id must be a no op
-	var trimIndexedInput any = map[string]any{
+	var trimIndexedInput map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 1, "x"}, []any{9, 1, "y"}, []any{8, 1, "z"}, []any{7, 1, "w"}, []any{6, 1, "v"}},
 		"asks":      []any{[]any{11, 1, "a"}, []any{12, 1, "b"}, []any{13, 1, "c"}, []any{14, 1, "d"}, []any{15, 1, "e"}},
 		"timestamp": 1574827239000,
 		"nonce":     70,
 		"symbol":    nil,
 	}
-	var trimIndexedTarget any = map[string]any{
+	var trimIndexedTarget map[string]any = map[string]any{
 		"bids":      []any{[]any{10, 1, "x"}, []any{9, 1, "y"}, []any{8, 1, "z"}},
 		"asks":      []any{[]any{11, 1, "a"}, []any{12, 1, "b"}, []any{13, 1, "c"}},
 		"timestamp": 1574827239000,

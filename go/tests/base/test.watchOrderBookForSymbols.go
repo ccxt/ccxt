@@ -13,17 +13,17 @@ func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties
 func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbols any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "watchOrderBookForSymbols"
+	var method string = "watchOrderBookForSymbols"
 	// as in `watchOrderBook`, a pending subscription can not be cancelled, so the
 	// loop has to be bounded by the deadline alone. waiting for every requested
 	// symbol to be seen would hang forever whenever one of them stays idle.
 	var maxIdleTime any = 5000
 	var currentTime any = exchange.Milliseconds()
 	var deadline any = Add(currentTime, 15000)
-	var idle any = false
+	var idle bool = false
 	for IsTrue((IsLessThan(currentTime, deadline))) && !IsTrue(idle) {
 		var response any = nil
-		var succeeded any = true
+		var succeeded bool = true
 		var startTime any = exchange.Milliseconds()
 
 		{

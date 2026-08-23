@@ -13,7 +13,7 @@ func TestFetchPositions(exchange ccxt.ICoreExchange, skippedProperties any, symb
 func testFetchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbol any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchPositions"
+	var method string = "fetchPositions"
 	var now any = exchange.Milliseconds()
 	// without symbol
 
@@ -29,7 +29,7 @@ func testFetchPositionsBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	positionsForSymbol := (<-exchange.(ccxt.IFetchPositions).FetchPositions([]any{symbol}))
 	PanicOnError(positionsForSymbol)
 	Assert(IsArray(positionsForSymbol), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbol)))
-	var positionsForSymbolLength any = GetArrayLength(positionsForSymbol)
+	var positionsForSymbolLength int = GetArrayLength(positionsForSymbol)
 	Assert(IsLessThanOrEqual(positionsForSymbolLength, 4), Add(Add(Add(Add(exchange.GetId(), " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.Json(positionsForSymbol)))
 	for i := 0; IsLessThan(i, GetArrayLength(positionsForSymbol)); i++ {
 		TestPosition(exchange, skippedProperties, method, GetValue(positionsForSymbol, i), symbol, now)

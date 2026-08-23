@@ -13,11 +13,11 @@ func TestFetchLedgerEntry(exchange ccxt.ICoreExchange, skippedProperties any, co
 func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	var method any = "fetchLedgerEntry"
+	var method string = "fetchLedgerEntry"
 
 	items := (<-exchange.FetchLedger(code))
 	PanicOnError(items)
-	var length any = GetArrayLength(items)
+	var length int = GetArrayLength(items)
 	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
 	if IsTrue(IsGreaterThan(length, 0)) {
 		var firstItem any = GetValue(items, 0)

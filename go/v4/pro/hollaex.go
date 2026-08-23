@@ -300,7 +300,7 @@ func (this *HollaexCore) HandleMyTrades(client any, message any, optionalArgs ..
 	var rawTrades any = this.SafeValue(message, "data")
 	// usually the first message is an empty array
 	// when the user does not have any trades yet
-	var dataLength any = ccxt.GetArrayLength(rawTrades)
+	var dataLength int = ccxt.GetArrayLength(rawTrades)
 	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
 		return
 	}
@@ -309,7 +309,7 @@ func (this *HollaexCore) HandleMyTrades(client any, message any, optionalArgs ..
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored any = this.MyTrades
-	var marketIds any = map[string]any{}
+	var marketIds map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTrades)); i++ {
 		var trade any = ccxt.GetValue(rawTrades, i)
 		var parsed any = this.ParseTrade(trade)
@@ -323,7 +323,7 @@ func (this *HollaexCore) HandleMyTrades(client any, message any, optionalArgs ..
 	}
 	// non-symbol specific
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, channel)
-	var keys any = ccxt.ObjectKeys(marketIds)
+	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var marketId any = ccxt.GetValue(keys, i)
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
@@ -443,7 +443,7 @@ func (this *HollaexCore) HandleOrder(client any, message any, optionalArgs ...an
 	var channel any = this.SafeString(message, "topic")
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	// usually the first message is an empty array
-	var dataLength any = ccxt.GetArrayLength(data)
+	var dataLength int = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
 		return
 	}
@@ -458,7 +458,7 @@ func (this *HollaexCore) HandleOrder(client any, message any, optionalArgs ...an
 	} else {
 		rawOrders = data
 	}
-	var marketIds any = map[string]any{}
+	var marketIds map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawOrders)); i++ {
 		var order any = ccxt.GetValue(rawOrders, i)
 		var parsed any = this.ParseOrder(order)
@@ -472,7 +472,7 @@ func (this *HollaexCore) HandleOrder(client any, message any, optionalArgs ...an
 	}
 	// non-symbol specific
 	client.(ccxt.ClientInterface).Resolve(this.Orders, channel)
-	var keys any = ccxt.ObjectKeys(marketIds)
+	var keys []string = ccxt.ObjectKeys(marketIds)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var marketId any = ccxt.GetValue(keys, i)
 		var messageHash any = ccxt.Add(ccxt.Add(channel, ":"), marketId)
@@ -498,7 +498,7 @@ func (this *HollaexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any 
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var messageHash any = "wallet"
+	var messageHash string = "wallet"
 
 	retRes41115 := (<-this.WatchPrivate(messageHash, params))
 	ccxt.PanicOnError(retRes41115)
@@ -524,14 +524,14 @@ func (this *HollaexCore) HandleBalance(client any, message any) {
 	//
 	var messageHash any = this.SafeString(message, "topic")
 	var data any = this.SafeValue(message, "data")
-	var keys any = ccxt.ObjectKeys(data)
+	var keys []string = ccxt.ObjectKeys(data)
 	var timestamp any = this.SafeTimestamp(message, "time")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
-		var parts any = ccxt.Split(key, "_")
+		var parts []string = ccxt.Split(key, "_")
 		var currencyId any = this.SafeString(parts, 0)
 		var code any = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
@@ -559,11 +559,11 @@ func (this *HollaexCore) watchPublicBody(ch chan any, messageHash any, optionalA
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": []any{messageHash},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes46515 := (<-this.Watch(url, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes46515)
@@ -583,7 +583,7 @@ func (this *HollaexCore) watchPrivateBody(ch chan any, messageHash any, optional
 	this.CheckRequiredCredentials()
 	var expires any = this.SafeString(this.Options, "ws-expires")
 	if ccxt.IsTrue(ccxt.IsEqual(expires, nil)) {
-		var timeout any = ccxt.ParseInt(ccxt.ToString((ccxt.Divide(this.Timeout, 1000))))
+		var timeout int64 = ccxt.ParseInt(ccxt.ToString((ccxt.Divide(this.Timeout, 1000))))
 		expires = this.Sum(this.Seconds(), timeout)
 		if ccxt.IsTrue(ccxt.IsEqual(expires, nil)) {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPrivate() expires is required")))
@@ -595,18 +595,18 @@ func (this *HollaexCore) watchPrivateBody(ch chan any, messageHash any, optional
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	var auth any = ccxt.Add(ccxt.Add("CONNECT", "/stream"), expires)
-	var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
-	var authParams any = map[string]any{
+	var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256)
+	var authParams map[string]any = map[string]any{
 		"api-key":       this.ApiKey,
 		"api-signature": signature,
 		"api-expires":   expires,
 	}
 	var signedUrl any = ccxt.Add(ccxt.Add(url, "?"), this.Urlencode(authParams))
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"op":   "subscribe",
 		"args": []any{messageHash},
 	}
-	var message any = this.Extend(request, params)
+	var message map[string]any = this.Extend(request, params)
 
 	retRes49615 := (<-this.Watch(signedUrl, messageHash, message, messageHash))
 	ccxt.PanicOnError(retRes49615)
@@ -741,7 +741,7 @@ func (this *HollaexCore) HandleMessage(client any, message any) {
 		this.HandlePong(client, message)
 		return
 	}
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"trade":     this.HandleTrades,
 		"orderbook": this.HandleOrderBook,
 		"order":     this.HandleOrder,

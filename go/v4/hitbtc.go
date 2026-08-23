@@ -847,7 +847,7 @@ func (this *HitbtcCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result any = []any{}
-	var ids any = ObjectKeys(response)
+	var ids []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		if IsTrue(EndsWith(id, "_BQX")) {
@@ -856,13 +856,13 @@ func (this *HitbtcCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var market any = this.SafeValue(response, id)
 		var marketType any = this.SafeString(market, "type")
 		var expiry any = this.SafeInteger(market, "expiry")
-		var contract any = (IsEqual(marketType, "futures"))
-		var spot any = (IsEqual(marketType, "spot"))
+		var contract bool = (IsEqual(marketType, "futures"))
+		var spot bool = (IsEqual(marketType, "spot"))
 		var marginTrading any = this.SafeBool(market, "margin_trading", false)
-		var margin any = IsTrue(spot) && IsTrue(marginTrading)
+		var margin bool = IsTrue(spot) && IsTrue(marginTrading)
 		var future any = (!IsEqual(expiry, nil))
-		var swap any = (IsTrue(contract) && !IsTrue(future))
-		var option any = false
+		var swap bool = (IsTrue(contract) && !IsTrue(future))
+		var option bool = false
 		var baseId any = this.SafeString2(market, "base_currency", "underlying")
 		var quoteId any = this.SafeString(market, "quote_currency")
 		var feeCurrencyId any = this.SafeString(market, "fee_currency")
@@ -872,7 +872,7 @@ func (this *HitbtcCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var settleId any = nil
 		var settle any = nil
 		var symbol any = Add(Add(base, "/"), quote)
-		var typeVar any = "spot"
+		var typeVar string = "spot"
 		var contractSize any = nil
 		var linear any = nil
 		var inverse any = nil
@@ -1025,7 +1025,7 @@ func (this *HitbtcCore) ParseCurrency(currency any) any {
 	var code any = this.SafeCurrencyCode(currencyId)
 	var entry any = currency
 	var rawNetworks any = this.SafeList(entry, "networks", []any{})
-	var networks any = map[string]any{}
+	var networks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(rawNetworks)); j++ {
 		var rawNetwork any = GetValue(rawNetworks, j)
 		var networkId any = this.SafeString2(rawNetwork, "protocol", "network")
@@ -1096,7 +1096,7 @@ func (this *HitbtcCore) createDepositAddressBody(ch chan any, code any, optional
 		PanicOnError(retRes102812)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 	var network any = this.SafeStringUpper(params, "network")
@@ -1151,7 +1151,7 @@ func (this *HitbtcCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 		PanicOnError(retRes106812)
 	}
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 	}
 	var network any = this.SafeStringUpper(params, "network")
@@ -1185,7 +1185,7 @@ func (this *HitbtcCore) fetchDepositAddressBody(ch chan any, code any, optionalA
 	return nil
 }
 func (this *HitbtcCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
@@ -1240,7 +1240,7 @@ func (this *HitbtcCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		response = (<-this.PrivateGetFuturesBalance(params))
 		PanicOnError(response)
 	} else {
-		var keys any = ObjectKeys(accountsByType)
+		var keys []string = ObjectKeys(accountsByType)
 		panic(BadRequest(Add(Add(this.Id, " fetchBalance() type parameter must be one of "), Join(keys, ", "))))
 	}
 
@@ -1284,7 +1284,7 @@ func (this *HitbtcCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes116812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -1335,7 +1335,7 @@ func (this *HitbtcCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes120212)
 	}
 	symbols = this.MarketSymbols(symbols)
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var marketIds any = this.MarketIds(symbols)
 		var delimited any = Join(marketIds, ",")
@@ -1359,8 +1359,8 @@ func (this *HitbtcCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//       }
 	//     }
 	//
-	var result any = map[string]any{}
-	var keys any = ObjectKeys(response)
+	var result map[string]any = map[string]any{}
+	var keys []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var marketId any = GetValue(keys, i)
 		var market any = this.SafeMarket(marketId)
@@ -1449,7 +1449,7 @@ func (this *HitbtcCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 		PanicOnError(retRes129612)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
@@ -1470,7 +1470,7 @@ func (this *HitbtcCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	response := (<-this.PublicGetPublicTrades(this.Extend(request, params)))
 	PanicOnError(response)
 	var trades any = []any{}
-	var marketIds any = ObjectKeys(response)
+	var marketIds []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var marketInner any = this.Market(marketId)
@@ -1520,7 +1520,7 @@ func (this *HitbtcCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 		PanicOnError(retRes134212)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1684,7 +1684,7 @@ func (this *HitbtcCore) fetchTransactionsHelperBody(ch chan any, types any, code
 		retRes148412 := (<-this.LoadMarkets())
 		PanicOnError(retRes148412)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"types": types,
 	}
 	var currency any = nil
@@ -1730,7 +1730,7 @@ func (this *HitbtcCore) fetchTransactionsHelperBody(ch chan any, types any, code
 	return nil
 }
 func (this *HitbtcCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"CREATED":     "pending",
 		"PENDING":     "pending",
 		"FAILED":      "failed",
@@ -1743,7 +1743,7 @@ func (this *HitbtcCore) ParseTransactionStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *HitbtcCore) ParseTransactionType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"DEPOSIT":  "deposit",
 		"WITHDRAW": "withdrawal",
 	}
@@ -1801,9 +1801,9 @@ func (this *HitbtcCore) ParseTransaction(transaction any, optionalArgs ...any) a
 	var addressFrom any = this.SafeString(sender, 0)
 	var amount any = this.SafeNumber(native, "amount")
 	var subType any = this.SafeString(transaction, "subtype")
-	var internal any = IsEqual(subType, "OFFCHAIN")
+	var internal bool = IsEqual(subType, "OFFCHAIN")
 	// https://api.hitbtc.com/#check-if-offchain-is-available
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": nil,
 		"cost":     nil,
 		"rate":     nil,
@@ -1968,7 +1968,7 @@ func (this *HitbtcCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) an
 		retRes169312 := (<-this.LoadMarkets())
 		PanicOnError(retRes169312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var marketIdsInner any = this.MarketIds(symbols)
 		AddElementToObject(request, "symbols", Join(marketIdsInner, ","))
@@ -1979,8 +1979,8 @@ func (this *HitbtcCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) an
 
 	response := (<-this.PublicGetPublicOrderbook(this.Extend(request, params)))
 	PanicOnError(response)
-	var result any = map[string]any{}
-	var marketIds any = ObjectKeys(response)
+	var result map[string]any = map[string]any{}
+	var marketIds []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = GetValue(marketIds, i)
 		var orderbook any = this.SafeDict(response, marketId, map[string]any{})
@@ -2021,7 +2021,7 @@ func (this *HitbtcCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes172812)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -2085,7 +2085,7 @@ func (this *HitbtcCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArg
 		PanicOnError(retRes177612)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var response any = nil
@@ -2159,7 +2159,7 @@ func (this *HitbtcCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) a
 	//         }
 	//     ]
 	//
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(response, i))
 		var symbol any = GetValue(fee, "symbol")
@@ -2353,7 +2353,7 @@ func (this *HitbtcCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes197312)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2436,7 +2436,7 @@ func (this *HitbtcCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
 	var marketType any = nil
@@ -2536,7 +2536,7 @@ func (this *HitbtcCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"order_id": id,
 	}
 	var marketType any = nil
@@ -2650,7 +2650,7 @@ func (this *HitbtcCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes218112)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2745,7 +2745,7 @@ func (this *HitbtcCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
 	var marketType any = nil
@@ -2815,7 +2815,7 @@ func (this *HitbtcCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 		PanicOnError(retRes229212)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -2888,7 +2888,7 @@ func (this *HitbtcCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 		PanicOnError(retRes233812)
 	}
 	var market any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"client_order_id": id,
 	}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2949,7 +2949,7 @@ func (this *HitbtcCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 		PanicOnError(retRes237112)
 	}
 	var market any = nil
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"client_order_id": id,
 		"quantity":        this.AmountToPrecision(symbol, amount),
 	}
@@ -3073,12 +3073,12 @@ func (this *HitbtcCore) CreateOrderRequest(market any, marketType any, typeVar a
 	_ = marginMode
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	var isLimit any = (IsEqual(typeVar, "limit"))
+	var isLimit bool = (IsEqual(typeVar, "limit"))
 	var reduceOnly any = this.SafeValue(params, "reduceOnly")
 	var timeInForce any = this.SafeString(params, "timeInForce")
 	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
 	var isPostOnly any = this.IsPostOnly(IsEqual(typeVar, "market"), nil, params)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"type":     typeVar,
 		"side":     side,
 		"quantity": this.AmountToPrecision(GetValue(market, "symbol"), amount),
@@ -3131,7 +3131,7 @@ func (this *HitbtcCore) CreateOrderRequest(market any, marketType any, typeVar a
 	return []any{request, params}
 }
 func (this *HitbtcCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"new":             "open",
 		"suspended":       "open",
 		"partiallyFilled": "open",
@@ -3367,7 +3367,7 @@ func (this *HitbtcCore) transferBody(ch chan any, code any, amount any, fromAcco
 	if IsTrue(IsEqual(fromId, toId)) {
 		panic(BadRequest(Add(this.Id, " transfer() fromAccount and toAccount arguments cannot be the same account")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency":    GetValue(currency, "id"),
 		"amount":      requestAmount,
 		"source":      fromId,
@@ -3432,10 +3432,10 @@ func (this *HitbtcCore) convertCurrencyNetworkBody(ch chan any, code any, amount
 		panic(BadRequest(Add(this.Id, " convertCurrencyNetwork() fromNetwork cannot be the same as toNetwork")))
 	}
 	if IsTrue(IsTrue((IsEqual(fromNetwork, nil))) || IsTrue((IsEqual(toNetwork, nil)))) {
-		var keys any = ObjectKeys(networks)
+		var keys []string = ObjectKeys(networks)
 		panic(ArgumentsRequired(Add(Add(this.Id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are "), Join(keys, ", "))))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"from_currency": fromNetwork,
 		"to_currency":   toNetwork,
 		"amount":        this.CurrencyToPrecision(code, amount),
@@ -3485,7 +3485,7 @@ func (this *HitbtcCore) withdrawBody(ch chan any, code any, amount any, address 
 	}
 	this.CheckAddress(address)
 	var currency any = this.Currency(code)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
 		"amount":   amount,
 		"address":  address,
@@ -3547,7 +3547,7 @@ func (this *HitbtcCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(retRes288612)
 	}
 	var market any = nil
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
 		symbols = this.MarketSymbols(symbols)
 		market = this.Market(GetValue(symbols, 0))
@@ -3581,8 +3581,8 @@ func (this *HitbtcCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 	//         }
 	//     }
 	//
-	var marketIds any = ObjectKeys(response)
-	var fundingRates any = map[string]any{}
+	var marketIds []string = ObjectKeys(response)
+	var fundingRates map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
 		var marketId any = this.SafeString(marketIds, i)
 		if IsTrue(IsEqual(marketId, nil)) {
@@ -3678,7 +3678,7 @@ func (this *HitbtcCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 	//        ...
 	//    }
 	//
-	var contracts any = ObjectKeys(response)
+	var contracts []string = ObjectKeys(response)
 	var rates any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(contracts)); i++ {
 		var marketId any = GetValue(contracts, i)
@@ -3733,7 +3733,7 @@ func (this *HitbtcCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		retRes303312 := (<-this.LoadMarkets())
 		PanicOnError(retRes303312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	var marketType any = nil
 	var marginMode any = nil
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchPositions", nil, params)
@@ -3833,7 +3833,7 @@ func (this *HitbtcCore) fetchPositionBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes310912)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var marketType any = nil
@@ -4043,7 +4043,7 @@ func (this *HitbtcCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any)
 		retRes329312 := (<-this.LoadMarkets())
 		PanicOnError(retRes329312)
 	}
-	var request any = map[string]any{}
+	var request map[string]any = map[string]any{}
 	symbols = this.MarketSymbols(symbols)
 	var marketIds any = nil
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -4071,7 +4071,7 @@ func (this *HitbtcCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any)
 	//     }
 	//
 	var results any = []any{}
-	var markets any = ObjectKeys(response)
+	var markets []string = ObjectKeys(response)
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var marketId any = GetValue(markets, i)
 		var marketInner any = this.SafeMarket(marketId)
@@ -4111,7 +4111,7 @@ func (this *HitbtcCore) fetchOpenInterestBody(ch chan any, symbol any, optionalA
 	if !IsTrue(GetValue(market, "swap")) {
 		panic(BadSymbol(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4165,7 +4165,7 @@ func (this *HitbtcCore) fetchFundingRateBody(ch chan any, symbol any, optionalAr
 	if !IsTrue(GetValue(market, "swap")) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 
@@ -4259,7 +4259,7 @@ func (this *HitbtcCore) modifyMarginHelperBody(ch chan any, symbol any, amount a
 	} else {
 		amount = "0"
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":         GetValue(market, "id"),
 		"margin_balance": amount,
 	}
@@ -4443,7 +4443,7 @@ func (this *HitbtcCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs 
 		PanicOnError(retRes360112)
 	}
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
 	var marginMode any = nil
@@ -4563,7 +4563,7 @@ func (this *HitbtcCore) setLeverageBody(ch chan any, leverage any, optionalArgs 
 	if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, maxLeverage)))) {
 		panic(BadRequest(Add(Add(Add(Add(this.Id, " setLeverage() leverage should be between 1 and "), ToString(maxLeverage)), " for "), symbol)))
 	}
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":         GetValue(market, "id"),
 		"leverage":       ToString(leverage),
 		"margin_balance": this.AmountToPrecision(symbol, amount),
@@ -4669,7 +4669,7 @@ func (this *HitbtcCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 		networkCode = Ternary(IsTrue((!IsEqual(networkCode, nil))), ToUpper(networkCode), nil)
 		var withdrawFee any = this.SafeNumber(networkEntry, "payout_fee")
 		var isDefault any = this.SafeValue(networkEntry, "default")
-		var withdrawResult any = map[string]any{
+		var withdrawResult map[string]any = map[string]any{
 			"fee":        withdrawFee,
 			"percentage": Ternary(IsTrue((!IsEqual(withdrawFee, nil))), false, nil),
 		}
@@ -4723,7 +4723,7 @@ func (this *HitbtcCore) closePositionBody(ch chan any, symbol any, optionalArgs 
 	marginMode = GetValue(marginModeparamsVariable, 0)
 	params = GetValue(marginModeparamsVariable, 1)
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"symbol":      GetValue(market, "id"),
 		"margin_mode": marginMode,
 	}
@@ -4817,8 +4817,8 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 	var implodedPath any = this.ImplodeParams(path, params)
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), implodedPath)
 	var getRequest any = nil
-	var keys any = ObjectKeys(query)
-	var queryLength any = GetArrayLength(keys)
+	var keys []string = ObjectKeys(query)
+	var queryLength int = GetArrayLength(keys)
 	headers = map[string]any{
 		"Content-Type": "application/json",
 	}
@@ -4832,7 +4832,7 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var timestamp any = ToString(this.Nonce())
+		var timestamp string = ToString(this.Nonce())
 		var payload any = []any{method, Add("/api/3/", implodedPath)}
 		if IsTrue(IsEqual(method, "GET")) {
 			if IsTrue(!IsEqual(getRequest, nil)) {
@@ -4845,7 +4845,7 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 		}
 		AppendToArray(&payload, timestamp)
 		var payloadString any = Join(payload, "")
-		var signature any = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
+		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
 		var secondPayload any = Add(Add(Add(Add(this.ApiKey, ":"), signature), ":"), timestamp)
 		var encoded any = this.StringToBase64(secondPayload)
 		AddElementToObject(headers, "Authorization", Add("HS256 ", encoded))

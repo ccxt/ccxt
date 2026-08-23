@@ -15,9 +15,9 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// log (symbol.green, 'watching trades...')
-	var method any = "watchLiquidations"
+	var method string = "watchLiquidations"
 	// we have to skip some exchanges here due to the frequency of trading
-	var skippedExchanges any = []any{}
+	var skippedExchanges []any = []any{}
 	if IsTrue(exchange.InArray(exchange.GetId(), skippedExchanges)) {
 		var m1 any = (Add(Add(Add(exchange.GetId(), " "), method), "() test skipped"))
 		fmt.Println(m1)
@@ -59,7 +59,7 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 				response = (<-callDynamically(method, symbol))
 				PanicOnError(response)
 				now = DateNow()
-				var isArray any = IsArray(response)
+				var isArray bool = IsArray(response)
 				Assert(isArray, "response must be an array")
 				var m3 any = (Add(Add(Add(Add(Add(exchange.GetId(), " "), method), "() returned "), GetArrayLength(response)), " liquidations"))
 				fmt.Println(m3)
