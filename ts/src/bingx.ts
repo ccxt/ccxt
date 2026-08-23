@@ -5712,9 +5712,8 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        let subType: Str = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
-        if (subType === 'inverse') {
+        params = this.omit (params, 'subType');
+        if (market['inverse']) {
             return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
         } else {
             return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
@@ -6753,10 +6752,9 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let subType: Str = undefined;
         let response: Dict;
-        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
-        if (subType === 'inverse') {
+        params = this.omit (params, 'subType');
+        if (market['inverse']) {
             response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, params));
             //
             //     {
