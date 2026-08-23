@@ -6000,7 +6000,7 @@ export default class bingx extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
             }
             if (limit !== undefined) {
-                request['pageSize'] = Math.min (limit, 1000);
+                request['pageSize'] = Math.min (limit, 1000); // api maximum 1000
             }
             response = await this.cswapV1PrivateGetTradeAllFillOrders (this.extend (request, params));
             fills = this.safeList (response, 'data', []) as Trade[];
