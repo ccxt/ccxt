@@ -959,6 +959,82 @@
                         }
                     }
                 ]
+            },
+            {
+                "description": "a position whose leverage, liquidation price and margin are set",
+                "method": "fetchPositionsForSymbol",
+                "input": [
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "data": [
+                        {
+                            "instType": "SWAP",
+                            "mgnMode": "cross",
+                            "instId": "DOGE-USDT-SWAP",
+                            "posId": "1001110099878275",
+                            "posSide": "long",
+                            "pos": "20",
+                            "avgPx": "0.18408",
+                            "lever": "75",
+                            "liqPx": "0.00001",
+                            "useMargin": "0.049088",
+                            "mrgPosition": "merge",
+                            "ccy": "USDT",
+                            "uTime": "1760709419000",
+                            "cTime": "1760709419000"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "symbol": "DOGE/USDT:USDT",
+                        "id": "1001110099878275",
+                        "timestamp": 1760709419000,
+                        "datetime": "2025-10-17T13:56:59.000Z",
+                        "contracts": 20,
+                        "contractSize": 1,
+                        "side": "long",
+                        "notional": null,
+                        "leverage": "75",
+                        "unrealizedPnl": null,
+                        "realizedPnl": null,
+                        "collateral": null,
+                        "entryPrice": 0.18408,
+                        "markPrice": null,
+                        "liquidationPrice": "0.00001",
+                        "marginMode": "cross",
+                        "hedged": true,
+                        "maintenanceMargin": "0.049088",
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "marginRatio": null,
+                        "lastUpdateTimestamp": 1760709419000,
+                        "lastPrice": null,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "percentage": null,
+                        "info": {
+                            "instType": "SWAP",
+                            "mgnMode": "cross",
+                            "instId": "DOGE-USDT-SWAP",
+                            "posId": "1001110099878275",
+                            "posSide": "long",
+                            "pos": "20",
+                            "avgPx": "0.18408",
+                            "lever": "75",
+                            "liqPx": "0.00001",
+                            "useMargin": "0.049088",
+                            "mrgPosition": "merge",
+                            "ccy": "USDT",
+                            "uTime": "1760709419000",
+                            "cTime": "1760709419000"
+                        }
+                    }
+                ]
             }
         ],
         "cancelOrder": [
