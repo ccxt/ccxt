@@ -2296,7 +2296,7 @@
                     "postOnly": null,
                     "reduceOnly": false,
                     "side": "buy",
-                    "price": 0,
+                    "price": null,
                     "stopPrice": 260,
                     "triggerPrice": 260,
                     "takeProfitPrice": null,
