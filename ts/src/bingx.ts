@@ -1571,7 +1571,7 @@ export default class bingx extends Exchange {
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
      * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
@@ -6545,6 +6545,16 @@ export default class bingx extends Exchange {
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        let subType: Str = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
+        if ((subType === 'inverse') || ((market !== undefined) && market['inverse'])) {
+            throw new NotSupported (this.id + ' fetchPositionMode() is not supported for inverse swap markets');
+        }
         const response = await this.swapV1PrivateGetPositionSideDual (params);
         //
         //     {
@@ -6570,11 +6580,21 @@ export default class bingx extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by setPositionMode ()
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        let subType: Str = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+        if ((subType === 'inverse') || ((market !== undefined) && market['inverse'])) {
+            throw new NotSupported (this.id + ' setPositionMode() is not supported for inverse swap markets');
+        }
         let dualSidePosition: Str = undefined;
         if (hedged) {
             dualSidePosition = 'true';
