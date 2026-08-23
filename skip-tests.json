@@ -2504,25 +2504,15 @@
                 "precision": "not provided if currency has no networks"
             },
             "fetchTickers": {
-                "checkActiveSymbols": "todo",
-                "maxIncrease": "change should be above -price is failing"
+                "checkActiveSymbols": "exchangeInfo enableTrade marks ~3400 spot markets active but only ~1000 have tickers",
+                "maxIncrease": "openPrice equals lastPrice on illiquid markets while priceChange is non-zero, so change can exceed the price"
             },
             "ticker": {
                 "compareOHLC": "open could be lower than low",
-                "spread": "messed bid-ask",
-                "compareQuoteVolumeBaseVolume": "quoteVolume >= baseVolume * low is failing"
+                "spread": "messed bid-ask"
             },
             "fetchOrderBook": {
                 "timestamp": "not provided"
-            },
-            "fetchTrades": {
-                "side": "not provided"
-            },
-            "watchTrades": {
-                "side": "not provided"
-            },
-            "watchTradesForSymbols": {
-                "side": "not provided"
             }
         }
     },

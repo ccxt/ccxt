@@ -532,6 +532,11 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger (trade, 'T');
         const symbol = (market === undefined) ? undefined : market['symbol'];
+        const isBuyerMaker = this.safeBool (trade, 'm'); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let side: Str = undefined;
+        if (isBuyerMaker !== undefined) {
+            side = isBuyerMaker ? 'sell' : 'buy';
+        }
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 't'),
@@ -540,7 +545,7 @@ export default class weex extends weexRest {
             'symbol': symbol,
             'order': undefined,
             'type': undefined,
-            'side': undefined,
+            'side': side,
             'takerOrMaker': undefined,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),

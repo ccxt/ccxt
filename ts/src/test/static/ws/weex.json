@@ -1,0 +1,213 @@
+{
+    "exchange": "weex",
+    "skipKeys": [
+        "id"
+    ],
+    "options": {},
+    "methods": {
+        "watchTrades": [
+            {
+                "description": "swap trades with buyer-maker flag",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-contract.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "trade",
+                        "E": 1787479672704,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "T": 1787479672501,
+                                "t": "c0a88f67-4598-4fb1-8373-23b81ada9fc6",
+                                "p": "76713.1",
+                                "q": "0.0015",
+                                "v": "115.06965",
+                                "m": false
+                            },
+                            {
+                                "T": 1787479672702,
+                                "t": "cae34416-9a33-4d7d-9d47-b5055c4bdb1a",
+                                "p": "76712.9",
+                                "q": "0.0007",
+                                "v": "53.69903",
+                                "m": true
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@trade"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "T": 1787479672501,
+                                "t": "c0a88f67-4598-4fb1-8373-23b81ada9fc6",
+                                "p": "76713.1",
+                                "q": "0.0015",
+                                "v": "115.06965",
+                                "m": false
+                            },
+                            "id": "c0a88f67-4598-4fb1-8373-23b81ada9fc6",
+                            "timestamp": 1787479672501,
+                            "datetime": "2026-08-23T10:07:52.501Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 76713.1,
+                            "amount": 0.0015,
+                            "cost": 115.06965,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "T": 1787479672702,
+                                "t": "cae34416-9a33-4d7d-9d47-b5055c4bdb1a",
+                                "p": "76712.9",
+                                "q": "0.0007",
+                                "v": "53.69903",
+                                "m": true
+                            },
+                            "id": "cae34416-9a33-4d7d-9d47-b5055c4bdb1a",
+                            "timestamp": 1787479672702,
+                            "datetime": "2026-08-23T10:07:52.702Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 76712.9,
+                            "amount": 0.0007,
+                            "cost": 53.69903,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            },
+            {
+                "description": "spot trades with buyer-maker flag",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://ws-spot.weex.com/v3/ws/public",
+                "messages": [
+                    {
+                        "result": true,
+                        "id": 1
+                    },
+                    {
+                        "e": "trade",
+                        "E": 1787479673444,
+                        "s": "BTCUSDT",
+                        "d": [
+                            {
+                                "T": 1787479672360,
+                                "t": "0435a3db-a638-43fb-924f-dee32ab4e10b",
+                                "p": "76718.00",
+                                "q": "0.000002",
+                                "v": "0.15343600",
+                                "m": true
+                            },
+                            {
+                                "T": 1787479672858,
+                                "t": "0b8ac798-95e7-4d53-a3d2-6e53f0c3e96c",
+                                "p": "76718.01",
+                                "q": "0.000002",
+                                "v": "0.15343602",
+                                "m": false
+                            }
+                        ]
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "BTCUSDT@trade"
+                        ]
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "T": 1787479672360,
+                                "t": "0435a3db-a638-43fb-924f-dee32ab4e10b",
+                                "p": "76718.00",
+                                "q": "0.000002",
+                                "v": "0.15343600",
+                                "m": true
+                            },
+                            "id": "0435a3db-a638-43fb-924f-dee32ab4e10b",
+                            "timestamp": 1787479672360,
+                            "datetime": "2026-08-23T10:07:52.360Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "sell",
+                            "takerOrMaker": null,
+                            "price": 76718,
+                            "amount": 2e-06,
+                            "cost": 0.153436,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        },
+                        {
+                            "info": {
+                                "T": 1787479672858,
+                                "t": "0b8ac798-95e7-4d53-a3d2-6e53f0c3e96c",
+                                "p": "76718.01",
+                                "q": "0.000002",
+                                "v": "0.15343602",
+                                "m": false
+                            },
+                            "id": "0b8ac798-95e7-4d53-a3d2-6e53f0c3e96c",
+                            "timestamp": 1787479672858,
+                            "datetime": "2026-08-23T10:07:52.858Z",
+                            "symbol": "BTC/USDT",
+                            "order": null,
+                            "type": null,
+                            "side": "buy",
+                            "takerOrMaker": null,
+                            "price": 76718.01,
+                            "amount": 2e-06,
+                            "cost": 0.15343602,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ]
+            }
+        ]
+    }
+}
