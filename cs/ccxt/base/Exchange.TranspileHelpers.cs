@@ -869,7 +869,9 @@ public partial class BaseExchange
         {
             return null; // a non-generic Task has no result to unwrap
         }
-        return resultProperty.GetValue(task);
+        // reflective callers (callDynamically, promiseAll) feed the untyped object pipeline,
+        // so a typed candle list coming back from an OHLCV core is de-typed to raw rows here
+        return FromOHLCVList(resultProperty.GetValue(task));
     }
 
     public static async Task<List<object>> PromiseAll(object promisesObj)
@@ -1062,5 +1064,43 @@ public partial class BaseExchange
         {
             throw new InvalidOperationException("Unsupported types for concatenation.");
         }
+    }
+
+    // OHLCV typed-core boundary. Generated OHLCV cores return Task<List<OHLCV>>, so every
+    // return site is funnelled through ToOHLCVList and untyped callers use FromOHLCVList.
+    public static List<OHLCV> ToOHLCVList(object candles)
+    {
+        if (candles == null)
+        {
+            return null;
+        }
+        if (candles is List<OHLCV>)
+        {
+            return (List<OHLCV>)candles;
+        }
+        var rows = (IList<object>)candles;
+        var result = new List<OHLCV>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is OHLCV ? (OHLCV)row : new OHLCV(row));
+        }
+        return result;
+    }
+
+    // reverses the boundary: hands a typed candle list back to the untyped object pipeline
+    // (pagination, arrayConcat, filterBySinceLimit) as plain 6-element rows
+    public static object FromOHLCVList(object candles)
+    {
+        if (!(candles is List<OHLCV>))
+        {
+            return candles;
+        }
+        var typed = (List<OHLCV>)candles;
+        var result = new List<object>(typed.Count);
+        foreach (var candle in typed)
+        {
+            result.Add(new List<object>() { candle.timestamp, candle.open, candle.high, candle.low, candle.close, candle.volume });
+        }
+        return result;
     }
 }

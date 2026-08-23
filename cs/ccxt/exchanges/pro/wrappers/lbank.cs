@@ -38,7 +38,7 @@ public partial class lbank
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCVWs(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market

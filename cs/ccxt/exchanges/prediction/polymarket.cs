@@ -1639,7 +1639,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<OHLCV>> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
         timeframe ??= "1m";
@@ -1748,9 +1748,9 @@ public partial class polymarket : PredictionExchange
         object candlesLength = getArrayLength(candles);
         if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThan(candlesLength, limit)))))
         {
-            return this.arraySlice(candles, prefixUnaryNeg(ref limit));
+            return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, prefixUnaryNeg(ref limit)));
         }
-        return candles;
+        return ccxt.BaseExchange.ToOHLCVList(candles);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

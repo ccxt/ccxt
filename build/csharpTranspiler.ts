@@ -53,6 +53,20 @@ if (platform === 'win32') {
     }
 }
 
+// core methods whose `Task<object>` return is rewritten to `Task<List<OHLCV>>`, moving the
+// `new OHLCV(item)` conversion out of the PascalCase wrapper and onto the core return path
+const OHLCV_TYPED_CORES = [
+    'fetchOHLCV',
+    'fetchOHLCVWs',
+    'fetchSpotOHLCV',
+    'fetchContractOHLCV',
+    'fetchUTAOHLCV',
+    'fetchOptionOHLCV',
+    'fetchMarkOHLCV',
+    'fetchIndexOHLCV',
+    'fetchPremiumIndexOHLCV',
+];
+
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 // the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
 // (not BaseExchange), so the sibling PredictionExchange tier does not inherit them
@@ -635,6 +649,104 @@ class NewTranspiler {
         return !isBlackListed && startsWithAllowedPrefix;
     }
 
+    isOhlcvTypedCore (methodName: string): boolean {
+        return OHLCV_TYPED_CORES.includes (methodName);
+    }
+
+    // locates the terminating `;` of a `return <expr>;` statement starting at line `start`,
+    // tolerating multi-line expressions by only stopping on a `;` outside brackets/strings
+    collectReturnStatement (lines: string[], start: number): number[] {
+        let depth = 0;
+        let inString = false;
+        for (let i = start; i < lines.length; i++) {
+            const line = lines[i];
+            for (let j = 0; j < line.length; j++) {
+                const ch = line[j];
+                if (inString) {
+                    if (ch === '\\') { j++; continue; }
+                    if (ch === '"') { inString = false; }
+                    continue;
+                }
+                if (ch === '"') { inString = true; continue; }
+                if (ch === '/' && line[j + 1] === '/') { break; }
+                if (ch === '(' || ch === '[' || ch === '{') { depth++; continue; }
+                if (ch === ')' || ch === ']' || ch === '}') { depth--; continue; }
+                if (ch === ';' && depth <= 0) { return [ i, j ]; }
+            }
+        }
+        return [ start, lines[start].length ];
+    }
+
+    // rewrites the OHLCV core family so the generated cores return `Task<List<OHLCV>>`:
+    //   - the signature `Task<object> fetchOHLCV(` becomes `Task<List<OHLCV>>`
+    //   - every return site inside it is funnelled through `BaseExchange.ToOHLCVList(...)`,
+    //     except a tail call to another already-typed core, which needs no conversion
+    //   - untyped callers (safeDeterministicCall) returning a typed core get `FromOHLCVList`
+    //     so the untyped pagination pipeline keeps seeing raw candle rows
+    typeOhlcvCores (content: string): string {
+        if (!OHLCV_TYPED_CORES.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public async (virtual|override) Task<object> (\w+)\(/;
+        const typedCallRe = new RegExp ('^await this\\.(' + OHLCV_TYPED_CORES.join ('|') + ')\\(');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, modifier, methodName ] = sig;
+            const isTyped = this.isOhlcvTypedCore (methodName);
+            // the method body ends at its closing brace, which is the first line indented exactly
+            // like the signature — brace counting is unusable here because generated bodies carry
+            // `{`/`}` inside string literals (url templates, json payloads)
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            if (isTyped) {
+                lines[i] = `${indent}public async ${modifier} Task<List<OHLCV>> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (!lines[j].trim ().startsWith ('return ')) {
+                    continue;
+                }
+                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
+                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
+                const middle = lines.slice (j + 1, lastLine);
+                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
+                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                const returnsTypedCore = typedCallRe.test (expr);
+                let wrapper = '';
+                if (isTyped && !returnsTypedCore) {
+                    wrapper = 'ccxt.BaseExchange.ToOHLCVList';
+                } else if (!isTyped && returnsTypedCore) {
+                    wrapper = 'ccxt.BaseExchange.FromOHLCVList';
+                }
+                if (wrapper === '') {
+                    j = lastLine;
+                    continue;
+                }
+                const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                const trailing = lines[lastLine].substring (semi + 1);
+                lines[j] = `${pad}return ${wrapper}(${expr});${trailing}`;
+                for (let k = j + 1; k <= lastLine; k++) {
+                    lines[k] = null as any;
+                }
+                j = lastLine;
+            }
+            i = bodyEnd;
+        }
+        return lines.filter (line => line !== null).join ('\n');
+    }
+
     unwrapTaskIfNeeded(type: string): string {
         return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
     }
@@ -648,6 +760,11 @@ class NewTranspiler {
     }
 
     createReturnStatement(methodName: string,  unwrappedType:string ) {
+        // OHLCV-family cores already return List<OHLCV> (see typeOhlcvCores), so the wrapper
+        // no longer re-materialises the structs — it just forwards the typed core result
+        if (this.isOhlcvTypedCore (methodName)) {
+            return `return res;`;
+        }
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
             // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
@@ -1028,7 +1145,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + baseMethods + "\n";
+            const file = fileHeader + this.typeOhlcvCores (baseMethods) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -1036,7 +1153,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + exchangeBody + "\n}\n";
+                const tradingFile = tradingHeader + this.typeOhlcvCores (exchangeBody) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -1092,7 +1209,7 @@ class NewTranspiler {
             const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
             this.isPrediction = prevIsPrediction;
             const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + baseMethods + "\n" + wrapperPartial;
+            const file = fileHeader + fields + this.typeOhlcvCores (baseMethods) + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -1420,6 +1537,7 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
+        content = this.typeOhlcvCores (content);
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }

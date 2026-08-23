@@ -1481,7 +1481,7 @@ public partial class bullish : Exchange
             {
                 if (isTrue(isEqual(method, "fetchOHLCV")))
                 {
-                    return await this.fetchOHLCV(((string)symbol), timeframe, since, limit, parameters);
+                    return ccxt.BaseExchange.FromOHLCVList(await this.fetchOHLCV(((string)symbol), timeframe, since, limit, parameters));
                 } else if (isTrue(isEqual(method, "fetchFundingRateHistory")))
                 {
                     return await this.fetchFundingRateHistory(symbol, since, limit, parameters);
@@ -1519,7 +1519,7 @@ public partial class bullish : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -1535,7 +1535,7 @@ public partial class bullish : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit));
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1579,7 +1579,7 @@ public partial class bullish : Exchange
         //     ]
         //
         object ohlcvs = this.toArray(response);
-        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market, timeframe, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)

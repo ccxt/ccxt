@@ -944,7 +944,7 @@ public partial class bitso : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -992,7 +992,7 @@ public partial class bitso : Exchange
         //     }
         //
         object payload = this.safeList(response, "payload", new List<object>() {});
-        return this.parseOHLCVs(payload, market, timeframe, since, limit);
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(payload, market, timeframe, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
