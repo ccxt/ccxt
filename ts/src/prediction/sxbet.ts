@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
 import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -167,6 +167,7 @@ export default class sxbet extends Exchange {
                     'ORDERS_MUST_HAVE_IDENTICAL_MARKET': BadRequest,
                     'BAD_BASE_TOKEN': BadRequest,   // all orders must share one base token
                     'INSUFFICIENT_KYC': PermissionDenied,
+                    'PROXY_NOT_DEPLOYED': AccountNotEnabled,   // live-verified v3: the account's obv3 proxy wallet is not deployed yet - call approve() (deploys and funds it)
                     'INVALID_USER': AuthenticationError,   // live-verified v3: the x-sx-api-key does not belong to a registered user on the target network
                     'BAD_AUTH': AuthenticationError,   // live-verified v3: missing or malformed x-sx-api-key
                     'ERC20_PERMIT_BAD_SPENDER': BadRequest,   // live-verified v3: transfer-to-proxy permit signed for the wrong executor
@@ -197,6 +198,7 @@ export default class sxbet extends Exchange {
                 'broad': {
                     'no longer supported': NotSupported,   // e.g. "OrderBook V2 is no longer supported" (testnet V3 canary gate)
                     'must be': BadRequest,   // request validation messages like "orders must be an array"
+                    'Insufficient available balance': InsufficientFunds,   // live-verified v3: the proxy wallet holds less than the order size
                 },
             },
             'options': {
@@ -354,7 +356,7 @@ export default class sxbet extends Exchange {
         const hashSuffix = marketHash.slice (hashLength - 6);
         const marketSlug = this.shortenSlug (outcomeOneName) + '_' + hashSuffix;
         const marketSymbol = this.slugToMarketSymbol (eventSlug, marketSlug);
-        const status = this.safeString (raw, 'status');
+        const status = this.safeStringUpper (raw, 'status');
         const active = (status === 'ACTIVE');
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
         // turn it into the 1970 epoch
@@ -520,6 +522,7 @@ export default class sxbet extends Exchange {
             result.push (event);
         }
         this.populateOutcomes ();
+        this.setEvents (result);
         const postParams = this.omit (params, [ 'leagueId', 'sportId', 'query', 'queries', 'tags' ]);
         return this.applyEventFetchParams (result, postParams, []);
     }
@@ -543,6 +546,7 @@ export default class sxbet extends Exchange {
         }
         const event: any = this.parseEvent (id, rawMarkets);
         this.indexEventOutcomes (event);
+        this.setEvents ([ event ]);
         return event;
     }
 
@@ -1056,12 +1060,38 @@ export default class sxbet extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const results = this.safeList (data, 'orders', []);
         const first = this.safeDict (results, 0, {});
-        const status = this.safeString (first, 'status');
+        const status = this.safeStringUpper (first, 'status');
         if (status === 'FAILED') {
             const reason = this.safeString (first, 'reason', 'FAILED');
             const feedback = this.id + ' createOrder() rejected: ' + reason;
             this.throwExactlyMatchedException (this.exceptions['exact'], reason, feedback);
             throw new InvalidOrder (feedback);
+        }
+        // with waitForOutcome the venue reports the matching result inline:
+        //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
+        const matchOutcome = this.safeDict (first, 'outcome');
+        const usdcDecimals = '1000000';
+        let filled: Num = undefined;
+        let remaining: Num = undefined;
+        let orderStatus: Str = undefined;
+        if (matchOutcome !== undefined) {
+            const fillAmountRaw = this.safeString (matchOutcome, 'fillAmount');
+            const remainingRaw = this.safeString (matchOutcome, 'remainingAmount');
+            if (fillAmountRaw !== undefined) {
+                filled = this.parseNumber (Precise.stringDiv (fillAmountRaw, usdcDecimals, 6));
+            }
+            if (remainingRaw !== undefined) {
+                remaining = this.parseNumber (Precise.stringDiv (remainingRaw, usdcDecimals, 6));
+                const isDone = Precise.stringEq (remainingRaw, '0');
+                if (isDone) {
+                    orderStatus = 'closed';
+                } else if (timeInForce === 'GTC') {
+                    orderStatus = 'open';
+                } else {
+                    // an IOC/FOK remainder is cancelled by the venue
+                    orderStatus = 'canceled';
+                }
+            }
         }
         const now = this.milliseconds ();
         return this.safePredictionOrder ({
@@ -1070,7 +1100,10 @@ export default class sxbet extends Exchange {
             'info': response,
             'timestamp': now,
             'datetime': this.iso8601 (now),
-            'status': undefined,
+            'status': orderStatus,
+            'filled': filled,
+            'remaining': remaining,
+            'cost': filled,
             'outcome': this.safeString (outcomeObj, 'outcome'),
             'outcomeId': outcomeId,
             'label': this.safeString (outcomeObj, 'label'),
@@ -1250,8 +1283,8 @@ export default class sxbet extends Exchange {
         const amount = this.parseNumber (Precise.stringDiv (totalBetSize, usdcDecimals, 6));
         const filled = this.parseNumber (Precise.stringDiv (filledRaw, usdcDecimals, 6));
         const remaining = this.parseNumber (Precise.stringDiv (remainingSize, usdcDecimals, 6));
-        const orderStatus = this.safeString (order, 'status');
-        const inactiveReason = this.safeString (order, 'inactiveReason');
+        const orderStatus = this.safeStringUpper (order, 'status');
+        const inactiveReason = this.safeStringUpper (order, 'inactiveReason');
         let status = 'open';
         if (orderStatus === 'INACTIVE') {
             // documented inactiveReason enum: FILLED, USER_REQUESTED, EXPIRED, NO_LIQUIDITY,
