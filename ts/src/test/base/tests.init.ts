@@ -14,6 +14,7 @@ import testCryptography from './test.cryptography.js';
 import testToArray from './test.toArray.js';
 import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
+import testKrakenfuturesParsePositions from './test.krakenfuturesParsePositions.js';
 import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
@@ -100,6 +101,7 @@ async function baseTestsInit () {
     testInArray ();
     testFilterBy ();
     testHandleMethods ();
+    await testKrakenfuturesParsePositions ();
     testNetworkMethods ();
     testRemoveRepeatedElementsFromArray ();
     testIsEmpty ();

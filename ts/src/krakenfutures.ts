@@ -3039,9 +3039,12 @@ export default class krakenfutures extends Exchange {
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
         // the crash guarded against in #19896 is still avoided, since we no
         // longer call .length on a non-list value
+        // the thrown class derives from the retryable network-error family,
+        // so standard retry logic can catch and retry it
+        // see https://github.com/ccxt/ccxt/issues/29925
         const positions = this.safeList (response, 'openPositions');
         if (positions === undefined) {
-            throw new ExchangeError (this.id + ' fetchPositions() returned a response without an "openPositions" list');
+            throw new ExchangeNotAvailable (this.id + ' fetchPositions() returned a response without an "openPositions" list');
         }
         for (let i = 0; i < positions.length; i++) {
             const position = this.parsePosition (positions[i]);
