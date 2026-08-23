@@ -1174,34 +1174,58 @@ export default class toobit extends toobitRest {
     }
 
     async authenticate (params = {}) {
-        const client = this.client (this.getUserStreamUrl ());
-        const messageHash = 'authenticated';
-        const future = client.reusableFuture (messageHash);
-        const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const time = this.milliseconds ();
+        const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
+        const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
+        const delay = this.sum (listenKeyRefreshRate, 10000);
+        if (time - lastAuthenticatedTime > delay) {
             this.checkRequiredCredentials ();
-            const time = this.milliseconds ();
-            const lastAuthenticatedTime = this.safeInteger (this.options['ws'], 'lastAuthenticatedTime', 0);
-            const listenKeyRefreshRate = this.safeInteger (this.options['ws'], 'listenKeyRefreshRate', 1200000);
-            const delay = this.sum (listenKeyRefreshRate, 10000);
-            if (time - lastAuthenticatedTime > delay) {
-                try {
-                    client.subscriptions[messageHash] = true;
-                    const response = await this.privatePostApiV1UserDataStream (params);
-                    this.options['ws']['listenKey'] = this.safeString (response, 'listenKey');
-                    this.options['ws']['lastAuthenticatedTime'] = time;
-                    future.resolve (true);
-                    this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
-                } catch (e) {
-                    const err = new AuthenticationError (this.id + ' ' + this.exceptionMessage (e));
-                    client.reject (err, messageHash);
-                    if (messageHash in client.subscriptions) {
-                        delete client.subscriptions[messageHash];
-                    }
-                }
+            // single-flight leader election on a dedicated client, see
+            // https://github.com/ccxt/ccxt/issues/29393. the election used to run
+            // on this.client (this.getUserStreamUrl ()), but that url embeds the
+            // listenKey, so the client the flight is registered on is not the
+            // client the next caller looks at: the first call elects on
+            // .../ws/undefined and every later call lands on .../ws/<key> with an
+            // empty subscriptions map, finds the key still fresh, skips the fetch
+            // and then awaits a future nobody resolves. client.futures is the
+            // registry: client.future () is the atomic check-and-insert and
+            // client.resolve () / client.reject () settle and remove the entry
+            // under the same lock in every port
+            const messageHash = 'authenticate';
+            const client = this.client ('authenticationFlights');
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
+                await client.future (messageHash);
+                return;
             }
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            const future = client.reusableFuture (messageHash);
+            try {
+                const response = await this.privatePostApiV1UserDataStream (params);
+                const listenKey = this.safeString (response, 'listenKey');
+                if (listenKey === undefined) {
+                    // reject instead of caching an empty credential, so waiters
+                    // retry rather than dial .../ws/undefined for 20 minutes
+                    throw new AuthenticationError (this.id + ' authenticate() received an empty listenKey');
+                }
+                this.options['ws']['listenKey'] = listenKey;
+                this.options['ws']['lastAuthenticatedTime'] = time;
+                this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
+                client.resolve (listenKey, messageHash);
+            } catch (e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                const err = new AuthenticationError (this.id + ' ' + this.exceptionMessage (e));
+                client.reject (err, messageHash);
+            }
+            await future;
         }
-        return await future;
     }
 
     async keepAliveListenKey (params = {}) {
