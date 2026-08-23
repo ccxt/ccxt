@@ -4735,13 +4735,13 @@ export default class binance extends Exchange {
         let subType: SubType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchBidsAsks', market, params);
         const request: Dict = {};
-        if ((symbols !== undefined) && (type !== 'spot')) {
+        if ((symbols !== undefined) && (this.isLinear (type, subType) || this.isInverse (type, subType))) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 1) {
                 request['symbol'] = this.marketId (symbols[0]);
             }
         }
-        let response: any = undefined;
+        let response: NullableDict = undefined;
         if (type === 'option') {
             response = await this.eapiPublicGetTicker (params);
         } else if (this.isLinear (type, subType)) {
