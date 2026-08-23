@@ -241,7 +241,7 @@
                         "precision": {
                             "amount": 1e-05,
                             "price": "1.00",
-                            "base": null,
+                            "base": 1e-08,
                             "quote": 0.01
                         },
                         "limits": {
@@ -394,7 +394,7 @@
                         "precision": {
                             "amount": 1e-05,
                             "price": "0.01000000",
-                            "base": null,
+                            "base": 1e-08,
                             "quote": 1e-08
                         },
                         "limits": {

@@ -829,7 +829,7 @@ export default class tokocrypto extends Exchange {
                 'precision': {
                     'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
-                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'basePrecision'))),
                     'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'limits': {
