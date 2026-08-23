@@ -1721,11 +1721,31 @@
                 ]
             },
             {
+                "description": "spot fetchTrades with maximum limit",
+                "method": "fetchTrades",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/trades?symbol=BTC-USDT&limit=500&timestamp=1709992984605",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    500
+                ]
+            },
+            {
                 "description": "swap fetchTrades",
                 "method": "fetchTrades",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/quote/trades?symbol=BTC-USDT&timestamp=1709992984861",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap fetchTrades with maximum limit",
+                "method": "fetchTrades",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/quote/trades?symbol=BTC-USDT&limit=1000&timestamp=1709992984861",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1000
                 ]
             }
         ],

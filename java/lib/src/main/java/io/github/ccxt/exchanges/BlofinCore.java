@@ -1729,14 +1729,12 @@ public class BlofinCore extends BlofinApi
         Object status = this.parseOrderStatus(this.safeString(order, "state"));
         Object feeCostString = this.safeString(order, "fee");
         Object amount = this.safeString(order, "size");
-        Object leverage = this.safeString(order, "leverage", "1");
         Object contractSize = this.safeString(market, "contractSize");
         Object baseAmount = Precise.stringMul(contractSize, filled);
         Object cost = null;
         if (Helpers.isTrue(!Helpers.isEqual(average, null)))
         {
             cost = Precise.stringMul(average, baseAmount);
-            cost = Precise.stringDiv(cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
         Object fee = null;

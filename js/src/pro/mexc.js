@@ -1669,7 +1669,7 @@ export default class mexc extends mexcRest {
             'symbol': market['id'],
         };
         url = this.urls['api']['ws']['swap'];
-        this.watchSwapPublic(channel, messageHash, requestParams, params);
+        this.spawn(this.watchSwapPublic, channel, messageHash, requestParams, params);
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
         return undefined;
@@ -1716,7 +1716,7 @@ export default class mexc extends mexcRest {
             channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' + market['id'];
             url = this.urls['api']['ws']['spot'];
             params['unsubscribed'] = true;
-            this.watchSpotPublic(channel, messageHash, params);
+            this.spawn(this.watchSpotPublic, channel, messageHash, params);
         }
         else {
             channel = 'unsub.ticker';
@@ -1724,7 +1724,7 @@ export default class mexc extends mexcRest {
                 'symbol': market['id'],
             };
             url = this.urls['api']['ws']['swap'];
-            this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.spawn(this.watchSwapPublic, channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
@@ -1859,7 +1859,7 @@ export default class mexc extends mexcRest {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.kline.v3.api.pb@' + market['id'] + '@' + timeframeId;
             params['unsubscribed'] = true;
-            this.watchSpotPublic(channel, messageHash, params);
+            this.spawn(this.watchSpotPublic, channel, messageHash, params);
         }
         else {
             url = this.urls['api']['ws']['swap'];
@@ -1868,7 +1868,7 @@ export default class mexc extends mexcRest {
                 'symbol': market['id'],
                 'interval': timeframeId,
             };
-            this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.spawn(this.watchSwapPublic, channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
@@ -1897,7 +1897,7 @@ export default class mexc extends mexcRest {
             [frequency, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'frequency', '100ms');
             const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + market['id'];
             params['unsubscribed'] = true;
-            this.watchSpotPublic(channel, messageHash, params);
+            this.spawn(this.watchSpotPublic, channel, messageHash, params);
         }
         else {
             url = this.urls['api']['ws']['swap'];
@@ -1905,7 +1905,7 @@ export default class mexc extends mexcRest {
             const requestParams = {
                 'symbol': market['id'],
             };
-            this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.spawn(this.watchSwapPublic, channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);
@@ -1932,7 +1932,7 @@ export default class mexc extends mexcRest {
             url = this.urls['api']['ws']['spot'];
             const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + market['id'];
             params['unsubscribed'] = true;
-            this.watchSpotPublic(channel, messageHash, params);
+            this.spawn(this.watchSpotPublic, channel, messageHash, params);
         }
         else {
             url = this.urls['api']['ws']['swap'];
@@ -1940,7 +1940,7 @@ export default class mexc extends mexcRest {
             const requestParams = {
                 'symbol': market['id'],
             };
-            this.watchSwapPublic(channel, messageHash, requestParams, params);
+            this.spawn(this.watchSwapPublic, channel, messageHash, requestParams, params);
         }
         const client = this.client(url);
         this.handleUnsubscriptions(client, [messageHash]);

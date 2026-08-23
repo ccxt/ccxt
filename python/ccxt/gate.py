@@ -6857,7 +6857,7 @@ class gate(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['from'] = since
+            request['from'] = self.parse_to_int(since / 1000)
         response = self.publicFuturesGetSettleContractStats(self.extend(request, params))
         #
         #    [

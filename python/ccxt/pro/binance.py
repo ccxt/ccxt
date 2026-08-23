@@ -327,39 +327,6 @@ class binance(ccxt.async_support.binance):
         }
         return await self.watch_multiple(url, messageHashes, self.extend(request, query), messageHashes, subscribe)
 
-    async def authenticate_stock(self, params: dict = {}):
-        options = self.safe_dict(self.options, 'stock', {})
-        lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
-        listenKeyRefreshRate = self.safe_integer(self.options, 'stockListenKeyRefreshRate', 1200000)
-        now = self.milliseconds()
-        delay = self.sum(listenKeyRefreshRate, 10000)
-        if (now - lastAuthenticatedTime) > delay:
-            # the stock user stream url embeds self listenKey, so the future is parked
-            # on the listenKey-free market url of the same host
-            client = self.client(self.get_stock_ws_url('market'))
-            messageHash = 'authenticate:stock'
-            if messageHash in client.futures:
-                # another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash)
-                return
-            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
-            try:
-                requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
-                response = await self.sapiPostEquityListenKey(requestParams)
-                listenKey = self.safe_string(response, 'listenKey')
-                self.options['stock'] = self.extend(options, {
-                    'listenKey': listenKey,
-                    'lastAuthenticatedTime': now,
-                })
-                # hoisted out of the delay call: the transpilers garble an inline
-                # dict literal nested inside a delay argument
-                stockKeepAliveParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
-                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, stockKeepAliveParams)
-                client.resolve(listenKey, messageHash)
-            except Exception as e:
-                client.reject(e, messageHash)
-                raise e
-
     def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         watch the public liquidations of a trading pair
@@ -406,16 +373,15 @@ class binance(ccxt.async_support.binance):
         firstMarket = None
         if not self.is_empty(symbols):
             firstMarket = self.get_market_from_symbols(symbols)
-        type = None
-        type, params = self.handle_market_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
+        resolvedAuth = self.resolve_auth_type('watchLiquidationsForSymbols', firstMarket, params)
+        type = resolvedAuth[0]
+        params = resolvedAuth[2]
+        # the spot check runs on the RESOLVED type: a spot default combined
+        # with a linear or inverse defaultSubType means the caller wants the
+        # matching derivatives stream, so the rewrite is allowed to route it
+        # there and only a request that still resolves to spot throws
         if type == 'spot':
             raise BadRequest(self.id + ' watchLiquidationsForSymbols is not supported for spot symbols')
-        subType = None
-        subType, params = self.handle_sub_type_and_params('watchLiquidationsForSymbols', firstMarket, params)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
         if type == 'option':
             raise NotSupported(self.id + ' watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions')
         numSubscriptions = len(subscriptionHashes)
@@ -616,18 +582,13 @@ class binance(ccxt.async_support.binance):
                 symbol = symbols[i]
                 messageHashes.append('myLiquidations::' + symbol)
         type = None
-        type, params = self.handle_market_type_and_params('watchMyLiquidationsForSymbols', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('watchMyLiquidationsForSymbols', market, params)
-        # same guard authenticate carries: self local rewrite must agree with the
-        # bucket authenticate writes, or the listenKey read below dereferences an
-        # options bucket that was never seeded and throws
-        if type != 'option' and type != 'stock':
-            if self.isLinear(type, subType):
-                type = 'future'
-            elif self.isInverse(type, subType):
-                type = 'delivery'
-        await self.authenticate(params)
+        type, subType, params = self.resolve_auth_type('watchMyLiquidationsForSymbols', market, params)
+        # hand the resolved type forward: the helper already omitted type and
+        # subType from params, so a bare authenticate would re-derive from
+        # options.defaultType and seed a different bucket than the listenKey
+        # read below indexes - the derive-first shape watchBalance uses
+        await self.authenticate(self.extend({'type': type, 'subType': subType}, params))
         listenKey = self.options[type]['listenKey']
         url = self.get_private_ws_url(type, listenKey)
         message = None
@@ -2781,22 +2742,11 @@ class binance(ccxt.async_support.binance):
 
     async def authenticate(self, params={}):
         time = self.milliseconds()
-        type = None
-        type, params = self.handle_market_type_and_params('authenticate', None, params)
-        subType = None
-        subType, params = self.handle_sub_type_and_params('authenticate', None, params)
+        resolvedAuth = self.resolve_auth_type('authenticate', None, params)
+        type = resolvedAuth[0]
+        params = resolvedAuth[2]
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'authenticate', 'papi', 'portfolioMargin', False)
-        if type != 'option' and type != 'stock':
-            # guard option and stock from the rewrite: isLinear keys off subType alone
-            # when a subType is present - a defaultSubType of 'linear' would flip
-            # 'option' to 'future' and authenticate an option user stream with a
-            # FUTURES listen key stored in the future bucket. keepAliveListenKey
-            # carries the same guard; stock joins self path in the auth consolidation
-            if self.isLinear(type, subType):
-                type = 'future'
-            elif self.isInverse(type, subType):
-                type = 'delivery'
         # For spot use WebSocket API signature subscription
         if type == 'spot':
             await self.ensure_user_data_stream_ws_subscribe_signature('spot')
@@ -2815,25 +2765,37 @@ class binance(ccxt.async_support.binance):
             await self.ensure_user_data_stream_ws_subscribe_listen_token('margin', marginParams)
             return
         params = self.omit(params, 'symbol')
+        isStock = (type == 'stock')
         options = self.safe_value(self.options, type, {})
         lastAuthenticatedTime = self.safe_integer(options, 'lastAuthenticatedTime', 0)
-        listenKeyRefreshRate = self.safe_integer(self.options, 'listenKeyRefreshRate', 1200000)
+        refreshRateKey = 'stockListenKeyRefreshRate' if isStock else 'listenKeyRefreshRate'
+        listenKeyRefreshRate = self.safe_integer(self.options, refreshRateKey, 1200000)
         delay = self.sum(listenKeyRefreshRate, 10000)
         if time - lastAuthenticatedTime > delay:
-            # the private url embeds the listenKey that self request produces, so the future
-            # is parked on the listenKey-free base url of that same stream - concurrent
-            # callers wait for the leader instead of fetching a second listenKey, which
-            # would split the user-data subscriptions across two connections
-            client = self.client(self.get_ws_url(type, 'private'))
+            # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+            # the flight is registered on a never-dialed client because the
+            # user-data url embeds the listenKey, so no real client exists
+            # before the fetch and no listenKey-free parking url is needed.
+            # client.futures is the registry: client.future() is the atomic
+            # check-and-insert and client.resolve() / client.reject() settle
+            # and remove the entry under the same lock in every port
             messageHash = 'authenticate:' + type
+            client = self.client('authenticationFlights')
             if messageHash in client.futures:
-                # another caller is already fetching, wait for it instead of fetching again
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey is then in the bucket
                 await client.future(messageHash)
                 return
-            client.future(messageHash)  # created ahead of the request below, so concurrent callers can find it
+            # reusableFuture(), not future() - the two match in
+            # js/py/php/cs/java, but go's Client.Future() yields a channel
+            # that the trailing suspension point below would panic on
+            future = client.reusableFuture(messageHash)
             try:
                 response = None
-                if isPortfolioMargin:
+                if isStock:
+                    requestParams = self.omit(params, ['stock', 'name', 'callerMethodName', 'type', 'subType', 'symbol', 'timeframe'])
+                    response = await self.sapiPostEquityListenKey(requestParams)
+                elif isPortfolioMargin:
                     response = await self.papiPostListenKey(params)
                     params = self.extend(params, {'portfolioMargin': True})
                 elif type == 'future':
@@ -2845,15 +2807,33 @@ class binance(ccxt.async_support.binance):
                 else:
                     response = await self.publicPostUserDataStream(params)
                 listenKey = self.safe_string(response, 'listenKey')
+                if listenKey is None:
+                    # reject the flight BEFORE any cache write: a hollow 200
+                    # otherwise caches an empty credential AND stamps
+                    # lastAuthenticatedTime, parking every caller on
+                    # .../ws/None with no retry until the staleness
+                    # window reopens - the catch below rejects the flight so
+                    # waiters retry and the next caller re-leads
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
                 self.options[type] = self.extend(options, {
                     'listenKey': listenKey,
                     'lastAuthenticatedTime': time,
                 })
-                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, params)
+                # hoisted out of the delay call: the transpilers garble an inline
+                # dict literal nested inside a delay argument
+                delayParams = params
+                if isStock:
+                    delayParams = self.extend(params, {'type': 'stock', 'defaultType': 'stock'})
+                self.delay(listenKeyRefreshRate, self.keep_alive_listen_key, delayParams)
+                # settle the flight: client.resolve() removes the future from
+                # client.futures and wakes every waiter
                 client.resolve(listenKey, messageHash)
             except Exception as e:
+                # reject the flight - waiters raise and the next caller re-leads.
+                # no reraise here, the trailing suspension point rethrows to self
+                # caller AND attaches the handler an alone leader needs
                 client.reject(e, messageHash)
-                raise e
+            await future
 
     async def keep_alive_listen_key(self, params={}):
         # https://binance-docs.github.io/apidocs/spot/en/#listen-key-spot
@@ -3199,22 +3179,16 @@ class binance(ccxt.async_support.binance):
         """
         if self.markets is None:
             await self.load_markets()
-        await self.authenticate(params)
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
+        # derive BEFORE authenticating and pass the result in: authenticate
+        # re-derives from its own method scope, so without self a method-scoped
+        # options.watchBalance.type seeds one bucket while the read below
+        # indexes another - the same derive-first shape watchOrders uses
+        type = None
         subType = None
-        subType, params = self.handle_sub_type_and_params('watchBalance', None, params)
+        type, subType, params = self.resolve_auth_type('watchBalance', None, params)
+        await self.authenticate(self.extend({'type': type, 'subType': subType}, params))
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'watchBalance', 'papi', 'portfolioMargin', False)
-        # same guard authenticate carries: self local rewrite must agree with the
-        # bucket authenticate writes, or the listenKey read below dereferences an
-        # options bucket that was never seeded and throws - and the explicit
-        # urlType branch for option below would be unreachable
-        if type != 'option' and type != 'stock':
-            if self.isLinear(type, subType):
-                type = 'future'
-            elif self.isInverse(type, subType):
-                type = 'delivery'
         url = ''
         urlType = type
         if type == 'spot' or type == 'margin':
@@ -3360,6 +3334,27 @@ class binance(ccxt.async_support.binance):
                 accountType = subscription
                 break
         return accountType
+
+    def resolve_auth_type(self, methodName: str, market: Market = None, params: dict = {}) -> list:
+        # the single home for user-data type derivation: market type, subType,
+        # and the guarded linear/inverse rewrite. option and stock must keep
+        # their own type, or the listenKey bucket, the endpoint dispatch and
+        # the stream selection all silently degrade to futures - the guarded
+        # sites used to carry seven inline copies of self dance, and the
+        # unguarded copies were the bug class behind the option keepalive and
+        # stock keepalive fixes
+        type = None
+        type, params = self.handle_market_type_and_params(methodName, market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params(methodName, market, params)
+        if type != 'option' and type != 'stock':
+            if self.isLinear(type, subType):
+                type = 'future'
+            elif self.isInverse(type, subType):
+                type = 'delivery'
+        # sites consuming every element unpack self; the two that skip subType
+        # index it positionally instead, so no receiver is declared-but-unread
+        return [type, subType, params]
 
     def get_market_type(self, method: object, market: object, params={}):
         type = None
@@ -3953,7 +3948,9 @@ class binance(ccxt.async_support.binance):
         stock = False
         stock, params = self.handle_option_and_params(params, 'watchOrders', 'stock', False)
         if stock:
-            await self.authenticate_stock(params)
+            # literal on top: a stray type in the caller params must not override
+            # the forced stock, the removed authenticateStock ignored it entirely
+            await self.authenticate(self.extend(params, {'type': 'stock'}))
             stockOptions = self.safe_dict(self.options, 'stock', {})
             stockListenKey = self.safe_string(stockOptions, 'listenKey')
             if stockListenKey is None:
@@ -3984,13 +3981,8 @@ class binance(ccxt.async_support.binance):
             symbol = market['symbol']
             messageHash += ':' + symbol
         type = None
-        type, params = self.handle_market_type_and_params('watchOrders', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('watchOrders', market, params)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
+        type, subType, params = self.resolve_auth_type('watchOrders', market, params)
         params = self.extend(params, {'type': type, 'symbol': symbol, 'subType': subType})  # needed inside authenticate for isolated margin
         await self.authenticate(params)
         marginMode = None
@@ -4563,16 +4555,17 @@ class binance(ccxt.async_support.binance):
                 raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             messageHash = '::' + ','.join(symbols)
         type = None
-        type, params = self.handle_market_type_and_params('watchPositions', market, params)
-        if type == 'spot' or type == 'margin':
-            type = 'future'
         subType = None
-        subType, params = self.handle_sub_type_and_params('watchPositions', market, params)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
-        # 'option' stays as 'option', don't redirect to 'future'
+        type, subType, params = self.resolve_auth_type('watchPositions', market, params)
+        # spot and margin have no positions - whatever still RESOLVES to spot
+        # or margin after the helper falls through to the derivatives stream
+        # matching the subType. requests a defaultSubType already rewrote
+        # arrive here or delivery and pass untouched, which lands on
+        # the same stream the old raw-type ordering produced in every case
+        if type == 'spot' or type == 'margin':
+            type = 'delivery' if (subType == 'inverse') else 'future'
+        # 'option' stays as 'option', don't redirect to 'future' - the helper's
+        # guard finally makes self comment True
         marketTypeObject = {}
         marketTypeObject['type'] = type
         marketTypeObject['subType'] = subType
@@ -4956,13 +4949,8 @@ class binance(ccxt.async_support.binance):
             marketResolved = self.market(symbol)
             market = marketResolved
             symbol = market['symbol']
-        type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         subType = None
-        subType, params = self.handle_sub_type_and_params('watchMyTrades', market, params)
-        if self.isLinear(type, subType):
-            type = 'future'
-        elif self.isInverse(type, subType):
-            type = 'delivery'
+        type, subType, params = self.resolve_auth_type('watchMyTrades', market, params)
         messageHash = 'myTrades'
         if (symbol is not None) and (market is not None):
             symbol = self.symbol(symbol)

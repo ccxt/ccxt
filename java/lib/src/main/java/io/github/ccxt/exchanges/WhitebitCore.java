@@ -730,7 +730,7 @@ public class WhitebitCore extends WhitebitApi
         Object settle = null;
         Object settleId = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object swap = Helpers.isEqual(typeId, "futures");
+        Object swap = Helpers.isTrue((Helpers.isEqual(typeId, "futures"))) || Helpers.isTrue((Helpers.isEqual(typeId, "tradfiFutures")));
         Object margin = Helpers.isTrue(isCollateral) && !Helpers.isTrue(swap);
         Object contract = false;
         Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));

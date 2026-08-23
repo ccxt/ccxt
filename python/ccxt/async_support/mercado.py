@@ -489,17 +489,19 @@ class mercado(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        method = 'publicGetCoinTrades'
         request = {
             'coin': market['base'],
         }
         if since is not None:
-            method += 'From'
             request['from'] = self.parse_to_int(since / 1000)
         to = self.safe_integer(params, 'to')
-        if to is not None:
-            method += 'To'
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if (since is not None) and (to is not None):
+            response = await self.publicGetCoinTradesFromTo(self.extend(request, params))
+        elif since is not None:
+            response = await self.publicGetCoinTradesFrom(self.extend(request, params))
+        else:
+            response = await self.publicGetCoinTrades(self.extend(request, params))
         return self.parse_trades(response, market, since, limit)
 
     def parse_balance(self, response: object) -> Balances:
@@ -547,13 +549,15 @@ class mercado(Exchange, ImplicitAPI):
         request = {
             'coin_pair': market['id'],
         }
-        method = self.capitalize(side) + 'Order'
+        response = None
         if type == 'limit':
-            method = 'privatePostPlace' + method
             request['limit_price'] = self.price_to_precision(market['symbol'], price)
             request['quantity'] = self.amount_to_precision(market['symbol'], amount)
+            if side == 'buy':
+                response = await self.privatePostPlaceBuyOrder(self.extend(request, params))
+            else:
+                response = await self.privatePostPlaceSellOrder(self.extend(request, params))
         else:
-            method = 'privatePostPlaceMarket' + method
             if side == 'buy':
                 if price is None:
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
@@ -561,9 +565,10 @@ class mercado(Exchange, ImplicitAPI):
                 priceString = self.number_to_string(price)
                 cost = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
                 request['cost'] = self.price_to_precision(market['symbol'], cost)
+                response = await self.privatePostPlaceMarketBuyOrder(self.extend(request, params))
             else:
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
-        response = await getattr(self, method)(self.extend(request, params))
+                response = await self.privatePostPlaceMarketSellOrder(self.extend(request, params))
         # TODO: replace self with a call to parseOrder for unification
         return self.safe_order({
             'info': response,

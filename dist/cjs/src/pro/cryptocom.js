@@ -904,7 +904,7 @@ class cryptocom extends cryptocom$1["default"] {
             if (symbols === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbols.join(',');
+            messageHash = 'positions::' + symbols.join(',');
         }
         const client = this.client(url);
         this.setPositionsCache(client, symbols);

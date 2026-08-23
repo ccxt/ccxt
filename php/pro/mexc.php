@@ -1746,7 +1746,7 @@ class mexc extends \ccxt\async\mexc {
             'symbol' => $market['id'],
         );
         $url = $this->urls['api']['ws']['swap'];
-        $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+        $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
         $client = $this->client($url);
         $this->handle_unsubscriptions($client, array( $messageHash ));
         return null;
@@ -1797,14 +1797,14 @@ class mexc extends \ccxt\async\mexc {
             $channel = 'spot@public.aggre.bookTicker.v3.api.pb@100ms@' . $market['id'];
             $url = $this->urls['api']['ws']['spot'];
             $params['unsubscribed'] = true;
-            $this->watch_spot_public($channel, $messageHash, $params);
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {
             $channel = 'unsub.ticker';
             $requestParams = array(
                 'symbol' => $market['id'],
             );
             $url = $this->urls['api']['ws']['swap'];
-            $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
         }
         $client = $this->client($url);
         $this->handle_unsubscriptions($client, array( $messageHash ));
@@ -1947,7 +1947,7 @@ class mexc extends \ccxt\async\mexc {
             $url = $this->urls['api']['ws']['spot'];
             $channel = 'spot@public.kline.v3.api.pb@' . $market['id'] . '@' . $timeframeId;
             $params['unsubscribed'] = true;
-            $this->watch_spot_public($channel, $messageHash, $params);
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {
             $url = $this->urls['api']['ws']['swap'];
             $channel = 'unsub.kline';
@@ -1955,7 +1955,7 @@ class mexc extends \ccxt\async\mexc {
                 'symbol' => $market['id'],
                 'interval' => $timeframeId,
             );
-            $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
         }
         $client = $this->client($url);
         $this->handle_unsubscriptions($client, array( $messageHash ));
@@ -1987,14 +1987,14 @@ class mexc extends \ccxt\async\mexc {
             list($frequency, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'frequency', '100ms');
             $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $market['id'];
             $params['unsubscribed'] = true;
-            $this->watch_spot_public($channel, $messageHash, $params);
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {
             $url = $this->urls['api']['ws']['swap'];
             $channel = 'unsub.depth';
             $requestParams = array(
                 'symbol' => $market['id'],
             );
-            $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
         }
         $client = $this->client($url);
         $this->handle_unsubscriptions($client, array( $messageHash ));
@@ -2024,14 +2024,14 @@ class mexc extends \ccxt\async\mexc {
             $url = $this->urls['api']['ws']['spot'];
             $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $market['id'];
             $params['unsubscribed'] = true;
-            $this->watch_spot_public($channel, $messageHash, $params);
+            $this->spawn(array($this, 'watch_spot_public'), $channel, $messageHash, $params);
         } else {
             $url = $this->urls['api']['ws']['swap'];
             $channel = 'unsub.deal';
             $requestParams = array(
                 'symbol' => $market['id'],
             );
-            $this->watch_swap_public($channel, $messageHash, $requestParams, $params);
+            $this->spawn(array($this, 'watch_swap_public'), $channel, $messageHash, $requestParams, $params);
         }
         $client = $this->client($url);
         $this->handle_unsubscriptions($client, array( $messageHash ));

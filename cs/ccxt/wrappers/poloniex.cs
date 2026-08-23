@@ -341,6 +341,12 @@ public partial class poloniex
     /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : a unique identifier for the order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
@@ -379,6 +385,12 @@ public partial class poloniex
     /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price at which a trigger order is triggered at
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.clientOrderId</term>
+    /// <description>
+    /// string : a unique identifier for the order
     /// </description>
     /// </item>
     /// </list>

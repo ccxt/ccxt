@@ -196,6 +196,9 @@ class coinmate extends coinmate$1["default"] {
                         'adaWithdrawal': { 'cost': 1 },
                         'adaDepositAddresses': { 'cost': 1 },
                         'unconfirmedAdaDeposits': { 'cost': 1 },
+                        'daiWithdrawal': { 'cost': 1 },
+                        'daiDepositAddresses': { 'cost': 1 },
+                        'unconfirmedDaiDeposits': { 'cost': 1 },
                         'solWithdrawal': { 'cost': 1 },
                         'solDepositAddresses': { 'cost': 1 },
                         'unconfirmedSolDeposits': { 'cost': 1 },
@@ -769,7 +772,38 @@ class coinmate extends coinmate$1["default"] {
         if (tag !== undefined) {
             request['destinationTag'] = tag;
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBitcoinWithdrawal') {
+            response = await this.privatePostBitcoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostLitecoinWithdrawal') {
+            response = await this.privatePostLitecoinWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostBitcoinCashWithdrawal') {
+            response = await this.privatePostBitcoinCashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostEthereumWithdrawal') {
+            response = await this.privatePostEthereumWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostRippleWithdrawal') {
+            response = await this.privatePostRippleWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDashWithdrawal') {
+            response = await this.privatePostDashWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostDaiWithdrawal') {
+            response = await this.privatePostDaiWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostAdaWithdrawal') {
+            response = await this.privatePostAdaWithdrawal(requestParams);
+        }
+        else if (method === 'privatePostSolWithdrawal') {
+            response = await this.privatePostSolWithdrawal(requestParams);
+        }
+        else {
+            throw new errors.ExchangeError(this.id + ' withdraw() does not support the ' + method + ' method');
+        }
         //
         //     {
         //         "error": false,
@@ -1154,7 +1188,23 @@ class coinmate extends coinmate$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
             method += this.capitalize(type);
         }
-        const response = await this[method](this.extend(request, params));
+        const requestParams = this.extend(request, params);
+        let response = undefined;
+        if (method === 'privatePostBuyInstant') {
+            response = await this.privatePostBuyInstant(requestParams);
+        }
+        else if (method === 'privatePostSellInstant') {
+            response = await this.privatePostSellInstant(requestParams);
+        }
+        else if (method === 'privatePostBuyLimit') {
+            response = await this.privatePostBuyLimit(requestParams);
+        }
+        else if (method === 'privatePostSellLimit') {
+            response = await this.privatePostSellLimit(requestParams);
+        }
+        else {
+            throw new errors.InvalidOrder(this.id + ' createOrder() does not support order type ' + type);
+        }
         const id = this.safeString(response, 'data');
         return this.safeOrder({
             'info': response,

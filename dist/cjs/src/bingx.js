@@ -1326,15 +1326,19 @@ class bingx extends bingx$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (market['inverse']) {
+            throw new errors.NotSupported(this.id + ' fetchTrades() is not supported for inverse swap markets');
+        }
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['limit'] = Math.min(limit, 100); // avoid API exception "limit should less than 100"
-        }
         let response;
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchTrades', market, params);
+        if (limit !== undefined) {
+            const maxLimit = (marketType === 'spot') ? 500 : 1000;
+            request['limit'] = Math.min(limit, maxLimit);
+        }
         if (marketType === 'spot') {
             response = await this.spotV1PublicGetMarketTrades(this.extend(request, params));
         }
@@ -1712,7 +1716,14 @@ class bingx extends bingx$1["default"] {
         //        ]
         //    }
         //
-        const data = this.safeDict(response, 'data');
+        let data;
+        if (market['inverse']) {
+            const dataList = this.safeList(response, 'data', []);
+            data = this.safeDict(dataList, 0, {});
+        }
+        else {
+            data = this.safeDict(response, 'data', {});
+        }
         return this.parseFundingRate(data, market);
     }
     /**
@@ -2022,12 +2033,13 @@ class bingx extends bingx$1["default"] {
         const id = this.safeString(interest, 'symbol');
         const symbol = this.safeSymbol(id, market, '-', 'swap');
         const openInterest = this.safeNumber(interest, 'openInterest');
+        const inverse = this.safeBool(market, 'inverse', false);
         return this.safeOpenInterest({
             'symbol': symbol,
             'baseVolume': undefined,
             'quoteVolume': undefined, // deprecated
-            'openInterestAmount': undefined,
-            'openInterestValue': openInterest,
+            'openInterestAmount': inverse ? openInterest : undefined,
+            'openInterestValue': inverse ? undefined : openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'info': interest,
@@ -2995,7 +3007,7 @@ class bingx extends bingx$1["default"] {
             'symbol': this.safeSymbol(marketId, market, '-', 'swap'),
             'notional': this.safeNumber(position, 'positionValue'),
             'marginMode': marginMode,
-            'liquidationPrice': undefined,
+            'liquidationPrice': this.safeNumberOmitZero(position, 'liquidationPrice'),
             'entryPrice': this.safeNumber2(position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl': this.safeNumber(position, 'unrealizedProfit'),
             'realizedPnl': this.safeNumber(position, 'realisedProfit'),

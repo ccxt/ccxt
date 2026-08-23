@@ -113,6 +113,56 @@ function test_precise() {
     assert(Precise::string_or('10', '5') === '15'); // 1010 | 0101 = 1111 = 15
     assert(Precise::string_or('0', '0') === '0');
     assert(Precise::string_or('7', '0') === '7');
+    // zero divisor
+    assert(Precise::string_div('1', '0') === null);
+    assert(Precise::string_div('0', '0') === null);
+    assert(Precise::string_div('0', '5') === '0');
+    // float precision classics (would fail with binary floats)
+    assert(Precise::string_add('0.1', '0.2') === '0.3');
+    assert(Precise::string_sub('0.3', '0.1') === '0.2');
+    assert(Precise::string_mul('0.1', '0.2') === '0.02');
+    assert(Precise::string_mul('0.1', '0.3') === '0.03');
+    // trailing zero reduction
+    assert(Precise::string_mul('10.00', '1.0') === '10');
+    assert(Precise::string_mul('1000', '1') === '1000');
+    assert(Precise::string_mul('0.500', '20.00') === '10');
+    assert(Precise::string_mul('0.0', '0.00') === '0');
+    assert(Precise::string_add('0.000', '0') === '0');
+    assert(Precise::string_equals('1.2300', '1.23'));
+    assert(Precise::string_equals('1000', '1e3'));
+    // scientific notation
+    assert(Precise::string_mul('1.23e2', '1e-2') === '1.23');
+    assert(Precise::string_mul('1E8', '2') === '200000000'); // uppercase exponent marker
+    assert(Precise::string_add('1e2', '1e-2') === '100.01');
+    assert(Precise::string_abs('-1.23e-6') === '0.00000123');
+    assert(Precise::string_neg('1.23e-6') === '-0.00000123');
+    // division truncates toward zero
+    assert(Precise::string_div('10', '4') === '2.5');
+    assert(Precise::string_div('-10', '4') === '-2.5');
+    assert(Precise::string_div('1', '3', 5) === '0.33333');
+    assert(Precise::string_div('-1', '3', 5) === '-0.33333');
+    assert(Precise::string_div('1', '7', 25) === '0.1428571428571428571428571');
+    // negative distance (more decimals than precision) truncates to zero
+    assert(Precise::string_div('0.00000000000000000000000000001', '1') === '0');
+    // precision around the boundary of implementations with a precomputed
+    // power-of-ten table (js/python cover exponents up to 128, then fall
+    // back to exponentiation — the results must not differ)
+    assert(Precise::string_div('1', '3', 128) === '0.33333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+    assert(Precise::string_div('1', '3', 129) === '0.333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+    assert(Precise::string_div('1', '3', 130) === '0.3333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333');
+    // uppercase negative exponent marker
+    assert(Precise::string_mul('-1.5E-3', '2') === '-0.003');
+    // comparisons with scientific notation
+    assert(Precise::string_gt('1e3', '999.999'));
+    assert(!Precise::string_lt('1e-3', '0.001')); // equal values, different representation
+    assert(Precise::string_max('1e3', '999.999') === '1000');
+    assert(Precise::string_min('999.999', '1e3') === '999.999');
+    // large integers
+    assert(Precise::string_mul('123456789012345678901234567890', '987654321') === '121932631124828532112482853211126352690');
+    assert(Precise::string_add('123456789012345678901234567890', '123456789012345678901234567890') === '246913578024691357802469135780');
+    // positive modulo
+    assert(Precise::string_mod('1000000000.123', '7') === '6.123');
+    assert(Precise::string_mod('7.5', '2.5') === '0');
     // with undefined arguments
     assert(Precise::string_mul(null, '1') === null);
     assert(Precise::string_mul('1', null) === null);

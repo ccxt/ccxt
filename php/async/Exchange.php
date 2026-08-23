@@ -46,11 +46,11 @@ use Lighter\Signer;
 
 use Exception;
 
-$version = '4.5.74';
+$version = '4.5.75';
 
 class BaseExchange extends \ccxt\BaseExchange {
 
-    const VERSION = '4.5.74';
+    const VERSION = '4.5.75';
 
     public $browser;
     public $marketsLoading = null;
@@ -153,135 +153,141 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function fetch($url, $method = 'GET', $headers = null, $body = null) {
         // wrap this in as a promise so it executes asynchronously
-        return React\Async\async(function () use ($url, $method, $headers, $body) {
+        return React\Async\async(self::fetch_transport(...))($url, $method, $headers, $body);
+    }
 
-            $this->last_request_headers = $headers;
+    protected function do_fetch($url, $method = 'GET', $headers = null, $body = null) {
+        return self::fetch_transport($url, $method, $headers, $body);
+    }
 
-            // ##### PROXY & HEADERS #####
-            $headers = array_merge($this->headers, $headers ? $headers : array());
-            // proxy-url
-            $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
-            if ($proxyUrl !== null) {
-                $headers['Origin'] = $this->origin;
-                $url = $proxyUrl . $this->url_encoder_for_proxy_url($url);
+    private function fetch_transport($url, $method = 'GET', $headers = null, $body = null) {
+
+        $this->last_request_headers = $headers;
+
+        // ##### PROXY & HEADERS #####
+        $headers = array_merge($this->headers, $headers ? $headers : array());
+        // proxy-url
+        $proxyUrl = $this->check_proxy_url_settings($url, $method, $headers, $body);
+        if ($proxyUrl !== null) {
+            $headers['Origin'] = $this->origin;
+            $url = $proxyUrl . $this->url_encoder_for_proxy_url($url);
+        }
+        // proxy agents
+        [$httpProxy, $httpsProxy, $socksProxy] = $this->check_proxy_settings($url, $method, $headers, $body);
+        $this->checkConflictingProxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
+        $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
+        if ($connector) {
+            $this->set_request_browser($connector);
+        } else {
+            $this->set_request_browser($this->default_connector);
+        }
+        // user-agent
+        $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
+        if ($userAgent) {
+            if (gettype($userAgent) === 'string') {
+                $headers = array_merge(['User-Agent' => $userAgent], $headers);
+            } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
+                $headers = array_merge($userAgent, $headers);
             }
-            // proxy agents
-            [$httpProxy, $httpsProxy, $socksProxy] = $this->check_proxy_settings($url, $method, $headers, $body);
-            $this->checkConflictingProxies($httpProxy || $httpsProxy || $socksProxy, $proxyUrl);
-            $connector = $this->setProxyAgents($httpProxy, $httpsProxy, $socksProxy);
-            if ($connector) {
-                $this->set_request_browser($connector);
-            } else {
-                $this->set_request_browser($this->default_connector);
-            }
-            // user-agent
-            $userAgent = ($this->userAgent !== null) ? $this->userAgent : $this->user_agent;
-            if ($userAgent) {
-                if (gettype($userAgent) === 'string') {
-                    $headers = array_merge(['User-Agent' => $userAgent], $headers);
-                } elseif ((gettype($userAgent) === 'array') && array_key_exists('User-Agent', $userAgent)) {
-                    $headers = array_merge($userAgent, $headers);
-                }
-            }
-            // multipart/form-data
-            if (is_array($headers)) {
-                $tmp = $headers;
-                foreach ($tmp as $key => $value) {
-                    if (strtolower($key) == 'content-type') {
-                        if ($value == 'multipart/form-data') {
-                            $boundary = '--------------------------' . $this->random_bytes(12);
-                            $eol = "\r\n";
-                            $newBody = '';
-                            foreach ($body as $fKey => $fValue) {
-                                $newBody .= '--' . $boundary . $eol . 'Content-Disposition: form-data; name="' . $fKey . '"' . $eol . $eol . $fValue . $eol;
-                            }
-                            $newBody .= '--' . $boundary . '--' . $eol;
-                            $value .= '; boundary=' . $boundary;
-                            $headers[$key] = $value;
-                            $body = $newBody;
+        }
+        // multipart/form-data
+        if (is_array($headers)) {
+            $tmp = $headers;
+            foreach ($tmp as $key => $value) {
+                if (strtolower($key) == 'content-type') {
+                    if ($value == 'multipart/form-data') {
+                        $boundary = '--------------------------' . $this->random_bytes(12);
+                        $eol = "\r\n";
+                        $newBody = '';
+                        foreach ($body as $fKey => $fValue) {
+                            $newBody .= '--' . $boundary . $eol . 'Content-Disposition: form-data; name="' . $fKey . '"' . $eol . $eol . $fValue . $eol;
                         }
+                        $newBody .= '--' . $boundary . '--' . $eol;
+                        $value .= '; boundary=' . $boundary;
+                        $headers[$key] = $value;
+                        $body = $newBody;
                     }
                 }
             }
-            // set final headers
-            $headers = $this->set_headers($headers);
-            // log
-            if ($this->verbose) {
-                print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
+        }
+        // set final headers
+        $headers = $this->set_headers($headers);
+        // log
+        if ($this->verbose) {
+            print_r(array('fetch Request:', $this->id, $method, $url, 'RequestHeaders:', $headers, 'RequestBody:', $body));
+        }
+        // end of proxies & headers
+
+        $this->lastRestRequestTimestamp = $this->milliseconds();
+
+        try {
+            $body = $body ?? ''; // https://github.com/ccxt/ccxt/pull/16555
+            $result = React\Async\await($this->browser->request($method, $url, $headers, $body));
+        } catch (Exception $e) {
+            $message = $e->getMessage();
+            if (strpos($message, 'timed out') !== false) { // no way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
+                throw new ccxt\RequestTimeout(implode(' ', array($url, $method, 28, $message))); // 28 for compatibility with CURL
+            } else if (strpos($message, 'DNS query') !== false) {
+                throw new ccxt\NetworkError($message);
+            } else {
+                throw new ccxt\NetworkError($message);
             }
-            // end of proxies & headers
+        }
 
-            $this->lastRestRequestTimestamp = $this->milliseconds();
+        $raw_response_headers = $result->getHeaders();
+        $raw_header_keys = array_keys($raw_response_headers);
+        $response_headers = array();
+        foreach ($raw_header_keys as $header) {
+            $response_headers[strtolower($header)] = $result->getHeaderLine($header);
+        }
+        $http_status_code = $result->getStatusCode();
+        $http_status_text = $result->getReasonPhrase();
+        $response_body = strval($result->getBody());
 
-            try {
-                $body = $body ?? ''; // https://github.com/ccxt/ccxt/pull/16555
-                $result = React\Async\await($this->browser->request($method, $url, $headers, $body));
-            } catch (Exception $e) {
-                $message = $e->getMessage();
-                if (strpos($message, 'timed out') !== false) { // no way to determine this easily https://github.com/clue/reactphp-buzz/issues/146
-                    throw new ccxt\RequestTimeout(implode(' ', array($url, $method, 28, $message))); // 28 for compatibility with CURL
-                } else if (strpos($message, 'DNS query') !== false) {
-                    throw new ccxt\NetworkError($message);
-                } else {
-                    throw new ccxt\NetworkError($message);
+        if (array_key_exists('content-encoding', $response_headers) && $response_headers['content-encoding'] !== null) {
+            if (preg_match('~[^\x20-\x7E\t\r\n]~', $response_body) > 0) { // only decompress if the message is a binary
+                $contentEncoding = $response_headers['content-encoding'];
+                if (strpos($contentEncoding, 'gzip') >= 0) {
+                    $response_body = \ccxt\pro\gunzip($response_body);
+                } else if (strpos($contentEncoding, 'deflate') >= 0) {
+                    $response_body = \ccxt\pro\inflate($response_body);
                 }
             }
+        }
 
-            $raw_response_headers = $result->getHeaders();
-            $raw_header_keys = array_keys($raw_response_headers);
-            $response_headers = array();
-            foreach ($raw_header_keys as $header) {
-                $response_headers[strtolower($header)] = $result->getHeaderLine($header);
+        $response_body = $this->on_rest_response($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $headers, $body);
+
+        if ($this->enableLastHttpResponse) {
+            $this->last_http_response = $response_body;
+        }
+
+        if ($this->enableLastResponseHeaders) {
+            $this->last_response_headers = $response_headers;
+        }
+
+        if ($this->verbose) {
+            print_r(array('fetch Response:', $this->id, $method, $url, $http_status_code, 'ResponseHeaders:', $response_headers, 'ResponseBody:', $response_body));
+        }
+
+        $json_response = null;
+        $is_json_encoded_response = $this->is_json_encoded_object($response_body);
+
+        if ($is_json_encoded_response) {
+            $json_response = $this->parse_json($response_body);
+            if ($this->enableLastJsonResponse) {
+                $this->last_json_response = $json_response;
             }
-            $http_status_code = $result->getStatusCode();
-            $http_status_text = $result->getReasonPhrase();
-            $response_body = strval($result->getBody());
-
-            if (array_key_exists('content-encoding', $response_headers) && $response_headers['content-encoding'] !== null) {
-                if (preg_match('~[^\x20-\x7E\t\r\n]~', $response_body) > 0) { // only decompress if the message is a binary
-                    $contentEncoding = $response_headers['content-encoding'];
-                    if (strpos($contentEncoding, 'gzip') >= 0) {
-                        $response_body = \ccxt\pro\gunzip($response_body);
-                    } else if (strpos($contentEncoding, 'deflate') >= 0) {
-                        $response_body = \ccxt\pro\inflate($response_body);
-                    }
-                }
+            if ($this->returnResponseHeaders) {
+                $json_response['responseHeaders'] = $response_headers;
             }
+        }
 
-            $response_body = $this->on_rest_response($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $headers, $body);
+        $response_body = $response_body ? $response_body : '';
+        $http_status_text = $http_status_text ? $http_status_text : '';
+        $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
+        $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
 
-            if ($this->enableLastHttpResponse) {
-                $this->last_http_response = $response_body;
-            }
-
-            if ($this->enableLastResponseHeaders) {
-                $this->last_response_headers = $response_headers;
-            }
-
-            if ($this->verbose) {
-                print_r(array('fetch Response:', $this->id, $method, $url, $http_status_code, 'ResponseHeaders:', $response_headers, 'ResponseBody:', $response_body));
-            }
-
-            $json_response = null;
-            $is_json_encoded_response = $this->is_json_encoded_object($response_body);
-
-            if ($is_json_encoded_response) {
-                $json_response = $this->parse_json($response_body);
-                if ($this->enableLastJsonResponse) {
-                    $this->last_json_response = $json_response;
-                }
-                if ($this->returnResponseHeaders) {
-                    $json_response['responseHeaders'] = $response_headers;
-                }
-            }
-
-            $response_body = $response_body ? $response_body : '';
-            $http_status_text = $http_status_text ? $http_status_text : '';
-            $this->handle_errors($http_status_code, $http_status_text, $url, $method, $response_headers, $response_body, $json_response, $headers, $body);
-            $this->handle_http_status_code($http_status_code, $http_status_text, $url, $method, $response_body);
-
-            return isset($json_response) ? $json_response : $response_body;
-        })();
+        return isset($json_response) ? $json_response : $response_body;
     }
 
     public function fetch_currencies($params = array()) {
@@ -4058,7 +4064,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         return Async\async(self::do_fetch2(...))($path, $api, $method, $params, $headers, $body, $config);
     }
 
-    private function do_fetch2(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
+    protected function do_fetch2(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
             Async\await($this->throttle($cost));
@@ -4080,7 +4086,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                     $fetchData['request'] = $request;
                 }
                 $this->set_last_request($request);
-                $response = Async\await($this->fetch($request['url'], $request['method'], $request['headers'], $request['body']));
+                $response = $this->do_fetch($request['url'], $request['method'], $request['headers'], $request['body']);
                 if ($fetchDataCacheEnabled && ($fetchData !== null)) {
                     $fetchData['response']['body'] = $response;
                     $this->add_fetch_cache($fetchData);
@@ -4116,7 +4122,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     private function do_request(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        return Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        return $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
     }
 
     public function load_accounts($reload = false, $params = array()) {

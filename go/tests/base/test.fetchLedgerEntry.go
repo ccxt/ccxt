@@ -6,31 +6,31 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestFetchLedgerEntry(exchange ccxt.ICoreExchange, skippedProperties any, code any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "fetchLedgerEntry"
-
-		items := (<-exchange.FetchLedger(code))
-		PanicOnError(items)
-		var length any = GetArrayLength(items)
-		AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
-		if IsTrue(IsGreaterThan(length, 0)) {
-			var firstItem any = GetValue(items, 0)
-			var id any = GetValue(firstItem, "id")
-			if IsTrue(!IsEqual(id, nil)) {
-
-				item := (<-exchange.FetchLedgerEntry(id))
-				PanicOnError(item)
-				var now any = exchange.Milliseconds()
-				TestLedgerEntry(exchange, skippedProperties, method, item, code, now)
-			}
-		}
-
-		ch <- true
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go testFetchLedgerEntryBody(ch, exchange, skippedProperties, code)
 	return ch
+}
+func testFetchLedgerEntryBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, code any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "fetchLedgerEntry"
+
+	items := (<-exchange.FetchLedger(code))
+	PanicOnError(items)
+	var length int = GetArrayLength(items)
+	AssertNonEmtpyArray(exchange, skippedProperties, method, items, code)
+	if IsTrue(IsGreaterThan(length, 0)) {
+		var firstItem any = GetValue(items, 0)
+		var id any = GetValue(firstItem, "id")
+		if IsTrue(!IsEqual(id, nil)) {
+
+			item := (<-exchange.FetchLedgerEntry(id))
+			PanicOnError(item)
+			var now any = exchange.Milliseconds()
+			TestLedgerEntry(exchange, skippedProperties, method, item, code, now)
+		}
+	}
+
+	ch <- true
+	return nil
 }

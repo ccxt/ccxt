@@ -25,7 +25,7 @@ export default class bitmex extends bitmexRest {
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
-                'watchPostions': true,
+                'watchPositions': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -750,7 +750,8 @@ export default class bitmex extends bitmexRest {
         const subscriptionHash = 'position';
         let messageHash = 'positions';
         if (!this.isEmpty(symbols)) {
-            messageHash = '::' + symbols.join(',');
+            symbols = this.marketSymbols(symbols);
+            messageHash = 'positions::' + symbols.join(',');
         }
         const url = this.urls['api']['ws'];
         const request = {

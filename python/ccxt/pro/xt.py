@@ -7,6 +7,7 @@ import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
 
@@ -84,32 +85,59 @@ class xt(ccxt.async_support.xt):
         client = self.client(url)
         token = self.safe_string(client.subscriptions, 'token')
         if token is None:
-            if isContract:
-                response = await self.privateLinearGetFutureUserV1UserListenKey()
-                #
-                #    {
-                #        returnCode: '0',
-                #        msgInfo: 'success',
-                #        error: null,
-                #        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                #    }
-                #
-                client.subscriptions['token'] = self.safe_string(response, 'result')
-            else:
-                response = await self.privateSpotPostWsToken()
-                #
-                #    {
-                #        "rc": 0,
-                #        "mc": "SUCCESS",
-                #        "ma": [],
-                #        "result": {
-                #            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                #            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                #        }
-                #    }
-                #
-                result = self.safe_dict(response, 'result')
-                client.subscriptions['token'] = self.safe_string(result, 'accessToken')
+            # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            # concurrent callers each minted their own token, last write won, and the losers
+            # carried an orphaned token into name + '@' + listenKey so their streams went dead
+            messageHash = 'authenticate:' + tradeType
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the token is then in the bucket
+                await client.future(messageHash)
+                return client.subscriptions['token']
+            # client.futures is the same registry Exchange.watch() dedupes on, so registering
+            # the flight here, before any suspension point, makes concurrent callers wait
+            future = client.reusableFuture(messageHash)
+            try:
+                listenKey = None
+                if isContract:
+                    response = await self.privateLinearGetFutureUserV1UserListenKey()
+                    #
+                    #    {
+                    #        returnCode: '0',
+                    #        msgInfo: 'success',
+                    #        error: null,
+                    #        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    #    }
+                    #
+                    listenKey = self.safe_string(response, 'result')
+                else:
+                    response = await self.privateSpotPostWsToken()
+                    #
+                    #    {
+                    #        "rc": 0,
+                    #        "mc": "SUCCESS",
+                    #        "ma": [],
+                    #        "result": {
+                    #            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    #            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    #        }
+                    #    }
+                    #
+                    result = self.safe_dict(response, 'result')
+                    listenKey = self.safe_string(result, 'accessToken')
+                if listenKey is None:
+                    # reject instead of caching an empty token, so waiters
+                    # retry rather than subscribing with the literal
+                    # string 'None' for the rest of the session
+                    raise AuthenticationError(self.id + ' getListenKey() received an empty listen key')
+                client.subscriptions['token'] = listenKey
+                client.resolve(listenKey, messageHash)
+            except Exception as e:
+                # hand the failure to every waiter so the next caller re-leads instead of
+                # deadlocking on a dead flight. no raise here: the trailing future rethrows
+                # to self caller and keeps a waiterless rejection from crashing the process
+                client.reject(e, messageHash)
+            await future
         return client.subscriptions['token']
 
     def get_cache_index(self, orderbook: object, cache: object):

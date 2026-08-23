@@ -52,25 +52,25 @@ func (this *KucoinfuturesCore) Describe() any {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"method": "futuresPublicGetAllTickers",
-		}
-
-		retRes5615 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
-		PanicOnError(retRes5615)
-		ch <- retRes5615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBidsAsksBody(ch, optionalArgs...)
 	return ch
+}
+func (this *KucoinfuturesCore) fetchBidsAsksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"method": "futuresPublicGetAllTickers",
+	}
+
+	retRes5615 := (<-this.FetchTickers(symbols, this.Extend(request, params)))
+	PanicOnError(retRes5615)
+	ch <- retRes5615
+	return nil
 }
 
 /**
@@ -85,52 +85,52 @@ func (this *KucoinfuturesCore) FetchBidsAsks(optionalArgs ...any) <-chan any {
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *KucoinfuturesCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes7212 := (<-this.LoadMarkets())
-			PanicOnError(retRes7212)
-		}
-		var currency any = this.Currency(code)
-		var amountToPrecision any = this.CurrencyToPrecision(code, amount)
-		var request any = map[string]any{
-			"currency": this.SafeString(currency, "id"),
-			"amount":   amountToPrecision,
-		}
-		var toAccountString any = this.ParseTransferType(toAccount)
-		var response any = nil
-		if IsTrue(IsTrue(IsEqual(toAccountString, "TRADE")) || IsTrue(IsEqual(toAccountString, "MAIN"))) {
-			AddElementToObject(request, "recAccountType", toAccountString)
-
-			response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(IsTrue(IsTrue(IsEqual(toAccount, "future")) || IsTrue(IsEqual(toAccount, "swap"))) || IsTrue(IsEqual(toAccount, "contract"))) {
-			AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
-
-			response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			panic(BadRequest(Add(this.Id, " transfer() only supports transfers between future/swap, spot and funding accounts")))
-		}
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.Extend(this.ParseTransfer(data, currency), map[string]any{
-			"amount":      this.ParseNumber(amountToPrecision),
-			"fromAccount": fromAccount,
-			"toAccount":   toAccount,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
+func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes7212 := (<-this.LoadMarkets())
+		PanicOnError(retRes7212)
+	}
+	var currency any = this.Currency(code)
+	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
+	var request map[string]any = map[string]any{
+		"currency": this.SafeString(currency, "id"),
+		"amount":   amountToPrecision,
+	}
+	var toAccountString any = this.ParseTransferType(toAccount)
+	var response any = nil
+	if IsTrue(IsTrue(IsEqual(toAccountString, "TRADE")) || IsTrue(IsEqual(toAccountString, "MAIN"))) {
+		AddElementToObject(request, "recAccountType", toAccountString)
+
+		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
+		PanicOnError(response)
+	} else if IsTrue(IsTrue(IsTrue(IsEqual(toAccount, "future")) || IsTrue(IsEqual(toAccount, "swap"))) || IsTrue(IsEqual(toAccount, "contract"))) {
+		AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
+
+		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		panic(BadRequest(Add(this.Id, " transfer() only supports transfers between future/swap, spot and funding accounts")))
+	}
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.Extend(this.ParseTransfer(data, currency), map[string]any{
+		"amount":      this.ParseNumber(amountToPrecision),
+		"fromAccount": fromAccount,
+		"toAccount":   toAccount,
+	})
+	return nil
+}
 func (this *KucoinfuturesCore) ParseTransferType(transferType any) any {
-	var transferTypes any = map[string]any{
+	var transferTypes map[string]any = map[string]any{
 		"spot":    "TRADE",
 		"funding": "MAIN",
 	}

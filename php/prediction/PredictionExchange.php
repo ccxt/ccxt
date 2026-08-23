@@ -1726,7 +1726,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
     private function do_eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
         $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
         $headers = array( 'Content-Type' => 'application/json' );
-        $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
+        $response = $this->do_fetch($rpcUrl, 'POST', $headers, $this->json($payload));
         $rpcError = $this->safe_value($response, 'error');
         if ($rpcError !== null) {
             throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));

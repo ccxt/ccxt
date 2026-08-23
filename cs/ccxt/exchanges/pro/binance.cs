@@ -368,88 +368,6 @@ public partial class binance : ccxt.binance
         return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
     }
 
-    public async virtual Task authenticateStock(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        object options = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
-        object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
-        object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
-        object now = this.milliseconds();
-        object delay = this.sum(listenKeyRefreshRate, 10000);
-        if (isTrue(isGreaterThan((subtract(now, lastAuthenticatedTime)), delay)))
-        {
-            // the stock user stream url embeds this listenKey, so the future is parked
-            // on the listenKey-free market url of the same host
-            var client = this.client(this.getStockWsUrl("market"));
-            object messageHash = "authenticate:stock";
-            if (isTrue(inOp(client.futures, messageHash)))
-            {
-                // another caller is already fetching, wait for it instead of fetching again
-                await client.future(messageHash);
-                return;
-            }
-            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
-            try
-            {
-                object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
-                object response = await this.sapiPostEquityListenKey(requestParams);
-                object listenKey = this.safeString(response, "listenKey");
-                ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
-                    { "listenKey", listenKey },
-                    { "lastAuthenticatedTime", now },
-                });
-                this.delay(listenKeyRefreshRate,  this.keepAliveStockListenKey, new object[] { parameters});
-                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
-            } catch(Exception e)
-            {
-                ((WebSocketClient)client).reject(e, messageHash);
-                throw e;
-            }
-        }
-    }
-
-    public async virtual Task keepAliveStockListenKey(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        try
-        {
-            object options = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
-            object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
-            object response = await this.sapiPostEquityListenKey(requestParams);
-            object listenKey = this.safeString(response, "listenKey");
-            object now = this.milliseconds();
-            ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
-                { "listenKey", listenKey },
-                { "lastAuthenticatedTime", now },
-            });
-        } catch(Exception error)
-        {
-            object options = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.options)["stock"] = this.extend(options, new Dictionary<string, object>() {
-                { "listenKey", null },
-                { "lastAuthenticatedTime", 0 },
-            });
-            return;
-        }
-        object clients = new List<object>(((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Values);
-        object listenKeyRefreshRate = this.safeInteger(this.options, "stockListenKeyRefreshRate", 1200000);
-        for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
-        {
-            var client = getValue(clients, i);
-            object clientSubscriptions = this.safeDict(client as WebSocketClient, "subscriptions", new Dictionary<string, object>() {});
-            object subscriptionKeys = new List<object>(((IDictionary<string,object>)clientSubscriptions).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(subscriptionKeys)); postFixIncrement(ref j))
-            {
-                object subscribeType = getValue(subscriptionKeys, j);
-                if (isTrue(isEqual(subscribeType, "stock")))
-                {
-                    this.delay(listenKeyRefreshRate,  this.keepAliveStockListenKey, new object[] { parameters});
-                    return;
-                }
-            }
-        }
-    }
-
     /**
      * @method
      * @name binance#watchLiquidations
@@ -510,24 +428,16 @@ public partial class binance : ccxt.binance
         {
             firstMarket = this.getMarketFromSymbols(symbols);
         }
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
+        object resolvedAuth = this.resolveAuthType("watchLiquidationsForSymbols", firstMarket, parameters);
+        object type = getValue(resolvedAuth, 0);
+        parameters = getValue(resolvedAuth, 2);
+        // the spot check runs on the RESOLVED type: a spot default combined
+        // with a linear or inverse defaultSubType means the caller wants the
+        // matching derivatives stream, so the rewrite is allowed to route it
+        // there and only a request that still resolves to spot throws
         if (isTrue(isEqual(type, "spot")))
         {
             throw new BadRequest ((string)add(this.id, " watchLiquidationsForSymbols is not supported for spot symbols")) ;
-        }
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchLiquidationsForSymbols", firstMarket, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
         }
         if (isTrue(isEqual(type, "option")))
         {
@@ -751,21 +661,19 @@ public partial class binance : ccxt.binance
             }
         }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
-        await this.authenticate(parameters);
+        var typesubTypeparametersVariable = this.resolveAuthType("watchMyLiquidationsForSymbols", market, parameters);
+        type = ((IList<object>)typesubTypeparametersVariable)[0];
+        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        // hand the resolved type forward: the helper already omitted type and
+        // subType from params, so a bare authenticate would re-derive from
+        // options.defaultType and seed a different bucket than the listenKey
+        // read below indexes - the derive-first shape watchBalance uses
+        await this.authenticate(this.extend(new Dictionary<string, object>() {
+            { "type", type },
+            { "subType", subType },
+        }, parameters));
         object listenKey = getValue(getValue(this.options, type), "listenKey");
         object url = this.getPrivateWsUrl(type, listenKey);
         object message = null;
@@ -3497,25 +3405,13 @@ public partial class binance : ccxt.binance
     {
         parameters ??= new Dictionary<string, object>();
         object time = this.milliseconds();
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("authenticate", null, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("authenticate", null, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object resolvedAuth = this.resolveAuthType("authenticate", null, parameters);
+        object type = getValue(resolvedAuth, 0);
+        parameters = getValue(resolvedAuth, 2);
         object isPortfolioMargin = null;
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
         // For spot use WebSocket API signature subscription
         if (isTrue(isEqual(type, "spot")))
         {
@@ -3544,29 +3440,42 @@ public partial class binance : ccxt.binance
             return;
         }
         parameters = this.omit(parameters, "symbol");
+        object isStock = (isEqual(type, "stock"));
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
         object lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
-        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+        object refreshRateKey = ((bool) isTrue(isStock)) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+        object listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
         object delay = this.sum(listenKeyRefreshRate, 10000);
         if (isTrue(isGreaterThan(subtract(time, lastAuthenticatedTime), delay)))
         {
-            // the private url embeds the listenKey that this request produces, so the future
-            // is parked on the listenKey-free base url of that same stream - concurrent
-            // callers wait for the leader instead of fetching a second listenKey, which
-            // would split the user-data subscriptions across two connections
-            var client = this.client(this.getWsUrl(type, "private"));
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393
+            // the flight is registered on a never-dialed client because the
+            // user-data url embeds the listenKey, so no real client exists
+            // before the fetch and no listenKey-free parking url is needed.
+            // client.futures is the registry: client.future () is the atomic
+            // check-and-insert and client.resolve () / ((WebSocketClient)client).reject () settle
+            // and remove the entry under the same lock in every port
             object messageHash = add("authenticate:", type);
+            var client = this.client("authenticationFlights");
             if (isTrue(inOp(client.futures, messageHash)))
             {
-                // another caller is already fetching, wait for it instead of fetching again
+                // a flight is already in progress - wake when the leader
+                // settles it: the listenKey is then in the bucket
                 await client.future(messageHash);
                 return;
             }
-            client.future(messageHash); // created ahead of the request below, so concurrent callers can find it
+            // reusableFuture (), not future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            var future = client.reusableFuture(messageHash);
             try
             {
                 object response = null;
-                if (isTrue(isPortfolioMargin))
+                if (isTrue(isStock))
+                {
+                    object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+                    response = await this.sapiPostEquityListenKey(requestParams);
+                } else if (isTrue(isPortfolioMargin))
                 {
                     response = await this.papiPostListenKey(parameters);
                     parameters = this.extend(parameters, new Dictionary<string, object>() {
@@ -3586,17 +3495,36 @@ public partial class binance : ccxt.binance
                     response = await this.publicPostUserDataStream(parameters);
                 }
                 object listenKey = this.safeString(response, "listenKey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
                 ((IDictionary<string,object>)this.options)[(string)type] = this.extend(options, new Dictionary<string, object>() {
                     { "listenKey", listenKey },
                     { "lastAuthenticatedTime", time },
                 });
-                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                // hoisted out of the delay call: the transpilers garble an inline
+                // dict literal nested inside a delay argument
+                object delayParams = parameters;
+                if (isTrue(isStock))
+                {
+                    delayParams = this.extend(parameters, new Dictionary<string, object>() {
+                        { "type", "stock" },
+                        { "defaultType", "stock" },
+                    });
+                }
+                this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { delayParams});
+                // settle the flight: client.resolve () removes the future from
+                // client.futures and wakes every waiter
                 callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
             } catch(Exception e)
             {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
                 ((WebSocketClient)client).reject(e, messageHash);
-                throw e;
             }
+            await future;
         }
     }
 
@@ -3612,10 +3540,15 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
         object subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
         object subType = getValue(subTypeInfo, 0);
-        if (isTrue(!isEqual(type, "option")))
+        if (isTrue(isTrue(!isEqual(type, "option")) && isTrue(!isEqual(type, "stock"))))
         {
             // guard options first: isLinear returns true for linear-settled options (subType='linear')
-            // which would incorrectly convert type='option' to 'future'
+            // which would incorrectly convert type='option' to 'future'.
+            // stock needs the same exemption: with a defaultSubType of 'linear' -
+            // always on binanceusdm, common on mixed instances - isLinear keys off
+            // subType alone and would flip 'stock' to 'future' - the stock branch
+            // below would never run, and the bucket lookup would renew the
+            // FUTURES listen key while the stock key silently expires
             if (isTrue(this.isLinear(type, subType)))
             {
                 type = "future";
@@ -3629,11 +3562,15 @@ public partial class binance : ccxt.binance
         {
             return;
         }
+        object isStock = (isEqual(type, "stock"));
         object options = this.safeValue(this.options, type, new Dictionary<string, object>() {});
         object listenKey = this.safeString(options, "listenKey");
         if (isTrue(isEqual(listenKey, null)))
         {
             // A network error happened: we can't renew a listen key that does not exist.
+            // this guard now covers stock too - the old stock path would POST here and
+            // resurrect a fresh key without reconnecting the dead stream, leaving the
+            // options bucket claiming a healthy auth over a broken user stream
             return;
         }
         object request = new Dictionary<string, object>() {};
@@ -3641,7 +3578,13 @@ public partial class binance : ccxt.binance
         object time = this.milliseconds();
         try
         {
-            if (isTrue(isPortfolioMargin))
+            if (isTrue(isStock))
+            {
+                // the equity endpoint is create-or-renew: with an active key this
+                // POST extends the validity of that same key
+                object requestParams = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "subType", "timeframe"});
+                await this.sapiPostEquityListenKey(requestParams);
+            } else if (isTrue(isPortfolioMargin))
             {
                 await this.papiPutListenKey(this.extend(request, parameters));
                 parameters = this.extend(parameters, new Dictionary<string, object>() {
@@ -3663,17 +3606,26 @@ public partial class binance : ccxt.binance
             }
         } catch(Exception error)
         {
-            object urlType = type;
-            if (isTrue(isPortfolioMargin))
+            object url = null;
+            if (isTrue(isStock))
             {
-                urlType = "papi";
-            }
-            if (isTrue(isEqual(type, "option")))
+                // the stock user stream lives on a fixed url and subscribes to
+                // listenKey@orderReport, so the client is addressable without the key
+                url = this.getStockWsUrl("user");
+            } else
             {
-                urlType = "optionPrivate";
+                object urlType = type;
+                if (isTrue(isPortfolioMargin))
+                {
+                    urlType = "papi";
+                }
+                if (isTrue(isEqual(type, "option")))
+                {
+                    urlType = "optionPrivate";
+                }
+                object cachedListenKey = getValue(getValue(this.options, type), "listenKey");
+                url = this.getPrivateWsUrl(urlType, cachedListenKey);
             }
-            object cachedListenKey = getValue(getValue(this.options, type), "listenKey");
-            object url = this.getPrivateWsUrl(urlType, cachedListenKey);
             var client = this.client(url);
             object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -3693,7 +3645,16 @@ public partial class binance : ccxt.binance
         });
         // whether or not to schedule another listenKey keepAlive request
         object clients = new List<object>(((IDictionary<string, ccxt.Exchange.WebSocketClient>)this.clients).Values);
-        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+        object refreshRateKey = ((bool) isTrue(isStock)) ? "stockListenKeyRefreshRate" : "listenKeyRefreshRate";
+        object listenKeyRefreshRate = this.safeInteger(this.options, refreshRateKey, 1200000);
+        object delayParams = parameters;
+        if (isTrue(isStock))
+        {
+            // params had type omitted above - restore it so the next cycle routes back here
+            delayParams = this.extend(parameters, new Dictionary<string, object>() {
+                { "type", "stock" },
+            });
+        }
         for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
         {
             var client = getValue(clients, i);
@@ -3704,7 +3665,7 @@ public partial class binance : ccxt.binance
                 object subscribeType = getValue(subscriptionKeys, j);
                 if (isTrue(isEqual(subscribeType, type)))
                 {
-                    this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { parameters});
+                    this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { delayParams});
                     return;
                 }
             }
@@ -4022,24 +3983,24 @@ public partial class binance : ccxt.binance
         {
             await this.loadMarkets();
         }
-        await this.authenticate(parameters);
-        object defaultType = this.safeString(this.options, "defaultType", "spot");
-        object type = this.safeString(parameters, "type", defaultType);
+        // derive BEFORE authenticating and pass the result in: authenticate
+        // re-derives from its own method scope, so without this a method-scoped
+        // options.watchBalance.type seeds one bucket while the read below
+        // indexes another - the same derive-first shape watchOrders uses
+        object type = null;
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        var typesubTypeparametersVariable = this.resolveAuthType("watchBalance", null, parameters);
+        type = ((IList<object>)typesubTypeparametersVariable)[0];
+        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        await this.authenticate(this.extend(new Dictionary<string, object>() {
+            { "type", type },
+            { "subType", subType },
+        }, parameters));
         object isPortfolioMargin = null;
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
         object url = "";
         object urlType = type;
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
@@ -4221,6 +4182,39 @@ public partial class binance : ccxt.binance
             }
         }
         return accountType;
+    }
+
+    public virtual object resolveAuthType(object methodName, object market = null, object parameters = null)
+    {
+        // the single home for user-data type derivation: market type, subType,
+        // and the guarded linear/inverse rewrite. option and stock must keep
+        // their own type, or the listenKey bucket, the endpoint dispatch and
+        // the stream selection all silently degrade to futures - the guarded
+        // sites used to carry seven inline copies of this dance, and the
+        // unguarded copies were the bug class behind the option keepalive and
+        // stock keepalive fixes
+        parameters ??= new Dictionary<string, object>();
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue(!isEqual(type, "option")) && isTrue(!isEqual(type, "stock"))))
+        {
+            if (isTrue(this.isLinear(type, subType)))
+            {
+                type = "future";
+            } else if (isTrue(this.isInverse(type, subType)))
+            {
+                type = "delivery";
+            }
+        }
+        // sites consuming every element unpack this; the two that skip subType
+        // index it positionally instead, so no receiver is declared-but-unread
+        return new List<object>() {type, subType, parameters};
     }
 
     public virtual object getMarketType(object method, object market, object parameters = null)
@@ -4945,7 +4939,11 @@ public partial class binance : ccxt.binance
         parameters = ((IList<object>)stockparametersVariable)[1];
         if (isTrue(stock))
         {
-            await this.authenticateStock(parameters);
+            // literal on top: a stray type in the caller params must not override
+            // the forced stock, the removed authenticateStock ignored it entirely
+            await this.authenticate(this.extend(parameters, new Dictionary<string, object>() {
+                { "type", "stock" },
+            }));
             object stockOptions = this.safeDict(this.options, "stock", new Dictionary<string, object>() {});
             object stockListenKey = this.safeString(stockOptions, "listenKey");
             if (isTrue(isEqual(stockListenKey, null)))
@@ -4985,20 +4983,11 @@ public partial class binance : ccxt.binance
             messageHash = add(messageHash, add(":", symbol));
         }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
+        var typesubTypeparametersVariable = this.resolveAuthType("watchOrders", market, parameters);
+        type = ((IList<object>)typesubTypeparametersVariable)[0];
+        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "type", type },
             { "symbol", symbol },
@@ -5651,25 +5640,22 @@ public partial class binance : ccxt.binance
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var typesubTypeparametersVariable = this.resolveAuthType("watchPositions", market, parameters);
+        type = ((IList<object>)typesubTypeparametersVariable)[0];
+        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
+        // spot and margin have no positions - whatever still RESOLVES to spot
+        // or margin after the helper falls through to the derivatives stream
+        // matching the subType. requests a defaultSubType already rewrote
+        // arrive here as future or delivery and pass untouched, which lands on
+        // the same stream the old raw-type ordering produced in every case
         if (isTrue(isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))
         {
-            type = "future";
+            type = ((bool) isTrue((isEqual(subType, "inverse")))) ? "delivery" : "future";
         }
-        object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchPositions", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
-        // 'option' stays as 'option', don't redirect to 'future'
+        // 'option' stays as 'option', don't redirect to 'future' - the helper's
+        // guard finally makes this comment true
         object marketTypeObject = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)marketTypeObject)["type"] = type;
         ((IDictionary<string,object>)marketTypeObject)["subType"] = subType;
@@ -6155,20 +6141,11 @@ public partial class binance : ccxt.binance
             market = marketResolved;
             symbol = getValue(market, "symbol");
         }
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
         object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters);
-        subType = ((IList<object>)subTypeparametersVariable)[0];
-        parameters = ((IList<object>)subTypeparametersVariable)[1];
-        if (isTrue(this.isLinear(type, subType)))
-        {
-            type = "future";
-        } else if (isTrue(this.isInverse(type, subType)))
-        {
-            type = "delivery";
-        }
+        var typesubTypeparametersVariable = this.resolveAuthType("watchMyTrades", market, parameters);
+        type = ((IList<object>)typesubTypeparametersVariable)[0];
+        subType = ((IList<object>)typesubTypeparametersVariable)[1];
+        parameters = ((IList<object>)typesubTypeparametersVariable)[2];
         object messageHash = "myTrades";
         if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(market, null)))))
         {

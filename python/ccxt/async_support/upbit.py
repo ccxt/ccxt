@@ -770,22 +770,47 @@ class upbit(Exchange, ImplicitAPI):
 
         https://docs.upbit.com/kr/reference/list-tickers
         https://global-docs.upbit.com/reference/list-tickers
+        https://docs.upbit.com/kr/reference/tickers_by_quote
+        https://global-docs.upbit.com/reference/tickers_by_quote
 
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.quote_currencies]: comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is None
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
-        ids = self.market_ids(symbols) if (symbols is not None) else self.ids
-        promises = []
-        queries = self.ids_query_strings(ids, 6400)  # seems upbit server limitations
-        for i in range(0, len(queries)):
-            idsQuery = queries[i]
-            promises.append(self.publicGetTicker({'markets': idsQuery}))
-        responses = await asyncio.gather(*promises)
+        tickers = []
+        if symbols is None:
+            # ticker/all returns every market of the requested quote currencies with a single request
+            quoteIds = []
+            marketSymbols = self.symbols
+            for i in range(0, len(marketSymbols)):
+                market = self.market(marketSymbols[i])
+                quoteId = market['quoteId']
+                if not self.in_array(quoteId, quoteIds):
+                    quoteIds.append(quoteId)
+            sortedQuoteIds = self.sort(quoteIds)  # market iteration order differs per language
+            quoteCurrencies = ''
+            for i in range(0, len(sortedQuoteIds)):
+                if quoteCurrencies != '':
+                    quoteCurrencies = quoteCurrencies + ','
+                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i]
+            request = {
+                'quote_currencies': quoteCurrencies,
+            }
+            tickers = await self.publicGetTickerAll(self.extend(request, params))
+        else:
+            ids = self.market_ids(symbols)
+            promises = []
+            queries = self.ids_query_strings(ids, 4000)  # the url is limited to about 8000 characters once the commas are percent-encoded
+            for i in range(0, len(queries)):
+                idsQuery = queries[i]
+                promises.append(self.publicGetTicker(self.extend({'markets': idsQuery}, params)))
+            responses = await asyncio.gather(*promises)
+            tickers = self.arrays_concat(responses)
         #
         #     [{               market: "BTC-ETH",
         #                    "trade_date": "20181122",
@@ -814,8 +839,7 @@ class upbit(Exchange, ImplicitAPI):
         #           "lowest_52_week_date": "2017-12-08",
         #                     "timestamp":  1542883543813  }]
         #
-        concated = self.arrays_concat(responses)
-        return self.parse_tickers(concated, symbols)
+        return self.parse_tickers(tickers, symbols)
 
     def ids_query_strings(self, ids: Strings, maxQueryLength: float):
         if ids is None:
@@ -1760,10 +1784,10 @@ class upbit(Exchange, ImplicitAPI):
         #        new_order_identifier: '22'
         #      }
         id = self.safe_string(order, 'uuid')
-        side = self.safe_string(order, 'side')
+        side = self.safe_string_lower(order, 'side')
         if side == 'bid':
             side = 'buy'
-        else:
+        elif side == 'ask':
             side = 'sell'
         identifier = self.safe_string(order, 'identifier')
         type = self.safe_string(order, 'ord_type')
