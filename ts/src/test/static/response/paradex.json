@@ -73,7 +73,7 @@
                     "type": "limit",
                     "timeInForce": null,
                     "postOnly": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "side": "buy",
                     "price": 0.6,
                     "triggerPrice": 0,
@@ -322,7 +322,7 @@
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
-                        "reduceOnly": null,
+                        "reduceOnly": false,
                         "side": "buy",
                         "price": 100,
                         "triggerPrice": 0,
@@ -381,7 +381,7 @@
                         "type": "limit",
                         "timeInForce": "GTC",
                         "postOnly": false,
-                        "reduceOnly": null,
+                        "reduceOnly": false,
                         "side": "sell",
                         "price": 200,
                         "triggerPrice": 0,
@@ -478,7 +478,7 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "postOnly": false,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "side": "buy",
                     "price": 120,
                     "triggerPrice": 0,
@@ -2088,7 +2088,7 @@
                     "type": "limit",
                     "timeInForce": null,
                     "postOnly": null,
-                    "reduceOnly": null,
+                    "reduceOnly": false,
                     "side": "buy",
                     "price": 50,
                     "stopPrice": 0,
@@ -2127,6 +2127,111 @@
                       "received_at": "1722423908658",
                       "published_at": "1722423908675",
                       "flags": [],
+                      "trigger_price": "0"
+                    },
+                    "fees": [
+                      {
+                        "cost": null,
+                        "currency": null
+                      }
+                    ]
+                  }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders - reduce-only flag is read from the flags array",
+                "method": "fetchOpenOrders",
+                "input": [
+                  "SOL/USD:USDC"
+                ],
+                "httpResponse": {
+                  "next": null,
+                  "prev": null,
+                  "results": [
+                    {
+                      "id": "1755950400123201709220290001",
+                      "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                      "market": "SOL-USD-PERP",
+                      "side": "SELL",
+                      "type": "LIMIT",
+                      "size": "0.3",
+                      "remaining_size": "0.3",
+                      "price": "250",
+                      "status": "OPEN",
+                      "created_at": "1755950400123",
+                      "last_updated_at": "1755950400140",
+                      "timestamp": "1755950400000",
+                      "cancel_reason": "",
+                      "client_id": "",
+                      "seq_no": "1755950400140364144",
+                      "instruction": "GTC",
+                      "avg_fill_price": "",
+                      "stp": "EXPIRE_TAKER",
+                      "received_at": "1755950400125",
+                      "published_at": "1755950400141",
+                      "flags": [
+                        "REDUCE_ONLY"
+                      ],
+                      "trigger_price": "0"
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "id": "1755950400123201709220290001",
+                    "clientOrderId": null,
+                    "timestamp": 1755950400123,
+                    "datetime": "2025-08-23T12:00:00.123Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": 1755950400140,
+                    "status": "open",
+                    "symbol": "SOL/USD:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": null,
+                    "reduceOnly": true,
+                    "side": "sell",
+                    "price": 250,
+                    "stopPrice": 0,
+                    "triggerPrice": 0,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.3,
+                    "filled": 0,
+                    "remaining": 0.3,
+                    "cost": 0,
+                    "trades": [],
+                    "fee": {
+                      "cost": null,
+                      "currency": null
+                    },
+                    "info": {
+                      "id": "1755950400123201709220290001",
+                      "account": "0xf4919894c0ea05cf4f6fed13731279223b487bacd0b0ebccff4ca4701b82d73",
+                      "market": "SOL-USD-PERP",
+                      "side": "SELL",
+                      "type": "LIMIT",
+                      "size": "0.3",
+                      "remaining_size": "0.3",
+                      "price": "250",
+                      "status": "OPEN",
+                      "created_at": "1755950400123",
+                      "last_updated_at": "1755950400140",
+                      "timestamp": "1755950400000",
+                      "cancel_reason": "",
+                      "client_id": "",
+                      "seq_no": "1755950400140364144",
+                      "instruction": "GTC",
+                      "avg_fill_price": "",
+                      "stp": "EXPIRE_TAKER",
+                      "received_at": "1755950400125",
+                      "published_at": "1755950400141",
+                      "flags": [
+                        "REDUCE_ONLY"
+                      ],
                       "trigger_price": "0"
                     },
                     "fees": [
