@@ -28,9 +28,9 @@ you can reproduce every number.
 Every CCXT request flows through two base methods: `fetch()` (the HTTP layer) and, inside it,
 `parseJson()` (JSON decode). We subclass the exchange and wrap those two methods so every call
 reports its own wire time and decode time — then `processing = total − network`. (Go, C# and
-Java decode JSON through a static helper a subclass can't intercept, so those three use an opt-in
-`Profile` flag we added to their hand-written base.) 60 calls ×
-3 runs against Coinbase `BTC/USD`, p50, with a connection warmup so nothing pays a cold start.
+Java decode JSON through a static helper a subclass can't intercept, so those three use an
+opt-in `Profile` flag we added to their hand-written base.) 60 calls × 3 runs against Coinbase
+`BTC/USD`, p50, with a connection warmup so nothing pays a cold start.
 
 Here's the same call, traced in each language on one shared log time axis:
 
@@ -251,8 +251,8 @@ and hover any span for its exact share of the trace.
 ## Methodology & caveats
 
 - **The network/processing split is measured, not inferred.** We wrap `fetch` and `parseJson`
-  (Go: an opt-in `Profile` flag) so every call reports its own wire and decode time, and the
-  measured network span is always less than the call total.
+  (Go, C# and Java: an opt-in `Profile` flag) so every call reports its own wire and decode
+  time, and the measured network span is always less than the call total.
 - **The load test is offline and deterministic.** The same synthetic 1,000-level book (integer
   values, identical across languages), time-boxed to 8 s, so it measures pure parse throughput.
   `getrusage` CPU counts all threads, so for multi-threaded runtimes (Go's GC, the JVM)
