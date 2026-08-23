@@ -63,10 +63,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return new TradingFeeInterface(res);
+        return res;
     }
     public async Task<Dictionary<string, object>> FetchTradingLimits(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -169,10 +169,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
+        return res;
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -192,10 +192,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
+        return res;
     }
     /// <summary>
     /// fetches the last price for multiple markets
@@ -214,10 +214,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of lastprices structures.</returns>
-    public async Task<LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLastPrices(symbols, parameters);
-        return new LastPrices(res);
+        return res;
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -275,15 +275,15 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderTrades(id, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
-    public async Task<List<Trade>> FetchSpotOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchSpotOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSpotOrderTrades(id, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
     /// <summary>
     /// fetch all trades made by the user
@@ -407,10 +407,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
@@ -501,10 +501,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -841,10 +841,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
@@ -866,10 +866,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, double? trailingPercent = null, double? trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, double? trailingPercent = null, double? trailingTriggerPrice = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createTrailingPercentOrder(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// helper function to build request
@@ -1168,10 +1168,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// cancel multiple orders
@@ -1200,10 +1200,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// cancel all open orders
@@ -1278,10 +1278,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network.</returns>
-    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
+        return res;
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -1298,10 +1298,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
-    public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);
-        return new DepositAddress(res);
+        return res;
     }
     public async Task<List<Dictionary<string, object>>> FetchWithdrawAddresses(string code, string note = null, string networkCode = null, Dictionary<string, object> parameters = null)
     {
@@ -1387,10 +1387,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return new Transaction(res);
+        return res;
     }
     /// <summary>
     /// transfer currency internally between wallets on the same account
@@ -1425,10 +1425,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
+        return res;
     }
     /// <summary>
     /// fetch a history of internal transfers made on an account
@@ -1507,10 +1507,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}.</returns>
-    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchIsolatedBorrowRates(parameters);
-        return new IsolatedBorrowRates(res);
+        return res;
     }
     /// <summary>
     /// fetches historical funding rate prices
@@ -1568,10 +1568,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
-    public async Task<FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRate(symbol, parameters);
-        return new FundingRate(res);
+        return res;
     }
     /// <summary>
     /// fetch the funding rate for multiple markets
@@ -1588,10 +1588,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
+        return res;
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
@@ -1751,10 +1751,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
-        return new Position(res);
+        return res;
     }
     /// <summary>
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1820,10 +1820,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return new LeverageTiers(res);
+        return res;
     }
     /// <summary>
     /// Retrieves the open interest history of a currency
@@ -1887,10 +1887,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterests(symbols, parameters);
-        return new OpenInterests(res);
+        return res;
     }
     /// <summary>
     /// Retrieves the open interest of a currency
@@ -1909,10 +1909,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterest(symbol, parameters);
-        return new OpenInterest(res);
+        return res;
     }
     /// <summary>
     /// Fetches historical settlement records
@@ -1981,10 +1981,10 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return new DepositWithdrawFees(res);
+        return res;
     }
     /// <summary>
     /// retrieves the public liquidations of a trading pair
@@ -2081,9 +2081,9 @@ public partial class htx
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}.</returns>
-    public async Task<List<ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionsADLRank(symbols, parameters);
-        return ((IList<object>)res).Select(item => new ADL(item)).ToList<ADL>();
+        return res;
     }
 }

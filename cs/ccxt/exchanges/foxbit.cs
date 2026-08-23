@@ -423,8 +423,8 @@ public partial class foxbit : Exchange
             object networkCode = this.networkIdToCode(networkId, code);
             object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
             object networkDepositInfo = this.safeDict(network, "deposit_info");
-            bool isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-            bool isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
+            object isWithdrawEnabled = isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
+            object isDepositEnabled = isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -602,7 +602,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -739,7 +739,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -792,7 +792,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -837,8 +837,9 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -944,7 +945,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("ACTIVE", symbol, since, limit, parameters);
@@ -961,13 +962,13 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("FILLED", symbol, since, limit, parameters);
     }
 
-    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByStatus("CANCELED", symbol, since, limit, parameters);
@@ -1023,8 +1024,9 @@ public partial class foxbit : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string typeTyped, string side, object amount, object price = null, object parameters = null)
     {
+        object type = typeTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1209,7 +1211,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1243,7 +1245,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1283,7 +1285,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1329,7 +1331,7 @@ public partial class foxbit : Exchange
      * @param {string} [params.side] Enum: BUY, SELL
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1394,7 +1396,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1450,7 +1452,7 @@ public partial class foxbit : Exchange
      * @param {string} [params.networkCode] the blockchain network to create a deposit address on
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1493,7 +1495,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1550,7 +1552,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1626,8 +1628,8 @@ public partial class foxbit : Exchange
     public async override Task<object> fetchTransactions(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object withdrawals = await this.fetchWithdrawals(code, since, limit, parameters);
-        object deposits = await this.fetchDeposits(code, since, limit, parameters);
+        object withdrawals = await this.fetchWithdrawals(((string)code), since, limit, parameters);
+        object deposits = await this.fetchDeposits(((string)code), since, limit, parameters);
         object allTransactions = this.arrayConcat(withdrawals, deposits);
         object result = this.sortBy(allTransactions, "timestamp");
         return result;
@@ -1689,8 +1691,9 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(string id, string symbol, string typeTyped, string side, object amount = null, object price = null, object parameters = null)
     {
+        object type = typeTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1765,8 +1768,9 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tagTyped = null, object parameters = null)
     {
+        object tag = tagTyped;
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -1815,7 +1819,7 @@ public partial class foxbit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchLedger(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2111,7 +2115,7 @@ public partial class foxbit : Exchange
         object cryptoDetails = this.safeDict(transaction, "details_crypto");
         object address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         object sn = this.safeString(transaction, "sn");
-        string type = "withdrawal";
+        object type = "withdrawal";
         if (isTrue(isTrue(!isEqual(sn, null)) && isTrue(isEqual(getValue(sn, 0), "D"))))
         {
             type = "deposit";
@@ -2192,7 +2196,7 @@ public partial class foxbit : Exchange
         object type = this.parseLedgerEntryType(reasonType);
         object exchangeSymbol = this.safeString(item, "currency_symbol");
         object currencySymbol = this.safeCurrencyCode(exchangeSymbol);
-        string direction = "in";
+        object direction = "in";
         object amount = this.safeNumber(item, "amount");
         object realAmount = amount;
         object balance = this.safeNumber(item, "balance");
@@ -2255,13 +2259,13 @@ public partial class foxbit : Exchange
         }
         object url = add(getValue(getValue(this.urls, "api"), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object query = "";
         object signatureQuery = "";
         if (isTrue(isEqual(method, "GET")))
         {
-            List<object> paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            int paramKeysLength = getArrayLength(paramKeys);
+            object paramKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            object paramKeysLength = getArrayLength(paramKeys);
             if (isTrue(isGreaterThan(paramKeysLength, 0)))
             {
                 query = this.urlencode(parameters);
@@ -2299,7 +2303,7 @@ public partial class foxbit : Exchange
         {
             this.checkRequiredCredentials();
             object preHash = add(add(add(add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
-            string signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
+            object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256, "hex");
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-KEY"] = this.apiKey;
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-TIMESTAMP"] = this.numberToString(timestamp);
             ((IDictionary<string,object>)headers)["X-FB-ACCESS-SIGNATURE"] = signature;

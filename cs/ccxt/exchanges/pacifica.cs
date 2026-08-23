@@ -803,11 +803,11 @@ public partial class pacifica : Exchange
         object id = this.safeString(market, "symbol");
         object baseId = this.safeString(market, "base_asset", id);
         object instrumentType = this.safeString(market, "instrument_type");
-        bool isSpot = (isEqual(instrumentType, "spot"));
-        bool isSwap = !isTrue(isSpot);
+        object isSpot = (isEqual(instrumentType, "spot"));
+        object isSwap = !isTrue(isSpot);
         object quoteId = "USDC";
         object settleId = null;
-        string type = "spot";
+        object type = "spot";
         object linear = null;
         object inverse = null;
         object contractSize = null;
@@ -821,7 +821,7 @@ public partial class pacifica : Exchange
         }
         if (isTrue(isSpot))
         {
-            List<object> idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            object idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         object isolatedOnly = this.safeBool(market, "isolated_only", false);
@@ -850,7 +850,7 @@ public partial class pacifica : Exchange
         object maker = this.safeNumber(fees, "maker");
         object amountPrecision = this.safeNumber(market, "lot_size");
         object pricePrecision = this.safeNumber(market, "tick_size");
-        bool active = true; // there is no non-active markets comes from endpoint market info
+        object active = true; // there is no non-active markets comes from endpoint market info
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -979,7 +979,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<ccxt.Leverage> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> fetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadAccountSettings();
@@ -1104,7 +1104,7 @@ public partial class pacifica : Exchange
 
     public virtual object parseAccountSettings(object settings)
     {
-        int settingsLen = getArrayLength(settings);
+        object settingsLen = getArrayLength(settings);
         if (isTrue(isEqual(settingsLen, 0)))
         {
             return new Dictionary<string, object>() {};
@@ -1130,7 +1130,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public async override Task<ccxt.MarginMode> fetchMarginMode(object symbol, object parameters = null)
+    public async override Task<ccxt.MarginMode> fetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadAccountSettings();
@@ -1201,7 +1201,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1362,8 +1362,9 @@ public partial class pacifica : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(since, null)))
@@ -1397,7 +1398,7 @@ public partial class pacifica : Exchange
         var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        Int64 nowMillis = this.milliseconds();
+        object nowMillis = this.milliseconds();
         object until = this.safeInteger(request, "end_time");
         if (isTrue(isEqual(until, null)))
         {
@@ -1471,7 +1472,7 @@ public partial class pacifica : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1520,7 +1521,7 @@ public partial class pacifica : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1697,7 +1698,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1792,15 +1793,15 @@ public partial class pacifica : Exchange
         };
         object operationType = null;
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        string orderType = ((string)type).ToUpper();
+        object orderType = ((string)type).ToUpper();
         object triggerPrice = this.safeString(parameters, "triggerPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object tifRaw = this.safeStringUpper(parameters, "timeInForce");
-        bool isMarket = isEqual(orderType, "MARKET");
-        bool isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
-        bool isStopLossOrder = (!isEqual(stopLossPrice, null));
-        bool isStopOrder = (!isEqual(triggerPrice, null));
+        object isMarket = isEqual(orderType, "MARKET");
+        object isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
+        object isStopLossOrder = (!isEqual(stopLossPrice, null));
+        object isStopOrder = (!isEqual(triggerPrice, null));
         object timeInForce = this.mapTimeInForce(tifRaw);
         if (isTrue(isMarket))
         {
@@ -1918,7 +1919,7 @@ public partial class pacifica : Exchange
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        int lenActions = getArrayLength(actions);
+        object lenActions = getArrayLength(actions);
         object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if (isTrue(!isEqual(maxLen, null)))
         {
@@ -1936,7 +1937,7 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object actions = new List<object>() {};
-        Int64 timestamp = this.milliseconds(); // unified sequence
+        object timestamp = this.milliseconds(); // unified sequence
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
@@ -2038,7 +2039,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2140,7 +2141,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2169,7 +2170,7 @@ public partial class pacifica : Exchange
     public virtual object cancelAllOrdersRequest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "cancel_all_orders";
+        object operationType = "cancel_all_orders";
         object sigPayload = new Dictionary<string, object>() {};
         object excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
         ((IDictionary<string,object>)sigPayload)["exclude_reduce_only"] = excludeReduceOnly;
@@ -2200,7 +2201,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2279,7 +2280,7 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2318,7 +2319,7 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires a price")) ;
         }
-        string operationType = "edit_order";
+        object operationType = "edit_order";
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         object priceNormalized = this.priceToPrecision(symbol, price);
         object amountNormalized = this.amountToPrecision(symbol, amount);
@@ -2355,7 +2356,7 @@ public partial class pacifica : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchFundingRateHistory(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2519,14 +2520,14 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
+        object orders = await this.fetchOrders(((string)symbol), null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"closed"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
     }
@@ -2543,14 +2544,14 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
+        object orders = await this.fetchOrders(((string)symbol), null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
     }
@@ -2574,7 +2575,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
+        object orders = await this.fetchOrders(((string)symbol), null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled", "closed", "rejected"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
     }
@@ -2591,7 +2592,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2655,7 +2656,7 @@ public partial class pacifica : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2726,7 +2727,7 @@ public partial class pacifica : Exchange
         object data = this.safeList(response, "data", new List<object>() {});
         object paginationCursor = this.safeString(response, "next_cursor");
         object hasMore = this.safeBool(response, "has_more", false);
-        int dataLength = getArrayLength(data);
+        object dataLength = getArrayLength(data);
         if (isTrue(hasMore))
         {
             if (isTrue(isTrue((!isEqual(paginationCursor, null))) && isTrue((isGreaterThan(dataLength, 0)))))
@@ -2750,7 +2751,7 @@ public partial class pacifica : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2814,7 +2815,7 @@ public partial class pacifica : Exchange
         object data = this.safeList(response, "data", new List<object>() {});
         // return last state
         object sorted = this.sortBy(data, "created_at");
-        int lastIdx = getArrayLength(sorted);
+        object lastIdx = getArrayLength(sorted);
         object lastInfo = new Dictionary<string, object>() {};
         if (isTrue(isGreaterThan(lastIdx, 0)))
         {
@@ -3018,7 +3019,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> fetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object positions = await this.fetchPositions(new List<object>() {symbol}, parameters);
@@ -3099,7 +3100,7 @@ public partial class pacifica : Exchange
         object symbol = getValue(market, "symbol");
         object margin = this.safeString(position, "margin");
         object marginMode = ((bool) isTrue((isTrue(!isEqual(margin, null)) && isTrue(!isEqual(margin, "0"))))) ? "isolated" : "cross";
-        bool isIsolated = (isEqual(marginMode, "isolated"));
+        object isIsolated = (isEqual(marginMode, "isolated"));
         object side = this.safeString(position, "side");
         if (isTrue(!isEqual(side, null)))
         {
@@ -3144,10 +3145,10 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "update_margin_mode";
+        object operationType = "update_margin_mode";
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
@@ -3157,7 +3158,7 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        bool isIsolated = (isEqual(marginMode, "isolated"));
+        object isIsolated = (isEqual(marginMode, "isolated"));
         object sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "is_isolated", isIsolated },
@@ -3182,10 +3183,10 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "update_leverage";
+        object operationType = "update_leverage";
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
@@ -3221,10 +3222,10 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "withdraw";
+        object operationType = "withdraw";
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
@@ -3249,7 +3250,7 @@ public partial class pacifica : Exchange
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3354,8 +3355,9 @@ public partial class pacifica : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(string symbolTyped, object parameters = null)
     {
+        object symbol = symbolTyped;
         parameters ??= new Dictionary<string, object>();
         symbol = this.symbol(symbol);
         if (isTrue(isEqual(this.markets, null)))
@@ -3421,7 +3423,7 @@ public partial class pacifica : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchLedger(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3638,10 +3640,10 @@ public partial class pacifica : Exchange
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "transfer_funds";
+        object operationType = "transfer_funds";
         object sigPayload = new Dictionary<string, object>() {
             { "to_account", toAccount },
             { "amount", amount },
@@ -3738,7 +3740,7 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createSubAccount() requires a \"subAccountPrivateKey\"!")) ;
         }
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object expiryWindow = null;
         var expiryWindowparametersVariable = this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
         expiryWindow = ((IList<object>)expiryWindowparametersVariable)[0];
@@ -3783,7 +3785,7 @@ public partial class pacifica : Exchange
     public async virtual Task<object> bindAgentWallet(object agentAddress, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "bind_agent_wallet";
+        object operationType = "bind_agent_wallet";
         object sigPayload = new Dictionary<string, object>() {
             { "agent_wallet", agentAddress },
         };
@@ -3794,7 +3796,7 @@ public partial class pacifica : Exchange
     public async virtual Task<object> createApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "create_api_key";
+        object operationType = "create_api_key";
         object sigPayload = new Dictionary<string, object>() {};
         object request = this.postActionRequest(operationType, sigPayload, parameters);
         return await this.privatePostAccountApiKeysCreate(this.extend(request, parameters));
@@ -3803,7 +3805,7 @@ public partial class pacifica : Exchange
     public async virtual Task<object> revokeApiKey(object apiKey, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "revoke_api_key";
+        object operationType = "revoke_api_key";
         object sigPayload = new Dictionary<string, object>() {
             { "api_key", apiKey },
         };
@@ -3814,7 +3816,7 @@ public partial class pacifica : Exchange
     public async virtual Task<object> fetchApiKeys(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "list_api_keys";
+        object operationType = "list_api_keys";
         object sigPayload = new Dictionary<string, object>() {};
         object request = this.postActionRequest(operationType, sigPayload, parameters);
         return await this.privatePostAccountApiKeys(this.extend(request, parameters));
@@ -3823,7 +3825,7 @@ public partial class pacifica : Exchange
     public async virtual Task<object> approveBuilderCode(object builderCode, object maxFeeRate, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "approve_builder_code";
+        object operationType = "approve_builder_code";
         object sigPayload = new Dictionary<string, object>() {
             { "builder_code", builderCode },
             { "max_fee_rate", maxFeeRate },
@@ -3843,7 +3845,7 @@ public partial class pacifica : Exchange
     public async virtual Task<object> revokeBuilderCode(object builderCode, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string operationType = "revoke_builder_code";
+        object operationType = "revoke_builder_code";
         object sigPayload = new Dictionary<string, object>() {
             { "builder_code", builderCode },
         };
@@ -3890,7 +3892,7 @@ public partial class pacifica : Exchange
         {
             error = true;
         }
-        bool nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
+        object nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
         if (isTrue(isTrue(error) || isTrue(nonEmptyMessage)))
         {
             object feedback = add(add(this.id, " "), body);
@@ -3912,7 +3914,7 @@ public partial class pacifica : Exchange
         object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        int paramsLen = getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys));
+        object paramsLen = getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys));
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },
         };
@@ -3959,7 +3961,7 @@ public partial class pacifica : Exchange
         if (isTrue(this.isDictionary(value)))
         {
             object result = new Dictionary<string, object>() {};
-            List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
             for (object i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
             {
@@ -3987,7 +3989,7 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
         }
-        Dictionary<string, object> data = this.extend(header, new Dictionary<string, object>() {
+        object data = this.extend(header, new Dictionary<string, object>() {
             { "data", payload },
         });
         object sorted = this.sortJsonKeys(data);
@@ -4062,7 +4064,7 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)finalHeaders)["signature"] = signature;
         ((IDictionary<string,object>)finalHeaders)["timestamp"] = this.safeInteger(signatureHeader, "timestamp");
         ((IDictionary<string,object>)finalHeaders)["expiry_window"] = this.safeInteger(signatureHeader, "expiry_window");
-        Dictionary<string, object> request = this.extend(finalHeaders, sigPayload);
+        object request = this.extend(finalHeaders, sigPayload);
         return request;
     }
 }

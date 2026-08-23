@@ -1,0 +1,5 @@
+{
+ "parseLedger": "List<LedgerEntry>",
+ "parseTickers": "Tickers",
+ "parseTransactions": "List<Transaction>"
+}

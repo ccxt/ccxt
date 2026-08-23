@@ -67,10 +67,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetch the set leverage for a market
@@ -93,10 +93,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}.</returns>
-    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return new Leverage(res);
+        return res;
     }
     /// <summary>
     /// fetch account's market settings. Settings are cached for walletAddress. To refresh the cache, call loadAccountSettings with refresh=true
@@ -145,10 +145,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}.</returns>
-    public async Task<MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginMode(symbol, parameters);
-        return new MarginMode(res);
+        return res;
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -197,10 +197,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
-    public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
-        return new FundingRates(res);
+        return res;
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -241,10 +241,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -534,10 +534,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     public Dictionary<string, object> CancelOrdersRequest(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -621,10 +621,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     public Dictionary<string, object> CancelOrderRequest(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -658,10 +658,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double amount, double price, MarketInterface market, Dictionary<string, object> parameters = null)
     {
@@ -727,10 +727,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
+        return res;
     }
     /// <summary>
     /// fetch all unfilled currently closed orders
@@ -975,10 +975,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(symbol, parameters);
-        return new Position(res);
+        return res;
     }
     /// <summary>
     /// fetch all open positions
@@ -1079,10 +1079,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return new Transaction(res);
+        return res;
     }
     /// <summary>
     /// fetch the trading fees for a market
@@ -1105,10 +1105,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
-    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return new TradingFeeInterface(res);
+        return res;
     }
     /// <summary>
     /// Retrieves the open interest for a list of symbols
@@ -1125,10 +1125,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterests(symbols, parameters);
-        return new OpenInterests(res);
+        return res;
     }
     /// <summary>
     /// retrieves the open interest of a contract trading pair
@@ -1145,10 +1145,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterest(symbol, parameters);
-        return new OpenInterest(res);
+        return res;
     }
     /// <summary>
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -1283,10 +1283,10 @@ public partial class pacifica
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
+        return res;
     }
     /// <summary>
     /// creates a sub-account under the main account

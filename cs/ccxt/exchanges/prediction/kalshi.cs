@@ -359,7 +359,7 @@ public partial class kalshi : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object queries = this.parseSearchQueries(parameters);
-        int queriesLength = getArrayLength(queries);
+        object queriesLength = getArrayLength(queries);
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
         // force a client-side scan of every open market (thousands, paged 1000 at a time, which
         // hangs). Resolve the query against the events endpoint instead — it is bounded by
@@ -369,12 +369,12 @@ public partial class kalshi : PredictionExchange
         {
             object eventParams = this.omit(parameters, new List<object>() {"limit"});
             object events = await this.fetchEvents(eventParams);
-            int eventsLength = getArrayLength(events);
+            object eventsLength = getArrayLength(events);
             object queryMarkets = new List<object>() {};
             for (object ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
             {
                 object eventMarkets = this.safeList(getValue(events, ei), "markets", new List<object>() {});
-                int eventMarketsLength = getArrayLength(eventMarkets);
+                object eventMarketsLength = getArrayLength(eventMarkets);
                 for (object mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
                 {
                     ((IList<object>)queryMarkets).Add(getValue(eventMarkets, mi));
@@ -408,7 +408,7 @@ public partial class kalshi : PredictionExchange
             }
             object response = await this.kalshiPublicGetMarkets(this.extend(request, rest));
             object rawMarkets = this.safeList(response, "markets", new List<object>() {});
-            int rawMarketsLength = getArrayLength(rawMarkets);
+            object rawMarketsLength = getArrayLength(rawMarkets);
             for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
             {
                 object raw = getValue(rawMarkets, i);
@@ -443,14 +443,14 @@ public partial class kalshi : PredictionExchange
                 }
             }
             cursor = this.safeString(response, "cursor");
-            int collectedLength = getArrayLength(flatMarkets);
+            object collectedLength = getArrayLength(flatMarkets);
             if (isTrue(isTrue(!isTrue(cursor) || isTrue(isLessThan(rawMarketsLength, limit))) || isTrue(isGreaterThanOrEqual(collectedLength, maxMarkets))))
             {
                 break;
             }
         }
         this.events = eventsDict;
-        int flatMarketsLength = getArrayLength(flatMarkets);
+        object flatMarketsLength = getArrayLength(flatMarkets);
         if (isTrue(isGreaterThan(flatMarketsLength, maxMarkets)))
         {
             return this.arraySlice(flatMarkets, 0, maxMarkets);
@@ -488,7 +488,7 @@ public partial class kalshi : PredictionExchange
             // the python transpiler — this form emits strlen()/len() correctly in both
             object symbolLength = this.parseToInt(((string)outcomeSymbol).Length);
             object suffix = slice(outcomeSymbol, subtract(symbolLength, 3), null);
-            bool isNo = (isEqual(suffix, "-NO"));
+            object isNo = (isEqual(suffix, "-NO"));
             object baseTicker = ((bool) isTrue(isNo)) ? slice(outcomeSymbol, 0, subtract(symbolLength, 3)) : outcomeSymbol;
             object response = null;
             try
@@ -530,9 +530,9 @@ public partial class kalshi : PredictionExchange
             // series tickers are single alphanumeric segments, so the handle's first '_' token is
             // its series ticker — fetch that series' open events (server-side filter, one page in
             // the common case) and re-check the cache for the exact handle
-            List<object> handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            object handleParts = ((string)outcomeSymbol).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             object marketPart = this.safeString(handleParts, 0, "");
-            List<object> parts = ((string)marketPart).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)marketPart).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object seriesTicker = this.safeString(parts, 0);
             if (isTrue(isTrue((!isEqual(seriesTicker, null))) && isTrue((!isEqual(seriesTicker, "")))))
             {
@@ -597,7 +597,7 @@ public partial class kalshi : PredictionExchange
             this.markets = this.createSafeDictionary();
         }
         object chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 100);
-        int tickersLength = getArrayLength(tickers);
+        object tickersLength = getArrayLength(tickers);
         object startIndex = 0;
         while (isLessThan(startIndex, tickersLength))
         {
@@ -745,10 +745,10 @@ public partial class kalshi : PredictionExchange
         object subtitle = this.safeString(raw, "subtitle", this.safeString(raw, "title"));
         // markets use status 'active' while events use 'open'
         object status = this.safeString(raw, "status");
-        bool active = isTrue((isEqual(status, "active"))) || isTrue((isEqual(status, "open")));
+        object active = isTrue((isEqual(status, "active"))) || isTrue((isEqual(status, "open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         object result = this.safeStringLower(raw, "result");
-        bool resolved = isTrue((isEqual(status, "settled"))) || isTrue((isTrue((!isEqual(result, null))) && isTrue((!isEqual(result, "")))));
+        object resolved = isTrue((isEqual(status, "settled"))) || isTrue((isTrue((!isEqual(result, null))) && isTrue((!isEqual(result, "")))));
         object endDate = this.safeString(raw, "expiration_time");
         object volume = this.safeNumber2(raw, "volume_fp", "volume");
         object liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
@@ -760,7 +760,7 @@ public partial class kalshi : PredictionExchange
             eventParts = ((string)eventTicker).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         }
         object seriesTicker = eventTicker;
-        int eventPartsLength = getArrayLength(eventParts);
+        object eventPartsLength = getArrayLength(eventParts);
         if (isTrue(isGreaterThan(eventPartsLength, 1)))
         {
             object seriesParts = this.arraySlice(eventParts, 0, subtract(eventPartsLength, 1));
@@ -908,7 +908,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public async override Task<ccxt.PredictionTicker> fetchTicker(object outcome, object parameters = null)
+    public async override Task<ccxt.PredictionTicker> fetchTicker(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1011,7 +1011,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
-    public async override Task<ccxt.PredictionOpenInterest> fetchOpenInterest(object outcome, object parameters = null)
+    public async override Task<ccxt.PredictionOpenInterest> fetchOpenInterest(string outcome, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1030,7 +1030,7 @@ public partial class kalshi : PredictionExchange
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object openInterest = this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(null, market) },
             { "openInterestAmount", this.safeNumber2(interest, "open_interest_fp", "open_interest") },
@@ -1116,8 +1116,8 @@ public partial class kalshi : PredictionExchange
         object marketAny = market;
         object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         object outcomeLabel = ((bool) isTrue(market)) ? this.safeString(market, "label", this.safeString(getValue(market, "info"), "outcomeLabel", "YES")) : "YES";
-        bool isNo = isEqual(((string)outcomeLabel).ToUpper(), "NO");
-        Int64 now = this.milliseconds();
+        object isNo = isEqual(((string)outcomeLabel).ToUpper(), "NO");
+        object now = this.milliseconds();
         object outcome = this.safeString(outcomeObj, "outcome");
         object yesAsk = this.safeNumber(raw, "yes_ask_dollars");
         object yesBid = this.safeNumber(raw, "yes_bid_dollars");
@@ -1231,7 +1231,7 @@ public partial class kalshi : PredictionExchange
         }
         object chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
         object result = new Dictionary<string, object>() {};
-        int tickersLength = getArrayLength(tickers);
+        object tickersLength = getArrayLength(tickers);
         object startIndex = 0;
         while (isLessThan(startIndex, tickersLength))
         {
@@ -1285,13 +1285,13 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(object outcome, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string outcome, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
-        bool isNo = isEqual(getValue(outcomeObj, "label"), "NO");
+        object isNo = isEqual(getValue(outcomeObj, "label"), "NO");
         object request = new Dictionary<string, object>() {
             { "ticker", ticker },
         };
@@ -1309,7 +1309,7 @@ public partial class kalshi : PredictionExchange
         //     }
         //
         object book = this.safeValue(response, "orderbook_fp", response);
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
         object rawYes = this.safeList(book, "yes_dollars", new List<object>() {});
         object rawNo = this.safeList(book, "no_dollars", new List<object>() {});
@@ -1386,8 +1386,9 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object outcome, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string outcome, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1399,8 +1400,8 @@ public partial class kalshi : PredictionExchange
         {
             // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
             // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-            List<object> tfKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
-            string supported = String.Join(", ", ((IList<object>)tfKeys).ToArray());
+            object tfKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
+            object supported = String.Join(", ", ((IList<object>)tfKeys).ToArray());
             throw new BadRequest ((string)add(add(add(add(add(this.id, " fetchOHLCV() does not support the "), timeframe), " timeframe (supported: "), supported), ")")) ;
         }
         object request = new Dictionary<string, object>() {
@@ -1408,7 +1409,7 @@ public partial class kalshi : PredictionExchange
             { "ticker", ticker },
             { "period_interval", periodMin },
         };
-        Int64 now = this.seconds();
+        object now = this.seconds();
         object tf = this.parseTimeframe(timeframe);
         if (isTrue(!isEqual(since, null)))
         {
@@ -1550,7 +1551,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> fetchTrades(object outcome, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchTrades(string outcome, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
@@ -1657,7 +1658,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> fetchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchMyTrades(string outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -1683,7 +1684,7 @@ public partial class kalshi : PredictionExchange
         }
         object response = await this.kalshiPrivateGetPortfolioFills(this.extend(request, parameters));
         object fills = this.safeList(response, "fills", new List<object>() {});
-        int fillsLength = getArrayLength(fills);
+        object fillsLength = getArrayLength(fills);
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, fillsLength); postFixIncrement(ref i))
         {
@@ -1909,7 +1910,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of prediction settlement structures
      */
-    public async override Task<List<ccxt.PredictionSettlement>> fetchSettlements(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionSettlement>> fetchSettlements(string outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -1923,7 +1924,7 @@ public partial class kalshi : PredictionExchange
         }
         object response = await this.kalshiPrivateGetPortfolioSettlements(this.extend(request, parameters));
         object rawSettlements = this.safeList(response, "settlements", new List<object>() {});
-        int rawSettlementsLength = getArrayLength(rawSettlements);
+        object rawSettlementsLength = getArrayLength(rawSettlements);
         object parsed = new List<object>() {};
         for (object i = 0; isLessThan(i, rawSettlementsLength); postFixIncrement(ref i))
         {
@@ -1961,15 +1962,15 @@ public partial class kalshi : PredictionExchange
         // the leg the user actually held (kalshi reports separate yes/no counts + costs)
         object yesCount = this.safeNumber2(settlement, "yes_count_fp", "yes_count", 0);
         object noCount = this.safeNumber2(settlement, "no_count_fp", "no_count", 0);
-        bool heldYes = (isGreaterThanOrEqual(yesCount, noCount));
+        object heldYes = (isGreaterThanOrEqual(yesCount, noCount));
         object heldLabel = ((bool) isTrue((heldYes))) ? "YES" : "NO";
-        bool tickerMissing = (isEqual(ticker, null));
-        bool useHeldYesTicker = (isTrue(heldYes) || isTrue(tickerMissing));
+        object tickerMissing = (isEqual(ticker, null));
+        object useHeldYesTicker = (isTrue(heldYes) || isTrue(tickerMissing));
         object heldTicker = ((bool) isTrue((useHeldYesTicker))) ? ticker : (add(ticker, "-NO"));
         object mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
         object marketResult = this.safeStringUpper(settlement, "market_result");
-        bool won = (isEqual(marketResult, heldLabel));
+        object won = (isEqual(marketResult, heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
         object payout = this.safeNumber(settlement, "revenue_dollars");
         if (isTrue(isEqual(payout, null)))
@@ -2080,7 +2081,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOpenOrders(string outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2116,7 +2117,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> fetchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOrders(string outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2151,12 +2152,12 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> fetchClosedOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchClosedOrders(string outcome = null, object since = null, object limit = null, object parameters = null)
     {
         // kalshi's status filter takes a single value (resting|executed|canceled); "closed" spans
         // both executed and canceled, so fetch every order and keep the non-open ones client-side
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.fetchOrders(outcome, null, null, parameters);
+        object orders = await this.fetchOrders(((string)outcome), null, null, parameters);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -2180,7 +2181,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> fetchOrder(string id, string outcome = null, object parameters = null)
     {
         // outcome is only a labelling hint here — the request needs just the id, and
         // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
@@ -2231,7 +2232,7 @@ public partial class kalshi : PredictionExchange
         }
         // price in the outcome's own leg: V2 returns *_price_dollars (already dollars),
         // legacy returned yes_price/no_price in cents
-        bool labelIsNo = (isEqual(this.safeStringUpper(mkt, "label"), "NO"));
+        object labelIsNo = (isEqual(this.safeStringUpper(mkt, "label"), "NO"));
         object dollarsKey = ((bool) isTrue((labelIsNo))) ? "no_price_dollars" : "yes_price_dollars";
         object centsKey = ((bool) isTrue((labelIsNo))) ? "no_price" : "yes_price";
         object price = this.safeNumber(order, dollarsKey);
@@ -2313,7 +2314,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> createOrder(object outcome, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> createOrder(string outcome, string type, string side, object amount, object price = null, object parameters = null)
     {
         // kalshi has no market orders — every order is a limit order and the price is required
         parameters ??= new Dictionary<string, object>();
@@ -2324,8 +2325,8 @@ public partial class kalshi : PredictionExchange
         await this.loadOutcome(outcome);
         object outcomeObj = this.outcome(outcome);
         object ticker = this.safeString(getValue(outcomeObj, "info"), "ticker");
-        bool isNo = (isEqual(getValue(outcomeObj, "label"), "NO"));
-        bool isBuy = (isEqual(side, "buy"));
+        object isNo = (isEqual(getValue(outcomeObj, "label"), "NO"));
+        object isBuy = (isEqual(side, "buy"));
         // kalshi V2 (/portfolio/events/orders) quotes the YES leg only: side 'bid' = buy YES,
         // 'ask' = sell YES, price in dollars. a NO order maps to the complementary YES order
         // buy NO @ q == sell YES @ 1-q - flip the book side and the price
@@ -2339,7 +2340,7 @@ public partial class kalshi : PredictionExchange
                 yesPrice = this.parseNumber(Precise.stringSub("1", this.numberToString(price)));
             }
         }
-        bool isMarket = (isEqual(type, "market"));
+        object isMarket = (isEqual(type, "market"));
         // accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
         // `time_in_force` param (handled below) still overrides
         object unifiedTif = this.safeStringUpper(parameters, "timeInForce");
@@ -2401,7 +2402,7 @@ public partial class kalshi : PredictionExchange
         }
         if (isTrue(isEqual(getValue(order, "status"), null)))
         {
-            string resolvedStatus = "open";
+            object resolvedStatus = "open";
             if (isTrue(isTrue((!isEqual(remainingCount, null))) && isTrue((isEqual(remainingCount, 0)))))
             {
                 resolvedStatus = "closed";
@@ -2425,7 +2426,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> editOrder(string id, string outcome, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
         // so edit = cancel the resting order then place a fresh one with the new terms. validate the
@@ -2441,8 +2442,8 @@ public partial class kalshi : PredictionExchange
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount")) ;
         }
         await this.loadOutcome(outcome);
-        await this.cancelOrder(id, outcome);
-        return await this.createOrder(outcome, type, side, amount, price, parameters);
+        await this.cancelOrder(((string)id),((string)outcome));
+        return await this.createOrder(((string)outcome),((string)type),((string)side), amount, price, parameters);
     }
 
     /**
@@ -2455,7 +2456,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> cancelOrder(object id, object outcome = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> cancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = null;
@@ -2491,7 +2492,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
+    public async virtual Task<object> cancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2511,7 +2512,7 @@ public partial class kalshi : PredictionExchange
         }
         object restingResponse = await this.kalshiPrivateGetPortfolioOrders(request);
         object restingOrders = this.safeList(restingResponse, "orders", new List<object>() {});
-        int restingOrdersLength = getArrayLength(restingOrders);
+        object restingOrdersLength = getArrayLength(restingOrders);
         object canceledOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, restingOrdersLength); postFixIncrement(ref i))
         {
@@ -2555,7 +2556,7 @@ public partial class kalshi : PredictionExchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
         }
-        int queriesLength = getArrayLength(queries);
+        object queriesLength = getArrayLength(queries);
         parameters = this.omit(parameters, new List<object>() {"query", "queries"});
         object userLimit = this.safeInteger(parameters, "limit");
         // bound how many events are actually FETCHED (not just returned) so a broad scope like
@@ -2601,14 +2602,14 @@ public partial class kalshi : PredictionExchange
         {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
             object seriesTickers = await this.resolveEventSeriesTickers(parameters);
-            int seriesTickersLength = getArrayLength(seriesTickers);
+            object seriesTickersLength = getArrayLength(seriesTickers);
             if (isTrue(isEqual(seriesTickersLength, 0)))
             {
                 this.requireEventQuery(parameters);
             }
             rawEvents = await this.fetchSeriesEvents(seriesTickers, status, fetchCap, rest);
         }
-        int rawEventsLength = getArrayLength(rawEvents);
+        object rawEventsLength = getArrayLength(rawEvents);
         object result = new List<object>() {};
         for (object di = 0; isLessThan(di, rawEventsLength); postFixIncrement(ref di))
         {
@@ -2617,7 +2618,7 @@ public partial class kalshi : PredictionExchange
             // register the parsed markets so populateOutcomes can index their outcomes
             object parsedMarketsRaw = getValue(parsedEvent, "markets");
             object parsedMarkets = ((bool) isTrue((!isEqual(parsedMarketsRaw, null)))) ? parsedMarketsRaw : new List<object>() {};
-            int parsedMarketsLength = getArrayLength(parsedMarkets);
+            object parsedMarketsLength = getArrayLength(parsedMarkets);
             for (object mi = 0; isLessThan(mi, parsedMarketsLength); postFixIncrement(ref mi))
             {
                 object m = getValue(parsedMarkets, mi);
@@ -2649,7 +2650,7 @@ public partial class kalshi : PredictionExchange
         // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
         object seen = new Dictionary<string, object>() {};
         object eventTickers = new List<object>() {};
-        int queriesLength = getArrayLength(queries);
+        object queriesLength = getArrayLength(queries);
         for (object qi = 0; isLessThan(qi, queriesLength); postFixIncrement(ref qi))
         {
             object searchResponse = await this.electionsPublicGetSearchSeries(new Dictionary<string, object>() {
@@ -2658,7 +2659,7 @@ public partial class kalshi : PredictionExchange
                 { "page_size", pageSize },
             });
             object page = this.safeList(searchResponse, "current_page", new List<object>() {});
-            int pageLength = getArrayLength(page);
+            object pageLength = getArrayLength(page);
             for (object pi = 0; isLessThan(pi, pageLength); postFixIncrement(ref pi))
             {
                 object et = this.safeString(getValue(page, pi), "event_ticker");
@@ -2674,10 +2675,10 @@ public partial class kalshi : PredictionExchange
             }
         }
         object rawEvents = new List<object>() {};
-        int eventTickersLength = getArrayLength(eventTickers);
+        object eventTickersLength = getArrayLength(eventTickers);
         for (object ei = 0; isLessThan(ei, eventTickersLength); postFixIncrement(ref ei))
         {
-            int collectedLength = getArrayLength(rawEvents);
+            object collectedLength = getArrayLength(rawEvents);
             if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedLength, limit)))))
             {
                 break;
@@ -2737,14 +2738,14 @@ public partial class kalshi : PredictionExchange
         object collected = new List<object>() {};
         // tags / category -> documented /series listing
         object tags = this.safeList(parameters, "tags", new List<object>() {});
-        int tagsLength = getArrayLength(tags);
+        object tagsLength = getArrayLength(tags);
         for (object ti = 0; isLessThan(ti, tagsLength); postFixIncrement(ref ti))
         {
             object seriesResponse = await this.kalshiPublicGetSeries(new Dictionary<string, object>() {
                 { "tags", getValue(tags, ti) },
             });
             object seriesList = this.safeList(seriesResponse, "series", new List<object>() {});
-            int seriesListLength = getArrayLength(seriesList);
+            object seriesListLength = getArrayLength(seriesList);
             for (object si = 0; isLessThan(si, seriesListLength); postFixIncrement(ref si))
             {
                 object st = this.safeString(getValue(seriesList, si), "ticker");
@@ -2761,7 +2762,7 @@ public partial class kalshi : PredictionExchange
                 { "category", category },
             });
             object seriesList = this.safeList(seriesResponse, "series", new List<object>() {});
-            int seriesListLength = getArrayLength(seriesList);
+            object seriesListLength = getArrayLength(seriesList);
             for (object si = 0; isLessThan(si, seriesListLength); postFixIncrement(ref si))
             {
                 object st = this.safeString(getValue(seriesList, si), "ticker");
@@ -2775,8 +2776,8 @@ public partial class kalshi : PredictionExchange
         object seriesParam = this.safeString(parameters, "series_ticker");
         if (isTrue(!isEqual(seriesParam, null)))
         {
-            List<object> parts = ((string)seriesParam).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            int partsLength = getArrayLength(parts);
+            object parts = ((string)seriesParam).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object partsLength = getArrayLength(parts);
             for (object pi = 0; isLessThan(pi, partsLength); postFixIncrement(ref pi))
             {
                 ((IList<object>)collected).Add(getValue(parts, pi));
@@ -2785,7 +2786,7 @@ public partial class kalshi : PredictionExchange
         // deduplicate preserving order
         object seen = new Dictionary<string, object>() {};
         object ordered = new List<object>() {};
-        int collectedLength = getArrayLength(collected);
+        object collectedLength = getArrayLength(collected);
         for (object ci = 0; isLessThan(ci, collectedLength); postFixIncrement(ref ci))
         {
             object st = getValue(collected, ci);
@@ -2814,12 +2815,12 @@ public partial class kalshi : PredictionExchange
     {
         rest ??= new Dictionary<string, object>();
         object rawEvents = new List<object>() {};
-        int seriesTickersLength = getArrayLength(seriesTickers);
+        object seriesTickersLength = getArrayLength(seriesTickers);
         object pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
         object maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
         for (object si = 0; isLessThan(si, seriesTickersLength); postFixIncrement(ref si))
         {
-            int collectedLength = getArrayLength(rawEvents);
+            object collectedLength = getArrayLength(rawEvents);
             if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedLength, limit)))))
             {
                 break;
@@ -2852,13 +2853,13 @@ public partial class kalshi : PredictionExchange
                 }
                 object response = await this.kalshiPublicGetEvents(this.extend(request, rest));
                 object pageEvents = this.safeList(response, "events", new List<object>() {});
-                int pageEventsLength = getArrayLength(pageEvents);
+                object pageEventsLength = getArrayLength(pageEvents);
                 for (object ei = 0; isLessThan(ei, pageEventsLength); postFixIncrement(ref ei))
                 {
                     ((IList<object>)rawEvents).Add(getValue(pageEvents, ei));
                 }
                 cursor = this.safeString(response, "cursor");
-                int collectedAfterPage = getArrayLength(rawEvents);
+                object collectedAfterPage = getArrayLength(rawEvents);
                 if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(collectedAfterPage, limit)))))
                 {
                     break;
@@ -2881,7 +2882,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<ccxt.PredictionEvent> fetchEvent(object id, object parameters = null)
+    public async override Task<ccxt.PredictionEvent> fetchEvent(string id, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object fullEvent = await this.fetchRawEventByTicker(id, parameters);
@@ -2972,8 +2973,8 @@ public partial class kalshi : PredictionExchange
         object totalVolume = 0;
         object totalLiquidity = 0;
         object earliestCreated = null;
-        bool anyActive = false;
-        bool allResolved = true;
+        object anyActive = false;
+        object allResolved = true;
         object latestClose = null;
         for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
@@ -2993,7 +2994,7 @@ public partial class kalshi : PredictionExchange
                 anyActive = true;
             }
             object marketResult = this.safeString(rawMarket, "result");
-            bool marketResolved = isTrue((isEqual(marketStatus, "settled"))) || isTrue((isTrue((!isEqual(marketResult, null))) && isTrue((!isEqual(marketResult, "")))));
+            object marketResolved = isTrue((isEqual(marketStatus, "settled"))) || isTrue((isTrue((!isEqual(marketResult, null))) && isTrue((!isEqual(marketResult, "")))));
             if (!isTrue(marketResolved))
             {
                 allResolved = false;
@@ -3005,7 +3006,7 @@ public partial class kalshi : PredictionExchange
             }
         }
         // the aggregates only mean something when the payload nested any markets at all
-        int marketsCount = getArrayLength(marketsList);
+        object marketsCount = getArrayLength(marketsList);
         object active = null;
         if (isTrue(isGreaterThan(marketsCount, 0)))
         {
@@ -3090,17 +3091,17 @@ public partial class kalshi : PredictionExchange
         if (isTrue(isEqual(access, "private")))
         {
             this.checkRequiredCredentials();
-            string timestamp = ((object)this.milliseconds()).ToString();
+            object timestamp = ((object)this.milliseconds()).ToString();
             // Signing payload: {timestamp}{METHOD}{path}, where path is the full request path
             // INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
             // the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
-            int tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
+            object tradeApiIndex = getIndexOf(baseUrl, "/trade-api");
             object versionPrefix = slice(baseUrl, tradeApiIndex, null);
             object pathForSigning = add(add(versionPrefix, "/"), implodedPath);
             object payload = add(add(timestamp, method), pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
-            List<object> keyParts = ((string)this.privateKey).Split(new [] {((string)"\\n")}, StringSplitOptions.None).ToList<object>();
-            string cleanPrivateKey = String.Join("\n", ((IList<object>)keyParts).ToArray());
+            object keyParts = ((string)this.privateKey).Split(new [] {((string)"\\n")}, StringSplitOptions.None).ToList<object>();
+            object cleanPrivateKey = String.Join("\n", ((IList<object>)keyParts).ToArray());
             object signature = rsa(payload, cleanPrivateKey, sha256, "pss");
             headers = this.extend(headers, new Dictionary<string, object>() {
                 { "KALSHI-ACCESS-KEY", this.apiKey },

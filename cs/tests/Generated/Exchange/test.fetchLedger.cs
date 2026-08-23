@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLedger(BaseExchange exchange, object skippedProperties, object code)
     {
-        string method = "fetchLedger";
+        object method = "fetchLedger";
         object items = await ((dynamic)exchange).fetchLedger(code);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         object now = exchange.milliseconds();

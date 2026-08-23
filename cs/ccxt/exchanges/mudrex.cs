@@ -245,7 +245,7 @@ public partial class mudrex : Exchange
         {
             ((IDictionary<string,object>)requestHeaders)["Partner-Id"] = brokerId;
         }
-        string methodUpper = ((string)method).ToUpper();
+        object methodUpper = ((string)method).ToUpper();
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -271,7 +271,7 @@ public partial class mudrex : Exchange
                         { "headers", requestHeaders },
                     };
                 }
-                string bodyStr = this.json(query);
+                object bodyStr = this.json(query);
                 return new Dictionary<string, object>() {
                     { "url", url },
                     { "method", methodUpper },
@@ -309,7 +309,7 @@ public partial class mudrex : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, add(add(this.id, " "), text));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, add(add(this.id, " "), text));
             object msg = add(add(this.id, " "), text);
-            string low = ((string)text).ToLower();
+            object low = ((string)text).ToLower();
             if (isTrue(isTrue(isEqual(code, 401)) || isTrue(isGreaterThanOrEqual(getIndexOf(low, "auth"), 0))))
             {
                 throw new AuthenticationError ((string)msg) ;
@@ -354,8 +354,9 @@ public partial class mudrex : Exchange
      * @param {string} [params.price] "mark" to fetch mark price candles
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -378,7 +379,7 @@ public partial class mudrex : Exchange
         {
             requestLimit = 500;
         }
-        Int64 now = this.seconds();
+        object now = this.seconds();
         object startTime = null;
         if (isTrue(!isEqual(since, null)))
         {
@@ -439,11 +440,12 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchMarkOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchMarkOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(parameters, new Dictionary<string, object>() {
+        return await this.fetchOHLCV(((string)symbol),((string)timeframe), since, limit, this.extend(parameters, new Dictionary<string, object>() {
             { "price", "mark" },
         }));
     }
@@ -457,7 +459,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -519,7 +521,7 @@ public partial class mudrex : Exchange
         object ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
         object symbol = getValue(market, "symbol");
-        Int64 ts = this.milliseconds();
+        object ts = this.milliseconds();
         object pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -559,10 +561,10 @@ public partial class mudrex : Exchange
         object aggregated = new List<object>() {};
         object offset = 0;
         object pageLimit = 100;
-        bool paging = true;
+        object paging = true;
         while (isEqual(paging, true))
         {
-            Dictionary<string, object> q = this.extend(new Dictionary<string, object>() {
+            object q = this.extend(new Dictionary<string, object>() {
                 { "limit", pageLimit },
                 { "offset", offset },
             }, parameters);
@@ -573,7 +575,7 @@ public partial class mudrex : Exchange
             {
                 items = this.safeList(data, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                int itemsLength = getArrayLength(items);
+                object itemsLength = getArrayLength(items);
                 if (!isTrue(itemsLength))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
@@ -587,7 +589,7 @@ public partial class mudrex : Exchange
             {
                 items = this.toArray(data);
             }
-            int numItems = getArrayLength(items);
+            object numItems = getArrayLength(items);
             if (!isTrue(numItems))
             {
                 paging = false;
@@ -622,8 +624,8 @@ public partial class mudrex : Exchange
         {
             bs = slice(ms, 0, -4);
         }
-        string quote = "USDT";
-        string settle = "USDT";
+        object quote = "USDT";
+        object settle = "USDT";
         object symbol = null;
         if (isTrue(!isEqual(bs, null)))
         {
@@ -738,7 +740,7 @@ public partial class mudrex : Exchange
     {
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object currency = this.safeString(response, "currency", "USDT");
-        Int64 timestamp = this.milliseconds();
+        object timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
@@ -770,7 +772,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
-    public async override Task<ccxt.Leverage> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> fetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -798,7 +800,7 @@ public partial class mudrex : Exchange
      * @param {string} [params.marginType] 'ISOLATED' (default) or 'CROSSED'
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -845,7 +847,7 @@ public partial class mudrex : Exchange
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -933,7 +935,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1048,7 +1050,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1078,7 +1080,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1122,7 +1124,7 @@ public partial class mudrex : Exchange
         {
             ((IDictionary<string,object>)q)["limit"] = limit;
         }
-        Dictionary<string, object> request = this.extend(q, parameters);
+        object request = this.extend(q, parameters);
         object response = null;
         if (isTrue(isEqual(state, "closed")))
         {
@@ -1157,7 +1159,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByState("closed", symbol, since, limit, parameters);
@@ -1174,7 +1176,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByState("open", symbol, since, limit, parameters);
@@ -1191,7 +1193,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.fetchOrdersByState("closed", symbol, since, limit, parameters);
@@ -1356,7 +1358,7 @@ public partial class mudrex : Exchange
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    public async override Task<object> closePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1420,7 +1422,7 @@ public partial class mudrex : Exchange
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1464,10 +1466,10 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.addMargin(symbol, prefixUnaryNeg(ref amount), parameters);
+        return await this.addMargin(((string)symbol), prefixUnaryNeg(ref amount), parameters);
     }
 
     /**
@@ -1482,7 +1484,7 @@ public partial class mudrex : Exchange
      * @param {string} [params.trade_currency] the settlement currency to filter trades by
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1571,7 +1573,7 @@ public partial class mudrex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object mp = new Dictionary<string, object>() {
@@ -1588,7 +1590,7 @@ public partial class mudrex : Exchange
             { "to_wallet_type", tw },
             { "amount", this.numberToString(amount) },
         };
-        bool useInr = false;
+        object useInr = false;
         if (isTrue(isEqual(code, "INR")))
         {
             useInr = true;

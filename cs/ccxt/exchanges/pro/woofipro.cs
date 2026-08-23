@@ -88,7 +88,7 @@ public partial class woofipro : ccxt.woofipro
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        Dictionary<string, object> request = this.extend(subscribe, message);
+        object request = this.extend(subscribe, message);
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
@@ -109,14 +109,14 @@ public partial class woofipro : ccxt.woofipro
         {
             await this.loadMarkets();
         }
-        string name = "orderbook";
+        object name = "orderbook";
         object market = this.market(symbol);
         object topic = add(add(getValue(market, "id"), "@"), name);
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orderbook = await this.watchPublic(topic, message);
         return (orderbook as IOrderBook).limit();
     }
@@ -176,7 +176,7 @@ public partial class woofipro : ccxt.woofipro
         {
             await this.loadMarkets();
         }
-        string name = "ticker";
+        object name = "ticker";
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = add(add(getValue(market, "id"), "@"), name);
@@ -184,7 +184,7 @@ public partial class woofipro : ccxt.woofipro
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watchPublic(topic, message);
     }
 
@@ -274,13 +274,13 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        string name = "tickers";
+        object name = "tickers";
         object topic = name;
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object tickers = await this.watchPublic(topic, message);
         return this.filterByArray(tickers, "symbol", symbols);
     }
@@ -340,13 +340,13 @@ public partial class woofipro : ccxt.woofipro
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        string name = "bbos";
+        object name = "bbos";
         object topic = name;
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object tickers = await this.watchPublic(topic, message);
         return this.filterByArray(tickers, "symbol", symbols);
     }
@@ -430,13 +430,13 @@ public partial class woofipro : ccxt.woofipro
         }
         object market = this.market(symbol);
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
-        string name = "kline";
+        object name = "kline";
         object topic = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object ohlcv = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
@@ -513,7 +513,7 @@ public partial class woofipro : ccxt.woofipro
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object trades = await this.watchPublic(topic, message);
         if (isTrue(this.newUpdates))
         {
@@ -644,7 +644,7 @@ public partial class woofipro : ccxt.woofipro
         //         "ts": 1657463158812
         //     }
         //
-        string messageHash = "authenticated";
+        object messageHash = "authenticated";
         object success = this.safeValue(message, "success");
         if (isTrue(success))
         {
@@ -669,18 +669,18 @@ public partial class woofipro : ccxt.woofipro
         this.checkRequiredCredentials();
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
         var client = this.client(url);
-        string messageHash = "authenticated";
-        string eventVar = "auth";
+        object messageHash = "authenticated";
+        object eventVar = "auth";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
-            string ts = ((object)this.nonce()).ToString();
+            object ts = ((object)this.nonce()).ToString();
             object auth = ts;
             object secret = this.secret;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(secret, "ed25519:"), 0)))
             {
-                List<object> parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
+                object parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
                 secret = getValue(parts, 1);
             }
             object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
@@ -692,7 +692,7 @@ public partial class woofipro : ccxt.woofipro
                     { "timestamp", ts },
                 } },
             };
-            Dictionary<string, object> message = this.extend(request, parameters);
+            object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
         return await (future as Exchange.Future);
@@ -707,7 +707,7 @@ public partial class woofipro : ccxt.woofipro
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        Dictionary<string, object> request = this.extend(subscribe, message);
+        object request = this.extend(subscribe, message);
         return await this.watch(url, messageHash, request, messageHash, subscribe);
     }
 
@@ -720,7 +720,7 @@ public partial class woofipro : ccxt.woofipro
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        Dictionary<string, object> request = this.extend(subscribe, message);
+        object request = this.extend(subscribe, message);
         return await this.watchMultiple(url, messageHashes, request, messageHashes, subscribe);
     }
 
@@ -758,7 +758,7 @@ public partial class woofipro : ccxt.woofipro
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orders = await this.watchPrivate(messageHash, message);
         if (isTrue(this.newUpdates))
         {
@@ -801,7 +801,7 @@ public partial class woofipro : ccxt.woofipro
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orders = await this.watchPrivate(messageHash, message);
         if (isTrue(this.newUpdates))
         {
@@ -1059,7 +1059,7 @@ public partial class woofipro : ccxt.woofipro
         //     maker: false
         // }
         //
-        string messageHash = "myTrades";
+        object messageHash = "myTrades";
         object marketId = this.safeString(message, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -1143,7 +1143,7 @@ public partial class woofipro : ccxt.woofipro
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (isTrue(fetchPositionsSnapshot))
         {
-            string messageHash = "fetchPositionsSnapshot";
+            object messageHash = "fetchPositionsSnapshot";
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
@@ -1325,13 +1325,13 @@ public partial class woofipro : ccxt.woofipro
         {
             await this.loadMarkets();
         }
-        string topic = "balance";
+        object topic = "balance";
         object messageHash = topic;
         object request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watchPrivate(messageHash, message);
     }
 
@@ -1366,7 +1366,7 @@ public partial class woofipro : ccxt.woofipro
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)balances).Keys);
         object ts = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
@@ -1422,7 +1422,7 @@ public partial class woofipro : ccxt.woofipro
         {
             if (isTrue(error is AuthenticationError))
             {
-                string messageHash = "authenticated";
+                object messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -1474,8 +1474,8 @@ public partial class woofipro : ccxt.woofipro
                 DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                 return;
             }
-            List<object> splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
-            int splitLength = getArrayLength(splitTopic);
+            object splitTopic = ((string)topic).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+            object splitLength = getArrayLength(splitTopic);
             if (isTrue(isEqual(splitLength, 2)))
             {
                 object name = this.safeString(splitTopic, 1);
@@ -1489,8 +1489,8 @@ public partial class woofipro : ccxt.woofipro
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
                     return;
                 }
-                List<object> splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-                int splitNameLength = getArrayLength(splitTopic);
+                object splitName = ((string)name).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                object splitNameLength = getArrayLength(splitTopic);
                 if (isTrue(isEqual(splitNameLength, 2)))
                 {
                     method = this.safeValue(methods, this.safeString(splitName, 0));

@@ -54,7 +54,7 @@ public partial class ndax : ccxt.ndax
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        string name = "SubscribeLevel1";
+        object name = "SubscribeLevel1";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
@@ -68,7 +68,7 @@ public partial class ndax : ccxt.ndax
             { "n", name },
             { "o", this.json(payload) },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -107,7 +107,7 @@ public partial class ndax : ccxt.ndax
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         }
-        string name = "SubscribeLevel1";
+        object name = "SubscribeLevel1";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
@@ -133,7 +133,7 @@ public partial class ndax : ccxt.ndax
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        string name = "SubscribeTrades";
+        object name = "SubscribeTrades";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
@@ -148,7 +148,7 @@ public partial class ndax : ccxt.ndax
             { "n", name },
             { "o", this.json(payload) },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -179,7 +179,7 @@ public partial class ndax : ccxt.ndax
         //         ]
         //     ]
         //
-        string name = "SubscribeTrades";
+        object name = "SubscribeTrades";
         object updates = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
         {
@@ -201,7 +201,7 @@ public partial class ndax : ccxt.ndax
                 ((IDictionary<string,object>)updates)[(string)symbol] = true;
             }
         }
-        List<object> symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
+        object symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
@@ -235,7 +235,7 @@ public partial class ndax : ccxt.ndax
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        string name = "SubscribeTicker";
+        object name = "SubscribeTicker";
         object messageHash = add(add(add(add(name, ":"), timeframe), ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
@@ -251,7 +251,7 @@ public partial class ndax : ccxt.ndax
             { "n", name },
             { "o", this.json(payload) },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -299,7 +299,7 @@ public partial class ndax : ccxt.ndax
                 ((IDictionary<string,object>)updates)[(string)marketId] = new Dictionary<string, object>() {};
             }
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            List<object> keys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
             {
                 object timeframe = getValue(keys, j);
@@ -312,7 +312,7 @@ public partial class ndax : ccxt.ndax
                 }
                 object parsed = new List<object> {this.parseToInt(multiply((divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)};
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
-                int length = getArrayLength(stored);
+                object length = getArrayLength(stored);
                 if (isTrue(isTrue(length) && isTrue((isEqual(getValue(parsed, 0), getValue(getValue(stored, subtract(length, 1)), 0))))))
                 {
                     object previous = getValue(stored, subtract(length, 1));
@@ -359,12 +359,12 @@ public partial class ndax : ccxt.ndax
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
         }
-        string name = "SubscribeTicker";
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
+        object name = "SubscribeTicker";
+        object marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            List<object> timeframes = new List<object>(((IDictionary<string,object>)getValue(updates, marketId)).Keys);
+            object timeframes = new List<object>(((IDictionary<string,object>)getValue(updates, marketId)).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(timeframes)); postFixIncrement(ref j))
             {
                 object timeframe = getValue(timeframes, j);
@@ -397,7 +397,7 @@ public partial class ndax : ccxt.ndax
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        string name = "SubscribeLevel2";
+        object name = "SubscribeLevel2";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
@@ -423,7 +423,7 @@ public partial class ndax : ccxt.ndax
             { "limit", limit },
             { "params", parameters },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
         return (orderbook as IOrderBook).limit();
     }
@@ -513,7 +513,7 @@ public partial class ndax : ccxt.ndax
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
-        string name = "SubscribeLevel2";
+        object name = "SubscribeLevel2";
         object messageHash = add(add(name, ":"), marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
@@ -568,7 +568,7 @@ public partial class ndax : ccxt.ndax
         //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
-        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object id = this.safeInteger(message, "i");
         object subscription = ((bool) isTrue((isEqual(id, null)))) ? null : this.safeValue(subscriptionsById, id);
         if (isTrue(!isEqual(subscription, null)))

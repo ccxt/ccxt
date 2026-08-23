@@ -1002,9 +1002,9 @@ public partial class weex : Exchange
                 };
             }
         }
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        int networksLength = getArrayLength(networkKeys);
-        bool emptyChains = isEqual(networksLength, 0); // non-functional coins
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networksLength = getArrayLength(networkKeys);
+        object emptyChains = isEqual(networksLength, 0); // non-functional coins
         object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1126,9 +1126,9 @@ public partial class weex : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
-        bool active = true;
+        object active = true;
         object symbol = add(add(bs, "/"), quote);
-        bool isSpot = true;
+        object isSpot = true;
         object isLinear = null;
         object isInverse = null;
         if (isTrue(!isEqual(settle, null)))
@@ -1422,7 +1422,7 @@ public partial class weex : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object markPrice = this.safeString(ticker, "markPrice");
-        string marketType = "spot";
+        object marketType = "spot";
         if (isTrue(isTrue((!isEqual(markPrice, null))) || isTrue((isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
@@ -1525,7 +1525,7 @@ public partial class weex : Exchange
      * @param {string} [params.priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchMarkPrice(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchMarkPrice(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1554,7 +1554,7 @@ public partial class weex : Exchange
         //     }
         //
         // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-        Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {}, response);
+        object ticker = this.extend(new Dictionary<string, object>() {}, response);
         if (isTrue(isEqual(priceType, "INDEX")))
         {
             ((IDictionary<string,object>)ticker)["indexPrice"] = this.safeString(ticker, "price");
@@ -1612,7 +1612,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1674,8 +1674,9 @@ public partial class weex : Exchange
      * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1685,10 +1686,10 @@ public partial class weex : Exchange
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
-            return await this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters);
+            return await this.fetchSpotOHLCV(((string)symbol),((string)timeframe), since, limit, parameters);
         } else
         {
-            return await this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters);
+            return await this.fetchContractOHLCV(((string)symbol),((string)timeframe), since, limit, parameters);
         }
     }
 
@@ -1705,8 +1706,9 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchSpotOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchSpotOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1741,8 +1743,9 @@ public partial class weex : Exchange
      * @param {boolean} [params.historical] whether to fetch historical klines (default is false). If false, will fetch last price klines
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchContractOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchContractOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1790,7 +1793,7 @@ public partial class weex : Exchange
             object endTime = until;
             if (isTrue(isTrue((isEqual(since, null))) || isTrue((isEqual(until, null)))))
             {
-                Int64 now = this.milliseconds();
+                object now = this.milliseconds();
                 object duration = multiply(this.parseTimeframe(timeframe), 1000);
                 object numberOfCandles = ((bool) isTrue(limit)) ? limit : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
@@ -1850,7 +1853,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2018,7 +2021,7 @@ public partial class weex : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2150,7 +2153,7 @@ public partial class weex : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchFundingRateHistory(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2324,7 +2327,7 @@ public partial class weex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2420,7 +2423,7 @@ public partial class weex : Exchange
      * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in params
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2606,7 +2609,7 @@ public partial class weex : Exchange
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "type", ((string)type).ToUpper() },
         };
-        bool isMarketOrder = (isEqual(type, "market"));
+        object isMarketOrder = (isEqual(type, "market"));
         if (!isTrue(isMarketOrder))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -2616,9 +2619,9 @@ public partial class weex : Exchange
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[1];
         var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[2];
         var query = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[3];
-        bool isTrigger = (!isEqual(triggerPrice, null));
-        bool isStopLoss = (!isEqual(stopLossPrice, null));
-        bool isTakeProfit = (!isEqual(takeProfitPrice, null));
+        object isTrigger = (!isEqual(triggerPrice, null));
+        object isStopLoss = (!isEqual(stopLossPrice, null));
+        object isTakeProfit = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrue(isTrigger) && isTrue((isTrue(isStopLoss) || isTrue(isTakeProfit)))))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
@@ -2628,8 +2631,8 @@ public partial class weex : Exchange
         {
             reduceOnly = true;
         }
-        bool isReduceOnly = (isEqual(reduceOnly, true));
-        string positionSide = "LONG";
+        object isReduceOnly = (isEqual(reduceOnly, true));
+        object positionSide = "LONG";
         if (isTrue(isReduceOnly))
         {
             if (isTrue(isEqual(side, "buy")))
@@ -2642,9 +2645,9 @@ public partial class weex : Exchange
         }
         ((IDictionary<string,object>)request)["positionSide"] = positionSide;
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        bool hasTakeProfit = (!isEqual(takeProfit, null));
+        object hasTakeProfit = (!isEqual(takeProfit, null));
         object stopLoss = this.safeDict(parameters, "stopLoss");
-        bool hasStopLoss = (!isEqual(stopLoss, null));
+        object hasStopLoss = (!isEqual(stopLoss, null));
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if (isTrue(isTrue(hasTakeProfit) && isTrue((!isEqual(this.safeNumber(takeProfit, "price"), null)))))
         {
@@ -2810,7 +2813,7 @@ public partial class weex : Exchange
      * @param {string} [params.clientOrderId] *non-trigger orders only* a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2889,7 +2892,7 @@ public partial class weex : Exchange
      * @param {boolean} [params.trigger] *swap only* true for cancelling trigger orders (default is false)
      * @returns Response from the exchange
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2943,7 +2946,7 @@ public partial class weex : Exchange
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2960,7 +2963,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        object isSpot = (isEqual(marketType, "spot"));
         object clientOrderIds = this.safeList(parameters, "clientOrderIds");
         parameters = this.omit(parameters, "clientOrderIds");
         if (isTrue(!isEqual(clientOrderIds, null)))
@@ -3013,7 +3016,7 @@ public partial class weex : Exchange
      * @param {string} [params.clientOrderId] *spot only* a unique id for the order, used if id is not provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3029,7 +3032,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        object isSpot = (isEqual(marketType, "spot"));
         object request = new Dictionary<string, object>() {};
         if (isTrue(isTrue((isEqual(id, null))) && !isTrue(isSpot)))
         {
@@ -3095,7 +3098,7 @@ public partial class weex : Exchange
      * @param {boolean} [params.trigger] *swap only* whether to fetch trigger orders (default is false)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3111,7 +3114,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        object isSpot = (isEqual(marketType, "spot"));
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3253,7 +3256,7 @@ public partial class weex : Exchange
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3276,7 +3279,7 @@ public partial class weex : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchClosedOrders() requires a symbol argument for spot markets")) ;
             }
-            orders = await this.fetchOrders(symbol, since, null, parameters);
+            orders = await this.fetchOrders(((string)symbol), since, null, parameters);
         } else
         {
             orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
@@ -3299,7 +3302,7 @@ public partial class weex : Exchange
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3322,7 +3325,7 @@ public partial class weex : Exchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledOrders() requires a symbol argument for spot markets")) ;
             }
-            orders = await this.fetchOrders(symbol, since, null, parameters);
+            orders = await this.fetchOrders(((string)symbol), since, null, parameters);
         } else
         {
             orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
@@ -3343,7 +3346,7 @@ public partial class weex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3624,7 +3627,7 @@ public partial class weex : Exchange
         object isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-        bool isEntryTrigger = !isTrue((this.safeBool(order, "reduceOnly", true)));
+        object isEntryTrigger = !isTrue((this.safeBool(order, "reduceOnly", true)));
         object takeProfitPrice = null;
         object stopLossPrice = null;
         if (!isTrue(isEntryTrigger))
@@ -3739,7 +3742,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchOrderTrades(string id, string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3749,7 +3752,7 @@ public partial class weex : Exchange
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
-        return ccxt.BaseExchange.ToTradeList(await this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters)));
+        return ccxt.BaseExchange.ToTradeList(await this.fetchMyTrades(((string)symbol), since, limit, this.extend(request, parameters)));
     }
 
     /**
@@ -3766,7 +3769,7 @@ public partial class weex : Exchange
      * @param {string} [params.type] 'spot' or 'swap', used if symbol is not provided (default is 'spot')
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3782,7 +3785,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        object isSpot = (isEqual(marketType, "spot"));
         if (isTrue(isTrue(isSpot) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
@@ -3879,7 +3882,7 @@ public partial class weex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchLedger(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4017,7 +4020,7 @@ public partial class weex : Exchange
         object after = this.safeString2(item, "afterAmount", "balance");
         object before = Precise.stringSub(after, amountRaw);
         object amount = this.parseNumber(Precise.stringAbs(amountRaw));
-        string direction = "in";
+        object direction = "in";
         if (isTrue(isEqual(amountRaw, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseLedgerEntry() missing amountRaw")) ;
@@ -4028,7 +4031,7 @@ public partial class weex : Exchange
         }
         object rawType = this.safeString2(item, "bizType", "incomeType");
         object transferReason = this.safeString(item, "transferReason");
-        bool isContractEntry = (!isEqual(transferReason, null));
+        object isContractEntry = (!isEqual(transferReason, null));
         if (isTrue(isContractEntry))
         {
             if (isTrue(isTrue((isEqual(rawType, "withdraw"))) || isTrue((isEqual(rawType, "deposit")))))
@@ -4114,7 +4117,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> fetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object positions = await this.fetchPositionsForSymbol(symbol, parameters);
@@ -4227,7 +4230,7 @@ public partial class weex : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         object timestamp = this.safeInteger(position, "createdTime");
         object marginType = this.safeString2(position, "marginType", "marginMode");
-        string marginMode = "cross";
+        object marginMode = "cross";
         if (isTrue(isEqual(marginType, "ISOLATED")))
         {
             marginMode = "isolated";
@@ -4315,7 +4318,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    public async override Task<object> closePosition(string symbol, string side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4340,7 +4343,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4396,7 +4399,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public async override Task<ccxt.MarginMode> fetchMarginMode(object symbol, object parameters = null)
+    public async override Task<ccxt.MarginMode> fetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4475,7 +4478,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4517,7 +4520,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<ccxt.Leverage> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> fetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4595,7 +4598,7 @@ public partial class weex : Exchange
      * the leverage value will be applied to cross leverage
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4644,7 +4647,7 @@ public partial class weex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
-    public async override Task<ccxt.PositionModeInfo> fetchPositionMode(object symbol = null, object parameters = null)
+    public async override Task<ccxt.PositionModeInfo> fetchPositionMode(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4672,7 +4675,7 @@ public partial class weex : Exchange
      * @param {string} params.marginMode 'cross' or 'isolated' (default is 'cross')
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async override Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4765,7 +4768,7 @@ public partial class weex : Exchange
      * @param {string} params.positionId the id of the position to reduce margin from, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> reduceMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, 2, parameters);
@@ -4782,7 +4785,7 @@ public partial class weex : Exchange
      * @param {string} params.positionId the id of the position to add margin to, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public async override Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async override Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.modifyMarginHelper(symbol, amount, 1, parameters);
@@ -4848,7 +4851,7 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        bool isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
+        object isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
         if (isTrue(!isTrue(isBatch) && isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
@@ -4871,7 +4874,7 @@ public partial class weex : Exchange
                 body = this.json(query);
                 payload = add(payload, body);
             }
-            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-SIGN", signature },

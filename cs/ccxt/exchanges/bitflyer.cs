@@ -366,12 +366,12 @@ public partial class bitflyer : Exchange
         {
             object market = getValue(markets, i);
             object id = this.safeString(market, "product_code");
-            List<object> currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object marketType = this.safeString(market, "market_type");
-            bool swap = (isEqual(marketType, "FX"));
-            bool future = (isEqual(marketType, "Futures"));
-            bool spot = !isTrue(swap) && !isTrue(future);
-            string type = "spot";
+            object swap = (isEqual(marketType, "FX"));
+            object future = (isEqual(marketType, "Futures"));
+            object spot = !isTrue(swap) && !isTrue(future);
+            object type = "spot";
             object settle = null;
             object baseId = null;
             object quoteId = null;
@@ -400,11 +400,11 @@ public partial class bitflyer : Exchange
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
-                    List<object> splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+                    object splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     object currencyIds = this.safeString(splitAlias, 0);
                     baseId = slice(((string)currencyIds), 0, -3);
                     quoteId = slice(((string)currencyIds), -3, null);
-                    List<object> splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
+                    object splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
                     object expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
@@ -415,7 +415,7 @@ public partial class bitflyer : Exchange
             object symbol = add(add(bs, "/"), quote);
             object taker = getValue(getValue(this.fees, "trading"), "taker");
             object maker = getValue(getValue(this.fees, "trading"), "maker");
-            bool contract = isTrue(swap) || isTrue(future);
+            object contract = isTrue(swap) || isTrue(future);
             if (isTrue(contract))
             {
                 maker = 0;
@@ -551,7 +551,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -604,7 +604,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -701,7 +701,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -742,7 +742,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -776,7 +776,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -809,7 +809,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -902,7 +902,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         limit ??= 100;
         parameters ??= new Dictionary<string, object>();
@@ -939,14 +939,14 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         limit ??= 100;
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "child_order_state", "ACTIVE" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchOrders(((string)symbol), since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -960,14 +960,14 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         limit ??= 100;
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "child_order_state", "COMPLETED" },
         };
-        return await this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return await this.fetchOrders(((string)symbol), since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -980,15 +980,15 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        object orders = await this.fetchOrders(symbol);
-        Dictionary<string, object> ordersById = this.indexBy(orders, "id");
+        object orders = await this.fetchOrders(((string)symbol));
+        object ordersById = this.indexBy(orders, "id");
         if (isTrue(inOp(ordersById, id)))
         {
             return getValue(ordersById, id);
@@ -1007,7 +1007,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1101,7 +1101,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkAddress(address);
@@ -1138,7 +1138,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1184,7 +1184,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1335,7 +1335,7 @@ public partial class bitflyer : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRate> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> fetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1411,7 +1411,7 @@ public partial class bitflyer : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object content = new List<object>() {nonce, method, request};
             object auth = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))

@@ -92,10 +92,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
+        return res;
     }
     /// <summary>
     /// fetches the latest trade price and top of book for a single outcome token
@@ -112,10 +112,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure).</returns>
-    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(outcome, parameters);
-        return new PredictionTicker(res);
+        return res;
     }
     /// <summary>
     /// fetches tickers for multiple outcome tokens - opinion has no all-tickers endpoint, each token needs its own latest-price + orderbook request
@@ -132,10 +132,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome.</returns>
-    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(outcomes, parameters);
-        return new PredictionTickers(res);
+        return res;
     }
     /// <summary>
     /// fetches the order book for a single outcome token
@@ -190,10 +190,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1d", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = "1d", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// places a limit or market order on the CLOB for the given outcome token
@@ -222,10 +222,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrder(outcome, type, side, amount, price, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// cancels a single open order by id
@@ -248,10 +248,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, outcome, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// fetches all of the authenticated user's orders
@@ -286,10 +286,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches a single order by id
@@ -312,10 +312,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, outcome, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// fetches the authenticated user's open orders
@@ -350,10 +350,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches the authenticated user's closed orders
@@ -388,10 +388,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchClosedOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches the authenticated user's trades
@@ -426,10 +426,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+        return res;
     }
     /// <summary>
     /// fetches the authenticated user's quote-token balances
@@ -446,10 +446,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetches the authenticated user's open positions
@@ -466,10 +466,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure).</returns>
-    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(outcomes, parameters);
-        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
+        return res;
     }
     /// <summary>
     /// self-service creation of an Open API key linked to this.walletAddress via

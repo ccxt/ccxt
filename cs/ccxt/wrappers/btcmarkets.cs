@@ -168,10 +168,10 @@ public partial class btcmarkets
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -200,10 +200,10 @@ public partial class btcmarkets
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -246,15 +246,15 @@ public partial class btcmarkets
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
+        return res;
     }
-    public async Task<Ticker> FetchTicker2(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Ticker> FetchTicker2(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker2(symbol, parameters);
-        return new Ticker(res);
+        return res;
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -335,10 +335,10 @@ public partial class btcmarkets
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// cancels an open order
@@ -355,10 +355,10 @@ public partial class btcmarkets
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -523,9 +523,9 @@ public partial class btcmarkets
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
-        return new Transaction(res);
+        return res;
     }
 }

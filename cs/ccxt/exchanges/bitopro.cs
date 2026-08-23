@@ -405,7 +405,7 @@ public partial class bitopro : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object deposit = this.safeBool(rawCurrency, "deposit");
         object withdraw = this.safeBool(rawCurrency, "withdraw");
-        bool isFiat = this.inArray(code, fiatCurrencies);
+        object isFiat = this.inArray(code, fiatCurrencies);
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -469,13 +469,13 @@ public partial class bitopro : Exchange
 
     public override object parseMarket(object market)
     {
-        bool active = !isTrue(this.safeBool(market, "maintain"));
+        object active = !isTrue(this.safeBool(market, "maintain"));
         object id = this.safeString(market, "pair");
         if (isTrue(isEqual(id, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing id")) ;
         }
-        string uppercaseId = ((string)id).ToUpper();
+        object uppercaseId = ((string)id).ToUpper();
         object baseId = this.safeString(market, "base");
         object quoteId = this.safeString(market, "quote");
         object bs = this.safeCurrencyCode(baseId);
@@ -583,7 +583,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -658,7 +658,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -806,7 +806,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -949,8 +949,9 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1008,7 +1009,7 @@ public partial class bitopro : Exchange
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        int length = getArrayLength(candles);
+        object length = getArrayLength(candles);
         if (isTrue(isEqual(length, 0)))
         {
             return candles;
@@ -1024,7 +1025,7 @@ public partial class bitopro : Exchange
             timestamp = since;
         }
         object i = 0;
-        int candleLength = getArrayLength(candles);
+        object candleLength = getArrayLength(candles);
         object resultLength = 0;
         while (isTrue((isLessThan(resultLength, limit))) && isTrue((isLessThan(i, candleLength))))
         {
@@ -1241,7 +1242,7 @@ public partial class bitopro : Exchange
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1256,7 +1257,7 @@ public partial class bitopro : Exchange
             { "amount", this.amountToPrecision(symbol, amount) },
             { "timestamp", this.milliseconds() },
         };
-        string orderType = ((string)type).ToUpper();
+        object orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(orderType, "LIMIT")))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -1311,7 +1312,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1342,7 +1343,7 @@ public partial class bitopro : Exchange
 
     public virtual object parseCancelOrders(object data)
     {
-        List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
+        object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
         object orders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
         {
@@ -1370,7 +1371,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1412,7 +1413,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1454,7 +1455,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1508,7 +1509,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1577,7 +1578,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1607,13 +1608,13 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "statusKind", "DONE" },
         };
-        return this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
+        return this.fetchOrders(((string)symbol), since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1627,7 +1628,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1778,7 +1779,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
@@ -1838,7 +1839,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
@@ -1896,7 +1897,7 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> fetchWithdrawal(object id, object code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> fetchWithdrawal(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
@@ -1945,8 +1946,9 @@ public partial class bitopro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tagTyped = null, object parameters = null)
     {
+        object tag = tagTyped;
         parameters ??= new Dictionary<string, object>();
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
@@ -2078,7 +2080,7 @@ public partial class bitopro : Exchange
             {
                 body = this.json(parameters);
                 object payload = this.stringToBase64(body);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;
@@ -2088,13 +2090,13 @@ public partial class bitopro : Exchange
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
-                Int64 nonce = this.milliseconds();
+                object nonce = this.milliseconds();
                 object rawData = new Dictionary<string, object>() {
                     { "nonce", nonce },
                 };
-                string data = this.json(rawData);
+                object data = this.json(rawData);
                 object payload = this.stringToBase64(data);
-                string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+                object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
                 ((IDictionary<string,object>)headers)["X-BITOPRO-APIKEY"] = this.apiKey;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-PAYLOAD"] = payload;
                 ((IDictionary<string,object>)headers)["X-BITOPRO-SIGNATURE"] = signature;

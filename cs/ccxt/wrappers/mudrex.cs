@@ -45,10 +45,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// fetches historical mark price candlestick data containing the open, high, low, and close price of a market
@@ -77,10 +77,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchMarkOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchMarkOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarkOHLCV(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -97,10 +97,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
-        return new Ticker(res);
+        return res;
     }
     /// <summary>
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -117,10 +117,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure).</returns>
-    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
-        return new Tickers(res);
+        return res;
     }
     /// <summary>
     /// retrieves data on all markets for the exchange
@@ -169,10 +169,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetch the set leverage for a market
@@ -189,10 +189,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure).</returns>
-    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverage(symbol, parameters);
-        return new Leverage(res);
+        return res;
     }
     /// <summary>
     /// set the level of leverage for a market
@@ -321,10 +321,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// cancels an open order
@@ -347,10 +347,10 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure](https://docs.ccxt.com/#/?id=order-structure).</returns>
-    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -652,9 +652,9 @@ public partial class mudrex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure).</returns>
-    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
     {
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return new TransferEntry(res);
+        return res;
     }
 }

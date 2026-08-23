@@ -713,9 +713,9 @@ public partial class whitebit : Exchange
         object settle = null;
         object settleId = null;
         object symbol = add(add(bs, "/"), quote);
-        bool swap = isTrue((isEqual(typeId, "futures"))) || isTrue((isEqual(typeId, "tradfiFutures")));
-        bool margin = isTrue(isCollateral) && !isTrue(swap);
-        bool contract = false;
+        object swap = isTrue((isEqual(typeId, "futures"))) || isTrue((isEqual(typeId, "tradfiFutures")));
+        object margin = isTrue(isCollateral) && !isTrue(swap);
+        object contract = false;
         object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         object linear = null;
         object inverse = null;
@@ -736,7 +736,7 @@ public partial class whitebit : Exchange
         object taker = Precise.stringDiv(takerFeeRate, "100");
         object makerFeeRate = this.safeString(market, "makerFee");
         object maker = Precise.stringDiv(makerFeeRate, "100");
-        bool isSpot = !isTrue(swap);
+        object isSpot = !isTrue(swap);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },
@@ -876,7 +876,7 @@ public partial class whitebit : Exchange
         // const name = this.safeString (currency, 'name'); // breaks down in Python due to utf8 encoding issues on the exchange side
         object id = this.safeString(rawCurrency, "_coin_id");
         object code = this.safeCurrencyCode(id);
-        bool hasProvider = (inOp(rawCurrency, "providers"));
+        object hasProvider = (inOp(rawCurrency, "providers"));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "networks", new Dictionary<string, object>() {});
         object depositsNetworks = this.safeList(rawNetworks, "deposits", new List<object>() {});
@@ -986,7 +986,7 @@ public partial class whitebit : Exchange
         //           {...}
         //      }
         //
-        List<object> currenciesIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object currenciesIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object withdrawFees = new Dictionary<string, object>() {};
         object depositFees = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
@@ -1120,11 +1120,11 @@ public partial class whitebit : Exchange
         //
         object depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object entry = getValue(currencyIds, i);
-            List<object> splitEntry = ((string)entry).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            object splitEntry = ((string)entry).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object currencyId = getValue(splitEntry, 0);
             object feeInfo = getValue(response, entry);
             object code = this.safeCurrencyCode(currencyId);
@@ -1151,7 +1151,7 @@ public partial class whitebit : Exchange
                 };
                 if (isTrue(!isEqual(networkId, null)))
                 {
-                    int networkLength = ((string)networkId).Length;
+                    object networkLength = ((string)networkId).Length;
                     networkId = slice(networkId, 1, subtract(networkLength, 1));
                     object networkCode = this.networkIdToCode(networkId, code);
                     if (isTrue(!isEqual(networkCode, null)))
@@ -1168,7 +1168,7 @@ public partial class whitebit : Exchange
                 }
             }
         }
-        List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
+        object depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
         {
             object code = getValue(depositWithdrawCodes, i);
@@ -1301,7 +1301,7 @@ public partial class whitebit : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
+        object marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -1314,7 +1314,7 @@ public partial class whitebit : Exchange
             // Filter by symbols if specified
             if (isTrue(symbols))
             {
-                bool symbolFound = false;
+                object symbolFound = false;
                 for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
                 {
                     if (isTrue(isEqual(getValue(symbols, j), symbol)))
@@ -1334,9 +1334,9 @@ public partial class whitebit : Exchange
             object priceLimits = this.safeDict(limits, "price");
             object costLimits = this.safeDict(limits, "cost");
             // Validate that all required limits exist and are valid numbers
-            bool hasAmountLimits = isTrue(isTrue(amountLimits) && isTrue(!isEqual(this.safeNumber(amountLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(amountLimits, "max"), null));
-            bool hasPriceLimits = isTrue(isTrue(priceLimits) && isTrue(!isEqual(this.safeNumber(priceLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(priceLimits, "max"), null));
-            bool hasCostLimits = isTrue(isTrue(costLimits) && isTrue(!isEqual(this.safeNumber(costLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(costLimits, "max"), null));
+            object hasAmountLimits = isTrue(isTrue(amountLimits) && isTrue(!isEqual(this.safeNumber(amountLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(amountLimits, "max"), null));
+            object hasPriceLimits = isTrue(isTrue(priceLimits) && isTrue(!isEqual(this.safeNumber(priceLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(priceLimits, "max"), null));
+            object hasCostLimits = isTrue(isTrue(costLimits) && isTrue(!isEqual(this.safeNumber(costLimits, "min"), null))) && isTrue(!isEqual(this.safeNumber(costLimits, "max"), null));
             if (isTrue(isTrue(isTrue(hasAmountLimits) && isTrue(hasPriceLimits)) && isTrue(hasCostLimits)))
             {
                 ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1439,7 +1439,7 @@ public partial class whitebit : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        List<object> currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
+        object currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
         {
             object code = getValue(currencyKeys, i);
@@ -1454,7 +1454,7 @@ public partial class whitebit : Exchange
             }
             // Find corresponding fee data for this currency
             object feeData = null;
-            List<object> feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
+            object feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
             {
                 object feeKey = getValue(feeKeys, j);
@@ -1535,7 +1535,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1698,7 +1698,7 @@ public partial class whitebit : Exchange
      * @param {boolean} [params.checkExecuted] whether to check executed orders (default: true)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1752,7 +1752,7 @@ public partial class whitebit : Exchange
             {
                 object response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
                 // Search for order in executed orders response (object format)
-                List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+                object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
@@ -1798,7 +1798,7 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        bool onlyContractSymbols = true;
+        object onlyContractSymbols = true;
         if (isTrue(!isEqual(symbols, null)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1900,7 +1900,7 @@ public partial class whitebit : Exchange
         {
             return ccxt.BaseExchange.ToTickers(this.parseTickers(resultList, symbols));
         }
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -1923,7 +1923,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1973,7 +1973,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2011,7 +2011,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2069,7 +2069,7 @@ public partial class whitebit : Exchange
         } else
         {
             object results = new List<object>() {};
-            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object marketId = getValue(keys, i);
@@ -2181,8 +2181,9 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2298,14 +2299,14 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> createMarketOrderWithCost(object symbol, object side, object cost, object parameters = null)
+    public async override Task<ccxt.Order> createMarketOrderWithCost(string symbol, string side, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object req = new Dictionary<string, object>() {
             { "cost", cost },
         };
         // only buy side is supported
-        return ccxt.BaseExchange.ToOrder(await this.createOrder(symbol, "market", side, 0, null, this.extend(req, parameters)));
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(((string)symbol), "market",((string)side), 0, null, this.extend(req, parameters)));
     }
 
     /**
@@ -2317,10 +2318,10 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
+    public async override Task<ccxt.Order> createMarketBuyOrderWithCost(string symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.createMarketOrderWithCost(symbol, "buy", cost, parameters);
+        return await this.createMarketOrderWithCost(((string)symbol), "buy", cost, parameters);
     }
 
     /**
@@ -2346,7 +2347,7 @@ public partial class whitebit : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2387,17 +2388,17 @@ public partial class whitebit : Exchange
             parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         }
         object marketType = this.safeString(market, "type");
-        bool isLimitOrder = isEqual(type, "limit");
-        bool isMarketOrder = isEqual(type, "market");
+        object isLimitOrder = isEqual(type, "limit");
+        object isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
-        bool isStopOrder = (!isEqual(triggerPrice, null));
+        object isStopOrder = (!isEqual(triggerPrice, null));
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isTrue(isTrue(isTrue((!isEqual(timeInForce, null))) && isTrue((!isEqual(timeInForce, "GTC")))) && isTrue((!isEqual(timeInForce, "IOC")))) && isTrue((!isEqual(timeInForce, "PO")))))
         {
             throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
         }
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
-        bool ioc = (isEqual(timeInForce, "IOC"));
+        object ioc = (isEqual(timeInForce, "IOC"));
         if (isTrue(isTrue(isStopOrder) && isTrue((isTrue(postOnly) || isTrue(ioc)))))
         {
             throw new NotSupported ((string)add(this.id, " createOrder() does not support postOnly or timeInForce IOC for stop orders")) ;
@@ -2422,7 +2423,7 @@ public partial class whitebit : Exchange
             throw new NotSupported ((string)add(this.id, " createOrder() is only available for cross margin")) ;
         }
         parameters = this.omit(query, new List<object>() {"postOnly", "triggerPrice", "stopPrice", "timeInForce"});
-        bool useCollateralEndpoint = isTrue(!isEqual(marginMode, null)) || isTrue(isEqual(marketType, "swap"));
+        object useCollateralEndpoint = isTrue(!isEqual(marginMode, null)) || isTrue(isEqual(marketType, "swap"));
         object response = null;
         if (isTrue(isStopOrder))
         {
@@ -2491,7 +2492,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2513,13 +2514,13 @@ public partial class whitebit : Exchange
         }
         // Handle amount vs total parameter based on order type and side
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activationPrice"});
-        bool isStopOrder = (!isEqual(triggerPrice, null));
+        object isStopOrder = (!isEqual(triggerPrice, null));
         // Handle activation price for stop orders
         if (isTrue(isStopOrder))
         {
             ((IDictionary<string,object>)request)["activation_price"] = this.priceToPrecision(symbol, triggerPrice);
         }
-        bool isLimitOrder = isEqual(type, "limit");
+        object isLimitOrder = isEqual(type, "limit");
         object total = this.safeNumber(parameters, "total");
         if (isTrue(!isEqual(total, null)))
         {
@@ -2546,7 +2547,7 @@ public partial class whitebit : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         // Ensure at least one modifiable parameter is provided
-        bool hasModifiableParam = isTrue(isTrue(isTrue((!isEqual(amount, null))) || isTrue((!isEqual(price, null)))) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(total, null)));
+        object hasModifiableParam = isTrue(isTrue(isTrue((!isEqual(amount, null))) || isTrue((!isEqual(price, null)))) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(total, null)));
         if (!isTrue(hasModifiableParam))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires at least one of: amount, price, activationPrice, or total parameters")) ;
@@ -2566,7 +2567,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2616,7 +2617,7 @@ public partial class whitebit : Exchange
      * @param {boolean} [params.isMargin] cancel all margin orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2675,7 +2676,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2683,7 +2684,7 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         // Fetch both open and closed orders in parallel
-        var openOrdersclosedOrdersVariable = await promiseAll(new List<object> {this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters)});
+        var openOrdersclosedOrdersVariable = await promiseAll(new List<object> {this.fetchOpenOrders(((string)symbol), since, limit, parameters), this.fetchClosedOrders(((string)symbol), since, limit, parameters)});
         var openOrders = ((IList<object>) openOrdersclosedOrdersVariable)[0];
         var closedOrders = ((IList<object>) openOrdersclosedOrdersVariable)[1];
         object allOrders = this.arrayConcat(openOrders, closedOrders);
@@ -2726,7 +2727,7 @@ public partial class whitebit : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " cancelAllOrdersAfter() missing timeout")) ;
         }
-        bool isBiggerThanZero = (isGreaterThan(timeout, 0));
+        object isBiggerThanZero = (isGreaterThan(timeout, 0));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2751,7 +2752,7 @@ public partial class whitebit : Exchange
 
     public override object parseBalance(object response)
     {
-        List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
@@ -2855,7 +2856,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2910,8 +2911,9 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbolTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object symbol = symbolTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2947,7 +2949,7 @@ public partial class whitebit : Exchange
         //         ],
         //     }
         //
-        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -3117,7 +3119,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchOrderTrades(string id, string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3173,7 +3175,7 @@ public partial class whitebit : Exchange
      * @param {string} [params.transactionMethod] transaction method (1=deposit, 2=withdrawal) - automatically set to '2' for withdrawals
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3304,7 +3306,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3385,7 +3387,7 @@ public partial class whitebit : Exchange
      * @param {string} [params.type] address type, available for specific currencies
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> createDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> createDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3498,7 +3500,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3531,7 +3533,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async override Task<ccxt.TransferEntry> transfer(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3586,7 +3588,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3727,7 +3729,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async virtual Task<ccxt.Transaction> fetchDeposit(object id, object code = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> fetchDeposit(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3800,7 +3802,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3967,8 +3969,9 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRate> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> fetchFundingRate(string symbolTyped, object parameters = null)
     {
+        object symbol = symbolTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -4343,7 +4346,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<ccxt.Conversion> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async override Task<ccxt.Conversion> createConvertTrade(string id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4380,7 +4383,7 @@ public partial class whitebit : Exchange
      * @param {string} [params.quoteId] the quote id of the conversion
      * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public async override Task<List<ccxt.Conversion>> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Conversion>> fetchConvertTradeHistory(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4506,7 +4509,7 @@ public partial class whitebit : Exchange
      * @param {int} [params.positionId] the id of the requested position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> fetchPositionHistory(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4607,7 +4610,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> fetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4743,7 +4746,7 @@ public partial class whitebit : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchFundingRateHistory(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -4837,7 +4840,7 @@ public partial class whitebit : Exchange
         if (isTrue(isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            string nonce = ((object)this.nonce()).ToString();
+            object nonce = ((object)this.nonce()).ToString();
             object secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
@@ -4849,7 +4852,7 @@ public partial class whitebit : Exchange
                 { "nonceWindow", nonceWindow },
             }, requestParams));
             object payload = this.stringToBase64(body);
-            string signature = this.hmac(this.encode(payload), secret, sha512);
+            object signature = this.hmac(this.encode(payload), secret, sha512);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-TXC-APIKEY", this.apiKey },
@@ -4886,7 +4889,7 @@ public partial class whitebit : Exchange
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             object codeNew = this.safeInteger(response, "code");
-            bool hasErrorStatus = isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))) && isTrue(!isEqual(errors, null));
+            object hasErrorStatus = isTrue(isTrue(!isEqual(status, null)) && isTrue(!isEqual(status, "200"))) && isTrue(!isEqual(errors, null));
             if (isTrue(isTrue(hasErrorStatus) || isTrue(!isEqual(codeNew, null))))
             {
                 object feedback = add(add(this.id, " "), body);
@@ -4897,13 +4900,13 @@ public partial class whitebit : Exchange
                 } else
                 {
                     object errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
-                    List<object> errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
-                    int errorsLength = getArrayLength(errorKeys);
+                    object errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
+                    object errorsLength = getArrayLength(errorKeys);
                     if (isTrue(isGreaterThan(errorsLength, 0)))
                     {
                         object errorKey = getValue(errorKeys, 0);
                         object errorMessageArray = this.safeValue(errorObject, errorKey, new List<object>() {});
-                        int errorMessageLength = getArrayLength(errorMessageArray);
+                        object errorMessageLength = getArrayLength(errorMessageArray);
                         errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
                     }
                 }
@@ -4916,14 +4919,14 @@ public partial class whitebit : Exchange
             if (!isTrue(success))
             {
                 object errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});
-                List<object> errKeys = new List<object>(((IDictionary<string,object>)errMsg).Keys);
-                int errKeysLength = getArrayLength(errKeys);
+                object errKeys = new List<object>(((IDictionary<string,object>)errMsg).Keys);
+                object errKeysLength = getArrayLength(errKeys);
                 object errorInfo = body;
                 if (isTrue(isGreaterThan(errKeysLength, 0)))
                 {
                     object errorKey = getValue(errKeys, 0);
                     object errorMessageArray = this.safeList(errMsg, errorKey, new List<object>() {});
-                    int errorMessageLength = getArrayLength(errorMessageArray);
+                    object errorMessageLength = getArrayLength(errorMessageArray);
                     errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;
                 }
                 object feedback = add(add(this.id, " "), body);

@@ -343,7 +343,7 @@ public partial class cryptomus : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = getValue(parts, 0);
         object quoteId = getValue(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -437,8 +437,8 @@ public partial class cryptomus : Exchange
         //     }
         //
         object coins = this.safeList(response, "result");
-        Dictionary<string, object> groupedById = this.groupBy(coins, "currency_code");
-        List<object> groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        object groupedById = this.groupBy(coins, "currency_code");
+        object groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
         return this.parseCurrencies(groupedArray);
     }
 
@@ -574,7 +574,7 @@ public partial class cryptomus : Exchange
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -626,7 +626,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -770,7 +770,7 @@ public partial class cryptomus : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -789,7 +789,7 @@ public partial class cryptomus : Exchange
             parameters = this.omit(parameters, "clientOrderId");
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        bool sideBuy = isEqual(side, "buy");
+        object sideBuy = isEqual(side, "buy");
         object amountToString = this.numberToString(amount);
         object priceToString = this.numberToString(price);
         object cost = null;
@@ -855,7 +855,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -973,7 +973,7 @@ public partial class cryptomus : Exchange
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))

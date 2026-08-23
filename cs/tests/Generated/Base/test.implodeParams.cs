@@ -12,13 +12,13 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            string path = "v2/watchlists/{timeframe_id}/{symbol_id}";
+            object path = "v2/watchlists/{timeframe_id}/{symbol_id}";
             object parameters = new Dictionary<string, object>() {
                 { "timeframe_id", "1m" },
                 { "symbol_id", "BTC/USDT" },
                 { "extra_param", "should_be_ignored" },
             };
-            string expected = "v2/watchlists/1m/BTC/USDT";
+            object expected = "v2/watchlists/1m/BTC/USDT";
             object result = exchange.implodeParams(path, parameters);
             Assert(isEqual(result, expected), add(add(add("implodeParams did not produce the expected result: ", result), " != "), expected));
         }

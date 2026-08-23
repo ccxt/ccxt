@@ -633,7 +633,7 @@ public partial class BaseExchange
         {
             timeframes = this.timeframes;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)timeframes).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)timeframes).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -681,10 +681,10 @@ public partial class BaseExchange
                 proxyUrl = this.proxy;
             }
         }
-        int length = getArrayLength(usedProxies);
+        object length = getArrayLength(usedProxies);
         if (isTrue(isGreaterThan(length, 1)))
         {
-            string joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
+            object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
             throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
@@ -693,7 +693,7 @@ public partial class BaseExchange
     public virtual object urlEncoderForProxyUrl(object targetUrl)
     {
         // to be overriden
-        bool includesQuery = isGreaterThanOrEqual(getIndexOf(targetUrl, "?"), 0);
+        object includesQuery = isGreaterThanOrEqual(getIndexOf(targetUrl, "?"), 0);
         object finalUrl = ((bool) isTrue(includesQuery)) ? this.encodeURIComponent(targetUrl) : targetUrl;
         return finalUrl;
     }
@@ -705,55 +705,55 @@ public partial class BaseExchange
         object httpsProxy = null;
         object socksProxy = null;
         // httpProxy
-        bool isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
-        bool isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
+        object isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
+        object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
         if (isTrue(isTrue(isHttpProxyDefined) || isTrue(isHttp_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("httpProxy");
             httpProxy = ((bool) isTrue(isHttpProxyDefined)) ? this.httpProxy : this.http_proxy;
         }
-        bool ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
-        bool ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
+        object ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
+        object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
         if (isTrue(isTrue(ishttpProxyCallbackDefined) || isTrue(ishttp_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("httpProxyCallback");
             httpProxy = ((bool) isTrue(ishttpProxyCallbackDefined)) ? callDynamically(this, "httpProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "http_proxy_callback", new object[] { url, method, headers, body });
         }
         // httpsProxy
-        bool isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
-        bool isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
+        object isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
+        object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
         if (isTrue(isTrue(isHttpsProxyDefined) || isTrue(isHttps_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("httpsProxy");
             httpsProxy = ((bool) isTrue(isHttpsProxyDefined)) ? this.httpsProxy : this.https_proxy;
         }
-        bool ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
-        bool ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
+        object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
+        object ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
         if (isTrue(isTrue(ishttpsProxyCallbackDefined) || isTrue(ishttps_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("httpsProxyCallback");
             httpsProxy = ((bool) isTrue(ishttpsProxyCallbackDefined)) ? callDynamically(this, "httpsProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "https_proxy_callback", new object[] { url, method, headers, body });
         }
         // socksProxy
-        bool isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
-        bool isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
+        object isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
+        object isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
         if (isTrue(isTrue(isSocksProxyDefined) || isTrue(isSocks_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("socksProxy");
             socksProxy = ((bool) isTrue(isSocksProxyDefined)) ? this.socksProxy : this.socks_proxy;
         }
-        bool issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
-        bool issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
+        object issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
+        object issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
         if (isTrue(isTrue(issocksProxyCallbackDefined) || isTrue(issocks_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("socksProxyCallback");
             socksProxy = ((bool) isTrue(issocksProxyCallbackDefined)) ? callDynamically(this, "socksProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "socks_proxy_callback", new object[] { url, method, headers, body });
         }
         // check
-        int length = getArrayLength(usedProxies);
+        object length = getArrayLength(usedProxies);
         if (isTrue(isGreaterThan(length, 1)))
         {
-            string joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
+            object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
             throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new List<object>() {httpProxy, httpsProxy, socksProxy};
@@ -766,34 +766,34 @@ public partial class BaseExchange
         object wssProxy = null;
         object wsSocksProxy = null;
         // ws proxy
-        bool isWsProxyDefined = this.valueIsDefined(this.wsProxy);
-        bool is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
+        object isWsProxyDefined = this.valueIsDefined(this.wsProxy);
+        object is_ws_proxy_defined = this.valueIsDefined(this.ws_proxy);
         if (isTrue(isTrue(isWsProxyDefined) || isTrue(is_ws_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("wsProxy");
             wsProxy = ((bool) isTrue((isWsProxyDefined))) ? this.wsProxy : this.ws_proxy;
         }
         // wss proxy
-        bool isWssProxyDefined = this.valueIsDefined(this.wssProxy);
-        bool is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
+        object isWssProxyDefined = this.valueIsDefined(this.wssProxy);
+        object is_wss_proxy_defined = this.valueIsDefined(this.wss_proxy);
         if (isTrue(isTrue(isWssProxyDefined) || isTrue(is_wss_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("wssProxy");
             wssProxy = ((bool) isTrue((isWssProxyDefined))) ? this.wssProxy : this.wss_proxy;
         }
         // ws socks proxy
-        bool isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
-        bool is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
+        object isWsSocksProxyDefined = this.valueIsDefined(this.wsSocksProxy);
+        object is_ws_socks_proxy_defined = this.valueIsDefined(this.ws_socks_proxy);
         if (isTrue(isTrue(isWsSocksProxyDefined) || isTrue(is_ws_socks_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("wsSocksProxy");
             wsSocksProxy = ((bool) isTrue((isWsSocksProxyDefined))) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
-        int length = getArrayLength(usedProxies);
+        object length = getArrayLength(usedProxies);
         if (isTrue(isGreaterThan(length, 1)))
         {
-            string joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
+            object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
             throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new List<object>() {wsProxy, wssProxy, wsSocksProxy};
@@ -815,7 +815,7 @@ public partial class BaseExchange
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         object uniqChars = (this.unique(this.stringToCharsArray(address)));
-        int length = getArrayLength(uniqChars); // py transpiler trick
+        object length = getArrayLength(uniqChars); // py transpiler trick
         if (isTrue(isTrue(isTrue(isEqual(length, 1)) || isTrue(isLessThan(((string)address).Length, this.minFundingAddressLength))) || isTrue(isGreaterThan(getIndexOf(address, " "), -1))))
         {
             throw new InvalidAddress ((string)add(add(add(add(add(this.id, " address is invalid or has less than "), ((object)this.minFundingAddressLength).ToString()), " characters: \""), ((object)address).ToString()), "\"")) ;
@@ -826,7 +826,7 @@ public partial class BaseExchange
     public virtual object findMessageHashes(WebSocketClient client, object element)
     {
         object result = new List<object>() {};
-        List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+        object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -846,10 +846,10 @@ public partial class BaseExchange
         fromStart ??= false;
         if (isTrue(this.valueIsDefined(limit)))
         {
-            int arrayLength = getArrayLength(array);
+            object arrayLength = getArrayLength(array);
             if (isTrue(isGreaterThan(arrayLength, 0)))
             {
-                bool ascending = true;
+                object ascending = true;
                 if (isTrue((inOp(getValue(array, 0), key))))
                 {
                     object first = getValue(getValue(array, 0), key);
@@ -895,7 +895,7 @@ public partial class BaseExchange
         {
             return new List<object>() {};
         }
-        bool sinceIsDefined = this.valueIsDefined(since);
+        object sinceIsDefined = this.valueIsDefined(since);
         object parsedArray = ((object)this.toArray(array));
         object result = parsedArray;
         if (isTrue(sinceIsDefined))
@@ -917,7 +917,7 @@ public partial class BaseExchange
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        bool shouldFilterFromStart = !isTrue(tail) && isTrue(sinceIsDefined);
+        object shouldFilterFromStart = !isTrue(tail) && isTrue(sinceIsDefined);
         return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
@@ -925,8 +925,8 @@ public partial class BaseExchange
     {
         key ??= "timestamp";
         tail ??= false;
-        bool valueIsDefined = this.valueIsDefined(value);
-        bool sinceIsDefined = this.valueIsDefined(since);
+        object valueIsDefined = this.valueIsDefined(value);
+        object sinceIsDefined = this.valueIsDefined(since);
         object parsedArray = ((object)this.toArray(array));
         object result = parsedArray;
         // single-pass filter for both symbol and since
@@ -938,10 +938,10 @@ public partial class BaseExchange
                 object entry = getValue(parsedArray, i);
                 // safeValue (not entry[field]) so a missing field is a non-match, not a
                 // KeyError in python/php — prediction structures key on outcome, not symbol
-                bool entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
+                object entryFiledEqualValue = isEqual(this.safeValue(entry, field), value);
                 object firstCondition = ((bool) isTrue(valueIsDefined)) ? entryFiledEqualValue : true;
                 object entryKeyValue = this.safeValue(entry, key);
-                bool entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue((!isEqual(since, null)))) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
+                object entryKeyGESince = isTrue(isTrue((entryKeyValue)) && isTrue((!isEqual(since, null)))) && isTrue((isGreaterThanOrEqual(entryKeyValue, since)));
                 object secondCondition = ((bool) isTrue(sinceIsDefined)) ? entryKeyGESince : true;
                 if (isTrue(isTrue(firstCondition) && isTrue(secondCondition)))
                 {
@@ -1141,7 +1141,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchDepositAddresses() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.MarginMode> fetchMarginMode(object symbol, object parameters = null)
+    public async virtual Task<ccxt.MarginMode> fetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchMarginModes")))
@@ -1358,31 +1358,31 @@ public partial class BaseExchange
         return await this.watchFundingRates(symbols, parameters);
     }
 
-    public async virtual Task<ccxt.TransferEntry> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> transfer(string code, object amount, string fromAccount, string toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " transfer() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " withdraw() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.DepositAddress> createDepositAddress(object code, object parameters = null)
+    public async virtual Task<ccxt.DepositAddress> createDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createDepositAddress() is not supported yet")) ;
     }
 
-    public async virtual Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async virtual Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setLeverage() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Leverage> fetchLeverage(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Leverage> fetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchLeverages")))
@@ -1401,19 +1401,19 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchLeverages() is not supported yet")) ;
     }
 
-    public async virtual Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
+    public async virtual Task<object> setPositionMode(object hedged, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setPositionMode() is not supported yet")) ;
     }
 
-    public async virtual Task<object> addMargin(object symbol, object amount, object parameters = null)
+    public async virtual Task<object> addMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " addMargin() is not supported yet")) ;
     }
 
-    public async virtual Task<object> reduceMargin(object symbol, object amount, object parameters = null)
+    public async virtual Task<object> reduceMargin(string symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " reduceMargin() is not supported yet")) ;
@@ -1425,31 +1425,31 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " setMargin() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.LongShortRatio> fetchLongShortRatio(object symbol, object timeframe = null, object parameters = null)
+    public async virtual Task<ccxt.LongShortRatio> fetchLongShortRatio(string symbol, string timeframe = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLongShortRatio() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.LongShortRatio>> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.LongShortRatio>> fetchLongShortRatioHistory(string symbol = null, string timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLongShortRatioHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.MarginModification>> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.MarginModification>> fetchMarginAdjustmentHistory(string symbol = null, string type = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async virtual Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " setMarginMode() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.DepositAddress>> fetchDepositAddressesByNetwork(object code, object parameters = null)
+    public async virtual Task<List<ccxt.DepositAddress>> fetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDepositAddressesByNetwork() is not supported yet")) ;
@@ -1567,7 +1567,7 @@ public partial class BaseExchange
         {
             refillRate = divide(1, this.rateLimit);
         }
-        bool useLeaky = isTrue((isEqual(this.rollingWindowSize, 0))) || isTrue((isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
+        object useLeaky = isTrue((isEqual(this.rollingWindowSize, 0))) || isTrue((isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
         object algorithm = ((bool) isTrue(useLeaky)) ? "leakyBucket" : "rollingWindow";
         object defaultBucket = new Dictionary<string, object>() {
             { "delay", 0.001 },
@@ -1675,7 +1675,7 @@ public partial class BaseExchange
             }
         }
         // other methods
-        List<object> keys = new List<object>(((IDictionary<string,object>)featuresObj).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)featuresObj).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1779,7 +1779,7 @@ public partial class BaseExchange
         {
             return ((bool) isTrue((!isEqual(defaultValue, null)))) ? defaultValue : methodDict;
         }
-        List<object> splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        object splited = ((string)paramName).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         object parentKey = getValue(splited, 0);
         object subKey = this.safeString(splited, 1);
         if (!isTrue((inOp(methodDict, parentKey))))
@@ -1913,8 +1913,8 @@ public partial class BaseExchange
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         object networks = this.safeDict(currency, "networks", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        int length = getArrayLength(keys);
+        object keys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object length = getArrayLength(keys);
         if (isTrue(!isEqual(length, 0)))
         {
             for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
@@ -2090,7 +2090,7 @@ public partial class BaseExchange
         };
         if (isTrue(!isEqual(market, null)))
         {
-            Dictionary<string, object> result = this.extend(cleanStructure, market);
+            object result = this.extend(cleanStructure, market);
             // set undefined swap/future/etc
             if (isTrue(getValue(result, "spot")))
             {
@@ -2143,7 +2143,7 @@ public partial class BaseExchange
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
             object valueDefined = new Dictionary<string, object>() {};
-            List<object> valueKeys = new List<object>(((IDictionary<string,object>)value).Keys);
+            object valueKeys = new List<object>(((IDictionary<string,object>)value).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(valueKeys)); postFixIncrement(ref j))
             {
                 object valueKey = getValue(valueKeys, j);
@@ -2152,7 +2152,7 @@ public partial class BaseExchange
                     ((IDictionary<string,object>)valueDefined)[(string)valueKey] = getValue(value, valueKey);
                 }
             }
-            Dictionary<string, object> market = this.deepExtend(this.safeMarketStructure(), new Dictionary<string, object>() {
+            object market = this.deepExtend(this.safeMarketStructure(), new Dictionary<string, object>() {
                 { "precision", this.precision },
                 { "limits", this.limits },
             }, getValue(this.fees, "trading"), valueDefined);
@@ -2176,7 +2176,7 @@ public partial class BaseExchange
         object numCurrencies = 0;
         if (isTrue(!isEqual(currencies, null)))
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
             numCurrencies = getArrayLength(keys);
         }
         if (isTrue(isGreaterThan(numCurrencies, 0)))
@@ -2218,8 +2218,8 @@ public partial class BaseExchange
             this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, "code"));
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             object allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
-            Dictionary<string, object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            List<object> codes = new List<object>(((IDictionary<string,object>)groupedCurrencies).Keys);
+            object groupedCurrencies = this.groupBy(allCurrencies, "code");
+            object codes = new List<object>(((IDictionary<string,object>)groupedCurrencies).Keys);
             object resultingCurrencies = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
             {
@@ -2289,15 +2289,15 @@ public partial class BaseExchange
 
     public virtual object getDescribeForExtendedWsExchange(object currentRestInstance, object parentRestInstance, object wsBaseDescribe)
     {
-        Dictionary<string, object> extendedRestDescribe = this.deepExtend(((Exchange)parentRestInstance).describe(), ((Exchange)currentRestInstance).describe());
-        Dictionary<string, object> superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
+        object extendedRestDescribe = this.deepExtend(((Exchange)parentRestInstance).describe(), ((Exchange)currentRestInstance).describe());
+        object superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
         return superWithRestDescribe;
     }
 
     public virtual object safeBalance(object balance)
     {
         object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
-        List<object> codes = new List<object>(((IDictionary<string,object>)balances).Keys);
+        object codes = new List<object>(((IDictionary<string,object>)balances).Keys);
         ((IDictionary<string,object>)balance)["free"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)balance)["used"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)balance)["total"] = new Dictionary<string, object>() {};
@@ -2333,8 +2333,8 @@ public partial class BaseExchange
                 ((IDictionary<string,object>)debtBalance)[(string)code] = getValue(getValue(balance, code), "debt");
             }
         }
-        List<object> debtBalanceArray = new List<object>(((IDictionary<string,object>)debtBalance).Keys);
-        int length = getArrayLength(debtBalanceArray);
+        object debtBalanceArray = new List<object>(((IDictionary<string,object>)debtBalance).Keys);
+        object length = getArrayLength(debtBalanceArray);
         if (isTrue(length))
         {
             ((IDictionary<string,object>)balance)["debt"] = debtBalance;
@@ -2360,18 +2360,18 @@ public partial class BaseExchange
         object symbol = this.safeString(order, "symbol");
         object side = this.safeString(order, "side");
         object status = this.safeString(order, "status");
-        bool parseFilled = (isEqual(filled, null));
-        bool parseCost = (isEqual(cost, null));
-        bool parseLastTradeTimeTimestamp = (isEqual(lastTradeTimeTimestamp, null));
+        object parseFilled = (isEqual(filled, null));
+        object parseCost = (isEqual(cost, null));
+        object parseLastTradeTimeTimestamp = (isEqual(lastTradeTimeTimestamp, null));
         object fee = this.safeValue(order, "fee");
-        bool parseFee = (isEqual(fee, null));
-        bool parseFees = isEqual(this.safeValue(order, "fees"), null);
-        bool parseSymbol = isEqual(symbol, null);
-        bool parseSide = isEqual(side, null);
-        bool shouldParseFees = isTrue(parseFee) || isTrue(parseFees);
+        object parseFee = (isEqual(fee, null));
+        object parseFees = isEqual(this.safeValue(order, "fees"), null);
+        object parseSymbol = isEqual(symbol, null);
+        object parseSide = isEqual(side, null);
+        object shouldParseFees = isTrue(parseFee) || isTrue(parseFees);
         object fees = this.safeList(order, "fees", new List<object>() {});
         object trades = new List<object>() {};
-        bool isTriggerOrSLTpOrder = (isTrue((isTrue(!isEqual(this.safeString(order, "triggerPrice"), null)) || isTrue((!isEqual(this.safeString(order, "stopLossPrice"), null))))) || isTrue((!isEqual(this.safeString(order, "takeProfitPrice"), null))));
+        object isTriggerOrSLTpOrder = (isTrue((isTrue(!isEqual(this.safeString(order, "triggerPrice"), null)) || isTrue((!isEqual(this.safeString(order, "stopLossPrice"), null))))) || isTrue((!isEqual(this.safeString(order, "takeProfitPrice"), null))));
         if (isTrue(isTrue(isTrue(parseFilled) || isTrue(parseCost)) || isTrue(shouldParseFees)))
         {
             object rawTrades = this.safeValue(order, "trades", trades);
@@ -2381,7 +2381,7 @@ public partial class BaseExchange
             // (this as any).number = String;
             object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
-            bool tradesAreParsed = (isTrue(isTrue((!isEqual(firstTrade, null))) && isTrue((inOp(firstTrade, "info")))) && isTrue((inOp(firstTrade, "id"))));
+            object tradesAreParsed = (isTrue(isTrue((!isEqual(firstTrade, null))) && isTrue((inOp(firstTrade, "info")))) && isTrue((inOp(firstTrade, "id"))));
             if (!isTrue(tradesAreParsed))
             {
                 trades = this.parseTrades(rawTrades, market);
@@ -2391,7 +2391,7 @@ public partial class BaseExchange
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             object tradesLength = 0;
-            bool isArray = ((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+            object isArray = ((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
             if (isTrue(isArray))
             {
                 tradesLength = getArrayLength(trades);
@@ -2488,7 +2488,7 @@ public partial class BaseExchange
             {
                 reducedFees = new List<object>() {};
             }
-            int reducedLength = getArrayLength(reducedFees);
+            object reducedLength = getArrayLength(reducedFees);
             for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
@@ -2500,7 +2500,7 @@ public partial class BaseExchange
             if (isTrue(!isTrue(parseFee) && isTrue((isEqual(reducedLength, 0)))))
             {
                 // copy fee to avoid modification by reference
-                Dictionary<string, object> feeCopy = this.deepExtend(fee);
+                object feeCopy = this.deepExtend(fee);
                 ((IDictionary<string,object>)feeCopy)["cost"] = this.safeNumber(feeCopy, "cost");
                 if (isTrue(inOp(feeCopy, "rate")))
                 {
@@ -2573,7 +2573,7 @@ public partial class BaseExchange
         //
         // linear
         // cost = filled * contract size * price
-        bool costPriceExists = isTrue((!isEqual(average, null))) || isTrue((!isEqual(price, null)));
+        object costPriceExists = isTrue((!isEqual(average, null))) || isTrue((!isEqual(price, null)));
         if (isTrue(isTrue(isTrue(parseCost) && isTrue((!isEqual(filled, null)))) && isTrue(costPriceExists)))
         {
             object multiplyPrice = null;
@@ -2596,7 +2596,7 @@ public partial class BaseExchange
         }
         // support for market orders
         object orderType = this.safeValue(order, "type");
-        bool emptyPrice = isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"));
+        object emptyPrice = isTrue((isEqual(price, null))) || isTrue(Precise.stringEquals(price, "0"));
         if (isTrue(isTrue(emptyPrice) && isTrue((isEqual(orderType, "market")))))
         {
             price = average;
@@ -2714,20 +2714,20 @@ public partial class BaseExchange
             for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object parsed = this.parseOrder(getValue(orders, i), market); // don't inline this call
-                Dictionary<string, object> order = this.extend(parsed, parameters);
+                object order = this.extend(parsed, parameters);
                 ((IList<object>)results).Add(order);
             }
         } else
         {
-            List<object> ids = new List<object>(((IDictionary<string,object>)orders).Keys);
+            object ids = new List<object>(((IDictionary<string,object>)orders).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 object id = getValue(ids, i);
-                Dictionary<string, object> idExtended = this.extend(new Dictionary<string, object>() {
+                object idExtended = this.extend(new Dictionary<string, object>() {
                     { "id", id },
                 }, getValue(orders, id));
                 object parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                Dictionary<string, object> order = this.extend(parsedOrder, parameters);
+                object order = this.extend(parsedOrder, parameters);
                 ((IList<object>)results).Add(order);
             }
         }
@@ -2901,10 +2901,10 @@ public partial class BaseExchange
     {
         object fee = this.safeDict(container, "fee");
         object fees = this.safeList(container, "fees");
-        bool feeDefined = !isEqual(fee, null);
-        bool feesDefined = !isEqual(fees, null);
+        object feeDefined = !isEqual(fee, null);
+        object feesDefined = !isEqual(fees, null);
         // parsing only if at least one of them is defined
-        bool shouldParseFees = (isTrue(feeDefined) || isTrue(feesDefined));
+        object shouldParseFees = (isTrue(feeDefined) || isTrue(feesDefined));
         if (isTrue(shouldParseFees))
         {
             if (isTrue(feeDefined))
@@ -2926,7 +2926,7 @@ public partial class BaseExchange
             {
                 reducedFees = new List<object>() {};
             }
-            int reducedLength = getArrayLength(reducedFees);
+            object reducedLength = getArrayLength(reducedFees);
             for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
             {
                 ((List<object>)reducedFees)[Convert.ToInt32(i)] = this.parseFeeNumeric(getValue(reducedFees, i));
@@ -2968,7 +2968,7 @@ public partial class BaseExchange
     public virtual object findNearestCeiling(object arr, object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        int length = getArrayLength(arr);
+        object length = getArrayLength(arr);
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object current = getValue(arr, i);
@@ -2983,7 +2983,7 @@ public partial class BaseExchange
     public virtual object addKeyInArrayItems(object obj, object keyName)
     {
         object result = new List<object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)obj).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)obj).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -2992,7 +2992,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            Dictionary<string, object> itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
+            object itemWithKey = this.extend(new Dictionary<string, object>() {}, item);
             ((IDictionary<string,object>)itemWithKey)[(string)keyName] = key;
             ((IList<object>)result).Add(itemWithKey);
         }
@@ -3002,7 +3002,7 @@ public partial class BaseExchange
     public virtual object invertFlatStringDictionary(object dict)
     {
         object reversed = new Dictionary<string, object>() {};
-        List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)dict).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -3103,10 +3103,10 @@ public partial class BaseExchange
             }
         }
         object result = new List<object>() {};
-        List<object> feeValues = new List<object>(((IDictionary<string,object>)reduced).Values);
+        object feeValues = new List<object>(((IDictionary<string,object>)reduced).Values);
         for (object i = 0; isLessThan(i, getArrayLength(feeValues)); postFixIncrement(ref i))
         {
-            List<object> reducedFeeValues = new List<object>(((IDictionary<string,object>)getValue(feeValues, i)).Values);
+            object reducedFeeValues = new List<object>(((IDictionary<string,object>)getValue(feeValues, i)).Values);
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -3267,11 +3267,12 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        string message = "";
+        object message = "";
         if (isTrue(getValue(this.has, "fetchTrades")))
         {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
@@ -3279,25 +3280,28 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(add(this.id, " fetchOHLCV() is not supported yet"), message)) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchSpotOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchSpotOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchSpotOHLCV() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchContractOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchContractOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchContractOHLCV() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchOHLCVWs(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        string message = "";
+        object message = "";
         if (isTrue(getValue(this.has, "fetchTradesWs")))
         {
             message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file";
@@ -3385,7 +3389,7 @@ public partial class BaseExchange
             object maxRetries = this.safeValue(options, "webApiRetries", 10);
             object response = null;
             object retry = 0;
-            bool shouldBreak = false;
+            object shouldBreak = false;
             while (isLessThan(retry, maxRetries))
             {
                 try
@@ -3413,7 +3417,7 @@ public partial class BaseExchange
             }
             if (isTrue(!isEqual(startRegex, null)))
             {
-                List<object> splitted_by_start = ((string)content).Split(new [] {((string)startRegex)}, StringSplitOptions.None).ToList<object>();
+                object splitted_by_start = ((string)content).Split(new [] {((string)startRegex)}, StringSplitOptions.None).ToList<object>();
                 content = getValue(splitted_by_start, 1); // we need second part after start
             }
             if (isTrue(isEqual(content, null)))
@@ -3422,7 +3426,7 @@ public partial class BaseExchange
             }
             if (isTrue(!isEqual(endRegex, null)))
             {
-                List<object> splitted_by_end = ((string)content).Split(new [] {((string)endRegex)}, StringSplitOptions.None).ToList<object>();
+                object splitted_by_end = ((string)content).Split(new [] {((string)endRegex)}, StringSplitOptions.None).ToList<object>();
                 content = getValue(splitted_by_end, 0); // we need first part after start
             }
             if (isTrue(isTrue(returnAsJson) && isTrue(((content is string)))))
@@ -3530,7 +3534,7 @@ public partial class BaseExchange
             }
             return symbols;
         }
-        int symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             if (!isTrue(allowEmpty))
@@ -3641,7 +3645,7 @@ public partial class BaseExchange
         object limits = this.safeDict(network, "limits");
         object withdraw = this.safeDict(limits, "withdraw");
         object deposit = this.safeDict(limits, "deposit");
-        bool isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
+        object isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
         return new Dictionary<string, object>() {
             { "info", getValue(network, "info") },
             { "id", this.safeString(network, "id") },
@@ -3692,7 +3696,7 @@ public partial class BaseExchange
             return null;
         }
         object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)replacements).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)replacements).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object baseCoin = getValue(keys, i);
@@ -3704,7 +3708,7 @@ public partial class BaseExchange
                 continue;
             }
             // pick which form goes first in the returned pair
-            bool preferPrimary = false;
+            object preferPrimary = false;
             if (isTrue(isEqual(currencyCode, baseCoin)))
             {
                 preferPrimary = true; // mainnet currency uses primary chain
@@ -3857,8 +3861,8 @@ public partial class BaseExchange
         // this method is used against raw & unparse network entries, which are just indexed by network id
         isIndexedByUnifiedNetworkCode ??= false;
         object chosenNetworkId = null;
-        List<object> availableNetworkIds = new List<object>(((IDictionary<string,object>)indexedNetworkEntries).Keys);
-        int responseNetworksLength = getArrayLength(availableNetworkIds);
+        object availableNetworkIds = new List<object>(((IDictionary<string,object>)indexedNetworkEntries).Keys);
+        object responseNetworksLength = getArrayLength(availableNetworkIds);
         if (isTrue(!isEqual(networkCode, null)))
         {
             if (isTrue(isEqual(responseNetworksLength, 0)))
@@ -3956,7 +3960,7 @@ public partial class BaseExchange
         {
             symbolsLength = getArrayLength(symbols);
         }
-        bool noSymbols = isTrue((isEqual(symbols, null))) || isTrue((isEqual(symbolsLength, 0)));
+        object noSymbols = isTrue((isEqual(symbols, null))) || isTrue((isEqual(symbolsLength, 0)));
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
@@ -3973,7 +3977,7 @@ public partial class BaseExchange
             }
         } else
         {
-            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object marketId = getValue(keys, i);
@@ -4055,7 +4059,7 @@ public partial class BaseExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(positionsArray)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> position = this.extend(this.parsePosition(getValue(positionsArray, i)), parameters);
+            object position = this.extend(this.parsePosition(getValue(positionsArray, i)), parameters);
             ((IList<object>)result).Add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -4078,7 +4082,7 @@ public partial class BaseExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ranksArray)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> rank = this.extend(this.parseADLRank(getValue(ranksArray, i)), parameters);
+            object rank = this.extend(this.parseADLRank(getValue(ranksArray, i)), parameters);
             ((IList<object>)result).Add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -4091,7 +4095,7 @@ public partial class BaseExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(accountsArray)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> account = this.extend(this.parseAccount(getValue(accountsArray, i)), parameters);
+            object account = this.extend(this.parseAccount(getValue(accountsArray, i)), parameters);
             ((IList<object>)result).Add(account);
         }
         return result;
@@ -4112,7 +4116,7 @@ public partial class BaseExchange
             {
                 parsed = this.parseTrade(getValue(tradesArray, i), market);
             }
-            Dictionary<string, object> trade = this.extend(parsed, parameters);
+            object trade = this.extend(parsed, parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -4139,7 +4143,7 @@ public partial class BaseExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(transactionsArray)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> transaction = this.extend(this.parseTransaction(getValue(transactionsArray, i), currency), parameters);
+            object transaction = this.extend(this.parseTransaction(getValue(transactionsArray, i), currency), parameters);
             ((IList<object>)result).Add(transaction);
         }
         result = this.sortBy(result, "timestamp");
@@ -4154,7 +4158,7 @@ public partial class BaseExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(transfersArray)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> transfer = this.extend(this.parseTransfer(getValue(transfersArray, i), currency), parameters);
+            object transfer = this.extend(this.parseTransfer(getValue(transfersArray, i), currency), parameters);
             ((IList<object>)result).Add(transfer);
         }
         result = this.sortBy(result, "timestamp");
@@ -4454,7 +4458,7 @@ public partial class BaseExchange
         retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
         parameters = ((IList<object>)retryDelayparametersVariable)[1];
         object fetchData = null;
-        bool fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
+        object fetchDataCacheEnabled = isGreaterThan(this.fetchHistoryCacheSize, 0);
         for (object i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
         {
             if (isTrue(fetchDataCacheEnabled))
@@ -4562,7 +4566,7 @@ public partial class BaseExchange
         object i_close = 4;
         object i_volume = 5;
         object i_count = 6;
-        int tradesLength = getArrayLength(trades);
+        object tradesLength = getArrayLength(trades);
         object oldest = mathMin(tradesLength, limit);
         object options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
         object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
@@ -4588,7 +4592,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            int ohlcv_length = getArrayLength(ohlcvs);
+            object ohlcv_length = getArrayLength(ohlcvs);
             object candle = subtract(ohlcv_length, 1);
             if (isTrue(isEqual(price, null)))
             {
@@ -4598,7 +4602,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            bool isFirstCandle = isEqual(candle, -1);
+            object isFirstCandle = isEqual(candle, -1);
             if (isTrue(isTrue(isFirstCandle) || isTrue(isGreaterThanOrEqual(openingTime, this.sum(getValue(getValue(ohlcvs, candle), i_timestamp), ms)))))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
@@ -4633,13 +4637,13 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchBorrowInterest() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchLedger(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLedger() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.LedgerEntry> fetchLedgerEntry(object id, object code = null, object parameters = null)
+    public async virtual Task<ccxt.LedgerEntry> fetchLedgerEntry(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLedgerEntry() is not supported yet")) ;
@@ -4690,7 +4694,7 @@ public partial class BaseExchange
             if (isTrue(isTrue((!isEqual(this.markets_by_id, null))) && isTrue((inOp(this.markets_by_id, marketId)))))
             {
                 object markets = getValue(this.markets_by_id, marketId);
-                int numMarkets = getArrayLength(markets);
+                object numMarkets = getArrayLength(markets);
                 if (isTrue(isEqual(numMarkets, 1)))
                 {
                     return getValue(markets, 0);
@@ -4717,8 +4721,8 @@ public partial class BaseExchange
                 }
             } else if (isTrue(isTrue(!isEqual(delimiter, null)) && isTrue(!isEqual(delimiter, ""))))
             {
-                List<object> parts = ((string)marketId).Split(new [] {((string)delimiter)}, StringSplitOptions.None).ToList<object>();
-                int partsLength = getArrayLength(parts);
+                object parts = ((string)marketId).Split(new [] {((string)delimiter)}, StringSplitOptions.None).ToList<object>();
+                object partsLength = getArrayLength(parts);
                 object result = this.safeMarketStructure(new Dictionary<string, object>() {
                     { "symbol", marketId },
                     { "marketId", marketId },
@@ -4784,7 +4788,7 @@ public partial class BaseExchange
         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
         */
         error ??= true;
-        List<object> keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)this.requiredCredentials).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -4889,7 +4893,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchDepositWithdrawFees() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.DepositWithdrawFee> fetchDepositWithdrawFee(object code, object parameters = null)
+    public async virtual Task<ccxt.DepositWithdrawFee> fetchDepositWithdrawFee(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(getValue(this.has, "fetchDepositWithdrawFees")))
@@ -4912,7 +4916,7 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<ccxt.CrossBorrowRate> fetchCrossBorrowRate(object code, object parameters = null)
+    public async virtual Task<ccxt.CrossBorrowRate> fetchCrossBorrowRate(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4929,7 +4933,7 @@ public partial class BaseExchange
         return ccxt.BaseExchange.ToCrossBorrowRate(rate);
     }
 
-    public async virtual Task<ccxt.IsolatedBorrowRate> fetchIsolatedBorrowRate(object symbol, object parameters = null)
+    public async virtual Task<ccxt.IsolatedBorrowRate> fetchIsolatedBorrowRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -5145,7 +5149,7 @@ public partial class BaseExchange
     public virtual object findBroadlyMatchedKey(object broad, object str)
     {
         // a helper for matching error strings exactly vs broadly
-        List<object> keys = new List<object>(((IDictionary<string,object>)broad).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)broad).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -5203,37 +5207,37 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " unWatchFundingRate() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Order> createTwapOrder(object symbol, object side, object amount, object duration, object parameters = null)
+    public async virtual Task<ccxt.Order> createTwapOrder(string symbol, string side, object amount, object duration, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createTwapOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Conversion> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
+    public async virtual Task<ccxt.Conversion> createConvertTrade(string id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " createConvertTrade() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Conversion> fetchConvertTrade(object id, object code = null, object parameters = null)
+    public async virtual Task<ccxt.Conversion> fetchConvertTrade(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchConvertTrade() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Conversion>> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Conversion>> fetchConvertTradeHistory(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchConvertTradeHistory() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.PositionModeInfo> fetchPositionMode(object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.PositionModeInfo> fetchPositionMode(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchPositionMode() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.ADL> fetchADLRank(object symbol, object parameters = null)
+    public async virtual Task<ccxt.ADL> fetchADLRank(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchADLRank() is not supported yet")) ;
@@ -5245,8 +5249,9 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchPositionsADLRank() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.ADL> fetchPositionADLRank(object symbol, object parameters = null)
+    public async virtual Task<ccxt.ADL> fetchPositionADLRank(string symbolTyped, object parameters = null)
     {
+        object symbol = symbolTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchPositionsADLRank")))
         {
@@ -5343,13 +5348,13 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " createContractOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Order> cancelSpotOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> cancelSpotOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelSpotOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Order> cancelContractOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> cancelContractOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelContractOrder() is not supported yet")) ;
@@ -5385,13 +5390,13 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchMyLiquidations() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchLiquidations(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchLiquidations() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Greeks> fetchGreeks(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Greeks> fetchGreeks(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchGreeks() is not supported yet")) ;
@@ -5403,13 +5408,13 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchAllGreeks() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.OptionChain> fetchOptionChain(object code, object parameters = null)
+    public async virtual Task<ccxt.OptionChain> fetchOptionChain(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOptionChain() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Option> fetchOption(object symbol, object parameters = null)
+    public async virtual Task<ccxt.Option> fetchOption(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOption() is not supported yet")) ;
@@ -5427,31 +5432,31 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchDepositsWithdrawals() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDeposits() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchWithdrawals() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Transaction>> fetchDepositsWs(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> fetchDepositsWs(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchDepositsWs() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Transaction>> fetchWithdrawalsWs(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Transaction>> fetchWithdrawalsWs(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchWithdrawalsWs() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchFundingRateHistory(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchFundingRateHistory() is not supported yet")) ;
@@ -5468,7 +5473,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " parseLastPrice() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
+    public async virtual Task<ccxt.DepositAddress> fetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchDepositAddresses")))
@@ -5486,13 +5491,13 @@ public partial class BaseExchange
         {
             object network = this.safeString(parameters, "network");
             parameters = this.omit(parameters, "network");
-            object addressStructures = await this.fetchDepositAddressesByNetwork(code, parameters);
+            object addressStructures = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
             if (isTrue(!isEqual(network, null)))
             {
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, network));
             } else
             {
-                List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
                 object key = getValue(keys, 0);
                 return ccxt.BaseExchange.ToDepositAddress(this.safeDict(addressStructures, key));
             }
@@ -5502,7 +5507,7 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<ccxt.DepositAddress> fetchContractDepositAddress(object code, object parameters = null)
+    public async virtual Task<ccxt.DepositAddress> fetchContractDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchContractDepositAddress() is not supported yet")) ;
@@ -5532,8 +5537,8 @@ public partial class BaseExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " currency() requires a code argument")) ;
         }
-        List<object> keys = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        int numCurrencies = getArrayLength(keys);
+        object keys = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        object numCurrencies = getArrayLength(keys);
         if (isTrue(isEqual(numCurrencies, 0)))
         {
             throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
@@ -5608,7 +5613,7 @@ public partial class BaseExchange
                 } else
                 {
                     // check if base currency is inside dict
-                    string baseCurrencyCode = ((string)currencyCode).Replace((string)leverageSuffix, (string)"");
+                    object baseCurrencyCode = ((string)currencyCode).Replace((string)leverageSuffix, (string)"");
                     if (isTrue(isTrue((!isEqual(existingCurrencies, null))) && isTrue((inOp(existingCurrencies, baseCurrencyCode)))))
                     {
                         return true;
@@ -5820,7 +5825,7 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         object serverTime = await this.fetchTime(parameters);
-        Int64 after = this.milliseconds();
+        object after = this.milliseconds();
         if (isTrue(isEqual(serverTime, null)))
         {
             throw new ExchangeError ((string)add(this.id, " loadTimeDifference() missing serverTime")) ;
@@ -5836,7 +5841,7 @@ public partial class BaseExchange
         });
     }
 
-    public async virtual Task<List<ccxt.LeverageTier>> fetchMarketLeverageTiers(object symbol, object parameters = null)
+    public async virtual Task<List<ccxt.LeverageTier>> fetchMarketLeverageTiers(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchLeverageTiers")))
@@ -5912,17 +5917,17 @@ public partial class BaseExchange
         {
             for (object i = 0; isLessThan(i, getArrayLength(pricesData)); postFixIncrement(ref i))
             {
-                Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters);
+                object priceData = this.extend(this.parseLastPrice(getValue(pricesData, i)), parameters);
                 ((IList<object>)results).Add(priceData);
             }
         } else
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)pricesData).Keys);
+            object marketIds = new List<object>(((IDictionary<string,object>)pricesData).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
                 object market = this.safeMarket(marketId);
-                Dictionary<string, object> priceData = this.extend(this.parseLastPrice(getValue(pricesData, marketId), market), parameters);
+                object priceData = this.extend(this.parseLastPrice(getValue(pricesData, marketId), market), parameters);
                 ((IList<object>)results).Add(priceData);
             }
         }
@@ -5961,18 +5966,18 @@ public partial class BaseExchange
             for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
             {
                 object parsedTicker = this.parseTicker(getValue(tickers, i));
-                Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
+                object ticker = this.extend(parsedTicker, parameters);
                 ((IList<object>)results).Add(ticker);
             }
         } else
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            object marketIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
                 object market = this.safeMarket(marketId);
                 object parsed = this.parseTicker(getValue(tickers, marketId), market);
-                Dictionary<string, object> ticker = this.extend(parsed, parameters);
+                object ticker = this.extend(parsed, parameters);
                 ((IList<object>)results).Add(ticker);
             }
         }
@@ -5987,7 +5992,7 @@ public partial class BaseExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
         {
-            Dictionary<string, object> address = this.extend(this.parseDepositAddress(getValue(addresses, i)), parameters);
+            object address = this.extend(this.parseDepositAddress(getValue(addresses, i)), parameters);
             ((IList<object>)result).Add(address);
         }
         if (isTrue(!isEqual(codes, null)))
@@ -6147,7 +6152,7 @@ public partial class BaseExchange
         */
         allowEmpty ??= false;
         object triggerDirection = this.safeString(parameters, "triggerDirection");
-        bool exchangeSpecificDefined = isTrue((!isEqual(exchangeSpecificKey, null))) && isTrue((inOp(parameters, exchangeSpecificKey)));
+        object exchangeSpecificDefined = isTrue((!isEqual(exchangeSpecificKey, null))) && isTrue((inOp(parameters, exchangeSpecificKey)));
         if (isTrue(!isEqual(triggerDirection, null)))
         {
             parameters = this.omit(parameters, "triggerDirection");
@@ -6200,9 +6205,9 @@ public partial class BaseExchange
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
-        bool ioc = isEqual(timeInForce, "IOC");
-        bool fok = isEqual(timeInForce, "FOK");
-        bool timeInForcePostOnly = isEqual(timeInForce, "PO");
+        object ioc = isEqual(timeInForce, "IOC");
+        object fok = isEqual(timeInForce, "FOK");
+        object timeInForcePostOnly = isEqual(timeInForce, "PO");
         postOnly = isTrue(isTrue(postOnly) || isTrue(timeInForcePostOnly)) || isTrue(exchangeSpecificParam);
         if (isTrue(postOnly))
         {
@@ -6235,9 +6240,9 @@ public partial class BaseExchange
         parameters ??= new Dictionary<string, object>();
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.safeBool(parameters, "postOnly", false);
-        bool ioc = isEqual(timeInForce, "IOC");
-        bool fok = isEqual(timeInForce, "FOK");
-        bool po = isEqual(timeInForce, "PO");
+        object ioc = isEqual(timeInForce, "IOC");
+        object fok = isEqual(timeInForce, "FOK");
+        object po = isEqual(timeInForce, "PO");
         postOnly = isTrue(isTrue(postOnly) || isTrue(po)) || isTrue(exchangeSpecificPostOnlyOption);
         if (isTrue(postOnly))
         {
@@ -6318,8 +6323,9 @@ public partial class BaseExchange
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public async virtual Task<ccxt.FundingRate> fetchFundingRate(object symbol, object parameters = null)
+    public async virtual Task<ccxt.FundingRate> fetchFundingRate(string symbolTyped, object parameters = null)
     {
+        object symbol = symbolTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchFundingRates")))
         {
@@ -6345,8 +6351,9 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<ccxt.FundingRate> fetchFundingInterval(object symbol, object parameters = null)
+    public async virtual Task<ccxt.FundingRate> fetchFundingInterval(string symbolTyped, object parameters = null)
     {
+        object symbol = symbolTyped;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "fetchFundingIntervals")))
         {
@@ -6372,8 +6379,9 @@ public partial class BaseExchange
         }
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchMarkOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchMarkOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         /**
         * @method
         * @name exchange#fetchMarkOHLCV
@@ -6392,15 +6400,16 @@ public partial class BaseExchange
             object request = new Dictionary<string, object>() {
                 { "price", "mark" },
             };
-            return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters));
+            return await this.fetchOHLCV(((string)symbol),((string)timeframe), since, limit, this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchMarkOHLCV () is not supported yet")) ;
         }
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchIndexOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchIndexOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         /**
         * @method
         * @name exchange#fetchIndexOHLCV
@@ -6419,15 +6428,16 @@ public partial class BaseExchange
             object request = new Dictionary<string, object>() {
                 { "price", "index" },
             };
-            return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters));
+            return await this.fetchOHLCV(((string)symbol),((string)timeframe), since, limit, this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchIndexOHLCV () is not supported yet")) ;
         }
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> fetchPremiumIndexOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> fetchPremiumIndexOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         /**
         * @method
         * @name exchange#fetchPremiumIndexOHLCV
@@ -6446,7 +6456,7 @@ public partial class BaseExchange
             object request = new Dictionary<string, object>() {
                 { "price", "premiumIndex" },
             };
-            return await this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters));
+            return await this.fetchOHLCV(((string)symbol),((string)timeframe), since, limit, this.extend(request, parameters));
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchPremiumIndexOHLCV () is not supported yet")) ;
@@ -6485,7 +6495,7 @@ public partial class BaseExchange
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
-        string lowercaseAccount = ((string)account).ToLower();
+        object lowercaseAccount = ((string)account).ToLower();
         if (isTrue(inOp(accountsByType, lowercaseAccount)))
         {
             return getValue(accountsByType, lowercaseAccount);
@@ -6514,10 +6524,10 @@ public partial class BaseExchange
         * @returns {undefined}
         */
         options ??= new List<object>();
-        int optionsLength = getArrayLength(options);
+        object optionsLength = getArrayLength(options);
         if (isTrue(isTrue((isEqual(argument, null))) || isTrue((isTrue((isGreaterThan(optionsLength, 0))) && isTrue((!isTrue((this.inArray(argument, options)))))))))
         {
-            string messageOptions = String.Join(", ", ((IList<object>)options).ToArray());
+            object messageOptions = String.Join(", ", ((IList<object>)options).ToArray());
             object message = add(add(add(add(add(this.id, " "), methodName), "() requires a "), argumentName), " argument");
             if (isTrue(!isEqual(messageOptions, "")))
             {
@@ -6556,7 +6566,7 @@ public partial class BaseExchange
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
         object depositWithdrawFees = new Dictionary<string, object>() {};
-        bool isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object responseKeys = response;
         if (!isTrue(isArray))
         {
@@ -6612,8 +6622,8 @@ public partial class BaseExchange
          * @param {object} currency A currency structure, the response from this.currency ()
          * @returns {object} A deposit withdraw fee structure
          */
-        List<object> networkKeys = new List<object>(((IDictionary<string,object>)getValue(fee, "networks")).Keys);
-        int numNetworks = getArrayLength(networkKeys);
+        object networkKeys = new List<object>(((IDictionary<string,object>)getValue(fee, "networks")).Keys);
+        object numNetworks = getArrayLength(networkKeys);
         if (isTrue(isEqual(numNetworks, 1)))
         {
             ((IDictionary<string,object>)fee)["withdraw"] = getValue(getValue(getValue(fee, "networks"), getValue(networkKeys, 0)), "withdraw");
@@ -6827,7 +6837,7 @@ public partial class BaseExchange
                         ((IDictionary<string,object>)parameters)["until"] = subtract(paginationTimestamp, 1);
                     }
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, null, maxEntriesPerRequest, parameters }));
-                    int responseLength = getArrayLength(response);
+                    object responseLength = getArrayLength(response);
                     if (isTrue(this.verbose))
                     {
                         object backwardMessage = add(add(add(add(add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
@@ -6857,7 +6867,7 @@ public partial class BaseExchange
                 {
                     // do it forwards, starting from the since
                     object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, paginationTimestamp, maxEntriesPerRequest, parameters }));
-                    int responseLength = getArrayLength(response);
+                    object responseLength = getArrayLength(response);
                     if (isTrue(this.verbose))
                     {
                         object forwardMessage = add(add(add(add(add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
@@ -6954,7 +6964,7 @@ public partial class BaseExchange
         // pagination always walks forward internally, so strip it here to avoid leaking an
         // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
         parameters = this.omit(parameters, "paginationDirection");
-        Int64 current = this.milliseconds();
+        object current = this.milliseconds();
         object tasks = new List<object>() {};
         object time = multiply(this.parseTimeframe(timeframe), 1000);
         maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
@@ -6984,7 +6994,7 @@ public partial class BaseExchange
             {
                 throw new ArgumentsRequired ((string)add(this.id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
             }
-            double requiredCalls = Math.Ceiling(Convert.ToDouble(divide((subtract(until, since)), step)));
+            object requiredCalls = Math.Ceiling(Convert.ToDouble(divide((subtract(until, since)), step)));
             if (isTrue(isGreaterThan(requiredCalls, maxCalls)))
             {
                 throw new BadRequest ((string)add(add(add(add(this.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), ((object)maxCalls).ToString()), " required calls is "), ((object)requiredCalls).ToString())) ;
@@ -7075,7 +7085,7 @@ public partial class BaseExchange
                 {
                     throw new NullResponse ((string)add(this.id, " fetchPaginatedCallCursor() returned empty response")) ;
                 }
-                int responseLength = getArrayLength(response);
+                object responseLength = getArrayLength(response);
                 if (isTrue(this.verbose))
                 {
                     object cursorString = ((bool) isTrue((isEqual(cursorValue, null)))) ? "" : cursorValue;
@@ -7158,10 +7168,10 @@ public partial class BaseExchange
                 ((IDictionary<string,object>)parameters)[(string)((string)pageKey)] = add(i, 1);
                 object response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
                 errors = 0;
-                int responseLength = getArrayLength(response);
+                object responseLength = getArrayLength(response);
                 if (isTrue(this.verbose))
                 {
-                    string iteration = ((object)(add(i, 1))).ToString();
+                    object iteration = ((object)(add(i, 1))).ToString();
                     object incrementalMessage = add(add(add(add(add("Incremental pagination call ", iteration), " method "), method), " response length "), ((object)responseLength).ToString());
                     this.log(incrementalMessage);
                 }
@@ -7217,7 +7227,7 @@ public partial class BaseExchange
                 ((IList<object>)uniqueResult).Add(entry);
             }
         }
-        int valuesLength = getArrayLength(uniqueResult);
+        object valuesLength = getArrayLength(uniqueResult);
         if (isTrue(isGreaterThan(valuesLength, 0)))
         {
             return ((object)uniqueResult);
@@ -7250,13 +7260,13 @@ public partial class BaseExchange
                 ((IDictionary<string,object>)uniqueResult)[(string)id] = entry;
             }
         }
-        List<object> values = new List<object>(((IDictionary<string,object>)uniqueResult).Values);
+        object values = new List<object>(((IDictionary<string,object>)uniqueResult).Values);
         return ((object)values);
     }
 
     public virtual object removeKeysFromDict(object dict, object removeKeys)
     {
-        List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)dict).Keys);
         object newDict = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -7346,18 +7356,18 @@ public partial class BaseExchange
             for (object i = 0; isLessThan(i, getArrayLength(greeks)); postFixIncrement(ref i))
             {
                 object parsedTicker = this.parseGreeks(getValue(greeks, i));
-                Dictionary<string, object> greek = this.extend(parsedTicker, parameters);
+                object greek = this.extend(parsedTicker, parameters);
                 ((IList<object>)results).Add(greek);
             }
         } else
         {
-            List<object> marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
+            object marketIds = new List<object>(((IDictionary<string,object>)greeks).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
                 object market = this.safeMarket(marketId);
                 object parsed = this.parseGreeks(getValue(greeks, marketId), market);
-                Dictionary<string, object> greek = this.extend(parsed, parameters);
+                object greek = this.extend(parsed, parameters);
                 ((IList<object>)results).Add(greek);
             }
         }
@@ -7455,7 +7465,7 @@ public partial class BaseExchange
             {
                 toCurrency = this.safeCurrency(toId);
             }
-            Dictionary<string, object> conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
+            object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
             ((IList<object>)result).Add(conversion);
         }
         object sorted = this.sortBy(result, "timestamp");
@@ -7622,13 +7632,13 @@ public partial class BaseExchange
         return marginModifications;
     }
 
-    public async virtual Task<ccxt.TransferEntry> fetchTransfer(object id, object code = null, object parameters = null)
+    public async virtual Task<ccxt.TransferEntry> fetchTransfer(string id, string code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTransfer () is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchTransfers(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
@@ -7641,7 +7651,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " unWatchOHLCV () is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Transaction> withdrawWs(object code, object amount, object address, object tag = null, object parameters = null)
+    public async virtual Task<ccxt.Transaction> withdrawWs(string code, object amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " withdrawWs () is not supported yet")) ;
@@ -7653,7 +7663,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " unWatchMyTrades () is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.Order>> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> fetchOrdersByStatusWs(string status, string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrdersByStatusWs () is not supported yet")) ;
@@ -7685,7 +7695,7 @@ public partial class BaseExchange
             }
         } else
         {
-            List<object> clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
+            object clientSubscriptions = new List<object>(((IDictionary<string,object>)client.subscriptions).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(clientSubscriptions)); postFixIncrement(ref i))
             {
                 object sub = getValue(clientSubscriptions, i);
@@ -7694,7 +7704,7 @@ public partial class BaseExchange
                     ((IDictionary<string,object>)client.subscriptions).Remove((string)sub);
                 }
             }
-            List<object> clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+            object clientFutures = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(clientFutures)); postFixIncrement(ref i))
             {
                 object future = getValue(clientFutures, i);
@@ -7712,7 +7722,7 @@ public partial class BaseExchange
     {
         object topic = this.safeString(subscription, "topic");
         object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-        int symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(topic, "ohlcv")))
         {
             object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
@@ -7779,7 +7789,7 @@ public partial class BaseExchange
             } else if (isTrue(isTrue(isEqual(topic, "positions")) && isTrue((!isEqual(this.positions, null)))))
             {
                 this.positions = null;
-                List<object> clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
+                object clients = new List<object>(((IDictionary<string,object>)this.clients).Values);
                 for (object i = 0; isLessThan(i, getArrayLength(clients)); postFixIncrement(ref i))
                 {
                     object client = getValue(clients, i);
@@ -7791,7 +7801,7 @@ public partial class BaseExchange
                 }
             } else if (isTrue(isTrue((isTrue(isEqual(topic, "ticker")) || isTrue(isEqual(topic, "markPrice")))) && isTrue((!isEqual(this.tickers, null)))))
             {
-                List<object> tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+                object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
                 {
                     object tickerSymbol = getValue(tickerSymbols, i);
@@ -7802,7 +7812,7 @@ public partial class BaseExchange
                 }
             } else if (isTrue(isTrue(isEqual(topic, "bidsasks")) && isTrue((!isEqual(this.bidsasks, null)))))
             {
-                List<object> bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
+                object bidsaskSymbols = new List<object>(((IDictionary<string,object>)this.bidsasks).Keys);
                 for (object i = 0; isLessThan(i, getArrayLength(bidsaskSymbols)); postFixIncrement(ref i))
                 {
                     object bidsaskSymbol = getValue(bidsaskSymbols, i);
@@ -7863,7 +7873,7 @@ public partial class BaseExchange
         {
             try
             {
-                object orderBook = await this.fetchOrderBook(symbol, limit, parameters);
+                object orderBook = await this.fetchOrderBook(((string)symbol), limit, parameters);
                 return ccxt.BaseExchange.ToOrderBook(orderBook);
             } catch(Exception e)
             {
@@ -7876,7 +7886,7 @@ public partial class BaseExchange
         return ccxt.BaseExchange.ToOrderBook(null);
     }
 
-    public async virtual Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBook() is not supported yet")) ;

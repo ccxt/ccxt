@@ -728,7 +728,7 @@ public partial class toobit : ccxt.toobit
     public virtual void setOrderBookSnapshot(WebSocketClient client, object message, object channel)
     {
         object data = this.safeList(message, "data", new List<object>() {});
-        int length = getArrayLength(data);
+        object length = getArrayLength(data);
         if (isTrue(isEqual(length, 0)))
         {
             return;
@@ -773,12 +773,12 @@ public partial class toobit : ccxt.toobit
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        bool isSpot = (isEqual(marketType, "spot"));
+        object isSpot = (isEqual(marketType, "spot"));
         object type = ((bool) isTrue(isSpot)) ? "spot" : "contract";
-        string spotSubHash = "spot:balance";
-        string swapSubHash = "contract:private";
-        string spotMessageHash = "spot:balance";
-        string swapMessageHash = "contract:balance";
+        object spotSubHash = "spot:balance";
+        object swapSubHash = "contract:private";
+        object spotMessageHash = "spot:balance";
+        object swapMessageHash = "contract:balance";
         object messageHash = ((bool) isTrue(isSpot)) ? spotMessageHash : swapMessageHash;
         object subscriptionHash = ((bool) isTrue(isSpot)) ? spotSubHash : swapSubHash;
         if (isTrue(isEqual(subscriptionHash, null)))
@@ -1233,7 +1233,7 @@ public partial class toobit : ccxt.toobit
         //     }
         // ]
         //
-        List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+        object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         object accountType = getValue(subscriptions, 0);
         if (isTrue(isEqual(this.positions, null)))
         {
@@ -1259,9 +1259,9 @@ public partial class toobit : ccxt.toobit
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -1306,13 +1306,13 @@ public partial class toobit : ccxt.toobit
     {
         parameters ??= new Dictionary<string, object>();
         var client = this.client(this.getUserStreamUrl());
-        string messageHash = "authenticated";
+        object messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
             this.checkRequiredCredentials();
-            Int64 time = this.milliseconds();
+            object time = this.milliseconds();
             object lastAuthenticatedTime = this.safeInteger(getValue(this.options, "ws"), "lastAuthenticatedTime", 0);
             object listenKeyRefreshRate = this.safeInteger(getValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
             object delay = this.sum(listenKeyRefreshRate, 10000);
@@ -1359,7 +1359,7 @@ public partial class toobit : ccxt.toobit
         {
             object url = this.getUserStreamUrl();
             var client = this.client(url);
-            List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
+            object messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);

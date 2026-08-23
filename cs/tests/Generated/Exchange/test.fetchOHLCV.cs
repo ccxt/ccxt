@@ -9,8 +9,8 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchOHLCV(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        string method = "fetchOHLCV";
-        List<object> timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
+        object method = "fetchOHLCV";
+        object timeframeKeys = new List<object>(((IDictionary<string,object>)exchange.timeframes).Keys);
         assert(getArrayLength(timeframeKeys), add(add(add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
         object chosenTimeframeKey = "1m";

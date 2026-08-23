@@ -820,11 +820,11 @@ public partial class paradex : Exchange
         //  }
         //
         object assetKind = this.safeString(market, "asset_kind");
-        bool isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
-        bool isOptionDelivery = (isEqual(assetKind, "OPTION"));
-        bool isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
+        object isOptionPerpetual = (isEqual(assetKind, "PERP_OPTION"));
+        object isOptionDelivery = (isEqual(assetKind, "OPTION"));
+        object isOption = isTrue(isOptionPerpetual) || isTrue(isOptionDelivery);
         object type = ((bool) isTrue((isOption))) ? "option" : "swap";
-        bool isSwap = (isEqual(type, "swap"));
+        object isSwap = (isEqual(type, "swap"));
         object marketId = this.safeString(market, "symbol");
         object quoteId = this.safeString(market, "quote_currency");
         object baseId = this.safeString(market, "base_currency");
@@ -948,7 +948,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(object symbol, object parameters = null)
+    public async override Task<ccxt.TradingFeeInterface> fetchTradingFee(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1048,8 +1048,9 @@ public partial class paradex : Exchange
      * @param {string} [params.price] "last", "mark", "index", default is "last"
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1061,7 +1062,7 @@ public partial class paradex : Exchange
             { "resolution", this.safeString(this.timeframes, timeframe, timeframe) },
             { "symbol", getValue(market, "id") },
         };
-        Int64 now = this.milliseconds();
+        object now = this.milliseconds();
         object duration = this.parseTimeframe(timeframe);
         object until = this.safeInteger2(parameters, "until", "till", now);
         object price = this.safeString(parameters, "price");
@@ -1180,7 +1181,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1282,7 +1283,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1336,7 +1337,7 @@ public partial class paradex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1433,7 +1434,7 @@ public partial class paradex : Exchange
         object amountString = this.safeString(trade, "size");
         object side = this.safeStringLower(trade, "side");
         object liability = this.safeStringLower(trade, "liquidity", "taker");
-        bool isTaker = isEqual(liability, "taker");
+        object isTaker = isEqual(liability, "taker");
         object takerOrMaker = ((bool) isTrue((isTaker))) ? "taker" : "maker";
         object currencyId = this.safeString(trade, "fee_currency");
         object code = this.safeCurrencyCode(currencyId);
@@ -1467,7 +1468,7 @@ public partial class paradex : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1882,8 +1883,8 @@ public partial class paradex : Exchange
         }
         object market = this.market(symbol);
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        string orderType = ((string)type).ToUpper();
-        string orderSide = ((string)((string)side)).ToUpper();
+        object orderType = ((string)type).ToUpper();
+        object orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", orderSide },
@@ -1893,10 +1894,10 @@ public partial class paradex : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        bool isMarket = isEqual(orderType, "MARKET");
-        bool isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
-        bool isStopLossOrder = (!isEqual(stopLossPrice, null));
-        bool isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
+        object isMarket = isEqual(orderType, "MARKET");
+        object isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
+        object isStopLossOrder = (!isEqual(stopLossPrice, null));
+        object isStopOrder = isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTakeProfitOrder)) || isTrue(isStopLossOrder);
         object timeInForce = this.safeStringUpper(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!isTrue(isMarket))
@@ -1987,7 +1988,7 @@ public partial class paradex : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " signOrderRequest() missing orderType")) ;
         }
-        bool isMarket = (isGreaterThanOrEqual(getIndexOf(orderType, "MARKET"), 0));
+        object isMarket = (isGreaterThanOrEqual(getIndexOf(orderType, "MARKET"), 0));
         object orderReq = new Dictionary<string, object>() {
             { "timestamp", multiply(now, 1000) },
             { "market", this.stringToBase16(getValue(request, "market")) },
@@ -2061,7 +2062,7 @@ public partial class paradex : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2121,7 +2122,7 @@ public partial class paradex : Exchange
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> editOrder(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(amount, null)))
@@ -2208,7 +2209,7 @@ public partial class paradex : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> extendedParams = this.extend(parameters, orderParams);
+            object extendedParams = this.extend(parameters, orderParams);
             object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
             orderRequest = await this.signOrderRequest(orderRequest);
             ((IList<object>)ordersRequests).Add(orderRequest);
@@ -2261,7 +2262,7 @@ public partial class paradex : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2298,7 +2299,7 @@ public partial class paradex : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> cancelOrders(object ids, object symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelOrders(object ids, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2308,8 +2309,8 @@ public partial class paradex : Exchange
         }
         object clientOrderIds = this.safeListN(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
-        bool hasOrderIds = isTrue((!isEqual(ids, null))) && isTrue((((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
-        bool hasClientOrderIds = isTrue((!isEqual(clientOrderIds, null))) && isTrue((((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
+        object hasOrderIds = isTrue((!isEqual(ids, null))) && isTrue((((ids is IList<object>) || (ids.GetType().IsGenericType && ids.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
+        object hasClientOrderIds = isTrue((!isEqual(clientOrderIds, null))) && isTrue((((clientOrderIds is IList<object>) || (clientOrderIds.GetType().IsGenericType && clientOrderIds.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))));
         if (isTrue(!isTrue(hasOrderIds) && !isTrue(hasClientOrderIds)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
@@ -2387,7 +2388,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2424,7 +2425,7 @@ public partial class paradex : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2488,7 +2489,7 @@ public partial class paradex : Exchange
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2559,7 +2560,7 @@ public partial class paradex : Exchange
         //
         object orders = this.safeList(response, "results", new List<object>() {});
         object paginationCursor = this.safeString(response, "next");
-        int ordersLength = getArrayLength(orders);
+        object ordersLength = getArrayLength(orders);
         if (isTrue(isTrue((!isEqual(paginationCursor, null))) && isTrue((isGreaterThan(ordersLength, 0)))))
         {
             object first = getValue(orders, 0);
@@ -2580,7 +2581,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2697,7 +2698,7 @@ public partial class paradex : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2772,7 +2773,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<ccxt.Position> fetchPosition(object symbol, object parameters = null)
+    public async override Task<ccxt.Position> fetchPosition(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -2980,7 +2981,7 @@ public partial class paradex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -3056,7 +3057,7 @@ public partial class paradex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -3132,7 +3133,7 @@ public partial class paradex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -3310,7 +3311,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public async override Task<ccxt.MarginMode> fetchMarginMode(object symbol, object parameters = null)
+    public async override Task<ccxt.MarginMode> fetchMarginMode(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -3362,7 +3363,7 @@ public partial class paradex : Exchange
      * @param {float} [params.leverage] the rate of leverage
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setMarginMode(object marginMode, object symbol = null, object parameters = null)
+    public async override Task<object> setMarginMode(string marginMode, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setMarginMode", symbol, "symbol");
@@ -3393,7 +3394,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public async override Task<ccxt.Leverage> fetchLeverage(object symbol, object parameters = null)
+    public async override Task<ccxt.Leverage> fetchLeverage(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticateRest();
@@ -3456,7 +3457,7 @@ public partial class paradex : Exchange
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, object symbol = null, object parameters = null)
+    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredArgument("setLeverage", symbol, "symbol");
@@ -3487,7 +3488,7 @@ public partial class paradex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public async override Task<ccxt.Greeks> fetchGreeks(object symbol, object parameters = null)
+    public async override Task<ccxt.Greeks> fetchGreeks(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3772,7 +3773,7 @@ public partial class paradex : Exchange
      * @param {int} [params.until] timestamp in ms of the latest funding rate to fetch
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchFundingRateHistory(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))

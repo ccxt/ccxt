@@ -297,6 +297,188 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchTradingFee': 'PredictionTradingFee',
 };
 
+// Generated C# core parameters that can be narrowed from `object` to `string`.
+// Keyed by POSITION, never by name: the prediction tier renames `symbol` to
+// `outcome`, and C# overrides are invariant on parameter types, not names.
+// Produced by build/analyzeCoreArgs.py, which admits a position only when every
+// declaration of that method agrees on arity + defaults and no body assigns to it.
+const CORE_STRING_ARGS: Record<string, number[]> = {
+    'addMargin': [ 0 ],
+    'cancelAllOrders': [ 0 ],
+    'cancelAllOrdersWs': [ 0 ],
+    'cancelContractOrder': [ 0, 1 ],
+    'cancelOrder': [ 0, 1 ],
+    'cancelOrderWithClientOrderId': [ 0, 1 ],
+    'cancelOrderWs': [ 0, 1 ],
+    'cancelOrders': [ 1 ],
+    'cancelOrdersWithClientOrderIds': [ 1 ],
+    'cancelOrdersWs': [ 1 ],
+    'cancelSpotOrder': [ 0, 1 ],
+    'cancelTwapOrder': [ 0, 1 ],
+    'cancelUtaOrder': [ 0, 1 ],
+    'cancelUtaOrders': [ 1 ],
+    'closePosition': [ 0, 1 ],
+    'createAmmOrder': [ 0, 1, 2 ],
+    'createConvertTrade': [ 0 ],
+    'createDepositAddress': [ 0 ],
+    'createLimitBuyOrder': [ 0 ],
+    'createLimitBuyOrderWs': [ 0 ],
+    'createLimitOrder': [ 0, 1 ],
+    'createLimitOrderWs': [ 0, 1 ],
+    'createLimitSellOrder': [ 0 ],
+    'createLimitSellOrderWs': [ 0 ],
+    'createMarketBuyOrder': [ 0 ],
+    'createMarketBuyOrderWithCost': [ 0 ],
+    'createMarketBuyOrderWs': [ 0 ],
+    'createMarketOrder': [ 0, 1 ],
+    'createMarketOrderWithCost': [ 0, 1 ],
+    'createMarketOrderWithCostWs': [ 0, 1 ],
+    'createMarketOrderWs': [ 0, 1 ],
+    'createMarketSellOrder': [ 0 ],
+    'createMarketSellOrderWithCost': [ 0 ],
+    'createMarketSellOrderWs': [ 0 ],
+    'createOrder': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
+    'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
+    'createOrderWs': [ 0, 1, 2 ],
+    'createOrderbookOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrder': [ 0, 1, 2 ],
+    'createPostOnlyOrderWs': [ 0, 1, 2 ],
+    'createReduceOnlyOrder': [ 0, 1, 2 ],
+    'createReduceOnlyOrderWs': [ 0, 1, 2 ],
+    'createStopLimitOrder': [ 0, 1 ],
+    'createStopLimitOrderWs': [ 0, 1 ],
+    'createStopLossOrder': [ 0, 1, 2 ],
+    'createStopLossOrderWs': [ 0, 1, 2 ],
+    'createStopMarketOrder': [ 0, 1 ],
+    'createStopMarketOrderWs': [ 0, 1 ],
+    'createStopOrder': [ 0, 1, 2 ],
+    'createStopOrderWs': [ 0, 1, 2 ],
+    'createTakeProfitOrder': [ 0, 1, 2 ],
+    'createTakeProfitOrderWs': [ 0, 1, 2 ],
+    'createTrailingAmountOrder': [ 0, 1, 2 ],
+    'createTrailingAmountOrderWs': [ 0, 1, 2 ],
+    'createTrailingPercentOrder': [ 0, 1, 2 ],
+    'createTrailingPercentOrderWs': [ 0, 1, 2 ],
+    'createTriggerOrder': [ 0, 1, 2 ],
+    'createTriggerOrderWs': [ 0, 1, 2 ],
+    'createTwapOrder': [ 0, 1 ],
+    'editContractOrder': [ 0, 1, 2, 3 ],
+    'editLimitBuyOrder': [ 0, 1 ],
+    'editLimitOrder': [ 0, 1, 2 ],
+    'editLimitSellOrder': [ 0, 1 ],
+    'editOrder': [ 0, 1, 2, 3 ],
+    'editOrderWithClientOrderId': [ 0, 1, 2, 3 ],
+    'editOrderWs': [ 0, 1, 2, 3 ],
+    'editSpotOrder': [ 0, 1, 2, 3 ],
+    'fetchADLRank': [ 0 ],
+    'fetchAmmOrders': [ 0 ],
+    'fetchCanceledOrders': [ 0 ],
+    'fetchClosedOrder': [ 0, 1 ],
+    'fetchClosedOrders': [ 0 ],
+    'fetchClosedOrdersWs': [ 0 ],
+    'fetchContractDepositAddress': [ 0 ],
+    'fetchContractOHLCV': [ 0, 1 ],
+    'fetchConvertTrade': [ 0, 1 ],
+    'fetchConvertTradeHistory': [ 0 ],
+    'fetchCrossBorrowRate': [ 0 ],
+    'fetchDeposit': [ 0, 1 ],
+    'fetchDepositAddress': [ 0 ],
+    'fetchDepositAddressDefault': [ 0 ],
+    'fetchDepositAddressSupplement': [ 0 ],
+    'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchDepositWithdrawFee': [ 0 ],
+    'fetchDeposits': [ 0 ],
+    'fetchDepositsWs': [ 0 ],
+    'fetchDerivativesMarketLeverageTiers': [ 0 ],
+    'fetchEvent': [ 0 ],
+    'fetchFundingInterval': [ 0 ],
+    'fetchFundingRate': [ 0 ],
+    'fetchFundingRateHistory': [ 0 ],
+    'fetchGreeks': [ 0 ],
+    'fetchIndexOHLCV': [ 0, 1 ],
+    'fetchIsolatedBorrowRate': [ 0 ],
+    'fetchLedger': [ 0 ],
+    'fetchLedgerByEntries': [ 0 ],
+    'fetchLedgerEntriesByIds': [ 1 ],
+    'fetchLedgerEntry': [ 0, 1 ],
+    'fetchLeverage': [ 0 ],
+    'fetchLiquidations': [ 0 ],
+    'fetchLongShortRatio': [ 0, 1 ],
+    'fetchLongShortRatioHistory': [ 0, 1 ],
+    'fetchMarginAdjustmentHistory': [ 0, 1 ],
+    'fetchMarginMode': [ 0 ],
+    'fetchMarkOHLCV': [ 0, 1 ],
+    'fetchMarkPrice': [ 0 ],
+    'fetchMarket': [ 0 ],
+    'fetchMarketById': [ 0 ],
+    'fetchMarketLeverageTiers': [ 0 ],
+    'fetchMyBuys': [ 0 ],
+    'fetchMySells': [ 0 ],
+    'fetchMyTrades': [ 0 ],
+    'fetchMyTradesWs': [ 0 ],
+    'fetchOHLCV': [ 0, 1 ],
+    'fetchOHLCVWs': [ 0, 1 ],
+    'fetchOpenInterest': [ 0 ],
+    'fetchOpenOrder': [ 0, 1 ],
+    'fetchOpenOrders': [ 0 ],
+    'fetchOpenOrdersWs': [ 0 ],
+    'fetchOption': [ 0 ],
+    'fetchOptionChain': [ 0 ],
+    'fetchOptionOHLCV': [ 0, 1 ],
+    'fetchOrder': [ 0, 1 ],
+    'fetchOrderBook': [ 0 ],
+    'fetchOrderBookWs': [ 0 ],
+    'fetchOrderTrades': [ 0, 1 ],
+    'fetchOrderWithClientOrderId': [ 0, 1 ],
+    'fetchOrderWs': [ 0, 1 ],
+    'fetchOrders': [ 0 ],
+    'fetchOrdersByIds': [ 1 ],
+    'fetchOrdersByStatusWs': [ 0, 1 ],
+    'fetchOrdersWs': [ 0 ],
+    'fetchPosition': [ 0 ],
+    'fetchPositionADLRank': [ 0 ],
+    'fetchPositionHistory': [ 0 ],
+    'fetchPositionMode': [ 0 ],
+    'fetchPositionWs': [ 0 ],
+    'fetchPositionsForSymbolWs': [ 0 ],
+    'fetchPremiumIndexOHLCV': [ 0, 1 ],
+    'fetchSettlements': [ 0 ],
+    'fetchSpotOHLCV': [ 0, 1 ],
+    'fetchSpotOrderTrades': [ 0, 1 ],
+    'fetchTicker': [ 0 ],
+    'fetchTicker2': [ 0 ],
+    'fetchTickerV1': [ 0 ],
+    'fetchTickerV1AndV2': [ 0 ],
+    'fetchTickerV2': [ 0 ],
+    'fetchTickerV3': [ 0 ],
+    'fetchTickerWs': [ 0 ],
+    'fetchTrades': [ 0 ],
+    'fetchTradesWs': [ 0 ],
+    'fetchTradingFee': [ 0 ],
+    'fetchTransfer': [ 0, 1 ],
+    'fetchTransfers': [ 0 ],
+    'fetchUTAOHLCV': [ 0, 1 ],
+    'fetchWithdrawal': [ 0, 1 ],
+    'fetchWithdrawals': [ 0 ],
+    'fetchWithdrawalsWs': [ 0 ],
+    'reduceMargin': [ 0 ],
+    'setLeverage': [ 1 ],
+    'setMarginMode': [ 0, 1 ],
+    'setPositionMode': [ 1 ],
+    'transfer': [ 0, 2, 3 ],
+    'transferBetweenMainAndSubAccount': [ 0, 2, 3 ],
+    'transferBetweenSubAccounts': [ 0, 2, 3 ],
+    'transferClassic': [ 0, 2, 3 ],
+    'transferIn': [ 0 ],
+    'transferOut': [ 0 ],
+    'transferUta': [ 0, 2, 3 ],
+    'withdraw': [ 0, 2, 3 ],
+    'withdrawWs': [ 0, 2, 3 ],
+    // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
+    // hand-written WsBridge caller both pass `object` and cannot be narrowed here
+};
+
 
 
 
@@ -1035,6 +1217,177 @@ class NewTranspiler {
         return lines.filter (line => line !== null).join ('\n');
     }
 
+    // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
+    // generated declaration. Positional, because the prediction tier renames the first
+    // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
+    typeCoreArgs (content: string): string {
+        const names = Object.keys (CORE_STRING_ARGS);
+        if (!names.some (name => content.includes (' ' + name + '('))) {
+            return content;
+        }
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
+            const positions = CORE_STRING_ARGS[methodName];
+            if (positions === undefined) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
+            const params = this.splitCsharpParams (plist);
+            const shadows: string[] = [];
+            let changed = false;
+            for (const pos of positions) {
+                const param = params[pos];
+                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
+                    continue;
+                }
+                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
+                // a body that assigns to the parameter cannot hold a `string` (the RHS is
+                // `object`), so the narrowed value arrives under an alias and the body keeps
+                // its own `object` local of the original name — semantics are unchanged
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body);
+                if (reassigned) {
+                    params[pos] = param.replace ('object ' + paramName, 'string ' + paramName + 'Typed');
+                    shadows.push (`${indent}    object ${paramName} = ${paramName}Typed;`);
+                } else {
+                    params[pos] = param.replace ('object ', 'string ');
+                }
+                changed = true;
+            }
+            if (!changed) {
+                continue;
+            }
+            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
+            if (shadows.length) {
+                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // narrowing a core parameter to `string` breaks every intra-core call site that still
+    // holds the value in an `object` local, so each such argument gets an explicit
+    // `((string)expr)`. The value is a string by contract (the TS signature says so); the
+    // cast only makes the existing assumption explicit to the C# compiler.
+    castCoreArgCallSites (content: string, receivers = [ 'this.', 'base.' ]): string {
+        for (const methodName of Object.keys (CORE_STRING_ARGS)) {
+            const positions = CORE_STRING_ARGS[methodName];
+            for (const receiver of receivers) {
+                const needle = receiver + methodName + '(';
+                let from = 0;
+            for (;;) {
+                const at = content.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = content[at - 1];
+                if (before !== undefined && /[\w.]/.test (before)) {
+                    from = at + needle.length;
+                    continue;
+                }
+                const open = at + needle.length - 1;
+                const close = this.matchingParen (content, open);
+                if (close === -1) {
+                    from = at + needle.length;
+                    continue;
+                }
+                const args = this.splitCsharpParams (content.substring (open + 1, close));
+                let changed = false;
+                for (const pos of positions) {
+                    const arg = args[pos];
+                    if (arg === undefined) {
+                        continue;
+                    }
+                    const trimmed = arg.trim ();
+                    if (trimmed === '' || trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
+                        continue;
+                    }
+                    args[pos] = '((string)' + trimmed + ')';
+                    changed = true;
+                }
+                const replacement = changed ? needle + args.join (',') + ')' : content.substring (at, close + 1);
+                content = content.substring (0, at) + replacement + content.substring (close + 1);
+                from = at + replacement.length;
+                }
+            }
+        }
+        return content;
+    }
+
+    // index of the `)` closing the `(` at `open`, skipping string literals and comments
+    matchingParen (text: string, open: number): number {
+        let depth = 0;
+        for (let i = open; i < text.length; i++) {
+            const ch = text[i];
+            if (ch === '"') {
+                i++;
+                while (i < text.length && text[i] !== '"') {
+                    if (text[i] === '\\') {
+                        i++;
+                    }
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '/' && text[i + 1] === '/') {
+                while (i < text.length && text[i] !== '\n') {
+                    i++;
+                }
+                continue;
+            }
+            if (ch === '(') {
+                depth++;
+            } else if (ch === ')') {
+                depth--;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
+    // top-level comma split of a C# parameter list (defaults may contain generics/collections)
+    splitCsharpParams (plist: string): string[] {
+        const out: string[] = [];
+        let depth = 0;
+        let cur = '';
+        for (const ch of plist) {
+            if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
+                depth++;
+            } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {
+                depth--;
+            }
+            if (ch === ',' && depth === 0) {
+                out.push (cur);
+                cur = '';
+            } else {
+                cur += ch;
+            }
+        }
+        if (cur !== '') {
+            out.push (cur);
+        }
+        return out;
+    }
+
     unwrapTaskIfNeeded(type: string): string {
         return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
     }
@@ -1421,7 +1774,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.typeCores (baseMethods, false) + "\n";
+            const file = fileHeader + this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, false))) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -1429,7 +1782,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.typeCores (exchangeBody, false) + "\n}\n";
+                const tradingFile = tradingHeader + this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (exchangeBody, false))) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -1485,7 +1838,7 @@ class NewTranspiler {
             const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
             this.isPrediction = prevIsPrediction;
             const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + this.typeCores (baseMethods, true) + "\n" + wrapperPartial;
+            const file = fileHeader + fields + this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))) + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -1813,7 +2166,7 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
-        content = this.typeCores (content);
+        content = this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content)));
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
@@ -2267,6 +2620,11 @@ class NewTranspiler {
             }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
+            if (isWs) {
+                // WS tests bind the unified methods statically (no `dynamic` hop), so a core
+                // parameter narrowed to `string` needs the same explicit cast the cores get
+                contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
+            }
             const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [
                 namespace,

@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLeverageTiers(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        string method = "fetchLeverageTiers";
+        object method = "fetchLeverageTiers";
         object tiers = await ((dynamic)exchange).fetchLeverageTiers(new List<object>() {symbol});
         // const format = {
         //     'RAY/USDT': [
@@ -17,7 +17,7 @@ public partial class testMainClass : BaseTest
         //     ],
         // };
         testSharedMethods.assertDictionaryResponse(exchange, method, tiers, symbol);
-        List<object> tierKeys = new List<object>(((IDictionary<string,object>)tiers).Keys);
+        object tierKeys = new List<object>(((IDictionary<string,object>)tiers).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(tierKeys)); postFixIncrement(ref i))
         {

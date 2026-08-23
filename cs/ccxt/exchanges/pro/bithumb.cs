@@ -99,7 +99,7 @@ public partial class bithumb : ccxt.bithumb
             { "symbols", marketIds },
             { "tickTypes", new List<object> {this.safeString(parameters, "tickTypes", "24H")} },
         };
-        Dictionary<string, object> message = this.extend(request, parameters);
+        object message = this.extend(request, parameters);
         object newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -450,7 +450,7 @@ public partial class bithumb : ccxt.bithumb
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        string messageHash = "myAsset";
+        object messageHash = "myAsset";
         object request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }, new Dictionary<string, object>() {
@@ -477,7 +477,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        string messageHash = "myAsset";
+        object messageHash = "myAsset";
         object assets = this.safeList(message, "assets", new List<object>() {});
         if (isTrue(isEqual(this.balance, null)))
         {
@@ -600,7 +600,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        string messageHash = "myOrder";
+        object messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');

@@ -13,7 +13,7 @@ public partial class binanceusdm : binance
         var restInstance = new ccxt.binanceusdm();
         object restDescribe = restInstance.describe();
         object parentWsDescribe = base.describeData();
-        Dictionary<string, object> extended = this.deepExtend(restDescribe, parentWsDescribe);
+        object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binanceusdm" },
             { "name", "Binance USDⓈ-M" },

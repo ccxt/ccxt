@@ -10,12 +10,12 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchMyTrades(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchMyTrades";
+        object method = "watchMyTrades";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
-            bool success = true;
+            object success = true;
             object response = new List<object>() {};
             try
             {

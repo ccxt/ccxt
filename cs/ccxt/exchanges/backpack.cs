@@ -945,7 +945,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1032,7 +1032,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1081,8 +1081,9 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
     {
+        object timeframe = timeframeTyped;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1159,7 +1160,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRate> fetchFundingRate(object symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> fetchFundingRate(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1225,7 +1226,7 @@ public partial class backpack : Exchange
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public async override Task<ccxt.OpenInterest> fetchOpenInterest(object symbol, object parameters = null)
+    public async override Task<ccxt.OpenInterest> fetchOpenInterest(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1279,7 +1280,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchFundingRateHistory(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1340,7 +1341,7 @@ public partial class backpack : Exchange
      * @param {int} [params.offset] the number of trades to skip, default is 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1381,7 +1382,7 @@ public partial class backpack : Exchange
      * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1581,7 +1582,7 @@ public partial class backpack : Exchange
         //         }
         //     }
         //
-        List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        object balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
@@ -1614,7 +1615,7 @@ public partial class backpack : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1659,7 +1660,7 @@ public partial class backpack : Exchange
      * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1705,7 +1706,7 @@ public partial class backpack : Exchange
      * @param {string} params.network the network to withdraw on (mandatory)
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1880,7 +1881,7 @@ public partial class backpack : Exchange
      * @param {string} [params.networkCode] the network to fetch the deposit address (mandatory)
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> fetchDepositAddress(object code, object parameters = null)
+    public async override Task<ccxt.DepositAddress> fetchDepositAddress(string code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1952,7 +1953,7 @@ public partial class backpack : Exchange
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1991,7 +1992,7 @@ public partial class backpack : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -2017,7 +2018,7 @@ public partial class backpack : Exchange
             { "orderType", this.capitalize(type) },
         };
         object triggerPrice = this.safeString(parameters, "triggerPrice");
-        bool isTriggerOrder = !isEqual(triggerPrice, null);
+        object isTriggerOrder = !isEqual(triggerPrice, null);
         object quantityKey = ((bool) isTrue(isTriggerOrder)) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (isTrue(isEqual(type, "limit")))
@@ -2126,7 +2127,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2154,7 +2155,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<ccxt.Order> fetchOpenOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<ccxt.Order> fetchOpenOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2184,7 +2185,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2213,7 +2214,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2243,7 +2244,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2627,7 +2628,7 @@ public partial class backpack : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            string ts = ((object)this.nonce()).ToString();
+            object ts = ((object)this.nonce()).ToString();
             object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             object optionInstructions = this.safeDict(this.options, "instructions", new Dictionary<string, object>() {});
             object optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});

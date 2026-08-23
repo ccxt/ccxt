@@ -14,7 +14,7 @@ public partial class BaseTest
                 { "fetchHistoryCacheSize", 2 },
             });
             Assert(isEqual(exchangeProp(exchange, "fetchHistoryCacheSize"), 2), "fetchHistoryCacheSize should be 2");
-            bool trueAssertion = isEqual(exchange.parseNumber(null), null);
+            object trueAssertion = isEqual(exchange.parseNumber(null), null);
             try
             {
                 await exchange.fetch2("sample1");

@@ -17,16 +17,16 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchTickersHelper(Exchange exchange, object skippedProperties, object argSymbols, object argParams = null)
     {
         argParams ??= new Dictionary<string, object>();
-        string method = "watchTickers";
+        object method = "watchTickers";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         object maxIdleTime = 5000;
-        bool idle = false;
+        object idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new Dictionary<string, object>() {};
-            bool success = true;
-            bool shouldReturn = false;
+            object success = true;
+            object shouldReturn = false;
             object startTime = exchange.milliseconds();
             try
             {
@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isEqual(success, true)))
             {
                 assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
-                List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
+                object values = new List<object>(((IDictionary<string,object>)response).Values);
                 object checkedSymbol = null;
                 if (isTrue(isTrue(!isEqual(argSymbols, null)) && isTrue(isEqual(getArrayLength(argSymbols), 1))))
                 {
@@ -76,7 +76,7 @@ public partial class testMainClass : BaseTest
                         object tickerSymbol = getValue(ticker, "symbol");
                         if (isTrue(isTrue((!isEqual(tickerSymbol, null))) && isTrue(testSharedMethods.tickerExceptionNeedsOhlcv(ex, exchange, ticker))))
                         {
-                            ohlcv = await exchange.fetchOHLCV(tickerSymbol, "1d", null, 5);
+                            ohlcv = await exchange.fetchOHLCV(((string)tickerSymbol), "1d", null, 5);
                         }
                         testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker, ohlcv);
                     }

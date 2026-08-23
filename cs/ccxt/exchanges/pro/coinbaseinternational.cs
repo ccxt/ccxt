@@ -92,7 +92,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             symbols = this.getActiveSymbols();
         }
-        int symbolsLength = getArrayLength(symbols);
+        object symbolsLength = getArrayLength(symbols);
         object messageHashes = new List<object>() {};
         if (isTrue(isGreaterThan(symbolsLength, 1)))
         {
@@ -114,9 +114,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
         }
-        string timestamp = ((object)this.nonce()).ToString();
+        object timestamp = ((object)this.nonce()).ToString();
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {name} },
@@ -177,7 +177,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object timestamp = this.numberToString(this.seconds());
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "time", timestamp },

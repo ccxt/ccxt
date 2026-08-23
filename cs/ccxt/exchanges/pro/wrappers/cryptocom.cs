@@ -369,10 +369,10 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrderWs(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// edit a trade order
@@ -407,10 +407,10 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// cancels an open order
@@ -433,10 +433,10 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrderWs(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// cancel all open orders
@@ -453,10 +453,10 @@ public partial class cryptocom
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     public async Task<Dictionary<string, object>> WatchPublicMultiple(object messageHashes, object topics, Dictionary<string, object> parameters = null)
     {

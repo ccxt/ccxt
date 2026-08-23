@@ -117,10 +117,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
+        return res;
     }
     /// <summary>
     /// fetches a single raw myriad market object by its unified event id (a composite networkId:marketId)
@@ -225,10 +225,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure).</returns>
-    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(outcomes, parameters);
-        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
+        return res;
     }
     /// <summary>
     /// fetches a trade quote — price, shares, fees and the on-chain calldata — for buying or selling an outcome. Myriad settles trades on-chain, so this returns the calldata to submit to the prediction-market contract rather than placing an off-chain order
@@ -295,10 +295,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrder(outcome, type, side, amount, price, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// signs an EIP-712 order and posts it to the gasless order book; the operator settles the match on-chain
@@ -308,10 +308,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrderbookOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateOrderbookOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrderbookOrder(outcome, type, side, amount, price, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// places multiple order book orders. Myriad's batch endpoint is not reliable, so the
@@ -328,10 +328,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CreateOrders(List<PredictionOrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CreateOrders(List<PredictionOrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// edits an open order by cancelling it and placing a replacement (gasless). Myriad's
@@ -372,10 +372,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> EditOrder(string id, string outcome, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> EditOrder(string id, string outcome, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.editOrder(id, outcome, type, side, amount, price, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
@@ -427,10 +427,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateAmmOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createAmmOrder(outcome, type, side, amount, price, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// buys an outcome by spending a fixed collateral amount on the AMM (dollar-sizing)
@@ -447,10 +447,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateMarketBuyOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateMarketBuyOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(outcome, cost, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
@@ -484,10 +484,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of closed [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchAmmOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchAmmOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAmmOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// cancels an open order book order by its hash (re-signs the original order to prove ownership; gasless)
@@ -528,10 +528,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, outcome, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// cancels all open order book orders for the wallet, optionally scoped to one market (gasless)
@@ -592,10 +592,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches a single order book order by its hash
@@ -618,10 +618,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, outcome, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// fetches order book orders for the wallet (or any trader passed via params.trader), or amm closed orders
@@ -668,10 +668,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches open order book orders for the wallet
@@ -706,10 +706,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches the wallet's filled order book orders
@@ -744,10 +744,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchClosedOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches the wallet's cancelled order book orders
@@ -782,10 +782,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchCanceledOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchCanceledOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCanceledOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
@@ -820,10 +820,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+        return res;
     }
     /// <summary>
     /// fetches the wallet's on-chain collateral balance for the order-book network (USD1 on BNB Chain)
@@ -864,10 +864,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetches the current price for a single outcome by loading the parent market
@@ -884,10 +884,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure).</returns>
-    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(outcome, parameters);
-        return new PredictionTicker(res);
+        return res;
     }
     /// <summary>
     /// fetches the buy/sell fee rates for a market outcome
@@ -904,10 +904,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure](https://docs.ccxt.com/#/?id=fee-structure).</returns>
-    public async Task<PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(outcome, parameters);
-        return new PredictionTradingFee(res);
+        return res;
     }
     /// <summary>
     /// fetches the real order book for order-book markets, or synthesizes a one-level book from the AMM price otherwise
@@ -962,10 +962,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1d", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = "1d", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// fetches tickers for multiple outcomes, grouping requested outcomes by their parent market to fetch each market only once
@@ -982,10 +982,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome.</returns>
-    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(outcomes, parameters);
-        return new PredictionTickers(res);
+        return res;
     }
     /// <summary>
     /// fetches recent public trades for a single outcome from the market action feed
@@ -1014,10 +1014,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+        return res;
     }
     /// <summary>
     /// fetches prediction-market events matching the given scope (query/queries/tags/eventId) and caches their markets and outcomes on the instance

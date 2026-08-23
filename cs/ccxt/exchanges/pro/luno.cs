@@ -65,7 +65,7 @@ public partial class luno : ccxt.luno
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
-        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
+        object request = this.deepExtend(subscribe, parameters);
         object trades = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         if (isTrue(this.newUpdates))
         {
@@ -92,7 +92,7 @@ public partial class luno : ccxt.luno
         //     }
         //
         object rawTrades = this.safeValue(message, "trade_updates", new List<object>() {});
-        int length = getArrayLength(rawTrades);
+        object length = getArrayLength(rawTrades);
         if (isTrue(isEqual(length, 0)))
         {
             return;
@@ -179,7 +179,7 @@ public partial class luno : ccxt.luno
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
         };
-        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
+        object request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, subscriptionHash, subscription);
         return (orderbook as IOrderBook).limit();
     }
@@ -367,7 +367,7 @@ public partial class luno : ccxt.luno
         {
             return;
         }
-        List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
+        object subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
         object handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
         for (object j = 0; isLessThan(j, getArrayLength(handlers)); postFixIncrement(ref j))
         {

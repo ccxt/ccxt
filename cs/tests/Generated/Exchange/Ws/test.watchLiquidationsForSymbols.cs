@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchLiquidationsForSymbols(Exchange exchange, object skippedProperties, object symbol)
     {
-        string method = "watchLiquidationsForSymbols";
+        object method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
         object skippedExchanges = new List<object>() {};
         if (isTrue(exchange.inArray(exchange.id, skippedExchanges)))
@@ -34,7 +34,7 @@ public partial class testMainClass : BaseTest
             {
                 response = await exchange.watchLiquidationsForSymbols(new List<object>() {symbol});
                 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
-                bool isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+                object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
                 assert(isArray, "response must be an array");
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);

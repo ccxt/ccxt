@@ -69,10 +69,10 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
-    public async Task<Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrderWs(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// cancel multiple orders
@@ -101,10 +101,10 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
-    public async Task<Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrderWs(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// cancel multiple orders
@@ -121,10 +121,10 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
-    public async Task<List<Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelOrdersWs(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersWs(ids, symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
@@ -141,10 +141,10 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}.</returns>
-    public async Task<List<Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersWs(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market

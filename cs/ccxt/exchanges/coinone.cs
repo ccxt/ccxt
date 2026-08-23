@@ -455,8 +455,8 @@ public partial class coinone : Exchange
     {
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
-        bool isWithdrawEnabled = isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
-        bool isDepositEnabled = isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
+        object isWithdrawEnabled = isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
+        object isDepositEnabled = isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
         object type = ((bool) isTrue((!isEqual(code, "KRW")))) ? "crypto" : "fiat";
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -601,7 +601,7 @@ public partial class coinone : Exchange
             { "info", response },
         };
         object balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
-        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -647,7 +647,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -771,7 +771,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> fetchTicker(object symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> fetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -960,7 +960,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1012,11 +1012,11 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        string orderType = ((string)((string)type)).ToUpper(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-        string orderSide = ((string)((string)side)).ToUpper(); // unified lowercase order sides, same override rule
+        object orderType = ((string)((string)type)).ToUpper(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+        object orderSide = ((string)((string)side)).ToUpper(); // unified lowercase order sides, same override rule
         if (isTrue(!isEqual(orderType, "LIMIT")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -1061,7 +1061,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1257,7 +1257,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         // The returned amount might not be same as the ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         // For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
@@ -1307,7 +1307,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1356,7 +1356,7 @@ public partial class coinone : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> cancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1422,7 +1422,7 @@ public partial class coinone : Exchange
         //     }
         //
         object walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
-        List<object> keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
+        object keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -1432,7 +1432,7 @@ public partial class coinone : Exchange
             {
                 continue;
             }
-            List<object> parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object parts = ((string)key).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object currencyId = this.safeValue(parts, 0);
             object secondPart = this.safeValue(parts, 1);
             object code = this.safeCurrencyCode(currencyId);
@@ -1503,14 +1503,14 @@ public partial class coinone : Exchange
             {
                 nonce = ((object)this.nonce()).ToString();
             }
-            string json = this.json(this.extend(new Dictionary<string, object>() {
+            object json = this.json(this.extend(new Dictionary<string, object>() {
                 { "access_token", this.apiKey },
                 { "nonce", nonce },
             }, parameters));
             object payload = this.stringToBase64(json);
             body = payload;
-            string secret = ((string)this.secret).ToUpper();
-            string signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
+            object secret = ((string)this.secret).ToUpper();
+            object signature = this.hmac(this.encode(payload), this.encode(secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "X-COINONE-PAYLOAD", payload },

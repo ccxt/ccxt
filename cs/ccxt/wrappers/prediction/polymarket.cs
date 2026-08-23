@@ -147,10 +147,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure).</returns>
-    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(outcome, parameters);
-        return new PredictionTicker(res);
+        return res;
     }
     /// <summary>
     /// fetches tickers for multiple outcome tokens at once using the batched CLOB book, midpoint and last-trade-price endpoints (200 per request trio)
@@ -169,10 +169,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome.</returns>
-    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(outcomes, parameters);
-        return new PredictionTickers(res);
+        return res;
     }
     /// <summary>
     /// fetches the CLOB order book for a single outcome token
@@ -227,10 +227,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+        return res;
     }
     /// <summary>
     /// fetches the current timestamp from the CLOB server
@@ -287,10 +287,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure).</returns>
-    public async Task<PredictionOpenInterest> FetchOpenInterest(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOpenInterest> FetchOpenInterest(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterest(outcome, parameters);
-        return new PredictionOpenInterest(res);
+        return res;
     }
     /// <summary>
     /// fetches the base fee rate for a prediction market outcome token
@@ -307,10 +307,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure](https://docs.ccxt.com/#/?id=fee-structure).</returns>
-    public async Task<PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionTradingFee> FetchTradingFee(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(outcome, parameters);
-        return new PredictionTradingFee(res);
+        return res;
     }
     /// <summary>
     /// fetches public trade history for a single outcome token from the data API
@@ -339,10 +339,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+        return res;
     }
     /// <summary>
     /// fetches the authenticated user's trade history from the CLOB, optionally filtered by outcome token
@@ -377,10 +377,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyTrades(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+        return res;
     }
     /// <summary>
     /// fetches all the trades made from a single order
@@ -415,10 +415,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchOrderTrades(string id, string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionTrade>> FetchOrderTrades(string id, string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderTrades(id, outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+        return res;
     }
     /// <summary>
     /// fetches the USDC collateral balance available for trading on the CLOB
@@ -441,10 +441,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
-    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
-        return new Balances(res);
+        return res;
     }
     /// <summary>
     /// fetches open outcome token positions for the wallet from the data API
@@ -461,10 +461,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure).</returns>
-    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(outcomes, parameters);
-        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
+        return res;
     }
     /// <summary>
     /// fetches the open position for a single outcome token
@@ -481,10 +481,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure).</returns>
-    public async Task<PredictionPosition> FetchPosition(string outcome, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionPosition> FetchPosition(string outcome, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPosition(outcome, parameters);
-        return new PredictionPosition(res);
+        return res;
     }
     /// <summary>
     /// fetches open resting orders for the authenticated user, optionally filtered by outcome token
@@ -519,10 +519,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches a single order by id from the CLOB private data endpoint
@@ -545,10 +545,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, outcome, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// places a limit or market order on the CLOB for the given outcome token
@@ -625,10 +625,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrder(outcome, type, side, amount, price, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// places multiple orders on the CLOB in a single batched request
@@ -645,10 +645,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CreateOrders(List<PredictionOrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CreateOrders(List<PredictionOrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// places a market buy order sized by USDC cost (how much to spend) rather than shares
@@ -665,10 +665,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateMarketBuyOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CreateMarketBuyOrderWithCost(string outcome, double cost, Dictionary<string, object> parameters = null)
     {
         var res = await this.createMarketBuyOrderWithCost(outcome, cost, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// cancels a single open order by id on the CLOB
@@ -691,10 +691,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, outcome, parameters);
-        return new PredictionOrder(res);
+        return res;
     }
     /// <summary>
     /// cancels multiple open orders by id on the CLOB in a single request
@@ -717,10 +717,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CancelOrders(List<string> ids, string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// cancels all open orders on the CLOB, optionally scoped to one outcome token
@@ -840,10 +840,10 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
-    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return new PredictionEvent(res);
+        return res;
     }
     /// <summary>
     /// creates new L2 api credentials (apiKey, secret, passphrase) for the wallet private key
