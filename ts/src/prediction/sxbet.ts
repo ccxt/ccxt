@@ -855,7 +855,7 @@ export default class sxbet extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.amount] the USDC amount to move into the proxy (required)
      * @param {string} [params.tokenAddress] the token to transfer, defaults to the active base token
-     * @param {string} [params.spender] the transfer executor granted the permit, defaults to options.transferToProxySpender or the obv3 escrow address
+     * @param {string} [params.spender] the transfer executor granted the permit, defaults to options.transferToProxySpender or the obv3 transferToProxyExecutorAddress
      * @param {int} [params.deadline] unix seconds the permit signature expires at, defaults to options.approveDeadlineSeconds from now
      * @param {string} [params.rpcUrl] overrides the chain's default RPC endpoint (see options.chains)
      * @returns {object} a dict with the raw response and the transfer sessionId
@@ -883,13 +883,17 @@ export default class sxbet extends Exchange {
         const activeAsset = this.safeDict (obv3, 'activeAsset', {});
         const chainId = this.safeInteger (obv3, 'chainId');
         const usdcAddress = this.safeString (activeAsset, 'baseToken');
-        const escrowAddress = this.safeString (activeAsset, 'escrowAddress');
+        // the permit spender is the venue's transfer-to-proxy executor, published in /metadata/obv3
+        const executorAddress = this.safeString (obv3, 'transferToProxyExecutorAddress');
         const tokenAddress = this.safeString (params, 'tokenAddress', usdcAddress);
         if (tokenAddress === undefined) {
             throw new BadRequest (this.id + ' approve() could not resolve the base token address from /metadata/obv3');
         }
         let spender = undefined;
-        [ spender, params ] = this.handleOptionAndParams (params, 'approve', 'transferToProxySpender', escrowAddress);
+        [ spender, params ] = this.handleOptionAndParams (params, 'approve', 'transferToProxySpender', executorAddress);
+        if (spender === undefined) {
+            throw new BadRequest (this.id + ' approve() could not resolve the transfer-to-proxy executor from /metadata/obv3 - pass params.spender');
+        }
         const chains = this.safeDict (this.options, 'chains', {});
         const chainConfig = this.safeDict (chains, this.numberToString (chainId), {});
         const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (chainConfig, 'rpcUrl'));
@@ -948,7 +952,7 @@ export default class sxbet extends Exchange {
      * @param {float} [price] implied probability (0-1) of the requested outcome; required for both order types
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] overrides the derived value - 'GTC', 'IOC' or 'FOK'
-     * @param {int} [params.expiry] unix seconds the order expires at, 0 (default) never expires
+     * @param {int} [params.expiry] unix seconds the order expires at, 0 (default) never expires; an expiry inside the venue's bettingDelay + 2s window is rejected
      * @param {string} [params.salt] overrides the random salt differentiating this order
      * @param {string} [params.clientOrderId] caller-chosen id echoed back on reads (max 64 chars)
      * @param {boolean} [params.waitForOutcome] wait for the matching outcome inline (default true)
@@ -1069,6 +1073,8 @@ export default class sxbet extends Exchange {
         }
         // with waitForOutcome the venue reports the matching result inline:
         //     "outcome": { "state": "FULLY_FILLED", "fillAmount": "2000000", "remainingAmount": "0", "matchIds": [...] }
+        // documented states: RESTED, FULLY_FILLED, PARTIAL_FILL_DONE, PARTIAL_FILL_RESTED, TIMEOUT and
+        // CANCELLED with reason NO_LIQUIDITY, INTERNAL_ERROR, ENGINE_SHUTDOWN, EXPIRED or INSUFFICIENT_BALANCE
         const matchOutcome = this.safeDict (first, 'outcome');
         const usdcDecimals = '1000000';
         let filled: Num = undefined;
@@ -1082,16 +1088,20 @@ export default class sxbet extends Exchange {
             }
             if (remainingRaw !== undefined) {
                 remaining = this.parseNumber (Precise.stringDiv (remainingRaw, usdcDecimals, 6));
-                const isDone = Precise.stringEq (remainingRaw, '0');
-                if (isDone) {
-                    orderStatus = 'closed';
-                } else if (timeInForce === 'GTC') {
-                    orderStatus = 'open';
-                } else {
-                    // an IOC/FOK remainder is cancelled by the venue
-                    orderStatus = 'canceled';
-                }
             }
+            const state = this.safeStringUpper (matchOutcome, 'state');
+            if ((state === 'RESTED') || (state === 'PARTIAL_FILL_RESTED')) {
+                orderStatus = 'open';
+            } else if (state === 'FULLY_FILLED') {
+                orderStatus = 'closed';
+            } else if (state === 'PARTIAL_FILL_DONE') {
+                // the unmatched remainder of an IOC was cancelled by the venue
+                orderStatus = 'canceled';
+            } else if (state === 'CANCELLED') {
+                const reason = this.safeStringUpper (matchOutcome, 'reason');
+                orderStatus = (reason === 'EXPIRED') ? 'expired' : 'canceled';
+            }
+            // TIMEOUT: the wait elapsed before matching resolved - the order state is unknown here
         }
         const now = this.milliseconds ();
         return this.safePredictionOrder ({

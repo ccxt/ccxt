@@ -511,6 +511,158 @@
                     }
                 }
             }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder parses a rested GTC submission with its inline outcome",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "limit",
+                    "buy",
+                    2,
+                    0.05
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "orders": [
+                            {
+                                "orderId": "0x54d1da4a47c9d95072cbd31299652a5e3ff6b77b86023d2b46b12dd0a2891105",
+                                "status": "SUBMITTED",
+                                "commandId": "c-1",
+                                "outcome": {
+                                    "state": "RESTED",
+                                    "fillAmount": "0",
+                                    "remainingAmount": "2000000",
+                                    "matchIds": []
+                                }
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "id": "0x54d1da4a47c9d95072cbd31299652a5e3ff6b77b86023d2b46b12dd0a2891105",
+                    "clientOrderId": null,
+                    "timestamp": 1787494701958,
+                    "datetime": "2026-08-23T14:18:21.958Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "open",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "side": "buy",
+                    "price": 0.05,
+                    "average": null,
+                    "amount": 2,
+                    "filled": 0,
+                    "remaining": 2,
+                    "cost": 0,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": false,
+                    "trades": [],
+                    "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                    "label": "Cf Montreal",
+                    "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                    "event": null,
+                    "info": {
+                        "status": "success",
+                        "data": {
+                            "orders": [
+                                {
+                                    "orderId": "0x54d1da4a47c9d95072cbd31299652a5e3ff6b77b86023d2b46b12dd0a2891105",
+                                    "status": "SUBMITTED",
+                                    "commandId": "c-1",
+                                    "outcome": {
+                                        "state": "RESTED",
+                                        "fillAmount": "0",
+                                        "remainingAmount": "2000000",
+                                        "matchIds": []
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                "description": "createOrder parses a partially filled IOC whose remainder was cancelled",
+                "input": [
+                    "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "market",
+                    "buy",
+                    2,
+                    0.5
+                ],
+                "httpResponse": {
+                    "status": "success",
+                    "data": {
+                        "orders": [
+                            {
+                                "orderId": "0x54d1da4a47c9d95072cbd31299652a5e3ff6b77b86023d2b46b12dd0a2891105",
+                                "status": "SUBMITTED",
+                                "commandId": "c-2",
+                                "outcome": {
+                                    "state": "PARTIAL_FILL_DONE",
+                                    "fillAmount": "1500000",
+                                    "remainingAmount": "500000",
+                                    "matchIds": [
+                                        "0xaa"
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "id": "0x54d1da4a47c9d95072cbd31299652a5e3ff6b77b86023d2b46b12dd0a2891105",
+                    "clientOrderId": null,
+                    "timestamp": 1787494701960,
+                    "datetime": "2026-08-23T14:18:21.960Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "canceled",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "side": "buy",
+                    "price": 0.5,
+                    "average": 1,
+                    "amount": 2,
+                    "filled": 1.5,
+                    "remaining": 0.5,
+                    "cost": 1.5,
+                    "fee": null,
+                    "reduceOnly": null,
+                    "postOnly": false,
+                    "trades": [],
+                    "outcome": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB:CF_MONTREAL",
+                    "outcomeId": "0xbf06c6379c922d8118612d1d7493b20f6df6929437fbf6022904327f9516a2eb",
+                    "label": "Cf Montreal",
+                    "market": "CF_MONTREAL_FIELD_CF_MONTREAL_16A2EB",
+                    "event": null,
+                    "info": {
+                        "status": "success",
+                        "data": {
+                            "orders": [
+                                {
+                                    "orderId": "0x54d1da4a47c9d95072cbd31299652a5e3ff6b77b86023d2b46b12dd0a2891105",
+                                    "status": "SUBMITTED",
+                                    "commandId": "c-2",
+                                    "outcome": {
+                                        "state": "PARTIAL_FILL_DONE",
+                                        "fillAmount": "1500000",
+                                        "remainingAmount": "500000",
+                                        "matchIds": [
+                                            "0xaa"
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
         ]
     }
 }
