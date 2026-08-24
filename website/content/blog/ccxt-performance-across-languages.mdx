@@ -25,8 +25,34 @@ you can reproduce every number.
 
 ## 1. REST latency: it's the network, not the library
 
-Measuring this fairly is harder than it looks, and our first attempt got it wrong — so it's
-worth showing the method before the numbers.
+Here is the short version, and it is the least interesting result in this article: **for REST
+calls, the language you pick does not matter.** Not "matters a little" — the difference is
+smaller than the noise you'd have to measure through to see it.
+
+![REST latency distribution per language: p01–p99 whisker, p25–p75 box, median marker](/images/benchmarks/rest-latency-variability.png)
+
+Every call from the interleaved runs, plotted as a distribution rather than a single number
+(210 calls per language). The medians of the five non-PHP languages span **21 ms**. A single
+language's own p01–p99 covers **106–300 ms** — a median of ~270, or about **13×** the gap between
+the languages. Go's p99 is 314 ms: one unlucky call in the fastest language is slower than a
+typical call in the slowest.
+
+CCXT's own contribution to any of this is 2–7 ms depending on language. So the quantity you'd be
+picking a language to optimise is roughly a tenth of that language's own run-to-run spread.
+Unless you are counting single milliseconds on every request, pick the language your team already
+knows.
+
+**PHP is the exception, and it's a bug, not a language.** Its 222 ms median is roughly 4×
+everyone else, in every round. The clean way to see that it is real and not noise: PHP's *first
+percentile* — its best call in 210 — is 209 ms, higher than every other language's p75. The
+tails overlap, but the bulk of the distributions don't come close. The cause is the ReactPHP
+connector opening a fresh connection per request, so every call pays a TCP+TLS handshake.
+Fixable; see §6.
+
+The rest of this section is how we know that, because our first attempt at measuring it was
+wrong and the way it was wrong is instructive.
+
+### How we know — and how we got it wrong first
 
 The obvious approach is to instrument CCXT: wrap `fetch()` (the HTTP layer) and `parseJson()`
 (the decode inside it), call the difference "network", and call whatever's left "processing".
@@ -67,31 +93,11 @@ interleaved in one process — puts CCXT's exact configuration at 69.8 ms agains
 the alternatives. CCXT's C# client is a normal C# client; two near-identical configurations
 differed by 7.6 ms in that same run, which is the size of the effect we were trying to explain.
 
-The conclusion is that the network/processing split is **not comparable across languages**, and
-we've dropped it. What is comparable is the wall clock around `fetchOrderBook` — the same
-definition everywhere — so that's what we report, from the interleaved runs (10 rounds × 20 calls
-per language, round-robin):
-
-| Language | Total p50 |
-|---|---|
-| Go | 52.1 ms |
-| JavaScript | 53.0 ms |
-| Python | 55.8 ms |
-| Java | 64.0 ms |
-| C# | 71.9 ms |
-| PHP | 224.3 ms |
+So the split is **not comparable across languages**, and we've dropped it. What is comparable is
+the wall clock around `fetchOrderBook` — the same definition everywhere — measured interleaved,
+round-robin, so every language sees the same network:
 
 ![REST total latency per language against a no-CCXT raw HTTP control](/images/benchmarks/rest-trace-waterfall.png)
-
-Read that with the raw-client control in mind: the five non-PHP languages sit inside a ~20 ms
-band on a call whose own round-trip varies by more than that from minute to minute. **For REST,
-pick whichever language you like** — the round-trip dominates, and CCXT's share of it is a few
-milliseconds in all of them.
-
-**PHP is the one real outlier, and it is not a parsing problem.** Its ~224 ms is roughly 4× every
-other language, reproducible in every single round, and structurally explained: the ReactPHP
-connector has no keep-alive pool, so every request pays a fresh TCP+TLS handshake. That gap is
-far too large to be drift. It's a fixable HTTP-client issue, not a property of PHP.
 
 ![One fetchOrderBook call traced in each language: nested spans on a shared log axis](/images/benchmarks/rest-trace-compare.png)
 
@@ -361,9 +367,10 @@ and hover any span for its exact share of the trace.
   same work in each implementation — three of them read 14–17 ms below that language's own bare
   HTTP GET. REST numbers are therefore wall clock around `fetchOrderBook` only.
 - **REST runs are interleaved, not sequential.** Each round runs all six languages round-robin,
-  so they share the same network window; we report the median of the per-round medians over
-  10 rounds × 20 calls. Sequential per-language runs were what produced the bogus split in the
-  first place. `examples/benchmarks/net-baseline/` holds the raw-client control programs.
+  so they share the same network window. The distribution in §1 pools every call across 7 rounds
+  of 30 (210 per language); the harnesses emit `latencySamplesMs`, so any percentile can be
+  recomputed from the raw data. Sequential per-language runs were what produced the bogus split
+  in the first place. `examples/benchmarks/net-baseline/` holds the raw-client control programs.
 - **Warmup is 15 calls** (`BENCH_REST_WARMUP`). The earlier 1–3 warmups left tiered JITs cold:
   Java's processing measured ~23 ms cold against ~3.3 ms warm.
 - **The load test is offline and deterministic.** The same synthetic 1,000-level book (integer
@@ -376,12 +383,6 @@ and hover any span for its exact share of the trace.
 - **Memory is peak RSS** at the end of the load run (parse loop + 2,000 retained books). It
   includes the runtime baseline, which is the point: the JVM's large default heap is real memory.
   Per-object deltas are unreliable on runtimes that pre-commit heap, so we report the OS peak.
-- **One machine, one location, through a policy proxy.** Absolute REST milliseconds are relative
-  comparisons, not production latency. The raw-client control in §1 is what keeps them honest:
-  it shows how much of any REST difference is the environment rather than the language.
-- **Same CCXT version (4.5.65) everywhere**, generated from one TypeScript source. Runtimes:
-  Node 22, Python 3.11, PHP 8.4, .NET 8, Go 1.25, OpenJDK 21. The REST and offline load tests
-  cover all six languages; the WebSocket test covers four (JavaScript, Python, PHP, Go).
 - **The Rust figure is a normalized snapshot, not a peer measurement.** It comes from unmerged
   [PR #28627](https://github.com/ccxt/ccxt/pull/28627), measured after our original machine was
   replaced mid-project. Throughput is rescaled via a same-machine JavaScript reference run (that

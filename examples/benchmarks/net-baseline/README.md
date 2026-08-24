@@ -67,3 +67,23 @@ ccxt (HttpClientHandler + AutomaticDecompression)   med=69.8 ms
 No. CCXT's exact configuration is unremarkable, and two near-identical
 configurations differ by 7.6 ms in the same run — the size of the effect being
 investigated. CCXT's C# client is a normal C# client.
+
+## results-rest-samples.json — the full latency distribution
+
+Every `fetchOrderBook` call from an interleaved run: 7 rounds × 30 calls = 210
+samples per language, keyed by language. Produced by running each harness's
+`rest` mode round-robin and pooling its `latencySamplesMs`.
+
+| Language | p01 | p25 | p50 | p75 | p99 | p01→p99 |
+|---|---|---|---|---|---|---|
+| Go | 43.3 | 49.4 | 52.9 | 73.9 | 313.8 | 271 |
+| JavaScript | 42.8 | 49.5 | 54.7 | 72.0 | 148.3 | 106 |
+| Python | 42.4 | 50.1 | 56.1 | 87.9 | 322.1 | 280 |
+| Java | 52.6 | 59.8 | 65.3 | 83.7 | 352.3 | 300 |
+| C# | 58.2 | 67.8 | 74.1 | 104.2 | 169.0 | 111 |
+| PHP | 208.5 | 214.8 | 221.7 | 268.3 | 359.2 | 151 |
+
+The medians of the five non-PHP languages span 21 ms; a single language's own
+p01–p99 spans 106–300 ms. That ~13× ratio is why per-language REST rankings are
+not meaningful here — and why PHP's is, since its p01 sits above every other
+language's p75.
