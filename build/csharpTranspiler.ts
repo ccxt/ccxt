@@ -68,7 +68,9 @@ const TYPED_CORES: Record<string, string> = {
     'cancelOrder': 'Order',
     'cancelOrderWithClientOrderId': 'Order',
     'cancelOrderWs': 'Order',
-    'cancelOrders': 'List<Order>',
+    // 'cancelOrders' is deliberately absent: okx merges the caller's `params` onto every
+    // parsed order, so a clientOrderIds[] request comes back with clientOrderId as a list,
+    // which the unified Order struct's `string? clientOrderId` cannot carry.
     'cancelOrdersForSymbols': 'List<Order>',
     'cancelOrdersWithClientOrderIds': 'List<Order>',
     'cancelOrdersWs': 'List<Order>',
@@ -353,13 +355,9 @@ const TYPED_CORES: Record<string, string> = {
     'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',
     'setMargin': 'MarginModification',
-    'transfer': 'TransferEntry',
-    'transferBetweenMainAndSubAccount': 'TransferEntry',
-    'transferBetweenSubAccounts': 'TransferEntry',
-    'transferClassic': 'TransferEntry',
-    'transferIn': 'TransferEntry',
-    'transferOut': 'TransferEntry',
-    'transferUta': 'TransferEntry',
+    // the transfer family is deliberately absent: hyperliquid#transfer hands back the raw
+    // venue acknowledgement ({status, response}), not a unified transfer structure, so a
+    // TransferEntry core would silently rewrite it into the unified key set.
     'withdraw': 'Transaction',
     'withdrawWs': 'Transaction',
 };

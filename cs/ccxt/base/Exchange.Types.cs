@@ -297,6 +297,9 @@ public struct Trade
     // safeTrade() always sets a `fees` list alongside the single `fee`; without a
     // field for it the typed core would drop that data on the floor.
     public List<Fee>? fees;
+    // several venues (kraken, bybit, woo, hashkey, toobit, apex) put the raw venue order
+    // id on the trade as `orderId` next to the unified `order`.
+    public string? orderId;
     public Trade(object trade2)
     {
         var trade = (Dictionary<string, object>)trade2;
@@ -314,6 +317,7 @@ public struct Trade
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
         fee = trade.ContainsKey("fee") ? new Fee(trade["fee"]) : null;
         fees = Helper.GetFees(trade);
+        orderId = Exchange.SafeString(trade, "orderId");
         info = Helper.GetInfo(trade);
     }
 }
