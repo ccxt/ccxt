@@ -1,6 +1,6 @@
 ---
 title: "How fast is CCXT in each of its six languages? We measured every layer"
-description: A like-for-like benchmark of CCXT across all six languages — JavaScript, Python, PHP, C#, Go, and Java. We instrument the library to separate network from processing, measure latency with the round-trip removed, benchmark raw parsing throughput and memory, and dig into why the two compiled languages end up the slowest.
+description: A like-for-like benchmark of CCXT across all six languages — JavaScript, Python, PHP, C#, Go, and Java. Why REST latency tells you almost nothing about a language, what a no-CCXT control run reveals about measuring it, how fast each language really parses an order book, and why the two compiled languages end up the slowest.
 author: CCXT Team
 date: 2026-07-14T10:00:00Z
 tags: [engineering, performance, benchmark]
@@ -25,42 +25,80 @@ you can reproduce every number.
 
 ## 1. REST latency: it's the network, not the library
 
-Every CCXT request flows through two base methods: `fetch()` (the HTTP layer) and, inside it,
-`parseJson()` (JSON decode). We subclass the exchange and wrap those two methods so every call
-reports its own wire time and decode time — then `processing = total − network`. (Go, C# and
-Java decode JSON through a static helper a subclass can't intercept, so those three use an
-opt-in `Profile` flag we added to their hand-written base.) 60 calls × 3 runs against Coinbase
-`BTC/USD`, p50, with a connection warmup so nothing pays a cold start.
+Measuring this fairly is harder than it looks, and our first attempt got it wrong — so it's
+worth showing the method before the numbers.
 
-Here's the same call, traced in each language on one shared log time axis:
+The obvious approach is to instrument CCXT: wrap `fetch()` (the HTTP layer) and `parseJson()`
+(the decode inside it), call the difference "network", and call whatever's left "processing".
+We did that, ran each language in turn, and got a table showing C# spending ~20 ms more on the
+network than Python. That result was wrong twice over.
+
+**First, the runs weren't interleaved.** Latency from any one machine drifts minute to minute,
+with a heavy tail — 100–200 ms outliers show up in every language, every run. Six languages
+measured in six consecutive windows are not comparable to each other.
+
+**Second, and more important, `fetch() − decode` is not wire time.** It also contains whatever
+else that language's HTTP layer does inside the call, and those boundaries are not the same
+across six independent implementations.
+
+So we added a control: a plain keep-alive HTTPS GET to the same endpoint with **no CCXT at all**,
+one per language, run round-robin against CCXT's own client so both share the same network
+window. Six rounds:
+
+| Language | raw client | CCXT "network" span | difference |
+|---|---|---|---|
+| C# | 54.0 ms | 69.7 ms | **+15.6 ms** |
+| JavaScript | 61.5 ms | 47.3 ms | −14.2 ms |
+| Python | 61.4 ms | 46.3 ms | −15.1 ms |
+| Java | 63.0 ms | 57.2 ms | −5.7 ms |
+| Go | 62.0 ms | 44.9 ms | −17.1 ms |
+
+The raw clients agree within **8.9 ms** — every runtime's HTTP stack is about equally fast, which
+is what you'd expect. The CCXT spans spread **24.7 ms**, and each one differs from its own
+language's raw client in a different direction. For Go, JavaScript and Python the span comes in
+14–17 ms *below* that language's own bare HTTP GET, in 6 rounds out of 6 — impossible as wire
+time, so those spans simply don't cover the whole request.
+
+C# is the one that doesn't under-measure, which made it look slow. We chased that: a wire-only
+timer inside CCXT's C# shows the time really is spent inside `SendAsync` plus the body read
+(68.48 ms of a 68.72 ms span, so it isn't library bookkeeping), and a four-way handler comparison
+— `SocketsHttpHandler` and `HttpClientHandler`, each with and without automatic gzip, all
+interleaved in one process — puts CCXT's exact configuration at 69.8 ms against 63.4–71.0 ms for
+the alternatives. CCXT's C# client is a normal C# client; two near-identical configurations
+differed by 7.6 ms in that same run, which is the size of the effect we were trying to explain.
+
+The conclusion is that the network/processing split is **not comparable across languages**, and
+we've dropped it. What is comparable is the wall clock around `fetchOrderBook` — the same
+definition everywhere — so that's what we report, from the interleaved runs (10 rounds × 20 calls
+per language, round-robin):
+
+| Language | Total p50 |
+|---|---|
+| Go | 52.1 ms |
+| JavaScript | 53.0 ms |
+| Python | 55.8 ms |
+| Java | 64.0 ms |
+| C# | 71.9 ms |
+| PHP | 224.3 ms |
+
+![REST total latency per language against a no-CCXT raw HTTP control](/images/benchmarks/rest-trace-waterfall.png)
+
+Read that with the raw-client control in mind: the five non-PHP languages sit inside a ~20 ms
+band on a call whose own round-trip varies by more than that from minute to minute. **For REST,
+pick whichever language you like** — the round-trip dominates, and CCXT's share of it is a few
+milliseconds in all of them.
+
+**PHP is the one real outlier, and it is not a parsing problem.** Its ~224 ms is roughly 4× every
+other language, reproducible in every single round, and structurally explained: the ReactPHP
+connector has no keep-alive pool, so every request pays a fresh TCP+TLS handshake. That gap is
+far too large to be drift. It's a fixable HTTP-client issue, not a property of PHP.
 
 ![One fetchOrderBook call traced in each language: nested spans on a shared log axis](/images/benchmarks/rest-trace-compare.png)
 
-In every language the library's own work — the orange and purple tails — is a **2–7 ms sliver on
-a ~45–215 ms network round-trip**. Python, Go, and JavaScript all land within 2 ms of each other
-at ~52–54 ms total, which is essentially just the wire.
-
-![Where REST latency goes: network round-trip vs CCXT processing, per language](/images/benchmarks/rest-trace-waterfall.png)
-
-**PHP is the outlier at ~217 ms — but its parse tail is 3.3 ms, same as everyone else.** The
-other ~213 ms is its ReactPHP HTTP client, which opens a fresh connection per request (no
-keep-alive pool), so it pays the TCP+TLS handshake every call — not order-book parsing. For REST,
-then, latency is the network; the language barely matters.
-
-| Language | Total p50 | Network p50 | CCXT processing p50 |
-|---|---|---|---|
-| Python | 51.8 ms | 49.2 ms | 2.8 ms |
-| Go | 53.5 ms | 45.4 ms | 6.8 ms |
-| JavaScript | 54.3 ms | 51.8 ms | 2.1 ms |
-| Java | 66.6 ms | 60.9 ms | 3.1 ms |
-| C# | 75.7 ms | 68.7 ms | 5.1 ms |
-| PHP | 216.9 ms | 213.4 ms | 3.3 ms |
-
-Two things worth pulling out. **Go has the lowest network span (45.4 ms) but the highest
-processing (6.8 ms)**, so its total lands mid-pack — slower inside the library, quicker on the
-wire. And the top three are separated by about 2 ms, against a network that swings from ~50 ms at
-p50 to ~125 ms at p95. That gap is far smaller than the noise it sits in, so we would not read a
-ranking into it: for a network-bound call, the top three are the same speed.
+The trace above still shows the internal spans per language, because they're useful for seeing
+*where* time goes inside one implementation — just don't read the network bars across languages
+as a like-for-like comparison. The next section removes the network entirely, which is where the
+languages genuinely separate.
 
 ## 2. Latency with the network removed — where languages actually diverge
 
@@ -206,9 +244,11 @@ in PHP.
 
 ## Takeaways
 
-- **For REST, pick the language you like.** Latency is the network round-trip; CCXT's own
-  processing is a 2–7 ms sliver everywhere. PHP's higher wall time is its HTTP client (a fresh
-  connection per request), not the library.
+- **For REST, pick the language you like.** The round-trip dominates and the five non-PHP
+  languages sit in a ~20 ms band that is inside the minute-to-minute drift of the network itself.
+  A raw HTTPS GET with no CCXT is equally fast in all of them (8.9 ms spread), so this is not a
+  place where language choice buys you anything. PHP's ~4× wall time is the exception, and it is
+  its HTTP client (a fresh connection per request), not the library.
 - **When you parse at volume, the runtime's JIT is everything.** JavaScript and Java parse ~6×
   faster than PHP, Python, Go, and C# — and the two compiled languages, Go and C#, land *slowest*
   — because the transpiled code is boxing-heavy and only a mature tracing JIT specializes it away.
@@ -250,9 +290,16 @@ and hover any span for its exact share of the trace.
 
 ## Methodology & caveats
 
-- **The network/processing split is measured, not inferred.** We wrap `fetch` and `parseJson`
-  (Go, C# and Java: an opt-in `Profile` flag) so every call reports its own wire and decode
-  time, and the measured network span is always less than the call total.
+- **We do not report a network/processing split, on purpose.** Instrumenting `fetch` and
+  `parseJson` gives a per-language span, but the control in §1 shows those spans don't cover the
+  same work in each implementation — three of them read 14–17 ms below that language's own bare
+  HTTP GET. REST numbers are therefore wall clock around `fetchOrderBook` only.
+- **REST runs are interleaved, not sequential.** Each round runs all six languages round-robin,
+  so they share the same network window; we report the median of the per-round medians over
+  10 rounds × 20 calls. Sequential per-language runs were what produced the bogus split in the
+  first place. `examples/benchmarks/net-baseline/` holds the raw-client control programs.
+- **Warmup is 15 calls** (`BENCH_REST_WARMUP`). The earlier 1–3 warmups left tiered JITs cold:
+  Java's processing measured ~23 ms cold against ~3.3 ms warm.
 - **The load test is offline and deterministic.** The same synthetic 1,000-level book (integer
   values, identical across languages), time-boxed to 8 s, so it measures pure parse throughput.
   `getrusage` CPU counts all threads, so for multi-threaded runtimes (Go's GC, the JVM)
@@ -264,7 +311,8 @@ and hover any span for its exact share of the trace.
   includes the runtime baseline, which is the point: the JVM's large default heap is real memory.
   Per-object deltas are unreliable on runtimes that pre-commit heap, so we report the OS peak.
 - **One machine, one location, through a policy proxy.** Absolute REST milliseconds are relative
-  comparisons, not production latency; the network/processing split is what makes them comparable.
+  comparisons, not production latency. The raw-client control in §1 is what keeps them honest:
+  it shows how much of any REST difference is the environment rather than the language.
 - **Same CCXT version (4.5.65) everywhere**, generated from one TypeScript source. Runtimes:
   Node 22, Python 3.11, PHP 8.4, .NET 8, Go 1.25, OpenJDK 21. The REST and offline load tests
   cover all six languages; the WebSocket test covers four (JavaScript, Python, PHP, Go).
