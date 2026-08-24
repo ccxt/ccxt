@@ -1211,10 +1211,10 @@ class bitbns(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         nonce = str(self.nonce())
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif method == 'POST':
-            if query:
+            if len(query) > 0:
                 body = self.json(query)
             else:
                 body = '{}'

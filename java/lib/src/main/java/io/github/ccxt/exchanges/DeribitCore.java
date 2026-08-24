@@ -4795,7 +4795,7 @@ public class DeribitCore extends DeribitApi
         Object request = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api/"), this.version), "/"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -4806,7 +4806,7 @@ public class DeribitCore extends DeribitApi
             Object nonce = String.valueOf(this.nonce());
             Object timestamp = String.valueOf(this.milliseconds());
             Object requestBody = "";
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(parameters)));
             }

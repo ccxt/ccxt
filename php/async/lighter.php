@@ -3527,7 +3527,7 @@ class lighter extends Exchange {
                 'Authorization' => $this->create_auth($params),
             );
         }
-        if ($params) {
+        if (count($params) > 0) {
             if ($method === 'POST') {
                 $headers = array(
                     'Content-Type' => 'multipart/form-data',

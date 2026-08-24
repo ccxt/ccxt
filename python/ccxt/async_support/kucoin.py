@@ -5221,7 +5221,7 @@ class kucoin(Exchange, ImplicitAPI):
                 request['startAt'] = since
             if limit is not None:
                 request['pageSize'] = limit
-            if until:
+            if (until is not None) and (until != 0):
                 request['endAt'] = until
             if trigger:
                 if isMarginOrder:

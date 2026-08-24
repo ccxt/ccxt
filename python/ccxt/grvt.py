@@ -3116,7 +3116,7 @@ class grvt(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + path
         queryString = ''
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
         elif method == 'POST':

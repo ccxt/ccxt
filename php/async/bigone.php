@@ -2043,7 +2043,7 @@ class bigone extends Exchange {
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $headers = array();
         if ($api === 'public' || $api === 'webExchange' || $api === 'contractPublic') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -2058,7 +2058,7 @@ class bigone extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $headers['Authorization'] = 'Bearer ' . $token;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } elseif ($method === 'POST') {

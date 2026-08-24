@@ -1312,7 +1312,7 @@ public partial class whitebit : Exchange
             }
             object symbol = getValue(market, "symbol");
             // Filter by symbols if specified
-            if (isTrue(symbols))
+            if (isTrue(!isEqual(symbols, null)))
             {
                 bool symbolFound = false;
                 for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
@@ -1444,7 +1444,7 @@ public partial class whitebit : Exchange
         {
             object code = getValue(currencyKeys, i);
             object currency = getValue(currenciesData, code);
-            if (!isTrue(currency))
+            if (isTrue(isEqual(currency, null)))
             {
                 continue;
             }
@@ -1478,7 +1478,7 @@ public partial class whitebit : Exchange
                 } },
             };
             // Add fee information if available
-            if (isTrue(feeData))
+            if (isTrue(!isEqual(feeData, null)))
             {
                 object depositFee = getValue(feeData, "deposit");
                 object withdrawFee = getValue(feeData, "withdraw");
@@ -1514,7 +1514,7 @@ public partial class whitebit : Exchange
                 }
             }
             // Add network-specific limits if available
-            if (isTrue(getValue(currency, "networks")))
+            if (isTrue(!isEqual(getValue(currency, "networks"), null)))
             {
                 ((IDictionary<string,object>)limits)["networks"] = getValue(currency, "networks");
             }
@@ -4837,7 +4837,7 @@ public partial class whitebit : Exchange
         object url = add(getValue(getValue(getValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (isTrue(isEqual(accessibility, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }

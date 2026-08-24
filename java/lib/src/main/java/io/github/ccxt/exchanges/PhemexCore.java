@@ -935,7 +935,7 @@ public class PhemexCore extends PhemexApi
         if (Helpers.isTrue(Helpers.isEqual(settle, "USDT")))
         {
             contractSize = this.parseNumber("1");
-        } else if (Helpers.isTrue(Helpers.getIndexOf(contractSizeString, " ")))
+        } else if (Helpers.isTrue(!Helpers.isEqual(Helpers.getIndexOf(contractSizeString, " "), Helpers.opNeg(1))))
         {
             // "1 USD"
             // "0.005 ETH"
@@ -5544,7 +5544,7 @@ final Object finalI = i;
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))) || Helpers.isTrue((Helpers.isEqual(url, "/positions/assign")))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 queryString = this.urlencodeWithArrayRepeat(query);
                 url = Helpers.add(url, Helpers.add("?", queryString));

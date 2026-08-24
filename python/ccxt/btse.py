@@ -3550,7 +3550,7 @@ class btse(Exchange, ImplicitAPI):
         isBodyDelete = (method == 'DELETE') and path.startswith('futures/api/v3/')
         queryString = ''
         if ((method == 'GET') or (method == 'DELETE')) and not isBodyDelete:
-            if query:
+            if len(query) > 0:
                 queryString = self.urlencode(query)
                 url += '?' + queryString
         if api == 'private':

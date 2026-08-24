@@ -4477,7 +4477,7 @@ public partial class deribit : Exchange
         object request = add(add(add(add(add(add("/", "api/"), this.version), "/"), api), "/"), path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(parameters)));
             }
@@ -4488,7 +4488,7 @@ public partial class deribit : Exchange
             string nonce = ((object)this.nonce()).ToString();
             string timestamp = ((object)this.milliseconds()).ToString();
             string requestBody = "";
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(parameters)));
             }

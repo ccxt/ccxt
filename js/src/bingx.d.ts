@@ -699,7 +699,7 @@ export default class bingx extends Exchange {
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.positionId] the id of the position you would like to close
+     * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     closePosition(symbol: string, side?: OrderSide, params?: {}): Promise<Order>;

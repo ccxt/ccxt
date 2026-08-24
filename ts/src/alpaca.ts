@@ -1693,7 +1693,7 @@ export default class alpaca extends Exchange {
             await this.loadMarkets ();
         }
         const currency = this.currency (code);
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             address = address + ':' + tag;
         }
         const request: Dict = {
@@ -2072,7 +2072,7 @@ export default class alpaca extends Exchange {
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
+        if (Object.keys (query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.urlencode (query);
             } else {

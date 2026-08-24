@@ -2254,7 +2254,7 @@ class hyperliquid extends Exchange {
         $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         $stopLossPrice = $this->safe_string($params, 'stopLossPrice', $triggerPrice);
         $takeProfitPrice = $this->safe_string($params, 'takeProfitPrice');
-        $isTrigger = ($stopLossPrice || $takeProfitPrice);
+        $isTrigger = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
         $px = null;
         if ($isMarket) {
             if ($price === null) {
@@ -2799,7 +2799,7 @@ class hyperliquid extends Exchange {
             $triggerPrice = $this->safe_string_2($orderParams, 'triggerPrice', 'stopPrice');
             $stopLossPrice = $this->safe_string($orderParams, 'stopLossPrice', $triggerPrice);
             $takeProfitPrice = $this->safe_string($orderParams, 'takeProfitPrice');
-            $isTrigger = ($stopLossPrice || $takeProfitPrice);
+            $isTrigger = (($stopLossPrice !== null) || ($takeProfitPrice !== null));
             $reduceOnly = $this->safe_bool($orderParams, 'reduceOnly', false);
             $orderParams = $this->omit($orderParams, array( 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ));
             $px = $this->number_to_string($price);
@@ -4938,7 +4938,7 @@ class hyperliquid extends Exchange {
             return null;
         }
         $hi3TokensByname = $this->safe_dict($this->options, 'hip3TokensByName', array());
-        if ($this->safe_dict($hi3TokensByname, $coin)) {
+        if ($this->safe_dict($hi3TokensByname, $coin) !== null) {
             $hip3Dict = $this->safe_dict($hi3TokensByname, $coin);
             $quote = $this->safe_string($hip3Dict, 'quote', 'USDC');
             $code = $this->safe_string($hip3Dict, 'code', $coin);

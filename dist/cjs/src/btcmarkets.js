@@ -457,7 +457,7 @@ class btcmarkets extends btcmarkets$1["default"] {
         const currencyId = this.safeString(transaction, 'assetName');
         const code = this.safeCurrencyCode(currencyId);
         let amount = this.safeString(transaction, 'amount');
-        if (fee) {
+        if ((fee !== undefined) && (fee !== '')) {
             amount = Precise["default"].stringSub(amount, fee);
         }
         return {
@@ -1415,7 +1415,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             const secret = this.base64ToBinary(this.secret);
             let auth = method + request + nonce;
             if ((method === 'GET') || (method === 'DELETE')) {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     request += '?' + this.urlencode(query);
                 }
             }
@@ -1434,7 +1434,7 @@ class btcmarkets extends btcmarkets$1["default"] {
             };
         }
         else if (api === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 request += '?' + this.urlencode(query);
             }
         }

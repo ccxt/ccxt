@@ -3450,7 +3450,7 @@ public partial class myriad : PredictionExchange
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
         }
-        if (!isTrue(this.markets))
+        if (isTrue(isEqual(this.markets, null)))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -4443,7 +4443,7 @@ public partial class myriad : PredictionExchange
                 body = this.json(query);
             }
         }
-        if (isTrue(this.apiKey))
+        if (isTrue(isTrue((!isEqual(this.apiKey, null))) && isTrue((!isEqual(this.apiKey, "")))))
         {
             headers = this.extend(headers, new Dictionary<string, object>() {
                 { "x-api-key", this.apiKey },

@@ -2074,7 +2074,7 @@ public partial class latoken : Exchange
         object urlencodedQuery = this.urlencode(query);
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 requestString = add(requestString, add("?", urlencodedQuery));
             }

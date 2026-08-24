@@ -1878,7 +1878,7 @@ class bigone(Exchange, ImplicitAPI):
         url = baseUrl + '/' + self.implode_params(path, params)
         headers = {}
         if api == 'public' or api == 'webExchange' or api == 'contractPublic':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -1892,7 +1892,7 @@ class bigone(Exchange, ImplicitAPI):
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             headers['Authorization'] = 'Bearer ' + token
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             elif method == 'POST':
                 headers['Content-Type'] = 'application/json'

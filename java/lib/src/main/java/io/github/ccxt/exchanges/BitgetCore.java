@@ -13997,7 +13997,7 @@ final Object finalMinNotional = minNotional;
                 auth = Helpers.add(auth, body);
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     Object sortedParams = this.keysort(parameters);
                     Object queryInner = Helpers.add("?", this.urlencode(sortedParams, true));

@@ -2318,7 +2318,7 @@ export default class gate extends Exchange {
             //    }
             //
             const obtainFailed = this.safeInteger (entry, 'obtain_failed');
-            if (obtainFailed) {
+            if ((obtainFailed !== undefined) && (obtainFailed !== 0)) {
                 continue;
             }
             const network = this.safeString (entry, 'chain');
@@ -5177,11 +5177,11 @@ export default class gate extends Exchange {
         let cost = this.safeString (order, 'filled_total');
         const triggerPrice = this.safeNumber (trigger, 'price');
         let average = this.safeNumber2 (order, 'avg_deal_price', 'fill_price');
-        if (triggerPrice) {
+        if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             remainingString = amount;
             cost = '0';
         }
-        if (contract) {
+        if ((contract !== undefined) && (contract !== '')) {
             const isMarketOrder = Precise.stringEquals (price, '0') && (timeInForce === 'IOC');
             type = isMarketOrder ? 'market' : 'limit';
             side = Precise.stringGt (amount, '0') ? 'buy' : 'sell';
@@ -7120,7 +7120,7 @@ export default class gate extends Exchange {
         }
         url += entirePath;
         if (authentication === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -7134,7 +7134,7 @@ export default class gate extends Exchange {
                 requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
             }
             if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     // https://github.com/ccxt/ccxt/issues/27663
                     rawQueryString = this.rawencode (query);
                     queryString = this.urlencode (query);
@@ -7149,7 +7149,7 @@ export default class gate extends Exchange {
                 }
             } else {
                 const urlQueryParams = this.safeValue (query, 'query', {});
-                if (Object.keys (urlQueryParams).length) {
+                if (Object.keys (urlQueryParams).length > 0) {
                     queryString = this.urlencode (urlQueryParams);
                     url += '?' + queryString;
                 }

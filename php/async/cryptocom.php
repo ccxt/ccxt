@@ -1222,7 +1222,7 @@ class cryptocom extends Exchange {
         $request = array(
             'instrument_name' => $market['id'],
         );
-        if ($limit) {
+        if (($limit !== null) && ($limit !== 0)) {
             $request['depth'] = min($limit, 50); // max 50
         }
         $response = Async\await($this->v1PublicGetPublicGetBook($this->extend($request, $params)));
@@ -3758,7 +3758,7 @@ class cryptocom extends Exchange {
         $url = $this->urls['api'][$type] . '/' . $path;
         $query = $this->omit($params, $this->extract_params($path));
         if ($access === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

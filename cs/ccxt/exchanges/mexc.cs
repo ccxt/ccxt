@@ -2978,7 +2978,7 @@ public partial class mexc : Exchange
         object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
-        if (isTrue(triggerPrice))
+        if (isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isEqual(triggerPrice, 0)))))
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = this.safeInteger(parameters, "triggerType", 1);
@@ -6877,7 +6877,7 @@ public partial class mexc : Exchange
                 }
             }
             object paramsEncoded = "";
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys)), 0)))
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = add(url, add("?", paramsEncoded));
@@ -6903,7 +6903,7 @@ public partial class mexc : Exchange
             parameters = this.omit(parameters, this.extractParams(path));
             if (isTrue(isEqual(access, "public")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(parameters)));
                 }
@@ -6925,7 +6925,7 @@ public partial class mexc : Exchange
                 } else
                 {
                     parameters = this.keysort(parameters);
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                    if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                     {
                         auth = add(auth, this.urlencode(parameters));
                         url = add(url, add("?", auth));

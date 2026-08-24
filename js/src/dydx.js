@@ -1647,7 +1647,7 @@ export default class dydx extends Exchange {
         }
         const market = this.market(symbol);
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
-        if (!clientOrderIds) {
+        if (clientOrderIds === undefined) {
             throw new NotSupported(this.id + ' cancelOrders only support clientOrderIds.');
         }
         let subAccountId = 0;
@@ -2468,7 +2468,7 @@ export default class dydx extends Exchange {
         params = this.keysort(params);
         url += '/' + pathWithParams;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -2493,10 +2493,10 @@ export default class dydx extends Exchange {
         //
         const result = this.safeDict(response, 'result');
         let errorCode = this.safeString(result, 'code');
-        if (!errorCode) {
+        if ((errorCode === undefined) || (errorCode === '')) {
             errorCode = this.safeString(response, 'code');
         }
-        if (errorCode) {
+        if ((errorCode !== undefined) && (errorCode !== '')) {
             const errorCodeNum = this.parseToNumeric(errorCode);
             if (errorCodeNum > 0) {
                 const feedback = this.id + ' ' + this.json(response);

@@ -3249,7 +3249,7 @@ class pacifica(Exchange, ImplicitAPI):
         host = self.implode_hostname(self.urls[urlKey][api])
         url = host + '/api/' + self.version + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
-        paramsLen = params
+        paramsLen = len(params)
         headers = {
             'Content-Type': 'application/json',
         }

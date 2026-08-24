@@ -893,7 +893,7 @@ class hibachi extends hibachi$1["default"] {
             sideInternal = 'BID';
         }
         let priceInternal = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision(symbol, price);
         }
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);

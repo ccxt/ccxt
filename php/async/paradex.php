@@ -3503,7 +3503,7 @@ class paradex extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$version]) . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -3544,7 +3544,7 @@ class paradex extends Exchange {
             //     $body = $this->json($query);
             //     $headers['Content-Type'] = 'application/json';
             // } else {
-            //     if ($query) {
+            //     if (count($query)) {
             //         $url .= '?' . $this->urlencode($query);
             //     }
             // }

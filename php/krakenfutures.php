@@ -3492,7 +3492,7 @@ class krakenfutures extends Exchange {
         if ($path === 'batchorder') {
             $postData = 'json=' . $this->json($params);
             $body = $postData;
-        } elseif ($params) {
+        } elseif (count($params) > 0) {
             if (is_array($params) && array_key_exists('orderIds' ?? '', $params)) {
                 $postData = $this->urlencode_with_array_repeat($params);
             } else {

@@ -1071,7 +1071,7 @@ class BaseExchange(SyncExchange):
         if reload:
             self.accounts = await self.fetch_accounts(params)
         else:
-            if self.accounts:
+            if self.accounts is not None:
                 return self.accounts
             else:
                 self.accounts = await self.fetch_accounts(params)

@@ -2637,7 +2637,7 @@ export default class mexc extends Exchange {
         const triggerPrice = this.safeNumber2(params, 'triggerPrice', 'stopPrice');
         params = this.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged']);
         let response;
-        if (triggerPrice) {
+        if ((triggerPrice !== undefined) && (triggerPrice !== 0)) {
             request['triggerPrice'] = this.priceToPrecision(symbol, triggerPrice);
             request['triggerType'] = this.safeInteger(params, 'triggerType', 1);
             request['executeCycle'] = this.safeInteger(params, 'executeCycle', 1);
@@ -6313,7 +6313,7 @@ export default class mexc extends Exchange {
                 }
             }
             let paramsEncoded = '';
-            if (Object.keys(urlParams).length) {
+            if (Object.keys(urlParams).length > 0) {
                 paramsEncoded = this.urlencode(urlParams);
                 url += '?' + paramsEncoded;
             }
@@ -6335,7 +6335,7 @@ export default class mexc extends Exchange {
             url = this.urls['api'][section][access] + '/' + this.implodeParams(path, params);
             params = this.omit(params, this.extractParams(path));
             if (access === 'public') {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                 }
             }
@@ -6355,7 +6355,7 @@ export default class mexc extends Exchange {
                 }
                 else {
                     params = this.keysort(params);
-                    if (Object.keys(params).length) {
+                    if (Object.keys(params).length > 0) {
                         auth += this.urlencode(params);
                         url += '?' + auth;
                     }

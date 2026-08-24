@@ -6375,7 +6375,7 @@ public partial class kucoin : Exchange
             {
                 ((IDictionary<string,object>)request)["pageSize"] = limit;
             }
-            if (isTrue(until))
+            if (isTrue(isTrue((!isEqual(until, null))) && isTrue((!isEqual(until, 0)))))
             {
                 ((IDictionary<string,object>)request)["endAt"] = until;
             }

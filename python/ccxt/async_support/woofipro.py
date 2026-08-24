@@ -2104,7 +2104,7 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
         request = {}
         response = None
-        if clientOrderIds:
+        if clientOrderIds is not None:
             request['client_order_ids'] = ','.join(clientOrderIds)
             response = await self.v1PrivateDeleteClientBatchOrder(self.extend(request, params))
         else:
@@ -2196,14 +2196,14 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id'])
         response = None
         if trigger:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetAlgoClientOrderClientOrderId(self.extend(request, params))
             else:
                 request['oid'] = id
                 response = await self.v1PrivateGetAlgoOrderOid(self.extend(request, params))
         else:
-            if clientOrderId:
+            if (clientOrderId is not None) and (clientOrderId != ''):
                 request['client_order_id'] = clientOrderId
                 response = await self.v1PrivateGetClientOrderClientOrderId(self.extend(request, params))
             else:
@@ -3267,7 +3267,7 @@ class woofipro(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
@@ -3299,7 +3299,7 @@ class woofipro(Exchange, ImplicitAPI):
                 auth += body
                 headers['content-type'] = 'application/json'
             else:
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
                     auth += '?' + self.rawencode(params)
                 headers['content-type'] = 'application/x-www-form-urlencoded'

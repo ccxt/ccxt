@@ -2178,7 +2178,7 @@ public partial class zebpay : Exchange
         {
             if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
             {
-                if (isTrue(queryLength))
+                if (isTrue(isTrue((!isEqual(queryLength, null))) && isTrue((!isEqual(queryLength, 0)))))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }

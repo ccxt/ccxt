@@ -2575,7 +2575,7 @@ class tokocrypto extends Exchange {
         }
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
         if ($userDataStream) {
-            if ($this->apiKey) {
+            if (($this->apiKey !== null) && ($this->apiKey !== '')) {
                 // v1 special case for $userDataStream
                 $headers = array(
                     'X-MBX-APIKEY' => $this->apiKey,
@@ -2620,7 +2620,7 @@ class tokocrypto extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }

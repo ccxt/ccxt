@@ -4505,7 +4505,7 @@ public class BitmexCore extends BitmexApi
         Object query = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 query = Helpers.add(query, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -4542,7 +4542,7 @@ public class BitmexCore extends BitmexApi
             Helpers.addElementToObject(headers, "api-expires", stringExpires);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     body = this.json(parameters);
                     auth = Helpers.add(auth, body);

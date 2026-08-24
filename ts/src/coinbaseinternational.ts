@@ -2025,7 +2025,7 @@ export default class coinbaseinternational extends Exchange {
             'portfolio': portfolio,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = market['id'];
         }
@@ -2168,7 +2168,7 @@ export default class coinbaseinternational extends Exchange {
             'result_offset': offSet,
         };
         let market: Market = undefined;
-        if (symbol) {
+        if ((symbol !== undefined) && (symbol !== '')) {
             market = this.market (symbol);
             request['instrument'] = symbol;
         }
@@ -2373,7 +2373,7 @@ export default class coinbaseinternational extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const savedPath = '/api' + fullPath;
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat (query);
             }
         }
@@ -2383,7 +2383,7 @@ export default class coinbaseinternational extends Exchange {
             const nonce = this.nonce ().toString ();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }

@@ -3672,14 +3672,14 @@ public partial class woo : Exchange
         if (isTrue(isEqual(access, "public")))
         {
             url = add(url, add(add(access, "/"), pathWithParams));
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
         } else if (isTrue(isEqual(access, "pub")))
         {
             url = add(url, pathWithParams);
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -3721,7 +3721,7 @@ public partial class woo : Exchange
                     ((IDictionary<string,object>)headers)["content-type"] = "application/json";
                 } else
                 {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                    if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                     {
                         object query = this.urlencode(parameters);
                         url = add(url, add("?", query));
@@ -3736,7 +3736,7 @@ public partial class woo : Exchange
                     body = auth;
                 } else
                 {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                    if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                     {
                         url = add(url, add("?", auth));
                     }

@@ -5240,7 +5240,7 @@ class htx extends Exchange {
                 throw new NotSupported($this->id . ' createOrder() does not support ' . $type . ' orders');
             }
         }
-        $postOnly = null;
+        $postOnly = false;
         list($postOnly, $params) = $this->handle_post_only($orderType === 'market', $orderType === 'limit-maker', $params);
         if ($postOnly) {
             $orderType = 'limit-maker';
@@ -5338,7 +5338,7 @@ class htx extends Exchange {
             'contract_code' => $market['id'],
             'volume' => $this->amount_to_precision($symbol, $amount),
         );
-        $postOnly = null;
+        $postOnly = false;
         list($postOnly, $params) = $this->handle_post_only($type === 'market', $type === 'post_only', $params);
         if ($postOnly) {
             $type = 'post_only';
@@ -7820,7 +7820,7 @@ class htx extends Exchange {
                     );
                 }
             } else {
-                if (($query !== null) && $query) {
+                if (($query !== null) && count($query)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }
@@ -7845,7 +7845,7 @@ class htx extends Exchange {
             $hostname = $hostnames;
             $url .= $this->implode_params($path, $params);
             if ($access === 'public') {
-                if (($query !== null) && $query) {
+                if (($query !== null) && count($query)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } elseif ($access === 'private') {

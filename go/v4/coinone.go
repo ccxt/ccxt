@@ -469,11 +469,11 @@ func (this *CoinoneCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) a
 	return nil
 }
 func (this *CoinoneCore) ParseCurrency(rawCurrency any) any {
-	var id *string = this.SafeString(rawCurrency, "symbol")
+	var id any = this.SafeString(rawCurrency, "symbol")
 	var code any = this.SafeCurrencyCode(id)
 	var isWithdrawEnabled bool = IsEqual(this.SafeString(rawCurrency, "withdraw_status", ""), "normal")
 	var isDepositEnabled bool = IsEqual(this.SafeString(rawCurrency, "deposit_status", ""), "normal")
-	var typeVar any = Ternary((!IsEqual(code, "KRW")), "crypto", "fiat")
+	var typeVar any = Ternary(IsTrue((!IsEqual(code, "KRW"))), "crypto", "fiat")
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"code":      code,
@@ -560,9 +560,9 @@ func (this *CoinoneCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var entry any = this.SafeValue(tickers, i)
-		var id *string = this.SafeString(entry, "id")
-		var baseId *string = this.SafeStringUpper(entry, "target_currency")
-		var quoteId *string = this.SafeStringUpper(entry, "quote_currency")
+		var id any = this.SafeString(entry, "id")
+		var baseId any = this.SafeStringUpper(entry, "target_currency")
+		var quoteId any = this.SafeStringUpper(entry, "quote_currency")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
 		AppendToArray(&result, map[string]any{
@@ -633,7 +633,7 @@ func (this *CoinoneCore) ParseBalance(response any) any {
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "avail"))
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
-		if !IsEqual(code, nil) {
+		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -658,7 +658,7 @@ func (this *CoinoneCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes50612 := (<-this.LoadMarkets())
 		PanicOnError(retRes50612)
@@ -693,7 +693,7 @@ func (this *CoinoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes52412 := (<-this.LoadMarkets())
 		PanicOnError(retRes52412)
@@ -703,7 +703,7 @@ func (this *CoinoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 		"quote_currency":  GetValue(market, "quote"),
 		"target_currency": GetValue(market, "base"),
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "size", limit) // only support 5, 10, 15, 16
 	}
 
@@ -732,7 +732,7 @@ func (this *CoinoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	//         ]
 	//     }
 	//
-	var timestamp *int64 = this.SafeInteger(response, "timestamp")
+	var timestamp any = this.SafeInteger(response, "timestamp")
 
 	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty")
 	return nil
@@ -760,7 +760,7 @@ func (this *CoinoneCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes57412 := (<-this.LoadMarkets())
 		PanicOnError(retRes57412)
@@ -771,8 +771,8 @@ func (this *CoinoneCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	}
 	var market any = nil
 	var response any = nil
-	if !IsEqual(symbols, nil) {
-		var first *string = this.SafeString(symbols, 0)
+	if IsTrue(!IsEqual(symbols, nil)) {
+		var first any = this.SafeString(symbols, 0)
 		market = this.Market(first)
 		AddElementToObject(request, "quote_currency", GetValue(market, "quote"))
 		AddElementToObject(request, "target_currency", GetValue(market, "base"))
@@ -842,7 +842,7 @@ func (this *CoinoneCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes63912 := (<-this.LoadMarkets())
 		PanicOnError(retRes63912)
@@ -923,12 +923,12 @@ func (this *CoinoneCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-	var last *string = this.SafeString(ticker, "last")
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	var last any = this.SafeString(ticker, "last")
 	var asks any = this.SafeList(ticker, "best_asks", []any{})
 	var bids any = this.SafeList(ticker, "best_bids", []any{})
-	var baseId *string = this.SafeString(ticker, "target_currency")
-	var quoteId *string = this.SafeString(ticker, "quote_currency")
+	var baseId any = this.SafeString(ticker, "target_currency")
+	var quoteId any = this.SafeString(ticker, "quote_currency")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	return this.SafeTicker(map[string]any{
@@ -980,23 +980,23 @@ func (this *CoinoneCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp *int64 = this.SafeInteger(trade, "timestamp")
+	var timestamp any = this.SafeInteger(trade, "timestamp")
 	market = this.SafeMarket(nil, market)
 	var isSellerMaker any = this.SafeBool(trade, "is_seller_maker")
 	var side any = nil
-	if !IsEqual(isSellerMaker, nil) {
-		side = Ternary(EvalTruthy(isSellerMaker), "sell", "buy")
+	if IsTrue(!IsEqual(isSellerMaker, nil)) {
+		side = Ternary(IsTrue(isSellerMaker), "sell", "buy")
 	}
-	var priceString *string = this.SafeString(trade, "price")
-	var amountString *string = this.SafeString(trade, "qty")
-	var orderId *string = this.SafeString(trade, "orderId")
+	var priceString any = this.SafeString(trade, "price")
+	var amountString any = this.SafeString(trade, "qty")
+	var orderId any = this.SafeString(trade, "orderId")
 	var feeCostString any = this.SafeString(trade, "fee")
 	var fee any = nil
-	if !IsEqual(feeCostString, nil) {
+	if IsTrue(!IsEqual(feeCostString, nil)) {
 		feeCostString = Precise.StringAbs(feeCostString)
 		var feeRateString any = this.SafeString(trade, "feeRate")
 		feeRateString = Precise.StringAbs(feeRateString)
-		var feeCurrencyCode any = Ternary((IsEqual(side, "sell")), GetValue(market, "quote"), GetValue(market, "base"))
+		var feeCurrencyCode any = Ternary(IsTrue((IsEqual(side, "sell"))), GetValue(market, "quote"), GetValue(market, "base"))
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"currency": feeCurrencyCode,
@@ -1045,7 +1045,7 @@ func (this *CoinoneCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes82112 := (<-this.LoadMarkets())
 		PanicOnError(retRes82112)
@@ -1055,7 +1055,7 @@ func (this *CoinoneCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 		"quote_currency":  GetValue(market, "quote"),
 		"target_currency": GetValue(market, "base"),
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "size", mathMin(limit, 200))
 	}
 
@@ -1112,13 +1112,13 @@ func (this *CoinoneCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	var orderType string = ToUpper(typeVar) // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
 	var orderSide string = ToUpper(side)    // unified lowercase order sides, same override rule
-	if orderType != "LIMIT" {
+	if IsTrue(!IsEqual(orderType, "LIMIT")) {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
-	if IsEqual(price, nil) {
+	if IsTrue(IsEqual(price, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a price argument for the limit orders")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes87712 := (<-this.LoadMarkets())
 		PanicOnError(retRes87712)
@@ -1171,10 +1171,10 @@ func (this *CoinoneCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes91612 := (<-this.LoadMarkets())
 		PanicOnError(retRes91612)
@@ -1268,52 +1268,52 @@ func (this *CoinoneCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id *string = this.SafeString2(order, "orderId", "order_id")
-	var baseId *string = this.SafeString2(order, "baseCurrency", "target_currency")
-	var quoteId *string = this.SafeString2(order, "targetCurrency", "quote_currency")
+	var id any = this.SafeString2(order, "orderId", "order_id")
+	var baseId any = this.SafeString2(order, "baseCurrency", "target_currency")
+	var quoteId any = this.SafeString2(order, "targetCurrency", "quote_currency")
 	var base any = nil
 	var quote any = nil
-	if baseId != nil {
+	if IsTrue(!IsEqual(baseId, nil)) {
 		base = this.SafeCurrencyCode(baseId)
 	}
-	if quoteId != nil {
+	if IsTrue(!IsEqual(quoteId, nil)) {
 		quote = this.SafeCurrencyCode(quoteId)
 	}
 	var symbol any = nil
-	if (!IsEqual(base, nil)) && (!IsEqual(quote, nil)) {
+	if IsTrue(IsTrue((!IsEqual(base, nil))) && IsTrue((!IsEqual(quote, nil)))) {
 		symbol = Add(Add(base, "/"), quote)
 		market = this.SafeMarket(symbol, market, "/")
 	}
-	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
-	if timestamp == nil {
+	var timestamp any = this.SafeTimestamp2(order, "timestamp", "updatedAt")
+	if IsTrue(IsEqual(timestamp, nil)) {
 		timestamp = this.SafeInteger2(order, "ordered_at", "updated_at") // v2.1 sends milliseconds
 	}
 	var side any = this.SafeStringLower2(order, "type", "side")
-	if (IsEqual(side, "limit")) || (IsEqual(side, "market")) || (IsEqual(side, "stop_limit")) {
+	if IsTrue(IsTrue(IsTrue((IsEqual(side, "limit"))) || IsTrue((IsEqual(side, "market")))) || IsTrue((IsEqual(side, "stop_limit")))) {
 		side = this.SafeStringLower(order, "side") // in v2.1 rows the type field carries the order type, the side lives in side
 	}
-	if IsEqual(side, "ask") {
+	if IsTrue(IsEqual(side, "ask")) {
 		side = "sell"
-	} else if IsEqual(side, "bid") {
+	} else if IsTrue(IsEqual(side, "bid")) {
 		side = "buy"
 	}
-	var remainingString *string = this.SafeString2(order, "remainQty", "remain_qty")
-	var amountString *string = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
+	var remainingString any = this.SafeString2(order, "remainQty", "remain_qty")
+	var amountString any = this.SafeStringN(order, []any{"originalQty", "qty", "original_qty"})
 	var status any = this.SafeString(order, "status")
 	// https://github.com/ccxt/ccxt/pull/7067
-	if IsEqual(status, "live") {
-		if (remainingString != nil) && (amountString != nil) {
+	if IsTrue(IsEqual(status, "live")) {
+		if IsTrue(IsTrue((!IsEqual(remainingString, nil))) && IsTrue((!IsEqual(amountString, nil)))) {
 			var isLessThan bool = Precise.StringLt(remainingString, amountString)
-			if isLessThan {
+			if IsTrue(isLessThan) {
 				status = "canceled"
 			}
 		}
 	}
 	status = this.ParseOrderStatus(status)
 	var fee any = nil
-	var feeCostString *string = this.SafeString(order, "fee")
-	if feeCostString != nil {
-		var feeCurrencyCode any = Ternary((IsEqual(side, "sell")), quote, base)
+	var feeCostString any = this.SafeString(order, "fee")
+	if IsTrue(!IsEqual(feeCostString, nil)) {
+		var feeCurrencyCode any = Ternary(IsTrue((IsEqual(side, "sell"))), quote, base)
 		fee = map[string]any{
 			"cost":     feeCostString,
 			"rate":     this.SafeString2(order, "feeRate", "fee_rate"),
@@ -1373,10 +1373,10 @@ func (this *CoinoneCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ExchangeError(Add(this.Id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes109712 := (<-this.LoadMarkets())
 		PanicOnError(retRes109712)
@@ -1438,10 +1438,10 @@ func (this *CoinoneCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes114112 := (<-this.LoadMarkets())
 		PanicOnError(retRes114112)
@@ -1500,16 +1500,16 @@ func (this *CoinoneCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")))
 	}
 	var price any = this.SafeNumber(params, "price")
 	var qty any = this.SafeNumber(params, "qty")
-	var isAsk *int64 = this.SafeInteger(params, "is_ask")
-	if (IsEqual(price, nil)) || (IsEqual(qty, nil)) || (isAsk == nil) {
+	var isAsk any = this.SafeInteger(params, "is_ask")
+	if IsTrue(IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(qty, nil)))) || IsTrue((IsEqual(isAsk, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes119212 := (<-this.LoadMarkets())
 		PanicOnError(retRes119212)
@@ -1555,7 +1555,7 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = codes
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes122112 := (<-this.LoadMarkets())
 		PanicOnError(retRes122112)
@@ -1583,7 +1583,7 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var value any = GetValue(walletAddress, key)
-		if (!EvalTruthy(value)) || (IsEqual(value, "-1")) {
+		if IsTrue(IsTrue((!IsTrue(value))) || IsTrue((IsEqual(value, "-1")))) {
 			continue
 		}
 		var parts []string = Split(key, "_")
@@ -1591,7 +1591,7 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 		var secondPart any = this.SafeValue(parts, 1)
 		var code any = this.SafeCurrencyCode(currencyId)
 		var depositAddress any = this.SafeValue(result, code)
-		if IsEqual(depositAddress, nil) {
+		if IsTrue(IsEqual(depositAddress, nil)) {
 			depositAddress = map[string]any{
 				"info":     value,
 				"currency": code,
@@ -1600,15 +1600,15 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 				"tag":      nil,
 			}
 		}
-		var address *string = this.SafeString(depositAddress, "address", value)
+		var address any = this.SafeString(depositAddress, "address", value)
 		this.CheckAddress(address)
 		AddElementToObject(depositAddress, "address", address)
 		AddElementToObject(depositAddress, "info", address)
-		if IsEqual(secondPart, "tag") || IsEqual(secondPart, "memo") {
+		if IsTrue((IsTrue(IsEqual(secondPart, "tag")) || IsTrue(IsEqual(secondPart, "memo")))) {
 			AddElementToObject(depositAddress, "tag", value)
 			AddElementToObject(depositAddress, "info", []any{address, value})
 		}
-		if !IsEqual(code, nil) {
+		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(result, code, depositAddress)
 		}
 	}
@@ -1630,17 +1630,17 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 	var request any = this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/")
-	if IsEqual(api, "v2Public") {
+	if IsTrue(IsEqual(api, "v2Public")) {
 		url = Add(GetValue(GetValue(this.Urls, "api"), "v2Public"), "/")
 		api = "public"
-	} else if IsEqual(api, "v2Private") {
+	} else if IsTrue(IsEqual(api, "v2Private")) {
 		url = Add(GetValue(GetValue(this.Urls, "api"), "v2Private"), "/")
-	} else if IsEqual(api, "v2_1Private") {
+	} else if IsTrue(IsEqual(api, "v2_1Private")) {
 		url = Add(GetValue(GetValue(this.Urls, "api"), "v2_1Private"), "/")
 	}
-	if IsEqual(api, "public") {
+	if IsTrue(IsEqual(api, "public")) {
 		url = Add(url, request)
-		if EvalTruthy(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -1648,7 +1648,7 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 		url = Add(url, request)
 		// the v2.1 api requires a uuid nonce, the older apis use a numeric one
 		var nonce any = nil
-		if IsEqual(api, "v2_1Private") {
+		if IsTrue(IsEqual(api, "v2_1Private")) {
 			nonce = this.Uuid()
 		} else {
 			nonce = ToString(this.Nonce())
@@ -1675,15 +1675,15 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *CoinoneCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
 	//
 	//     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
 	//     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
 	//
-	var errorCode *string = this.SafeString(response, "error_code")
-	if (errorCode != nil) && (errorCode == nil || *errorCode != "0") {
+	var errorCode any = this.SafeString(response, "error_code")
+	if IsTrue(IsTrue(!IsEqual(errorCode, nil)) && IsTrue(!IsEqual(errorCode, "0"))) {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(this.Exceptions, errorCode, feedback)
 		panic(ExchangeError(feedback))

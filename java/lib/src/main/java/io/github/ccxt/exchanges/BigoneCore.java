@@ -2289,7 +2289,7 @@ public class BigoneCore extends BigoneApi
         headers = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "public")) || Helpers.isTrue(Helpers.isEqual(api, "webExchange"))) || Helpers.isTrue(Helpers.isEqual(api, "contractPublic"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -2306,7 +2306,7 @@ public class BigoneCore extends BigoneApi
             Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

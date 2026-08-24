@@ -1673,7 +1673,7 @@ class alpaca extends alpaca$1["default"] {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        if (tag) {
+        if ((tag !== undefined) && (tag !== '')) {
             address = address + ':' + tag;
         }
         const request = {
@@ -2045,7 +2045,7 @@ class alpaca extends alpaca$1["default"] {
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
         const query = this.omit(params, this.extractParams(path));
-        if (Object.keys(query).length) {
+        if (Object.keys(query).length > 0) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.urlencode(query);
             }

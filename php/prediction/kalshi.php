@@ -280,7 +280,7 @@ class kalshi extends Exchange {
                 for ($j = 0; $j < count($parsed); $j++) {
                     $m = $parsed[$j];
                     $flatMarkets[] = $m;
-                    if ($eventKey) {
+                    if (($eventKey !== null) && ($eventKey !== '')) {
                         if (!(is_array($eventsDict) && array_key_exists($eventKey ?? '', $eventsDict))) {
                             $eventsDict[$eventKey] = array(
                                 'id' => $eventTicker,
@@ -578,7 +578,7 @@ class kalshi extends Exchange {
         $openInt = $this->safe_number_2($raw, 'open_interest_fp', 'open_interest');
         // Derive series $ticker => drop last hyphen-segment from event_ticker
         $eventParts = array();
-        if ($eventTicker) {
+        if (($eventTicker !== null) && ($eventTicker !== '')) {
             $eventParts = explode('-', $eventTicker);
         }
         $seriesTicker = $eventTicker;
@@ -2258,7 +2258,7 @@ class kalshi extends Exchange {
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         $rest = $this->omit($params, array( 'status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker' ));
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $eventId = $this->safe_string_2($params, 'eventId', 'slug');

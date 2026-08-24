@@ -2571,7 +2571,7 @@ public partial class woofipro : Exchange
         parameters = this.omit(parameters, new List<object>() {"clOrdIDs", "clientOrderIds", "client_order_ids"});
         object request = new Dictionary<string, object>() {};
         object response = null;
-        if (isTrue(clientOrderIds))
+        if (isTrue(!isEqual(clientOrderIds, null)))
         {
             ((IDictionary<string,object>)request)["client_order_ids"] = String.Join(",", ((IList<object>)clientOrderIds).ToArray());
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, parameters));
@@ -2682,7 +2682,7 @@ public partial class woofipro : Exchange
         object response = null;
         if (isTrue(trigger))
         {
-            if (isTrue(clientOrderId))
+            if (isTrue(isTrue((!isEqual(clientOrderId, null))) && isTrue((!isEqual(clientOrderId, "")))))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, parameters));
@@ -2693,7 +2693,7 @@ public partial class woofipro : Exchange
             }
         } else
         {
-            if (isTrue(clientOrderId))
+            if (isTrue(isTrue((!isEqual(clientOrderId, null))) && isTrue((!isEqual(clientOrderId, "")))))
             {
                 ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, parameters));
@@ -3977,7 +3977,7 @@ public partial class woofipro : Exchange
         if (isTrue(isEqual(access, "public")))
         {
             url = add(url, pathWithParams);
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -4025,7 +4025,7 @@ public partial class woofipro : Exchange
                 ((IDictionary<string,object>)headers)["content-type"] = "application/json";
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(parameters)));
                     auth = add(auth, add("?", this.rawencode(parameters)));

@@ -6676,7 +6676,7 @@ class okx extends Exchange {
         $url = $this->implode_hostname($this->urls['api']['rest']) . $request;
         // $type = $this->getPathAuthenticationType($path);
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -6713,13 +6713,13 @@ class okx extends Exchange {
             );
             $auth = $timestamp . $method . $request;
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $urlencodedQuery = '?' . $this->urlencode($query);
                     $url .= $urlencodedQuery;
                     $auth .= $urlencodedQuery;
                 }
             } else {
-                if ($isArray || $query) {
+                if ($isArray || count($query)) {
                     $body = $this->json($query);
                     $auth .= $body;
                 }
@@ -7644,7 +7644,7 @@ class okx extends Exchange {
         $market = $this->market($symbol);
         $type = $market['spot'] ? 'MARGIN' : $this->convert_to_instrument_type($market['type']);
         $uly = $this->safe_string($market['info'], 'uly');
-        if (!$uly) {
+        if (($uly === null) || ($uly === '')) {
             if ($type !== 'MARGIN') {
                 throw new BadRequest($this->id . ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' . $symbol);
             }

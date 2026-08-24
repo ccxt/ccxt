@@ -377,9 +377,9 @@ func (this *BitbankCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	return nil
 }
 func (this *BitbankCore) ParseMarket(entry any) any {
-	var id *string = this.SafeString(entry, "name")
-	var baseId *string = this.SafeString(entry, "base_asset")
-	var quoteId *string = this.SafeString(entry, "quote_asset")
+	var id any = this.SafeString(entry, "name")
+	var baseId any = this.SafeString(entry, "base_asset")
+	var quoteId any = this.SafeString(entry, "quote_asset")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	return this.SafeMarketStructure(map[string]any{
@@ -438,8 +438,8 @@ func (this *BitbankCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
-	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-	var last *string = this.SafeString(ticker, "last")
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	var last any = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -483,7 +483,7 @@ func (this *BitbankCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes40912 := (<-this.LoadMarkets())
 		PanicOnError(retRes40912)
@@ -523,7 +523,7 @@ func (this *BitbankCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes43212 := (<-this.LoadMarkets())
 		PanicOnError(retRes43212)
@@ -536,7 +536,7 @@ func (this *BitbankCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	response := (<-this.PublicGetPairDepth(this.Extend(request, params)))
 	PanicOnError(response)
 	var orderbook any = this.SafeValue(response, "data", map[string]any{})
-	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
+	var timestamp any = this.SafeInteger(orderbook, "timestamp")
 
 	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
 	return nil
@@ -555,23 +555,23 @@ func (this *BitbankCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp *int64 = this.SafeInteger(trade, "executed_at")
+	var timestamp any = this.SafeInteger(trade, "executed_at")
 	market = this.SafeMarket(nil, market)
-	var priceString *string = this.SafeString(trade, "price")
-	var amountString *string = this.SafeString(trade, "amount")
-	var id *string = this.SafeString2(trade, "transaction_id", "trade_id")
-	var takerOrMaker *string = this.SafeString(trade, "maker_taker")
+	var priceString any = this.SafeString(trade, "price")
+	var amountString any = this.SafeString(trade, "amount")
+	var id any = this.SafeString2(trade, "transaction_id", "trade_id")
+	var takerOrMaker any = this.SafeString(trade, "maker_taker")
 	var fee any = nil
-	var feeCostString *string = this.SafeString(trade, "fee_amount_quote")
-	if feeCostString != nil {
+	var feeCostString any = this.SafeString(trade, "fee_amount_quote")
+	if IsTrue(!IsEqual(feeCostString, nil)) {
 		fee = map[string]any{
 			"currency": GetValue(market, "quote"),
 			"cost":     feeCostString,
 		}
 	}
-	var orderId *string = this.SafeString(trade, "order_id")
-	var typeVar *string = this.SafeString(trade, "type")
-	var side *string = this.SafeString(trade, "side")
+	var orderId any = this.SafeString(trade, "order_id")
+	var typeVar any = this.SafeString(trade, "type")
+	var side any = this.SafeString(trade, "side")
 	return this.SafeTrade(map[string]any{
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -614,7 +614,7 @@ func (this *BitbankCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes50312 := (<-this.LoadMarkets())
 		PanicOnError(retRes50312)
@@ -651,7 +651,7 @@ func (this *BitbankCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes52512 := (<-this.LoadMarkets())
 		PanicOnError(retRes52512)
@@ -692,7 +692,7 @@ func (this *BitbankCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(pairs)); i++ {
 		var pair any = GetValue(pairs, i)
-		var marketId *string = this.SafeString(pair, "name")
+		var marketId any = this.SafeString(pair, "name")
 		var market any = this.SafeMarket(marketId)
 		var symbol any = GetValue(market, "symbol")
 		AddElementToObject(result, symbol, map[string]any{
@@ -752,14 +752,14 @@ func (this *BitbankCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(since, nil) {
-		if IsEqual(limit, nil) {
+	if IsTrue(IsEqual(since, nil)) {
+		if IsTrue(IsEqual(limit, nil)) {
 			limit = 1000 // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
 		}
 		var duration any = this.ParseTimeframe(timeframe)
 		since = Subtract(this.Milliseconds(), Multiply(Multiply(duration, 1000), limit))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes61812 := (<-this.LoadMarkets())
 		PanicOnError(retRes61812)
@@ -809,13 +809,13 @@ func (this *BitbankCore) ParseBalance(response any) any {
 	var assets any = this.SafeValue(data, "assets", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 		var balance any = GetValue(assets, i)
-		var currencyId *string = this.SafeString(balance, "asset")
+		var currencyId any = this.SafeString(balance, "asset")
 		var code any = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(balance, "free_amount"))
 		AddElementToObject(account, "used", this.SafeString(balance, "locked_amount"))
 		AddElementToObject(account, "total", this.SafeString(balance, "onhand_amount"))
-		if !IsEqual(code, nil) {
+		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -840,7 +840,7 @@ func (this *BitbankCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes68512 := (<-this.LoadMarkets())
 		PanicOnError(retRes68512)
@@ -898,18 +898,18 @@ func (this *BitbankCore) ParseOrderStatus(status any) any {
 func (this *BitbankCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id *string = this.SafeString(order, "order_id")
-	var marketId *string = this.SafeString(order, "pair")
+	var id any = this.SafeString(order, "order_id")
+	var marketId any = this.SafeString(order, "pair")
 	market = this.SafeMarket(marketId, market)
-	var timestamp *int64 = this.SafeInteger(order, "ordered_at")
-	var price *string = this.SafeString(order, "price")
-	var amount *string = this.SafeString(order, "start_amount")
-	var filled *string = this.SafeString(order, "executed_amount")
-	var remaining *string = this.SafeString(order, "remaining_amount")
-	var average *string = this.SafeString(order, "average_price")
+	var timestamp any = this.SafeInteger(order, "ordered_at")
+	var price any = this.SafeString(order, "price")
+	var amount any = this.SafeString(order, "start_amount")
+	var filled any = this.SafeString(order, "executed_amount")
+	var remaining any = this.SafeString(order, "remaining_amount")
+	var average any = this.SafeString(order, "average_price")
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var typeVar *string = this.SafeStringLower(order, "type")
-	var side *string = this.SafeStringLower(order, "side")
+	var typeVar any = this.SafeStringLower(order, "type")
+	var side any = this.SafeStringLower(order, "side")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -960,7 +960,7 @@ func (this *BitbankCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes78812 := (<-this.LoadMarkets())
 		PanicOnError(retRes78812)
@@ -972,7 +972,7 @@ func (this *BitbankCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 		"side":   side,
 		"type":   typeVar,
 	}
-	if IsEqual(typeVar, "limit") {
+	if IsTrue(IsEqual(typeVar, "limit")) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
 
@@ -1006,7 +1006,7 @@ func (this *BitbankCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes81712 := (<-this.LoadMarkets())
 		PanicOnError(retRes81712)
@@ -1070,7 +1070,7 @@ func (this *BitbankCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes86412 := (<-this.LoadMarkets())
 		PanicOnError(retRes86412)
@@ -1138,7 +1138,7 @@ func (this *BitbankCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes91112 := (<-this.LoadMarkets())
 		PanicOnError(retRes91112)
@@ -1147,10 +1147,10 @@ func (this *BitbankCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	var request map[string]any = map[string]any{
 		"pair": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "count", limit)
 	}
-	if !IsEqual(since, nil) {
+	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "since", this.ParseToInt(Divide(since, 1000)))
 	}
 
@@ -1190,21 +1190,21 @@ func (this *BitbankCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes94212 := (<-this.LoadMarkets())
 		PanicOnError(retRes94212)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "pair", GetValue(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "count", limit)
 	}
-	if !IsEqual(since, nil) {
+	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "since", this.ParseToInt(Divide(since, 1000)))
 	}
 
@@ -1236,7 +1236,7 @@ func (this *BitbankCore) fetchDepositAddressBody(ch chan any, code any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes97312 := (<-this.LoadMarkets())
 		PanicOnError(retRes97312)
@@ -1252,7 +1252,7 @@ func (this *BitbankCore) fetchDepositAddressBody(ch chan any, code any, optional
 	// Not sure about this if there could be more than one account...
 	var accounts any = this.SafeValue(data, "accounts", []any{})
 	var firstAccount any = this.SafeValue(accounts, 0, map[string]any{})
-	var address *string = this.SafeString(firstAccount, "address")
+	var address any = this.SafeString(firstAccount, "address")
 
 	ch <- map[string]any{
 		"info":     response,
@@ -1291,10 +1291,10 @@ func (this *BitbankCore) withdrawBody(ch chan any, code any, amount any, address
 	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
-	if !(InOp(params, "uuid")) {
+	if !IsTrue((InOp(params, "uuid"))) {
 		panic(ExchangeError(Add(this.Id, " uuid is required for withdrawal")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes101212 := (<-this.LoadMarkets())
 		PanicOnError(retRes101212)
@@ -1348,7 +1348,7 @@ func (this *BitbankCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var txid *string = this.SafeString(transaction, "txid")
+	var txid any = this.SafeString(transaction, "txid")
 	currency = this.SafeCurrency(nil, currency)
 	return map[string]any{
 		"id":          txid,
@@ -1389,9 +1389,9 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), api)), "/")
-	if (IsEqual(api, "public")) || (IsEqual(api, "markets")) {
+	if IsTrue(IsTrue((IsEqual(api, "public"))) || IsTrue((IsEqual(api, "markets")))) {
 		url = Add(url, this.ImplodeParams(path, params))
-		if EvalTruthy(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
@@ -1400,24 +1400,24 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 		// 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
 		// 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
 		// since bitbank offers no server time endpoint to compensate against
-		var authMethod *string = this.SafeString(this.Options, "authMethod", "timeWindow")
-		var isTimeWindow bool = (authMethod != nil && *authMethod == "timeWindow")
+		var authMethod any = this.SafeString(this.Options, "authMethod", "timeWindow")
+		var isTimeWindow bool = (IsEqual(authMethod, "timeWindow"))
 		var requestTime string = ToString(this.Milliseconds())
-		var timeWindow *string = this.SafeString(this.Options, "timeWindow", "5000")
+		var timeWindow any = this.SafeString(this.Options, "timeWindow", "5000")
 		var nonce string = ToString(this.Nonce())
 		var auth any = nil
-		if isTimeWindow {
+		if IsTrue(isTimeWindow) {
 			auth = Add(requestTime, timeWindow)
 		} else {
 			auth = nonce
 		}
 		url = Add(url, Add(Add(this.Version, "/"), this.ImplodeParams(path, params)))
-		if IsEqual(method, "POST") {
+		if IsTrue(IsEqual(method, "POST")) {
 			body = this.Json(query)
 			auth = Add(auth, body)
 		} else {
 			auth = Add(auth, Add(Add(Add("/", this.Version), "/"), path))
-			if EvalTruthy(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				query = this.Urlencode(query)
 				url = Add(url, Add("?", query))
 				auth = Add(auth, Add("?", query))
@@ -1428,7 +1428,7 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 			"ACCESS-KEY":       this.ApiKey,
 			"ACCESS-SIGNATURE": this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256),
 		}
-		if isTimeWindow {
+		if IsTrue(isTimeWindow) {
 			AddElementToObject(headers, "ACCESS-REQUEST-TIME", requestTime)
 			AddElementToObject(headers, "ACCESS-TIME-WINDOW", timeWindow)
 		} else {
@@ -1443,12 +1443,12 @@ func (this *BitbankCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *BitbankCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil
 	}
-	var success *int64 = this.SafeInteger(response, "success")
+	var success any = this.SafeInteger(response, "success")
 	var data any = this.SafeValue(response, "data")
-	if !(success != nil && *success != 0) || !EvalTruthy(data) {
+	if IsTrue(!IsTrue(success) || !IsTrue(data)) {
 		var errorMessages map[string]any = map[string]any{
 			"10000": "URL does not exist",
 			"10001": "A system error occurred. Please contact support",
@@ -1511,8 +1511,8 @@ func (this *BitbankCore) HandleErrors(httpCode any, reason any, url any, method 
 			"70009": "We are currently temporarily restricting orders to be carried out. Please use the limit order.",
 			"70010": "We are temporarily raising the minimum order quantity as the system load is now rising.",
 		}
-		var code *string = this.SafeString(data, "code")
-		var message *string = this.SafeString(errorMessages, code, "Error")
+		var code any = this.SafeString(data, "code")
+		var message any = this.SafeString(errorMessages, code, "Error")
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, message)
 		panic(ExchangeError(Add(Add(this.Id, " "), this.Json(response))))
 	}

@@ -4251,7 +4251,7 @@ class weex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);
         if (!$isBatch && (($method === 'GET') || ($method === 'DELETE'))) {
-            if ($query) {
+            if (count($query) > 0) {
                 $endpoint .= '?' . $this->urlencode($query);
             }
         }

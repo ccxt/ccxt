@@ -1240,7 +1240,7 @@ class indodax(Exchange, ImplicitAPI):
             'withdraw_address': address,
             'request_id': str(requestId),
         }
-        if tag:
+        if (tag is not None) and (tag != ''):
             request['withdraw_memo'] = tag
         response = await self.privatePostWithdrawCoin(self.extend(request, params))
         #
@@ -1438,7 +1438,7 @@ class indodax(Exchange, ImplicitAPI):
             query = self.omit(params, self.extract_params(path))
             requestPath = '/' + self.implode_params(path, params)
             url = url + requestPath
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode_with_array_repeat(query)
         else:
             self.check_required_credentials()

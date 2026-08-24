@@ -6919,7 +6919,7 @@ public class BingxCore extends BingxApi
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.positionId] the id of the position you would like to close
+     * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
@@ -6939,6 +6939,10 @@ public class BingxCore extends BingxApi
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(positionId, null)))
             {
+                if (Helpers.isTrue(!Helpers.isTrue(Helpers.GetValue(market, "swap")) || Helpers.isTrue(Helpers.GetValue(market, "inverse"))))
+                {
+                    throw new NotSupported((String)Helpers.add(this.id, " closePosition() with a positionId is only supported for linear swap markets")) ;
+                }
                 response = (this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters))).join();
             } else
             {
@@ -7538,7 +7542,7 @@ final Object finalMarket = market;
         parameters = this.keysort(parameters);
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

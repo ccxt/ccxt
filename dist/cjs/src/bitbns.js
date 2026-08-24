@@ -1278,12 +1278,12 @@ class bitbns extends bitbns$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const nonce = this.nonce().toString();
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
         else if (method === 'POST') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 body = this.json(query);
             }
             else {

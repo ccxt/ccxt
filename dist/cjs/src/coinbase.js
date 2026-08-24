@@ -5294,7 +5294,7 @@ class coinbase extends coinbase$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = fullPath;
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -5313,14 +5313,14 @@ class coinbase extends coinbase$1["default"] {
                 const seconds = this.seconds();
                 let payload = '';
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                         payload = body;
                     }
                 }
                 else {
                     if (!isV3) {
-                        if (Object.keys(query).length) {
+                        if (Object.keys(query).length > 0) {
                             payload += '?' + this.urlencode(query);
                         }
                     }
@@ -5378,7 +5378,7 @@ class coinbase extends coinbase$1["default"] {
                     'Content-Type': 'application/json',
                 };
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                     }
                 }

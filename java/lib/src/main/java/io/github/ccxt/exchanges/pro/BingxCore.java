@@ -1391,7 +1391,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             return;
         }
-        Object fetchBalanceSnapshot = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        Object fetchBalanceSnapshot = false;
+        var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
+        fetchBalanceSnapshot = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
+        parameters = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
         if (Helpers.isTrue(fetchBalanceSnapshot))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");

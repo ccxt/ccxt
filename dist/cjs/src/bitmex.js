@@ -3699,7 +3699,7 @@ class bitmex extends bitmex$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 query += '?' + this.urlencode(params);
             }
         }
@@ -3729,7 +3729,7 @@ class bitmex extends bitmex$1["default"] {
             auth += stringExpires;
             headers['api-expires'] = stringExpires;
             if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     body = this.json(params);
                     auth += body;
                 }

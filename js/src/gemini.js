@@ -1991,7 +1991,7 @@ export default class gemini extends Exchange {
             };
         }
         else {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

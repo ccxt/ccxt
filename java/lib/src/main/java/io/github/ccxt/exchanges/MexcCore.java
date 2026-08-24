@@ -3130,7 +3130,7 @@ public class MexcCore extends MexcApi
             Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged")));
             Object response = null;
-            if (Helpers.isTrue(triggerPrice))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
             {
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
                 Helpers.addElementToObject(request, "triggerType", this.safeInteger(parameters, "triggerType", 1));
@@ -7353,7 +7353,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 }
             }
             Object paramsEncoded = "";
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(urlParams))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(urlParams)), 0)))
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = Helpers.add(url, Helpers.add("?", paramsEncoded));
@@ -7379,7 +7379,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             parameters = this.omit(parameters, this.extractParams(path));
             if (Helpers.isTrue(Helpers.isEqual(access, "public")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
                 }
@@ -7401,7 +7401,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 } else
                 {
                     parameters = this.keysort(parameters);
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
                         auth = Helpers.add(auth, this.urlencode(parameters));
                         url = Helpers.add(url, Helpers.add("?", auth));

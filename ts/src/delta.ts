@@ -4166,7 +4166,7 @@ export default class delta extends Exchange {
         let url = this.urls['api'][api] + requestPath;
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -4178,7 +4178,7 @@ export default class delta extends Exchange {
             };
             let auth = method + timestamp + requestPath;
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     const queryString = '?' + this.urlencode (query);
                     auth += queryString;
                     url += queryString;

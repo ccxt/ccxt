@@ -2898,7 +2898,7 @@ class lbank(Exchange, ImplicitAPI):
         else:
             url = self.urls['api']['contract'] + '/' + self.implode_params(path, params)
         if api[1] == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(self.keysort(query))
         else:
             self.check_required_credentials()

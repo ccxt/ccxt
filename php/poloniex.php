@@ -2094,7 +2094,7 @@ class poloniex extends Exchange {
             }
             $hedged = null;
             list($hedged, $params) = $this->handle_param_string($params, 'hedged');
-            if ($hedged) {
+            if (($hedged !== null) && ($hedged !== '')) {
                 if ($marginMode === null) {
                     throw new ArgumentsRequired($this->id . ' createOrder() requires a $marginMode parameter "cross" or "isolated" for $hedged orders');
                 }
@@ -3672,7 +3672,7 @@ class poloniex extends Exchange {
         $implodedPath = $this->implode_params($path, $params);
         if ($api === 'public' || $api === 'swapPublic') {
             $url .= '/' . $implodedPath;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -3683,7 +3683,7 @@ class poloniex extends Exchange {
             $auth .= '/' . $implodedPath;
             if (($method === 'POST') || ($method === 'PUT') || ($method === 'DELETE')) {
                 $auth .= "\n"; // eslint-disable-line quotes
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $auth .= 'requestBody=' . $body . '&';
                 }
@@ -3692,7 +3692,7 @@ class poloniex extends Exchange {
                 $sortedQuery = $this->extend(array( 'signTimestamp' => $timestamp ), $query);
                 $sortedQuery = $this->keysort($sortedQuery);
                 $auth .= "\n" . $this->urlencode($sortedQuery); // eslint-disable-line quotes
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }

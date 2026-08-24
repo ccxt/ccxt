@@ -2977,7 +2977,7 @@ public class UpbitCore extends UpbitApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -2998,7 +2998,7 @@ public class UpbitCore extends UpbitApi
                 body = this.json(parameters);
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             }
-            if (Helpers.isTrue(hasQuery))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(hasQuery, null))) && Helpers.isTrue((!Helpers.isEqual(hasQuery, 0)))))
             {
                 auth = this.rawencode(query);
             }

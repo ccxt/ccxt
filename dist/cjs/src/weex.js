@@ -4233,7 +4233,7 @@ class weex extends weex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         const isBatch = (path.indexOf('batch') >= 0);
         if (!isBatch && ((method === 'GET') || (method === 'DELETE'))) {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }

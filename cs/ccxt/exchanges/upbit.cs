@@ -2739,7 +2739,7 @@ public partial class upbit : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(!isEqual(method, "POST")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -2760,7 +2760,7 @@ public partial class upbit : Exchange
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            if (isTrue(hasQuery))
+            if (isTrue(isTrue((!isEqual(hasQuery, null))) && isTrue((!isEqual(hasQuery, 0)))))
             {
                 auth = this.rawencode(query);
             }

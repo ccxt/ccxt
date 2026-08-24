@@ -333,17 +333,17 @@ func (this *HibachiCore) GetAccountId() any {
 	return id
 }
 func (this *HibachiCore) ParseMarket(market any) any {
-	var marketId *string = this.SafeString(market, "symbol")
+	var marketId any = this.SafeString(market, "symbol")
 	var numericId any = this.SafeNumber(market, "id")
 	var marketType string = "swap"
-	var baseId *string = this.SafeString(market, "underlyingSymbol")
-	var quoteId *string = this.SafeString(market, "settlementSymbol")
+	var baseId any = this.SafeString(market, "underlyingSymbol")
+	var quoteId any = this.SafeString(market, "settlementSymbol")
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
-	var settleId *string = this.SafeString(market, "settlementSymbol")
+	var settleId any = this.SafeString(market, "settlementSymbol")
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	var created *int64 = this.SafeIntegerProduct(market, "marketCreationTimestamp", 1000)
+	var created any = this.SafeIntegerProduct(market, "marketCreationTimestamp", 1000)
 	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"numericId":      numericId,
@@ -472,7 +472,7 @@ func (this *HibachiCore) HardcodedCurrencies() any {
 		"info":     map[string]any{},
 	})
 	var code any = this.SafeCurrencyCode("USDT")
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
 			"id":        "USDT",
 			"name":      "USDT",
@@ -508,7 +508,7 @@ func (this *HibachiCore) ParseBalance(response any) any {
 	var account any = this.Account()
 	AddElementToObject(account, "total", this.SafeString(response, "balance"))
 	AddElementToObject(account, "free", this.SafeString(response, "maximalWithdraw"))
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		AddElementToObject(result, code, account)
 	}
 	return this.SafeBalance(result)
@@ -619,20 +619,20 @@ func (this *HibachiCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//      }
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(trade, "symbol")
+	var marketId any = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var id *string = this.SafeString(trade, "id")
-	var price *string = this.SafeString(trade, "price")
-	var amount *string = this.SafeString(trade, "quantity")
-	var timestamp *int64 = this.SafeIntegerProduct(trade, "timestamp", 1000)
+	var id any = this.SafeString(trade, "id")
+	var price any = this.SafeString(trade, "price")
+	var amount any = this.SafeString(trade, "quantity")
+	var timestamp any = this.SafeIntegerProduct(trade, "timestamp", 1000)
 	var cost any = Precise.StringMul(price, amount)
 	var side any = nil
 	var fee any = nil
 	var orderType any = nil
 	var orderId any = nil
 	var takerOrMaker any = nil
-	if id == nil {
+	if IsTrue(IsEqual(id, nil)) {
 		// public trades
 		side = this.SafeStringLower(trade, "takerSide")
 		takerOrMaker = "taker"
@@ -644,7 +644,7 @@ func (this *HibachiCore) ParseTrade(trade any, optionalArgs ...any) any {
 			"currency": "USDT",
 		}
 		orderType = this.SafeStringLower(trade, "orderType")
-		if IsEqual(side, "buy") {
+		if IsTrue(IsEqual(side, "buy")) {
 			orderId = this.SafeString(trade, "bidOrderId")
 		} else {
 			orderId = this.SafeString(trade, "askOrderId")
@@ -692,7 +692,7 @@ func (this *HibachiCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes60512 := (<-this.LoadMarkets())
 		PanicOnError(retRes60512)
@@ -718,7 +718,7 @@ func (this *HibachiCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	//
 	var trades any = this.SafeList(response, "trades", []any{})
 	var tradesList any = []any{}
-	if !IsEqual(trades, nil) {
+	if IsTrue(!IsEqual(trades, nil)) {
 		tradesList = trades
 	}
 
@@ -746,7 +746,7 @@ func (this *HibachiCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes64412 := (<-this.LoadMarkets())
 		PanicOnError(retRes64412)
@@ -788,7 +788,7 @@ func (this *HibachiCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	return nil
 }
 func (this *HibachiCore) ParseOrderStatus(status any) any {
-	var uppercaseStatus any = Ternary((IsEqual(status, nil)), nil, ToUpper(status))
+	var uppercaseStatus any = Ternary(IsTrue((IsEqual(status, nil))), nil, ToUpper(status))
 	var statuses map[string]any = map[string]any{
 		"PENDING":           "open",
 		"CHILD_PENDING":     "open",
@@ -805,47 +805,47 @@ func (this *HibachiCore) ParseOrderStatus(status any) any {
 func (this *HibachiCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(order, "symbol")
+	var marketId any = this.SafeString(order, "symbol")
 	market = this.SafeMarket(marketId, market)
-	var status *string = this.SafeString(order, "status")
-	var typeVar *string = this.SafeStringLower(order, "orderType")
-	var price *string = this.SafeString2(order, "price", "avgFillPrice")
-	var rawSide *string = this.SafeString(order, "side")
+	var status any = this.SafeString(order, "status")
+	var typeVar any = this.SafeStringLower(order, "orderType")
+	var price any = this.SafeString2(order, "price", "avgFillPrice")
+	var rawSide any = this.SafeString(order, "side")
 	var side any = nil
-	if rawSide != nil && *rawSide == "BID" {
+	if IsTrue(IsEqual(rawSide, "BID")) {
 		side = "buy"
-	} else if rawSide != nil && *rawSide == "ASK" {
+	} else if IsTrue(IsEqual(rawSide, "ASK")) {
 		side = "sell"
 	}
-	var amount *string = this.SafeString(order, "totalQuantity")
-	var remaining *string = this.SafeString(order, "availableQuantity")
-	var totalQuantity *string = this.SafeString(order, "totalQuantity")
-	var availableQuantity *string = this.SafeString(order, "availableQuantity")
+	var amount any = this.SafeString(order, "totalQuantity")
+	var remaining any = this.SafeString(order, "availableQuantity")
+	var totalQuantity any = this.SafeString(order, "totalQuantity")
+	var availableQuantity any = this.SafeString(order, "availableQuantity")
 	var filled any = this.SafeString(order, "filledQuantity")
-	if (totalQuantity != nil) && (availableQuantity != nil) {
+	if IsTrue(IsTrue(!IsEqual(totalQuantity, nil)) && IsTrue(!IsEqual(availableQuantity, nil))) {
 		filled = Precise.StringSub(totalQuantity, availableQuantity)
 	}
 	var remainingString any = remaining
-	if IsEqual(remainingString, nil) && (totalQuantity != nil) && !IsEqual(filled, nil) {
+	if IsTrue(IsTrue(IsTrue(IsEqual(remainingString, nil)) && IsTrue(!IsEqual(totalQuantity, nil))) && IsTrue(!IsEqual(filled, nil))) {
 		remainingString = Precise.StringSub(totalQuantity, filled)
 	}
 	var timeInForce string = "GTC"
 	var orderFlags any = this.SafeValue(order, "orderFlags")
 	var postOnly bool = false
 	var reduceOnly bool = false
-	if IsEqual(orderFlags, "POST_ONLY") {
+	if IsTrue(IsEqual(orderFlags, "POST_ONLY")) {
 		timeInForce = "PO"
 		postOnly = true
-	} else if IsEqual(orderFlags, "IOC") {
+	} else if IsTrue(IsEqual(orderFlags, "IOC")) {
 		timeInForce = "IOC"
-	} else if IsEqual(orderFlags, "REDUCE_ONLY") {
+	} else if IsTrue(IsEqual(orderFlags, "REDUCE_ONLY")) {
 		reduceOnly = true
 	}
-	var timestamp *int64 = this.SafeInteger(order, "createdAt")
-	if timestamp == nil {
+	var timestamp any = this.SafeInteger(order, "createdAt")
+	if IsTrue(IsEqual(timestamp, nil)) {
 		timestamp = this.SafeIntegerProduct(order, "creationTime", 1000)
 	}
-	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "closedAt")
+	var lastUpdateTimestamp any = this.SafeInteger(order, "closedAt")
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),
@@ -895,13 +895,13 @@ func (this *HibachiCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes77912 := (<-this.LoadMarkets())
 		PanicOnError(retRes77912)
 	}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -934,7 +934,7 @@ func (this *HibachiCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes80312 := (<-this.LoadMarkets())
 		PanicOnError(retRes80312)
@@ -970,16 +970,16 @@ func (this *HibachiCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
-	if IsEqual(typeVar, nil) {
+	if IsTrue(IsEqual(typeVar, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
-	if IsEqual(side, nil) {
+	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var sideInternal any = 0
-	if IsEqual(side, "sell") {
+	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = 0
-	} else if IsEqual(side, "buy") {
+	} else if IsTrue(IsEqual(side, "buy")) {
 		sideInternal = 1
 	}
 	// Converting them to internal representation:
@@ -1013,7 +1013,7 @@ func (this *HibachiCore) OrderMessage(market any, nonce any, feeRate any, typeVa
 	var feeRatePadded any = PadStart(feeRateInternal16, 16, "0")
 	var encodedFeeRate any = this.Base16ToBinary(feeRatePadded)
 	var encodedPrice any = this.BinaryConcat()
-	if IsEqual(typeVar, "limit") {
+	if IsTrue(IsEqual(typeVar, "limit")) {
 		var priceStr any = this.PriceToPrecision(this.SafeString(market, "symbol"), price)
 		var priceInternal any = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(Precise.StringMul(priceStr, priceFactor), settlement), underlying), one, 0)
 		var price16 any = this.IntToBase16(this.ParseToInt(priceInternal))
@@ -1029,26 +1029,26 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if IsTrue(IsEqual(typeVar, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
-	if IsEqual(side, nil) {
+	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var market any = this.Market(symbol)
 	var takerFee any = this.SafeNumber(market, "taker", this.SafeNumber(this.Options, "defaultTakerFee", 0.00045))
 	var makerFee any = this.SafeNumber(market, "maker", this.SafeNumber(this.Options, "defaultMakerFee", 0.00015))
-	var takerFeeValue any = Ternary((IsEqual(takerFee, nil)), 0, takerFee)
-	var makerFeeValue any = Ternary((IsEqual(makerFee, nil)), 0, makerFee)
+	var takerFeeValue any = Ternary(IsTrue((IsEqual(takerFee, nil))), 0, takerFee)
+	var makerFeeValue any = Ternary(IsTrue((IsEqual(makerFee, nil))), 0, makerFee)
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var sideInternal string = ""
-	if IsEqual(side, "sell") {
+	if IsTrue(IsEqual(side, "sell")) {
 		sideInternal = "ASK"
-	} else if IsEqual(side, "buy") {
+	} else if IsTrue(IsEqual(side, "buy")) {
 		sideInternal = "BID"
 	}
 	var priceInternal any = ""
-	if EvalTruthy(price) {
+	if IsTrue(IsTrue((!IsEqual(price, nil))) && IsTrue((!IsEqual(price, 0)))) {
 		priceInternal = this.PriceToPrecision(symbol, price)
 	}
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
@@ -1063,18 +1063,18 @@ func (this *HibachiCore) CreateOrderRequest(nonce any, symbol any, typeVar any, 
 		"signature":      signature,
 		"maxFeesPercent": this.NumberToString(feeRate),
 	}
-	var postOnly any = this.IsPostOnly((ToUpper(typeVar) == "MARKET"), nil, params)
+	var postOnly any = this.IsPostOnly(IsEqual(ToUpper(typeVar), "MARKET"), nil, params)
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
-	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
-	if EvalTruthy(postOnly) {
+	var timeInForce any = this.SafeStringLower(params, "timeInForce")
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
+	if IsTrue(postOnly) {
 		AddElementToObject(request, "orderFlags", "POST_ONLY")
-	} else if timeInForce != nil && *timeInForce == "ioc" {
+	} else if IsTrue(IsEqual(timeInForce, "ioc")) {
 		AddElementToObject(request, "orderFlags", "IOC")
-	} else if EvalTruthy(reduceOnly) {
+	} else if IsTrue(reduceOnly) {
 		AddElementToObject(request, "orderFlags", "REDUCE_ONLY")
 	}
-	if triggerPrice != nil {
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
 		AddElementToObject(request, "triggerPrice", triggerPrice)
 	}
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"})
@@ -1106,7 +1106,7 @@ func (this *HibachiCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes95412 := (<-this.LoadMarkets())
 		PanicOnError(retRes95412)
@@ -1149,7 +1149,7 @@ func (this *HibachiCore) createOrdersBody(ch chan any, orders any, optionalArgs 
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes98212 := (<-this.LoadMarkets())
 		PanicOnError(retRes98212)
@@ -1158,9 +1158,9 @@ func (this *HibachiCore) createOrdersBody(ch chan any, orders any, optionalArgs 
 	var requestOrders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var rawOrder any = GetValue(orders, i)
-		var symbol *string = this.SafeString(rawOrder, "symbol")
-		var typeVar *string = this.SafeString(rawOrder, "type")
-		var side *string = this.SafeString(rawOrder, "side")
+		var symbol any = this.SafeString(rawOrder, "symbol")
+		var typeVar any = this.SafeString(rawOrder, "type")
+		var side any = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
@@ -1199,17 +1199,17 @@ func (this *HibachiCore) EditOrderRequest(nonce any, id any, symbol any, typeVar
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if IsTrue(IsEqual(typeVar, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
-	if IsEqual(side, nil) {
+	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var market any = this.Market(symbol)
 	var takerFee any = this.SafeNumber(market, "taker", 0)
 	var makerFee any = this.SafeNumber(market, "maker", 0)
-	var takerFeeValue any = Ternary((IsEqual(takerFee, nil)), 0, takerFee)
-	var makerFeeValue any = Ternary((IsEqual(makerFee, nil)), 0, makerFee)
+	var takerFeeValue any = Ternary(IsTrue((IsEqual(takerFee, nil))), 0, takerFee)
+	var makerFeeValue any = Ternary(IsTrue((IsEqual(makerFee, nil))), 0, makerFee)
 	var feeRate any = mathMax(takerFeeValue, makerFeeValue)
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature any = this.SignMessage(message, this.PrivateKey)
@@ -1252,7 +1252,7 @@ func (this *HibachiCore) editOrderBody(ch chan any, id any, symbol any, typeVar 
 	_ = price
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes106112 := (<-this.LoadMarkets())
 		PanicOnError(retRes106112)
@@ -1294,7 +1294,7 @@ func (this *HibachiCore) editOrdersBody(ch chan any, orders any, optionalArgs ..
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes108812 := (<-this.LoadMarkets())
 		PanicOnError(retRes108812)
@@ -1303,10 +1303,10 @@ func (this *HibachiCore) editOrdersBody(ch chan any, orders any, optionalArgs ..
 	var requestOrders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var rawOrder any = GetValue(orders, i)
-		var id *string = this.SafeString(rawOrder, "id")
-		var symbol *string = this.SafeString(rawOrder, "symbol")
-		var typeVar *string = this.SafeString(rawOrder, "type")
-		var side *string = this.SafeString(rawOrder, "side")
+		var id any = this.SafeString(rawOrder, "id")
+		var symbol any = this.SafeString(rawOrder, "symbol")
+		var typeVar any = this.SafeString(rawOrder, "type")
+		var side any = this.SafeString(rawOrder, "side")
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
@@ -1464,7 +1464,7 @@ func (this *HibachiCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes121212 := (<-this.LoadMarkets())
 		PanicOnError(retRes121212)
@@ -1479,7 +1479,7 @@ func (this *HibachiCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 		"nonce":     nonce,
 		"signature": signature,
 	}
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		var market any = this.Market(symbol)
 		AddElementToObject(request, "contractId", this.SafeInteger(market, "numericId"))
 	}
@@ -1615,7 +1615,7 @@ func (this *HibachiCore) Nonce() any {
 	return this.Milliseconds()
 }
 func (this *HibachiCore) SignMessage(message any, privateKey any) any {
-	if IsEqual(GetArrayLength(privateKey), 44) {
+	if IsTrue(IsEqual(GetArrayLength(privateKey), 44)) {
 		// For Exchange Managed account, the key length is 44 and we use HMAC to sign the message
 		return this.Hmac(message, this.Encode(privateKey), sha256, "hex")
 	} else {
@@ -1651,7 +1651,7 @@ func (this *HibachiCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes136712 := (<-this.LoadMarkets())
 		PanicOnError(retRes136712)
@@ -1736,13 +1736,13 @@ func (this *HibachiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes143112 := (<-this.LoadMarkets())
 		PanicOnError(retRes143112)
 	}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -1774,7 +1774,7 @@ func (this *HibachiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	//
 	var trades any = this.SafeList(response, "trades")
 	var tradesList any = []any{}
-	if !IsEqual(trades, nil) {
+	if IsTrue(!IsEqual(trades, nil)) {
 		tradesList = trades
 	}
 
@@ -1827,13 +1827,13 @@ func (this *HibachiCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes150512 := (<-this.LoadMarkets())
 		PanicOnError(retRes150512)
 	}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
@@ -1906,7 +1906,7 @@ func (this *HibachiCore) fetchOrdersByStatusBody(ch chan any, status any, option
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes156312 := (<-this.LoadMarkets())
 		PanicOnError(retRes156312)
@@ -1915,20 +1915,20 @@ func (this *HibachiCore) fetchOrdersByStatusBody(ch chan any, status any, option
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	if !IsEqual(status, nil) {
+	if IsTrue(!IsEqual(status, nil)) {
 		AddElementToObject(request, "status", status)
 	}
-	if !IsEqual(since, nil) {
+	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
 	}
 	var until any = nil
 	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOrdersByStatus", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
-	if !IsEqual(until, nil) {
+	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, "endTime", until)
 	}
 
@@ -2072,7 +2072,7 @@ func (this *HibachiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes166812 := (<-this.LoadMarkets())
 		PanicOnError(retRes166812)
@@ -2083,14 +2083,14 @@ func (this *HibachiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 		"symbol":   GetValue(market, "id"),
 		"interval": timeframe,
 	}
-	if !IsEqual(since, nil) {
+	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "fromMs", since)
 	}
 	var until any = nil
 	untilparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
-	if !IsEqual(until, nil) {
+	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, "toMs", until)
 	}
 
@@ -2136,7 +2136,7 @@ func (this *HibachiCore) fetchPositionsBody(ch chan any, optionalArgs ...any) an
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes171312 := (<-this.LoadMarkets())
 		PanicOnError(retRes171312)
@@ -2209,13 +2209,13 @@ func (this *HibachiCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(position, "symbol")
+	var marketId any = this.SafeString(position, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var side *string = this.SafeStringLower(position, "direction")
-	var quantity *string = this.SafeString(position, "quantity")
-	var unrealizedFunding *string = this.SafeString(position, "unrealizedFundingPnl", "0")
-	var unrealizedTrading *string = this.SafeString(position, "unrealizedTradingPnl", "0")
+	var side any = this.SafeStringLower(position, "direction")
+	var quantity any = this.SafeString(position, "quantity")
+	var unrealizedFunding any = this.SafeString(position, "unrealizedFundingPnl", "0")
+	var unrealizedTrading any = this.SafeString(position, "unrealizedTradingPnl", "0")
 	var unrealizedPnl any = Precise.StringAdd(unrealizedFunding, unrealizedTrading)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -2259,18 +2259,18 @@ func (this *HibachiCore) Sign(path any, optionalArgs ...any) any {
 	headers = map[string]any{
 		"Hibachi-Client": "HibachiCCXT/unversioned",
 	}
-	if IsEqual(method, "GET") {
+	if IsTrue(IsEqual(method, "GET")) {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query any = this.Urlencode(request)
-		if !IsEqual(GetArrayLength(query), 0) {
+		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}
-	if IsEqual(method, "POST") || IsEqual(method, "PUT") || IsEqual(method, "DELETE") {
+	if IsTrue(IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) || IsTrue(IsEqual(method, "DELETE"))) {
 		AddElementToObject(headers, "Content-Type", "application/json")
 		body = this.Json(params)
 	}
-	if IsEqual(api, "private") {
+	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		AddElementToObject(headers, "Authorization", this.ApiKey)
 	}
@@ -2282,20 +2282,20 @@ func (this *HibachiCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *HibachiCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsEqual(response, nil) {
+	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
-	if InOp(response, "status") {
+	if IsTrue(InOp(response, "status")) {
 		//
 		//     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
 		//
-		var status *string = this.SafeString(response, "status")
-		if status != nil && *status == "failed" {
-			var code *string = this.SafeString(response, "errorCode")
+		var status any = this.SafeString(response, "status")
+		if IsTrue(IsEqual(status, "failed")) {
+			var code any = this.SafeString(response, "errorCode")
 			var feedback any = Add(Add(this.Id, " "), body)
 			this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), code, feedback)
-			var message *string = this.SafeString(response, "message")
+			var message any = this.SafeString(response, "message")
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), message, feedback)
 			panic(ExchangeError(feedback))
 		}
@@ -2323,7 +2323,7 @@ func (this *HibachiCore) ParseTransactionStatus(status any) any {
 func (this *HibachiCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var transactionType *string = this.SafeString(item, "transactionType")
+	var transactionType any = this.SafeString(item, "transactionType")
 	var timestamp any = nil
 	var typeVar any = nil
 	var direction any = nil
@@ -2332,12 +2332,12 @@ func (this *HibachiCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	var referenceId any = nil
 	var referenceAccount any = nil
 	var status any = nil
-	if transactionType == nil {
+	if IsTrue(IsEqual(transactionType, nil)) {
 		// response from TradeAccountTradingHistory
 		timestamp = this.SafeIntegerProduct(item, "timestamp", 1000)
 		typeVar = "trade"
 		var amountStr any = this.SafeString(item, "realizedPnl")
-		if Precise.StringLt(amountStr, "0") {
+		if IsTrue(Precise.StringLt(amountStr, "0")) {
 			direction = "out"
 			amountStr = Precise.StringNeg(amountStr)
 		} else {
@@ -2353,12 +2353,12 @@ func (this *HibachiCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 		// response from CapitalHistory
 		timestamp = this.SafeIntegerProduct(item, "timestampSec", 1000)
 		amount = this.SafeNumber(item, "quantity")
-		direction = Ternary(((transactionType != nil && *transactionType == "deposit") || (transactionType != nil && *transactionType == "transfer-in")), "in", "out")
+		direction = Ternary(IsTrue((IsTrue(IsEqual(transactionType, "deposit")) || IsTrue(IsEqual(transactionType, "transfer-in")))), "in", "out")
 		typeVar = this.ParseTransactionType(transactionType)
 		status = this.ParseTransactionStatus(this.SafeString(item, "status"))
-		if transactionType != nil && *transactionType == "transfer-in" {
+		if IsTrue(IsEqual(transactionType, "transfer-in")) {
 			referenceAccount = this.SafeString(item, "srcAccountId")
-		} else if transactionType != nil && *transactionType == "transfer-out" {
+		} else if IsTrue(IsEqual(transactionType, "transfer-out")) {
 			referenceAccount = this.SafeString(item, "receivingAccountId")
 		}
 		referenceId = this.SafeString(item, "transactionHash")
@@ -2409,7 +2409,7 @@ func (this *HibachiCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes194712 := (<-this.LoadMarkets())
 		PanicOnError(retRes194712)
@@ -2554,10 +2554,10 @@ func (this *HibachiCore) fetchDepositAddressBody(ch chan any, code any, optional
 func (this *HibachiCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var timestamp *int64 = this.SafeIntegerProduct(transaction, "timestampSec", 1000)
-	var address *string = this.SafeString(transaction, "withdrawalAddress")
+	var timestamp any = this.SafeIntegerProduct(transaction, "timestampSec", 1000)
+	var address any = this.SafeString(transaction, "withdrawalAddress")
 	var transactionType any = this.SafeString(transaction, "transactionType")
-	if !IsEqual(transactionType, "deposit") && !IsEqual(transactionType, "withdrawal") {
+	if IsTrue(IsTrue(!IsEqual(transactionType, "deposit")) && IsTrue(!IsEqual(transactionType, "withdrawal"))) {
 		transactionType = this.ParseTransactionType(transactionType)
 	}
 	return map[string]any{
@@ -2740,8 +2740,8 @@ func (this *HibachiCore) ParseSettlement(settlement any, optionalArgs ...any) an
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp *int64 = this.SafeTimestamp(settlement, "timestamp")
-	var marketId *string = this.SafeString(settlement, "symbol")
+	var timestamp any = this.SafeTimestamp(settlement, "timestamp")
+	var marketId any = this.SafeString(settlement, "symbol")
 	return map[string]any{
 		"info":      settlement,
 		"symbol":    this.SafeSymbol(marketId, market),
@@ -2795,22 +2795,22 @@ func (this *HibachiCore) fetchMySettlementHistoryBody(ch chan any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"accountId": this.GetAccountId(),
 	}
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "contractId", GetValue(market, "numericId"))
 		symbol = GetValue(market, "symbol")
 	}
-	if !IsEqual(since, nil) {
+	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", this.ParseToInt(Divide(since, 1000)))
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
 	var until any = nil
 	untilparamsVariable := this.HandleOptionAndParams(params, "fetchMySettlementHistory", "until")
 	until = GetValue(untilparamsVariable, 0)
 	params = GetValue(untilparamsVariable, 1)
-	if !IsEqual(until, nil) {
+	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, "endTime", this.ParseToInt(Divide(until, 1000)))
 	}
 
@@ -2887,7 +2887,7 @@ func (this *HibachiCore) fetchOpenInterestBody(ch chan any, symbol any, optional
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes230212 := (<-this.LoadMarkets())
 		PanicOnError(retRes230212)
@@ -2934,7 +2934,7 @@ func (this *HibachiCore) fetchFundingRateBody(ch chan any, symbol any, optionalA
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes233412 := (<-this.LoadMarkets())
 		PanicOnError(retRes233412)
@@ -2962,7 +2962,7 @@ func (this *HibachiCore) fetchFundingRateBody(ch chan any, symbol any, optionalA
 	//
 	var funding any = this.SafeDict(response, "fundingRateEstimation", map[string]any{})
 	var timestamp int64 = this.Milliseconds()
-	var nextFundingTimestamp *int64 = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
+	var nextFundingTimestamp any = this.SafeIntegerProduct(funding, "nextFundingTimestamp", 1000)
 
 	ch <- map[string]any{
 		"info":                     funding,
@@ -3014,7 +3014,7 @@ func (this *HibachiCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes239312 := (<-this.LoadMarkets())
 		PanicOnError(retRes239312)
@@ -3042,7 +3042,7 @@ func (this *HibachiCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	var rates any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
-		var timestamp *int64 = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
+		var timestamp any = this.SafeIntegerProduct(entry, "fundingTimestamp", 1000)
 		AppendToArray(&rates, map[string]any{
 			"info":        entry,
 			"symbol":      symbol,

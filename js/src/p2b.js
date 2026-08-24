@@ -1337,7 +1337,7 @@ export default class p2b extends Exchange {
         let url = this.urls['api'][api] + '/' + this.implodeParams(path, params);
         params = this.omit(params, this.extractParams(path));
         if (method === 'GET') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

@@ -2407,7 +2407,7 @@ public class ApexCore extends ApexApi
         Object signBody = body;
         if (Helpers.isTrue(!Helpers.isEqual(((String)method).toUpperCase(), "POST")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 signPath = Helpers.add(signPath, Helpers.add("?", this.rawencode(parameters)));
                 url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));

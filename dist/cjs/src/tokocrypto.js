@@ -2573,7 +2573,7 @@ class tokocrypto extends tokocrypto$1["default"] {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey');
         if (userDataStream) {
-            if (this.apiKey) {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -2624,7 +2624,7 @@ class tokocrypto extends tokocrypto$1["default"] {
             }
         }
         else {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

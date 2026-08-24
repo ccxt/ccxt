@@ -2907,7 +2907,7 @@ class bitfinex(Exchange, ImplicitAPI):
             request = self.version + request
         url = self.urls['api'][api] + '/' + request
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()

@@ -1426,7 +1426,7 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         object market = null;
-        if (isTrue(symbol))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(symbol, "")))))
         {
             market = this.market(symbol);
         }
@@ -1480,7 +1480,7 @@ public partial class coinmate : Exchange
         object url = add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }

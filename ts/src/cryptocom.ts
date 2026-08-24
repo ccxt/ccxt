@@ -1183,7 +1183,7 @@ export default class cryptocom extends Exchange {
         const request: Dict = {
             'instrument_name': market['id'],
         };
-        if (limit) {
+        if ((limit !== undefined) && (limit !== 0)) {
             request['depth'] = Math.min (limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook (this.extend (request, params));
@@ -3612,7 +3612,7 @@ export default class cryptocom extends Exchange {
         let url = this.urls['api'][type as string] + '/' + path;
         const query = this.omit (params, this.extractParams (path));
         if (access === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {

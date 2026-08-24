@@ -960,7 +960,7 @@ class bit2c extends bit2c$1["default"] {
             amount = this.safeString(trade, 'amount');
             side = this.safeValue(trade, 'isBid');
             if (side !== undefined) {
-                if (side) {
+                if ((side !== undefined) && (side !== '')) {
                     side = 'buy';
                 }
                 else {
@@ -1051,7 +1051,7 @@ class bit2c extends bit2c$1["default"] {
             }, params);
             const auth = this.urlencode(query);
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + auth;
                 }
             }

@@ -2273,7 +2273,7 @@ export default class hyperliquid extends Exchange {
         let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossPrice = this.safeString (params, 'stopLossPrice', triggerPrice);
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        const isTrigger = (stopLossPrice || takeProfitPrice);
+        const isTrigger = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
         let px: Str = undefined;
         if (isMarket) {
             if (price === undefined) {
@@ -2824,7 +2824,7 @@ export default class hyperliquid extends Exchange {
             let triggerPrice = this.safeString2 (orderParams, 'triggerPrice', 'stopPrice');
             const stopLossPrice = this.safeString (orderParams, 'stopLossPrice', triggerPrice);
             const takeProfitPrice = this.safeString (orderParams, 'takeProfitPrice');
-            const isTrigger = (stopLossPrice || takeProfitPrice);
+            const isTrigger = ((stopLossPrice !== undefined) || (takeProfitPrice !== undefined));
             const reduceOnly = this.safeBool (orderParams, 'reduceOnly', false);
             orderParams = this.omit (orderParams, [ 'slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly' ]);
             let px = this.numberToString (price);
@@ -4996,7 +4996,7 @@ export default class hyperliquid extends Exchange {
             return undefined;
         }
         const hi3TokensByname = this.safeDict (this.options, 'hip3TokensByName', {});
-        if (this.safeDict (hi3TokensByname, coin)) {
+        if (this.safeDict (hi3TokensByname, coin) !== undefined) {
             const hip3Dict = this.safeDict (hi3TokensByname, coin);
             const quote = this.safeString (hip3Dict, 'quote', 'USDC');
             const code = this.safeString (hip3Dict, 'code', coin);

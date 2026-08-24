@@ -1979,7 +1979,7 @@ class apex extends apex$1["default"] {
         let signPath = '/api/' + path;
         let signBody = body;
         if (method.toUpperCase() !== 'POST') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 signPath += '?' + this.rawencode(params);
                 url += '?' + this.rawencode(params);
             }

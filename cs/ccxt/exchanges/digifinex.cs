@@ -2250,7 +2250,7 @@ public partial class digifinex : Exchange
         }
         if (isTrue(postOnly))
         {
-            if (isTrue(postOnlyParsed))
+            if (isTrue(isTrue((!isEqual(postOnlyParsed, null))) && isTrue((!isEqual(postOnlyParsed, 0)))))
             {
                 ((IDictionary<string,object>)request)["post_only"] = postOnlyParsed;
             } else
@@ -5139,7 +5139,7 @@ public partial class digifinex : Exchange
                 auth = add(add(nonce, method), payload);
                 if (isTrue(isEqual(method, "GET")))
                 {
-                    if (isTrue(urlencoded))
+                    if (isTrue(isTrue((!isEqual(urlencoded, null))) && isTrue((!isEqual(urlencoded, "")))))
                     {
                         auth = add(auth, add("?", urlencoded));
                     }
@@ -5155,7 +5155,7 @@ public partial class digifinex : Exchange
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(urlencoded))
+                if (isTrue(isTrue((!isEqual(urlencoded, null))) && isTrue((!isEqual(urlencoded, "")))))
                 {
                     url = add(url, add("?", urlencoded));
                 }
@@ -5164,7 +5164,7 @@ public partial class digifinex : Exchange
                 headers = new Dictionary<string, object>() {
                     { "Content-Type", "application/x-www-form-urlencoded" },
                 };
-                if (isTrue(urlencoded))
+                if (isTrue(isTrue((!isEqual(urlencoded, null))) && isTrue((!isEqual(urlencoded, "")))))
                 {
                     body = urlencoded;
                 }
@@ -5176,7 +5176,7 @@ public partial class digifinex : Exchange
             };
         } else
         {
-            if (isTrue(urlencoded))
+            if (isTrue(isTrue((!isEqual(urlencoded, null))) && isTrue((!isEqual(urlencoded, "")))))
             {
                 url = add(url, add("?", urlencoded));
             }

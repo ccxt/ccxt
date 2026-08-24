@@ -954,7 +954,7 @@ class bit2c extends Exchange {
             $amount = $this->safe_string($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
-                if ($side) {
+                if (($side !== null) && ($side !== '')) {
                     $side = 'buy';
                 } else {
                     $side = 'sell';
@@ -1048,7 +1048,7 @@ class bit2c extends Exchange {
             ), $params);
             $auth = $this->urlencode($query);
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $auth;
                 }
             } else {

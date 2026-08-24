@@ -612,13 +612,13 @@ func (this *DydxCore) ParseMarket(market any) any {
 	// }
 	//
 	var quoteId string = "USDC"
-	var marketId *string = this.SafeString(market, "ticker")
-	if marketId == nil {
+	var marketId any = this.SafeString(market, "ticker")
+	if IsTrue(IsEqual(marketId, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
 	}
 	var parts []string = Split(marketId, "-")
-	var baseName *string = this.SafeString(parts, 0)
-	var baseId *string = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
+	var baseName any = this.SafeString(parts, 0)
+	var baseId any = this.SafeString(market, "baseId", baseName) // idk where 'baseId' comes from, but leaving as is
 	var base any = this.SafeCurrencyCode(baseId)
 	var quote any = this.SafeCurrencyCode(quoteId)
 	var settleId string = "USDC"
@@ -626,11 +626,11 @@ func (this *DydxCore) ParseMarket(market any) any {
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
 	var contract bool = true
 	var swap bool = true
-	var amountPrecisionStr *string = this.SafeString(market, "stepSize")
-	var pricePrecisionStr *string = this.SafeString(market, "tickSize")
-	var status *string = this.SafeString(market, "status")
+	var amountPrecisionStr any = this.SafeString(market, "stepSize")
+	var pricePrecisionStr any = this.SafeString(market, "tickSize")
+	var status any = this.SafeString(market, "status")
 	var active bool = true
-	if status == nil || *status != "ACTIVE" {
+	if IsTrue(!IsEqual(status, "ACTIVE")) {
 		active = false
 	}
 	return this.SafeMarketStructure(map[string]any{
@@ -760,11 +760,11 @@ func (this *DydxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.Parse8601(this.SafeString(trade, "createdAt"))
-	var symbol *string = this.SafeString(market, "symbol")
-	var price *string = this.SafeString(trade, "price")
-	var amount *string = this.SafeString(trade, "size")
-	var side *string = this.SafeStringLower(trade, "side")
-	var id *string = this.SafeString(trade, "id")
+	var symbol any = this.SafeString(market, "symbol")
+	var price any = this.SafeString(trade, "price")
+	var amount any = this.SafeString(trade, "size")
+	var side any = this.SafeStringLower(trade, "side")
+	var id any = this.SafeString(trade, "id")
 	return this.SafeTrade(map[string]any{
 		"id":           id,
 		"timestamp":    timestamp,
@@ -807,7 +807,7 @@ func (this *DydxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes67712 := (<-this.LoadMarkets())
 		PanicOnError(retRes67712)
@@ -816,7 +816,7 @@ func (this *DydxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
 
@@ -894,7 +894,7 @@ func (this *DydxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes74912 := (<-this.LoadMarkets())
 		PanicOnError(retRes74912)
@@ -904,15 +904,15 @@ func (this *DydxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		"market":     GetValue(market, "id"),
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", mathMin(limit, 1000))
 	}
-	if !IsEqual(since, nil) {
+	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "fromIso", this.Iso8601(since))
 	}
-	var until *int64 = this.SafeInteger(params, "until")
+	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
-	if until != nil {
+	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, "toIso", this.Iso8601(until))
 	}
 
@@ -973,10 +973,10 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(symbol, nil) {
+	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes81012 := (<-this.LoadMarkets())
 		PanicOnError(retRes81012)
@@ -985,11 +985,11 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
-	var until *int64 = this.SafeInteger(params, "until")
-	if until != nil {
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(request, "effectiveBeforeOrAt", this.Iso8601(until))
 	}
 
@@ -1013,7 +1013,7 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var entry any = GetValue(rows, i)
 		var timestamp any = this.Parse8601(this.SafeString(entry, "effectiveAt"))
-		var marketId *string = this.SafeString(entry, "ticker")
+		var marketId any = this.SafeString(entry, "ticker")
 		AppendToArray(&rates, map[string]any{
 			"info":        entry,
 			"symbol":      this.SafeSymbol(marketId, market),
@@ -1036,10 +1036,10 @@ func (this *DydxCore) HandlePublicAddress(methodName any, params any) any {
 	userparamsVariable := this.HandleOptionAndParams(params, methodName, "address", userAux)
 	user = GetValue(userparamsVariable, 0)
 	params = GetValue(userparamsVariable, 1)
-	if (!IsEqual(user, nil)) && (!IsEqual(user, "")) {
+	if IsTrue(IsTrue((!IsEqual(user, nil))) && IsTrue((!IsEqual(user, "")))) {
 		return []any{user, params}
 	}
-	if (!IsEqual(this.WalletAddress, nil)) && (!IsEqual(this.WalletAddress, "")) {
+	if IsTrue(IsTrue((!IsEqual(this.WalletAddress, nil))) && IsTrue((!IsEqual(this.WalletAddress, "")))) {
 		return []any{this.WalletAddress, params}
 	}
 	panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")))
@@ -1073,15 +1073,15 @@ func (this *DydxCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var status any = this.ParseOrderStatus(this.SafeStringUpper(order, "status"))
-	var marketId *string = this.SafeString(order, "ticker")
+	var marketId any = this.SafeString(order, "ticker")
 	var symbol any = this.SafeSymbol(marketId, market)
-	var filled *string = this.SafeString(order, "totalFilled")
+	var filled any = this.SafeString(order, "totalFilled")
 	var timestamp any = this.Parse8601(this.SafeString(order, "updatedAt"))
-	var price *string = this.SafeString(order, "price")
-	var amount *string = this.SafeString(order, "size")
+	var price any = this.SafeString(order, "price")
+	var amount any = this.SafeString(order, "size")
 	var typeVar any = this.ParseOrderType(this.SafeStringUpper(order, "type"))
-	var side *string = this.SafeStringLower(order, "side")
-	var timeInForce *string = this.SafeStringUpper(order, "timeInForce")
+	var side any = this.SafeStringLower(order, "side")
+	var timeInForce any = this.SafeStringUpper(order, "timeInForce")
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "id"),
@@ -1153,7 +1153,7 @@ func (this *DydxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes96812 := (<-this.LoadMarkets())
 		PanicOnError(retRes96812)
@@ -1206,7 +1206,7 @@ func (this *DydxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes99612 := (<-this.LoadMarkets())
 		PanicOnError(retRes99612)
@@ -1216,11 +1216,11 @@ func (this *DydxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"subaccountNumber": subAccountNumber,
 	}
 	var market any = nil
-	if !IsEqual(symbol, nil) {
+	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "ticker", GetValue(market, "id"))
 	}
-	if !IsEqual(limit, nil) {
+	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
 
@@ -1358,12 +1358,12 @@ func (this *DydxCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId *string = this.SafeString(position, "market")
+	var marketId any = this.SafeString(position, "market")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var side *string = this.SafeStringLower(position, "side")
+	var side any = this.SafeStringLower(position, "side")
 	var quantity any = this.SafeString(position, "size")
-	if side == nil || *side != "long" {
+	if IsTrue(!IsEqual(side, "long")) {
 		quantity = Precise.StringMul("-1", quantity)
 	}
 	var timestamp any = this.Parse8601(this.SafeString(position, "createdAt"))
@@ -1454,7 +1454,7 @@ func (this *DydxCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	subAccountNumberparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "subAccountNumber", "0")
 	subAccountNumber = GetValue(subAccountNumberparamsVariable, 0)
 	params = GetValue(subAccountNumberparamsVariable, 1)
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes117112 := (<-this.LoadMarkets())
 		PanicOnError(retRes117112)
@@ -1528,7 +1528,7 @@ func (this *DydxCore) SignOnboardingAction() any {
 		}},
 	}
 	var msg any = this.EthEncodeStructuredData(domain, messageTypes, message)
-	if IsEqual(this.PrivateKey, nil) || IsEqual(this.PrivateKey, "") {
+	if IsTrue(IsTrue(IsEqual(this.PrivateKey, nil)) || IsTrue(IsEqual(this.PrivateKey, ""))) {
 		panic(ArgumentsRequired(Add(this.Id, " signOnboardingAction() requires a privateKey to be set.")))
 	}
 	var signature any = this.SignMessage(msg, this.PrivateKey)
@@ -1545,11 +1545,11 @@ func (this *DydxCore) SignDydxTx(privateKey any, message any, memo any, chainId 
 }
 func (this *DydxCore) RetrieveCredentials() any {
 	var credentials any = this.SafeDict(this.Options, "dydxCredentials")
-	if !IsEqual(credentials, nil) {
+	if IsTrue(!IsEqual(credentials, nil)) {
 		return credentials
 	}
 	var privateKey any = this.SafeString(this.Options, "privateKey")
-	if IsEqual(privateKey, nil) {
+	if IsTrue(IsEqual(privateKey, nil)) {
 		var signature any = this.SignOnboardingAction()
 		privateKey = this.HashMessage(this.Base16ToBinary(Add(GetValue(signature, "r"), GetValue(signature, "s"))))
 	}
@@ -1572,15 +1572,15 @@ func (this *DydxCore) fetchDydxAccountBody(ch chan any) any {
 	retRes12718 := (<-this.LoadDydxProtos())
 	PanicOnError(retRes12718)
 	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
-	if !IsEqual(dydxAccount, nil) {
+	if IsTrue(!IsEqual(dydxAccount, nil)) {
 
 		ch <- dydxAccount
 		return nil
 	}
-	if IsEqual(this.WalletAddress, nil) {
+	if IsTrue(IsEqual(this.WalletAddress, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchDydxAccount() requires the walletAddress to be set using the dydx chain address eg: dydx1cpb4tedmwq304c2kc9pwzjwq0sc6z2a4tasxrz")))
 	}
-	if !StartsWith(this.WalletAddress, "dydx") {
+	if !IsTrue(StartsWith(this.WalletAddress, "dydx")) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchDydxAccount() requires a valid dydx chain address, starting with dydx, not the l1 address.")))
 	}
 	var request map[string]any = map[string]any{
@@ -1625,16 +1625,16 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(typeVar, nil) {
+	if IsTrue(IsEqual(typeVar, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
 	}
-	if IsEqual(side, nil) {
+	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
 	}
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	var orderType string = ToUpper(typeVar)
 	var market any = this.Market(symbol)
-	if IsEqual(side, nil) {
+	if IsTrue(IsEqual(side, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
 	}
 	var orderSide string = ToUpper(side)
@@ -1642,12 +1642,12 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	subaccountIdparamsVariable := this.HandleOptionAndParams(params, "createOrder", "subAccountId", subaccountId)
 	subaccountId = GetValue(subaccountIdparamsVariable, 0)
 	params = GetValue(subaccountIdparamsVariable, 1)
-	var triggerPrice *string = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeValue(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeValue(params, "takeProfitPrice")
-	var isConditional bool = (triggerPrice != nil) || !IsEqual(stopLossPrice, nil) || !IsEqual(takeProfitPrice, nil)
-	var isMarket bool = (orderType == "MARKET")
-	var timeInForce *string = this.SafeStringUpper(params, "timeInForce", "GTT")
+	var isConditional bool = IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLossPrice, nil))) || IsTrue(!IsEqual(takeProfitPrice, nil))
+	var isMarket bool = IsEqual(orderType, "MARKET")
+	var timeInForce any = this.SafeStringUpper(params, "timeInForce", "GTT")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var amountStr any = this.AmountToPrecision(symbol, amount)
 	var priceStr any = this.PriceToPrecision(symbol, price)
@@ -1663,71 +1663,71 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var conditionalOrderTriggerSubticks any = "0"
 	var orderFlag any = nil
 	var timeInForceNumber any = nil
-	if timeInForce != nil && *timeInForce == "FOK" {
+	if IsTrue(IsEqual(timeInForce, "FOK")) {
 		panic(InvalidOrder(Add(this.Id, " timeInForce fok has been deprecated")))
 	}
-	if orderType == "MARKET" {
+	if IsTrue(IsEqual(orderType, "MARKET")) {
 		// short-term
 		orderFlag = 0
 		clientMetadata = 1 // STOP_MARKET / TAKE_PROFIT_MARKET
-		if timeInForce != nil {
+		if IsTrue(!IsEqual(timeInForce, nil)) {
 			// default is ioc
 			timeInForceNumber = 1
 		}
-	} else if orderType == "LIMIT" {
-		if timeInForce != nil && *timeInForce == "GTT" {
+	} else if IsTrue(IsEqual(orderType, "LIMIT")) {
+		if IsTrue(IsEqual(timeInForce, "GTT")) {
 			// long-term
 			orderFlag = 64
-			if EvalTruthy(postOnly) {
+			if IsTrue(postOnly) {
 				timeInForceNumber = 2
 			} else {
 				timeInForceNumber = 0
 			}
 		} else {
 			orderFlag = 0
-			if timeInForce != nil && *timeInForce == "IOC" {
+			if IsTrue(IsEqual(timeInForce, "IOC")) {
 				timeInForceNumber = 1
 			} else {
 				panic(InvalidOrder("unexpected code path: timeInForce"))
 			}
 		}
 	}
-	if isConditional {
+	if IsTrue(isConditional) {
 		// conditional
 		orderFlag = 32
-		if !IsEqual(stopLossPrice, nil) {
+		if IsTrue(!IsEqual(stopLossPrice, nil)) {
 			conditionalType = 1
 			conditionalOrderTriggerSubticks = this.PriceToPrecision(symbol, stopLossPrice)
-		} else if !IsEqual(takeProfitPrice, nil) {
+		} else if IsTrue(!IsEqual(takeProfitPrice, nil)) {
 			conditionalType = 2
 			conditionalOrderTriggerSubticks = this.PriceToPrecision(symbol, takeProfitPrice)
 		}
 		conditionalOrderTriggerSubticks = Precise.StringMul(conditionalOrderTriggerSubticks, priceScale)
 	}
-	var latestBlockHeight *int64 = this.SafeInteger(params, "latestBlockHeight")
+	var latestBlockHeight any = this.SafeInteger(params, "latestBlockHeight")
 	var goodTillBlock any = this.SafeInteger(params, "goodTillBlock")
 	var goodTillBlockTime any = nil
 	var goodTillBlockTimeInSeconds any = 2592000
 	goodTillBlockTimeInSecondsparamsVariable := this.HandleOptionAndParams(params, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds)
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
-	if IsEqual(orderFlag, 0) {
-		if IsEqual(goodTillBlock, nil) {
+	if IsTrue(IsEqual(orderFlag, 0)) {
+		if IsTrue(IsEqual(goodTillBlock, nil)) {
 			// short term order
-			if latestBlockHeight == nil {
+			if IsTrue(IsEqual(latestBlockHeight, nil)) {
 				panic(ExchangeError(Add(this.Id, " method() missing latestBlockHeight")))
 			}
 			goodTillBlock = Add(latestBlockHeight, 20)
 		}
 	} else {
-		if IsEqual(goodTillBlockTimeInSeconds, nil) {
+		if IsTrue(IsEqual(goodTillBlockTimeInSeconds, nil)) {
 			panic(ArgumentsRequired("goodTillBlockTimeInSeconds is required."))
 		}
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSeconds)
 	}
-	var sideNumber any = Ternary((orderSide == "BUY"), 1, 2)
+	var sideNumber any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), 1, 2)
 	var defaultClientOrderId any = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
-	var clientOrderId *int64 = this.SafeInteger(params, "clientOrderId", defaultClientOrderId)
+	var clientOrderId any = this.SafeInteger(params, "clientOrderId", defaultClientOrderId)
 	var orderPayload map[string]any = map[string]any{
 		"order": map[string]any{
 			"orderId": map[string]any{
@@ -1758,16 +1758,16 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	}
 	params = this.Omit(params, []any{"reduceOnly", "reduce_only", "clientOrderId", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "latestBlockHeight", "goodTillBlock", "goodTillBlockTimeInSeconds", "subaccountId"})
 	var walletAddress any = this.GetWalletAddress()
-	var clobPairId *int64 = this.SafeInteger(marketInfo, "clobPairId", 0)
-	var subaccountIdValue any = Ternary((IsEqual(subaccountId, nil)), 0, subaccountId)
-	var clientOrderIdValue any = Ternary((clientOrderId == nil), 0, clientOrderId)
-	var orderFlagValue any = Ternary((IsEqual(orderFlag, nil)), 0, orderFlag)
-	var clobPairIdValue any = Ternary((clobPairId == nil), 0, clobPairId)
+	var clobPairId any = this.SafeInteger(marketInfo, "clobPairId", 0)
+	var subaccountIdValue any = Ternary(IsTrue((IsEqual(subaccountId, nil))), 0, subaccountId)
+	var clientOrderIdValue any = Ternary(IsTrue((IsEqual(clientOrderId, nil))), 0, clientOrderId)
+	var orderFlagValue any = Ternary(IsTrue((IsEqual(orderFlag, nil))), 0, orderFlag)
+	var clobPairIdValue any = Ternary(IsTrue((IsEqual(clobPairId, nil))), 0, clobPairId)
 	var orderId any = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, params)}
 }
 func (this *DydxCore) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) any {
-	var nameSp *string = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
+	var nameSp any = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var prefixAddress any = Add(Add(address, "-"), ToString(subAccountNumber))
 	var prefix any = this.Uuid5(nameSp, prefixAddress)
 	var orderInfo any = Add(Add(Add(Add(Add(Add(prefix, "-"), this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
@@ -1802,8 +1802,8 @@ func (this *DydxCore) fetchLatestBlockHeightBody(ch chan any, optionalArgs ...an
 	//
 	var result any = this.SafeDict(response, "result")
 	var info any = this.SafeDict(result, "response")
-	var height *int64 = this.SafeInteger(info, "last_block_height")
-	if height == nil {
+	var height any = this.SafeInteger(info, "last_block_height")
+	if IsTrue(IsEqual(height, nil)) {
 		panic(ExchangeError(Add(this.Id, " fetchLatestBlockHeight() could not parse last_block_height")))
 	}
 
@@ -1845,7 +1845,7 @@ func (this *DydxCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes151412 := (<-this.LoadMarkets())
 		PanicOnError(retRes151412)
@@ -1926,21 +1926,21 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
 	params = this.Omit(params, []any{"trigger", "stop"})
-	if !EvalTruthy(isTrigger) && (IsEqual(symbol, nil)) {
+	if IsTrue(!IsTrue(isTrigger) && IsTrue((IsEqual(symbol, nil)))) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes157512 := (<-this.LoadMarkets())
 		PanicOnError(retRes157512)
 	}
 	var market any = this.Market(symbol)
-	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "clientId", id)
-	if clientOrderId == nil {
+	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId", id)
+	if IsTrue(IsEqual(clientOrderId, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")))
 	}
 	var idString string = ToString(id)
-	if !IsEqual(id, nil) && IsGreaterThan(GetIndexOf(idString, "-"), OpNeg(1)) {
+	if IsTrue(IsTrue(!IsEqual(id, nil)) && IsTrue(IsGreaterThan(GetIndexOf(idString, "-"), OpNeg(1)))) {
 		panic(NotSupported(Add(this.Id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")))
 	}
 	var goodTillBlock any = this.SafeInteger(params, "goodTillBlock")
@@ -1949,26 +1949,26 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	goodTillBlockTimeInSeconds = GetValue(goodTillBlockTimeInSecondsparamsVariable, 0)
 	params = GetValue(goodTillBlockTimeInSecondsparamsVariable, 1) // default is 30 days
 	var goodTillBlockTime any = nil
-	var defaultOrderFlags any = Ternary(EvalTruthy((isTrigger)), 32, 64)
-	var orderFlags *int64 = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
+	var defaultOrderFlags any = Ternary(IsTrue((isTrigger)), 32, 64)
+	var orderFlags any = this.SafeInteger(params, "orderFlags", defaultOrderFlags)
 	var subAccountId any = 0
 	subAccountIdparamsVariable := this.HandleOptionAndParams(params, "cancelOrder", "subAccountId", subAccountId)
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = GetValue(subAccountIdparamsVariable, 1)
 	params = this.Omit(params, []any{"clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId"})
-	if (orderFlags == nil || *orderFlags != 0) && (orderFlags == nil || *orderFlags != 64) && (orderFlags == nil || *orderFlags != 32) {
+	if IsTrue(IsTrue(IsTrue(!IsEqual(orderFlags, 0)) && IsTrue(!IsEqual(orderFlags, 64))) && IsTrue(!IsEqual(orderFlags, 32))) {
 		panic(InvalidOrder(Add(this.Id, " invalid orderFlags, allowed values are (0, 64, 32).")))
 	}
-	if IsGreaterThan(orderFlags, 0) {
-		if IsEqual(goodTillBlockTimeInSeconds, nil) {
+	if IsTrue(IsGreaterThan(orderFlags, 0)) {
+		if IsTrue(IsEqual(goodTillBlockTimeInSeconds, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " goodTillBlockTimeInSeconds is required in params for long term or conditional order.")))
 		}
-		if !IsEqual(goodTillBlock, nil) && IsGreaterThan(goodTillBlock, 0) {
+		if IsTrue(IsTrue(!IsEqual(goodTillBlock, nil)) && IsTrue(IsGreaterThan(goodTillBlock, 0))) {
 			panic(InvalidOrder(Add(this.Id, " goodTillBlock should be 0 for long term or conditional order.")))
 		}
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSeconds)
 	} else {
-		if IsEqual(goodTillBlock, nil) {
+		if IsTrue(IsEqual(goodTillBlock, nil)) {
 
 			latestBlockHeight := (<-this.FetchLatestBlockHeight())
 			PanicOnError(latestBlockHeight)
@@ -2049,14 +2049,14 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes167012 := (<-this.LoadMarkets())
 		PanicOnError(retRes167012)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
-	if !EvalTruthy(clientOrderIds) {
+	if IsTrue(IsEqual(clientOrderIds, nil)) {
 		panic(NotSupported(Add(this.Id, " cancelOrders only support clientOrderIds.")))
 	}
 	var subAccountId any = 0
@@ -2064,7 +2064,7 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	subAccountId = GetValue(subAccountIdparamsVariable, 0)
 	params = GetValue(subAccountIdparamsVariable, 1)
 	var goodTillBlock any = this.SafeInteger(params, "goodTillBlock")
-	if IsEqual(goodTillBlock, nil) {
+	if IsTrue(IsEqual(goodTillBlock, nil)) {
 
 		latestBlockHeight := (<-this.FetchLatestBlockHeight())
 		PanicOnError(latestBlockHeight)
@@ -2143,7 +2143,7 @@ func (this *DydxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes174112 := (<-this.LoadMarkets())
 		PanicOnError(retRes174112)
@@ -2197,19 +2197,19 @@ func (this *DydxCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var currencyId *string = this.SafeString(item, "symbol")
+	var currencyId any = this.SafeString(item, "symbol")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	currency = this.SafeCurrency(currencyId, currency)
-	var typeVar *string = this.SafeStringUpper(item, "type")
+	var typeVar any = this.SafeStringUpper(item, "type")
 	var direction any = nil
-	if typeVar != nil {
-		if (typeVar != nil && *typeVar == "TRANSFER_IN") || (typeVar != nil && *typeVar == "DEPOSIT") {
+	if IsTrue(!IsEqual(typeVar, nil)) {
+		if IsTrue(IsTrue(IsEqual(typeVar, "TRANSFER_IN")) || IsTrue(IsEqual(typeVar, "DEPOSIT"))) {
 			direction = "in"
-		} else if (typeVar != nil && *typeVar == "TRANSFER_OUT") || (typeVar != nil && *typeVar == "WITHDRAWAL") {
+		} else if IsTrue(IsTrue(IsEqual(typeVar, "TRANSFER_OUT")) || IsTrue(IsEqual(typeVar, "WITHDRAWAL"))) {
 			direction = "out"
 		}
 	}
-	var amount *string = this.SafeString(item, "size")
+	var amount any = this.SafeString(item, "size")
 	var timestamp any = this.Parse8601(this.SafeString(item, "createdAt"))
 	var sender any = this.SafeDict(item, "sender")
 	var recipient any = this.SafeDict(item, "recipient")
@@ -2270,13 +2270,13 @@ func (this *DydxCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes184712 := (<-this.LoadMarkets())
 		PanicOnError(retRes184712)
 	}
 	var currency any = nil
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
 
@@ -2312,19 +2312,19 @@ func (this *DydxCore) estimateTxFeeBody(ch chan any, message any, memo any, acco
 	// }
 	//
 	var gasInfo any = this.SafeDict(response, "gas_info")
-	if IsEqual(gasInfo, nil) {
+	if IsTrue(IsEqual(gasInfo, nil)) {
 		panic(ExchangeError(Add(this.Id, " failed to simulate transaction.")))
 	}
-	var gasUsed *string = this.SafeString(gasInfo, "gas_used")
-	if gasUsed == nil {
+	var gasUsed any = this.SafeString(gasInfo, "gas_used")
+	if IsTrue(IsEqual(gasUsed, nil)) {
 		panic(ExchangeError(Add(this.Id, " failed to simulate transaction.")))
 	}
-	var defaultFeeDenom *string = this.SafeString(this.Options, "defaultFeeDenom")
-	var defaultFeeMultiplier *string = this.SafeString(this.Options, "defaultFeeMultiplier")
+	var defaultFeeDenom any = this.SafeString(this.Options, "defaultFeeDenom")
+	var defaultFeeMultiplier any = this.SafeString(this.Options, "defaultFeeMultiplier")
 	var feeDenom any = this.SafeDict(this.Options, "feeDenom", map[string]any{})
 	var gasPrice any = nil
 	var denom any = nil
-	if defaultFeeDenom != nil && *defaultFeeDenom == "uusdc" {
+	if IsTrue(IsEqual(defaultFeeDenom, "uusdc")) {
 		gasPrice = GetValue(feeDenom, "USDC_GAS_PRICE")
 		denom = GetValue(feeDenom, "USDC_DENOM")
 	} else {
@@ -2333,10 +2333,10 @@ func (this *DydxCore) estimateTxFeeBody(ch chan any, message any, memo any, acco
 	}
 	var gasLimit float64 = MathCeil(this.ParseToNumeric(Precise.StringMul(gasUsed, defaultFeeMultiplier)))
 	var feeAmount any = Precise.StringMul(this.NumberToString(gasLimit), gasPrice)
-	if IsEqual(feeAmount, nil) {
+	if IsTrue(IsEqual(feeAmount, nil)) {
 		panic(ExchangeError(Add(this.Id, " estimateTxFee() missing feeAmount")))
 	}
-	if IsGreaterThanOrEqual(GetIndexOf(feeAmount, "."), 0) {
+	if IsTrue(IsGreaterThanOrEqual(GetIndexOf(feeAmount, "."), 0)) {
 		feeAmount = this.NumberToString(MathCeil(this.ParseToNumeric(feeAmount)))
 	}
 	var feeObj map[string]any = map[string]any{
@@ -2373,22 +2373,22 @@ func (this *DydxCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !IsEqual(code, "USDC") {
+	if IsTrue(!IsEqual(code, "USDC")) {
 		panic(NotSupported(Add(this.Id, " transfer() only support USDC")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes192612 := (<-this.LoadMarkets())
 		PanicOnError(retRes192612)
 	}
-	var fromSubaccountId *int64 = this.SafeInteger(params, "fromSubaccountId")
-	var toSubaccountId *int64 = this.SafeInteger(params, "toSubaccountId")
-	if !IsEqual(fromAccount, "main") {
+	var fromSubaccountId any = this.SafeInteger(params, "fromSubaccountId")
+	var toSubaccountId any = this.SafeInteger(params, "toSubaccountId")
+	if IsTrue(!IsEqual(fromAccount, "main")) {
 		// throw error if from subaccount id is undefined
-		if IsEqual(fromAccount, nil) {
+		if IsTrue(IsEqual(fromAccount, nil)) {
 			panic(NotSupported(Add(this.Id, " transfer only support main > subaccount and subaccount <> subaccount.")))
 		}
-		if (fromSubaccountId == nil) || (toSubaccountId == nil) {
+		if IsTrue(IsTrue(IsEqual(fromSubaccountId, nil)) || IsTrue(IsEqual(toSubaccountId, nil))) {
 			panic(ArgumentsRequired(Add(this.Id, " transfer requires fromSubaccountId and toSubaccountId.")))
 		}
 	}
@@ -2400,9 +2400,9 @@ func (this *DydxCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	var usd any = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
 	var payload any = nil
 	var signingPayload any = nil
-	if IsEqual(fromAccount, "main") {
+	if IsTrue(IsEqual(fromAccount, "main")) {
 		// deposit to subaccount
-		if toSubaccountId == nil {
+		if IsTrue(IsEqual(toSubaccountId, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " transfer() requeire toSubaccoutnId.")))
 		}
 		payload = map[string]any{
@@ -2489,14 +2489,14 @@ func (this *DydxCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id *string = this.SafeString(transfer, "id")
-	var currencyId *string = this.SafeString(transfer, "symbol")
+	var id any = this.SafeString(transfer, "id")
+	var currencyId any = this.SafeString(transfer, "symbol")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var amount any = this.SafeNumber(transfer, "size")
 	var sender any = this.SafeDict(transfer, "sender")
 	var recipient any = this.SafeDict(transfer, "recipient")
-	var fromAccount *string = this.SafeString(sender, "address")
-	var toAccount *string = this.SafeString(recipient, "address")
+	var fromAccount any = this.SafeString(sender, "address")
+	var toAccount any = this.SafeString(recipient, "address")
 	var timestamp any = this.Parse8601(this.SafeString(transfer, "createdAt"))
 	return map[string]any{
 		"info":        transfer,
@@ -2540,13 +2540,13 @@ func (this *DydxCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes206412 := (<-this.LoadMarkets())
 		PanicOnError(retRes206412)
 	}
 	var currency any = nil
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
 
@@ -2583,13 +2583,13 @@ func (this *DydxCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id *string = this.SafeString(transaction, "id")
+	var id any = this.SafeString(transaction, "id")
 	var sender any = this.SafeDict(transaction, "sender")
 	var recipient any = this.SafeDict(transaction, "recipient")
-	var addressTo *string = this.SafeString(recipient, "address")
-	var addressFrom *string = this.SafeString(sender, "address")
-	var txid *string = this.SafeString(transaction, "transactionHash")
-	var currencyId *string = this.SafeString(transaction, "symbol")
+	var addressTo any = this.SafeString(recipient, "address")
+	var addressFrom any = this.SafeString(sender, "address")
+	var txid any = this.SafeString(transaction, "transactionHash")
+	var currencyId any = this.SafeString(transaction, "symbol")
 	var code any = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp any = this.Parse8601(this.SafeString(transaction, "createdAt"))
 	var amount any = this.SafeNumber(transaction, "size")
@@ -2640,17 +2640,17 @@ func (this *DydxCore) withdrawBody(ch chan any, code any, amount any, address an
 	_ = tag
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if !IsEqual(code, "USDC") {
+	if IsTrue(!IsEqual(code, "USDC")) {
 		panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
 	}
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes214712 := (<-this.LoadMarkets())
 		PanicOnError(retRes214712)
 	}
 	this.CheckAddress(address)
-	var subaccountId *int64 = this.SafeInteger(params, "subaccountId")
-	if subaccountId == nil {
+	var subaccountId any = this.SafeInteger(params, "subaccountId")
+	if IsTrue(IsEqual(subaccountId, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " withdraw requires subaccountId.")))
 	}
 	params = this.Omit(params, []any{"subaccountId"})
@@ -2733,13 +2733,13 @@ func (this *DydxCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes221212 := (<-this.LoadMarkets())
 		PanicOnError(retRes221212)
 	}
 	var currency any = nil
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
 
@@ -2782,13 +2782,13 @@ func (this *DydxCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes223812 := (<-this.LoadMarkets())
 		PanicOnError(retRes223812)
 	}
 	var currency any = nil
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
 
@@ -2831,13 +2831,13 @@ func (this *DydxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes226412 := (<-this.LoadMarkets())
 		PanicOnError(retRes226412)
 	}
 	var currency any = nil
-	if !IsEqual(code, nil) {
+	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
 	}
 
@@ -2868,7 +2868,7 @@ func (this *DydxCore) fetchTransactionsHelperBody(ch chan any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var methodName *string = this.SafeString(params, "methodName")
+	var methodName any = this.SafeString(params, "methodName")
 	params = this.Omit(params, "methodName")
 	var userAddress any = nil
 	var subAccountNumber any = nil
@@ -2990,7 +2990,7 @@ func (this *DydxCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var account any = GetValue(rows, i)
-		var accountId *string = this.SafeString(account, "subaccountNumber")
+		var accountId any = this.SafeString(account, "subaccountNumber")
 		AppendToArray(&result, map[string]any{
 			"id":       accountId,
 			"type":     nil,
@@ -3022,7 +3022,7 @@ func (this *DydxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsEqual(this.Markets, nil) {
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes240112 := (<-this.LoadMarkets())
 		PanicOnError(retRes240112)
@@ -3120,14 +3120,14 @@ func (this *DydxCore) Nonce() any {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
 }
 func (this *DydxCore) GetWalletAddress() any {
-	if !IsEqual(this.WalletAddress, nil) && !IsEqual(this.WalletAddress, "") {
+	if IsTrue(IsTrue(!IsEqual(this.WalletAddress, nil)) && IsTrue(!IsEqual(this.WalletAddress, ""))) {
 		return this.WalletAddress
 	}
 	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
-	if !IsEqual(dydxAccount, nil) {
+	if IsTrue(!IsEqual(dydxAccount, nil)) {
 		// return dydxAccount;
-		var wallet *string = this.SafeString(dydxAccount, "address")
-		if wallet != nil {
+		var wallet any = this.SafeString(dydxAccount, "address")
+		if IsTrue(!IsEqual(wallet, nil)) {
 			return wallet
 		}
 	}
@@ -3149,8 +3149,8 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Omit(params, this.ExtractParams(path))
 	params = this.Keysort(params)
 	url = Add(url, Add("/", pathWithParams))
-	if IsEqual(method, "GET") {
-		if EvalTruthy(GetArrayLength(ObjectKeys(params))) {
+	if IsTrue(IsEqual(method, "GET")) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
@@ -3167,7 +3167,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *DydxCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if !EvalTruthy(response) {
+	if !IsTrue(response) {
 		return nil // fallback to default error handler
 	}
 	//
@@ -3178,13 +3178,13 @@ func (this *DydxCore) HandleErrors(httpCode any, reason any, url any, method any
 	// { "code": 123 }
 	//
 	var result any = this.SafeDict(response, "result")
-	var errorCode *string = this.SafeString(result, "code")
-	if !(errorCode != nil && *errorCode != "") {
+	var errorCode any = this.SafeString(result, "code")
+	if IsTrue(IsTrue((IsEqual(errorCode, nil))) || IsTrue((IsEqual(errorCode, "")))) {
 		errorCode = this.SafeString(response, "code")
 	}
-	if errorCode != nil && *errorCode != "" {
+	if IsTrue(IsTrue((!IsEqual(errorCode, nil))) && IsTrue((!IsEqual(errorCode, "")))) {
 		var errorCodeNum any = this.ParseToNumeric(errorCode)
-		if IsGreaterThan(errorCodeNum, 0) {
+		if IsTrue(IsGreaterThan(errorCodeNum, 0)) {
 			var feedback any = Add(Add(this.Id, " "), this.Json(response))
 			this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 			this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), body, feedback)

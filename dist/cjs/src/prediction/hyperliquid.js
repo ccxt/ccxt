@@ -205,7 +205,7 @@ class hyperliquid extends hyperliquid$1["default"] {
      * @returns {object} a dict of the parsed key/value pairs
      */
     parseOutcomeDescription(description) {
-        if (!description) {
+        if ((description === undefined) || (description === '')) {
             return {};
         }
         const parts = description.split('|');
@@ -239,10 +239,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         const expiryDate = expiry ? expiry.split('-')[0] : '';
         const label = (side === 0) ? 'YES' : 'NO';
         let base = underlying.toUpperCase();
-        if (targetPrice) {
+        if ((targetPrice !== undefined) && (targetPrice !== '')) {
             base = base + '_ABOVE_' + targetPrice;
         }
-        if (expiryDate) {
+        if ((expiryDate !== undefined) && (expiryDate !== '')) {
             base = base + '_' + expiryDate;
         }
         return base + ':' + label;
@@ -260,21 +260,21 @@ class hyperliquid extends hyperliquid$1["default"] {
      */
     buildOutcomeParentSymbol(desc, outcomeId, name = '', question = {}) {
         const underlying = this.safeString(desc, 'underlying');
-        if (underlying) {
+        if ((underlying !== undefined) && (underlying !== '')) {
             const targetPrice = this.safeString(desc, 'targetPrice');
             const expiry = this.safeString(desc, 'expiry', '');
             const expiryDate = expiry ? expiry.split('-')[0] : '';
             let base = underlying.toUpperCase();
-            if (targetPrice) {
+            if ((targetPrice !== undefined) && (targetPrice !== '')) {
                 base = base + '_ABOVE_' + targetPrice;
             }
-            if (expiryDate) {
+            if ((expiryDate !== undefined) && (expiryDate !== '')) {
                 base = base + '_' + expiryDate;
             }
             return base;
         }
         const questionDescription = this.safeString(question, 'description');
-        if (questionDescription) {
+        if ((questionDescription !== undefined) && (questionDescription !== '')) {
             const questionDesc = this.parseOutcomeDescription(questionDescription);
             const questionClass = this.safeStringLower(questionDesc, 'class');
             if (questionClass === 'pricebucket') {
@@ -309,7 +309,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index];
                         }
                         let base = questionUnderlying.toUpperCase() + '_' + bucketLabel;
-                        if (expiryDate) {
+                        if ((expiryDate !== undefined) && (expiryDate !== '')) {
                             base = base + '_' + expiryDate;
                         }
                         return base;
@@ -318,7 +318,7 @@ class hyperliquid extends hyperliquid$1["default"] {
                 const isFallbackLike = (rawDescription === 'other') || (nameLower.indexOf('fallback') >= 0) || (nameLower.indexOf('other') >= 0);
                 if (questionUnderlying && isFallbackLike) {
                     let base = questionUnderlying.toUpperCase() + '_OTHER';
-                    if (expiryDate) {
+                    if ((expiryDate !== undefined) && (expiryDate !== '')) {
                         base = base + '_' + expiryDate;
                     }
                     return base;
@@ -326,9 +326,9 @@ class hyperliquid extends hyperliquid$1["default"] {
             }
         }
         const questionName = this.safeString(question, 'name');
-        if (questionName) {
+        if ((questionName !== undefined) && (questionName !== '')) {
             const questionSlug = this.shortenSlug(questionName);
-            if (questionSlug) {
+            if ((questionSlug !== undefined) && (questionSlug !== '')) {
                 let outcomeSlug = this.shortenSlug(name);
                 const genericOutcomeNames = {
                     'RECURRING': true,
@@ -343,14 +343,14 @@ class hyperliquid extends hyperliquid$1["default"] {
                         outcomeSlug = '';
                     }
                 }
-                if (outcomeSlug) {
+                if ((outcomeSlug !== undefined) && (outcomeSlug !== '')) {
                     return questionSlug + '_' + outcomeSlug + '_' + outcomeId.toString();
                 }
                 return questionSlug + '_' + outcomeId.toString();
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (name) {
+        if ((name !== undefined) && (name !== '')) {
             return this.shortenSlug(name) + '_' + outcomeId.toString();
         }
         return 'OUTCOME_' + outcomeId.toString();
@@ -467,7 +467,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const expiry = this.safeString(desc, 'expiry');
         let expiryMs = undefined;
         let expiryDatetime = undefined;
-        if (expiry) {
+        if ((expiry !== undefined) && (expiry !== '')) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             const expParts = expiry.split('-');
             const expPartsLength = expParts.length;
@@ -1116,7 +1116,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         return this.safeDict(outcomesList, 0, {});
     }
     parseOutcomeInputSideHint(outcomeInput) {
-        if (!outcomeInput) {
+        if ((outcomeInput === undefined) || (outcomeInput === '')) {
             return undefined;
         }
         const colonIndex = outcomeInput.indexOf(':');
@@ -1951,7 +1951,7 @@ class hyperliquid extends hyperliquid$1["default"] {
         const expiryRaw = this.safeString(desc, 'expiry');
         let expiryMs = undefined;
         let expiryDatetime = undefined;
-        if (expiryRaw) {
+        if ((expiryRaw !== undefined) && (expiryRaw !== '')) {
             const parts = expiryRaw.split('-');
             const partsLength = parts.length;
             if (partsLength >= 1 && parts[0].length === 8) {
@@ -1966,10 +1966,10 @@ class hyperliquid extends hyperliquid$1["default"] {
         let title = parentSymbol;
         if (underlying !== undefined) {
             let titleSuffix = '';
-            if (targetPrice) {
+            if ((targetPrice !== undefined) && (targetPrice !== '')) {
                 titleSuffix = titleSuffix + ' ABOVE ' + targetPrice;
             }
-            if (expiryRaw) {
+            if ((expiryRaw !== undefined) && (expiryRaw !== '')) {
                 titleSuffix = titleSuffix + ' @ ' + expiryRaw;
             }
             title = underlying + titleSuffix;

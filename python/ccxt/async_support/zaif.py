@@ -521,7 +521,7 @@ class zaif(Exchange, ImplicitAPI):
         numTrades = len(trades)
         if numTrades == 1:
             firstTrade = self.safe_dict(trades, 0, {})
-            if not firstTrade:
+            if len(firstTrade) == 0:
                 trades = []
         return self.parse_trades(trades, market, since, limit)
 

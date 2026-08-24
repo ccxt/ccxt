@@ -729,7 +729,7 @@ class phemex extends Exchange {
         $contractSize = null;
         if ($settle === 'USDT') {
             $contractSize = $this->parse_number('1');
-        } elseif (mb_strpos($contractSizeString, ' ')) {
+        } elseif (mb_strpos($contractSizeString, ' ') !== -1) {
             // "1 USD"
             // "0.005 ETH"
             $parts = explode(' ', $contractSizeString);
@@ -4806,7 +4806,7 @@ class phemex extends Exchange {
         $url = $requestPath;
         $queryString = '';
         if (($method === 'GET') || ($method === 'DELETE') || ($method === 'PUT') || ($url === '/positions/assign')) {
-            if ($query) {
+            if (count($query) > 0) {
                 $queryString = $this->urlencode_with_array_repeat($query);
                 $url .= '?' . $queryString;
             }

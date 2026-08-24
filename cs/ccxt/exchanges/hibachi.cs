@@ -1000,7 +1000,7 @@ public partial class hibachi : Exchange
             sideInternal = "BID";
         }
         object priceInternal = "";
-        if (isTrue(price))
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(price, 0)))))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }

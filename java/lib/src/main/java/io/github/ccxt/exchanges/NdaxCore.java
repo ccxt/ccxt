@@ -1560,7 +1560,7 @@ public class NdaxCore extends NdaxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            if (!Helpers.isTrue(this.login))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.login, null))) || Helpers.isTrue((Helpers.isEqual(this.login, "")))))
             {
                 throw new AuthenticationError((String)Helpers.add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
             }
@@ -3278,7 +3278,7 @@ public class NdaxCore extends NdaxApi
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -3311,7 +3311,7 @@ public class NdaxCore extends NdaxApi
                 body = this.json(query);
             } else
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

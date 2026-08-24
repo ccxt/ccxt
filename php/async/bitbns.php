@@ -1332,11 +1332,11 @@ class bitbns extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($method === 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $body = $this->json($query);
             } else {
                 $body = '{}';

@@ -2169,7 +2169,7 @@ public partial class bitso : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 endpoint = add(endpoint, add("?", this.urlencode(query)));
             }
@@ -2184,7 +2184,7 @@ public partial class bitso : Exchange
             object request = String.Join("", ((IList<object>)content).ToArray());
             if (isTrue(isTrue(!isEqual(method, "GET")) && isTrue(!isEqual(method, "DELETE"))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     request = add(request, body);

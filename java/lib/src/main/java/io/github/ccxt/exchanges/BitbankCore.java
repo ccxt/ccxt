@@ -1316,7 +1316,7 @@ public class BitbankCore extends BitbankApi
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "public"))) || Helpers.isTrue((Helpers.isEqual(api, "markets")))))
         {
             url = Helpers.add(url, this.implodeParams(path, parameters));
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -1348,7 +1348,7 @@ public class BitbankCore extends BitbankApi
             } else
             {
                 auth = Helpers.add(auth, Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), path));
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     query = this.urlencode(query);
                     url = Helpers.add(url, Helpers.add("?", query));

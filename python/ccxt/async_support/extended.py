@@ -3360,6 +3360,6 @@ class extended(Exchange, ImplicitAPI):
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
         url = url + '/api/' + version + endpoint
-        if (method == 'GET' or method == 'DELETE' or queryPost) and query:
+        if (method == 'GET' or method == 'DELETE' or queryPost) and len(query):
             url += '?' + self.urlencode_with_array_repeat(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

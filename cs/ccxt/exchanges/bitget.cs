@@ -13408,7 +13408,7 @@ public partial class bitget : Exchange
                 auth = add(auth, body);
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     object sortedParams = this.keysort(parameters);
                     object queryInner = add("?", this.urlencode(sortedParams, true));

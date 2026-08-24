@@ -138,7 +138,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbols = $this->market_symbols($symbols);
         $topics = array();
         $messageHashes = array();
-        if (!$limit) {
+        if (($limit === null) || ($limit === 0)) {
             $limit = 50;
         }
         $topicParams = $this->safe_value($params, 'params');

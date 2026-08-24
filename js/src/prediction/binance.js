@@ -365,7 +365,7 @@ export default class binance extends Exchange {
         const eventId = this.safeString(params, 'eventId');
         const l1Category = this.safeString(params, 'l1Category');
         const l2Category = this.safeString(params, 'l2Category');
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         let rawTopics = [];

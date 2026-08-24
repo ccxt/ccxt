@@ -3381,7 +3381,7 @@ export default class lighter extends Exchange {
                 'Authorization': this.createAuth (params),
             };
         }
-        if (Object.keys (params).length) {
+        if (Object.keys (params).length > 0) {
             if (method === 'POST') {
                 headers = {
                     'Content-Type': 'multipart/form-data',

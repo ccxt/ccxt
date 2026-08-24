@@ -1566,7 +1566,7 @@ public class BitflyerCore extends BitflyerApi
         request = Helpers.add(request, path);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -1579,7 +1579,7 @@ public class BitflyerCore extends BitflyerApi
             Object nonce = String.valueOf(this.nonce());
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(nonce, method, request));
             Object auth = String.join((String)"", (java.util.List<String>)content);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {

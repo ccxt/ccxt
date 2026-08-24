@@ -423,7 +423,7 @@ public partial class binance : PredictionExchange
         object eventId = this.safeString(parameters, "eventId");
         object l1Category = this.safeString(parameters, "l1Category");
         object l2Category = this.safeString(parameters, "l2Category");
-        if (!isTrue(this.markets))
+        if (isTrue(isEqual(this.markets, null)))
         {
             this.markets = this.createSafeDictionary();
         }

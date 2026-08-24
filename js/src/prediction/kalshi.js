@@ -274,7 +274,7 @@ export default class kalshi extends Exchange {
                 for (let j = 0; j < parsed.length; j++) {
                     const m = parsed[j];
                     flatMarkets.push(m);
-                    if (eventKey) {
+                    if ((eventKey !== undefined) && (eventKey !== '')) {
                         if (!(eventKey in eventsDict)) {
                             eventsDict[eventKey] = {
                                 'id': eventTicker,
@@ -563,7 +563,7 @@ export default class kalshi extends Exchange {
         const openInt = this.safeNumber2(raw, 'open_interest_fp', 'open_interest');
         // Derive series ticker: drop last hyphen-segment from event_ticker
         let eventParts = [];
-        if (eventTicker) {
+        if ((eventTicker !== undefined) && (eventTicker !== '')) {
             eventParts = eventTicker.split('-');
         }
         let seriesTicker = eventTicker;
@@ -2166,7 +2166,7 @@ export default class kalshi extends Exchange {
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
         const rest = this.omit(params, ['status', 'limit', 'maxPages', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'category', 'series_ticker']);
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const eventId = this.safeString2(params, 'eventId', 'slug');

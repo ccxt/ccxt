@@ -1300,7 +1300,7 @@ class coinmate extends Exchange {
             'orderId' => $id,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
         }
         $response = Async\await($this->privatePostOrderById($this->extend($request, $params)));
@@ -1347,7 +1347,7 @@ class coinmate extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = ($this->urls['api'])['rest'] . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {

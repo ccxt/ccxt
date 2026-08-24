@@ -418,7 +418,7 @@ public partial class limitless : PredictionExchange
             object eventKey = ((bool) isTrue(groupId)) ? this.shortenSlug(groupId) : null;
             object m = this.parseMarket(raw);
             ((IList<object>)markets).Add(m);
-            if (isTrue(eventKey))
+            if (isTrue(isTrue((!isEqual(eventKey, null))) && isTrue((!isEqual(eventKey, "")))))
             {
                 if (!isTrue((inOp(eventGroups, eventKey))))
                 {
@@ -3343,11 +3343,11 @@ public partial class limitless : PredictionExchange
                 ((IList<object>)rawMarkets).Add(getValue(listRaw, i));
             }
         }
-        if (!isTrue(this.events))
+        if (isTrue(isEqual(this.events, null)))
         {
             this.events = new Dictionary<string, object>() {};
         }
-        if (!isTrue(this.markets))
+        if (isTrue(isEqual(this.markets, null)))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -3367,7 +3367,7 @@ public partial class limitless : PredictionExchange
                 throw new ExchangeError ((string)add(this.id, " fetchEvents() missing m")) ;
             }
             ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
-            if (isTrue(eventKey))
+            if (isTrue(isTrue((!isEqual(eventKey, null))) && isTrue((!isEqual(eventKey, "")))))
             {
                 if (!isTrue((inOp(eventGroups, eventKey))))
                 {
