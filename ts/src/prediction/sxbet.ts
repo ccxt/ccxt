@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { ROUND, DECIMAL_PLACES, TICK_SIZE } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OperationRejected, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded } from '../base/errors.js';
+import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type { Balances, Dict, Int, int, Market, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -171,7 +171,6 @@ export default class sxbet extends Exchange {
                     'INVALID_USER': AuthenticationError,   // live-verified v3: the x-sx-api-key does not belong to a registered user on the target network
                     'BAD_AUTH': AuthenticationError,   // live-verified v3: missing or malformed x-sx-api-key
                     'ERC20_PERMIT_BAD_SPENDER': BadRequest,   // live-verified v3: transfer-to-proxy permit signed for the wrong executor
-                    'AFTER_ORDER_EXPIRY': OrderNotFillable,   // a targeted order expired before the fill
                     'BASE_TOKENS_NOT_SAME': BadRequest,
                     'MARKETS_NOT_SAME': BadRequest,
                     'DIRECTIONS_NOT_SAME': BadRequest,
@@ -179,18 +178,8 @@ export default class sxbet extends Exchange {
                     'INVALID_ODDS': InvalidOrder,   // desiredOdds must be below 10^20
                     'PERCENTAGEODDS_UNDEFINED_OR_MALFORMED': InvalidOrder,   // live-verified: maker percentageOdds above the 10^20 cap (price > 1) or malformed
                     'TOTAL_BET_SIZE_TOO_LOW': InvalidOrder,   // live-verified: stake below the venue's minimum bet size
-                    'INVALID_ODDS_SLIPPAGE': BadRequest,   // integer 0-100
                     'MATCH_STATE_INVALID': MarketClosed,   // fixture not available for betting
-                    'TAKER_SIGNATURE_MISMATCH': InvalidOrder,
-                    'SIGNATURE_MISMATCH': InvalidOrder,   // cancel payload signature failed verification
                     'PROXY_ACCOUNT_INVALID': BadRequest,
-                    'TAKER_AMOUNT_TOO_LOW': InvalidOrder,   // below the token's taker minimum
-                    'META_TX_RATE_LIMIT_REACHED': RateLimitExceeded,   // max 10 pending meta transactions
-                    'INSUFFICIENT_SPACE': OrderNotFillable,   // remaining maker space consumed by pending fills
-                    'FILL_ALREADY_SUBMITTED': DuplicateOrderId,
-                    'ODDS_STALE': OrderNotFillable,   // nothing resting within desiredOdds + oddsSlippage
-                    'NO_MATCHING_ORDERS': OrderNotFillable,   // observed live: no fillable liquidity (e.g. self-trade)
-                    'CANCEL_REQUEST_ALREADY_PROCESSED': OperationRejected,
                     'RATE_LIMIT_ORDER_REQUEST_MARKET_COUNT': BadRequest,   // more than 1000 marketHashes queried
                     'BOTH_SPORTXEVENTID_MARKETHASHES_PRESENT': BadRequest,
                     'BAD_MARKET_HASHES': BadRequest,   // invalid or more than 30 hashes on /markets/find
