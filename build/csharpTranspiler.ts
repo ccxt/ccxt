@@ -288,7 +288,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchPositionsRisk': 'List<Position>',
     'fetchPositionsWs': 'List<Position>',
     'fetchPremiumIndexOHLCV': 'List<OHLCV>',
-    'fetchRestOrderBookSafe': 'OrderBook',
+    // fetchRestOrderBookSafe is deliberately NOT typed: its result is consumed, not
+    // terminal. Exchange.WsBridge.cs feeds it to getCacheIndex() and stored.reset(),
+    // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
+    // produced an empty book (3 binance watchOrderBook static-ws failures).
     'fetchSettlements': 'List<PredictionSettlement>',
     'fetchSpotBalance': 'Balances',
     'fetchSpotMarkets': 'List<MarketInterface>',
