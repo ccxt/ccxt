@@ -231,20 +231,8 @@ public partial class BaseExchange
             if (method == "GET")
             {
                 request.Method = HttpMethod.Get;
-                if (this.Profile)
-                {
-                    // wire-only window: send + body read, excluding request construction,
-                    // header assembly, JSON decode and the rest of the fetch() wrapper
-                    var __wire = System.Diagnostics.Stopwatch.StartNew();
-                    response = await httpClient.SendAsync(request);
-                    result = await response.Content.ReadAsStringAsync();
-                    this.ProfileWireMs += __wire.Elapsed.TotalMilliseconds;
-                }
-                else
-                {
-                    response = await httpClient.SendAsync(request);
-                    result = await response.Content.ReadAsStringAsync();
-                }
+                response = await httpClient.SendAsync(request);
+                result = await response.Content.ReadAsStringAsync();
             }
             else
             {
@@ -356,16 +344,7 @@ public partial class BaseExchange
 
         try
         {
-            if (this.Profile)
-            {
-                var __sw = System.Diagnostics.Stopwatch.StartNew();
-                responseBody = JsonHelper.Deserialize(result);
-                this.ProfileJsonMs += __sw.Elapsed.TotalMilliseconds;
-            }
-            else
-            {
-                responseBody = JsonHelper.Deserialize(result);
-            }
+            responseBody = JsonHelper.Deserialize(result);
             if (this.returnResponseHeaders && responseBody is Dictionary<string, object> dict)
             {
                 dict["headers"] = responseHeaders;

@@ -111,12 +111,6 @@ public partial class BaseExchange
     public object last_json_response { get; set; }
     public object last_http_response { get; set; }
 
-    // opt-in benchmark instrumentation (see examples/benchmarks); inert unless Profile is set
-    public bool Profile { get; set; } = false;
-    public double ProfileJsonMs { get; set; } = 0;
-
-    public double ProfileWireMs { get; set; } = 0;
-
     private object lastReqBody = null;
     public object last_request_body
     {

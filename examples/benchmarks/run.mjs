@@ -34,17 +34,16 @@ function command (lang, mode) {
     if (lang === 'php') return [ 'php', [ path.join (__dirname, 'bench.php'), mode ] ];
     if (lang === 'go') {
         if (GO) return [ GO, [ mode ] ];
-        return [ 'go', [ 'run', '-C', path.join (__dirname, '..', '..', 'go'), './benchmark', mode ] ];
+        return [ 'go', [ 'run', '-C', path.join (__dirname, 'go'), '.', mode ] ];
     }
     if (lang === 'csharp') {
-        // C# only implements the offline `load` mode
-        const dll = process.env.BENCH_CS || path.join (__dirname, '..', '..', 'cs', 'benchmark', 'bin', 'Release', 'net8.0', 'ccxtbench.dll');
+        const dll = process.env.BENCH_CS || path.join (__dirname, 'cs', 'bin', 'Release', 'net8.0', 'ccxtbench.dll');
         return [ 'dotnet', [ 'exec', dll, mode ] ];
     }
     if (lang === 'java') {
-        // Java only implements the offline `load` mode; run through the gradle module
+        // standalone gradle build; it composite-includes the java/ checkout
         const gradle = process.env.BENCH_GRADLE || 'gradle';
-        return [ gradle, [ '-p', path.join (__dirname, '..', '..', 'java'), ':benchmark:run', '--args=' + mode, '--console=plain', '-q' ] ];
+        return [ gradle, [ '-p', path.join (__dirname, 'java'), 'run', '--args=' + mode, '--console=plain', '-q' ] ];
     }
     throw new Error ('unknown lang ' + lang);
 }

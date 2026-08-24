@@ -19,18 +19,17 @@ Two workloads against a real exchange (default: Coinbase, `BTC/USD`):
 
 All metrics are collected **in-process** so they are identical across languages:
 
-- **Network vs. processing (REST)** — the benchmark instruments the two base methods every
-  request flows through, `fetch()` (the HTTP layer) and `parseJson()` (JSON decode). In
-  JS/Python/PHP it subclasses the exchange and wraps them; in Go it flips an opt-in `Profile`
-  flag added to the base `fetch` (`go/v4/exchange_req.go`). Per call:
-  - `network    = time inside fetch()  −  time inside JSON decode`
-  - `processing = total fetchOrderBook  −  network`  (signing + decode + unified parse)
+- **REST latency** — wall clock around `fetchOrderBook`, the same definition in every language.
+  An earlier version split that into "network" and "processing" by instrumenting `fetch()` and
+  `parseJson()`; the control in [`net-baseline/`](net-baseline/) showed those spans do not cover
+  the same work across six independent implementations, so the split is not reported. Raw
+  per-call samples are emitted as `latencySamplesMs` so any percentile can be recomputed.
 - **CPU** — `getrusage` user/system counters (`process.cpuUsage` on Node); network wait is
   excluded, so this is total compute (including the HTTP/TLS stack) per call/update.
 - **Peak memory** — `VmHWM` from `/proc/self/status` (OS-level peak RSS).
 - **Bandwidth** — `exchange.last_http_response` byte length (REST only; identical across
   languages by construction).
-- **Percentiles** — latency, network, and processing are reported as p50/p90/p95/p99.
+- **Percentiles** — latency is reported as p50/p90/p95/p99, plus every raw sample.
 
 Every script prints one machine-readable line: `##RESULT## {…json…}`.
 
@@ -41,9 +40,9 @@ Every script prints one machine-readable line: `##RESULT## {…json…}`.
 | `bench.mjs` | JavaScript (Node) |
 | `bench.py` | Python (asyncio) |
 | `bench.php` | PHP (ReactPHP async) |
-| [`../../go/benchmark/main.go`](../../go/benchmark/main.go) | Go — lives in the `go/` module so it resolves CCXT's Go deps |
-| [`../../cs/benchmark/`](../../cs/benchmark/) | C# (`load` mode only) — `dotnet run -c Release --project cs/benchmark load` |
-| [`../../java/benchmark/`](../../java/benchmark/) | Java (`load` mode only) — a gradle module: `./gradlew :benchmark:run --args=load` |
+| [`go/`](go/) | Go — standalone module, `replace`s the checkout in `../../../go`: `go run . load` |
+| [`cs/`](cs/) | C# — `dotnet run -c Release --project examples/benchmarks/cs load` |
+| [`java/`](java/) | Java — standalone gradle build, composite-includes `../../../java`: `gradle run --args=load` |
 | `run.mjs` | Orchestrator: runs every language × mode × N reps, aggregates the median, writes `results.json`, prints Markdown tables |
 | `trace-explorer.html` | Self-contained interactive/animated span-waterfall (Jaeger-style) of one `fetchOrderBook` call per language — open it in a browser; data mirrors `results.json` |
 

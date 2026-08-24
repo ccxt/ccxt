@@ -85,8 +85,9 @@ language's raw client in a different direction. For Go, JavaScript and Python th
 14–17 ms *below* that language's own bare HTTP GET, in 6 rounds out of 6 — impossible as wire
 time, so those spans simply don't cover the whole request.
 
-C# is the one that doesn't under-measure, which made it look slow. We chased that: a wire-only
-timer inside CCXT's C# shows the time really is spent inside `SendAsync` plus the body read
+C# is the one that doesn't under-measure, which made it look slow. We chased that with a
+throwaway local patch — a wire-only timer inside CCXT's C# — which shows the time really is
+spent inside `SendAsync` plus the body read
 (68.48 ms of a 68.72 ms span, so it isn't library bookkeeping), and a four-way handler comparison
 — `SocketsHttpHandler` and `HttpClientHandler`, each with and without automatic gzip, all
 interleaved in one process — puts CCXT's exact configuration at 69.8 ms against 63.4–71.0 ms for
@@ -347,9 +348,9 @@ in
 node   examples/benchmarks/bench.mjs rest
 python examples/benchmarks/bench.py  ws
 php    examples/benchmarks/bench.php load
-go run ./benchmark load                    # from the go/ module root
-dotnet run -c Release --project cs/benchmark load
-./gradlew :benchmark:run --args=load       # from java/
+go run . load                              # from examples/benchmarks/go
+dotnet run -c Release --project examples/benchmarks/cs load
+gradle run --args=load                     # from examples/benchmarks/java
 
 # ...or run every language and mode, aggregated into tables:
 node examples/benchmarks/run.mjs
