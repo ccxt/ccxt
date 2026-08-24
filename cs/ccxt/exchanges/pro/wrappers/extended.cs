@@ -33,9 +33,8 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBook(symbol, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
@@ -66,10 +65,8 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -126,10 +123,8 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -160,10 +155,8 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchPositions(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
@@ -234,10 +227,8 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -280,10 +271,8 @@ public partial class extended
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }

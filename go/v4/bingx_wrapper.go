@@ -1491,7 +1491,7 @@ func (this *Bingx) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) ([
  * @name bingx#fetchPositionMode
  * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
- * @param {string} symbol unified symbol of the market to fetch the order book for
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
@@ -1519,7 +1519,7 @@ func (this *Bingx) FetchPositionMode(options ...FetchPositionModeOptions) (Posit
  * @description set hedged to true or false for a market
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
  * @param {bool} hedged set to true to use dualSidePosition
- * @param {string} symbol not used by setPositionMode ()
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
@@ -1650,7 +1650,7 @@ func (this *Bingx) FetchTradingFee(symbol string, options ...FetchTradingFeeOpti
  * @name bingx#fetchMarketLeverageTiers
  * @description retrieve information on the maximum leverage, for different trade sizes for a single market
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
- * @param {string} symbol unified market symbol
+ * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */

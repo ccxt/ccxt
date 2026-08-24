@@ -212,10 +212,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -278,10 +276,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
-    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
@@ -324,10 +320,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -352,9 +346,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
@@ -547,15 +540,13 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null, bool isUTA = true)
+    public Dictionary<string, object> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null, bool isUTA = true)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters, isUTA);
         return ((Dictionary<string, object>)res);
     }
@@ -579,10 +570,8 @@ public partial class bybit
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
         var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
@@ -657,10 +646,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -970,10 +957,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOrdersClassic(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOrdersClassic(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrdersClassic(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -1176,10 +1161,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -1258,10 +1241,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -1340,10 +1321,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -1422,10 +1401,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -1456,10 +1433,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderTrades(id, symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -1508,10 +1483,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -1600,10 +1573,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -1646,10 +1617,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -1699,10 +1668,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
-    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
@@ -1901,10 +1868,8 @@ public partial class bybit
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<OpenInterest>> FetchDerivativesOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OpenInterest>> FetchDerivativesOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDerivativesOpenInterestHistory(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
     }
@@ -1979,10 +1944,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenInterestHistory(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
     }
@@ -2039,10 +2002,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}.</returns>
-    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
     }
@@ -2079,10 +2040,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchBorrowRateHistory(string code, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchBorrowRateHistory(string code, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchBorrowRateHistory(code, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
@@ -2151,10 +2110,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
@@ -2288,10 +2245,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [settlement history objects].</returns>
-    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> FetchSettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchSettlementHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
@@ -2334,10 +2289,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [settlement history objects].</returns>
-    public async Task<Dictionary<string, object>> FetchMySettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchMySettlementHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
@@ -2464,10 +2417,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}.</returns>
-    public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
     }
@@ -2542,10 +2493,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
-    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
@@ -2622,10 +2571,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
@@ -2682,9 +2629,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
-    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
         var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
         return new Conversion(res);
     }
@@ -2703,9 +2649,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
-    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
         var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
         return new Conversion(res);
     }
@@ -2780,10 +2725,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
-    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Conversion>> FetchConvertTradeHistory(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Conversion(item)).ToList<Conversion>();
     }
@@ -2820,10 +2763,8 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}.</returns>
-    public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LongShortRatio(item)).ToList<LongShortRatio>();
     }

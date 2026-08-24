@@ -6,7 +6,7 @@ import Exchange from './abstract/bingx.js';
 import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
+import type{ LeverageTier, TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, SubType, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, CurrencyInterface, Position, Dict, NullableDict, Leverage, MarginMode, Num, List, NullableList, MarginModification, Currencies, int, TradingFeeInterface, FundingRate, FundingRates, DepositAddress, FundingHistory, Bool, DepositWithdrawFees, PositionModeInfo, Endpoint } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6540,11 +6540,21 @@ export default class bingx extends Exchange {
      * @name bingx#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     override async fetchPositionMode (symbol: Str = undefined, params = {}): Promise<PositionModeInfo> {
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        let subType: SubType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositionMode', market, params);
+        if ((subType === 'inverse') || ((market !== undefined) && market['inverse'])) {
+            throw new NotSupported (this.id + ' fetchPositionMode() is not supported for inverse swap markets');
+        }
         const response = await this.swapV1PrivateGetPositionSideDual (params);
         //
         //     {
@@ -6570,11 +6580,21 @@ export default class bingx extends Exchange {
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by setPositionMode ()
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
     override async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}) {
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            await this.loadMarkets ();
+            market = this.market (symbol);
+        }
+        let subType: SubType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setPositionMode', market, params);
+        if ((subType === 'inverse') || ((market !== undefined) && market['inverse'])) {
+            throw new NotSupported (this.id + ' setPositionMode() is not supported for inverse swap markets');
+        }
         let dualSidePosition: Str = undefined;
         if (hedged) {
             dualSidePosition = 'true';
@@ -6930,7 +6950,7 @@ export default class bingx extends Exchange {
      * @name bingx#fetchMarketLeverageTiers
      * @description retrieve information on the maximum leverage, for different trade sizes for a single market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
-     * @param {string} symbol unified market symbol
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
@@ -6941,6 +6961,9 @@ export default class bingx extends Exchange {
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        if (market['inverse']) {
+            throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         const request: Dict = {
             'symbol': market['id'],

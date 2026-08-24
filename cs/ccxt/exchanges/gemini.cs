@@ -683,14 +683,14 @@ public partial class gemini : Exchange
         parameters ??= new Dictionary<string, object>();
         object data = await this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>");
         object error = add(this.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-        object tables = ((string)data).Split(new [] {((string)"tbody>")}, StringSplitOptions.None).ToList<object>();
-        object numTables = getArrayLength(tables);
+        List<object> tables = ((string)data).Split(new [] {((string)"tbody>")}, StringSplitOptions.None).ToList<object>();
+        int numTables = getArrayLength(tables);
         if (isTrue(isLessThan(numTables, 2)))
         {
             throw new NotSupported ((string)error) ;
         }
-        object rows = ((string)getValue(tables, 1)).Split(new [] {((string)"\n<tr>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
-        object numRows = getArrayLength(rows);
+        List<object> rows = ((string)getValue(tables, 1)).Split(new [] {((string)"\n<tr>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
+        int numRows = getArrayLength(rows);
         if (isTrue(isLessThan(numRows, 2)))
         {
             throw new NotSupported ((string)error) ;
@@ -700,8 +700,8 @@ public partial class gemini : Exchange
         for (object i = 1; isLessThan(i, numRows); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
-            object cells = ((string)row).Split(new [] {((string)"</td>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
-            object numCells = getArrayLength(cells);
+            List<object> cells = ((string)row).Split(new [] {((string)"</td>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
+            int numCells = getArrayLength(cells);
             if (isTrue(isLessThan(numCells, 5)))
             {
                 throw new NotSupported ((string)error) ;
@@ -713,18 +713,18 @@ public partial class gemini : Exchange
             //         '<td>0.01 USD', // quote currency price increment
             //         '</tr>'
             //     ]
-            object marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
+            string marketId = ((string)getValue(cells, 0)).Replace((string)"<td>", (string)"");
             marketId = ((string)marketId).Replace((string)"*", (string)"");
             // const base = this.safeCurrencyCode (baseId);
-            object minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
-            object minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            string minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
+            List<object> minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object minAmount = this.safeNumber(minAmountParts, 0);
-            object amountPrecisionString = ((string)getValue(cells, 2)).Replace((string)"<td>", (string)"");
-            object amountPrecisionParts = ((string)amountPrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            string amountPrecisionString = ((string)getValue(cells, 2)).Replace((string)"<td>", (string)"");
+            List<object> amountPrecisionParts = ((string)amountPrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object idLength = subtract(getArrayLength(marketId), 0);
             object startingIndex = subtract(idLength, 3);
-            object pricePrecisionString = ((string)getValue(cells, 3)).Replace((string)"<td>", (string)"");
-            object pricePrecisionParts = ((string)pricePrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            string pricePrecisionString = ((string)getValue(cells, 3)).Replace((string)"<td>", (string)"");
+            List<object> pricePrecisionParts = ((string)pricePrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
             object baseId = this.safeStringLower(amountPrecisionParts, 1, ((string)marketId).Replace((string)quoteId, (string)""));
             object bs = this.safeCurrencyCode(baseId);
@@ -871,7 +871,7 @@ public partial class gemini : Exchange
             object tradingPairs = this.safeList(this.options, "tradingPairs");
             if (isTrue(!isEqual(tradingPairs, null)))
             {
-                object indexedTradingPairs = this.indexBy(tradingPairs, 0);
+                Dictionary<string, object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
@@ -937,12 +937,12 @@ public partial class gemini : Exchange
         object amountPrecision = null;
         object minSize = null;
         object status = null;
-        object swap = false;
+        bool swap = false;
         object contractSize = null;
         object linear = null;
         object inverse = null;
-        object isString = ((response is string));
-        object isArray = (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
+        bool isString = ((response is string));
+        bool isArray = (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         if (isTrue(!isTrue(isString) && !isTrue(isArray)))
         {
             marketId = this.safeStringLower(response, "symbol");
@@ -966,11 +966,11 @@ public partial class gemini : Exchange
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            object marketIdUpper = ((string)((string)marketId)).ToUpper();
-            object isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
-            object marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
+            string marketIdUpper = ((string)((string)marketId)).ToUpper();
+            bool isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
+            string marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
             object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
-            object lowerCaseId = ((string)marketIdWithoutPerp).ToLower();
+            string lowerCaseId = ((string)marketIdWithoutPerp).ToLower();
             if (isTrue(inOp(conflictingMarkets, lowerCaseId)))
             {
                 object conflictingMarket = getValue(conflictingMarkets, lowerCaseId);
@@ -1013,7 +1013,7 @@ public partial class gemini : Exchange
             inverse = false;
         }
         object type = ((bool) isTrue(swap)) ? "swap" : "spot";
-        object isSpot = !isTrue(swap);
+        bool isSpot = !isTrue(swap);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -1653,7 +1653,7 @@ public partial class gemini : Exchange
         object amount = this.safeString(order, "original_amount");
         object remaining = this.safeString(order, "remaining_amount");
         object filled = this.safeString(order, "executed_amount");
-        object status = "closed";
+        string status = "closed";
         if (isTrue(getValue(order, "is_live")))
         {
             status = "open";
@@ -1683,8 +1683,8 @@ public partial class gemini : Exchange
         object clientOrderId = this.safeString(order, "client_order_id");
         object optionsArray = this.safeValue(order, "options", new List<object>() {});
         object option = this.safeString(optionsArray, 0);
-        object timeInForce = "GTC";
-        object postOnly = false;
+        string timeInForce = "GTC";
+        bool postOnly = false;
         if (isTrue(!isEqual(option, null)))
         {
             if (isTrue(isEqual(option, "immediate-or-cancel")))
@@ -2233,7 +2233,7 @@ public partial class gemini : Exchange
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
+        Dictionary<string, object> networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
         return this.safeValue(networkGroup, code);
     }
 
@@ -2291,15 +2291,15 @@ public partial class gemini : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object finalUrl = url;
-            object request = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
                 { "request", finalUrl },
                 { "nonce", nonce },
             }, query);
             object payload = this.json(request);
             payload = this.stringToBase64(payload);
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "text/plain" },
                 { "X-GEMINI-APIKEY", this.apiKey },

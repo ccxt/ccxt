@@ -46,10 +46,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -174,10 +172,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -221,10 +217,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -263,10 +257,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -303,10 +295,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -350,9 +340,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -396,10 +385,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
@@ -509,10 +496,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderTrades(id, symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -579,9 +564,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
@@ -665,10 +649,8 @@ public partial class poloniex
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
     }
-    public async Task<Dictionary<string, object>> FetchTransactionsHelper(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchTransactionsHelper(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransactionsHelper(code, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
@@ -705,10 +687,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -739,10 +719,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -793,10 +771,8 @@ public partial class poloniex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }

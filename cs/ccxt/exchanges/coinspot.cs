@@ -580,7 +580,7 @@ public partial class coinspot : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object currencies = getValue(balances, i);
-                object currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
+                List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(currencyIds, j);
@@ -596,7 +596,7 @@ public partial class coinspot : Exchange
             }
         } else
         {
-            object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+            List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencyIds, i);
@@ -790,7 +790,7 @@ public partial class coinspot : Exchange
         //
         object result = new Dictionary<string, object>() {};
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
-        object ids = new List<object>(((IDictionary<string,object>)prices).Keys);
+        List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
@@ -959,7 +959,7 @@ public partial class coinspot : Exchange
             object audGst = this.safeString(trade, "audGst");
             // The transaction fee which consumers pay is inclusive of GST by default
             object feeCost = Precise.stringAdd(audfeeExGst, audGst);
-            object feeCurrencyId = "AUD";
+            string feeCurrencyId = "AUD";
             fee = new Dictionary<string, object>() {
                 { "cost", this.parseNumber(feeCost) },
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
@@ -1006,7 +1006,7 @@ public partial class coinspot : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
         }
-        object sideUpper = ((string)side).ToUpper();
+        string sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -1095,7 +1095,7 @@ public partial class coinspot : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+        bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object version = ((bool) isTrue(isVersionedApi)) ? getValue(api, 0) : null;
         object accessType = ((bool) isTrue(isVersionedApi)) ? getValue(api, 1) : api;
         object endpoint = add("/", this.implodeParams(path, parameters));

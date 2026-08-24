@@ -769,7 +769,7 @@ public partial class bittrade : Exchange
         //    }
         //
         object markets = this.safeValue(response, "data", new List<object>() {});
-        object numMarkets = getArrayLength(markets);
+        int numMarkets = getArrayLength(markets);
         if (isTrue(isLessThan(numMarkets, 1)))
         {
             throw new NetworkError ((string)add(add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
@@ -785,7 +785,7 @@ public partial class bittrade : Exchange
             object state = this.safeString(market, "state");
             object leverageRatio = this.safeString(market, "leverage-ratio", "1");
             object superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-            object margin = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
+            bool margin = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
             object fee = ((bool) isTrue((isEqual(bs, "OMG")))) ? this.parseNumber("0") : this.parseNumber("0.002");
             if (isTrue(isEqual(baseId, null)))
             {
@@ -1126,7 +1126,7 @@ public partial class bittrade : Exchange
         object type = this.safeString(trade, "type");
         if (isTrue(!isEqual(type, null)))
         {
-            object typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(typeParts, 0);
             type = getValue(typeParts, 1);
         }
@@ -1449,7 +1449,7 @@ public partial class bittrade : Exchange
         object countryDisabled = this.safeValue(currency, "country-disabled");
         object visible = this.safeBool(currency, "visible", false);
         object state = this.safeString(currency, "state");
-        object active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
+        bool active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
         object name = this.safeString(currency, "display-name");
         object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -1801,7 +1801,7 @@ public partial class bittrade : Exchange
         object status = null;
         if (isTrue(inOp(order, "type")))
         {
-            object orderType = ((string)getValue(order, "type")).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> orderType = ((string)getValue(order, "type")).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(orderType, 0);
             type = getValue(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));
@@ -2193,7 +2193,7 @@ public partial class bittrade : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         object networkId = this.safeString(depositAddress, "chain");
         object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object networksById = this.indexBy(networks, "id");
+        Dictionary<string, object> networksById = this.indexBy(networks, "id");
         object networkValue = this.safeValue(networksById, networkId, networkId);
         object network = this.safeString(networkValue, "network");
         this.checkAddress(address);
@@ -2478,7 +2478,7 @@ public partial class bittrade : Exchange
         if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
         {
             this.checkRequiredCredentials();
-            object timestamp = this.ymdhms(this.milliseconds(), "T");
+            string timestamp = this.ymdhms(this.milliseconds(), "T");
             object request = new Dictionary<string, object>() {
                 { "SignatureMethod", "HmacSHA256" },
                 { "SignatureVersion", "2" },
@@ -2494,8 +2494,8 @@ public partial class bittrade : Exchange
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             object content = new List<object>() {method, this.hostname, url, auth};
             // eslint-disable-next-line quotes
-            object payload = String.Join("\n", ((IList<object>)content).ToArray());
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string payload = String.Join("\n", ((IList<object>)content).ToArray());
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));

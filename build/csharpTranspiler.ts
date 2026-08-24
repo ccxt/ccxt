@@ -527,6 +527,26 @@ class NewTranspiler {
         return addTaskIfNeeded(wrappedType);
     }
 
+    /**
+     * @description Single source of truth for the C# type of an optional scalar parameter.
+     * The wrapper signature declares it as `<type>? name = null` and passes it straight into
+     * the core call, so the nullable scalar type is computed here and nowhere else.
+     * Returns undefined for parameters that are not optional numeric scalars.
+     */
+    optionalScalarCsharpType(param: any): string | undefined {
+        const isOptional = param.optional || param.initializer === 'undefined';
+        if (!isOptional) {
+            return undefined;
+        }
+        if (this.isIntegerType(param.type)) {
+            return 'Int64';
+        }
+        if (this.isNumberType(param.type)) {
+            return 'double';
+        }
+        return undefined;
+    }
+
     safeCsharpName(name: string): string {
         const csharpReservedWordsReplacement: dict = {
             'params': 'parameters',
@@ -559,11 +579,9 @@ class NewTranspiler {
                     if (paramType  === 'bool') {
                         return `${paramType}? ${safeName} = false`
                     }
-                    if (paramType === 'double' || paramType  === 'float') {
-                        return `${paramType}? ${safeName}2 = 0`
-                    }
-                    if (paramType  === 'Int64') {
-                        return `${paramType}? ${safeName}2 = 0`
+                    const scalarType = this.optionalScalarCsharpType(param);
+                    if (scalarType !== undefined) {
+                        return `${scalarType}? ${safeName} = null`
                     }
                     return `${paramType}? ${safeName}`
                 }
@@ -701,21 +719,6 @@ class NewTranspiler {
         return returnStatement;
     }
 
-    getDefaultParamsWrappers(rawParameters: any []) {
-        const res: string[] = [];
-
-        rawParameters.forEach(param => {
-            const isOptional =  param.optional || param.initializer === 'undefined';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl =  `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                res.push(decl);
-            }
-        });
-
-        return res.join("\n");
-    }
-
     inden(level: number) {
         return '    '.repeat(level);
     }
@@ -743,7 +746,6 @@ class NewTranspiler {
         const method = [
             `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
             `${one}{`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
             `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
             `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`

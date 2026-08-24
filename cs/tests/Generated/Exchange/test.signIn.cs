@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testSignIn(BaseExchange exchange, object skippedProperties)
     {
-        object method = "signIn";
+        string method = "signIn";
         if (isTrue(getValue(exchange.has, method)))
         {
             await ((dynamic)exchange).signIn();

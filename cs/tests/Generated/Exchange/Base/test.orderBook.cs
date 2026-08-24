@@ -31,7 +31,7 @@ public partial class testMainClass : BaseTest
         object logText = testSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
-        object bidsLength = getArrayLength(bids);
+        int bidsLength = getArrayLength(bids);
         for (object i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
         {
             object currentBidString = exchange.safeString(getValue(bids, i), 0);
@@ -52,7 +52,7 @@ public partial class testMainClass : BaseTest
             }
         }
         object asks = getValue(orderbook, "asks");
-        object asksLength = getArrayLength(asks);
+        int asksLength = getArrayLength(asks);
         for (object i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
         {
             object currentAskString = exchange.safeString(getValue(asks, i), 0);

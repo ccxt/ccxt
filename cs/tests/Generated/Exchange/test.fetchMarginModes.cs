@@ -9,10 +9,10 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchMarginModes(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchMarginModes";
+        string method = "fetchMarginModes";
         object marginModes = await ((dynamic)exchange).fetchMarginModes(new List<object>() {symbol});
         testSharedMethods.assertDictionaryResponse(exchange, method, marginModes, symbol);
-        object marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
+        List<object> marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(marginModeKeys)); postFixIncrement(ref i))
         {
