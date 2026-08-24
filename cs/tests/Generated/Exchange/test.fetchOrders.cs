@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchOrders(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchOrders";
-        object orders = await ((dynamic)exchange).fetchOrders(symbol);
+        object orders = await ((dynamic)exchange).FetchOrders(symbol);
         assert(((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         object now = exchange.milliseconds();

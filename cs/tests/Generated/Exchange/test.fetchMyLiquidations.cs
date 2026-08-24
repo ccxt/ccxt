@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         {
             return true;
         }
-        object items = await ((dynamic)exchange).fetchMyLiquidations(code);
+        object items = await ((dynamic)exchange).FetchMyLiquidations(code);
         assert(((items is IList<object>) || (items.GetType().IsGenericType && items.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), code), " must return an array. "), exchange.json(items)));
         // const now = exchange.milliseconds ();
         for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))

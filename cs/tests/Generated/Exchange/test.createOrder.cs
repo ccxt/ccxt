@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
         object market = exchange.market(symbol);
         object isSwapFuture = isTrue(getValue(market, "swap")) || isTrue(getValue(market, "future"));
         assert(getValue(exchange.has, "fetchBalance"), add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
-        object balance = await ((dynamic)exchange).fetchBalance();
+        object balance = await ((dynamic)exchange).FetchBalance();
         object initialBaseBalance = getValue(getValue(balance, getValue(market, "base")), "free");
         object initialQuoteBalance = getValue(getValue(balance, getValue(market, "quote")), "free");
         assert(!isEqual(initialQuoteBalance, null), add(add(add(logPrefix, " - testing account not have balance of"), getValue(market, "quote")), " in fetchBalance() which is required to test"));
@@ -180,11 +180,11 @@ public partial class testMainClass : BaseTest
         if (isTrue(isTrue(getValue(exchange.has, "cancelOrder")) && isTrue(!isEqual(orderId, null))))
         {
             usedMethod = "cancelOrder";
-            cancelResult = await ((dynamic)exchange).cancelOrder(orderId, symbol);
+            cancelResult = await ((dynamic)exchange).CancelOrder(orderId, symbol);
         } else if (isTrue(getValue(exchange.has, "cancelAllOrders")))
         {
             usedMethod = "cancelAllOrders";
-            cancelResult = await ((dynamic)exchange).cancelAllOrders(symbol);
+            cancelResult = await ((dynamic)exchange).CancelAllOrders(symbol);
         } else if (isTrue(getValue(exchange.has, "cancelOrders")))
         {
             throw new Exception ((string)add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
@@ -202,7 +202,7 @@ public partial class testMainClass : BaseTest
         parameters ??= new Dictionary<string, object>();
         skippedProperties ??= new Dictionary<string, object>();
         tcoDebug(exchange, symbol, add(add(add(add(add(add(add(add(add("Executing createOrder ", orderType), " "), side), " "), amount), " "), price), " "), exchange.json(parameters)));
-        object order = await ((dynamic)exchange).createOrder(symbol, orderType, side, amount, price, parameters);
+        object order = await ((dynamic)exchange).CreateOrder(symbol, orderType, side, amount, price, parameters);
         try
         {
             testOrder(exchange, skippedProperties, "createOrder", order, symbol, (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds());

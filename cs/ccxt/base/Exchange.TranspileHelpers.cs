@@ -930,6 +930,20 @@ public partial class BaseExchange
         return Math.Round((double)number, (int)decimals);
     }
 
+    // Typed cores are emitted PascalCase (`CreateOrder`), but the method-name strings that drive
+    // reflective dispatch stay camelCase — they double as `has`/`describe()` capability keys.
+    // Resolve the exact name first, then fall back to a case-insensitive match.
+    public static MethodInfo ResolveMethod(Type type, string methodName)
+    {
+        const BindingFlags flags = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+        var mi = type.GetMethod(methodName, flags);
+        if (mi != null)
+        {
+            return mi;
+        }
+        return type.GetMethod(methodName, flags | BindingFlags.IgnoreCase);
+    }
+
     // reflection binds by EXACT runtime type: a boxed Int32 does not land in an `Int64?`
     // parameter, it throws ArgumentException. The generated cores now declare typed
     // scalars, so every reflective arg list is converted to the target parameter types
@@ -1041,7 +1055,7 @@ public partial class BaseExchange
         {
             args = new object[] { null };
         }
-        var mi = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var mi = ResolveMethod(obj.GetType(), (string)methodName);
         var res = mi.Invoke(obj, coerceArgs(mi, args));
         // The transpiled callers cast this result to Task<object> (the cast is
         // emitted by ast-transpiler), which an implicit API method's narrowed
@@ -1053,7 +1067,7 @@ public partial class BaseExchange
     public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
-        var mi = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var mi = ResolveMethod(obj.GetType(), (string)methodName);
         var res = mi.Invoke(obj, coerceArgs(mi, args));
         return await AsTaskOfObject(res);
     }

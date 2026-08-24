@@ -1039,7 +1039,7 @@ public partial class bydfi : ccxt.bydfi
         object parameters = new Dictionary<string, object>() {
             { "type", "swap" },
         };
-        object response = await this.fetchBalance(parameters);
+        object response = await this.FetchBalance(parameters);
         this.balance = this.extend(response, this.balance);
         // don't remove the future from the .futures cache
         var future = getValue(client.futures, messageHash);

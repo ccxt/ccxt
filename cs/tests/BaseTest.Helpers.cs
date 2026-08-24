@@ -215,7 +215,7 @@ public partial class testMainClass : BaseTest
         //     args = new object[] { null };
         // }
         var realArgs = (args.Length == 0) ? new List<object> { } : args[0] as List<object>;
-        var method = exchange.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var method = ccxt.BaseExchange.ResolveMethod(exchange.GetType(), (string)methodName);
         var parameters = method.GetParameters();
         var newArgs = new object[parameters.Length];
         for (int i = 0; i < parameters.Length; i++)

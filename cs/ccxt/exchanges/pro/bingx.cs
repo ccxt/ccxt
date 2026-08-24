@@ -1321,7 +1321,7 @@ public partial class bingx : ccxt.bingx
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subType)
     {
-        object response = await this.fetchBalance(new Dictionary<string, object>() {
+        object response = await this.FetchBalance(new Dictionary<string, object>() {
             { "type", type },
             { "subType", subType },
         });
@@ -1433,7 +1433,7 @@ public partial class bingx : ccxt.bingx
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        object positions = await this.fetchPositions(null, new Dictionary<string, object>() {
+        object positions = await this.FetchPositions(null, new Dictionary<string, object>() {
             { "type", type },
             { "subType", "linear" },
         });

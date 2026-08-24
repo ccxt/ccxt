@@ -43,7 +43,7 @@ public partial class BaseExchange
 
     public static object DynamicallyCallMethod(BaseExchange instance, string methodName, object[] parameters)
     {
-        var method = instance.GetType().GetMethod(methodName);
+        var method = BaseExchange.ResolveMethod(instance.GetType(), methodName);
         var paramsLength = method.GetParameters().Count();
         if (parameters.Count() < paramsLength)
         {

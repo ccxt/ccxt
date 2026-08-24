@@ -6,14 +6,5 @@ namespace ccxt;
 
 public partial class binancecoinm
 {
-    public async Task<ccxt.TransferEntry> TransferIn(string code, object amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transferIn(code, amount, parameters);
-        return res;
-    }
-    public async Task<ccxt.TransferEntry> TransferOut(string code, object amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transferOut(code, amount, parameters);
-        return res;
-    }
+
 }

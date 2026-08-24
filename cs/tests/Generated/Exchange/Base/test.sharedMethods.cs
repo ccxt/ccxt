@@ -501,20 +501,20 @@ public partial class testMainClass : BaseTest
             } else if (isTrue(getValue(exchange.has, "fetchBidsAsks")))
             {
                 usedMethod = "fetchBidsAsks";
-                object tickers = await ((dynamic)exchange).fetchBidsAsks(new List<object>() {symbol});
+                object tickers = await ((dynamic)exchange).FetchBidsAsks(new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
             } else if (isTrue(getValue(exchange.has, "fetchTicker")))
             {
                 usedMethod = "fetchTicker";
-                object ticker = await ((dynamic)exchange).fetchTicker(symbol);
+                object ticker = await ((dynamic)exchange).FetchTicker(symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");
             } else if (isTrue(getValue(exchange.has, "fetchTickers")))
             {
                 usedMethod = "fetchTickers";
-                object tickers = await ((dynamic)exchange).fetchTickers(new List<object>() {symbol});
+                object tickers = await ((dynamic)exchange).FetchTickers(new List<object>() {symbol});
                 object ticker = exchange.safeDict(tickers, symbol);
                 bestBid = exchange.safeNumber(ticker, "bid");
                 bestAsk = exchange.safeNumber(ticker, "ask");

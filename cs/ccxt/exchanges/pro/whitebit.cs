@@ -872,7 +872,7 @@ public partial class whitebit : ccxt.whitebit
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type, object subscriptionHash)
     {
-        object response = await this.fetchBalance(new Dictionary<string, object>() {
+        object response = await this.FetchBalance(new Dictionary<string, object>() {
             { "type", type },
         });
         this.balance = this.extend(response, this.balance);

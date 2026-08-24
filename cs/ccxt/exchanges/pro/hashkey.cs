@@ -847,7 +847,7 @@ public partial class hashkey : ccxt.hashkey
 
     public async virtual Task loadBalanceSnapshot(WebSocketClient client, object messageHash, object type)
     {
-        object response = await this.fetchBalance(new Dictionary<string, object>() {
+        object response = await this.FetchBalance(new Dictionary<string, object>() {
             { "type", type },
         });
         ((IDictionary<string,object>)this.balance)[(string)type] = this.extend(response, this.safeValue(this.balance, type, new Dictionary<string, object>() {}));

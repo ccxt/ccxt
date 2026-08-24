@@ -1532,6 +1532,36 @@ class NewTranspiler {
         return lines.filter (line => line !== null).join ('\n');
     }
 
+    // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
+    // name. The key set matches typedCoreType(), which falls back to TYPED_CORES on the
+    // prediction tier, so a single union map covers both hierarchies.
+    pascalTypedCoreNames (predictionTier: boolean): Record<string, string> {
+        const names = Object.keys (TYPED_CORES).concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)));
+        const map: Record<string, string> = {};
+        for (const name of names) {
+            if (this.typedCoreType (name, predictionTier) !== '') {
+                map[name] = name.charAt (0).toUpperCase () + name.slice (1);
+            }
+        }
+        return map;
+    }
+
+    // renames every typed core (declaration + call site) to PascalCase, so the generated core
+    // *is* the public API and createWrapper stops emitting a thin duplicate. Method-name string
+    // literals are deliberately NOT touched: they double as `has`/`describe()` capability keys
+    // (`"createOrder": true`) — reflective lookup resolves the case instead (ResolveMethod).
+    pascalizeTypedCores (content: string, predictionTier = this.isPrediction, receivers = [ 'this.', 'base.' ], declarations = true): string {
+        const map = this.pascalTypedCoreNames (predictionTier);
+        if (declarations) {
+            const declRe = /(public\s+(?:async\s+)?(?:virtual\s+|override\s+)?Task<[^\n]*?>\s+)(\w+)\(/g;
+            content = content.replace (declRe, (whole, head, name) => (map[name] !== undefined ? head + map[name] + '(' : whole));
+        }
+        const escaped = receivers.map ((r) => r.replace (/[.*+?^${}()|[\]\\]/g, '\\$&')).join ('|');
+        const callRe = new RegExp ('(' + escaped + ')(\\w+)\\(', 'g');
+        content = content.replace (callRe, (whole, receiver, name) => (map[name] !== undefined ? receiver + map[name] + '(' : whole));
+        return content;
+    }
+
     // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
     // generated declaration. Positional, because the prediction tier renames the first
     // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
@@ -1885,6 +1915,11 @@ class NewTranspiler {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+        // a typed core is emitted PascalCase (pascalizeTypedCores), so it already *is* the public
+        // API — a wrapper here would be a duplicate declaration of the same name
+        if (isAsync && this.typedCoreType (methodName, this.isPrediction) !== '') {
+            return '';
+        }
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
@@ -2188,7 +2223,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, false))) + "\n";
+            const file = fileHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, false))), false) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -2196,7 +2231,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (exchangeBody, false))) + "\n}\n";
+                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (exchangeBody, false))), false) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -2252,7 +2287,7 @@ class NewTranspiler {
             const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
             this.isPrediction = prevIsPrediction;
             const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))) + "\n" + wrapperPartial;
+            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))), true) + "\n" + wrapperPartial;
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -2580,7 +2615,7 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
-        content = this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content)));
+        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content))));
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
@@ -2915,6 +2950,10 @@ class NewTranspiler {
             [ /public (?:Dict|Dictionary<string, object>) checkedPublicTests\b/g, 'public object checkedPublicTests' ],
         ])
 
+        // the legacy request-builders bind Exchange statically, so the typed cores'
+        // PascalCase rename applies to their call sites too (declarations left alone)
+        contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
+
         const file = [
             'using ccxt;',
             'namespace Tests;',
@@ -3020,6 +3059,9 @@ class NewTranspiler {
             ];
 
             if (!isWs) {
+                // the DLR resolves `((dynamic)exchange).X` by exact name, so the typed cores'
+                // PascalCase rename has to land before the dynamic hop is introduced
+                contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
                 regexes = regexes.concat([
                     [/await exchange\.(\w+)\(/g, 'await ((dynamic)exchange).$1('],
                 ]);
@@ -3038,6 +3080,7 @@ class NewTranspiler {
                 // WS tests bind the unified methods statically (no `dynamic` hop), so a core
                 // parameter narrowed to `string` needs the same explicit cast the cores get
                 contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
+                contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
             }
             const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
             const fileHeaders = [

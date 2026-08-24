@@ -15,10 +15,10 @@ public partial class testMainClass : BaseTest
         object checkedSymbol = null;
         try
         {
-            response = await ((dynamic)exchange).fetchLastPrices();
+            response = await ((dynamic)exchange).FetchLastPrices();
         } catch(Exception e)
         {
-            response = await ((dynamic)exchange).fetchLastPrices(new List<object>() {symbol});
+            response = await ((dynamic)exchange).FetchLastPrices(new List<object>() {symbol});
             checkedSymbol = symbol;
         }
         testSharedMethods.assertDictionaryResponse(exchange, method, response, checkedSymbol);

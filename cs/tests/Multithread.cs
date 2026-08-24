@@ -22,7 +22,7 @@ public partial class BaseTest
             Task.Run(async () =>
             {
                 // fetchTicker's core is typed (Task<Ticker>), so no dictionary cast is needed
-                var priceInfo = await exchange.fetchTicker(symbol);
+                var priceInfo = await exchange.FetchTicker(symbol);
                 // Console.WriteLine($"Thread: {i,2} COMPLETE, Price: {priceInfo.ask}");
             }))
             .ToArray();

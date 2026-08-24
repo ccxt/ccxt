@@ -1498,7 +1498,7 @@ public partial class testMainClass
             return false;  // this test is only for binance exchange for now
         }
         exchange.returnResponseHeaders = true;
-        object ticker = await exchange.fetchTicker("BTC/USDT");
+        object ticker = await exchange.FetchTicker("BTC/USDT");
         object info = getValue(ticker, "info");
         object headers = getValue(info, "responseHeaders");
         object headersKeys = new List<object>(((IDictionary<string,object>)headers).Keys);
@@ -2762,7 +2762,7 @@ public partial class testMainClass
         object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             spotOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -2773,7 +2773,7 @@ public partial class testMainClass
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             swapOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -2781,7 +2781,7 @@ public partial class testMainClass
         object swapInverseOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             swapInverseOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -2797,7 +2797,7 @@ public partial class testMainClass
         object swapAlgoOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 0.002, 102000, new Dictionary<string, object>() {
                 { "triggerPrice", 101000 },
             });
             object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -2825,7 +2825,7 @@ public partial class testMainClass
     { "side", "buy" },
     { "amount", 1 },
 }};
-            await exchange.createOrders(orders);
+            await exchange.CreateOrders(orders);
         } catch(Exception e)
         {
             createOrdersRequest = this.urlencodedToDict(exchange.last_request_body);
@@ -2851,7 +2851,7 @@ public partial class testMainClass
         object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -2864,7 +2864,7 @@ public partial class testMainClass
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             swapOrderRequest = jsonParse(exchange.last_request_body);
@@ -2888,7 +2888,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -2910,7 +2910,7 @@ public partial class testMainClass
         assert(isEqual(getValue(exchange.options, "brokerId"), id), "id not in options");
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
@@ -2939,7 +2939,7 @@ public partial class testMainClass
         assert(isEqual(futureKey, "1b327198-f30c-4f14-a0ac-918871282f15"), add(add("kucoin - key: ", futureKey), " not in options."));
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
@@ -2949,7 +2949,7 @@ public partial class testMainClass
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers for spot orders."));
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
                 { "uta", true },
             });
         } catch(Exception e)
@@ -2960,7 +2960,7 @@ public partial class testMainClass
         id = "ccxtfutures";
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
@@ -2968,7 +2968,7 @@ public partial class testMainClass
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers for swap orders."));
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
                 { "uta", true },
             });
         } catch(Exception e)
@@ -2995,7 +2995,7 @@ public partial class testMainClass
         try
         {
             ((IDictionary<string,object>)exchange.options)["uta"] = false;
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
@@ -3004,7 +3004,7 @@ public partial class testMainClass
         try
         {
             ((IDictionary<string,object>)exchange.options)["uta"] = true;
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
@@ -3025,7 +3025,7 @@ public partial class testMainClass
         assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bitget - id: ", id), " not in options"));
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
@@ -3047,7 +3047,7 @@ public partial class testMainClass
         await exchange.loadMarkets();
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
@@ -3068,7 +3068,7 @@ public partial class testMainClass
         object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3080,7 +3080,7 @@ public partial class testMainClass
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             swapOrderRequest = jsonParse(exchange.last_request_body);
@@ -3088,7 +3088,7 @@ public partial class testMainClass
         object swapInverseOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USD:BTC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             swapInverseOrderRequest = jsonParse(exchange.last_request_body);
@@ -3112,7 +3112,7 @@ public partial class testMainClass
         object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3124,7 +3124,7 @@ public partial class testMainClass
         object stopOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000, new Dictionary<string, object>() {
                 { "stopPrice", 30000 },
             });
         } catch(Exception e)
@@ -3148,7 +3148,7 @@ public partial class testMainClass
         object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3171,7 +3171,7 @@ public partial class testMainClass
         assert(isEqual(getValue(exchange.options, "broker"), id), add(add("bingx - id: ", id), " not in options"));
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
@@ -3192,7 +3192,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3214,7 +3214,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("LTC/USDT:USDT", "market", "buy", 1);
+            await exchange.CreateOrder("LTC/USDT:USDT", "market", "buy", 1);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3254,7 +3254,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3276,7 +3276,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3303,7 +3303,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3324,7 +3324,7 @@ public partial class testMainClass
         object spotOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             spotOrderRequest = jsonParse(exchange.last_request_body);
@@ -3334,7 +3334,7 @@ public partial class testMainClass
         object swapOrderRequest = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             swapOrderRequest = jsonParse(exchange.last_request_body);
@@ -3388,7 +3388,7 @@ public partial class testMainClass
         await exchange.loadMarkets();
         try
         {
-            await exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             reqHeaders = ((bool) isTrue(exchange.last_request_headers)) ? exchange.last_request_headers : new Dictionary<string, object>() {};
@@ -3408,7 +3408,7 @@ public partial class testMainClass
         object id = "10000700011";
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
@@ -3428,7 +3428,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "sell", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "sell", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3461,7 +3461,7 @@ public partial class testMainClass
             };
             exchange.walletAddress = "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749";
             exchange.privateKey = "0x7b77bb7b20e92bbb85f2a22b330b896959229a5790e35f2f290922de3fb22ad5";
-            await exchange.createOrder("LBTC/USDC", "limit", "sell", 0.01, 3000, parameters);
+            await exchange.CreateOrder("LBTC/USDC", "limit", "sell", 0.01, 3000, parameters);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3487,7 +3487,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3510,7 +3510,7 @@ public partial class testMainClass
         object id = "1400";
         try
         {
-            await exchange.createOrder("ETH/USDC", "limit", "buy", 1, 5000);
+            await exchange.CreateOrder("ETH/USDC", "limit", "buy", 1, 5000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
@@ -3531,7 +3531,7 @@ public partial class testMainClass
         object id = "177321641268789";
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers
@@ -3553,7 +3553,7 @@ public partial class testMainClass
         object request = new Dictionary<string, object>() {};
         try
         {
-            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3562,7 +3562,7 @@ public partial class testMainClass
         assert(((string)clientOrderId).StartsWith(((string)id)), add(add(add("weex - newClientOrderId: ", clientOrderId), " for spot order does not start with id: "), id));
         try
         {
-            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             request = jsonParse(exchange.last_request_body);
@@ -3578,7 +3578,7 @@ public partial class testMainClass
         object id = "ccxt";
         try
         {
-            await exchange.createOrder("BTC/BRL", "limit", "buy", 1, 20000);
+            await exchange.CreateOrder("BTC/BRL", "limit", "buy", 1, 20000);
         } catch(Exception e)
         {
             // we expect an error here, we're only interested in the headers

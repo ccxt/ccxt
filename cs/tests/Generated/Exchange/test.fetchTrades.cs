@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchTrades(BaseExchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchTrades";
-        object trades = await ((dynamic)exchange).fetchTrades(symbol);
+        object trades = await ((dynamic)exchange).FetchTrades(symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, trades);
         object now = exchange.milliseconds();
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))

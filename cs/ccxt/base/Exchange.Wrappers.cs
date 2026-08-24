@@ -26,11 +26,6 @@ public partial class BaseExchange
         var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<ccxt.Account>> FetchAccounts(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAccounts(parameters);
-        return res;
-    }
     public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchLiquidations(symbol, since, limit, parameters);
@@ -56,21 +51,6 @@ public partial class BaseExchange
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
-    public async Task<List<ccxt.DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddresses(codes, parameters);
-        return res;
-    }
-    public async Task<ccxt.MarginMode> FetchMarginMode(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginMode(symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginModes(symbols, parameters);
-        return res;
-    }
     public async Task<Int64> FetchTime(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTime(parameters);
@@ -80,31 +60,6 @@ public partial class BaseExchange
     {
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<ccxt.CrossBorrowRates> FetchCrossBorrowRates(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCrossBorrowRates(parameters);
-        return res;
-    }
-    public async Task<ccxt.IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchIsolatedBorrowRates(parameters);
-        return res;
-    }
-    public async Task<ccxt.LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverageTiers(symbols, parameters);
-        return res;
-    }
-    public async Task<ccxt.FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRates(symbols, parameters);
-        return res;
-    }
-    public async Task<ccxt.FundingRates> FetchFundingIntervals(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingIntervals(symbols, parameters);
-        return res;
     }
     public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
@@ -121,80 +76,15 @@ public partial class BaseExchange
         var res = await this.watchFundingRatesForSymbols(symbols, parameters);
         return new FundingRates(res);
     }
-    public async Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
-        return res;
-    }
-    public async Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.withdraw(code, amount, address, tag, parameters);
-        return res;
-    }
-    public async Task<ccxt.DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createDepositAddress(code, parameters);
-        return res;
-    }
-    public async Task<ccxt.Leverage> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setLeverage(leverage, symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverage(symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.Leverages> FetchLeverages(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return res;
-    }
     public async Task<Dictionary<string, object>> SetPositionMode(bool hedged, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<ccxt.MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.setMargin(symbol, amount, parameters);
-        return res;
-    }
-    public async Task<ccxt.LongShortRatio> FetchLongShortRatio(string symbol, string timeframe = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLongShortRatio(symbol, timeframe, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.LongShortRatio>> FetchLongShortRatioHistory(string symbol = null, string timeframe = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLongShortRatioHistory(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.MarginModification>> FetchMarginAdjustmentHistory(string symbol = null, string type = null, double? since = null, double? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarginAdjustmentHistory(symbol, type, since, limit, parameters);
-        return res;
-    }
     public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMarginMode(marginMode, symbol, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<List<ccxt.DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOpenInterestHistory(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<ccxt.OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOpenInterests(symbols, parameters);
-        return res;
     }
     public async Task<Dictionary<string, object>> FetchPaymentMethods(Dictionary<string, object> parameters = null)
     {
@@ -216,26 +106,6 @@ public partial class BaseExchange
         var res = await this.fetchBorrowRate(code, amount, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSpotOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OHLCV>> FetchContractOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchContractOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOHLCVWs(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
     public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
@@ -251,60 +121,10 @@ public partial class BaseExchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLedger(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<ccxt.LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLedgerEntry(id, code, parameters);
-        return res;
-    }
-    public async Task<ccxt.Balances> FetchBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalance(parameters);
-        return res;
-    }
-    public async Task<ccxt.Balances> FetchBalanceWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBalanceWs(parameters);
-        return res;
-    }
     public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBalance(parameters);
         return new Balances(res);
-    }
-    public async Task<ccxt.Balance> FetchPartialBalance(object part, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPartialBalance(part, parameters);
-        return res;
-    }
-    public async Task<ccxt.Balance> FetchFreeBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFreeBalance(parameters);
-        return res;
-    }
-    public async Task<ccxt.Balance> FetchUsedBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchUsedBalance(parameters);
-        return res;
-    }
-    public async Task<ccxt.Balance> FetchTotalBalance(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTotalBalance(parameters);
-        return res;
-    }
-    public async Task<ccxt.Status> FetchStatus(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchStatus(parameters);
-        return res;
     }
     public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
     {
@@ -316,265 +136,25 @@ public partial class BaseExchange
         var res = await this.fetchTransactionFees(codes, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
-        return res;
-    }
-    public async Task<ccxt.DepositWithdrawFee> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositWithdrawFee(code, parameters);
-        return res;
-    }
-    public async Task<ccxt.CrossBorrowRate> FetchCrossBorrowRate(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchCrossBorrowRate(code, parameters);
-        return res;
-    }
-    public async Task<ccxt.IsolatedBorrowRate> FetchIsolatedBorrowRate(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.Tickers> FetchSpotTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchSpotTickers(symbols, parameters);
-        return res;
-    }
-    public async Task<ccxt.Tickers> FetchContractTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchContractTickers(symbols, parameters);
-        return res;
-    }
     public async Task<OrderBooks> FetchOrderBooks(List<String> symbols = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
         return new OrderBooks(res);
-    }
-    public async Task<ccxt.Order> CreateTwapOrder(string symbol, string side, double amount, double duration, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createTwapOrder(symbol, side, amount, duration, parameters);
-        return res;
-    }
-    public async Task<ccxt.Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
-        return res;
-    }
-    public async Task<ccxt.Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchConvertTrade(id, code, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Conversion>> FetchConvertTradeHistory(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchConvertTradeHistory(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<ccxt.PositionModeInfo> FetchPositionMode(string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositionMode(symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.ADL> FetchADLRank(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchADLRank(symbol, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.ADL>> FetchPositionsADLRank(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositionsADLRank(symbols, parameters);
-        return res;
-    }
-    public async Task<ccxt.ADL> FetchPositionADLRank(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositionADLRank(symbol, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createSpotOrders(orders, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.createContractOrders(orders, parameters);
-        return res;
-    }
-    public async Task<ccxt.Order> CancelSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelSpotOrder(id, symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.Order> CancelContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelContractOrder(id, symbol, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllSpotOrders(symbol, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelAllContractOrders(symbol, parameters);
-        return res;
     }
     public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersAfter(timeout, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<ccxt.Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.cancelOrdersForSymbols(orders, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLiquidations(symbol, since, limit, parameters);
-        return res;
-    }
-    public async Task<ccxt.Greeks> FetchGreeks(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchGreeks(symbol, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Greeks>> FetchAllGreeks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchAllGreeks(symbols, parameters);
-        return res;
-    }
-    public async Task<ccxt.OptionChain> FetchOptionChain(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOptionChain(code, parameters);
-        return res;
-    }
-    public async Task<ccxt.Option> FetchOption(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOption(symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDeposits(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchWithdrawals(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Transaction>> FetchDepositsWs(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositsWs(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Transaction>> FetchWithdrawalsWs(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchWithdrawalsWs(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
-        return res;
-    }
-    public async Task<ccxt.DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchDepositAddress(code, parameters);
-        return res;
-    }
-    public async Task<ccxt.DepositAddress> FetchContractDepositAddress(string code, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchContractDepositAddress(code, parameters);
-        return res;
-    }
     public MarketInterface CreateExpiredOptionMarket(string symbol)
     {
         var res = this.createExpiredOptionMarket(symbol);
         return new MarketInterface(res);
     }
-    public async Task<List<ccxt.LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarketLeverageTiers(symbol, parameters);
-        return res;
-    }
     public async Task<Dictionary<string, object>> CreateSubAccount(string name, Dictionary<string, object> parameters = null)
     {
         var res = await this.createSubAccount(name, parameters);
         return ((Dictionary<string, object>)res);
-    }
-    public async Task<ccxt.LastPrices> FetchLastPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchLastPrices(symbols, parameters);
-        return res;
-    }
-    public async Task<ccxt.TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFees(parameters);
-        return res;
-    }
-    public async Task<ccxt.TradingFees> FetchTradingFeesWs(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTradingFeesWs(parameters);
-        return res;
-    }
-    public async Task<ccxt.Currencies> FetchConvertCurrencies(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchConvertCurrencies(parameters);
-        return res;
-    }
-    public async Task<ccxt.FundingRate> FetchFundingRate(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingRate(symbol, parameters);
-        return res;
-    }
-    public async Task<ccxt.FundingRate> FetchFundingInterval(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchFundingInterval(symbol, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OHLCV>> FetchMarkOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OHLCV>> FetchIndexOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchIndexOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.OHLCV>> FetchPremiumIndexOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransactions(code, since, limit, parameters);
-        return res;
     }
     public Dictionary<string, Dictionary<string, OHLCV[]>> CreateOHLCVObject(string symbol, string timeframe, object data)
     {
@@ -601,35 +181,10 @@ public partial class BaseExchange
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransfer(id, code, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchTransfers(code, since, limit, parameters);
-        return res;
-    }
-    public async Task<ccxt.Transaction> WithdrawWs(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.withdrawWs(code, amount, address, tag, parameters);
-        return res;
-    }
-    public async Task<List<ccxt.Order>> FetchOrdersByStatusWs(string status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchOrdersByStatusWs(status, symbol, since, limit, parameters);
-        return res;
-    }
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
-    }
-    public async Task<ccxt.OrderBook> FetchRestOrderBookSafe(object symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchRestOrderBookSafe(symbol, limit, parameters);
-        return res;
     }
 }
 // class wrappers
