@@ -607,7 +607,7 @@ public partial class p2b : Exchange
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -665,7 +665,7 @@ public partial class p2b : Exchange
      * @param {int} params.lastId order id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -794,10 +794,10 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] default=0, with this value the last candles are returned
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframe = timeframeTyped;
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -806,7 +806,7 @@ public partial class p2b : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "interval", timeframe },
+            { "interval", timeframeVar },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -836,7 +836,7 @@ public partial class p2b : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market, timeframe, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(result, market, timeframeVar, since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -940,7 +940,7 @@ public partial class p2b : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1052,7 +1052,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1116,7 +1116,7 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> fetchOrderTrades(string id, string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1175,8 +1175,9 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1190,24 +1191,24 @@ public partial class p2b : Exchange
         parameters = this.omit(parameters, "until");
         if (isTrue(isEqual(until, null)))
         {
-            if (isTrue(isEqual(since, null)))
+            if (isTrue(isEqual(sinceVar, null)))
             {
                 until = this.milliseconds();
             } else
             {
-                until = add(since, 86400000);
+                until = add(sinceVar, 86400000);
             }
         }
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isEqual(sinceVar, null)))
         {
-            since = subtract(until, 86400000);
+            sinceVar = subtract(until, 86400000);
         }
-        if (isTrue(isGreaterThan((subtract(until, since)), 86400000)))
+        if (isTrue(isGreaterThan((subtract(until, sinceVar)), 86400000)))
         {
             throw new BadRequest ((string)add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         object market = this.market(symbol);
-        object sinceSec = this.parseToInt(divide(since, 1000));
+        object sinceSec = this.parseToInt(divide(sinceVar, 1000));
         object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -1247,7 +1248,7 @@ public partial class p2b : Exchange
         //
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object deals = this.safeList(result, "deals", new List<object>() {});
-        return this.parseTrades(deals, market, since, limit);
+        return this.parseTrades(deals, market, sinceVar, limit);
     }
 
     /**
@@ -1265,8 +1266,9 @@ public partial class p2b : Exchange
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1281,23 +1283,23 @@ public partial class p2b : Exchange
         }
         if (isTrue(isEqual(until, null)))
         {
-            if (isTrue(isEqual(since, null)))
+            if (isTrue(isEqual(sinceVar, null)))
             {
                 until = this.milliseconds();
             } else
             {
-                until = add(since, 86400000);
+                until = add(sinceVar, 86400000);
             }
         }
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isEqual(sinceVar, null)))
         {
-            since = subtract(until, 86400000);
+            sinceVar = subtract(until, 86400000);
         }
-        if (isTrue(isGreaterThan((subtract(until, since)), 86400000)))
+        if (isTrue(isGreaterThan((subtract(until, sinceVar)), 86400000)))
         {
             throw new BadRequest ((string)add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
-        object sinceSec = this.parseToInt(divide(since, 1000));
+        object sinceSec = this.parseToInt(divide(sinceVar, 1000));
         object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "startTime", sinceSec },
@@ -1345,7 +1347,7 @@ public partial class p2b : Exchange
         {
             object marketId = getValue(keys, i);
             object marketOrders = getValue(result, marketId);
-            object parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+            object parsedOrders = this.parseOrders(marketOrders, market, sinceVar, limit);
             orders = this.arrayConcat(orders, parsedOrders);
         }
         return orders;

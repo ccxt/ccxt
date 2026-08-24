@@ -1593,7 +1593,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
      */
-    public async override Task<object> fetchOrderBook(string outcome, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -1639,39 +1639,40 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} a list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string outcome, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string outcome, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframe = timeframeTyped;
+        object timeframeVar = timeframe;
+        object limitVar = limit;
         // hoisted keys list: chaining join onto Object.keys breaks the python transpiler
-        timeframe ??= "1m";
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue((inOp(this.timeframes, timeframe))))
+        if (!isTrue((inOp(this.timeframes, timeframeVar))))
         {
             object supportedKeys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
-            throw new BadRequest ((string)add(add(add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
+            throw new BadRequest ((string)add(add(add(add(this.id, " fetchOHLCV() unsupported timeframe "), timeframeVar), ", supported timeframes are "), String.Join(", ", ((IList<object>)supportedKeys).ToArray()))) ;
         }
         object outcomeObj = await this.loadOutcome(outcome);
         object tokenId = getValue(outcomeObj, "outcomeId");
-        object fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
+        object fidelityMin = this.safeInteger(this.timeframes, timeframeVar, 1); // fidelity in minutes
         object nowS = this.seconds();
         object startS = null;
         object endS = nowS;
         if (isTrue(!isEqual(since, null)))
         {
             startS = this.parseToInt(divide(since, 1000));
-            if (isTrue(!isEqual(limit, null)))
+            if (isTrue(!isEqual(limitVar, null)))
             {
-                object endBound = this.sum(startS, multiply(multiply(limit, fidelityMin), 60));
+                object endBound = this.sum(startS, multiply(multiply(limitVar, fidelityMin), 60));
                 endS = ((bool) isTrue((isLessThan(endBound, nowS)))) ? endBound : nowS;
             }
         } else
         {
-            object barCount = ((bool) isTrue((!isEqual(limit, null)))) ? limit : 100;
+            object barCount = ((bool) isTrue((!isEqual(limitVar, null)))) ? limitVar : 100;
             startS = subtract(nowS, (multiply(multiply(barCount, fidelityMin), 60)));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
-        // `since` anchor (oldest chunk first, consistent with since/limit paging),
+        // `since` anchor (oldest chunk first, consistent with since/limitVar paging),
         // or the most recent window when no `since` was given
         object maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
         if (isTrue(isGreaterThan((subtract(endS, startS)), maxWindow)))
@@ -1747,9 +1748,9 @@ public partial class polymarket : PredictionExchange
         }
         object candles = this.sortBy(unsortedCandles, 0);
         object candlesLength = getArrayLength(candles);
-        if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((isGreaterThan(candlesLength, limit)))))
+        if (isTrue(isTrue((!isEqual(limitVar, null))) && isTrue((isGreaterThan(candlesLength, limitVar)))))
         {
-            return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, prefixUnaryNeg(ref limit)));
+            return ccxt.BaseExchange.ToOHLCVList(this.arraySlice(candles, prefixUnaryNeg(ref limitVar)));
         }
         return ccxt.BaseExchange.ToOHLCVList(candles);
     }
@@ -1900,7 +1901,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> fetchTrades(string outcome, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchTrades(string outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -1948,7 +1949,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> fetchMyTrades(string outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -1976,12 +1977,12 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<List<ccxt.PredictionTrade>> fetchOrderTrades(string id, string outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionTrade>> fetchOrderTrades(string id, string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         // the /data/trades endpoint has no order filter, so fetch the user's trades and keep
         // the ones where this order was the taker or one of the matched makers
         parameters ??= new Dictionary<string, object>();
-        object trades = await this.fetchMyTrades(((string)outcome), null, null, parameters);
+        object trades = await this.fetchMyTrades(((string)outcome),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), parameters);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
@@ -2254,7 +2255,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<List<ccxt.PredictionOrder>> fetchOpenOrders(string outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.PredictionOrder>> fetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -2402,7 +2403,7 @@ public partial class polymarket : PredictionExchange
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> createOrder(string outcome, string type, string side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> createOrder(string outcome, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -2668,13 +2669,13 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<ccxt.PredictionOrder> createMarketBuyOrderWithCost(string outcome, object cost, object parameters = null)
+    public async override Task<ccxt.PredictionOrder> createMarketBuyOrderWithCost(string outcome, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = this.extend(parameters, new Dictionary<string, object>() {
             { "cost", cost },
         });
-        return await this.createOrder(((string)outcome), "market", "buy", cost, null, request);
+        return await this.createOrder(((string)outcome), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), request);
     }
 
     public virtual object polymarketOrderRawAmounts(object side, object size, object price, object tickSize, object cost = null)
@@ -3783,7 +3784,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra params (currently unused)
      * @returns {object} a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object outcome, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object outcome, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -3810,7 +3811,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra params (unused)
      * @returns {object[]} a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}
      */
-    public async override Task<object> watchTrades(object outcome, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object outcome, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomeObj = await this.loadOutcome(outcome);
@@ -3938,8 +3939,9 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async override Task<object> watchOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         object messageHash = "orders";
@@ -3952,9 +3954,9 @@ public partial class polymarket : PredictionExchange
         object orders = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {outcome, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {outcome, limitVar});
         }
-        return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(orders, outcome, since, limitVar, true);
     }
 
     /**
@@ -3968,8 +3970,9 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public async override Task<object> watchMyTrades(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
         object messageHash = "myTrades";
@@ -3982,9 +3985,9 @@ public partial class polymarket : PredictionExchange
         object trades = await this.subscribeUserChannel(messageHash, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {outcome, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {outcome, limitVar});
         }
-        return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(trades, outcome, since, limitVar, true);
     }
 
     public async virtual Task<object> subscribeUserChannel(object messageHash, object parameters = null)

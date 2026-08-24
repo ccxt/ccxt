@@ -929,6 +929,110 @@ public partial class BaseExchange
         return Math.Round((double)number, (int)decimals);
     }
 
+    // reflection binds by EXACT runtime type: a boxed Int32 does not land in an `Int64?`
+    // parameter, it throws ArgumentException. The generated cores now declare typed
+    // scalars, so every reflective arg list is converted to the target parameter types
+    // first. Impossible conversions are passed through unchanged so the original
+    // ArgumentException still surfaces instead of a helper-thrown one.
+    public static object[] coerceArgs(MethodInfo mi, object[] args)
+    {
+        if (mi == null || args == null)
+        {
+            return args;
+        }
+        var ps = mi.GetParameters();
+        var n = Math.Min(ps.Length, args.Length);
+        object[] outArgs = null;
+        for (var i = 0; i < n; i++)
+        {
+            var arg = args[i];
+            if (arg == null)
+            {
+                continue;
+            }
+            var target = ps[i].ParameterType;
+            if (target.IsByRef)
+            {
+                target = target.GetElementType();
+            }
+            if (target == null || target == typeof(object) || target.IsInstanceOfType(arg))
+            {
+                continue;
+            }
+            var effective = Nullable.GetUnderlyingType(target) ?? target;
+            if (effective.IsInstanceOfType(arg))
+            {
+                continue;
+            }
+            // only numeric widening/narrowing, never silent stringification of a number
+            if (!(effective.IsPrimitive || effective == typeof(decimal)) || effective == typeof(bool) || effective == typeof(char))
+            {
+                continue;
+            }
+            if (!(arg is IConvertible))
+            {
+                continue;
+            }
+            try
+            {
+                var converted = Convert.ChangeType(arg, effective, System.Globalization.CultureInfo.InvariantCulture);
+                if (outArgs == null)
+                {
+                    outArgs = new object[args.Length];
+                    Array.Copy(args, outArgs, args.Length);
+                }
+                outArgs[i] = converted;
+            }
+            catch
+            {
+                // leave the original value in place; Invoke reports the real mismatch
+            }
+        }
+        return outArgs ?? args;
+    }
+
+    // a direct `(Int64?)expr` unbox-cast of a boxed Int32 throws InvalidCastException,
+    // so every generated call site feeding a narrowed numeric core parameter converts
+    // through these instead of casting. null stays null (the parameter is optional).
+    public static Int64? ToInt64Arg(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is Int64 l)
+        {
+            return l;
+        }
+        return Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static double? ToDoubleArg(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is double d)
+        {
+            return d;
+        }
+        return Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // required (non-optional) numeric positions: same conversion, but a missing value is
+    // a contract violation rather than an absent optional, so it surfaces as 0 like the
+    // untyped path did instead of throwing inside the helper.
+    public static double ToDoubleArgRequired(object value)
+    {
+        return (value == null) ? 0 : Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    public static Int64 ToInt64ArgRequired(object value)
+    {
+        return (value == null) ? 0 : Convert.ToInt64(value, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
     public static object callDynamically(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
@@ -936,7 +1040,8 @@ public partial class BaseExchange
         {
             args = new object[] { null };
         }
-        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        var mi = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var res = mi.Invoke(obj, coerceArgs(mi, args));
         // The transpiled callers cast this result to Task<object> (the cast is
         // emitted by ast-transpiler), which an implicit API method's narrowed
         // Task<Dictionary<string, object>> would fail. Normalize here so the
@@ -947,7 +1052,8 @@ public partial class BaseExchange
     public static async Task<object> callDynamicallyAsync(object obj, object methodName, object[] args = null)
     {
         args ??= new object[] { };
-        var res = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(obj, args);
+        var mi = obj.GetType().GetMethod((string)methodName, BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        var res = mi.Invoke(obj, coerceArgs(mi, args));
         return await AsTaskOfObject(res);
     }
 

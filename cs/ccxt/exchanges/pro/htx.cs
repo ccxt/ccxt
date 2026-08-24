@@ -272,8 +272,9 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -286,9 +287,9 @@ public partial class htx : ccxt.htx
         object trades = await this.subscribePublic(url, symbol, messageHash, null, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     /**
@@ -382,8 +383,9 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -398,9 +400,9 @@ public partial class htx : ccxt.htx
         object ohlcv = await this.subscribePublic(url, symbol, messageHash, null, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     /**
@@ -490,8 +492,9 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -505,21 +508,21 @@ public partial class htx : ccxt.htx
         // 150-levels/400-level incremental MBP feed is based on the gap
         // between two snapshots at 100ms interval.
         object options = this.safeDict(this.options, "watchOrderBook", new Dictionary<string, object>() {});
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = this.safeInteger(options, "depth", 150);
+            limitVar = this.safeInteger(options, "depth", 150);
         }
-        if (!isTrue(this.inArray(limit, allowedLimits)))
+        if (!isTrue(this.inArray(limitVar, allowedLimits)))
         {
             throw new ExchangeError ((string)add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
         }
         object messageHash = null;
         if (isTrue(getValue(market, "spot")))
         {
-            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(limit));
+            messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), this.numberToString(limitVar));
         } else
         {
-            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(limit)), ".high_freq");
+            messageHash = add(add(add(add("market.", getValue(market, "id")), ".depth.size_"), this.numberToString(limitVar)), ".high_freq");
         }
         object url = this.getUrlByMarketType(getValue(market, "type"), getValue(market, "linear"), false, true);
         object method = this.handleOrderBookSubscription;
@@ -947,8 +950,9 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isTrue(isEqual(this.markets, null)))
@@ -1017,9 +1021,9 @@ public partial class htx : ccxt.htx
         }
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
     }
 
     public virtual object getOrderChannelAndMessageHash(object type, object subType, object market = null, object parameters = null)
@@ -1107,8 +1111,9 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1161,9 +1166,9 @@ public partial class htx : ccxt.htx
         object orders = await this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(orders, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -1735,7 +1740,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))

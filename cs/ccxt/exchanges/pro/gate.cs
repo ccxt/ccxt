@@ -167,21 +167,21 @@ public partial class gate : ccxt.gate
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> createOrderWs(string symbolTyped, string type, string side, object amount, object price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
     {
-        object symbol = symbolTyped;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        symbol = getValue(market, "symbol");
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_place");
         object url = this.getUrlByMarket(market);
         ((IDictionary<string,object>)parameters)["textIsRequired"] = true;
-        object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
+        object request = this.createOrderRequest(symbolVar, type, side, amount, price, parameters);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, request, channel);
         object order = this.parseOrder(rawOrder, market);
@@ -413,25 +413,25 @@ public partial class gate : ccxt.gate
      * @param {int} [params.limit] the maximum number of order structures to retrieve
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> fetchOrdersByStatusWs(string status, string symbolTyped = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOrdersByStatusWs(string status, string symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object symbol = symbolTyped;
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = null;
-        if (isTrue(!isEqual(symbol, null)))
+        if (isTrue(!isEqual(symbolVar, null)))
         {
-            market = this.market(symbol);
-            symbol = getValue(market, "symbol");
+            market = this.market(symbolVar);
+            symbolVar = getValue(market, "symbol");
             if (isTrue(!isEqual(getValue(market, "swap"), true)))
             {
                 throw new NotSupported ((string)add(this.id, " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")) ;
             }
         }
-        var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
+        var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolVar, since, limit, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object newRequest = this.omit(request, new List<object>() {"settle"});
@@ -441,7 +441,7 @@ public partial class gate : ccxt.gate
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
         object orders = this.parseOrders(rawOrders, market);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolVar, since, limit));
     }
 
     /**
@@ -459,8 +459,9 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -477,12 +478,12 @@ public partial class gate : ccxt.gate
         var query = ((IList<object>) intervalqueryVariable)[1];
         object messageType = this.getTypeByMarket(market);
         object messageHash = add(add("orderbook", ":"), symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
+            limitVar = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
             if (isTrue(isEqual(messageType, "options")))
             {
-                limit = 50; // max 50 for options
+                limitVar = 50; // max 50 for options
             }
         }
         object payload = new List<object>() {};
@@ -495,7 +496,7 @@ public partial class gate : ccxt.gate
         {
             channel = "spot.obu";
             object finalInterval = interval;
-            if (isTrue(isEqual(limit, 400)))
+            if (isTrue(isEqual(limitVar, 400)))
             {
                 finalInterval = "400";
             }
@@ -504,12 +505,12 @@ public partial class gate : ccxt.gate
         {
             channel = add(messageType, ".order_book_update");
             payload = new List<object>() {marketId, interval};
-            object stringLimit = ((object)limit).ToString();
+            object stringLimit = ((object)limitVar).ToString();
             ((IList<object>)payload).Add(stringLimit);
         }
         object subscription = new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "limit", limit },
+            { "limit", limitVar },
         };
         object orderbook = await this.subscribePublic(url, messageHash, payload, channel, query, subscription);
         return (orderbook as IOrderBook).limit();
@@ -1019,7 +1020,7 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -1172,8 +1173,9 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1193,9 +1195,9 @@ public partial class gate : ccxt.gate
         object ohlcv = await this.subscribePublic(url, messageHash, payload, channel, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -1277,8 +1279,9 @@ public partial class gate : ccxt.gate
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1320,9 +1323,9 @@ public partial class gate : ccxt.gate
         object trades = await this.subscribePrivate(url, messageHash, payload, channel, parameters, requiresUid);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -1535,7 +1538,7 @@ public partial class gate : ccxt.gate
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchPositions(object symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1752,8 +1755,9 @@ public partial class gate : ccxt.gate
      * @param {boolean} [params.stop] alias of params.trigger
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1816,9 +1820,9 @@ public partial class gate : ccxt.gate
         object orders = await this.subscribePrivate(url, messageHash, payload, channel, query, requiresUid);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(orders, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)

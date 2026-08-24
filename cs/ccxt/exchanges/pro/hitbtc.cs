@@ -223,7 +223,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {int} [params.speed] 100 (default), 500, or 1000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "watchOrderBook");
@@ -630,8 +630,9 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -643,17 +644,17 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = limitVar;
         }
         object name = "trades";
         object trades = await this.subscribePublic(name, "trades", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp");
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp");
     }
 
     public virtual object handleTrades(WebSocketClient client, object message)
@@ -778,8 +779,9 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -790,16 +792,16 @@ public partial class hitbtc : ccxt.hitbtc
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
         };
-        if (isTrue(!isEqual(limit, null)))
+        if (isTrue(!isEqual(limitVar, null)))
         {
-            ((IDictionary<string,object>)getValue(request, "params"))["limit"] = limit;
+            ((IDictionary<string,object>)getValue(request, "params"))["limit"] = limitVar;
         }
         object ohlcv = await this.subscribePublic(name, "candles", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0);
     }
 
     public virtual object handleOHLCV(WebSocketClient client, object message)
@@ -900,8 +902,9 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -925,9 +928,9 @@ public partial class hitbtc : ccxt.hitbtc
         object orders = await this.subscribePrivate(name, symbol, parameters);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(orders, since, limit, "timestamp");
+        return this.filterBySinceLimit(orders, since, limitVar, "timestamp");
     }
 
     public virtual object handleOrder(WebSocketClient client, object message)

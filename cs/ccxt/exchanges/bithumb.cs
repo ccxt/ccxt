@@ -491,7 +491,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -726,10 +726,10 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframe = timeframeTyped;
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -739,7 +739,7 @@ public partial class bithumb : Exchange
         object request = new Dictionary<string, object>() {
             { "baseId", getValue(market, "baseId") },
             { "quoteId", getValue(market, "quoteId") },
-            { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "interval", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
         object response = await this.publicGetCandlestickBaseIdQuoteIdInterval(this.extend(request, parameters));
         //
@@ -766,7 +766,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframe, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(data, market, timeframeVar, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -865,7 +865,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -915,7 +915,7 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1143,8 +1143,9 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1155,12 +1156,12 @@ public partial class bithumb : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         }
         object request = new Dictionary<string, object>() {
-            { "count", limit },
+            { "count", limitVar },
             { "order_currency", getValue(market, "base") },
             { "payment_currency", getValue(market, "quote") },
         };
@@ -1187,7 +1188,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseOrders(data, market, since, limit);
+        return this.parseOrders(data, market, since, limitVar);
     }
 
     /**
@@ -1252,12 +1253,12 @@ public partial class bithumb : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tagTyped = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tag = tagTyped;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
@@ -1273,12 +1274,12 @@ public partial class bithumb : Exchange
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isEqual(code, "XRP")) || isTrue(isEqual(code, "XMR"))) || isTrue(isEqual(code, "EOS"))) || isTrue(isEqual(code, "STEEM"))) || isTrue(isEqual(code, "TON"))))
         {
             object destination = this.safeString(parameters, "destination");
-            if (isTrue(isTrue((isEqual(tag, null))) && isTrue((isEqual(destination, null)))))
+            if (isTrue(isTrue((isEqual(tagVar, null))) && isTrue((isEqual(destination, null)))))
             {
                 throw new ArgumentsRequired ((string)add(add(add(this.id, " "), code), " withdraw() requires a tag argument or an extra destination param")) ;
-            } else if (isTrue(!isEqual(tag, null)))
+            } else if (isTrue(!isEqual(tagVar, null)))
             {
-                ((IDictionary<string,object>)request)["destination"] = tag;
+                ((IDictionary<string,object>)request)["destination"] = tagVar;
             }
         }
         object response = await this.privatePostTradeBtcWithdrawal(this.extend(request, parameters));

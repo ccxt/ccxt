@@ -59,9 +59,9 @@ public partial class BaseExchange
                     appendedMissingArgs[i] = null;
                 }
             }
-            return method.Invoke(instance, appendedMissingArgs);
+            return method.Invoke(instance, BaseExchange.coerceArgs(method, appendedMissingArgs));
 
         }
-        return method.Invoke(instance, parameters);
+        return method.Invoke(instance, BaseExchange.coerceArgs(method, parameters));
     }
 }

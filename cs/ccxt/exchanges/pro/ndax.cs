@@ -123,8 +123,9 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
@@ -152,9 +153,9 @@ public partial class ndax : ccxt.ndax
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
     }
 
     public virtual void handleTrades(WebSocketClient client, object message)
@@ -224,8 +225,9 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
@@ -255,9 +257,9 @@ public partial class ndax : ccxt.ndax
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -387,8 +389,9 @@ public partial class ndax : ccxt.ndax
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
         if (isTrue(isEqual(this.markets, null)))
@@ -401,11 +404,11 @@ public partial class ndax : ccxt.ndax
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId();
-        limit = ((bool) isTrue((isEqual(limit, null)))) ? 100 : limit;
+        limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? 100 : limitVar;
         object payload = new Dictionary<string, object>() {
             { "OMSId", omsId },
             { "InstrumentId", this.safeInteger(market, "id") },
-            { "Depth", limit },
+            { "Depth", limitVar },
         };
         object request = new Dictionary<string, object>() {
             { "m", 0 },
@@ -420,7 +423,7 @@ public partial class ndax : ccxt.ndax
             { "symbol", symbol },
             { "marketId", getValue(market, "id") },
             { "method", this.handleOrderBookSubscription },
-            { "limit", limit },
+            { "limit", limitVar },
             { "params", parameters },
         };
         object message = this.extend(request, parameters);

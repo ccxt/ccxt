@@ -302,6 +302,115 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
 // `outcome`, and C# overrides are invariant on parameter types, not names.
 // Produced by build/analyzeCoreArgs.py, which admits a position only when every
 // declaration of that method agrees on arity + defaults and no body assigns to it.
+// Generated C# core parameters that can be narrowed from `object` to a numeric type.
+// Same positional keying and same all-declarations-must-agree gate as CORE_STRING_ARGS,
+// plus the narrowed type must equal what the hand-written PascalCase wrapper already
+// declares for that position (the wrapper is derived from the TS signature).
+// Produced by build/analyzeNumericCoreArgs.py. Reflective dispatch is safe because
+// BaseExchange.coerceArgs converts every boxed arg to the parameter type before Invoke.
+const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
+    'createAmmOrder': { 3: 'double', 4: 'double?' },
+    'createContractOrder': { 4: 'double?' },
+    'createConvertTrade': { 3: 'double?' },
+    'createExtendedOrderRequest': { 3: 'double', 4: 'double?' },
+    'createMarketBuyOrderWithCost': { 1: 'double' },
+    'createMarketOrderWithCost': { 2: 'double' },
+    'createMarketSellOrderWithCost': { 1: 'double' },
+    'createOrder': { 3: 'double', 4: 'double?' },
+    'createOrderbookOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTwapOrder': { 2: 'double' },
+    'createUtaOrder': { 3: 'double', 4: 'double?' },
+    'editContractOrder': { 4: 'double', 5: 'double?' },
+    'editOrder': { 4: 'double?', 5: 'double?' },
+    'editSpotOrder': { 4: 'double', 5: 'double?' },
+    'fetchAmmOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowInterest': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchBorrowRateHistories': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchBorrowRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchCanceledOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchClosedSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchContractOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchContractWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchConvertQuote': { 2: 'double?' },
+    'fetchConvertTradeHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDeposits': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDepositsWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchDerivativesOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchEventsByQuery': { 1: 'Int64' },
+    'fetchFundingHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchFundingRateHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchL2OrderBook': { 1: 'Int64?' },
+    'fetchL3OrderBook': { 1: 'Int64?' },
+    'fetchLedger': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLedgerByEntries': { 2: 'Int64?' },
+    'fetchLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchLongShortRatioHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMarkOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchMyBuys': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyContractTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyDustTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyLiquidations': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySells': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMySpotTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchMyUtaTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenInterestHistory': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOpenOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV1': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenOrdersV2': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOpenSwapOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOptionOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrderBook': { 1: 'Int64?' },
+    'fetchOrderBooks': { 1: 'Int64?' },
+    'fetchOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersByState': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchOrdersClassic': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchOrdersWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchPositionHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchPositionsHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSeriesEvents': { 2: 'Int64' },
+    'fetchSettlementHistory': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSettlements': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrderTrades': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchSpotOrdersByStates': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchSpotOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTradeQuote': { 2: 'double' },
+    'fetchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactions': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchTransactionsByType': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransactionsWithMethod': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchTransfers': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUTAOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
+    'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    'transfer': { 1: 'double' },
+    'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'watchOHLCV': { 2: 'Int64?', 3: 'Int64?' },
+    'watchOrderBook': { 1: 'Int64?' },
+    'watchOrders': { 1: 'Int64?', 2: 'Int64?' },
+    'watchPositions': { 1: 'Int64?', 2: 'Int64?' },
+    'watchTrades': { 1: 'Int64?', 2: 'Int64?' },
+    'withdraw': { 1: 'double' },
+};
+
 const CORE_STRING_ARGS: Record<string, number[]> = {
     'addMargin': [ 0 ],
     'cancelAllOrders': [ 0 ],
@@ -1220,8 +1329,62 @@ class NewTranspiler {
     // narrows the `object` parameters listed in CORE_STRING_ARGS to `string` on every
     // generated declaration. Positional, because the prediction tier renames the first
     // parameter (`symbol` -> `outcome`) while C# invariance is on types only.
+    // merged view of both tables: position -> narrowed C# type, per method name
+    coreArgTypes (methodName: string): Record<number, string> | undefined {
+        const strings = CORE_STRING_ARGS[methodName];
+        const numerics = CORE_NUMERIC_ARGS[methodName];
+        if (strings === undefined && numerics === undefined) {
+            return undefined;
+        }
+        const merged: Record<number, string> = {};
+        for (const pos of strings || []) {
+            merged[pos] = 'string';
+        }
+        for (const pos of Object.keys (numerics || {})) {
+            merged[Number (pos)] = (numerics as any)[pos];
+        }
+        return merged;
+    }
+
+    // renames every free occurrence of `name` to `alias` inside a generated method body,
+    // skipping string literals and member access (`.name`) so dictionary keys such as
+    // "timeframe" and properties such as `this.timeframe` are left untouched.
+    renameLocalInBody (body: string, name: string, alias: string): string {
+        let out = '';
+        let i = 0;
+        while (i < body.length) {
+            const ch = body[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < body.length) {
+                    if (body[j] === '\\') { j += 2; continue; }
+                    if (body[j] === quote) { j++; break; }
+                    j++;
+                }
+                out += body.substring (i, j);
+                i = j;
+                continue;
+            }
+            if (/[A-Za-z_]/.test (ch)) {
+                let j = i;
+                while (j < body.length && /[\w]/.test (body[j])) {
+                    j++;
+                }
+                const word = body.substring (i, j);
+                const prev = out[out.length - 1];
+                out += (word === name && prev !== '.') ? alias : word;
+                i = j;
+                continue;
+            }
+            out += ch;
+            i++;
+        }
+        return out;
+    }
+
     typeCoreArgs (content: string): string {
-        const names = Object.keys (CORE_STRING_ARGS);
+        const names = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS));
         if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
         }
@@ -1233,7 +1396,7 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
-            const positions = CORE_STRING_ARGS[methodName];
+            const positions = this.coreArgTypes (methodName);
             if (positions === undefined) {
                 continue;
             }
@@ -1251,27 +1414,40 @@ class NewTranspiler {
             const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
             const params = this.splitCsharpParams (plist);
             const shadows: string[] = [];
+            const renames: string[][] = [];
             let changed = false;
-            for (const pos of positions) {
+            for (const posKey of Object.keys (positions)) {
+                const pos = Number (posKey);
+                const targetType = positions[pos];
                 const param = params[pos];
                 if (param === undefined || !param.trimStart ().startsWith ('object ')) {
                     continue;
                 }
                 const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
-                // a body that assigns to the parameter cannot hold a `string` (the RHS is
-                // `object`), so the narrowed value arrives under an alias and the body keeps
-                // its own `object` local of the original name — semantics are unchanged
-                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body);
+                // a body that assigns to the parameter cannot hold the narrowed type (the RHS
+                // is `object`), so the body's uses are renamed to an `object` local seeded from
+                // the parameter. The PUBLIC parameter keeps its original name and gains the
+                // narrowed type — no `<name>Typed` appears in any signature. `ref name` counts
+                // as an assignment: the helper mutates in place and needs an `object` slot.
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (body)
+                    || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
+                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
                 if (reassigned) {
-                    params[pos] = param.replace ('object ' + paramName, 'string ' + paramName + 'Typed');
-                    shadows.push (`${indent}    object ${paramName} = ${paramName}Typed;`);
-                } else {
-                    params[pos] = param.replace ('object ', 'string ');
+                    const alias = paramName + 'Var';
+                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
+                    renames.push ([ paramName, alias ]);
                 }
                 changed = true;
             }
             if (!changed) {
                 continue;
+            }
+            if (renames.length) {
+                for (let k = bodyStart + 1; k < bodyEnd; k++) {
+                    for (const [ name, alias ] of renames) {
+                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
+                    }
+                }
             }
             lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
             if (shadows.length) {
@@ -1287,8 +1463,9 @@ class NewTranspiler {
     // `((string)expr)`. The value is a string by contract (the TS signature says so); the
     // cast only makes the existing assumption explicit to the C# compiler.
     castCoreArgCallSites (content: string, receivers = [ 'this.', 'base.' ]): string {
-        for (const methodName of Object.keys (CORE_STRING_ARGS)) {
-            const positions = CORE_STRING_ARGS[methodName];
+        const allNames = Object.keys (CORE_STRING_ARGS).concat (Object.keys (CORE_NUMERIC_ARGS).filter ((n) => !(n in CORE_STRING_ARGS)));
+        for (const methodName of allNames) {
+            const positions = this.coreArgTypes (methodName) as Record<number, string>;
             for (const receiver of receivers) {
                 const needle = receiver + methodName + '(';
                 let from = 0;
@@ -1310,16 +1487,33 @@ class NewTranspiler {
                 }
                 const args = this.splitCsharpParams (content.substring (open + 1, close));
                 let changed = false;
-                for (const pos of positions) {
+                for (const posKey of Object.keys (positions)) {
+                    const pos = Number (posKey);
+                    const targetType = positions[pos];
                     const arg = args[pos];
                     if (arg === undefined) {
                         continue;
                     }
                     const trimmed = arg.trim ();
-                    if (trimmed === '' || trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
+                    if (trimmed === '') {
                         continue;
                     }
-                    args[pos] = '((string)' + trimmed + ')';
+                    if (targetType === 'string') {
+                        if (trimmed.startsWith ('(string)') || trimmed.startsWith ('((string)') || trimmed.startsWith ('"')) {
+                            continue;
+                        }
+                        args[pos] = '((string)' + trimmed + ')';
+                        changed = true;
+                        continue;
+                    }
+                    // numeric: a direct unbox-cast of a boxed Int32 throws, so convert
+                    const helper = (targetType === 'Int64?') ? 'ToInt64Arg'
+                        : (targetType === 'Int64') ? 'ToInt64ArgRequired'
+                            : (targetType === 'double?') ? 'ToDoubleArg' : 'ToDoubleArgRequired';
+                    if (trimmed.startsWith (helper + '(') || trimmed.startsWith ('ccxt.BaseExchange.' + helper + '(')) {
+                        continue;
+                    }
+                    args[pos] = 'ccxt.BaseExchange.' + helper + '(' + trimmed + ')';
                     changed = true;
                 }
                 const replacement = changed ? needle + args.join (',') + ')' : content.substring (at, close + 1);
@@ -1364,12 +1558,26 @@ class NewTranspiler {
         return -1;
     }
 
-    // top-level comma split of a C# parameter list (defaults may contain generics/collections)
+    // top-level comma split of a C# parameter/argument list. Skips string and char
+    // literals, whose embedded commas would otherwise shift every later position.
     splitCsharpParams (plist: string): string[] {
         const out: string[] = [];
         let depth = 0;
         let cur = '';
-        for (const ch of plist) {
+        for (let i = 0; i < plist.length; i++) {
+            const ch = plist[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < plist.length) {
+                    if (plist[j] === '\\') { j += 2; continue; }
+                    if (plist[j] === quote) { j++; break; }
+                    j++;
+                }
+                cur += plist.substring (i, j);
+                i = j - 1;
+                continue;
+            }
             if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
                 depth++;
             } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {

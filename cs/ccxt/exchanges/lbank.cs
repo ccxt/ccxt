@@ -1034,17 +1034,18 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 60;
+            limitVar = 60;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1056,11 +1057,11 @@ public partial class lbank : Exchange
         object response = null;
         if (isTrue(isEqual(type, "swap")))
         {
-            ((IDictionary<string,object>)request)["depth"] = limit;
+            ((IDictionary<string,object>)request)["depth"] = limitVar;
             response = await this.contractPublicGetCfdOpenApiV1PubMarketOrder(this.extend(request, parameters));
         } else
         {
-            ((IDictionary<string,object>)request)["size"] = limit;
+            ((IDictionary<string,object>)request)["size"] = limitVar;
             response = await this.spotPublicGetDepth(this.extend(request, parameters));
         }
         //
@@ -1247,7 +1248,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(string symbol, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1328,34 +1329,36 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframeTyped = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<List<ccxt.OHLCV>> fetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
-        object timeframe = timeframeTyped;
+        object timeframeVar = timeframe;
+        object sinceVar = since;
+        object limitVar = limit;
         // endpoint doesnt work
-        timeframe ??= "1m";
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         } else
         {
-            limit = mathMin(limit, 2000);
+            limitVar = mathMin(limitVar, 2000);
         }
-        if (isTrue(isEqual(since, null)))
+        if (isTrue(isEqual(sinceVar, null)))
         {
-            object duration = this.parseTimeframe(timeframe);
-            since = subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limit)));
+            object duration = this.parseTimeframe(timeframeVar);
+            sinceVar = subtract(this.milliseconds(), (multiply(multiply(duration, 1000), limitVar)));
         }
-        object parsedSince = this.parseToInt(divide(since, 1000));
-        object parsedLimit = mathMin(add(limit, 1), 2000); // max 2000;
+        object parsedSince = this.parseToInt(divide(sinceVar, 1000));
+        object parsedLimit = mathMin(add(limitVar, 1), 2000); // max 2000;
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
-            { "type", this.safeString(this.timeframes, timeframe, timeframe) },
+            { "type", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
             { "time", parsedSince },
             { "size", parsedLimit },
         };
@@ -1382,7 +1385,7 @@ public partial class lbank : Exchange
         //   ]
         // ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market, timeframe, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market, timeframeVar, sinceVar, limitVar));
     }
 
     public override object parseBalance(object response)
@@ -1801,7 +1804,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> createMarketBuyOrderWithCost(string symbol, object cost, object parameters = null)
+    public async override Task<ccxt.Order> createMarketBuyOrderWithCost(string symbol, double cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1814,7 +1817,7 @@ public partial class lbank : Exchange
             throw new NotSupported ((string)add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
         }
         ((IDictionary<string,object>)parameters)["createMarketBuyOrderRequiresPrice"] = false;
-        return ccxt.BaseExchange.ToOrder(await this.createOrder(((string)symbol), "market", "buy", cost, null, parameters));
+        return ccxt.BaseExchange.ToOrder(await this.createOrder(((string)symbol), "market", "buy",ccxt.BaseExchange.ToDoubleArgRequired(cost),ccxt.BaseExchange.ToDoubleArg(null), parameters));
     }
 
     /**
@@ -1831,7 +1834,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(string symbol, string type, string side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2239,8 +2242,9 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object sinceVar = since;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2251,7 +2255,7 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        since = this.safeValue(parameters, "start_date", since);
+        sinceVar = this.safeValue(parameters, "start_date", sinceVar);
         parameters = this.omit(parameters, "start_date");
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2260,10 +2264,10 @@ public partial class lbank : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
-        if (isTrue(!isEqual(since, null)))
+        if (isTrue(!isEqual(sinceVar, null)))
         {
-            ((IDictionary<string,object>)request)["start_date"] = this.ymd(since, "-"); // max query 2 days ago
-            ((IDictionary<string,object>)request)["end_date"] = this.ymd(add(since, 86400000), "-"); // will cover 2 days
+            ((IDictionary<string,object>)request)["start_date"] = this.ymd(sinceVar, "-"); // max query 2 days ago
+            ((IDictionary<string,object>)request)["end_date"] = this.ymd(add(sinceVar, 86400000), "-"); // will cover 2 days
         }
         object response = await this.spotPrivatePostTransactionHistory(this.extend(request, parameters));
         //
@@ -2287,7 +2291,7 @@ public partial class lbank : Exchange
         //      }
         //
         object trades = this.safeList(response, "data", new List<object>() {});
-        return this.parseTrades(trades, market, since, limit);
+        return this.parseTrades(trades, market, sinceVar, limit);
     }
 
     /**
@@ -2301,8 +2305,9 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         // default query is for canceled and completely filled orders
         // does not return open orders unless specified explicitly
         parameters ??= new Dictionary<string, object>();
@@ -2315,14 +2320,14 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "current_page", 1 },
-            { "page_length", limit },
+            { "page_length", limitVar },
         };
         object response = await this.spotPrivatePostSupplementOrdersInfoHistory(this.extend(request, parameters));
         //
@@ -2354,7 +2359,7 @@ public partial class lbank : Exchange
         //
         object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(result, "orders", new List<object>() {});
-        return this.parseOrders(orders, market, since, limit);
+        return this.parseOrders(orders, market, since, limitVar);
     }
 
     /**
@@ -2368,8 +2373,9 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
+        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -2380,14 +2386,14 @@ public partial class lbank : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        if (isTrue(isEqual(limit, null)))
+        if (isTrue(isEqual(limitVar, null)))
         {
-            limit = 100;
+            limitVar = 100;
         }
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "current_page", 1 },
-            { "page_length", limit },
+            { "page_length", limitVar },
         };
         object response = await this.spotPrivatePostSupplementOrdersInfoNoDeal(this.extend(request, parameters));
         //
@@ -2419,7 +2425,7 @@ public partial class lbank : Exchange
         //
         object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object orders = this.safeList(result, "orders", new List<object>() {});
-        return this.parseOrders(orders, market, since, limit);
+        return this.parseOrders(orders, market, since, limitVar);
     }
 
     /**
@@ -2648,12 +2654,12 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> withdraw(string code, object amount, string address, string tagTyped = null, object parameters = null)
+    public async override Task<ccxt.Transaction> withdraw(string code, double amount, string address, string tag = null, object parameters = null)
     {
-        object tag = tagTyped;
+        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
-        tag = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
@@ -2671,9 +2677,9 @@ public partial class lbank : Exchange
             { "amount", amount },
             { "fee", fee },
         };
-        if (isTrue(!isEqual(tag, null)))
+        if (isTrue(!isEqual(tagVar, null)))
         {
-            ((IDictionary<string,object>)request)["memo"] = tag;
+            ((IDictionary<string,object>)request)["memo"] = tagVar;
         }
         object network = this.safeStringUpper2(parameters, "network", "networkName");
         parameters = this.omit(parameters, new List<object>() {"network", "networkName"});
@@ -2819,7 +2825,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(string code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2877,7 +2883,7 @@ public partial class lbank : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(string code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
