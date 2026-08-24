@@ -4709,7 +4709,7 @@ export default class bitget extends Exchange {
             account['debt'] = this.safeString (entry, 'debt');
             account['used'] = this.safeString2 (entry, 'locked', 'frozen');
             account['free'] = this.safeString (entry, 'available');
-            account['total'] = this.safeString (entry, 'equity');
+            account['total'] = this.safeString2 (entry, 'equity', 'balance');
             if (code !== undefined) {
                 result[code] = account;
             }
