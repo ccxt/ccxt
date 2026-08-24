@@ -10,8 +10,6 @@ namespace ccxt
 
         public BigInteger integer { get; set; } = 0;
 
-        public long baseNumber { get; set; } = 10;
-
         // static bounded lookup table for 10^n, n in [0, 128] — mirrors the TS
         // implementation; never invalidated, uniform O(1) cost for any input
         // (falls back to exponentiation for exponents beyond the table)
