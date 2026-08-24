@@ -47,8 +47,8 @@ const getValueFromKeysInArray = <T>(
 };
 /*  .............................................   */
 
-const asFloat = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? parseFloat (x) : NaN);
-const asInteger = (x: any): number | typeof NaN => ((isNumber (x) || (isString (x) && x.length !== 0)) ? Math.trunc (Number (x)) : NaN);
+const asFloat = (x: any): number | typeof NaN => (((isString (x) && x.length !== 0) || isNumber (x)) ? parseFloat (x) : NaN);
+const asInteger = (x: any): number | typeof NaN => (((isString (x) && x.length !== 0) || isNumber (x)) ? Math.trunc (Number (x)) : NaN);
 /*  .............................................   */
 
 function safeFloat (o: safeInputType, k: NullableIndexType, $default?: number): Num {
