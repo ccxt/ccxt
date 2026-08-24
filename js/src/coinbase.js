@@ -929,7 +929,16 @@ export default class coinbase extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            response = await this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, params));
+        }
+        else if (method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            response = await this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, params));
+        }
+        else {
+            response = await this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, params));
+        }
         return this.parseTransactions(response['data'], undefined, since, limit);
     }
     /**
@@ -5286,7 +5295,7 @@ export default class coinbase extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         const savedPath = fullPath;
         if (method === 'GET') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 fullPath += '?' + this.urlencodeWithArrayRepeat(query);
             }
         }
@@ -5305,14 +5314,14 @@ export default class coinbase extends Exchange {
                 const seconds = this.seconds();
                 let payload = '';
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                         payload = body;
                     }
                 }
                 else {
                     if (!isV3) {
-                        if (Object.keys(query).length) {
+                        if (Object.keys(query).length > 0) {
                             payload += '?' + this.urlencode(query);
                         }
                     }
@@ -5370,7 +5379,7 @@ export default class coinbase extends Exchange {
                     'Content-Type': 'application/json',
                 };
                 if (method !== 'GET') {
-                    if (Object.keys(query).length) {
+                    if (Object.keys(query).length > 0) {
                         body = this.json(query);
                     }
                 }

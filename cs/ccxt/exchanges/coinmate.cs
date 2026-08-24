@@ -298,6 +298,15 @@ public partial class coinmate : Exchange
                         { "unconfirmedAdaDeposits", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "daiWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "daiDepositAddresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "unconfirmedDaiDeposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "solWithdrawal", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -546,7 +555,7 @@ public partial class coinmate : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -688,7 +697,7 @@ public partial class coinmate : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -900,7 +909,7 @@ public partial class coinmate : Exchange
         object method = this.safeString(methods, code);
         if (isTrue(isEqual(method, null)))
         {
-            object allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);
+            List<object> allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);
             throw new ExchangeError ((string)add(add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.Join(", ", ((IList<object>)allowedCurrencies).ToArray()))) ;
         }
         object request = new Dictionary<string, object>() {
@@ -911,7 +920,39 @@ public partial class coinmate : Exchange
         {
             ((IDictionary<string,object>)request)["destinationTag"] = tag;
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        Dictionary<string, object> requestParams = this.extend(request, parameters);
+        object response = null;
+        if (isTrue(isEqual(method, "privatePostBitcoinWithdrawal")))
+        {
+            response = await this.privatePostBitcoinWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostLitecoinWithdrawal")))
+        {
+            response = await this.privatePostLitecoinWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostBitcoinCashWithdrawal")))
+        {
+            response = await this.privatePostBitcoinCashWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostEthereumWithdrawal")))
+        {
+            response = await this.privatePostEthereumWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostRippleWithdrawal")))
+        {
+            response = await this.privatePostRippleWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostDashWithdrawal")))
+        {
+            response = await this.privatePostDashWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostDaiWithdrawal")))
+        {
+            response = await this.privatePostDaiWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostAdaWithdrawal")))
+        {
+            response = await this.privatePostAdaWithdrawal(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostSolWithdrawal")))
+        {
+            response = await this.privatePostSolWithdrawal(requestParams);
+        } else
+        {
+            throw new ExchangeError ((string)add(add(add(this.id, " withdraw() does not support the "), method), " method")) ;
+        }
         //
         //     {
         //         "error": false,
@@ -1338,7 +1379,24 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             method = add(method, this.capitalize(type));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        Dictionary<string, object> requestParams = this.extend(request, parameters);
+        object response = null;
+        if (isTrue(isEqual(method, "privatePostBuyInstant")))
+        {
+            response = await this.privatePostBuyInstant(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostSellInstant")))
+        {
+            response = await this.privatePostSellInstant(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostBuyLimit")))
+        {
+            response = await this.privatePostBuyLimit(requestParams);
+        } else if (isTrue(isEqual(method, "privatePostSellLimit")))
+        {
+            response = await this.privatePostSellLimit(requestParams);
+        } else
+        {
+            throw new InvalidOrder ((string)add(add(this.id, " createOrder() does not support order type "), type)) ;
+        }
         object id = this.safeString(response, "data");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
@@ -1368,7 +1426,7 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         object market = null;
-        if (isTrue(symbol))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(symbol, "")))))
         {
             market = this.market(symbol);
         }
@@ -1422,16 +1480,16 @@ public partial class coinmate : Exchange
         object url = add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object auth = add(add(nonce, this.uid), this.apiKey);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             body = this.urlencode(this.extend(new Dictionary<string, object>() {
                 { "clientId", this.uid },
                 { "nonce", nonce },

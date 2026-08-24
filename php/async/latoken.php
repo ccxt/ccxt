@@ -1938,7 +1938,7 @@ class latoken extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencodedQuery = $this->urlencode($query);
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $requestString .= '?' . $urlencodedQuery;
             }
         }

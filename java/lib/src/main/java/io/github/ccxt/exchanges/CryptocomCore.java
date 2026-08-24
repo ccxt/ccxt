@@ -1531,7 +1531,7 @@ public class CryptocomCore extends CryptocomApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            if (Helpers.isTrue(limit))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((!Helpers.isEqual(limit, 0)))))
             {
                 Helpers.addElementToObject(request, "depth", Helpers.mathMin(limit, 50)); // max 50
             }
@@ -4468,7 +4468,7 @@ public class CryptocomCore extends CryptocomApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

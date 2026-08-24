@@ -2383,7 +2383,7 @@ public class ZebpayCore extends ZebpayApi
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(queryLength))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(queryLength, null))) && Helpers.isTrue((!Helpers.isEqual(queryLength, 0)))))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

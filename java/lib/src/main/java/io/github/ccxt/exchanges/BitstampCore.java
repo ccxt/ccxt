@@ -2658,19 +2658,24 @@ public class BitstampCore extends BitstampApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object method = "privatePostUserTransactions";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
-                method = Helpers.add(method, "Pair");
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                response = (this.privatePostUserTransactionsPair(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
+            }
             Object result = this.filterBy(response, "type", "2");
             return this.parseTrades(result, market, since, limit);
         });
@@ -3483,8 +3488,9 @@ public class BitstampCore extends BitstampApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fiat fetchDepositAddress() for "), code), " is not supported!")) ;
             }
             Object name = this.getCurrencyName(code);
-            Object method = Helpers.add(Helpers.add("privatePost", this.capitalize(name)), "Address");
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { parameters })).join();
+            // the per-currency implicit methods (privatePostBtcAddress etc.) all route
+            // through request(), called here directly to avoid dynamic dispatch
+            Object response = (this.request(Helpers.add(name, "_address/"), "private", "POST", parameters)).join();
             Object address = this.safeString(response, "address");
             Object tag = this.safeString2(response, "memo_id", "destination_tag");
             this.checkAddress(address);
@@ -3533,11 +3539,10 @@ public class BitstampCore extends BitstampApi
                 put( "amount", amount );
             }};
             Object currency = null;
-            Object method = null;
+            Object response = null;
             if (!Helpers.isTrue(this.isFiat(code)))
             {
                 Object name = this.getCurrencyName(code);
-                method = Helpers.add(Helpers.add("privatePost", this.capitalize(name)), "Withdrawal");
                 if (Helpers.isTrue(Helpers.isEqual(code, "XRP")))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
@@ -3552,14 +3557,16 @@ public class BitstampCore extends BitstampApi
                     }
                 }
                 Helpers.addElementToObject(request, "address", address);
+                // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+                // route through request(), called here directly to avoid dynamic dispatch
+                response = (this.request(Helpers.add(name, "_withdrawal/"), "private", "POST", this.extend(request, parameters))).join();
             } else
             {
-                method = "privatePostWithdrawalOpen";
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "iban", address);
                 Helpers.addElementToObject(request, "account_currency", Helpers.GetValue(currency, "id"));
+                response = (this.privatePostWithdrawalOpen(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -3673,7 +3680,7 @@ public class BitstampCore extends BitstampApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -3694,7 +3701,7 @@ public class BitstampCore extends BitstampApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.urlencode(query);
                     contentType = "application/x-www-form-urlencoded";

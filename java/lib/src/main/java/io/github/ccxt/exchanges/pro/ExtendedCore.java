@@ -1074,21 +1074,28 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             }
         } else if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            Object isAccountUpdate = false;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "ORDER"))) || Helpers.isTrue((Helpers.inOp(data, "orders")))))
             {
                 this.handleOrders(client, message);
+                isAccountUpdate = true;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "TRADE"))) || Helpers.isTrue((Helpers.inOp(data, "trades")))))
             {
                 this.handleMyTrades(client, message);
+                isAccountUpdate = true;
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "POSITION"))) || Helpers.isTrue((Helpers.inOp(data, "positions")))))
             {
                 this.handlePositions(client, message);
+                isAccountUpdate = true;
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "BALANCE"))) || Helpers.isTrue((Helpers.inOp(data, "balance")))) || Helpers.isTrue((Helpers.inOp(data, "spotBalances")))))
             {
                 this.handleBalance(client, message);
+                isAccountUpdate = true;
             }
             if (Helpers.isTrue(Helpers.isEqual(type, "MP")))
             {
@@ -1096,7 +1103,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             } else if (Helpers.isTrue(Helpers.inOp(data, "f")))
             {
                 this.handleFundingRate(client, message);
-            } else
+            } else if (!Helpers.isTrue(isAccountUpdate))
             {
                 this.handleOrderBook(client, message);
             }

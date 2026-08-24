@@ -1046,7 +1046,7 @@ class bitbank(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api]) + '/'
         if (api == 'public') or (api == 'markets'):
             url += self.implode_params(path, params)
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -1070,7 +1070,7 @@ class bitbank(Exchange, ImplicitAPI):
                 auth += body
             else:
                 auth += '/' + self.version + '/' + path
-                if query:
+                if len(query) > 0:
                     query = self.urlencode(query)
                     url += '?' + query
                     auth += '?' + query

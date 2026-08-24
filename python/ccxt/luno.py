@@ -1636,7 +1636,7 @@ class luno(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        if query:
+        if len(query) > 0:
             url += '?' + self.urlencode(query)
         if (api == 'private') or (api == 'exchangePrivate'):
             self.check_required_credentials()

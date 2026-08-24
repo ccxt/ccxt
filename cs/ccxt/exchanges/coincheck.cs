@@ -349,7 +349,7 @@ public partial class coincheck : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -396,7 +396,7 @@ public partial class coincheck : Exchange
         //     }
         //
         object exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
-        object status = "ok";
+        string status = "ok";
         object updated = null;
         for (object i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
         {
@@ -1158,24 +1158,24 @@ public partial class coincheck : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object queryString = "";
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(this.keysort(query))));
                 }
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.urlencode(this.keysort(query));
                     queryString = body;

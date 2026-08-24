@@ -1808,7 +1808,7 @@ class luno extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
-        if ($query) {
+        if (count($query) > 0) {
             $url .= '?' . $this->urlencode($query);
         }
         if (($api === 'private') || ($api === 'exchangePrivate')) {

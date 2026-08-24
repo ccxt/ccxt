@@ -337,7 +337,7 @@ public partial class mercado : Exchange
         {
             object coin = getValue(coins, i);
             object baseId = coin;
-            object quoteId = "BRL";
+            string quoteId = "BRL";
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
@@ -554,21 +554,25 @@ public partial class mercado : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object method = "publicGetCoinTrades";
         object request = new Dictionary<string, object>() {
             { "coin", getValue(market, "base") },
         };
         if (isTrue(!isEqual(since, null)))
         {
-            method = add(method, "From");
             ((IDictionary<string,object>)request)["from"] = this.parseToInt(divide(since, 1000));
         }
         object to = this.safeInteger(parameters, "to");
-        if (isTrue(!isEqual(to, null)))
+        object response = null;
+        if (isTrue(isTrue((!isEqual(since, null))) && isTrue((!isEqual(to, null)))))
         {
-            method = add(method, "To");
+            response = await this.publicGetCoinTradesFromTo(this.extend(request, parameters));
+        } else if (isTrue(!isEqual(since, null)))
+        {
+            response = await this.publicGetCoinTradesFrom(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicGetCoinTrades(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseTrades(response, market, since, limit);
     }
 
@@ -579,7 +583,7 @@ public partial class mercado : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -640,15 +644,20 @@ public partial class mercado : Exchange
         object request = new Dictionary<string, object>() {
             { "coin_pair", getValue(market, "id") },
         };
-        object method = add(this.capitalize(side), "Order");
+        object response = null;
         if (isTrue(isEqual(type, "limit")))
         {
-            method = add("privatePostPlace", method);
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(getValue(market, "symbol"), price);
             ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+            if (isTrue(isEqual(side, "buy")))
+            {
+                response = await this.privatePostPlaceBuyOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostPlaceSellOrder(this.extend(request, parameters));
+            }
         } else
         {
-            method = add("privatePostPlaceMarket", method);
             if (isTrue(isEqual(side, "buy")))
             {
                 if (isTrue(isEqual(price, null)))
@@ -659,12 +668,13 @@ public partial class mercado : Exchange
                 object priceString = this.numberToString(price);
                 object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                 ((IDictionary<string,object>)request)["cost"] = this.priceToPrecision(getValue(market, "symbol"), cost);
+                response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters));
             } else
             {
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);
+                response = await this.privatePostPlaceMarketSellOrder(this.extend(request, parameters));
             }
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         // TODO: replace this with a call to parseOrder for unification
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
@@ -872,14 +882,14 @@ public partial class mercado : Exchange
         };
         if (isTrue(isEqual(code, "BRL")))
         {
-            object account_ref = (inOp(parameters, "account_ref"));
+            bool account_ref = (inOp(parameters, "account_ref"));
             if (!isTrue(account_ref))
             {
                 throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires account_ref parameter to withdraw "), code)) ;
             }
         } else if (isTrue(!isEqual(code, "LTC")))
         {
-            object tx_fee = (inOp(parameters, "tx_fee"));
+            bool tx_fee = (inOp(parameters, "tx_fee"));
             if (!isTrue(tx_fee))
             {
                 throw new ArgumentsRequired ((string)add(add(this.id, " withdraw() requires tx_fee parameter to withdraw "), code)) ;
@@ -1132,7 +1142,7 @@ public partial class mercado : Exchange
         if (isTrue(isTrue(isTrue((isEqual(api, "public"))) || isTrue((isEqual(api, "v4Public")))) || isTrue((isEqual(api, "v4PublicNet")))))
         {
             url = add(url, this.implodeParams(path, parameters));
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }

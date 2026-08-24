@@ -1091,7 +1091,7 @@ export default class bitbank extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api]) + '/';
         if ((api === 'public') || (api === 'markets')) {
             url += this.implodeParams (path, params);
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -1117,7 +1117,7 @@ export default class bitbank extends Exchange {
                 auth += body;
             } else {
                 auth += '/' + this.version + '/' + path;
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     query = this.urlencode (query);
                     url += '?' + query;
                     auth += '?' + query;

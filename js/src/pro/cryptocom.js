@@ -118,7 +118,7 @@ export default class cryptocom extends cryptocomRest {
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
-        if (!limit) {
+        if ((limit === undefined) || (limit === 0)) {
             limit = 50;
         }
         const topicParams = this.safeValue(params, 'params');
@@ -905,7 +905,7 @@ export default class cryptocom extends cryptocomRest {
             if (symbols === undefined) {
                 throw new ArgumentsRequired(this.id + ' watchPositions() symbols is required');
             }
-            messageHash = '::' + symbols.join(',');
+            messageHash = 'positions::' + symbols.join(',');
         }
         const client = this.client(url);
         this.setPositionsCache(client, symbols);

@@ -9097,6 +9097,12 @@ public class BybitCore extends BybitApi
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
+            } else if (Helpers.isTrue(!Helpers.isEqual(since, null)))
+            {
+                // the endpoint walks backwards from endTime and ignores a lone startTime
+                Object duration = this.parseTimeframe(timeframe);
+                Object requestedLimit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 50 : limit; // exchange default
+                Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, requestedLimit), 1000)));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -9216,9 +9222,10 @@ public class BybitCore extends BybitApi
      * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
      * @param {string} symbol Unified market symbol
      * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-     * @param {int} [since] Not used by Bybit
+     * @param {int} [since] Timestamp in ms of the earliest open interest to fetch
      * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
      * @param {object} [params] Exchange specific parameters
+     * @param {int} [params.until] Timestamp in ms of the latest open interest to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */
@@ -12265,7 +12272,7 @@ final Object finalMarket = market;
         Object url = Helpers.add(Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));
             }
@@ -12279,7 +12286,7 @@ final Object finalMarket = market;
             Object timestamp = String.valueOf(this.nonce());
             if (Helpers.isTrue(isOpenapi))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
                     body = this.json(parameters);
                 } else

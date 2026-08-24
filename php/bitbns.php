@@ -685,11 +685,9 @@ class bitbns extends Exchange {
             // 't_rate' => $this->price_to_precision($symbol, stopPrice),
             // 'trail_rate' => $this->price_to_precision($symbol, $trailRate),
         );
-        $method = 'v2PostOrders';
         if ($type === 'limit') {
             $request['rate'] = $this->price_to_precision($symbol, $price);
         } else {
-            $method = 'v1PostPlaceMarketOrderQntySymbol';
             $request['market'] = $market['quoteId'];
         }
         if ($triggerPrice !== null) {
@@ -701,7 +699,12 @@ class bitbns extends Exchange {
         if ($trailRate !== null) {
             $request['trail_rate'] = $this->price_to_precision($symbol, $trailRate);
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($type === 'limit') {
+            $response = $this->v2PostOrders($this->extend($request, $params));
+        } else {
+            $response = $this->v1PostPlaceMarketOrderQntySymbol($this->extend($request, $params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -1265,11 +1268,11 @@ class bitbns extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $nonce = (string) $this->nonce();
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($method === 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $body = $this->json($query);
             } else {
                 $body = '{}';

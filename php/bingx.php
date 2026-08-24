@@ -1326,14 +1326,18 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' fetchTrades() is not supported for inverse swap markets');
+        }
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($limit !== null) {
-            $request['limit'] = min($limit, 100); // avoid API exception "limit should less than 100"
-        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
+        if ($limit !== null) {
+            $maxLimit = ($marketType === 'spot') ? 500 : 1000;
+            $request['limit'] = min($limit, $maxLimit);
+        }
         if ($marketType === 'spot') {
             $response = $this->spotV1PublicGetMarketTrades($this->extend($request, $params));
         } else {
@@ -1707,7 +1711,12 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_dict($response, 'data');
+        if ($market['inverse']) {
+            $dataList = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($dataList, 0, array());
+        } else {
+            $data = $this->safe_dict($response, 'data', array());
+        }
         return $this->parse_funding_rate($data, $market);
     }
 
@@ -2008,7 +2017,7 @@ class bingx extends Exchange {
         //         "time" => 1672026617364
         //     }
         //
-        // inverse swap
+        // $inverse swap
         //
         //     {
         //         "symbol" => "BTC-USD",
@@ -2020,12 +2029,13 @@ class bingx extends Exchange {
         $id = $this->safe_string($interest, 'symbol');
         $symbol = $this->safe_symbol($id, $market, '-', 'swap');
         $openInterest = $this->safe_number($interest, 'openInterest');
+        $inverse = $this->safe_bool($market, 'inverse', false);
         return $this->safe_open_interest(array(
             'symbol' => $symbol,
             'baseVolume' => null,
             'quoteVolume' => null,  // deprecated
-            'openInterestAmount' => null,
-            'openInterestValue' => $openInterest,
+            'openInterestAmount' => $inverse ? $openInterest : null,
+            'openInterestValue' => $inverse ? null : $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
@@ -2981,7 +2991,7 @@ class bingx extends Exchange {
             'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
             'notional' => $this->safe_number($position, 'positionValue'),
             'marginMode' => $marginMode,
-            'liquidationPrice' => null,
+            'liquidationPrice' => $this->safe_number_omit_zero($position, 'liquidationPrice'),
             'entryPrice' => $this->safe_number_2($position, 'avgPrice', 'entryPrice'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizedProfit'),
             'realizedPnl' => $this->safe_number($position, 'realisedProfit'),
@@ -6355,7 +6365,7 @@ class bingx extends Exchange {
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by bingx
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string|null} [$params->positionId] the id of the position you would like to close
+         * @param {string|null} [$params->positionId] the id of the position you would like to close, only supported for linear swap
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -6365,6 +6375,9 @@ class bingx extends Exchange {
         $positionId = $this->safe_string($params, 'positionId');
         $request = array();
         if ($positionId !== null) {
+            if (!$market['swap'] || $market['inverse']) {
+                throw new NotSupported($this->id . ' closePosition() with a $positionId is only supported for linear swap markets');
+            }
             $response = $this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params));
             //
             //    {
@@ -6488,10 +6501,20 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
          *
-         * @param {string} $symbol unified $symbol of the market to fetch the order book for
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an object detailing whether the market is in hedged or one-way mode
+         * @return {array} an object detailing whether the $market is in hedged or one-way mode
          */
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && $market['inverse'])) {
+            throw new NotSupported($this->id . ' fetchPositionMode() is not supported for inverse swap markets');
+        }
         $response = $this->swapV1PrivateGetPositionSideDual($params);
         //
         //     {
@@ -6513,15 +6536,25 @@ class bingx extends Exchange {
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
-         * set $hedged to true or false for a market
+         * set $hedged to true or false for a $market
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
-         * @param {string} $symbol not used by setPositionMode ()
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} response from the exchange
          */
+        $market = null;
+        if ($symbol !== null) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('setPositionMode', $market, $params);
+        if (($subType === 'inverse') || (($market !== null) && $market['inverse'])) {
+            throw new NotSupported($this->id . ' setPositionMode() is not supported for inverse swap markets');
+        }
         $dualSidePosition = null;
         if ($hedged) {
             $dualSidePosition = 'true';
@@ -6876,7 +6909,7 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
          *
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} $symbol unified $market $symbol, inverse (Coin-M) markets are not supported
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
@@ -6886,6 +6919,9 @@ class bingx extends Exchange {
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        if ($market['inverse']) {
+            throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         $request = array(
             'symbol' => $market['id'],
@@ -6979,7 +7015,7 @@ class bingx extends Exchange {
         $params['timestamp'] = $this->nonce();
         $params = $this->keysort($params);
         if ($access === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } elseif ($access === 'private') {

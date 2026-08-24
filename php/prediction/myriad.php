@@ -811,7 +811,7 @@ class myriad extends Exchange {
     private function do_eth_rpc(?string $rpcUrl, string $method, array $rpcParams) {
         $payload = array( 'jsonrpc' => '2.0', 'id' => 1, 'method' => $method, 'params' => $rpcParams );
         $headers = array( 'Content-Type' => 'application/json' );
-        $response = Async\await($this->fetch($rpcUrl, 'POST', $headers, $this->json($payload)));
+        $response = $this->do_fetch($rpcUrl, 'POST', $headers, $this->json($payload));
         $rpcError = $this->safe_value($response, 'error');
         if ($rpcError !== null) {
             throw new ExchangeError($this->id . ' rpc ' . $method . ' error => ' . $this->json($rpcError));
@@ -3168,7 +3168,7 @@ class myriad extends Exchange {
                 $rawQuestions = $this->safe_list($responses, 1, array());
             }
         }
-        if (!$this->markets) {
+        if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();
         }
         $seenMarketHandles = array();
@@ -4067,7 +4067,7 @@ class myriad extends Exchange {
                 $body = $this->json($query);
             }
         }
-        if ($this->apiKey) {
+        if (($this->apiKey !== null) && ($this->apiKey !== '')) {
             $headers = $this->extend($headers, array( 'x-$api-key' => $this->apiKey ));
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

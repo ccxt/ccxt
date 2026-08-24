@@ -1122,7 +1122,7 @@ class btcturk extends Exchange {
         }
         $url = $this->urls['api'][$api] . '/' . $path;
         if (($method === 'GET') || ($method === 'DELETE')) {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         } else {

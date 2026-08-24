@@ -649,8 +649,8 @@ public partial class grvt : Exchange
 
     public virtual object usesPrivateKey()
     {
-        object privateKeyDefined = isTrue(!isEqual(this.privateKey, null)) && isTrue(!isEqual(this.privateKey, ""));
-        object apiKeyDefined = isTrue(!isEqual(this.apiKey, null)) && isTrue(!isEqual(this.apiKey, ""));
+        bool privateKeyDefined = isTrue(!isEqual(this.privateKey, null)) && isTrue(!isEqual(this.privateKey, ""));
+        bool apiKeyDefined = isTrue(!isEqual(this.apiKey, null)) && isTrue(!isEqual(this.apiKey, ""));
         if (isTrue(isTrue(privateKeyDefined) && isTrue(apiKeyDefined)))
         {
             throw new ExchangeError ((string)"You should provide either \"privateKey\" or \"apikey & secret\"") ;
@@ -688,7 +688,7 @@ public partial class grvt : Exchange
     public async virtual Task<object> signInWithApiKey(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         // expires in 24 hours as CS suggested
         object expires = this.safeInteger(this.options, "signInExpiration", 0);
         // if previous sign-in not expired (give 10 seconds margin)
@@ -714,7 +714,7 @@ public partial class grvt : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         // expires in 24 hours as CS suggested
         object expires = this.safeInteger(this.options, "signInExpiration", 0);
         // if previous sign-in not expired (give 10 seconds margin)
@@ -764,8 +764,8 @@ public partial class grvt : Exchange
         //
         object currentBuilders = getValue(results, 0);
         object approvedBuilder = this.safeList(currentBuilders, "results", new List<object>() {});
-        object length = getArrayLength(approvedBuilder);
-        object found = false;
+        int length = getArrayLength(approvedBuilder);
+        bool found = false;
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object builderInfo = this.safeDict(approvedBuilder, i, new Dictionary<string, object>() {});
@@ -905,10 +905,10 @@ public partial class grvt : Exchange
         {
             type = "swap";
         }
-        object isSpot = (isEqual(type, "spot"));
-        object isSwap = (isEqual(type, "swap"));
-        object isFuture = (isEqual(type, "future"));
-        object isContract = isTrue(isSwap) || isTrue(isFuture);
+        bool isSpot = (isEqual(type, "spot"));
+        bool isSwap = (isEqual(type, "swap"));
+        bool isFuture = (isEqual(type, "future"));
+        bool isContract = isTrue(isSwap) || isTrue(isFuture);
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -2102,7 +2102,7 @@ public partial class grvt : Exchange
         } catch(Exception error)
         {
             object msg = this.exceptionMessage(error);
-            object isFromFundingAccount = isEqual(fromAccount, "funding");
+            bool isFromFundingAccount = isEqual(fromAccount, "funding");
             if (isTrue(isTrue(isFromFundingAccount) && isTrue(getIndexOf(msg, "You are not authorized"))))
             {
                 throw new PermissionDenied ((string)add(add(this.id, " transfer() failed. Ensure you use funding api-keys when trying to transfer from Funding accounts: "), msg)) ;
@@ -2203,7 +2203,7 @@ public partial class grvt : Exchange
         //         }
         //     }
         //
-        object accountIsUndefined = isEqual(this.safeString(this.options, "accountId"), null);
+        bool accountIsUndefined = isEqual(this.safeString(this.options, "accountId"), null);
         if (isTrue(accountIsUndefined))
         {
             ((IList<object>)promises).Add(this.privateTradingPostFullV1GetSubAccounts());
@@ -2220,7 +2220,7 @@ public partial class grvt : Exchange
         if (isTrue(accountIsUndefined))
         {
             object subAccountIds = this.safeList(getValue(responses, 1), "sub_account_ids", new List<object>() {});
-            object length = getArrayLength(subAccountIds);
+            int length = getArrayLength(subAccountIds);
             if (isTrue(isLessThan(length, 1)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
@@ -2336,7 +2336,7 @@ public partial class grvt : Exchange
             clientOrderId = add(add(((object)this.nonce()).ToString(), "000"), ((object)this.requestId()).ToString());
         }
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
-        object isMarketOrder = (isEqual(type, "market"));
+        bool isMarketOrder = (isEqual(type, "market"));
         object subAccountId = this.getSubAccountId(parameters);
         object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object orderRequest = new Dictionary<string, object>() {
@@ -2406,7 +2406,7 @@ public partial class grvt : Exchange
             }
             // trigger type
             object selectedType = null;
-            object isBuy = (isEqual(side, "buy"));
+            bool isBuy = (isEqual(side, "buy"));
             if (isTrue(!isEqual(stopLossPrice, null)))
             {
                 selectedType = ((bool) isTrue(isBuy)) ? "STOP_LOSS" : "TAKE_PROFIT";
@@ -2443,7 +2443,7 @@ public partial class grvt : Exchange
             };
             parameters = this.omit(parameters, new List<object>() {"triggerDirection", "triggerPriceType", "closePosition"});
         }
-        object eipType = "EIP712_ORDER_TYPE";
+        string eipType = "EIP712_ORDER_TYPE";
         object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true));
         if (isTrue(builderFee))
         {
@@ -2528,7 +2528,7 @@ public partial class grvt : Exchange
 
     public virtual object eipMessageForOrder(object order, object structureType)
     {
-        object priceMultiplier = "1000000000";
+        string priceMultiplier = "1000000000";
         object orderLegs = this.safeList(order, "legs", new List<object>() {});
         object legs = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orderLegs)); postFixIncrement(ref i))
@@ -2537,13 +2537,13 @@ public partial class grvt : Exchange
             object market = this.market(getValue(leg, "instrument"));
             object bigInt10 = this.convertToBigIntCustom("10");
             object precisionValue = this.precisionFromString(this.safeString(getValue(market, "precision"), "base"));
-            object precisionValueStr = ((object)precisionValue).ToString();
+            string precisionValueStr = ((object)precisionValue).ToString();
             object sizeMultiplier = Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(precisionValueStr)));
             object size = getValue(leg, "size");
-            object sizeParts = ((string)size).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            List<object> sizeParts = ((string)size).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object sizeDec = this.safeString(sizeParts, 1, "");
             object sizeDecLength = add(((string)sizeDec).Length, 0); // php tr
-            object sizeDecLengthStr = ((object)sizeDecLength).ToString();
+            string sizeDecLengthStr = ((object)sizeDecLength).ToString();
             object sizeInteger = divide(multiply(this.convertToBigIntCustom(((string)size).Replace((string)".", (string)"")), sizeMultiplier), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(this.convertToBigIntCustom(sizeDecLengthStr)))));
             object legOrder = new Dictionary<string, object>() {
                 { "assetID", getValue(getValue(market, "info"), "instrument_hash") },
@@ -2554,10 +2554,10 @@ public partial class grvt : Exchange
             if (isTrue(!isEqual(this.omitZero(limitPrice), null)))
             {
                 object price = getValue(leg, "limit_price");
-                object limitParts = ((string)price).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                List<object> limitParts = ((string)price).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                 object limitDec = this.safeString(limitParts, 1, "");
                 object limitDecLength = add(((string)limitDec).Length, 0); // php tr
-                object limitDecLengthStr = ((object)limitDecLength).ToString();
+                string limitDecLengthStr = ((object)limitDecLength).ToString();
                 object powerNum = ((bool) isTrue((isEqual(limitDecLengthStr, "0")))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 object priceInteger = (divide(multiply(this.convertToBigIntCustom(((string)price).Replace((string)".", (string)"")), this.convertToBigIntCustom(priceMultiplier)), (Math.Pow(Convert.ToDouble(bigInt10), Convert.ToDouble(powerNum)))));
                 ((IDictionary<string,object>)legOrder)["limitPrice"] = this.parseToInt(priceInteger);
@@ -3421,7 +3421,7 @@ public partial class grvt : Exchange
         }
         object timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        object legsLength = getArrayLength(legs);
+        int legsLength = getArrayLength(legs);
         return this.safeOrder(new Dictionary<string, object>() {
             { "isMultiLeg", (isGreaterThan(legsLength, 1)) },
             { "id", this.safeString(order, "order_id") },
@@ -3708,7 +3708,7 @@ public partial class grvt : Exchange
         object queryString = "";
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 queryString = this.urlencode(query);
                 url = add(url, add("?", queryString));
@@ -3722,8 +3722,8 @@ public partial class grvt : Exchange
             };
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            object paramsKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            object paramsKeysLength = getArrayLength(paramsKeys);
+            List<object> paramsKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            int paramsKeysLength = getArrayLength(paramsKeys);
             if (isTrue(isEqual(paramsKeysLength, 0)))
             {
                 body = "{}";
@@ -3732,7 +3732,7 @@ public partial class grvt : Exchange
                 body = this.json(parameters);
             }
         }
-        object isPrivate = ((string)api).StartsWith(((string)"private"));
+        bool isPrivate = ((string)api).StartsWith(((string)"private"));
         if (isTrue(isPrivate))
         {
             this.checkRequiredCredentials();

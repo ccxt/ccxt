@@ -1109,148 +1109,148 @@ func (this *BitstampCore) Describe() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BitstampCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.FetchMarketsFromCache(params))
-		PanicOnError(response)
-		//
-		//    [
-		//
-		//   spot:
-		//
-		//        {
-		//            "name": "BTC/USD",
-		//            "market_symbol": "btcusd",
-		//            "base_currency": "BTC",
-		//            "base_decimals": 8,
-		//            "counter_currency": "USD",
-		//            "counter_decimals": 0,
-		//            "minimum_order_value": "10",
-		//            "trading": "Enabled",
-		//            "instant_order_counter_decimals": 2,
-		//            "instant_and_market_orders": "Enabled",
-		//            "description": "Bitcoin / U.S. dollar",
-		//            "market_type": "SPOT"
-		//        },
-		//        ...
-		//
-		//    perp:
-		//
-		//         {
-		//             "name": "BTC/USD-PERP",
-		//             "market_symbol": "btcusd-perp",
-		//             "base_currency": "BTC",
-		//             "base_decimals": 5,
-		//             "counter_currency": "USD",
-		//             "counter_decimals": 0,
-		//             "minimum_order_value": "10",
-		//             "maximum_order_value": "500000.00000000",
-		//             "minimum_order_amount": "0.00001000",
-		//             "maximum_order_amount": "10.00000000",
-		//             "trading": "Enabled",
-		//             "instant_order_counter_decimals": 2,
-		//             "instant_and_market_orders": "Enabled",
-		//             "description": "Bitcoin / U.S. dollar Perpetual",
-		//             "market_type": "PERPETUAL",
-		//             "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
-		//             "payoff_type": "Linear",
-		//             "contract_size": "1.00000000",
-		//             "isin": "EZHKD4DNKHY3"
-		//         }
-		//
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-			var market any = GetValue(response, i)
-			baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
-			baseId := GetValue(baseIdquoteIdVariable, 0)
-			quoteId := GetValue(baseIdquoteIdVariable, 1)
-			var base any = this.SafeCurrencyCode(baseId)
-			var quote any = this.SafeCurrencyCode(quoteId)
-			var settleId any = nil
-			var marketTypeRaw any = this.SafeString(market, "market_type")
-			var symbol any = Add(Add(base, "/"), quote)
-			var typeVar any = nil
-			var subType any = nil
-			if IsTrue(IsEqual(marketTypeRaw, "SPOT")) {
-				typeVar = "spot"
-			} else if IsTrue(IsEqual(marketTypeRaw, "PERPETUAL")) {
-				typeVar = "swap"
-				settleId = quoteId
-				symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settleId)
-				var payoffType any = this.SafeString(market, "payoff_type")
-				if IsTrue(IsEqual(payoffType, "Linear")) {
-					subType = "linear"
-				} else if IsTrue(IsEqual(payoffType, "Inverse")) {
-					subType = "inverse"
-				}
-			}
-			var isSpot any = (IsEqual(typeVar, "spot"))
-			var settle any = Ternary(IsTrue(settleId), this.SafeCurrencyCode(settleId), nil)
-			AppendToArray(&result, map[string]any{
-				"id":             this.SafeString(market, "market_symbol"),
-				"symbol":         symbol,
-				"base":           base,
-				"quote":          quote,
-				"settle":         settle,
-				"baseId":         baseId,
-				"quoteId":        quoteId,
-				"settleId":       settleId,
-				"type":           typeVar,
-				"subType":        subType,
-				"spot":           isSpot,
-				"margin":         false,
-				"future":         false,
-				"swap":           !IsTrue(isSpot),
-				"option":         false,
-				"active":         (IsEqual(this.SafeString(market, "trading"), "Enabled")),
-				"contract":       !IsTrue(isSpot),
-				"linear":         Ternary(IsTrue(isSpot), nil, true),
-				"inverse":        Ternary(IsTrue(isSpot), nil, false),
-				"contractSize":   nil,
-				"expiry":         nil,
-				"expiryDatetime": nil,
-				"strike":         nil,
-				"optionType":     nil,
-				"precision": map[string]any{
-					"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "base_decimals"))),
-					"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "counter_decimals"))),
-				},
-				"limits": map[string]any{
-					"leverage": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"amount": map[string]any{
-						"min": this.SafeNumber(market, "minimum_order_amount"),
-						"max": this.SafeNumber(market, "maximum_order_amount"),
-					},
-					"price": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"cost": map[string]any{
-						"min": this.SafeNumber(market, "minimum_order_value"),
-						"max": this.SafeNumber(market, "maximum_order_value"),
-					},
-				},
-				"created": nil,
-				"info":    market,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
 }
+func (this *BitstampCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.FetchMarketsFromCache(params))
+	PanicOnError(response)
+	//
+	//    [
+	//
+	//   spot:
+	//
+	//        {
+	//            "name": "BTC/USD",
+	//            "market_symbol": "btcusd",
+	//            "base_currency": "BTC",
+	//            "base_decimals": 8,
+	//            "counter_currency": "USD",
+	//            "counter_decimals": 0,
+	//            "minimum_order_value": "10",
+	//            "trading": "Enabled",
+	//            "instant_order_counter_decimals": 2,
+	//            "instant_and_market_orders": "Enabled",
+	//            "description": "Bitcoin / U.S. dollar",
+	//            "market_type": "SPOT"
+	//        },
+	//        ...
+	//
+	//    perp:
+	//
+	//         {
+	//             "name": "BTC/USD-PERP",
+	//             "market_symbol": "btcusd-perp",
+	//             "base_currency": "BTC",
+	//             "base_decimals": 5,
+	//             "counter_currency": "USD",
+	//             "counter_decimals": 0,
+	//             "minimum_order_value": "10",
+	//             "maximum_order_value": "500000.00000000",
+	//             "minimum_order_amount": "0.00001000",
+	//             "maximum_order_amount": "10.00000000",
+	//             "trading": "Enabled",
+	//             "instant_order_counter_decimals": 2,
+	//             "instant_and_market_orders": "Enabled",
+	//             "description": "Bitcoin / U.S. dollar Perpetual",
+	//             "market_type": "PERPETUAL",
+	//             "underlying_asset": "Kaiko BTC Benchmark Reference Rate",
+	//             "payoff_type": "Linear",
+	//             "contract_size": "1.00000000",
+	//             "isin": "EZHKD4DNKHY3"
+	//         }
+	//
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
+		var market any = GetValue(response, i)
+		baseIdquoteIdVariable := []any{this.SafeString(market, "base_currency"), this.SafeString(market, "counter_currency")}
+		baseId := GetValue(baseIdquoteIdVariable, 0)
+		quoteId := GetValue(baseIdquoteIdVariable, 1)
+		var base any = this.SafeCurrencyCode(baseId)
+		var quote any = this.SafeCurrencyCode(quoteId)
+		var settleId any = nil
+		var marketTypeRaw any = this.SafeString(market, "market_type")
+		var symbol any = Add(Add(base, "/"), quote)
+		var typeVar any = nil
+		var subType any = nil
+		if IsTrue(IsEqual(marketTypeRaw, "SPOT")) {
+			typeVar = "spot"
+		} else if IsTrue(IsEqual(marketTypeRaw, "PERPETUAL")) {
+			typeVar = "swap"
+			settleId = quoteId
+			symbol = Add(Add(Add(Add(base, "/"), quote), ":"), settleId)
+			var payoffType any = this.SafeString(market, "payoff_type")
+			if IsTrue(IsEqual(payoffType, "Linear")) {
+				subType = "linear"
+			} else if IsTrue(IsEqual(payoffType, "Inverse")) {
+				subType = "inverse"
+			}
+		}
+		var isSpot bool = (IsEqual(typeVar, "spot"))
+		var settle any = Ternary(IsTrue(settleId), this.SafeCurrencyCode(settleId), nil)
+		AppendToArray(&result, map[string]any{
+			"id":             this.SafeString(market, "market_symbol"),
+			"symbol":         symbol,
+			"base":           base,
+			"quote":          quote,
+			"settle":         settle,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       settleId,
+			"type":           typeVar,
+			"subType":        subType,
+			"spot":           isSpot,
+			"margin":         false,
+			"future":         false,
+			"swap":           !IsTrue(isSpot),
+			"option":         false,
+			"active":         (IsEqual(this.SafeString(market, "trading"), "Enabled")),
+			"contract":       !IsTrue(isSpot),
+			"linear":         Ternary(IsTrue(isSpot), nil, true),
+			"inverse":        Ternary(IsTrue(isSpot), nil, false),
+			"contractSize":   nil,
+			"expiry":         nil,
+			"expiryDatetime": nil,
+			"strike":         nil,
+			"optionType":     nil,
+			"precision": map[string]any{
+				"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "base_decimals"))),
+				"price":  this.ParseNumber(this.ParsePrecision(this.SafeString(market, "counter_decimals"))),
+			},
+			"limits": map[string]any{
+				"leverage": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"amount": map[string]any{
+					"min": this.SafeNumber(market, "minimum_order_amount"),
+					"max": this.SafeNumber(market, "maximum_order_amount"),
+				},
+				"price": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"cost": map[string]any{
+					"min": this.SafeNumber(market, "minimum_order_value"),
+					"max": this.SafeNumber(market, "maximum_order_value"),
+				},
+			},
+			"created": nil,
+			"info":    market,
+		})
+	}
+
+	ch <- result
+	return nil
+}
 func (this *BitstampCore) ConstructCurrencyObject(id any, code any, name any, precision any, minCost any, originalPayload any) any {
-	var currencyType any = "crypto"
+	var currencyType string = "crypto"
 	var description any = this.Describe()
 	if IsTrue(this.IsFiat(code)) {
 		currencyType = "fiat"
@@ -1289,50 +1289,50 @@ func (this *BitstampCore) ConstructCurrencyObject(id any, code any, name any, pr
 	}
 }
 func (this *BitstampCore) FetchMarketsFromCache(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// this method is now redundant
-		// currencies are now fetched before markets
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var options any = this.SafeValue(this.Options, "fetchMarkets", map[string]any{})
-		var timestamp any = this.SafeInteger(options, "timestamp")
-		var expires any = this.SafeInteger(options, "expires", 1000)
-		var now any = this.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(timestamp, nil))) || IsTrue((IsGreaterThan((Subtract(now, timestamp)), expires)))) {
-
-			response := (<-this.PublicGetMarkets(params))
-			PanicOnError(response)
-			//
-			//    [
-			//        {
-			//            "name": "BTC/USD",
-			//            "market_symbol": "btcusd",
-			//            "base_currency": "BTC",
-			//            "base_decimals": 8,
-			//            "counter_currency": "USD",
-			//            "counter_decimals": 0,
-			//            "minimum_order_value": "10",
-			//            "trading": "Enabled",
-			//            "instant_order_counter_decimals": 2,
-			//            "instant_and_market_orders": "Enabled",
-			//            "description": "Bitcoin / U.S. dollar",
-			//            "market_type": "SPOT"
-			//        },
-			//
-			AddElementToObject(this.Options, "fetchMarkets", this.Extend(options, map[string]any{
-				"response":  response,
-				"timestamp": now,
-			}))
-		}
-
-		ch <- this.SafeValue(GetValue(this.Options, "fetchMarkets"), "response")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsFromCacheBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchMarketsFromCacheBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// this method is now redundant
+	// currencies are now fetched before markets
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var options any = this.SafeValue(this.Options, "fetchMarkets", map[string]any{})
+	var timestamp any = this.SafeInteger(options, "timestamp")
+	var expires any = this.SafeInteger(options, "expires", 1000)
+	var now int64 = this.Milliseconds()
+	if IsTrue(IsTrue((IsEqual(timestamp, nil))) || IsTrue((IsGreaterThan((Subtract(now, timestamp)), expires)))) {
+
+		response := (<-this.PublicGetMarkets(params))
+		PanicOnError(response)
+		//
+		//    [
+		//        {
+		//            "name": "BTC/USD",
+		//            "market_symbol": "btcusd",
+		//            "base_currency": "BTC",
+		//            "base_decimals": 8,
+		//            "counter_currency": "USD",
+		//            "counter_decimals": 0,
+		//            "minimum_order_value": "10",
+		//            "trading": "Enabled",
+		//            "instant_order_counter_decimals": 2,
+		//            "instant_and_market_orders": "Enabled",
+		//            "description": "Bitcoin / U.S. dollar",
+		//            "market_type": "SPOT"
+		//        },
+		//
+		AddElementToObject(this.Options, "fetchMarkets", this.Extend(options, map[string]any{
+			"response":  response,
+			"timestamp": now,
+		}))
+	}
+
+	ch <- this.SafeValue(GetValue(this.Options, "fetchMarkets"), "response")
+	return nil
 }
 
 /**
@@ -1344,42 +1344,42 @@ func (this *BitstampCore) FetchMarketsFromCache(optionalArgs ...any) <-chan any 
  * @returns {object} an associative dictionary of currencies
  */
 func (this *BitstampCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.FetchMarketsFromCache(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "trading": "Enabled",
-		//             "base_decimals": 8,
-		//             "url_symbol": "btcusd",
-		//             "name": "BTC/USD",
-		//             "instant_and_market_orders": "Enabled",
-		//             "minimum_order": "20.0 USD",
-		//             "counter_decimals": 2,
-		//             "description": "Bitcoin / U.S. dollar"
-		//         },
-		//     ]
-		//
-		ch <- this.ParseCurrencies(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.FetchMarketsFromCache(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "trading": "Enabled",
+	//             "base_decimals": 8,
+	//             "url_symbol": "btcusd",
+	//             "name": "BTC/USD",
+	//             "instant_and_market_orders": "Enabled",
+	//             "minimum_order": "20.0 USD",
+	//             "counter_decimals": 2,
+	//             "description": "Bitcoin / U.S. dollar"
+	//         },
+	//     ]
+	//
+	ch <- this.ParseCurrencies(response)
+	return nil
 }
 func (this *BitstampCore) ParseCurrencies(rawCurrencies any) any {
 	// each market row yields two currencies so the accumulation happens
 	// in a local dictionary here instead of a temp key inside this.options
 	// because the shared scratch key raced between concurrent
 	// fetchCurrencies invocations in the multi threaded runtimes
-	var result any = map[string]any{}
+	var result map[string]any = map[string]any{}
 	var arr any = this.ToArray(rawCurrencies)
 	for i := 0; IsLessThan(i, GetArrayLength(arr)); i++ {
 		var market any = GetValue(arr, i)
@@ -1399,7 +1399,7 @@ func (this *BitstampCore) ParseCurrencies(rawCurrencies any) any {
 		if IsTrue(IsEqual(minimumOrder, nil)) {
 			panic(ExchangeError(Add(this.Id, " parseCurrencies() missing minimumOrder")))
 		}
-		var parts any = Split(minimumOrder, " ")
+		var parts []string = Split(minimumOrder, " ")
 		var cost any = GetValue(parts, 0)
 		if IsTrue(IsTrue((!IsEqual(base, nil))) && !IsTrue((InOp(result, base)))) {
 			var baseDecimals any = this.SafeInteger(market, "base_decimals")
@@ -1424,55 +1424,55 @@ func (this *BitstampCore) ParseCurrencies(rawCurrencies any) any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BitstampCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes89012 := (<-this.LoadMarkets())
-			PanicOnError(retRes89012)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetOrderBookPair(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "timestamp": "1583652948",
-		//         "microtimestamp": "1583652948955826",
-		//         "bids": [
-		//             [ "8750.00", "1.33685271" ],
-		//             [ "8749.39", "0.07700000" ],
-		//             [ "8746.98", "0.07400000" ],
-		//         ]
-		//         "asks": [
-		//             [ "8754.10", "1.51995636" ],
-		//             [ "8754.71", "1.40000000" ],
-		//             [ "8754.72", "2.50000000" ],
-		//         ]
-		//     }
-		//
-		var microtimestamp any = this.SafeInteger(response, "microtimestamp")
-		if IsTrue(IsEqual(microtimestamp, nil)) {
-			panic(ExchangeError(Add(this.Id, " fetchOrderBook() missing microtimestamp")))
-		}
-		var timestamp any = this.ParseToInt(Divide(microtimestamp, 1000))
-		var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
-		AddElementToObject(orderbook, "nonce", microtimestamp)
-
-		ch <- orderbook
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes89012 := (<-this.LoadMarkets())
+		PanicOnError(retRes89012)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetOrderBookPair(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "timestamp": "1583652948",
+	//         "microtimestamp": "1583652948955826",
+	//         "bids": [
+	//             [ "8750.00", "1.33685271" ],
+	//             [ "8749.39", "0.07700000" ],
+	//             [ "8746.98", "0.07400000" ],
+	//         ]
+	//         "asks": [
+	//             [ "8754.10", "1.51995636" ],
+	//             [ "8754.71", "1.40000000" ],
+	//             [ "8754.72", "2.50000000" ],
+	//         ]
+	//     }
+	//
+	var microtimestamp any = this.SafeInteger(response, "microtimestamp")
+	if IsTrue(IsEqual(microtimestamp, nil)) {
+		panic(ExchangeError(Add(this.Id, " fetchOrderBook() missing microtimestamp")))
+	}
+	var timestamp any = this.ParseToInt(Divide(microtimestamp, 1000))
+	var orderbook any = this.ParseOrderBook(response, GetValue(market, "symbol"), timestamp)
+	AddElementToObject(orderbook, "nonce", microtimestamp)
+
+	ch <- orderbook
+	return nil
 }
 func (this *BitstampCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -1534,45 +1534,45 @@ func (this *BitstampCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitstampCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes98212 := (<-this.LoadMarkets())
-			PanicOnError(retRes98212)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		ticker := (<-this.PublicGetTickerPair(this.Extend(request, params)))
-		PanicOnError(ticker)
-
-		//
-		// {
-		//     "timestamp": "1686068944",
-		//     "high": "26252",
-		//     "last": "26216",
-		//     "bid": "26208",
-		//     "vwap": "25681",
-		//     "volume": "3563.13819902",
-		//     "low": "25350",
-		//     "ask": "26211",
-		//     "open": "25730",
-		//     "open_24": "25895",
-		//     "percent_change_24": "1.24"
-		// }
-		//
-		ch <- this.ParseTicker(ticker, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes98212 := (<-this.LoadMarkets())
+		PanicOnError(retRes98212)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	ticker := (<-this.PublicGetTickerPair(this.Extend(request, params)))
+	PanicOnError(ticker)
+
+	//
+	// {
+	//     "timestamp": "1686068944",
+	//     "high": "26252",
+	//     "last": "26216",
+	//     "bid": "26208",
+	//     "vwap": "25681",
+	//     "volume": "3563.13819902",
+	//     "low": "25350",
+	//     "ask": "26211",
+	//     "open": "25730",
+	//     "open_24": "25895",
+	//     "percent_change_24": "1.24"
+	// }
+	//
+	ch <- this.ParseTicker(ticker, market)
+	return nil
 }
 
 /**
@@ -1585,44 +1585,44 @@ func (this *BitstampCore) FetchTicker(symbol any, optionalArgs ...any) <-chan an
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BitstampCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes101812 := (<-this.LoadMarkets())
-			PanicOnError(retRes101812)
-		}
-
-		response := (<-this.PublicGetTicker(params))
-		PanicOnError(response)
-
-		//
-		// {
-		//     "timestamp": "1686068944",
-		//     "high": "26252",
-		//     "last": "26216",
-		//     "bid": "26208",
-		//     "vwap": "25681",
-		//     "volume": "3563.13819902",
-		//     "low": "25350",
-		//     "ask": "26211",
-		//     "open": "25730",
-		//     "open_24": "25895",
-		//     "percent_change_24": "1.24",
-		//     "pair": "BTC/USD"
-		// }
-		//
-		ch <- this.ParseTickers(response, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes101812 := (<-this.LoadMarkets())
+		PanicOnError(retRes101812)
+	}
+
+	response := (<-this.PublicGetTicker(params))
+	PanicOnError(response)
+
+	//
+	// {
+	//     "timestamp": "1686068944",
+	//     "high": "26252",
+	//     "last": "26216",
+	//     "bid": "26208",
+	//     "vwap": "25681",
+	//     "volume": "3563.13819902",
+	//     "low": "25350",
+	//     "ask": "26211",
+	//     "open": "25730",
+	//     "open_24": "25895",
+	//     "percent_change_24": "1.24",
+	//     "pair": "BTC/USD"
+	// }
+	//
+	ch <- this.ParseTickers(response, symbols)
+	return nil
 }
 func (this *BitstampCore) GetCurrencyIdFromTransaction(transaction any) any {
 	//
@@ -1643,7 +1643,7 @@ func (this *BitstampCore) GetCurrencyIdFromTransaction(transaction any) any {
 		return currencyId
 	}
 	transaction = this.Omit(transaction, []any{"fee", "price", "datetime", "type", "status", "id"})
-	var ids any = ObjectKeys(transaction)
+	var ids []string = ObjectKeys(transaction)
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		if IsTrue(IsLessThan(GetIndexOf(id, "_"), 0)) {
@@ -1657,8 +1657,8 @@ func (this *BitstampCore) GetCurrencyIdFromTransaction(transaction any) any {
 }
 func (this *BitstampCore) GetMarketFromTrade(trade any) any {
 	trade = this.Omit(trade, []any{"fee", "price", "datetime", "tid", "type", "order_id", "side"})
-	var currencyIds any = ObjectKeys(trade)
-	var numCurrencyIds any = GetArrayLength(currencyIds)
+	var currencyIds []string = ObjectKeys(trade)
+	var numCurrencyIds int = GetArrayLength(currencyIds)
 	if IsTrue(IsGreaterThan(numCurrencyIds, 2)) {
 		panic(ExchangeError(Add(Add(Add(Add(this.Id, " getMarketFromTrade() too many keys: "), this.Json(currencyIds)), " in the trade: "), this.Json(trade))))
 	}
@@ -1726,7 +1726,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var costString any = this.SafeString(trade, "cost")
 	var rawMarketId any = nil
 	if IsTrue(IsEqual(market, nil)) {
-		var keys any = ObjectKeys(trade)
+		var keys []string = ObjectKeys(trade)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			var currentKey any = GetValue(keys, i)
 			if IsTrue(IsTrue(!IsEqual(currentKey, "order_id")) && IsTrue(IsGreaterThanOrEqual(GetIndexOf(currentKey, "_"), 0))) {
@@ -1775,7 +1775,7 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
 	// if it is a private trade
 	if IsTrue(InOp(trade, "id")) {
 		if IsTrue(!IsEqual(amountString, nil)) {
-			var isAmountNeg any = Precise.StringLt(amountString, "0")
+			var isAmountNeg bool = Precise.StringLt(amountString, "0")
 			if IsTrue(isAmountNeg) {
 				side = "sell"
 				amountString = Precise.StringNeg(amountString)
@@ -1832,53 +1832,53 @@ func (this *BitstampCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BitstampCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes126412 := (<-this.LoadMarkets())
-			PanicOnError(retRes126412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-			"time": "hour",
-		}
-
-		response := (<-this.PublicGetTransactionsPair(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "date": "1551814435",
-		//             "tid": "83581898",
-		//             "price": "0.03532850",
-		//             "type": "1",
-		//             "amount": "0.85945907"
-		//         },
-		//         {
-		//             "date": "1551814434",
-		//             "tid": "83581896",
-		//             "price": "0.03532851",
-		//             "type": "1",
-		//             "amount": "11.34130961"
-		//         },
-		//     ]
-		//
-		ch <- this.ParseTrades(response, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes126412 := (<-this.LoadMarkets())
+		PanicOnError(retRes126412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+		"time": "hour",
+	}
+
+	response := (<-this.PublicGetTransactionsPair(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "date": "1551814435",
+	//             "tid": "83581898",
+	//             "price": "0.03532850",
+	//             "type": "1",
+	//             "amount": "0.85945907"
+	//         },
+	//         {
+	//             "date": "1551814434",
+	//             "tid": "83581896",
+	//             "price": "0.03532851",
+	//             "type": "1",
+	//             "amount": "11.34130961"
+	//         },
+	//     ]
+	//
+	ch <- this.ParseTrades(response, market, since, limit)
+	return nil
 }
 func (this *BitstampCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1909,74 +1909,74 @@ func (this *BitstampCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BitstampCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes132812 := (<-this.LoadMarkets())
-			PanicOnError(retRes132812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-			"step": this.SafeString(this.Timeframes, timeframe, timeframe),
-		}
-		var duration any = this.ParseTimeframe(timeframe)
-		if IsTrue(IsEqual(limit, nil)) {
-			if IsTrue(IsEqual(since, nil)) {
-				AddElementToObject(request, "limit", 1000) // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
-			} else {
-				limit = 1000
-				var start any = this.ParseToInt(Divide(since, 1000))
-				AddElementToObject(request, "start", start)
-				AddElementToObject(request, "end", this.Sum(start, Multiply(duration, (Subtract(limit, 1)))))
-				AddElementToObject(request, "limit", limit)
-			}
-		} else {
-			if IsTrue(!IsEqual(since, nil)) {
-				var start any = this.ParseToInt(Divide(since, 1000))
-				AddElementToObject(request, "start", start)
-				AddElementToObject(request, "end", this.Sum(start, Multiply(duration, (Subtract(limit, 1)))))
-			}
-			AddElementToObject(request, "limit", mathMin(limit, 1000)) // min 1, max 1000
-		}
-
-		response := (<-this.PublicGetOhlcPair(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "data": {
-		//             "pair": "BTC/USD",
-		//             "ohlc": [
-		//                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
-		//                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
-		//                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
-		//             ],
-		//         }
-		//     }
-		//
-		var data any = this.SafeValue(response, "data", map[string]any{})
-		var ohlc any = this.SafeList(data, "ohlc", []any{})
-
-		ch <- this.ParseOHLCVs(ohlc, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes132812 := (<-this.LoadMarkets())
+		PanicOnError(retRes132812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+		"step": this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	var duration any = this.ParseTimeframe(timeframe)
+	if IsTrue(IsEqual(limit, nil)) {
+		if IsTrue(IsEqual(since, nil)) {
+			AddElementToObject(request, "limit", 1000) // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
+		} else {
+			limit = 1000
+			var start any = this.ParseToInt(Divide(since, 1000))
+			AddElementToObject(request, "start", start)
+			AddElementToObject(request, "end", this.Sum(start, Multiply(duration, (Subtract(limit, 1)))))
+			AddElementToObject(request, "limit", limit)
+		}
+	} else {
+		if IsTrue(!IsEqual(since, nil)) {
+			var start any = this.ParseToInt(Divide(since, 1000))
+			AddElementToObject(request, "start", start)
+			AddElementToObject(request, "end", this.Sum(start, Multiply(duration, (Subtract(limit, 1)))))
+		}
+		AddElementToObject(request, "limit", mathMin(limit, 1000)) // min 1, max 1000
+	}
+
+	response := (<-this.PublicGetOhlcPair(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "data": {
+	//             "pair": "BTC/USD",
+	//             "ohlc": [
+	//                 {"high": "9064.77", "timestamp": "1593961440", "volume": "18.49436608", "low": "9040.87", "close": "9064.77", "open": "9040.87"},
+	//                 {"high": "9071.59", "timestamp": "1593961500", "volume": "3.48631711", "low": "9058.76", "close": "9061.07", "open": "9064.66"},
+	//                 {"high": "9067.33", "timestamp": "1593961560", "volume": "0.04142833", "low": "9061.94", "close": "9061.94", "open": "9067.33"},
+	//             ],
+	//         }
+	//     }
+	//
+	var data any = this.SafeValue(response, "data", map[string]any{})
+	var ohlc any = this.SafeList(data, "ohlc", []any{})
+
+	ch <- this.ParseOHLCVs(ohlc, market, timeframe, since, limit)
+	return nil
 }
 func (this *BitstampCore) ParseBalance(response any) any {
 	var finalResponse any = response // java req
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      finalResponse,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -2008,37 +2008,37 @@ func (this *BitstampCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BitstampCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes140712 := (<-this.LoadMarkets())
-			PanicOnError(retRes140712)
-		}
-
-		response := (<-this.PrivatePostAccountBalances(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "currency": "usdt",
-		//             "total": "7.00000",
-		//             "available": "7.00000",
-		//             "reserved": "0.00000"
-		//         },
-		//         ...
-		//     ]
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes140712 := (<-this.LoadMarkets())
+		PanicOnError(retRes140712)
+	}
+
+	response := (<-this.PrivatePostAccountBalances(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "currency": "usdt",
+	//             "total": "7.00000",
+	//             "available": "7.00000",
+	//             "reserved": "0.00000"
+	//         },
+	//         ...
+	//     ]
+	//
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -2051,49 +2051,49 @@ func (this *BitstampCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BitstampCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes143512 := (<-this.LoadMarkets())
-			PanicOnError(retRes143512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"market_symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PrivatePostFeesTrading(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "currency_pair": "btcusd",
-		//             "fees":
-		//                 {
-		//                     "maker": "0.15000",
-		//                     "taker": "0.16000"
-		//                 },
-		//             "market": "btcusd"
-		//         }
-		//         ...
-		//     ]
-		//
-		var tradingFeesByMarketId any = this.IndexBy(response, "currency_pair")
-		var tradingFee any = this.SafeDict(tradingFeesByMarketId, GetValue(market, "id"))
-		if IsTrue(IsEqual(tradingFee, nil)) {
-			tradingFee = map[string]any{}
-		}
-
-		ch <- this.ParseTradingFee(tradingFee, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes143512 := (<-this.LoadMarkets())
+		PanicOnError(retRes143512)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"market_symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PrivatePostFeesTrading(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "currency_pair": "btcusd",
+	//             "fees":
+	//                 {
+	//                     "maker": "0.15000",
+	//                     "taker": "0.16000"
+	//                 },
+	//             "market": "btcusd"
+	//         }
+	//         ...
+	//     ]
+	//
+	var tradingFeesByMarketId map[string]any = this.IndexBy(response, "currency_pair")
+	var tradingFee any = this.SafeDict(tradingFeesByMarketId, GetValue(market, "id"))
+	if IsTrue(IsEqual(tradingFee, nil)) {
+		tradingFee = map[string]any{}
+	}
+
+	ch <- this.ParseTradingFee(tradingFee, market)
+	return nil
 }
 func (this *BitstampCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -2110,7 +2110,7 @@ func (this *BitstampCore) ParseTradingFee(fee any, optionalArgs ...any) any {
 	}
 }
 func (this *BitstampCore) ParseTradingFees(fees any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": fees,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
@@ -2132,40 +2132,40 @@ func (this *BitstampCore) ParseTradingFees(fees any) any {
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *BitstampCore) FetchTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes149912 := (<-this.LoadMarkets())
-			PanicOnError(retRes149912)
-		}
-
-		response := (<-this.PrivatePostFeesTrading(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "currency_pair": "btcusd",
-		//             "fees":
-		//                 {
-		//                     "maker": "0.15000",
-		//                     "taker": "0.16000"
-		//                 },
-		//             "market": "btcusd"
-		//         }
-		//         ...
-		//     ]
-		//
-		ch <- this.ParseTradingFees(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes149912 := (<-this.LoadMarkets())
+		PanicOnError(retRes149912)
+	}
+
+	response := (<-this.PrivatePostFeesTrading(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "currency_pair": "btcusd",
+	//             "fees":
+	//                 {
+	//                     "maker": "0.15000",
+	//                     "taker": "0.16000"
+	//                 },
+	//             "market": "btcusd"
+	//         }
+	//         ...
+	//     ]
+	//
+	ch <- this.ParseTradingFees(response)
+	return nil
 }
 
 /**
@@ -2179,45 +2179,45 @@ func (this *BitstampCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BitstampCore) FetchTransactionFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes153112 := (<-this.LoadMarkets())
-			PanicOnError(retRes153112)
-		}
-
-		response := (<-this.PrivatePostFeesWithdrawal(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "currency": "btc",
-		//             "fee": "0.00015000",
-		//             "network": "bitcoin"
-		//         }
-		//         ...
-		//     ]
-		//
-		ch <- this.ParseTransactionFees(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTransactionFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes153112 := (<-this.LoadMarkets())
+		PanicOnError(retRes153112)
+	}
+
+	response := (<-this.PrivatePostFeesWithdrawal(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "currency": "btc",
+	//             "fee": "0.00015000",
+	//             "network": "bitcoin"
+	//         }
+	//         ...
+	//     ]
+	//
+	ch <- this.ParseTransactionFees(response)
+	return nil
 }
 func (this *BitstampCore) ParseTransactionFees(response any, optionalArgs ...any) any {
 	codes := GetArg(optionalArgs, 0, nil)
 	_ = codes
-	var result any = map[string]any{}
-	var currencies any = this.IndexBy(response, "currency")
-	var ids any = ObjectKeys(currencies)
+	var result map[string]any = map[string]any{}
+	var currencies map[string]any = this.IndexBy(response, "currency")
+	var ids []string = ObjectKeys(currencies)
 	for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
 		var id any = GetValue(ids, i)
 		var fees any = this.SafeValue(response, i, map[string]any{})
@@ -2246,39 +2246,39 @@ func (this *BitstampCore) ParseTransactionFees(response any, optionalArgs ...any
  * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *BitstampCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes158012 := (<-this.LoadMarkets())
-			PanicOnError(retRes158012)
-		}
-
-		response := (<-this.PrivatePostFeesWithdrawal(params))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "currency": "btc",
-		//             "fee": "0.00015000",
-		//             "network": "bitcoin"
-		//         }
-		//         ...
-		//     ]
-		//
-		var responseByCurrencyId any = this.GroupBy(response, "currency")
-
-		ch <- this.ParseDepositWithdrawFees(responseByCurrencyId, codes)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes158012 := (<-this.LoadMarkets())
+		PanicOnError(retRes158012)
+	}
+
+	response := (<-this.PrivatePostFeesWithdrawal(params))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "currency": "btc",
+	//             "fee": "0.00015000",
+	//             "network": "bitcoin"
+	//         }
+	//         ...
+	//     ]
+	//
+	var responseByCurrencyId map[string]any = this.GroupBy(response, "currency")
+
+	ch <- this.ParseDepositWithdrawFees(responseByCurrencyId, codes)
+	return nil
 }
 func (this *BitstampCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
@@ -2329,72 +2329,72 @@ func (this *BitstampCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) 
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes164512 := (<-this.LoadMarkets())
-			PanicOnError(retRes164512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair":   GetValue(market, "id"),
-			"amount": this.AmountToPrecision(symbol, amount),
-		}
-		var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_order_id", clientOrderId)
-			params = this.Omit(params, []any{"clientOrderId"})
-		}
-		var response any = nil
-		var capitalizedSide any = this.Capitalize(side)
-		if IsTrue(IsEqual(typeVar, "market")) {
-			if IsTrue(IsEqual(capitalizedSide, "Buy")) {
-
-				response = (<-this.PrivatePostBuyMarketPair(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PrivatePostSellMarketPair(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		} else if IsTrue(IsEqual(typeVar, "instant")) {
-			if IsTrue(IsEqual(capitalizedSide, "Buy")) {
-
-				response = (<-this.PrivatePostBuyInstantPair(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PrivatePostSellInstantPair(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		} else {
-			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-			if IsTrue(IsEqual(capitalizedSide, "Buy")) {
-
-				response = (<-this.PrivatePostBuyPair(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PrivatePostSellPair(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		}
-		var orderResponse any = Ternary(IsTrue((IsEqual(response, nil))), map[string]any{}, response)
-		var order any = this.ParseOrder(orderResponse, market)
-		AddElementToObject(order, "type", typeVar)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes164512 := (<-this.LoadMarkets())
+		PanicOnError(retRes164512)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair":   GetValue(market, "id"),
+		"amount": this.AmountToPrecision(symbol, amount),
+	}
+	var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_order_id", clientOrderId)
+		params = this.Omit(params, []any{"clientOrderId"})
+	}
+	var response any = nil
+	var capitalizedSide any = this.Capitalize(side)
+	if IsTrue(IsEqual(typeVar, "market")) {
+		if IsTrue(IsEqual(capitalizedSide, "Buy")) {
+
+			response = (<-this.PrivatePostBuyMarketPair(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivatePostSellMarketPair(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	} else if IsTrue(IsEqual(typeVar, "instant")) {
+		if IsTrue(IsEqual(capitalizedSide, "Buy")) {
+
+			response = (<-this.PrivatePostBuyInstantPair(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivatePostSellInstantPair(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	} else {
+		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+		if IsTrue(IsEqual(capitalizedSide, "Buy")) {
+
+			response = (<-this.PrivatePostBuyPair(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PrivatePostSellPair(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	}
+	var orderResponse any = Ternary(IsTrue((IsEqual(response, nil))), map[string]any{}, response)
+	var order any = this.ParseOrder(orderResponse, market)
+	AddElementToObject(order, "type", typeVar)
+
+	ch <- order
+	return nil
 }
 
 /**
@@ -2415,44 +2415,44 @@ func (this *BitstampCore) CreateOrder(symbol any, typeVar any, side any, amount 
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes170412 := (<-this.LoadMarkets())
-			PanicOnError(retRes170412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"amount": this.AmountToPrecision(symbol, amount),
-			"price":  this.PriceToPrecision(symbol, price),
-		}
-		var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_order_id", clientOrderId)
-			params = this.Omit(params, []any{"clientOrderId"})
-		} else {
-			AddElementToObject(request, "id", id)
-		}
-
-		response := (<-this.PrivatePostReplaceOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		var order any = this.ParseOrder(response, market)
-		AddElementToObject(order, "type", typeVar)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes170412 := (<-this.LoadMarkets())
+		PanicOnError(retRes170412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"amount": this.AmountToPrecision(symbol, amount),
+		"price":  this.PriceToPrecision(symbol, price),
+	}
+	var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_order_id", clientOrderId)
+		params = this.Omit(params, []any{"clientOrderId"})
+	} else {
+		AddElementToObject(request, "id", id)
+	}
+
+	response := (<-this.PrivatePostReplaceOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	var order any = this.ParseOrder(response, market)
+	AddElementToObject(order, "type", typeVar)
+
+	ch <- order
+	return nil
 }
 
 /**
@@ -2466,40 +2466,40 @@ func (this *BitstampCore) EditOrder(id any, symbol any, typeVar any, side any, o
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes173612 := (<-this.LoadMarkets())
-			PanicOnError(retRes173612)
-		}
-		var request any = map[string]any{
-			"id": id,
-		}
-
-		response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//    {
-		//        "id": 1453282316578816,
-		//        "amount": "0.02035278",
-		//        "price": "2100.45",
-		//        "type": 0,
-		//        "market": "BTC/USD"
-		//    }
-		//
-		ch <- this.ParseOrder(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes173612 := (<-this.LoadMarkets())
+		PanicOnError(retRes173612)
+	}
+	var request map[string]any = map[string]any{
+		"id": id,
+	}
+
+	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//    {
+	//        "id": 1453282316578816,
+	//        "amount": "0.02035278",
+	//        "price": "2100.45",
+	//        "type": 0,
+	//        "market": "BTC/USD"
+	//    }
+	//
+	ch <- this.ParseOrder(response)
+	return nil
 }
 
 /**
@@ -2513,58 +2513,58 @@ func (this *BitstampCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes176612 := (<-this.LoadMarkets())
-			PanicOnError(retRes176612)
-		}
-		var market any = nil
-		var request any = map[string]any{}
-		var response any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pair", GetValue(market, "id"))
-
-			response = (<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//    {
-		//        "canceled": [
-		//            {
-		//                "id": 1453282316578816,
-		//                "amount": "0.02035278",
-		//                "price": "2100.45",
-		//                "type": 0,
-		//                "currency_pair": "BTC/USD",
-		//                "market": "BTC/USD"
-		//            }
-		//        ],
-		//        "success": true
-		//    }
-		//
-		var canceled any = this.SafeList(response, "canceled")
-
-		ch <- this.ParseOrders(canceled)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
 }
+func (this *BitstampCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes176612 := (<-this.LoadMarkets())
+		PanicOnError(retRes176612)
+	}
+	var market any = nil
+	var request map[string]any = map[string]any{}
+	var response any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pair", GetValue(market, "id"))
+
+		response = (<-this.PrivatePostCancelAllOrdersPair(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostCancelAllOrders(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//    {
+	//        "canceled": [
+	//            {
+	//                "id": 1453282316578816,
+	//                "amount": "0.02035278",
+	//                "price": "2100.45",
+	//                "type": 0,
+	//                "currency_pair": "BTC/USD",
+	//                "market": "BTC/USD"
+	//            }
+	//        ],
+	//        "success": true
+	//    }
+	//
+	var canceled any = this.SafeList(response, "canceled")
+
+	ch <- this.ParseOrders(canceled)
+	return nil
+}
 func (this *BitstampCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"In Queue":       "open",
 		"Open":           "open",
 		"Finished":       "closed",
@@ -2574,36 +2574,36 @@ func (this *BitstampCore) ParseOrderStatus(status any) any {
 	return this.SafeString(statuses, status, status)
 }
 func (this *BitstampCore) FetchOrderStatus(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes181012 := (<-this.LoadMarkets())
-			PanicOnError(retRes181012)
-		}
-		var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_order_id", clientOrderId)
-			params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
-		} else {
-			AddElementToObject(request, "id", id)
-		}
-
-		response := (<-this.PrivatePostOrderStatus(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseOrderStatus(this.SafeString(response, "status"))
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderStatusBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchOrderStatusBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes181012 := (<-this.LoadMarkets())
+		PanicOnError(retRes181012)
+	}
+	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_order_id", clientOrderId)
+		params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
+	} else {
+		AddElementToObject(request, "id", id)
+	}
+
+	response := (<-this.PrivatePostOrderStatus(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseOrderStatus(this.SafeString(response, "status"))
+	return nil
 }
 
 /**
@@ -2617,58 +2617,58 @@ func (this *BitstampCore) FetchOrderStatus(id any, optionalArgs ...any) <-chan a
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes183612 := (<-this.LoadMarkets())
-			PanicOnError(retRes183612)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "client_order_id", clientOrderId)
-			params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
-		} else {
-			AddElementToObject(request, "id", id)
-		}
-
-		response := (<-this.PrivatePostOrderStatus(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//      {
-		//          "status": "Finished",
-		//          "id": 1429545880227846,
-		//          "amount_remaining": "0.00000000",
-		//          "transactions": [
-		//              {
-		//                  "fee": "0.11128",
-		//                  "price": "4451.25000000",
-		//                  "datetime": "2021-11-25 12:59:59.322000",
-		//                  "usdt": "22.25625000",
-		//                  "tid": 209895701,
-		//                  "eth": "0.00500000",
-		//                  "type": 2
-		//              }
-		//         ]
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes183612 := (<-this.LoadMarkets())
+		PanicOnError(retRes183612)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "client_order_id", clientOrderId)
+		params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
+	} else {
+		AddElementToObject(request, "id", id)
+	}
+
+	response := (<-this.PrivatePostOrderStatus(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//      {
+	//          "status": "Finished",
+	//          "id": 1429545880227846,
+	//          "amount_remaining": "0.00000000",
+	//          "transactions": [
+	//              {
+	//                  "fee": "0.11128",
+	//                  "price": "4451.25000000",
+	//                  "datetime": "2021-11-25 12:59:59.322000",
+	//                  "usdt": "22.25625000",
+	//                  "tid": 209895701,
+	//                  "eth": "0.00500000",
+	//                  "type": 2
+	//              }
+	//         ]
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -2684,44 +2684,49 @@ func (this *BitstampCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BitstampCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes188612 := (<-this.LoadMarkets())
-			PanicOnError(retRes188612)
-		}
-		var request any = map[string]any{}
-		var method any = "privatePostUserTransactions"
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pair", GetValue(market, "id"))
-			method = Add(method, "Pair")
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
-		var result any = this.FilterBy(response, "type", "2")
-
-		ch <- this.ParseTrades(result, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes188612 := (<-this.LoadMarkets())
+		PanicOnError(retRes188612)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pair", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	var response any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+
+		response = (<-this.PrivatePostUserTransactionsPair(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	var result any = this.FilterBy(response, "type", "2")
+
+	ch <- this.ParseTrades(result, market, since, limit)
+	return nil
 }
 
 /**
@@ -2739,70 +2744,70 @@ func (this *BitstampCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *BitstampCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes192219 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
-			PanicOnError(retRes192219)
-			ch <- retRes192219
-			return nil
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes192512 := (<-this.LoadMarkets())
-			PanicOnError(retRes192512)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pair", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "since_timestamp", MathRound(Divide(since, 1000)))
-		}
-		requestparamsVariable := this.HandleUntilOption("until_timestamp", request, params, 0.001)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetFundingRateHistoryPair(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "market": "BTC/USD-PERP",
-		//         "funding_rate_history": [
-		//             {
-		//                 "funding_rate": "0.0024",
-		//                 "timestamp": "1644406050"
-		//             }
-		//         ]
-		//     }
-		//
-		var values any = this.SafeValue(response, "funding_rate_history", []any{})
-
-		ch <- this.ParseFundingRateHistories(values, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes192519 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params))
+		PanicOnError(retRes192519)
+		ch <- retRes192519
+		return nil
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes192812 := (<-this.LoadMarkets())
+		PanicOnError(retRes192812)
+	}
+	var request any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pair", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "since_timestamp", MathRound(Divide(since, 1000)))
+	}
+	requestparamsVariable := this.HandleUntilOption("until_timestamp", request, params, 0.001)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetFundingRateHistoryPair(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "market": "BTC/USD-PERP",
+	//         "funding_rate_history": [
+	//             {
+	//                 "funding_rate": "0.0024",
+	//                 "timestamp": "1644406050"
+	//             }
+	//         ]
+	//     }
+	//
+	var values any = this.SafeValue(response, "funding_rate_history", []any{})
+
+	ch <- this.ParseFundingRateHistories(values, market, since, limit)
+	return nil
 }
 func (this *BitstampCore) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
 	//
@@ -2835,67 +2840,67 @@ func (this *BitstampCore) ParseFundingRateHistory(contract any, optionalArgs ...
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitstampCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes198612 := (<-this.LoadMarkets())
-			PanicOnError(retRes198612)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     [
-		//         {
-		//             "fee": "0.00000000",
-		//             "btc_usd": "0.00",
-		//             "id": 1234567894,
-		//             "usd": 0,
-		//             "btc": 0,
-		//             "datetime": "2018-09-08 09:00:31",
-		//             "type": "1",
-		//             "xrp": "-20.00000000",
-		//             "eur": 0,
-		//         },
-		//         {
-		//             "fee": "0.00000000",
-		//             "btc_usd": "0.00",
-		//             "id": 1134567891,
-		//             "usd": 0,
-		//             "btc": 0,
-		//             "datetime": "2018-09-07 18:47:52",
-		//             "type": "0",
-		//             "xrp": "20.00000000",
-		//             "eur": 0,
-		//         },
-		//     ]
-		//
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-		var transactions any = this.FilterByArray(response, "type", []any{"0", "1"}, false)
-
-		ch <- this.ParseTransactions(transactions, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes198912 := (<-this.LoadMarkets())
+		PanicOnError(retRes198912)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     [
+	//         {
+	//             "fee": "0.00000000",
+	//             "btc_usd": "0.00",
+	//             "id": 1234567894,
+	//             "usd": 0,
+	//             "btc": 0,
+	//             "datetime": "2018-09-08 09:00:31",
+	//             "type": "1",
+	//             "xrp": "-20.00000000",
+	//             "eur": 0,
+	//         },
+	//         {
+	//             "fee": "0.00000000",
+	//             "btc_usd": "0.00",
+	//             "id": 1134567891,
+	//             "usd": 0,
+	//             "btc": 0,
+	//             "datetime": "2018-09-07 18:47:52",
+	//             "type": "0",
+	//             "xrp": "20.00000000",
+	//             "eur": 0,
+	//         },
+	//     ]
+	//
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+	var transactions any = this.FilterByArray(response, "type", []any{"0", "1"}, false)
+
+	ch <- this.ParseTransactions(transactions, currency, since, limit)
+	return nil
 }
 
 /**
@@ -2910,62 +2915,62 @@ func (this *BitstampCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan a
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitstampCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes204012 := (<-this.LoadMarkets())
-			PanicOnError(retRes204012)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "timedelta", Subtract(this.Milliseconds(), since))
-		} else {
-			AddElementToObject(request, "timedelta", 50000000) // use max bitstamp approved value
-		}
-
-		response := (<-this.PrivatePostWithdrawalRequests(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "status": 2,
-		//             "datetime": "2018-10-17 10:58:13",
-		//             "currency": "BTC",
-		//             "amount": "0.29669259",
-		//             "address": "aaaaa",
-		//             "type": 1,
-		//             "id": 111111,
-		//             "transaction_id": "xxxx",
-		//         },
-		//         {
-		//             "status": 2,
-		//             "datetime": "2018-10-17 10:55:17",
-		//             "currency": "ETH",
-		//             "amount": "1.11010664",
-		//             "address": "aaaa",
-		//             "type": 16,
-		//             "id": 222222,
-		//             "transaction_id": "xxxxx",
-		//         },
-		//     ]
-		//
-		ch <- this.ParseTransactions(response, nil, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes204312 := (<-this.LoadMarkets())
+		PanicOnError(retRes204312)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "timedelta", Subtract(this.Milliseconds(), since))
+	} else {
+		AddElementToObject(request, "timedelta", 50000000) // use max bitstamp approved value
+	}
+
+	response := (<-this.PrivatePostWithdrawalRequests(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "status": 2,
+	//             "datetime": "2018-10-17 10:58:13",
+	//             "currency": "BTC",
+	//             "amount": "0.29669259",
+	//             "address": "aaaaa",
+	//             "type": 1,
+	//             "id": 111111,
+	//             "transaction_id": "xxxx",
+	//         },
+	//         {
+	//             "status": 2,
+	//             "datetime": "2018-10-17 10:55:17",
+	//             "currency": "ETH",
+	//             "amount": "1.11010664",
+	//             "address": "aaaa",
+	//             "type": 16,
+	//             "id": 222222,
+	//             "transaction_id": "xxxxx",
+	//         },
+	//     ]
+	//
+	ch <- this.ParseTransactions(response, nil, since, limit)
+	return nil
 }
 func (this *BitstampCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -3049,14 +3054,14 @@ func (this *BitstampCore) ParseTransaction(transaction any, optionalArgs ...any)
 	var address any = this.SafeString(transaction, "address")
 	if IsTrue(!IsEqual(address, nil)) {
 		// dt (destination tag) is embedded into the address field
-		var addressParts any = Split(address, "?dt=")
-		var numParts any = GetArrayLength(addressParts)
+		var addressParts []string = Split(address, "?dt=")
+		var numParts int = GetArrayLength(addressParts)
 		if IsTrue(IsGreaterThan(numParts, 1)) {
 			address = GetValue(addressParts, 0)
 			tag = GetValue(addressParts, 1)
 		}
 	}
-	var fee any = map[string]any{
+	var fee map[string]any = map[string]any{
 		"currency": nil,
 		"cost":     nil,
 		"rate":     nil,
@@ -3096,7 +3101,7 @@ func (this *BitstampCore) ParseTransactionStatus(status any) any {
 	//   withdrawals:
 	//   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
 	//
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"0": "pending",
 		"1": "pending",
 		"2": "ok",
@@ -3210,7 +3215,7 @@ func (this *BitstampCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *BitstampCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"0":  "transaction",
 		"1":  "transaction",
 		"2":  "trade",
@@ -3251,7 +3256,7 @@ func (this *BitstampCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(typeVar, "trade")) {
 		var parsedTrade any = this.ParseTrade(item)
 		var market any = nil
-		var keys any = ObjectKeys(item)
+		var keys []string = ObjectKeys(item)
 		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(GetValue(keys, i), "_"), 0)) {
 				var marketId any = Replace(GetValue(keys, i), "_", "")
@@ -3325,40 +3330,40 @@ func (this *BitstampCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *BitstampCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes243312 := (<-this.LoadMarkets())
-			PanicOnError(retRes243312)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
-		PanicOnError(response)
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-		}
-
-		ch <- this.ParseLedger(response, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes243612 := (<-this.LoadMarkets())
+		PanicOnError(retRes243612)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivatePostUserTransactions(this.Extend(request, params)))
+	PanicOnError(response)
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+	}
+
+	ch <- this.ParseLedger(response, currency, since, limit)
+	return nil
 }
 
 /**
@@ -3371,38 +3376,38 @@ func (this *BitstampCore) FetchLedger(optionalArgs ...any) <-chan any {
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *BitstampCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes245812 := (<-this.LoadMarkets())
-			PanicOnError(retRes245812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"market_symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "funding_rate": "0.0024",
-		//         "timestamp": "1644406050",
-		//         "market": "BTC/USD-PERP",
-		//         "next_funding_time": "1644406050"
-		//     }
-		//
-		ch <- this.ParseFundingRate(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes246112 := (<-this.LoadMarkets())
+		PanicOnError(retRes246112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"market_symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetFundingRateMarketSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "funding_rate": "0.0024",
+	//         "timestamp": "1644406050",
+	//         "market": "BTC/USD-PERP",
+	//         "next_funding_time": "1644406050"
+	//     }
+	//
+	ch <- this.ParseFundingRate(response, market)
+	return nil
 }
 func (this *BitstampCore) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
 	//
@@ -3453,52 +3458,52 @@ func (this *BitstampCore) ParseFundingRate(fundingRate any, optionalArgs ...any)
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BitstampCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var market any = nil
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes252512 := (<-this.LoadMarkets())
-			PanicOnError(retRes252512)
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-
-		response := (<-this.PrivatePostOpenOrdersAll(params))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "price": "0.00008012",
-		//             "currency_pair": "XRP/BTC",
-		//             "client_order_id": '',
-		//             "datetime": "2019-01-31 21:23:36",
-		//             "amount": "15.00000000",
-		//             "type": "0",
-		//             "id": "2814205012",
-		//         }
-		//     ]
-		//
-		ch <- this.ParseOrders(response, market, since, limit, map[string]any{
-			"status": "open",
-			"type":   "limit",
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var market any = nil
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes252812 := (<-this.LoadMarkets())
+		PanicOnError(retRes252812)
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+
+	response := (<-this.PrivatePostOpenOrdersAll(params))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "price": "0.00008012",
+	//             "currency_pair": "XRP/BTC",
+	//             "client_order_id": '',
+	//             "datetime": "2019-01-31 21:23:36",
+	//             "amount": "15.00000000",
+	//             "type": "0",
+	//             "id": "2814205012",
+	//         }
+	//     ]
+	//
+	ch <- this.ParseOrders(response, market, since, limit, map[string]any{
+		"status": "open",
+		"type":   "limit",
+	})
+	return nil
 }
 func (this *BitstampCore) GetCurrencyName(code any) any {
 	/**
@@ -3523,35 +3528,36 @@ func (this *BitstampCore) IsFiat(code any) any {
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *BitstampCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(this.IsFiat(code)) {
-			panic(NotSupported(Add(Add(Add(this.Id, " fiat fetchDepositAddress() for "), code), " is not supported!")))
-		}
-		var name any = this.GetCurrencyName(code)
-		var method any = Add(Add("privatePost", this.Capitalize(name)), "Address")
-
-		response := (<-this.CallDynamically(method, params))
-		PanicOnError(response)
-		var address any = this.SafeString(response, "address")
-		var tag any = this.SafeString2(response, "memo_id", "destination_tag")
-		this.CheckAddress(address)
-
-		ch <- map[string]any{
-			"info":     response,
-			"currency": code,
-			"network":  nil,
-			"address":  address,
-			"tag":      tag,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(this.IsFiat(code)) {
+		panic(NotSupported(Add(Add(Add(this.Id, " fiat fetchDepositAddress() for "), code), " is not supported!")))
+	}
+	var name any = this.GetCurrencyName(code)
+	// the per-currency implicit methods (privatePostBtcAddress etc.) all route
+	// through request(), called here directly to avoid dynamic dispatch
+
+	response := (<-this.Request(Add(name, "_address/"), "private", "POST", params))
+	PanicOnError(response)
+	var address any = this.SafeString(response, "address")
+	var tag any = this.SafeString2(response, "memo_id", "destination_tag")
+	this.CheckAddress(address)
+
+	ch <- map[string]any{
+		"info":     response,
+		"currency": code,
+		"network":  nil,
+		"address":  address,
+		"tag":      tag,
+	}
+	return nil
 }
 
 /**
@@ -3568,58 +3574,61 @@ func (this *BitstampCore) FetchDepositAddress(code any, optionalArgs ...any) <-c
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *BitstampCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// For fiat withdrawals please provide all required additional parameters in the 'params'
-		// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
-		tag = GetValue(tagparamsVariable, 0)
-		params = GetValue(tagparamsVariable, 1)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes261012 := (<-this.LoadMarkets())
-			PanicOnError(retRes261012)
-		}
-		this.CheckAddress(address)
-		var request any = map[string]any{
-			"amount": amount,
-		}
-		var currency any = nil
-		var method any = nil
-		if !IsTrue(this.IsFiat(code)) {
-			var name any = this.GetCurrencyName(code)
-			method = Add(Add("privatePost", this.Capitalize(name)), "Withdrawal")
-			if IsTrue(IsEqual(code, "XRP")) {
-				if IsTrue(!IsEqual(tag, nil)) {
-					AddElementToObject(request, "destination_tag", tag)
-				}
-			} else if IsTrue(IsTrue(IsEqual(code, "XLM")) || IsTrue(IsEqual(code, "HBAR"))) {
-				if IsTrue(!IsEqual(tag, nil)) {
-					AddElementToObject(request, "memo_id", tag)
-				}
-			}
-			AddElementToObject(request, "address", address)
-		} else {
-			method = "privatePostWithdrawalOpen"
-			currency = this.Currency(code)
-			AddElementToObject(request, "iban", address)
-			AddElementToObject(request, "account_currency", GetValue(currency, "id"))
-		}
-
-		response := (<-this.CallDynamically(method, this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseTransaction(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// For fiat withdrawals please provide all required additional parameters in the 'params'
+	// Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes261412 := (<-this.LoadMarkets())
+		PanicOnError(retRes261412)
+	}
+	this.CheckAddress(address)
+	var request map[string]any = map[string]any{
+		"amount": amount,
+	}
+	var currency any = nil
+	var response any = nil
+	if !IsTrue(this.IsFiat(code)) {
+		var name any = this.GetCurrencyName(code)
+		if IsTrue(IsEqual(code, "XRP")) {
+			if IsTrue(!IsEqual(tag, nil)) {
+				AddElementToObject(request, "destination_tag", tag)
+			}
+		} else if IsTrue(IsTrue(IsEqual(code, "XLM")) || IsTrue(IsEqual(code, "HBAR"))) {
+			if IsTrue(!IsEqual(tag, nil)) {
+				AddElementToObject(request, "memo_id", tag)
+			}
+		}
+		AddElementToObject(request, "address", address)
+		// the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
+		// route through request(), called here directly to avoid dynamic dispatch
+
+		response = (<-this.Request(Add(name, "_withdrawal/"), "private", "POST", this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		currency = this.Currency(code)
+		AddElementToObject(request, "iban", address)
+		AddElementToObject(request, "account_currency", GetValue(currency, "id"))
+
+		response = (<-this.PrivatePostWithdrawalOpen(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+
+	ch <- this.ParseTransaction(response, currency)
+	return nil
 }
 
 /**
@@ -3636,49 +3645,49 @@ func (this *BitstampCore) Withdraw(code any, amount any, address any, optionalAr
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *BitstampCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes265612 := (<-this.LoadMarkets())
-			PanicOnError(retRes265612)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
-			"currency": ToUpper(GetValue(currency, "id")),
-		}
-		var response any = nil
-		if IsTrue(IsEqual(fromAccount, "main")) {
-			AddElementToObject(request, "subAccount", toAccount)
-
-			response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(toAccount, "main")) {
-			AddElementToObject(request, "subAccount", fromAccount)
-
-			response = (<-this.PrivatePostTransferToMain(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			panic(BadRequest(Add(this.Id, " transfer() only supports from or to main")))
-		}
-		//
-		//    { status: 'ok' }
-		//
-		var transfer any = this.ParseTransfer(response, currency)
-		AddElementToObject(transfer, "amount", amount)
-		AddElementToObject(transfer, "fromAccount", fromAccount)
-		AddElementToObject(transfer, "toAccount", toAccount)
-
-		ch <- transfer
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
+}
+func (this *BitstampCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes266112 := (<-this.LoadMarkets())
+		PanicOnError(retRes266112)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"amount":   this.ParseToNumeric(this.CurrencyToPrecision(code, amount)),
+		"currency": ToUpper(GetValue(currency, "id")),
+	}
+	var response any = nil
+	if IsTrue(IsEqual(fromAccount, "main")) {
+		AddElementToObject(request, "subAccount", toAccount)
+
+		response = (<-this.PrivatePostTransferFromMain(this.Extend(request, params)))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(toAccount, "main")) {
+		AddElementToObject(request, "subAccount", fromAccount)
+
+		response = (<-this.PrivatePostTransferToMain(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		panic(BadRequest(Add(this.Id, " transfer() only supports from or to main")))
+	}
+	//
+	//    { status: 'ok' }
+	//
+	var transfer any = this.ParseTransfer(response, currency)
+	AddElementToObject(transfer, "amount", amount)
+	AddElementToObject(transfer, "fromAccount", fromAccount)
+	AddElementToObject(transfer, "toAccount", toAccount)
+
+	ch <- transfer
+	return nil
 }
 func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
@@ -3690,7 +3699,7 @@ func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(currency, nil)) {
 		panic(ExchangeError(Add(this.Id, " parseTransfer() could not resolve currency")))
 	}
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":        transfer,
 		"id":          nil,
 		"timestamp":   nil,
@@ -3704,7 +3713,7 @@ func (this *BitstampCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	return result
 }
 func (this *BitstampCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"ok":    "ok",
 		"error": "failed",
 	}
@@ -3729,16 +3738,16 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 	url = Add(url, this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {
 		this.CheckRequiredCredentials()
 		var xAuth any = Add("BITSTAMP ", this.ApiKey)
-		var xAuthNonce any = this.Uuid()
-		var xAuthTimestamp any = ToString(this.Milliseconds())
-		var xAuthVersion any = "v2"
-		var contentType any = ""
+		var xAuthNonce string = this.Uuid()
+		var xAuthTimestamp string = ToString(this.Milliseconds())
+		var xAuthVersion string = "v2"
+		var contentType string = ""
 		headers = map[string]any{
 			"X-Auth":           xAuth,
 			"X-Auth-Nonce":     xAuthNonce,
@@ -3746,7 +3755,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 			"X-Auth-Version":   xAuthVersion,
 		}
 		if IsTrue(IsEqual(method, "POST")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Urlencode(query)
 				contentType = "application/x-www-form-urlencoded"
 				AddElementToObject(headers, "Content-Type", contentType)
@@ -3764,7 +3773,7 @@ func (this *BitstampCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var authBody any = Ternary(IsTrue(body), body, "")
 		var auth any = Add(Add(Add(Add(Add(Add(Add(xAuth, method), Replace(url, "https://", "")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody)
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "X-Auth-Signature", signature)
 	}
 	return map[string]any{
@@ -3790,7 +3799,7 @@ func (this *BitstampCore) HandleErrors(httpCode any, reason any, url any, method
 		if IsTrue(IsString(error)) {
 			AppendToArray(&errors, error)
 		} else if IsTrue(!IsEqual(error, nil)) {
-			var keys any = ObjectKeys(error)
+			var keys []string = ObjectKeys(error)
 			for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 				var key any = GetValue(keys, i)
 				var value any = this.SafeValue(error, key)

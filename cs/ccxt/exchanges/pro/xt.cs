@@ -84,35 +84,66 @@ public partial class xt : ccxt.xt
         object token = this.safeString(((WebSocketClient)client).subscriptions, "token");
         if (isTrue(isEqual(token, null)))
         {
-            if (isTrue(isContract))
+            // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+            // concurrent callers each minted their own token, last write won, and the losers
+            // carried an orphaned token into name + '@' + listenKey so their streams went dead
+            object messageHash = add("authenticate:", tradeType);
+            if (isTrue(inOp(client.futures, messageHash)))
             {
-                object response = await this.privateLinearGetFutureUserV1UserListenKey();
-                //
-                //    {
-                //        returnCode: '0',
-                //        msgInfo: 'success',
-                //        error: null,
-                //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
-                //    }
-                //
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)["token"] = this.safeString(response, "result");
-            } else
-            {
-                object response = await this.privateSpotPostWsToken();
-                //
-                //    {
-                //        "rc": 0,
-                //        "mc": "SUCCESS",
-                //        "ma": [],
-                //        "result": {
-                //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
-                //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
-                //        }
-                //    }
-                //
-                object result = this.safeDict(response, "result");
-                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)["token"] = this.safeString(result, "accessToken");
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the bucket
+                await client.future(messageHash);
+                return getValue(((WebSocketClient)client).subscriptions, "token");
             }
+            // client.futures is the same registry Exchange.watch () dedupes on, so registering
+            // the flight here, before any suspension point, makes concurrent callers wait
+            var future = client.reusableFuture(messageHash);
+            try
+            {
+                object listenKey = null;
+                if (isTrue(isContract))
+                {
+                    object response = await this.privateLinearGetFutureUserV1UserListenKey();
+                    //
+                    //    {
+                    //        returnCode: '0',
+                    //        msgInfo: 'success',
+                    //        error: null,
+                    //        result: '3BC1D71D6CF96DA3458FC35B05B633351684511731128'
+                    //    }
+                    //
+                    listenKey = this.safeString(response, "result");
+                } else
+                {
+                    object response = await this.privateSpotPostWsToken();
+                    //
+                    //    {
+                    //        "rc": 0,
+                    //        "mc": "SUCCESS",
+                    //        "ma": [],
+                    //        "result": {
+                    //            "token": "eyJhbqGciOiJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoiYXV0aCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.h3zJlJBQrK2x1HvUxsKivnn6PlSrSDXXXJ7WqHAYSrN2CG5XPTKc4zKnTVoYFbg6fTS0u1fT8wH7wXqcLWXX71vm0YuP8PCvdPAkUIq4-HyzltbPr5uDYd0UByx0FPQtq1exvsQGe7evXQuDXx3SEJXxEqUbq_DNlXPTq_JyScI",
+                    //            "refreshToken": "eyJhbGciOiqJSUzI1NiJ9.eyJhY2NvdW50SWQiOiIyMTQ2Mjg1MzIyNTU5Iiwic3ViIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsInNjb3BlIjoicmVmcmVzaCIsImlzcyI6Inh0LmNvbSIsImxhc3RBdXRoVGltZSI6MTY2MzgxMzY5MDk1NSwic2lnblR5cGUiOiJBSyIsInVzZXJOYW1lIjoibGh4dDRfMDAwMUBzbmFwbWFpbC5jYyIsImV4cCI6MTY2NjQwNTY5MCwiZGV2aWNlIjoidW5rbm93biIsInVzZXJJZCI6MjE0NjI4NTMyMjU1OX0.Fs3YVm5YrEOzzYOSQYETSmt9iwxUHBovh2u73liv1hLUec683WGfktA_s28gMk4NCpZKFeQWFii623FvdfNoteXR0v1yZ2519uNvNndtuZICDdv3BQ4wzW1wIHZa1skxFfqvsDnGdXpjqu9UFSbtHwxprxeYfnxChNk4ssei430"
+                    //        }
+                    //    }
+                    //
+                    object result = this.safeDict(response, "result");
+                    listenKey = this.safeString(result, "accessToken");
+                }
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " getListenKey() received an empty listen key")) ;
+                }
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)["token"] = listenKey;
+                callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+            } catch(Exception e)
+            {
+                // hand the failure to every waiter so the next caller re-leads instead of
+                // deadlocking on a dead flight. no throw here: the trailing future rethrows
+                // to this caller and keeps a waiterless rejection from crashing the process
+                ((WebSocketClient)client).reject(e, messageHash);
+            }
+            await future;
         }
         return getValue(((WebSocketClient)client).subscriptions, "token");
     }
@@ -179,12 +210,12 @@ public partial class xt : ccxt.xt
     public async virtual Task<object> subscribe(object name, object access, object methodName, object market = null, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object privateAccess = isEqual(access, "private");
+        bool privateAccess = isEqual(access, "private");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isContract = (!isEqual(type, "spot"));
+        bool isContract = (!isEqual(type, "spot"));
         object id = add(this.numberToString(this.milliseconds()), name); // call back ID
         object subscribe = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isContract)) ? "SUBSCRIBE" : "subscribe" },
@@ -212,7 +243,7 @@ public partial class xt : ccxt.xt
         {
             messageHash = add(add(messageHash, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
         }
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         object tail = access;
         if (isTrue(isContract))
         {
@@ -246,12 +277,12 @@ public partial class xt : ccxt.xt
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
-        object privateAccess = isEqual(access, "private");
+        bool privateAccess = isEqual(access, "private");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isContract = (!isEqual(type, "spot"));
+        bool isContract = (!isEqual(type, "spot"));
         object id = add(this.numberToString(this.milliseconds()), name); // call back ID
         object unsubscribe = new Dictionary<string, object>() {
             { "method", ((bool) isTrue(isContract)) ? "UNSUBSCRIBE" : "unsubscribe" },
@@ -275,7 +306,7 @@ public partial class xt : ccxt.xt
         }
         object tradeType = ((bool) isTrue(isContract)) ? "contract" : "spot";
         object subMessageHash = add(add(name, "::"), tradeType);
-        object request = this.extend(unsubscribe, parameters);
+        Dictionary<string, object> request = this.extend(unsubscribe, parameters);
         object tail = access;
         if (isTrue(isContract))
         {
@@ -615,7 +646,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        object name = "order";
+        string name = "order";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -648,7 +679,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        object name = "trade";
+        string name = "trade";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -678,7 +709,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        object name = "balance";
+        string name = "balance";
         return await this.subscribe(name, "private", "watchBalance", null, null, parameters);
     }
 
@@ -711,7 +742,7 @@ public partial class xt : ccxt.xt
             object snapshot = await client.future("fetchPositionsSnapshot");
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
         }
-        object name = "position";
+        string name = "position";
         object newPositions = await this.subscribe(name, "private", "watchPositions", null, null, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -814,7 +845,7 @@ public partial class xt : ccxt.xt
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
         if (isTrue(fetchPositionsSnapshot))
         {
-            object messageHash = "fetchPositionsSnapshot";
+            string messageHash = "fetchPositionsSnapshot";
             if (!isTrue((inOp(client.futures, messageHash))))
             {
                 client.future(messageHash);
@@ -890,9 +921,9 @@ public partial class xt : ccxt.xt
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(new List<object>() {position}, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -969,7 +1000,7 @@ public partial class xt : ccxt.xt
         if (isTrue(!isEqual(marketId, null)))
         {
             object cv = this.safeString(data, "cv");
-            object isSpot = !isEqual(cv, null);
+            bool isSpot = !isEqual(cv, null);
             object ticker = this.parseTicker(data);
             object symbol = getValue(ticker, "symbol");
             if (isTrue(!isEqual(symbol, null)))
@@ -1074,12 +1105,12 @@ public partial class xt : ccxt.xt
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 2);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            object tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
-            object numTickers = getArrayLength(tickersSymbols);
+            List<object> tickersSymbols = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            int numTickers = getArrayLength(tickersSymbols);
             if (isTrue(isGreaterThan(numTickers, 0)))
             {
                 callDynamically(client as WebSocketClient, "resolve", new object[] {tickers, messageHash});
@@ -1275,9 +1306,9 @@ public partial class xt : ccxt.xt
         if (isTrue(!isEqual(marketId, null)))
         {
             object eventVar = this.safeString(message, "event", "");
-            object splitEvent = ((string)eventVar).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> splitEvent = ((string)eventVar).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             eventVar = this.safeString(splitEvent, 0, "");
-            object tradeType = "spot";
+            string tradeType = "spot";
             if (isTrue(isTrue((!isEqual(data, null))) && isTrue((inOp(data, "fu")))))
             {
                 tradeType = "contract";
@@ -1297,7 +1328,7 @@ public partial class xt : ccxt.xt
             object nonce = this.safeInteger(orderbook, "nonce");
             if (isTrue(isEqual(nonce, null)))
             {
-                object cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
+                int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (isTrue(isEqual(cacheLength, snapshotDelay)))
                 {
@@ -1714,7 +1745,7 @@ public partial class xt : ccxt.xt
         //     }
         //
         object id = this.safeString(message, "id");
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object unsubscribe = false;
         if (isTrue(!isEqual(id, null)))
         {

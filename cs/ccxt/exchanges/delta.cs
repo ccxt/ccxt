@@ -419,9 +419,9 @@ public partial class delta : Exchange
     public override object createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
-        object quote = "USDT";
-        object optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        string quote = "USDT";
+        List<object> optionParts = ((string)symbol).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        List<object> symbolBase = ((string)symbol).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object bs = null;
         object expiry = null;
         object optionType = null;
@@ -493,7 +493,7 @@ public partial class delta : Exchange
 
     public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
-        object isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
+        bool isOption = isTrue((!isEqual(marketId, null))) && isTrue((isTrue(isTrue(isTrue((((string)marketId).EndsWith(((string)"-C")))) || isTrue((((string)marketId).EndsWith(((string)"-P"))))) || isTrue((((string)marketId).StartsWith(((string)"C-"))))) || isTrue((((string)marketId).StartsWith(((string)"P-"))))));
         if (isTrue(isTrue(isOption) && isTrue((isTrue((isEqual(this.markets_by_id, null))) || !isTrue((inOp(this.markets_by_id, marketId)))))))
         {
             // handle expired option contracts
@@ -746,7 +746,7 @@ public partial class delta : Exchange
         {
             return null;
         }
-        object keys = new List<object>(((IDictionary<string,object>)input).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -974,13 +974,13 @@ public partial class delta : Exchange
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
-            object callOptions = (isEqual(type, "call_options"));
-            object putOptions = (isEqual(type, "put_options"));
-            object moveOptions = (isEqual(type, "move_options"));
-            object spot = (isEqual(type, "spot"));
-            object swap = (isEqual(type, "perpetual_futures"));
-            object future = (isEqual(type, "futures"));
-            object option = (isTrue(isTrue(callOptions) || isTrue(putOptions)) || isTrue(moveOptions));
+            bool callOptions = (isEqual(type, "call_options"));
+            bool putOptions = (isEqual(type, "put_options"));
+            bool moveOptions = (isEqual(type, "move_options"));
+            bool spot = (isEqual(type, "spot"));
+            bool swap = (isEqual(type, "perpetual_futures"));
+            bool future = (isEqual(type, "futures"));
+            bool option = (isTrue(isTrue(callOptions) || isTrue(putOptions)) || isTrue(moveOptions));
             object strike = this.safeString(market, "strike_price");
             object expiryDatetime = this.safeString(market, "settlement_time");
             object expiry = this.parse8601(expiryDatetime);
@@ -994,7 +994,7 @@ public partial class delta : Exchange
                 // other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
                 amountPrecision = this.parseNumber("1");
             }
-            object linear = (isEqual(settle, quote));
+            bool linear = (isEqual(settle, quote));
             object optionType = null;
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(isTrue(isTrue(swap) || isTrue(future)) || isTrue(option)))
@@ -1006,7 +1006,7 @@ public partial class delta : Exchange
                     if (isTrue(option))
                     {
                         type = "option";
-                        object letter = "C";
+                        string letter = "C";
                         optionType = "call";
                         if (isTrue(putOptions))
                         {
@@ -1211,7 +1211,7 @@ public partial class delta : Exchange
         // spot markets that is the base currency rather than the quote
         object turnoverSymbol = this.safeStringUpper(ticker, "turnover_symbol");
         object quoteId = this.safeStringUpper(market, "quoteId");
-        object baseDenominated = isTrue(isTrue((!isEqual(turnoverSymbol, null))) && isTrue((!isEqual(quoteId, null)))) && isTrue((!isEqual(turnoverSymbol, quoteId)));
+        bool baseDenominated = isTrue(isTrue((!isEqual(turnoverSymbol, null))) && isTrue((!isEqual(quoteId, null)))) && isTrue((!isEqual(turnoverSymbol, quoteId)));
         object quoteVolume = ((bool) isTrue(baseDenominated)) ? this.safeNumber(ticker, "turnover_usd") : this.safeNumber(ticker, "turnover");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1780,7 +1780,7 @@ public partial class delta : Exchange
         object duration = this.parseTimeframe(timeframe);
         limit = ((bool) isTrue(limit)) ? limit : 2000; // max 2000
         object until = this.safeIntegerProduct(parameters, "until", 0.001);
-        object untilIsDefined = (!isEqual(until, null));
+        bool untilIsDefined = (!isEqual(until, null));
         if (isTrue(untilIsDefined))
         {
             until = this.parseToInt(until);
@@ -2741,7 +2741,7 @@ public partial class delta : Exchange
         object timestamp = this.parse8601(this.safeString(item, "created_at"));
         object after = this.safeString(item, "balance");
         object before = Precise.stringMax("0", Precise.stringSub(after, amount));
-        object status = "ok";
+        string status = "ok";
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
@@ -4386,14 +4386,14 @@ public partial class delta : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
         } else if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object timestamp = ((object)this.seconds()).ToString();
+            string timestamp = ((object)this.seconds()).ToString();
             headers = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },
                 { "timestamp", timestamp },
@@ -4401,7 +4401,7 @@ public partial class delta : Exchange
             object auth = add(add(method, timestamp), requestPath);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     object queryString = add("?", this.urlencode(query));
                     auth = add(auth, queryString);
@@ -4413,7 +4413,7 @@ public partial class delta : Exchange
                 auth = add(auth, body);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["signature"] = signature;
         }
         return new Dictionary<string, object>() {

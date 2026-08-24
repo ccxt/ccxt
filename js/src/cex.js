@@ -1785,7 +1785,7 @@ export default class cex extends Exchange {
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

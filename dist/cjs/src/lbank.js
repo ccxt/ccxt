@@ -3061,7 +3061,7 @@ class lbank extends lbank$1["default"] {
             url = this.urls['api']['contract'] + '/' + this.implodeParams(path, params);
         }
         if (api[1] === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(this.keysort(query));
             }
         }

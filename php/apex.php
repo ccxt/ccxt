@@ -2008,7 +2008,7 @@ class apex extends Exchange {
         $signPath = '/api/' . $path;
         $signBody = $body;
         if (strtoupper($method) !== 'POST') {
-            if ($params) {
+            if (count($params) > 0) {
                 $signPath .= '?' . $this->rawencode($params);
                 $url .= '?' . $this->rawencode($params);
             }

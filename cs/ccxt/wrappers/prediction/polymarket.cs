@@ -195,9 +195,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure).</returns>
-    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrderBook> FetchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(outcome, limit, parameters);
         return new PredictionOrderBook(res);
     }
@@ -228,10 +227,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -342,10 +339,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
@@ -382,10 +377,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
@@ -422,10 +415,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> FetchOrderTrades(string id, string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> FetchOrderTrades(string id, string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderTrades(id, outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
@@ -528,10 +519,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
@@ -636,9 +625,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(outcome, type, side, amount, price, parameters);
         return new PredictionOrder(res);
     }
@@ -923,9 +911,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [prediction order book structure]{@link https://docs.ccxt.com/#/?id=prediction-order-book-structure}.</returns>
-    public async Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.PredictionOrderBook> WatchOrderBook(string outcome, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBook(outcome, limit, parameters);
         return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());
     }
@@ -955,10 +942,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures]{@link https://docs.ccxt.com/#/?id=prediction-trade-structure}.</returns>
-    public async Task<List<PredictionTrade>> WatchTrades(string outcome, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> WatchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }
@@ -1014,10 +999,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> WatchOrders(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionOrder>> WatchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
     }
@@ -1054,10 +1037,8 @@ public partial class polymarket
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
-    public async Task<List<PredictionTrade>> WatchMyTrades(string outcome = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<PredictionTrade>> WatchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchMyTrades(outcome, since, limit, parameters);
         return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
     }

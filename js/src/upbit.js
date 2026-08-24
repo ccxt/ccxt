@@ -783,9 +783,12 @@ export default class upbit extends Exchange {
      * @name upbit#fetchTickers
      * @see https://docs.upbit.com/kr/reference/list-tickers
      * @see https://global-docs.upbit.com/reference/list-tickers
+     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+     * @see https://global-docs.upbit.com/reference/tickers_by_quote
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
@@ -793,14 +796,42 @@ export default class upbit extends Exchange {
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        const ids = (symbols !== undefined) ? this.marketIds(symbols) : this.ids;
-        const promises = [];
-        const queries = this.idsQueryStrings(ids, 6400); // seems upbit server limitations
-        for (let i = 0; i < queries.length; i++) {
-            const idsQuery = queries[i];
-            promises.push(this.publicGetTicker({ 'markets': idsQuery }));
+        let tickers = [];
+        if (symbols === undefined) {
+            // ticker/all returns every market of the requested quote currencies with a single request
+            const quoteIds = [];
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const market = this.market(marketSymbols[i]);
+                const quoteId = market['quoteId'];
+                if (!this.inArray(quoteId, quoteIds)) {
+                    quoteIds.push(quoteId);
+                }
+            }
+            const sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
+            let quoteCurrencies = '';
+            for (let i = 0; i < sortedQuoteIds.length; i++) {
+                if (quoteCurrencies !== '') {
+                    quoteCurrencies = quoteCurrencies + ',';
+                }
+                quoteCurrencies = quoteCurrencies + sortedQuoteIds[i];
+            }
+            const request = {
+                'quote_currencies': quoteCurrencies,
+            };
+            tickers = await this.publicGetTickerAll(this.extend(request, params));
         }
-        const responses = await Promise.all(promises);
+        else {
+            const ids = this.marketIds(symbols);
+            const promises = [];
+            const queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            for (let i = 0; i < queries.length; i++) {
+                const idsQuery = queries[i];
+                promises.push(this.publicGetTicker(this.extend({ 'markets': idsQuery }, params)));
+            }
+            const responses = await Promise.all(promises);
+            tickers = this.arraysConcat(responses);
+        }
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -829,8 +860,7 @@ export default class upbit extends Exchange {
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        const concated = this.arraysConcat(responses);
-        return this.parseTickers(concated, symbols);
+        return this.parseTickers(tickers, symbols);
     }
     idsQueryStrings(ids, maxQueryLength) {
         if (ids === undefined) {
@@ -1862,11 +1892,11 @@ export default class upbit extends Exchange {
         //        new_order_identifier: '22'
         //      }
         const id = this.safeString(order, 'uuid');
-        let side = this.safeString(order, 'side');
+        let side = this.safeStringLower(order, 'side');
         if (side === 'bid') {
             side = 'buy';
         }
-        else {
+        else if (side === 'ask') {
             side = 'sell';
         }
         const identifier = this.safeString(order, 'identifier');
@@ -2382,7 +2412,7 @@ export default class upbit extends Exchange {
         url += '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method !== 'POST') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -2400,7 +2430,7 @@ export default class upbit extends Exchange {
                 body = this.json(params);
                 headers['Content-Type'] = 'application/json';
             }
-            if (hasQuery) {
+            if ((hasQuery !== undefined) && (hasQuery !== 0)) {
                 auth = this.rawencode(query);
             }
             if (auth !== undefined) {

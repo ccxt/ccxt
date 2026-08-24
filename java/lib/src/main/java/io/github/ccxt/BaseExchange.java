@@ -5721,7 +5721,7 @@ public Object describe()
         this.createNetworksByIdObject();
         this.featuresGenerator();
         // init predefined markets if any
-        if (Helpers.isTrue(this.markets))
+        if (Helpers.isTrue(!Helpers.isEqual(this.markets, null)))
         {
             this.setMarkets(this.markets);
         }
@@ -6531,7 +6531,7 @@ public Object describe()
         }
         Object debtBalanceArray = Helpers.objectKeys(debtBalance);
         Object length = Helpers.getArrayLength(debtBalanceArray);
-        if (Helpers.isTrue(length))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(length, null))) && Helpers.isTrue((!Helpers.isEqual(length, 0)))))
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
         }
@@ -8924,7 +8924,7 @@ public Object describe()
                 this.accounts = (this.fetchAccounts(parameters)).join();
             } else
             {
-                if (Helpers.isTrue(this.accounts))
+                if (Helpers.isTrue(!Helpers.isEqual(this.accounts, null)))
                 {
                     return this.accounts;
                 } else

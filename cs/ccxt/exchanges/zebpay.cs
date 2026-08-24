@@ -310,7 +310,7 @@ public partial class zebpay : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
+        bool isSpot = (isEqual(type, "spot"));
         object response = null;
         object data = new Dictionary<string, object>() {};
         if (isTrue(isSpot))
@@ -359,7 +359,7 @@ public partial class zebpay : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
+        bool isSpot = (isEqual(type, "spot"));
         object response = null;
         object data = new Dictionary<string, object>() {};
         if (isTrue(isSpot))
@@ -487,9 +487,9 @@ public partial class zebpay : Exchange
             object chain = getValue(chains, j);
             object networkId = this.safeString(chain, "chainId");
             object networkCode = this.networkIdToCode(networkId, code);
-            object depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
+            bool depositAllowed = isEqual(this.safeBool(chain, "isDepositEnabled"), true);
             deposit = ((bool) isTrue((depositAllowed))) ? depositAllowed : deposit;
-            object withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
+            bool withdrawAllowed = isEqual(this.safeBool(chain, "isWithdrawEnabled"), true);
             withdraw = ((bool) isTrue((withdrawAllowed))) ? withdrawAllowed : withdraw;
             object withdrawFeeString = this.safeString(chain, "withdrawalFee");
             if (isTrue(!isEqual(withdrawFeeString, null)))
@@ -1134,7 +1134,7 @@ public partial class zebpay : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isSpot = (isEqual(type, "spot"));
+        bool isSpot = (isEqual(type, "spot"));
         object response = null;
         if (isTrue(isSpot))
         {
@@ -1191,7 +1191,7 @@ public partial class zebpay : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object upperCaseType = ((string)type).ToUpper();
+        string upperCaseType = ((string)type).ToUpper();
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice");
         parameters = this.omit(parameters, new List<object>() {"marginAsset", "takeProfitPrice", "takeProfitPrice"});
@@ -1217,8 +1217,8 @@ public partial class zebpay : Exchange
             ((IDictionary<string,object>)request)["formType"] = formType;
             ((IDictionary<string,object>)request)["amount"] = this.parseToNumeric(this.amountToPrecision(getValue(market, "id"), amount));
             ((IDictionary<string,object>)request)["marginAsset"] = marginAsset;
-            object hasTP = !isEqual(takeProfitPrice, null);
-            object hasSL = !isEqual(stopLossPrice, null);
+            bool hasTP = !isEqual(takeProfitPrice, null);
+            bool hasSL = !isEqual(stopLossPrice, null);
             if (isTrue(isTrue(hasTP) || isTrue(hasSL)))
             {
                 if (isTrue(hasTP))
@@ -1258,7 +1258,7 @@ public partial class zebpay : Exchange
     public virtual object orderRequest(object symbol, object type, object amount, object request, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object upperCaseType = ((string)type).ToUpper();
+        string upperCaseType = ((string)type).ToUpper();
         object triggerPrice = this.safeString(parameters, "stopLossPrice");
         object quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         object timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -2143,7 +2143,7 @@ public partial class zebpay : Exchange
         //         "status": "ok"
         //    }
         //
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", info },
             { "symbol", this.safeString(market, "id") },
@@ -2164,21 +2164,21 @@ public partial class zebpay : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         parameters = this.omit(parameters, "defaultType");
-        object isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
+        bool isV1 = isGreaterThan(getIndexOf(path, "v1/"), -1);
         object marketType = ((bool) isTrue(isV1)) ? "swap" : "spot";
         object url = getValue(getValue(this.urls, "api"), marketType);
         object tail = add("/api/", this.implodeParams(path, parameters));
         url = add(url, tail);
-        object timestamp = ((object)this.milliseconds()).ToString();
-        object signature = "";
+        string timestamp = ((object)this.milliseconds()).ToString();
+        string signature = "";
         object query = this.omit(parameters, this.extractParams(path));
-        object queryLength = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
+        int queryLength = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
         object access = this.safeString(api, 0, "public");
         if (isTrue(isEqual(access, "public")))
         {
             if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
             {
-                if (isTrue(queryLength))
+                if (isTrue(isTrue((!isEqual(queryLength, null))) && isTrue((!isEqual(queryLength, 0)))))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }
@@ -2193,7 +2193,7 @@ public partial class zebpay : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object isSpot = isEqual(marketType, "spot");
+            bool isSpot = isEqual(marketType, "spot");
             ((IDictionary<string,object>)parameters)["timestamp"] = timestamp;
             if (isTrue(isTrue(isEqual(method, "GET")) || isTrue((isTrue(isEqual(method, "DELETE")) && isTrue(isSpot)))))
             {

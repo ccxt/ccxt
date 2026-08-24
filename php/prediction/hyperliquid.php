@@ -201,7 +201,7 @@ class hyperliquid extends Exchange {
          * @param {string} $description the raw outcome $description string
          * @return {array} a dict of the parsed key/value pairs
          */
-        if (!$description) {
+        if (($description === null) || ($description === '')) {
             return array();
         }
         $parts = explode('|', $description);
@@ -234,10 +234,10 @@ class hyperliquid extends Exchange {
         $expiryDate = $expiry ? explode('-', $expiry)[0] : '';
         $label = ($side === 0) ? 'YES' : 'NO';
         $base = strtoupper($underlying);
-        if ($targetPrice) {
+        if (($targetPrice !== null) && ($targetPrice !== '')) {
             $base = $base . '_ABOVE_' . $targetPrice;
         }
-        if ($expiryDate) {
+        if (($expiryDate !== null) && ($expiryDate !== '')) {
             $base = $base . '_' . $expiryDate;
         }
         return $base . ':' . $label;
@@ -254,21 +254,21 @@ class hyperliquid extends Exchange {
          * @return {string} the parent market outcome
          */
         $underlying = $this->safe_string($desc, 'underlying');
-        if ($underlying) {
+        if (($underlying !== null) && ($underlying !== '')) {
             $targetPrice = $this->safe_string($desc, 'targetPrice');
             $expiry = $this->safe_string($desc, 'expiry', '');
             $expiryDate = $expiry ? explode('-', $expiry)[0] : '';
             $base = strtoupper($underlying);
-            if ($targetPrice) {
+            if (($targetPrice !== null) && ($targetPrice !== '')) {
                 $base = $base . '_ABOVE_' . $targetPrice;
             }
-            if ($expiryDate) {
+            if (($expiryDate !== null) && ($expiryDate !== '')) {
                 $base = $base . '_' . $expiryDate;
             }
             return $base;
         }
         $questionDescription = $this->safe_string($question, 'description');
-        if ($questionDescription) {
+        if (($questionDescription !== null) && ($questionDescription !== '')) {
             $questionDesc = $this->parse_outcome_description($questionDescription);
             $questionClass = $this->safe_string_lower($questionDesc, 'class');
             if ($questionClass === 'pricebucket') {
@@ -300,7 +300,7 @@ class hyperliquid extends Exchange {
                             $bucketLabel = 'BETWEEN_' . $thresholds[$index - 1] . '_' . $thresholds[$index];
                         }
                         $base = strtoupper($questionUnderlying) . '_' . $bucketLabel;
-                        if ($expiryDate) {
+                        if (($expiryDate !== null) && ($expiryDate !== '')) {
                             $base = $base . '_' . $expiryDate;
                         }
                         return $base;
@@ -309,7 +309,7 @@ class hyperliquid extends Exchange {
                 $isFallbackLike = ($rawDescription === 'other') || (mb_strpos($nameLower, 'fallback') !== false) || (mb_strpos($nameLower, 'other') !== false);
                 if ($questionUnderlying && $isFallbackLike) {
                     $base = strtoupper($questionUnderlying) . '_OTHER';
-                    if ($expiryDate) {
+                    if (($expiryDate !== null) && ($expiryDate !== '')) {
                         $base = $base . '_' . $expiryDate;
                     }
                     return $base;
@@ -317,9 +317,9 @@ class hyperliquid extends Exchange {
             }
         }
         $questionName = $this->safe_string($question, 'name');
-        if ($questionName) {
+        if (($questionName !== null) && ($questionName !== '')) {
             $questionSlug = $this->shorten_slug($questionName);
-            if ($questionSlug) {
+            if (($questionSlug !== null) && ($questionSlug !== '')) {
                 $outcomeSlug = $this->shorten_slug($name);
                 $genericOutcomeNames = array(
                     'RECURRING' => true,
@@ -333,14 +333,14 @@ class hyperliquid extends Exchange {
                         $outcomeSlug = '';
                     }
                 }
-                if ($outcomeSlug) {
+                if (($outcomeSlug !== null) && ($outcomeSlug !== '')) {
                     return $questionSlug . '_' . $outcomeSlug . '_' . (string) $outcomeId;
                 }
                 return $questionSlug . '_' . (string) $outcomeId;
             }
         }
         // Fallback => use $name slugified, or OUTCOME-<id>
-        if ($name) {
+        if (($name !== null) && ($name !== '')) {
             return $this->shorten_slug($name) . '_' . (string) $outcomeId;
         }
         return 'OUTCOME_' . (string) $outcomeId;
@@ -461,7 +461,7 @@ class hyperliquid extends Exchange {
         $expiry = $this->safe_string($desc, 'expiry');
         $expiryMs = null;
         $expiryDatetime = null;
-        if ($expiry) {
+        if (($expiry !== null) && ($expiry !== '')) {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             $expParts = explode('-', $expiry);
             $expPartsLength = count($expParts);
@@ -1134,7 +1134,7 @@ class hyperliquid extends Exchange {
     }
 
     public function parse_outcome_input_side_hint(string $outcomeInput): ?string {
-        if (!$outcomeInput) {
+        if (($outcomeInput === null) || ($outcomeInput === '')) {
             return null;
         }
         $colonIndex = mb_strpos($outcomeInput, ':');
@@ -1197,7 +1197,7 @@ class hyperliquid extends Exchange {
             $market = $this->safe_market($outcomeInput);
             $sideHintOrDefault = ($sideHint !== null) ? $sideHint : 'YES';
             $found = $this->find_outcome_in_market($market, $sideHintOrDefault);
-            if ($found > 0) {
+            if (count($found) > 0) {
                 return $found;
             }
         }
@@ -1999,7 +1999,7 @@ class hyperliquid extends Exchange {
         $expiryRaw = $this->safe_string($desc, 'expiry');
         $expiryMs = null;
         $expiryDatetime = null;
-        if ($expiryRaw) {
+        if (($expiryRaw !== null) && ($expiryRaw !== '')) {
             $parts = explode('-', $expiryRaw);
             $partsLength = count($parts);
             if ($partsLength >= 1 && strlen($parts[0]) === 8) {
@@ -2014,10 +2014,10 @@ class hyperliquid extends Exchange {
         $title = $parentSymbol;
         if ($underlying !== null) {
             $titleSuffix = '';
-            if ($targetPrice) {
+            if (($targetPrice !== null) && ($targetPrice !== '')) {
                 $titleSuffix = $titleSuffix . ' ABOVE ' . $targetPrice;
             }
-            if ($expiryRaw) {
+            if (($expiryRaw !== null) && ($expiryRaw !== '')) {
                 $titleSuffix = $titleSuffix . ' @ ' . $expiryRaw;
             }
             $title = $underlying . $titleSuffix;

@@ -1824,11 +1824,11 @@ class zebpay(Exchange, ImplicitAPI):
         timestamp = str(self.milliseconds())
         signature = ''
         query = self.omit(params, self.extract_params(path))
-        queryLength = query
+        queryLength = len(query)
         access = self.safe_string(api, 0, 'public')
         if access == 'public':
             if method == 'GET' or method == 'DELETE':
-                if queryLength:
+                if (queryLength is not None) and (queryLength != 0):
                     url += '?' + self.urlencode(query)
             else:
                 body = json.dumps(params)

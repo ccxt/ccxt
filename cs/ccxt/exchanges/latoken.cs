@@ -507,7 +507,7 @@ public partial class latoken : Exchange
             await this.loadTimeDifference();
         }
         object currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
-        object currenciesById = this.indexBy(currencies, "id");
+        Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         object result = new List<object>() {};
         object rawMarkets = this.toArray(response);
         for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
@@ -529,8 +529,8 @@ public partial class latoken : Exchange
                 {
                     continue;
                 }
-                object lowercaseQuote = ((string)quote).ToLower();
-                object capitalizedQuote = this.capitalize(lowercaseQuote);
+                string lowercaseQuote = ((string)quote).ToLower();
+                string capitalizedQuote = this.capitalize(lowercaseQuote);
                 object status = this.safeString(market, "status");
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
                     { "id", id },
@@ -638,7 +638,7 @@ public partial class latoken : Exchange
         object tag = this.safeString(currency, "tag");
         object code = this.safeCurrencyCode(tag);
         object currencyType = this.safeString(currency, "type");
-        object isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        bool isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -712,7 +712,7 @@ public partial class latoken : Exchange
         object type = this.safeString(parameters, "type", defaultType);
         object types = this.safeValue(this.options, "types", new Dictionary<string, object>() {});
         object accountType = this.safeString(types, type, type);
-        object balancesByType = this.groupBy(response, "type");
+        Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         object balances = this.safeValue(balancesByType, accountType, new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
@@ -1013,7 +1013,7 @@ public partial class latoken : Exchange
                 side = "sell";
             }
         }
-        object isBuy = (isEqual(side, "buy"));
+        bool isBuy = (isEqual(side, "buy"));
         object takerOrMaker = ((bool) isTrue((isTrue(makerBuyer) && isTrue(isBuy)))) ? "maker" : "taker";
         object baseId = this.safeString(trade, "baseCurrency");
         object quoteId = this.safeString(trade, "quoteCurrency");
@@ -1331,8 +1331,8 @@ public partial class latoken : Exchange
         object side = null;
         if (isTrue(!isEqual(orderSide, null)))
         {
-            object parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object partsLength = getArrayLength(parts);
+            List<object> parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            int partsLength = getArrayLength(parts);
             side = this.safeStringLower(parts, subtract(partsLength, 1));
         }
         object type = this.parseOrderType(this.safeString(order, "type"));
@@ -1604,7 +1604,7 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
@@ -2074,7 +2074,7 @@ public partial class latoken : Exchange
         object urlencodedQuery = this.urlencode(query);
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 requestString = add(requestString, add("?", urlencodedQuery));
             }
@@ -2083,7 +2083,7 @@ public partial class latoken : Exchange
         {
             this.checkRequiredCredentials();
             object auth = add(add(method, request), urlencodedQuery);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },

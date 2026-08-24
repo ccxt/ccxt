@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.74'
+__version__ = '4.5.75'
 
 # -----------------------------------------------------------------------------
 
@@ -1071,7 +1071,7 @@ class BaseExchange(SyncExchange):
         if reload:
             self.accounts = await self.fetch_accounts(params)
         else:
-            if self.accounts:
+            if self.accounts is not None:
                 return self.accounts
             else:
                 self.accounts = await self.fetch_accounts(params)

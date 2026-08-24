@@ -1137,11 +1137,11 @@ public class CoinbaseCore extends CoinbaseApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionsWithMethod(Object method2, Object... optionalArgs)
     {
-
+        final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object method = method3;
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
@@ -1154,7 +1154,17 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "v2PrivateGetAccountsAccountIdTransactions")))
+            {
+                response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters))).join();
+            } else if (Helpers.isTrue(Helpers.isEqual(method, "v2PrivateGetAccountsAccountIdWithdrawals")))
+            {
+                response = (this.v2PrivateGetAccountsAccountIdWithdrawals(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.v2PrivateGetAccountsAccountIdDeposits(this.extend(request, parameters))).join();
+            }
             return this.parseTransactions(Helpers.GetValue(response, "data"), null, since, limit);
         });
 
@@ -6358,7 +6368,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object savedPath = fullPath;
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -6381,7 +6391,7 @@ public class CoinbaseCore extends CoinbaseApi
                 Object payload = "";
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                     {
                         body = this.json(query);
                         payload = body;
@@ -6390,7 +6400,7 @@ public class CoinbaseCore extends CoinbaseApi
                 {
                     if (!Helpers.isTrue(isV3))
                     {
-                        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                         {
                             payload = Helpers.add(payload, Helpers.add("?", this.urlencode(query)));
                         }
@@ -6455,7 +6465,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                     {
                         body = this.json(query);
                     }

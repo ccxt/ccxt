@@ -1273,7 +1273,7 @@ export default class coinone extends Exchange {
         }
         if (api === 'public') {
             url += request;
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

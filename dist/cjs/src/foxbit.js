@@ -43,7 +43,6 @@ class foxbit extends foxbit$1["default"] {
                 'createOrder': true,
                 'createOrders': true,
                 'editOrder': true,
-                'fecthOrderBook': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -1810,7 +1809,7 @@ class foxbit extends foxbit$1["default"] {
             amount = Precise["default"].stringAdd(remaining, filled);
         }
         let cost = this.safeString(order, 'funds_received');
-        if (!cost) {
+        if ((cost === undefined) || (cost === '')) {
             const priceAverage = this.safeString(order, 'price_avg');
             const priceToCalculate = this.safeString(order, 'price', priceAverage);
             cost = Precise["default"].stringMul(priceToCalculate, amount);
@@ -2066,7 +2065,7 @@ class foxbit extends foxbit$1["default"] {
         const details = this.safeList(error, 'details');
         const message = this.safeString(error, 'message');
         let detailsString = '';
-        if (details) {
+        if (details !== undefined) {
             for (let i = 0; i < details.length; i++) {
                 detailsString = detailsString + details[i] + ' ';
             }

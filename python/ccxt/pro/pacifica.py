@@ -498,7 +498,7 @@ class pacifica(ccxt.async_support.pacifica):
         timestamp = self.safe_integer(entry, 't')
         snapshot = self.parse_order_book(result, symbol, timestamp, 'bids', 'asks', 'p', 'a')
         nonce = self.safe_integer(entry, 'li')
-        if nonce:
+        if (nonce is not None) and (nonce != 0):
             snapshot['nonce'] = nonce
         if not (symbol in self.orderbooks):
             ob = self.order_book(snapshot)

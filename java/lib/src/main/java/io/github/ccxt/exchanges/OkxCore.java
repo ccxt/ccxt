@@ -8378,7 +8378,7 @@ public class OkxCore extends OkxApi
         // const type = this.getPathAuthenticationType (path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -8422,7 +8422,7 @@ public class OkxCore extends OkxApi
             Object auth = Helpers.add(Helpers.add(timestamp, method), request);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     Object urlencodedQuery = Helpers.add("?", this.urlencode(query));
                     url = Helpers.add(url, urlencodedQuery);
@@ -9480,7 +9480,7 @@ public class OkxCore extends OkxApi
             Object market = this.market(symbol);
             Object type = ((Helpers.isTrue(Helpers.GetValue(market, "spot")))) ? "MARGIN" : this.convertToInstrumentType(Helpers.GetValue(market, "type"));
             Object uly = this.safeString(Helpers.GetValue(market, "info"), "uly");
-            if (!Helpers.isTrue(uly))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uly, null))) || Helpers.isTrue((Helpers.isEqual(uly, "")))))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(type, "MARGIN")))
                 {
@@ -9497,10 +9497,11 @@ public class OkxCore extends OkxApi
             }
             final Object finalType = type;
             final Object finalMarginMode = marginMode;
+            final Object finalUly = uly;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", finalType );
                 put( "tdMode", finalMarginMode );
-                put( "uly", uly );
+                put( "uly", finalUly );
             }};
             if (Helpers.isTrue(Helpers.isEqual(type, "MARGIN")))
             {

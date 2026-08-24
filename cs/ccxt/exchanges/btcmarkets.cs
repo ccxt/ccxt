@@ -378,7 +378,17 @@ public partial class btcmarkets : Exchange
         {
             currency = this.currency(code);
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "privateGetTransfers")))
+        {
+            response = await this.privateGetTransfers(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "privateGetDeposits")))
+        {
+            response = await this.privateGetDeposits(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateGetWithdrawals(this.extend(request, parameters));
+        }
         return this.parseTransactions(response, currency, since, limit);
     }
 
@@ -514,8 +524,8 @@ public partial class btcmarkets : Exchange
         object tag = null;
         if (isTrue(!isEqual(address, null)))
         {
-            object addressParts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
-            object numParts = getArrayLength(addressParts);
+            List<object> addressParts = ((string)address).Split(new [] {((string)"?dt=")}, StringSplitOptions.None).ToList<object>();
+            int numParts = getArrayLength(addressParts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
                 address = getValue(addressParts, 0);
@@ -531,7 +541,7 @@ public partial class btcmarkets : Exchange
         object currencyId = this.safeString(transaction, "assetName");
         object code = this.safeCurrencyCode(currencyId);
         object amount = this.safeString(transaction, "amount");
-        if (isTrue(fee))
+        if (isTrue(isTrue((!isEqual(fee, null))) && isTrue((!isEqual(fee, "")))))
         {
             amount = Precise.stringSub(amount, fee);
         }
@@ -1063,7 +1073,7 @@ public partial class btcmarkets : Exchange
             { "amount", this.amountToPrecision(symbol, amount) },
             { "side", ((bool) isTrue((isEqual(side, "buy")))) ? "Bid" : "Ask" },
         };
-        object lowercaseType = ((string)type).ToLower();
+        string lowercaseType = ((string)type).ToLower();
         object orderTypes = this.safeValue(this.options, "orderTypes", new Dictionary<string, object>() {
             { "limit", "Limit" },
             { "market", "Market" },
@@ -1072,8 +1082,8 @@ public partial class btcmarkets : Exchange
             { "take profit", "Take Profit" },
         });
         ((IDictionary<string,object>)request)["type"] = this.safeString(orderTypes, lowercaseType, type);
-        object priceIsRequired = false;
-        object triggerPriceIsRequired = false;
+        bool priceIsRequired = false;
+        bool triggerPriceIsRequired = false;
         if (isTrue(isEqual(lowercaseType, "limit")))
         {
             priceIsRequired = true;
@@ -1584,12 +1594,12 @@ public partial class btcmarkets : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object secret = this.base64ToBinary(this.secret);
             object auth = add(add(method, request), nonce);
             if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     request = add(request, add("?", this.urlencode(query)));
                 }
@@ -1598,7 +1608,7 @@ public partial class btcmarkets : Exchange
                 body = this.json(query);
                 auth = add(auth, body);
             }
-            object signature = this.hmac(this.encode(auth), secret, sha512, "base64");
+            string signature = this.hmac(this.encode(auth), secret, sha512, "base64");
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },
                 { "Accept-Charset", "UTF-8" },
@@ -1609,7 +1619,7 @@ public partial class btcmarkets : Exchange
             };
         } else if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(query)));
             }

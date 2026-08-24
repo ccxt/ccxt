@@ -780,28 +780,58 @@ class upbit extends Exchange {
     public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          *
-         * @see https://docs.upbit.com/kr/reference/list-tickers
-         * @see https://global-docs.upbit.com/reference/list-tickers
+         * @see https://docs.upbit.com/kr/reference/list-$tickers
+         * @see https://global-docs.upbit.com/reference/list-$tickers
+         * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+         * @see https://global-docs.upbit.com/reference/tickers_by_quote
          *
-         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->quote_currencies] comma-separated quote currency $ids to fetch all $tickers for, defaults to every quote currency of the loaded markets, only used when $symbols is null
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $ids = ($symbols !== null) ? $this->market_ids($symbols) : $this->ids;
-        $promises = array();
-        $queries = $this->ids_query_strings($ids, 6400); // seems upbit server limitations
-        for ($i = 0; $i < count($queries); $i++) {
-            $idsQuery = $queries[$i];
-            $promises[] = $this->publicGetTicker(array( 'markets' => $idsQuery ));
+        $tickers = array();
+        if ($symbols === null) {
+            // ticker/all returns every $market of the requested quote currencies with a single $request
+            $quoteIds = array();
+            $marketSymbols = $this->symbols;
+            for ($i = 0; $i < count($marketSymbols); $i++) {
+                $market = $this->market($marketSymbols[$i]);
+                $quoteId = $market['quoteId'];
+                if (!$this->in_array($quoteId, $quoteIds)) {
+                    $quoteIds[] = $quoteId;
+                }
+            }
+            $sortedQuoteIds = $this->sort($quoteIds); // $market iteration order differs per language
+            $quoteCurrencies = '';
+            for ($i = 0; $i < count($sortedQuoteIds); $i++) {
+                if ($quoteCurrencies !== '') {
+                    $quoteCurrencies = $quoteCurrencies . ',';
+                }
+                $quoteCurrencies = $quoteCurrencies . $sortedQuoteIds[$i];
+            }
+            $request = array(
+                'quote_currencies' => $quoteCurrencies,
+            );
+            $tickers = $this->publicGetTickerAll($this->extend($request, $params));
+        } else {
+            $ids = $this->market_ids($symbols);
+            $promises = array();
+            $queries = $this->ids_query_strings($ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            for ($i = 0; $i < count($queries); $i++) {
+                $idsQuery = $queries[$i];
+                $promises[] = $this->publicGetTicker($this->extend(array( 'markets' => $idsQuery ), $params));
+            }
+            $responses = $promises;
+            $tickers = $this->arrays_concat($responses);
         }
-        $responses = $promises;
         //
-        //     array( {                market => "BTC-ETH",
+        //     array( {                $market => "BTC-ETH",
         //                    "trade_date" => "20181122",
         //                    "trade_time" => "104543",
         //                "trade_date_kst" => "20181122",
@@ -828,8 +858,7 @@ class upbit extends Exchange {
         //           "lowest_52_week_date" => "2017-12-08",
         //                     "timestamp" =>  1542883543813  } )
         //
-        $concated = $this->arrays_concat($responses);
-        return $this->parse_tickers($concated, $symbols);
+        return $this->parse_tickers($tickers, $symbols);
     }
 
     public function ids_query_strings(?array $ids, float $maxQueryLength) {
@@ -1860,10 +1889,10 @@ class upbit extends Exchange {
         //        new_order_identifier => '22'
         //      }
         $id = $this->safe_string($order, 'uuid');
-        $side = $this->safe_string($order, 'side');
+        $side = $this->safe_string_lower($order, 'side');
         if ($side === 'bid') {
             $side = 'buy';
-        } else {
+        } elseif ($side === 'ask') {
             $side = 'sell';
         }
         $identifier = $this->safe_string($order, 'identifier');
@@ -2388,7 +2417,7 @@ class upbit extends Exchange {
         $url .= '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method !== 'POST') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         }
@@ -2400,13 +2429,13 @@ class upbit extends Exchange {
                 'access_key' => $this->apiKey,
                 'nonce' => $nonce,
             );
-            $hasQuery = $query;
+            $hasQuery = count($query);
             $auth = null;
             if (($method !== 'GET') && ($method !== 'DELETE')) {
                 $body = $this->json($params);
                 $headers['Content-Type'] = 'application/json';
             }
-            if ($hasQuery) {
+            if (($hasQuery !== null) && ($hasQuery !== 0)) {
                 $auth = $this->rawencode($query);
             }
             if ($auth !== null) {

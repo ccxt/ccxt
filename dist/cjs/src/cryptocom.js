@@ -1182,7 +1182,7 @@ class cryptocom extends cryptocom$1["default"] {
         const request = {
             'instrument_name': market['id'],
         };
-        if (limit) {
+        if ((limit !== undefined) && (limit !== 0)) {
             request['depth'] = Math.min(limit, 50); // max 50
         }
         const response = await this.v1PublicGetPublicGetBook(this.extend(request, params));
@@ -3601,7 +3601,7 @@ class cryptocom extends cryptocom$1["default"] {
         let url = this.urls['api'][type] + '/' + path;
         const query = this.omit(params, this.extractParams(path));
         if (access === 'public') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

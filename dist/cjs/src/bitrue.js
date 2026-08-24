@@ -3347,7 +3347,7 @@ class bitrue extends bitrue$1["default"] {
             }
         }
         else {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }

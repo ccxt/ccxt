@@ -1331,7 +1331,7 @@ class coinone extends Exchange {
         }
         if ($api === 'public') {
             $url .= $request;
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

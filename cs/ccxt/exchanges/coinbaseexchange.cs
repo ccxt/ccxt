@@ -1099,8 +1099,8 @@ public partial class coinbaseexchange : Exchange
         //     }
         //
         object result = new Dictionary<string, object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        object delimiter = "-";
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        string delimiter = "-";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -1135,7 +1135,14 @@ public partial class coinbaseexchange : Exchange
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
         object method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "publicGetProductsIdStats")))
+        {
+            response = await this.publicGetProductsIdStats(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicGetProductsIdTicker(this.extend(request, parameters));
+        }
         //
         // publicGetProductsIdTicker
         //
@@ -1601,18 +1608,17 @@ public partial class coinbaseexchange : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-        object method = null;
+        object response = null;
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            method = "privateGetOrdersId";
             ((IDictionary<string,object>)request)["id"] = id;
+            response = await this.privateGetOrdersId(this.extend(request, parameters));
         } else
         {
-            method = "privateGetOrdersClientClientOid";
             ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
+            response = await this.privateGetOrdersClientClientOid(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseOrder(response);
     }
 
@@ -1855,14 +1861,11 @@ public partial class coinbaseexchange : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-        object method = null;
         if (isTrue(isEqual(clientOrderId, null)))
         {
-            method = "privateDeleteOrdersId";
             ((IDictionary<string,object>)request)["id"] = id;
         } else
         {
-            method = "privateDeleteOrdersClientClientOid";
             ((IDictionary<string,object>)request)["client_oid"] = clientOrderId;
             parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_oid"});
         }
@@ -1872,7 +1875,14 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(clientOrderId, null)))
+        {
+            response = await this.privateDeleteOrdersId(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateDeleteOrdersClientClientOid(this.extend(request, parameters));
+        }
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
@@ -1942,23 +1952,22 @@ public partial class coinbaseexchange : Exchange
             { "currency", getValue(currency, "id") },
             { "amount", amount },
         };
-        object method = "privatePostWithdrawals";
+        object response = null;
         if (isTrue(inOp(parameters, "payment_method_id")))
         {
-            method = add(method, "PaymentMethod");
+            response = await this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters));
         } else if (isTrue(inOp(parameters, "coinbase_account_id")))
         {
-            method = add(method, "CoinbaseAccount");
+            response = await this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, parameters));
         } else
         {
-            method = add(method, "Crypto");
             ((IDictionary<string,object>)request)["crypto_address"] = address;
             if (isTrue(!isEqual(tag, null)))
             {
                 ((IDictionary<string,object>)request)["destination_tag"] = tag;
             }
+            response = await this.privatePostWithdrawalsCrypto(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         if (!isTrue(response))
         {
             throw new ExchangeError ((string)add(add(this.id, " withdraw() error: "), this.json(response))) ;
@@ -2036,7 +2045,7 @@ public partial class coinbaseexchange : Exchange
         {
             referenceId = this.safeString(details, "order_id");
         }
-        object status = "ok";
+        string status = "ok";
         return this.safeLedgerEntry(new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
@@ -2082,7 +2091,7 @@ public partial class coinbaseexchange : Exchange
         }
         await this.loadAccounts();
         object currency = this.currency(code);
-        object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
+        Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
         object account = this.safeValue(accountsByCurrencyCode, code);
         if (isTrue(isEqual(account, null)))
         {
@@ -2142,7 +2151,7 @@ public partial class coinbaseexchange : Exchange
             if (isTrue(!isEqual(code, null)))
             {
                 currency = this.currency(code);
-                object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
+                Dictionary<string, object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
                 object account = this.safeValue(accountsByCurrencyCode, code);
                 if (isTrue(isEqual(account, null)))
                 {
@@ -2438,7 +2447,7 @@ public partial class coinbaseexchange : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 request = add(request, add("?", this.urlencode(query)));
             }
@@ -2447,11 +2456,11 @@ public partial class coinbaseexchange : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object payload = "";
             if (isTrue(!isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     payload = body;
@@ -2466,7 +2475,7 @@ public partial class coinbaseexchange : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " sign() invalid base64 secret")) ;
             }
-            object signature = this.hmac(this.encode(what), secret, sha256, "base64");
+            string signature = this.hmac(this.encode(what), secret, sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-KEY", this.apiKey },
                 { "CB-ACCESS-SIGN", signature },

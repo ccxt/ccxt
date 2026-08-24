@@ -45,7 +45,6 @@ class foxbit extends Exchange {
                 'createOrder' => true,
                 'createOrders' => true,
                 'editOrder' => true,
-                'fecthOrderBook' => true,
                 'fetchBalance' => true,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
@@ -1956,7 +1955,7 @@ class foxbit extends Exchange {
             $amount = Precise::string_add($remaining, $filled);
         }
         $cost = $this->safe_string($order, 'funds_received');
-        if (!$cost) {
+        if (($cost === null) || ($cost === '')) {
             $priceAverage = $this->safe_string($order, 'price_avg');
             $priceToCalculate = $this->safe_string($order, 'price', $priceAverage);
             $cost = Precise::string_mul($priceToCalculate, $amount);
@@ -2219,7 +2218,7 @@ class foxbit extends Exchange {
         $details = $this->safe_list($error, 'details');
         $message = $this->safe_string($error, 'message');
         $detailsString = '';
-        if ($details) {
+        if ($details !== null) {
             for ($i = 0; $i < count($details); $i++) {
                 $detailsString = $detailsString . $details[$i] . ' ';
             }

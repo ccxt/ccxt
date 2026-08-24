@@ -804,10 +804,12 @@ class coinbaseinternational extends Exchange {
             list($networkId, $params) = $this->handle_network_id_and_params($code, 'createDepositAddress', $params);
             $request['network_arn_id'] = $networkId;
         }
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersCreateCounterpartyId') {
+            $response = $this->v1PrivatePostTransfersCreateCounterpartyId($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersAddress($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -2013,7 +2015,7 @@ class coinbaseinternational extends Exchange {
             'portfolio' => $portfolio,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $market['id'];
         }
@@ -2156,7 +2158,7 @@ class coinbaseinternational extends Exchange {
             'result_offset' => $offSet,
         );
         $market = null;
-        if ($symbol) {
+        if (($symbol !== null) && ($symbol !== '')) {
             $market = $this->market($symbol);
             $request['instrument'] = $symbol;
         }
@@ -2340,10 +2342,12 @@ class coinbaseinternational extends Exchange {
             'network_arn_id' => $networkId,
             'nonce' => $this->nonce(),
         );
-        if ($method === null) {
-            throw new ArgumentsRequired($this->id . ' $method is required');
+        $response = null;
+        if ($method === 'v1PrivatePostTransfersWithdrawCounterparty') {
+            $response = $this->v1PrivatePostTransfersWithdrawCounterparty($this->extend($request, $params));
+        } else {
+            $response = $this->v1PrivatePostTransfersWithdraw($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2359,7 +2363,7 @@ class coinbaseinternational extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = '/api' . $fullPath;
         if ($method === 'GET' || $method === 'DELETE') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -2369,7 +2373,7 @@ class coinbaseinternational extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

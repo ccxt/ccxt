@@ -1908,7 +1908,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+            this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
             return null;
@@ -1968,7 +1968,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 channel = Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                final Object _final_channel = channel;
+                this.spawn(() -> { try { this.watchSpotPublic(_final_channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 channel = "unsub.ticker";
@@ -1976,7 +1977,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                final Object _final_channel = channel;
+                this.spawn(() -> { try { this.watchSwapPublic(_final_channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2126,7 +2128,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.kline.v3.api.pb@", Helpers.GetValue(market, "id")), "@"), timeframeId);
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2135,7 +2137,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                     put( "symbol", Helpers.GetValue(market, "id") );
                     put( "interval", timeframeId );
                 }};
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2176,7 +2178,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                final Object _final_parameters = parameters;
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, _final_parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2184,7 +2187,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 Object requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                final Object _final_parameters = parameters;
+                this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, _final_parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));
@@ -2221,7 +2225,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Object channel = Helpers.add("spot@public.aggre.deals.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(parameters, "unsubscribed", true);
-                this.watchSpotPublic(channel, messageHash, parameters);
+                this.spawn(() -> { try { this.watchSpotPublic(channel, messageHash, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             } else
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2229,7 +2233,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 Object requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
-                this.watchSwapPublic(channel, messageHash, requestParams, parameters);
+                this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
             }
             Client client = this.client(url);
             this.handleUnsubscriptions(client, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)));

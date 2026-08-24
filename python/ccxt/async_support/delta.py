@@ -4036,7 +4036,7 @@ class delta(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + requestPath
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -4047,7 +4047,7 @@ class delta(Exchange, ImplicitAPI):
             }
             auth = method + timestamp + requestPath
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     queryString = '?' + self.urlencode(query)
                     auth += queryString
                     url += queryString

@@ -728,7 +728,14 @@ public partial class bittrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object method = this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+        object response = null;
+        if (isTrue(isEqual(method, "publicGetCommonSymbols")))
+        {
+            response = await this.publicGetCommonSymbols(parameters);
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchMarkets() does not support the "), method), " method")) ;
+        }
         //
         //    {
         //        "status": "ok",
@@ -762,7 +769,7 @@ public partial class bittrade : Exchange
         //    }
         //
         object markets = this.safeValue(response, "data", new List<object>() {});
-        object numMarkets = getArrayLength(markets);
+        int numMarkets = getArrayLength(markets);
         if (isTrue(isLessThan(numMarkets, 1)))
         {
             throw new NetworkError ((string)add(add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
@@ -778,7 +785,7 @@ public partial class bittrade : Exchange
             object state = this.safeString(market, "state");
             object leverageRatio = this.safeString(market, "leverage-ratio", "1");
             object superLeverageRatio = this.safeString(market, "super-margin-leverage-ratio", "1");
-            object margin = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
+            bool margin = isTrue(Precise.stringGt(leverageRatio, "1")) || isTrue(Precise.stringGt(superLeverageRatio, "1"));
             object fee = ((bool) isTrue((isEqual(bs, "OMG")))) ? this.parseNumber("0") : this.parseNumber("0.002");
             if (isTrue(isEqual(baseId, null)))
             {
@@ -1119,7 +1126,7 @@ public partial class bittrade : Exchange
         object type = this.safeString(trade, "type");
         if (isTrue(!isEqual(type, null)))
         {
-            object typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> typeParts = ((string)type).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(typeParts, 0);
             type = getValue(typeParts, 1);
         }
@@ -1442,7 +1449,7 @@ public partial class bittrade : Exchange
         object countryDisabled = this.safeValue(currency, "country-disabled");
         object visible = this.safeBool(currency, "visible", false);
         object state = this.safeString(currency, "state");
-        object active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
+        bool active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
         object name = this.safeString(currency, "display-name");
         object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
@@ -1536,7 +1543,14 @@ public partial class bittrade : Exchange
         object request = new Dictionary<string, object>() {
             { "id", getValue(getValue(this.accounts, 0), "id") },
         };
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(method, "privateGetAccountAccountsIdBalance")))
+        {
+            response = await this.privateGetAccountAccountsIdBalance(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " fetchBalance() does not support the "), method), " method")) ;
+        }
         return this.parseBalance(response);
     }
 
@@ -1557,7 +1571,14 @@ public partial class bittrade : Exchange
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
         object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isTrue((isEqual(method, "private_get_order_history"))) || isTrue((isEqual(method, "privateGetOrderHistory")))))
+        {
+            response = await this.privateGetOrderHistory(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privateGetOrderOrders(this.extend(request, parameters));
+        }
         //
         //     { "status":   "ok",
         //         "data": [ {                  id:  13997833016,
@@ -1632,7 +1653,11 @@ public partial class bittrade : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object method = ((string)this.handleOption("fetchOpenOrders", "method", "fetch_open_orders_v1"));
-        return await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, limit, parameters }));
+        if (isTrue(isTrue((isEqual(method, "fetch_open_orders_v2"))) || isTrue((isEqual(method, "fetchOpenOrdersV2")))))
+        {
+            return await this.fetchOpenOrdersV2(symbol, since, limit, parameters);
+        }
+        return await this.fetchOpenOrdersV1(symbol, since, limit, parameters);
     }
 
     public async virtual Task<object> fetchOpenOrdersV1(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1776,7 +1801,7 @@ public partial class bittrade : Exchange
         object status = null;
         if (isTrue(inOp(order, "type")))
         {
-            object orderType = ((string)getValue(order, "type")).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            List<object> orderType = ((string)getValue(order, "type")).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             side = getValue(orderType, 0);
             type = getValue(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));
@@ -1928,8 +1953,15 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object method = getValue(this.options, "createOrderMethod");
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
+        object response = null;
+        if (isTrue(isEqual(method, "privatePostOrderOrdersPlace")))
+        {
+            response = await this.privatePostOrderOrdersPlace(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support the "), method), " method")) ;
+        }
         object id = this.safeString(response, "data");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
@@ -2161,7 +2193,7 @@ public partial class bittrade : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         object networkId = this.safeString(depositAddress, "chain");
         object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object networksById = this.indexBy(networks, "id");
+        Dictionary<string, object> networksById = this.indexBy(networks, "id");
         object networkValue = this.safeValue(networksById, networkId, networkId);
         object network = this.safeString(networkValue, "network");
         this.checkAddress(address);
@@ -2446,7 +2478,7 @@ public partial class bittrade : Exchange
         if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
         {
             this.checkRequiredCredentials();
-            object timestamp = this.ymdhms(this.milliseconds(), "T");
+            string timestamp = this.ymdhms(this.milliseconds(), "T");
             object request = new Dictionary<string, object>() {
                 { "SignatureMethod", "HmacSHA256" },
                 { "SignatureVersion", "2" },
@@ -2462,8 +2494,8 @@ public partial class bittrade : Exchange
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             object content = new List<object>() {method, this.hostname, url, auth};
             // eslint-disable-next-line quotes
-            object payload = String.Join("\n", ((IList<object>)content).ToArray());
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string payload = String.Join("\n", ((IList<object>)content).ToArray());
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },
 })));
@@ -2482,7 +2514,7 @@ public partial class bittrade : Exchange
             }
         } else
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }

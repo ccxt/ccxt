@@ -505,7 +505,7 @@ class whitebit(Exchange, ImplicitAPI):
         settle = None
         settleId = None
         symbol = base + '/' + quote
-        swap = typeId == 'futures'
+        swap = (typeId == 'futures') or (typeId == 'tradfiFutures')
         margin = isCollateral and not swap
         contract = False
         amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'stockPrec')))
@@ -1044,7 +1044,7 @@ class whitebit(Exchange, ImplicitAPI):
                 continue  # Skip invalid markets silently
             symbol = market['symbol']
             # Filter by symbols if specified
-            if symbols:
+            if symbols is not None:
                 symbolFound = False
                 for j in range(0, len(symbols)):
                     if symbols[j] == symbol:
@@ -1160,7 +1160,7 @@ class whitebit(Exchange, ImplicitAPI):
         for i in range(0, len(currencyKeys)):
             code = currencyKeys[i]
             currency = currenciesData[code]
-            if not currency:
+            if currency is None:
                 # Skip invalid currency silently
                 continue
             if codes is not None and not self.in_array(code, codes):
@@ -1188,7 +1188,7 @@ class whitebit(Exchange, ImplicitAPI):
                 },
             }
             # Add fee information if available
-            if feeData:
+            if feeData is not None:
                 depositFee = feeData['deposit']
                 withdrawFee = feeData['withdraw']
                 if depositFee:
@@ -1214,7 +1214,7 @@ class whitebit(Exchange, ImplicitAPI):
                         }
                     limits['withdraw']['fee'] = withdrawFeeData
             # Add network-specific limits if available
-            if currency['networks']:
+            if currency['networks'] is not None:
                 limits['networks'] = currency['networks']
             result[code] = {
                 'info': currency,
@@ -3989,7 +3989,7 @@ class whitebit(Exchange, ImplicitAPI):
         pathWithParams = '/' + self.implode_params(path, params)
         url = (self.urls['api'])[version][accessibility] + pathWithParams
         if accessibility == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if accessibility == 'private':
             self.check_required_credentials()

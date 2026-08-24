@@ -1814,7 +1814,7 @@ class cex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

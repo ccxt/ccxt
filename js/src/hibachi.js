@@ -894,7 +894,7 @@ export default class hibachi extends Exchange {
             sideInternal = 'BID';
         }
         let priceInternal = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision(symbol, price);
         }
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);

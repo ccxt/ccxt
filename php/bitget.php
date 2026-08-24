@@ -11405,7 +11405,7 @@ class bitget extends Exchange {
                 $body = $this->json($params);
                 $auth .= $body;
             } else {
-                if ($params) {
+                if (count($params) > 0) {
                     $sortedParams = $this->keysort($params);
                     $queryInner = '?' . $this->urlencode($sortedParams, true);
                     // check #21169 pr

@@ -15,31 +15,31 @@ public partial class BaseTest
             // todo: can be implemented stringToBinary in future
             // @SKIP_START_GO
             // Test 1: Simple base58
-            object b58_1 = "Cn8eVZg"; // hello
+            string b58_1 = "Cn8eVZg"; // hello
             object binary1 = exchange.base58ToBinary(b58_1);
             Assert(isEqual(exchange.binaryToBase58(binary1), b58_1));
             // Test 2: String with space in original
-            object b58_2 = "StV1DL6CwTryKyV"; // hello world
+            string b58_2 = "StV1DL6CwTryKyV"; // hello world
             object binary2 = exchange.base58ToBinary(b58_2);
             Assert(isEqual(exchange.binaryToBase58(binary2), b58_2));
             // Test 3: Short string
-            object b58_3 = "3yZe7d"; // test
+            string b58_3 = "3yZe7d"; // test
             object binary3 = exchange.base58ToBinary(b58_3);
             Assert(isEqual(exchange.binaryToBase58(binary3), b58_3));
             // Test 4: Single byte
-            object b58_4 = "2g"; // a
+            string b58_4 = "2g"; // a
             object binary4 = exchange.base58ToBinary(b58_4);
             Assert(isEqual(exchange.binaryToBase58(binary4), b58_4));
             // Test 5: Two bytes
-            object b58_5 = "8Qq"; // ab
+            string b58_5 = "8Qq"; // ab
             object binary5 = exchange.base58ToBinary(b58_5);
             Assert(isEqual(exchange.binaryToBase58(binary5), b58_5));
             // Test 6: Three bytes
-            object b58_6 = "ZiCa"; // abc
+            string b58_6 = "ZiCa"; // abc
             object binary6 = exchange.base58ToBinary(b58_6);
             Assert(isEqual(exchange.binaryToBase58(binary6), b58_6));
             // Test 7: JSON-like binary
-            object b58_7 = "4SoiMiEYtTt5tPdi81Fik"; // {"key":"value"}
+            string b58_7 = "4SoiMiEYtTt5tPdi81Fik"; // {"key":"value"}
             object binary7 = exchange.base58ToBinary(b58_7);
             Assert(isEqual(exchange.binaryToBase58(binary7), b58_7));
             // @SKIP_END_GO

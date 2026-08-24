@@ -2260,7 +2260,7 @@ class gate(Exchange, ImplicitAPI):
             #    }
             #
             obtainFailed = self.safe_integer(entry, 'obtain_failed')
-            if obtainFailed:
+            if (obtainFailed is not None) and (obtainFailed != 0):
                 continue
             network = self.safe_string(entry, 'chain')
             address = self.safe_string(entry, 'address')
@@ -4904,10 +4904,10 @@ class gate(Exchange, ImplicitAPI):
         cost = self.safe_string(order, 'filled_total')
         triggerPrice = self.safe_number(trigger, 'price')
         average = self.safe_number_2(order, 'avg_deal_price', 'fill_price')
-        if triggerPrice:
+        if (triggerPrice is not None) and (triggerPrice != 0):
             remainingString = amount
             cost = '0'
-        if contract:
+        if (contract is not None) and (contract != ''):
             isMarketOrder = Precise.string_equals(price, '0') and (timeInForce == 'IOC')
             type = 'market' if isMarketOrder else 'limit'
             side = 'buy' if Precise.string_gt(amount, '0') else 'sell'
@@ -6693,7 +6693,7 @@ class gate(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
         url += entirePath
         if authentication == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -6705,7 +6705,7 @@ class gate(Exchange, ImplicitAPI):
                 secondPart = self.safe_string(pathParts, 1, '')
                 requiresURLEncoding = (secondPart.find('dual') >= 0) or (secondPart.find('positions') >= 0)
             if (method == 'GET') or (method == 'DELETE') or requiresURLEncoding or (method == 'PATCH'):
-                if query:
+                if len(query) > 0:
                     # https://github.com/ccxt/ccxt/issues/27663
                     rawQueryString = self.rawencode(query)
                     queryString = self.urlencode(query)
@@ -6717,7 +6717,7 @@ class gate(Exchange, ImplicitAPI):
                     body = self.json(query)
             else:
                 urlQueryParams = self.safe_value(query, 'query', {})
-                if urlQueryParams:
+                if len(urlQueryParams) > 0:
                     queryString = self.urlencode(urlQueryParams)
                     url += '?' + queryString
                 query = self.omit(query, 'query')
@@ -6858,7 +6858,7 @@ class gate(Exchange, ImplicitAPI):
         if limit is not None:
             request['limit'] = limit
         if since is not None:
-            request['from'] = since
+            request['from'] = self.parse_to_int(since / 1000)
         response = await self.publicFuturesGetSettleContractStats(self.extend(request, params))
         #
         #    [

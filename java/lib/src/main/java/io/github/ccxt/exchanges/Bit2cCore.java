@@ -709,15 +709,21 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "privatePostOrderAddOrder";
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "Amount", amount );
                 put( "Pair", Helpers.GetValue(market, "id") );
             }};
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
-                method = Helpers.add(method, Helpers.add("MarketPrice", this.capitalize(side)));
+                if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
+                {
+                    response = (this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, parameters))).join();
+                } else
+                {
+                    response = (this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, parameters))).join();
+                }
             } else
             {
                 Helpers.addElementToObject(request, "Price", price);
@@ -725,8 +731,8 @@ public class Bit2cCore extends Bit2cApi
                 Object priceString = this.numberToString(price);
                 Helpers.addElementToObject(request, "Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 Helpers.addElementToObject(request, "IsBid", (Helpers.isEqual(side, "buy")));
+                response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             return this.parseOrder(response, market);
         });
 
@@ -1164,7 +1170,7 @@ public class Bit2cCore extends Bit2cApi
             side = this.safeValue(trade, "isBid");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
             {
-                if (Helpers.isTrue(side))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, null))) && Helpers.isTrue((!Helpers.isEqual(side, "")))))
                 {
                     side = "buy";
                 } else
@@ -1291,7 +1297,7 @@ public class Bit2cCore extends Bit2cApi
             Object auth = this.urlencode(query);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", auth));
                 }

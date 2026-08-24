@@ -3882,7 +3882,7 @@ class bitmex extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $query = '/api/' . $this->version . '/' . $path;
         if ($method === 'GET') {
-            if ($params) {
+            if (count($params) > 0) {
                 $query .= '?' . $this->urlencode($params);
             }
         } else {
@@ -3911,7 +3911,7 @@ class bitmex extends Exchange {
             $auth .= $stringExpires;
             $headers['api-expires'] = $stringExpires;
             if ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
-                if ($params) {
+                if (count($params) > 0) {
                     $body = $this->json($params);
                     $auth .= $body;
                 }

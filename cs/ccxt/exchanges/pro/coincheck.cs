@@ -68,7 +68,7 @@ public partial class coincheck : ccxt.coincheck
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-orderbook") },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
         return (orderbook as IOrderBook).limit();
     }
@@ -139,7 +139,7 @@ public partial class coincheck : ccxt.coincheck
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-trades") },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {

@@ -6330,7 +6330,7 @@ class okx(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api']['rest']) + request
         # type = self.getPathAuthenticationType(path)
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -6361,12 +6361,12 @@ class okx(Exchange, ImplicitAPI):
             }
             auth = timestamp + method + request
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     urlencodedQuery = '?' + self.urlencode(query)
                     url += urlencodedQuery
                     auth += urlencodedQuery
             else:
-                if isArray or query:
+                if isArray or len(query):
                     body = self.json(query)
                     auth += body
                 headers['Content-Type'] = 'application/json'
@@ -7223,7 +7223,7 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         type = 'MARGIN' if market['spot'] else self.convert_to_instrument_type(market['type'])
         uly = self.safe_string(market['info'], 'uly')
-        if not uly:
+        if (uly is None) or (uly == ''):
             if type != 'MARGIN':
                 raise BadRequest(self.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol)
         marginMode = None

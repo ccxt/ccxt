@@ -3516,7 +3516,7 @@ class bitmex(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = '/api/' + self.version + '/' + path
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 query += '?' + self.urlencode(params)
         else:
             format = self.safe_string(params, '_format')
@@ -3541,7 +3541,7 @@ class bitmex(Exchange, ImplicitAPI):
             auth += stringExpires
             headers['api-expires'] = stringExpires
             if method == 'POST' or method == 'PUT' or method == 'DELETE':
-                if params:
+                if len(params) > 0:
                     body = self.json(params)
                     auth += body
             headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)

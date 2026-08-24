@@ -773,9 +773,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             networkId = None
             networkId, params = self.handle_network_id_and_params(code, 'createDepositAddress', params)
             request['network_arn_id'] = networkId
-        if method is None:
-            raise ArgumentsRequired(self.id + ' method is required')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'v1PrivatePostTransfersCreateCounterpartyId':
+            response = self.v1PrivatePostTransfersCreateCounterpartyId(self.extend(request, params))
+        else:
+            response = self.v1PrivatePostTransfersAddress(self.extend(request, params))
         #
         # v1PrivatePostTransfersAddress
         #    {
@@ -1909,7 +1911,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'portfolio': portfolio,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = market['id']
         orders = self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -2038,7 +2040,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'result_offset': offSet,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = symbol
         if limit is not None:
@@ -2208,9 +2210,11 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'network_arn_id': networkId,
             'nonce': self.nonce(),
         }
-        if method is None:
-            raise ArgumentsRequired(self.id + ' method is required')
-        response = getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'v1PrivatePostTransfersWithdrawCounterparty':
+            response = self.v1PrivatePostTransfersWithdrawCounterparty(self.extend(request, params))
+        else:
+            response = self.v1PrivatePostTransfersWithdraw(self.extend(request, params))
         #
         #    {
         #        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2225,7 +2229,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = '/api' + fullPath
         if method == 'GET' or method == 'DELETE':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -2233,7 +2237,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             auth = nonce + method + savedPath + payload

@@ -122,7 +122,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
-        if not limit:
+        if (limit is None) or (limit == 0):
             limit = 50
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:
@@ -856,7 +856,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if not self.is_empty(symbols):
             if symbols is None:
                 raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
-            messageHash = '::' + ','.join(symbols)
+            messageHash = 'positions::' + ','.join(symbols)
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)

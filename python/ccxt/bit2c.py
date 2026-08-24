@@ -563,21 +563,24 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
         request = {
             'Amount': amount,
             'Pair': market['id'],
         }
+        response = None
         if type == 'market':
-            method += 'MarketPrice' + self.capitalize(side)
+            if side == 'buy':
+                response = self.privatePostOrderAddOrderMarketPriceBuy(self.extend(request, params))
+            else:
+                response = self.privatePostOrderAddOrderMarketPriceSell(self.extend(request, params))
         else:
             request['Price'] = price
             amountString = self.number_to_string(amount)
             priceString = self.number_to_string(price)
             request['Total'] = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
             request['IsBid'] = (side == 'buy')
-        response = getattr(self, method)(self.extend(request, params))
+            response = self.privatePostOrderAddOrder(self.extend(request, params))
         return self.parse_order(response, market)
 
     def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -912,7 +915,7 @@ class bit2c(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 'amount')
             side = self.safe_value(trade, 'isBid')
             if side is not None:
-                if side:
+                if (side is not None) and (side != ''):
                     side = 'buy'
                 else:
                     side = 'sell'
@@ -996,7 +999,7 @@ class bit2c(Exchange, ImplicitAPI):
             }, params)
             auth = self.urlencode(query)
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + auth
             else:
                 body = auth

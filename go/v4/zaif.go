@@ -296,42 +296,42 @@ func (this *ZaifCore) Describe() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *ZaifCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		markets := (<-this.PublicGetCurrencyPairsAll(params))
-		PanicOnError(markets)
-
-		//
-		//     [
-		//         {
-		//             "aux_unit_point": 0,
-		//             "item_japanese": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
-		//             "aux_unit_step": 5.0,
-		//             "description": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
-		//             "item_unit_min": 0.001,
-		//             "event_number": 0,
-		//             "currency_pair": "btc_jpy",
-		//             "is_token": false,
-		//             "aux_unit_min": 5.0,
-		//             "aux_japanese": "\u65e5\u672c\u5186",
-		//             "id": 1,
-		//             "item_unit_step": 0.0001,
-		//             "name": "BTC/JPY",
-		//             "seq": 0,
-		//             "title": "BTC/JPY"
-		//         }
-		//     ]
-		//
-		ch <- this.ParseMarkets(markets)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	markets := (<-this.PublicGetCurrencyPairsAll(params))
+	PanicOnError(markets)
+
+	//
+	//     [
+	//         {
+	//             "aux_unit_point": 0,
+	//             "item_japanese": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3",
+	//             "aux_unit_step": 5.0,
+	//             "description": "\u30d3\u30c3\u30c8\u30b3\u30a4\u30f3\u30fb\u65e5\u672c\u5186\u306e\u53d6\u5f15\u3092\u884c\u3046\u3053\u3068\u304c\u3067\u304d\u307e\u3059",
+	//             "item_unit_min": 0.001,
+	//             "event_number": 0,
+	//             "currency_pair": "btc_jpy",
+	//             "is_token": false,
+	//             "aux_unit_min": 5.0,
+	//             "aux_japanese": "\u65e5\u672c\u5186",
+	//             "id": 1,
+	//             "item_unit_step": 0.0001,
+	//             "name": "BTC/JPY",
+	//             "seq": 0,
+	//             "title": "BTC/JPY"
+	//         }
+	//     ]
+	//
+	ch <- this.ParseMarkets(markets)
+	return nil
 }
 func (this *ZaifCore) ParseMarket(market any) any {
 	var id any = this.SafeString(market, "currency_pair")
@@ -398,13 +398,13 @@ func (this *ZaifCore) ParseMarket(market any) any {
 func (this *ZaifCore) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "return", map[string]any{})
 	var deposit any = this.SafeValue(balances, "deposit")
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
 	}
 	var funds any = this.SafeValue(balances, "funds", map[string]any{})
-	var currencyIds any = ObjectKeys(funds)
+	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
@@ -433,26 +433,26 @@ func (this *ZaifCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *ZaifCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes36612 := (<-this.LoadMarkets())
-			PanicOnError(retRes36612)
-		}
-
-		response := (<-this.PrivatePostGetInfo(params))
-		PanicOnError(response)
-
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes36612 := (<-this.LoadMarkets())
+		PanicOnError(retRes36612)
+	}
+
+	response := (<-this.PrivatePostGetInfo(params))
+	PanicOnError(response)
+
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -466,32 +466,32 @@ func (this *ZaifCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *ZaifCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes38412 := (<-this.LoadMarkets())
-			PanicOnError(retRes38412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetDepthPair(this.Extend(request, params)))
-		PanicOnError(response)
-
-		ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes38412 := (<-this.LoadMarkets())
+		PanicOnError(retRes38412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetDepthPair(this.Extend(request, params)))
+	PanicOnError(response)
+
+	ch <- this.ParseOrderBook(response, GetValue(market, "symbol"))
+	return nil
 }
 func (this *ZaifCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -546,41 +546,41 @@ func (this *ZaifCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *ZaifCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes44612 := (<-this.LoadMarkets())
-			PanicOnError(retRes44612)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		ticker := (<-this.PublicGetTickerPair(this.Extend(request, params)))
-		PanicOnError(ticker)
-
-		//
-		// {
-		//     "last": 9e-08,
-		//     "high": 1e-07,
-		//     "low": 9e-08,
-		//     "vwap": 0.0,
-		//     "volume": 135250.0,
-		//     "bid": 9e-08,
-		//     "ask": 1e-07
-		// }
-		//
-		ch <- this.ParseTicker(ticker, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes44612 := (<-this.LoadMarkets())
+		PanicOnError(retRes44612)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	ticker := (<-this.PublicGetTickerPair(this.Extend(request, params)))
+	PanicOnError(ticker)
+
+	//
+	// {
+	//     "last": 9e-08,
+	//     "high": 1e-07,
+	//     "low": 9e-08,
+	//     "vwap": 0.0,
+	//     "volume": 135250.0,
+	//     "bid": 9e-08,
+	//     "ask": 1e-07
+	// }
+	//
+	ch <- this.ParseTicker(ticker, market)
+	return nil
 }
 func (this *ZaifCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -634,54 +634,54 @@ func (this *ZaifCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *ZaifCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes51812 := (<-this.LoadMarkets())
-			PanicOnError(retRes51812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pair": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTradesPair(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//      [
-		//          {
-		//              "date": 1648559414,
-		//              "price": 5880375.0,
-		//              "amount": 0.017,
-		//              "tid": 176126557,
-		//              "currency_pair": "btc_jpy",
-		//              "trade_type": "ask"
-		//          }, ...
-		//      ]
-		//
-		var trades any = this.ToArray(response)
-		var numTrades any = GetArrayLength(trades)
-		if IsTrue(IsEqual(numTrades, 1)) {
-			var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
-			if !IsTrue(GetArrayLength(ObjectKeys(firstTrade))) {
-				trades = []any{}
-			}
-		}
-
-		ch <- this.ParseTrades(trades, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes51812 := (<-this.LoadMarkets())
+		PanicOnError(retRes51812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pair": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTradesPair(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//      [
+	//          {
+	//              "date": 1648559414,
+	//              "price": 5880375.0,
+	//              "amount": 0.017,
+	//              "tid": 176126557,
+	//              "currency_pair": "btc_jpy",
+	//              "trade_type": "ask"
+	//          }, ...
+	//      ]
+	//
+	var trades any = this.ToArray(response)
+	var numTrades int = GetArrayLength(trades)
+	if IsTrue(IsEqual(numTrades, 1)) {
+		var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
+		if IsTrue(IsEqual(GetArrayLength(ObjectKeys(firstTrade)), 0)) {
+			trades = []any{}
+		}
+	}
+
+	ch <- this.ParseTrades(trades, market, since, limit)
+	return nil
 }
 
 /**
@@ -698,42 +698,42 @@ func (this *ZaifCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ZaifCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes56312 := (<-this.LoadMarkets())
-			PanicOnError(retRes56312)
-		}
-		if IsTrue(!IsEqual(typeVar, "limit")) {
-			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"currency_pair": GetValue(market, "id"),
-			"action":        Ternary(IsTrue((IsEqual(side, "buy"))), "bid", "ask"),
-			"amount":        amount,
-			"price":         price,
-		}
-
-		response := (<-this.PrivatePostTrade(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeDict(response, "return", map[string]any{})
-
-		ch <- this.SafeOrder(map[string]any{
-			"info": response,
-			"id":   ToString(GetValue(data, "order_id")),
-		}, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes56312 := (<-this.LoadMarkets())
+		PanicOnError(retRes56312)
+	}
+	if IsTrue(!IsEqual(typeVar, "limit")) {
+		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"currency_pair": GetValue(market, "id"),
+		"action":        Ternary(IsTrue((IsEqual(side, "buy"))), "bid", "ask"),
+		"amount":        amount,
+		"price":         price,
+	}
+
+	response := (<-this.PrivatePostTrade(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeDict(response, "return", map[string]any{})
+
+	ch <- this.SafeOrder(map[string]any{
+		"info": response,
+		"id":   ToString(GetValue(data, "order_id")),
+	}, market)
+	return nil
 }
 
 /**
@@ -747,41 +747,41 @@ func (this *ZaifCore) CreateOrder(symbol any, typeVar any, side any, amount any,
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ZaifCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "success": 1,
-		//        "return": {
-		//            "order_id": 184,
-		//            "funds": {
-		//                "jpy": 15320,
-		//                "btc": 1.392,
-		//                "mona": 2600,
-		//                "kaori": 0.1
-		//            }
-		//        }
-		//    }
-		//
-		var data any = this.SafeDict(response, "return", map[string]any{})
-
-		ch <- this.ParseOrder(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.PrivatePostCancelOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "success": 1,
+	//        "return": {
+	//            "order_id": 184,
+	//            "funds": {
+	//                "jpy": 15320,
+	//                "btc": 1.392,
+	//                "mona": 2600,
+	//                "kaori": 0.1
+	//            }
+	//        }
+	//    }
+	//
+	var data any = this.SafeDict(response, "return", map[string]any{})
+
+	ch <- this.ParseOrder(data)
+	return nil
 }
 func (this *ZaifCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -853,39 +853,39 @@ func (this *ZaifCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ZaifCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes68512 := (<-this.LoadMarkets())
-			PanicOnError(retRes68512)
-		}
-		var market any = nil
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "currency_pair", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivatePostActiveOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeDict(response, "return", map[string]any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes68512 := (<-this.LoadMarkets())
+		PanicOnError(retRes68512)
+	}
+	var market any = nil
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "currency_pair", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivatePostActiveOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeDict(response, "return", map[string]any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -900,39 +900,39 @@ func (this *ZaifCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *ZaifCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes71412 := (<-this.LoadMarkets())
-			PanicOnError(retRes71412)
-		}
-		var market any = nil
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "currency_pair", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeDict(response, "return", map[string]any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes71412 := (<-this.LoadMarkets())
+		PanicOnError(retRes71412)
+	}
+	var market any = nil
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "currency_pair", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivatePostTradeHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeDict(response, "return", map[string]any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -948,61 +948,61 @@ func (this *ZaifCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *ZaifCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
-		tag = GetValue(tagparamsVariable, 0)
-		params = GetValue(tagparamsVariable, 1)
-		this.CheckAddress(address)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes75212 := (<-this.LoadMarkets())
-			PanicOnError(retRes75212)
-		}
-		var currency any = this.Currency(code)
-		if IsTrue(IsEqual(code, "JPY")) {
-			panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
-		}
-		var request any = map[string]any{
-			"currency": GetValue(currency, "id"),
-			"amount":   amount,
-			"address":  address,
-		}
-		if IsTrue(!IsEqual(tag, nil)) {
-			AddElementToObject(request, "message", tag)
-		}
-
-		result := (<-this.PrivatePostWithdraw(this.Extend(request, params)))
-		PanicOnError(result)
-		//
-		//     {
-		//         "success": 1,
-		//         "return": {
-		//             "id": 23634,
-		//             "fee": 0.001,
-		//             "txid":,
-		//             "funds": {
-		//                 "jpy": 15320,
-		//                 "btc": 1.392,
-		//                 "xem": 100.2,
-		//                 "mona": 2600
-		//             }
-		//         }
-		//     }
-		//
-		var returnData any = this.SafeDict(result, "return", map[string]any{})
-
-		ch <- this.ParseTransaction(returnData, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *ZaifCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+	this.CheckAddress(address)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes75212 := (<-this.LoadMarkets())
+		PanicOnError(retRes75212)
+	}
+	var currency any = this.Currency(code)
+	if IsTrue(IsEqual(code, "JPY")) {
+		panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
+	}
+	var request map[string]any = map[string]any{
+		"currency": GetValue(currency, "id"),
+		"amount":   amount,
+		"address":  address,
+	}
+	if IsTrue(!IsEqual(tag, nil)) {
+		AddElementToObject(request, "message", tag)
+	}
+
+	result := (<-this.PrivatePostWithdraw(this.Extend(request, params)))
+	PanicOnError(result)
+	//
+	//     {
+	//         "success": 1,
+	//         "return": {
+	//             "id": 23634,
+	//             "fee": 0.001,
+	//             "txid":,
+	//             "funds": {
+	//                 "jpy": 15320,
+	//                 "btc": 1.392,
+	//                 "xem": 100.2,
+	//                 "mona": 2600
+	//             }
+	//         }
+	//     }
+	//
+	var returnData any = this.SafeDict(result, "return", map[string]any{})
+
+	ch <- this.ParseTransaction(returnData, currency)
+	return nil
 }
 func (this *ZaifCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//

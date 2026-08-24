@@ -391,7 +391,7 @@ public partial class zaif : Exchange
             { "datetime", null },
         };
         object funds = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
-        object currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -611,11 +611,11 @@ public partial class zaif : Exchange
         //      ]
         //
         object trades = this.toArray(response);
-        object numTrades = getArrayLength(trades);
+        int numTrades = getArrayLength(trades);
         if (isTrue(isEqual(numTrades, 1)))
         {
             object firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
-            if (!isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)firstTrade).Keys))))
+            if (isTrue(isEqual(getArrayLength(new List<object>(((IDictionary<string,object>)firstTrade).Keys)), 0)))
             {
                 trades = new List<object>() {};
             }

@@ -619,7 +619,7 @@ public class PolymarketCore extends PolymarketApi
                 }
                 Object parsedEvent = this.parseEvent(rawEvent);
                 Object eventSlug = this.safeString(rawEvent, "slug");
-                if (Helpers.isTrue(eventSlug))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventSlug, null))) && Helpers.isTrue((!Helpers.isEqual(eventSlug, "")))))
                 {
                     Object eventKey = this.shortenSlug(eventSlug);
                     Helpers.addElementToObject(eventsDict, eventKey, parsedEvent);
@@ -3240,11 +3240,11 @@ final Object finalOutcomePrice = outcomePrice;
                 rawEvents = (this.fetchRawEventsList(rest)).join();
             }
             // Parse and merge into class-level caches
-            if (!Helpers.isTrue(this.events))
+            if (Helpers.isTrue(Helpers.isEqual(this.events, null)))
             {
                 this.events = new java.util.HashMap<String, Object>() {{}};
             }
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }
@@ -4025,7 +4025,7 @@ final Object finalOutcome = outcome;
             put( "cost", null );
             put( "fee", null );
         }}, market);
-        if (!Helpers.isTrue(this.trades))
+        if (Helpers.isTrue(Helpers.isEqual(this.trades, null)))
         {
             this.trades = new java.util.HashMap<String, Object>() {{}};
         }
@@ -4359,7 +4359,7 @@ final Object finalOutcome = outcome;
 
     public Object tokenIdToSymbol(Object tokenId)
     {
-        if (!Helpers.isTrue(tokenId))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) || Helpers.isTrue((Helpers.isEqual(tokenId, "")))))
         {
             return null;
         }

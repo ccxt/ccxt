@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
@@ -1218,7 +1219,8 @@ class bingx extends \ccxt\async\bingx {
         if (is_array($client->subscriptions) && array_key_exists($subscriptionHash ?? '', $client->subscriptions)) {
             return;
         }
-        $fetchBalanceSnapshot = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        $fetchBalanceSnapshot = false;
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($params, 'watchBalance', 'fetchBalanceSnapshot', true);
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -1430,6 +1432,9 @@ class bingx extends \ccxt\async\bingx {
         }
         $cache = $this->positions;
         $data = $this->safe_dict($message, 'a', array());
+        if (!(is_array($data) && array_key_exists('P' ?? '', $data))) {
+            return;
+        }
         $rawPositions = $this->safe_list($data, 'P', array());
         $newPositions = array();
         for ($i = 0; $i < count($rawPositions); $i++) {
@@ -1527,10 +1532,46 @@ class bingx extends \ccxt\async\bingx {
         $lastAuthenticatedTime = $this->safe_integer($this->options, 'lastAuthenticatedTime', 0);
         $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000); // 1 hour
         if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-            $response = Async\await($this->userAuthPrivatePostUserDataStream());
-            $this->options['listenKey'] = $this->safe_string($response, 'listenKey');
-            $this->options['lastAuthenticatedTime'] = $time;
-            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+            // single-flight leader election on a never-dialed $client, see
+            // https://github.com/ccxt/ccxt/issues/29393 => racing fetches mint
+            // different keys and the key rides the private url, so losers
+            // connect their watchers to an orphaned stream. $client->futures is
+            // the registry => $client->future() is the atomic check-and-insert
+            // and $client->resolve() / $client->reject() settle and remove the
+            // entry under the same lock in every port
+            $messageHash = 'authenticate';
+            $client = $this->client('authenticationFlights');
+            if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+                // a flight is already in progress - wake when the leader
+                // settles it => the $listenKey is then in the bucket
+                Async\await($client->future($messageHash));
+                return;
+            }
+            // reusableFuture (), not $future () - the two match in
+            // js/py/php/cs/java, but go's Client.Future () yields a channel
+            // that the trailing suspension point below would panic on
+            $future = $client->reusableFuture($messageHash);
+            try {
+                $response = Async\await($this->userAuthPrivatePostUserDataStream());
+                $listenKey = $this->safe_string($response, 'listenKey');
+                if ($listenKey === null) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+                }
+                $this->options['listenKey'] = $listenKey;
+                $this->options['lastAuthenticatedTime'] = $time;
+                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $params);
+                // settle the flight => $client->resolve() removes the $future from
+                // $client->futures and wakes every waiter
+                $client->resolve($listenKey, $messageHash);
+            } catch (Exception $e) {
+                // reject the flight - waiters throw and the next caller re-leads.
+                // no rethrow here, the trailing suspension point rethrows to this
+                // caller AND attaches the handler an alone leader needs
+                $client->reject($e, $messageHash);
+            }
+            Async\await($future);
         }
     }
 
@@ -1784,7 +1825,9 @@ class bingx extends \ccxt\async\bingx {
         $a = $this->safe_dict($message, 'a', array());
         $data = $this->safe_list($a, 'B', array());
         $timestamp = $this->safe_integer_2($message, 'T', 'E');
-        $type = (is_array($a) && array_key_exists('P' ?? '', $a)) ? 'swap' : 'spot';
+        $spotUrl = $this->safe_string($this->urls['api']['ws'], 'spot');
+        $isSpot = ($spotUrl !== null) && (mb_strpos($client->url, $spotUrl) === 0);
+        $type = $isSpot ? 'spot' : 'swap';
         if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }

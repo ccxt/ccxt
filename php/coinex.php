@@ -2241,10 +2241,10 @@ class coinex extends Exchange {
         if ($swap) {
             $request['market_type'] = 'FUTURES';
             if ($stopLossPrice || $takeProfitPrice) {
-                if ($stopLossPrice) {
+                if (($stopLossPrice !== null) && ($stopLossPrice !== '')) {
                     $request['stop_loss_price'] = $this->price_to_precision($symbol, $stopLossPrice);
                     $request['stop_loss_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
-                } elseif ($takeProfitPrice) {
+                } elseif (($takeProfitPrice !== null) && ($takeProfitPrice !== '')) {
                     $request['take_profit_price'] = $this->price_to_precision($symbol, $takeProfitPrice);
                     $request['take_profit_type'] = $this->safe_string($params, 'stop_type', 'latest_price');
                 }
@@ -5923,7 +5923,7 @@ class coinex extends Exchange {
                 $result['withdraw']['fee'] = $this->safe_number($entry, 'withdrawal_fee');
                 $result['withdraw']['percentage'] = false;
                 $networkId = $this->safe_string($entry, 'chain');
-                if ($networkId) {
+                if (($networkId !== null) && ($networkId !== '')) {
                     $currencyId = $this->safe_string($asset, 'ccy');
                     $feeCode = $this->safe_currency_code($currencyId, $currency);
                     $networkCode = $this->network_id_to_code($networkId, $feeCode);
@@ -6227,7 +6227,7 @@ class coinex extends Exchange {
                 $body = $urlencoded;
             }
         } elseif ($requestUrl === 'public' || $requestUrl === 'perpetualPublic') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {

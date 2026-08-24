@@ -3676,7 +3676,7 @@ public class LbankCore extends LbankApi
         }
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(api, 1), "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(this.keysort(query))));
             }

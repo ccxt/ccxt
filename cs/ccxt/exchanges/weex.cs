@@ -1002,9 +1002,9 @@ public partial class weex : Exchange
                 };
             }
         }
-        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object networksLength = getArrayLength(networkKeys);
-        object emptyChains = isEqual(networksLength, 0); // non-functional coins
+        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        int networksLength = getArrayLength(networkKeys);
+        bool emptyChains = isEqual(networksLength, 0); // non-functional coins
         object valueForEmpty = ((bool) isTrue(emptyChains)) ? false : null;
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1126,9 +1126,9 @@ public partial class weex : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
-        object active = true;
+        bool active = true;
         object symbol = add(add(bs, "/"), quote);
-        object isSpot = true;
+        bool isSpot = true;
         object isLinear = null;
         object isInverse = null;
         if (isTrue(!isEqual(settle, null)))
@@ -1422,7 +1422,7 @@ public partial class weex : Exchange
         //
         object marketId = this.safeString(ticker, "symbol");
         object markPrice = this.safeString(ticker, "markPrice");
-        object marketType = "spot";
+        string marketType = "spot";
         if (isTrue(isTrue((!isEqual(markPrice, null))) || isTrue((isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))))
         {
             // 24hr swap tickers carry markPrice, but book tickers do not, so also honor the market resolved by the caller
@@ -1554,7 +1554,7 @@ public partial class weex : Exchange
         //     }
         //
         // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-        object ticker = this.extend(new Dictionary<string, object>() {}, response);
+        Dictionary<string, object> ticker = this.extend(new Dictionary<string, object>() {}, response);
         if (isTrue(isEqual(priceType, "INDEX")))
         {
             ((IDictionary<string,object>)ticker)["indexPrice"] = this.safeString(ticker, "price");
@@ -1790,7 +1790,7 @@ public partial class weex : Exchange
             object endTime = until;
             if (isTrue(isTrue((isEqual(since, null))) || isTrue((isEqual(until, null)))))
             {
-                object now = this.milliseconds();
+                Int64 now = this.milliseconds();
                 object duration = multiply(this.parseTimeframe(timeframe), 1000);
                 object numberOfCandles = ((bool) isTrue(limit)) ? limit : maxHistoricalLimit;
                 object timeDelta = multiply(numberOfCandles, duration);
@@ -2606,7 +2606,7 @@ public partial class weex : Exchange
             { "quantity", this.amountToPrecision(symbol, amount) },
             { "type", ((string)type).ToUpper() },
         };
-        object isMarketOrder = (isEqual(type, "market"));
+        bool isMarketOrder = (isEqual(type, "market"));
         if (!isTrue(isMarketOrder))
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
@@ -2616,9 +2616,9 @@ public partial class weex : Exchange
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[1];
         var takeProfitPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[2];
         var query = ((IList<object>) triggerPricestopLossPricetakeProfitPricequeryVariable)[3];
-        object isTrigger = (!isEqual(triggerPrice, null));
-        object isStopLoss = (!isEqual(stopLossPrice, null));
-        object isTakeProfit = (!isEqual(takeProfitPrice, null));
+        bool isTrigger = (!isEqual(triggerPrice, null));
+        bool isStopLoss = (!isEqual(stopLossPrice, null));
+        bool isTakeProfit = (!isEqual(takeProfitPrice, null));
         if (isTrue(isTrue(isTrigger) && isTrue((isTrue(isStopLoss) || isTrue(isTakeProfit)))))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
@@ -2628,8 +2628,8 @@ public partial class weex : Exchange
         {
             reduceOnly = true;
         }
-        object isReduceOnly = (isEqual(reduceOnly, true));
-        object positionSide = "LONG";
+        bool isReduceOnly = (isEqual(reduceOnly, true));
+        string positionSide = "LONG";
         if (isTrue(isReduceOnly))
         {
             if (isTrue(isEqual(side, "buy")))
@@ -2642,9 +2642,9 @@ public partial class weex : Exchange
         }
         ((IDictionary<string,object>)request)["positionSide"] = positionSide;
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         object stopLoss = this.safeDict(parameters, "stopLoss");
-        object hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
         // the exchange accepts but silently ignores execution prices for attached take profit / stop loss, they always execute at market price
         if (isTrue(isTrue(hasTakeProfit) && isTrue((!isEqual(this.safeNumber(takeProfit, "price"), null)))))
         {
@@ -2960,7 +2960,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = (isEqual(marketType, "spot"));
         object clientOrderIds = this.safeList(parameters, "clientOrderIds");
         parameters = this.omit(parameters, "clientOrderIds");
         if (isTrue(!isEqual(clientOrderIds, null)))
@@ -3029,7 +3029,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = (isEqual(marketType, "spot"));
         object request = new Dictionary<string, object>() {};
         if (isTrue(isTrue((isEqual(id, null))) && !isTrue(isSpot)))
         {
@@ -3111,7 +3111,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = (isEqual(marketType, "spot"));
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3624,7 +3624,7 @@ public partial class weex : Exchange
         object isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
-        object isEntryTrigger = !isTrue((this.safeBool(order, "reduceOnly", true)));
+        bool isEntryTrigger = !isTrue((this.safeBool(order, "reduceOnly", true)));
         object takeProfitPrice = null;
         object stopLossPrice = null;
         if (!isTrue(isEntryTrigger))
@@ -3782,7 +3782,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object isSpot = (isEqual(marketType, "spot"));
+        bool isSpot = (isEqual(marketType, "spot"));
         if (isTrue(isTrue(isSpot) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument for spot markets")) ;
@@ -4017,7 +4017,7 @@ public partial class weex : Exchange
         object after = this.safeString2(item, "afterAmount", "balance");
         object before = Precise.stringSub(after, amountRaw);
         object amount = this.parseNumber(Precise.stringAbs(amountRaw));
-        object direction = "in";
+        string direction = "in";
         if (isTrue(isEqual(amountRaw, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseLedgerEntry() missing amountRaw")) ;
@@ -4028,7 +4028,7 @@ public partial class weex : Exchange
         }
         object rawType = this.safeString2(item, "bizType", "incomeType");
         object transferReason = this.safeString(item, "transferReason");
-        object isContractEntry = (!isEqual(transferReason, null));
+        bool isContractEntry = (!isEqual(transferReason, null));
         if (isTrue(isContractEntry))
         {
             if (isTrue(isTrue((isEqual(rawType, "withdraw"))) || isTrue((isEqual(rawType, "deposit")))))
@@ -4227,7 +4227,7 @@ public partial class weex : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         object timestamp = this.safeInteger(position, "createdTime");
         object marginType = this.safeString2(position, "marginType", "marginMode");
-        object marginMode = "cross";
+        string marginMode = "cross";
         if (isTrue(isEqual(marginType, "ISOLATED")))
         {
             marginMode = "isolated";
@@ -4851,10 +4851,10 @@ public partial class weex : Exchange
         parameters ??= new Dictionary<string, object>();
         object endpoint = this.implodeParams(path, parameters);
         object query = this.omit(parameters, this.extractParams(path));
-        object isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
+        bool isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
         if (isTrue(!isTrue(isBatch) && isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 endpoint = add(endpoint, add("?", this.urlencode(query)));
             }
@@ -4874,7 +4874,7 @@ public partial class weex : Exchange
                 body = this.json(query);
                 payload = add(payload, body);
             }
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "ACCESS-KEY", this.apiKey },
                 { "ACCESS-SIGN", signature },

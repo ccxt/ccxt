@@ -1784,7 +1784,7 @@ class cex extends cex$1["default"] {
         const query = this.omit(params, this.extractParams(path));
         if (api === 'public') {
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

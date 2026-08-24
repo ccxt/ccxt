@@ -1347,6 +1347,7 @@ export default class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
+                        'stock',
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': false,
@@ -3445,15 +3446,16 @@ export default class binance extends Exchange {
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
                 }
-                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
-                    promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
-                }
             } else if (marketType === 'linear') {
                 promisesRaw.push (this.fapiPublicGetExchangeInfo (params));
             } else if (marketType === 'inverse') {
                 promisesRaw.push (this.dapiPublicGetExchangeInfo (params));
             } else if (marketType === 'option') {
                 promisesRaw.push (this.eapiPublicGetExchangeInfo (params));
+            } else if (marketType === 'stock') {
+                if (!isDemoEnv && (this.apiKey !== undefined && this.apiKey !== '')) {
+                    promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
+                }
             } else {
                 throw new ExchangeError (this.id + ' fetchMarkets() this.options fetchMarkets "' + marketType + '" is not a supported market type');
             }
@@ -9232,7 +9234,7 @@ export default class binance extends Exchange {
         }
         let priceString: Str = undefined;
         if (costString !== undefined) {
-            if (amountString) {
+            if ((amountString !== undefined) && (amountString !== '')) {
                 priceString = Precise.stringDiv (costString, amountString);
             }
         }
@@ -13036,7 +13038,7 @@ export default class binance extends Exchange {
         let url = this.urls['api'][api];
         url += '/' + path;
         if (path === 'historicalTrades') {
-            if (this.apiKey) {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
                 };
@@ -13046,7 +13048,7 @@ export default class binance extends Exchange {
         }
         const userDataStream = (path === 'userDataStream') || (path === 'listenKey') || (path === 'userListenToken');
         if (userDataStream) {
-            if (this.apiKey) {
+            if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
                 // v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': this.apiKey,
@@ -13161,7 +13163,7 @@ export default class binance extends Exchange {
                 headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         }
@@ -14080,9 +14082,9 @@ export default class binance extends Exchange {
         const until = this.safeInteger (params, 'until'); // unified in milliseconds
         const endTime = this.safeInteger (params, 'endTime', until); // exchange-specific in milliseconds
         params = this.omit (params, [ 'endTime', 'until' ]);
-        if (endTime) {
+        if ((endTime !== undefined) && (endTime !== 0)) {
             request['endTime'] = endTime;
-        } else if (since) {
+        } else if ((since !== undefined) && (since !== 0)) {
             if (limit === undefined) {
                 limit = 30; // Exchange default
             }

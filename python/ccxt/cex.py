@@ -1721,7 +1721,7 @@ class cex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             else:
                 body = self.json(query)

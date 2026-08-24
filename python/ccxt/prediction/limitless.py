@@ -282,7 +282,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             eventKey = self.shorten_slug(groupId) if groupId else None
             m = self.parse_market(raw)
             markets.append(m)
-            if eventKey:
+            if (eventKey is not None) and (eventKey != ''):
                 if not (eventKey in eventGroups):
                     eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]
@@ -2730,9 +2730,9 @@ class limitless(PredictionExchange, ImplicitAPI):
             listRawLength = len(listRaw)
             for i in range(0, listRawLength):
                 rawMarkets.append(listRaw[i])
-        if not self.events:
+        if self.events is None:
             self.events = {}
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         eventGroups = {}
         # group rows carry their tradeable children in a nested `markets` list — expand them
@@ -2747,7 +2747,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             if m is None:
                 raise ExchangeError(self.id + ' fetchEvents() missing m')
             self.markets[m['market']] = m
-            if eventKey:
+            if (eventKey is not None) and (eventKey != ''):
                 if not (eventKey in eventGroups):
                     eventGroups[eventKey] = {'groupId': groupId, 'title': self.safe_string_2(raw, 'groupTitle', 'title', groupId), 'raw': raw, 'markets': []}
                 eventGroup = eventGroups[eventKey]

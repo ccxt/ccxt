@@ -59,8 +59,8 @@ public partial class testMainClass : BaseTest
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         // check market
         object market = null;
-        object isUnrecognizedSymbol = false;
-        object isFetchTickerCalled = isEqual(method, "fetchTicker");
+        bool isUnrecognizedSymbol = false;
+        bool isFetchTickerCalled = isEqual(method, "fetchTicker");
         object symbolForMarket = ((bool) isTrue((!isEqual(symbol, null)))) ? symbol : exchange.safeString(entry, "symbol");
         if (isTrue(!isEqual(symbolForMarket, null)))
         {
@@ -88,7 +88,7 @@ public partial class testMainClass : BaseTest
             }
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
-        object isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
+        bool isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
         object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (isTrue(isTrue(valuesShouldBePositive) && !isTrue((inOp(skippedProperties, "positiveValues")))))
         {
@@ -137,7 +137,7 @@ public partial class testMainClass : BaseTest
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 object mPrecision = exchange.safeDict(market, "precision");
                 object amountPrecision = exchange.safeString(mPrecision, "amount");
-                object tolerance = "1.0001";
+                string tolerance = "1.0001";
                 if (isTrue(!isEqual(amountPrecision, null)))
                 {
                     baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
@@ -211,7 +211,7 @@ public partial class testMainClass : BaseTest
             testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", ((string)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-        object allowedPercentageVariation = "0.01";
+        string allowedPercentageVariation = "0.01";
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isFetchTickerCalled) && isTrue(!isEqual(lastString, null))) && isTrue(!isEqual(bidString, null))) && isTrue(!isEqual(askString, null))) && !isTrue((inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
             object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
@@ -221,17 +221,27 @@ public partial class testMainClass : BaseTest
         }
         object percentage = exchange.safeString(entry, "percentage");
         object change = exchange.safeString(entry, "change");
+        // option markets are exempt from the UPPER percentage/change caps only:
+        // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+        // contract moving into the money legitimately gains 1000x+ (observed: a
+        // paradex call at +109055% on its expiry date, mark price equal to
+        // intrinsic). the floors stay: a long option cannot lose more than its
+        // premium, so percentage >= -100 and change >= -open hold for options too
+        object isOptionMarket = exchange.safeBool(market, "option", false);
         if (isTrue(!isTrue((inOp(skippedProperties, "maxIncrease"))) && !isTrue(isUnrecognizedSymbol)))
         {
             //
             // percentage
             //
-            object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
+            string maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (isTrue(!isEqual(percentage, null)))
             {
-                // - should be above -100 and below MAX
+                // - should be above -100 and (for non-options) below MAX
                 assert(Precise.stringGe(percentage, "-100"), add("percentage should be above -100% ", logText));
-                assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), add(add(add("percentage should be below ", maxIncrease), "00% "), logText));
+                if (!isTrue(isOptionMarket))
+                {
+                    assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), add(add(add("percentage should be below ", maxIncrease), "00% "), logText));
+                }
             }
             //
             // change
@@ -239,9 +249,12 @@ public partial class testMainClass : BaseTest
             object approxValue = exchange.safeStringN(entry, new List<object>() {"open", "close", "average", "bid", "ask", "vwap", "previousClose"});
             if (isTrue(!isEqual(change, null)))
             {
-                // - should be between -price & +price*100
+                // - should be above -price and (for non-options) below +price*maxIncrease
                 assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), add("change should be above -price ", logText));
-                assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), add(add(add("change should be below ", maxIncrease), "x price "), logText));
+                if (!isTrue(isOptionMarket))
+                {
+                    assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), add(add(add("change should be below ", maxIncrease), "x price "), logText));
+                }
             }
         }
         //

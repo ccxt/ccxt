@@ -1368,6 +1368,7 @@ class binance(Exchange, ImplicitAPI):
                         'spot',  # allows CORS in browsers
                         'linear',  # allows CORS in browsers
                         'inverse',  # allows CORS in browsers
+                        'stock',
                         # 'option',  # does not allow CORS, enable outside of the browser only
                     ],
                     'loadAllOptions': False,
@@ -3407,14 +3408,15 @@ class binance(Exchange, ImplicitAPI):
                 if fetchMargins and self.check_required_credentials(False) and not isDemoEnv:
                     promisesRaw.append(self.sapiGetMarginAllPairs(params))
                     promisesRaw.append(self.sapiGetMarginIsolatedAllPairs(params))
-                if not isDemoEnv and (self.apiKey is not None and self.apiKey != ''):
-                    promisesRaw.append(self.sapiGetEquityMarketExchangeInfo(params))
             elif marketType == 'linear':
                 promisesRaw.append(self.fapiPublicGetExchangeInfo(params))
             elif marketType == 'inverse':
                 promisesRaw.append(self.dapiPublicGetExchangeInfo(params))
             elif marketType == 'option':
                 promisesRaw.append(self.eapiPublicGetExchangeInfo(params))
+            elif marketType == 'stock':
+                if not isDemoEnv and (self.apiKey is not None and self.apiKey != ''):
+                    promisesRaw.append(self.sapiGetEquityMarketExchangeInfo(params))
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         results = promisesRaw
@@ -8762,7 +8764,7 @@ class binance(Exchange, ImplicitAPI):
             side = 'sell'
         priceString = None
         if costString is not None:
-            if amountString:
+            if (amountString is not None) and (amountString != ''):
                 priceString = Precise.string_div(costString, amountString)
         id = None
         amount = self.parse_number(amountString)
@@ -12253,7 +12255,7 @@ class binance(Exchange, ImplicitAPI):
         url = self.urls['api'][api]
         url += '/' + path
         if path == 'historicalTrades':
-            if self.apiKey:
+            if (self.apiKey is not None) and (self.apiKey != ''):
                 headers = {
                     'X-MBX-APIKEY': self.apiKey,
                 }
@@ -12261,7 +12263,7 @@ class binance(Exchange, ImplicitAPI):
                 raise AuthenticationError(self.id + ' historicalTrades endpoint requires `apiKey` credential')
         userDataStream = (path == 'userDataStream') or (path == 'listenKey') or (path == 'userListenToken')
         if userDataStream:
-            if self.apiKey:
+            if (self.apiKey is not None) and (self.apiKey != ''):
                 # v1 special case for userDataStream
                 headers = {
                     'X-MBX-APIKEY': self.apiKey,
@@ -12356,7 +12358,7 @@ class binance(Exchange, ImplicitAPI):
                 body = query
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
@@ -13191,9 +13193,9 @@ class binance(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')  # unified in milliseconds
         endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
         params = self.omit(params, ['endTime', 'until'])
-        if endTime:
+        if (endTime is not None) and (endTime != 0):
             request['endTime'] = endTime
-        elif since:
+        elif (since is not None) and (since != 0):
             if limit is None:
                 limit = 30  # Exchange default
             duration = self.parse_timeframe(timeframe)

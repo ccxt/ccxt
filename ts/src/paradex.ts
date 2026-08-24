@@ -1500,11 +1500,12 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
+        const triggerPrice = this.omitZero (this.safeString (order, 'trigger_price'));
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
-        const flags = this.safeList (order, 'flags', []);
+        const flags = this.safeList (order, 'flags');
         let reduceOnly: Bool = undefined;
-        if ('REDUCE_ONLY' in flags) {
-            reduceOnly = true;
+        if (flags !== undefined) {
+            reduceOnly = this.inArray ('REDUCE_ONLY', flags);
         }
         return this.safeOrder ({
             'id': orderId,
@@ -1521,7 +1522,7 @@ export default class paradex extends Exchange {
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': this.safeString (order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'average': average,
@@ -3337,7 +3338,7 @@ export default class paradex extends Exchange {
         let url = this.implodeHostname (this.urls['api'][(version as string)]) + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {

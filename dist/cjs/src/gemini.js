@@ -1990,7 +1990,7 @@ class gemini extends gemini$1["default"] {
             };
         }
         else {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }

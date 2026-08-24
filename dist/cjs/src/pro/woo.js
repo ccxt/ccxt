@@ -879,7 +879,7 @@ class woo extends woo$1["default"] {
         }, market);
     }
     checkRequiredUid(error = true) {
-        if (!this.uid) {
+        if ((this.uid === undefined) || (this.uid === '')) {
             if (error) {
                 throw new errors.AuthenticationError(this.id + ' requires `uid` credential (woox calls it `application_id`)');
             }

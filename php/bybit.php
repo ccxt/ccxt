@@ -7283,6 +7283,11 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'until' ));
         if ($until !== null) {
             $request['endTime'] = $until;
+        } elseif ($since !== null) {
+            // the endpoint walks backwards from endTime and ignores a lone startTime
+            $duration = $this->parse_timeframe($timeframe);
+            $requestedLimit = ($limit === null) ? 50 : $limit; // exchange default
+            $request['endTime'] = $this->sum($since, $duration * $requestedLimit * 1000);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -7389,9 +7394,10 @@ class bybit extends Exchange {
          *
          * @param {string} $symbol Unified $market $symbol
          * @param {string} $timeframe "5m", 15m, 30m, 1h, 4h, 1d
-         * @param {int} [$since] Not used by Bybit
+         * @param {int} [$since] Timestamp in ms of the earliest open interest to fetch
          * @param {int} [$limit] The number of open interest structures to return. Max 200, default 50
          * @param {array} [$params] Exchange specific parameters
+         * @param {int} [$params->until] Timestamp in ms of the latest open interest to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return An array of open interest structures
          */
@@ -9947,7 +9953,7 @@ class bybit extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
         if ($api === 'public') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
         } elseif ($api === 'private') {
@@ -9958,7 +9964,7 @@ class bybit extends Exchange {
             $isV5UnifiedAccount = mb_strpos($url, 'v5') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
-                if ($params) {
+                if (count($params) > 0) {
                     $body = $this->json($params);
                 } else {
                     // this fix for PHP is required otherwise it generates

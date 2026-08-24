@@ -2537,13 +2537,13 @@ class bitvavo(Exchange, ImplicitAPI):
         url = '/' + self.version + '/' + self.implode_params(path, params)
         getOrDelete = (method == 'GET') or (method == 'DELETE')
         if getOrDelete:
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         if api == 'private':
             self.check_required_credentials()
             payload = ''
             if not getOrDelete:
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             timestamp = str(self.milliseconds())

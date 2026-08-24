@@ -3274,7 +3274,7 @@ export default class grvt extends Exchange {
         let url = this.urls['api'][api] + path;
         let queryString = '';
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 queryString = this.urlencode (query);
                 url += '?' + queryString;
             }

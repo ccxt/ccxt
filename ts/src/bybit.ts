@@ -7299,6 +7299,11 @@ export default class bybit extends Exchange {
         params = this.omit (params, [ 'until' ]);
         if (until !== undefined) {
             request['endTime'] = until;
+        } else if (since !== undefined) {
+            // the endpoint walks backwards from endTime and ignores a lone startTime
+            const duration = this.parseTimeframe (timeframe);
+            const requestedLimit = (limit === undefined) ? 50 : limit; // exchange default
+            request['endTime'] = this.sum (since, duration * requestedLimit * 1000);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -7404,9 +7409,10 @@ export default class bybit extends Exchange {
      * @see https://bybit-exchange.github.io/docs/v5/market/open-interest
      * @param {string} symbol Unified market symbol
      * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-     * @param {int} [since] Not used by Bybit
+     * @param {int} [since] Timestamp in ms of the earliest open interest to fetch
      * @param {int} [limit] The number of open interest structures to return. Max 200, default 50
      * @param {object} [params] Exchange specific parameters
+     * @param {int} [params.until] Timestamp in ms of the latest open interest to fetch
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */
@@ -9963,7 +9969,7 @@ export default class bybit extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.rawencode (params);
             }
         } else if (api === 'private') {
@@ -9974,7 +9980,7 @@ export default class bybit extends Exchange {
             const isV5UnifiedAccount = url.indexOf ('v5') >= 0;
             const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     body = this.json (params);
                 } else {
                     // this fix for PHP is required otherwise it generates

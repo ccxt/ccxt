@@ -988,7 +988,12 @@ export default class coinbaseexchange extends Exchange {
         };
         // publicGetProductsIdTicker or publicGetProductsIdStats
         const method = this.safeString (this.options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (method === 'publicGetProductsIdStats') {
+            response = await this.publicGetProductsIdStats (this.extend (request, params));
+        } else {
+            response = await this.publicGetProductsIdTicker (this.extend (request, params));
+        }
         //
         // publicGetProductsIdTicker
         //
@@ -1413,16 +1418,15 @@ export default class coinbaseexchange extends Exchange {
         }
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
-        let method: Str = undefined;
+        let response = undefined;
         if (clientOrderId === undefined) {
-            method = 'privateGetOrdersId';
             request['id'] = id;
+            response = await this.privateGetOrdersId (this.extend (request, params));
         } else {
-            method = 'privateGetOrdersClientClientOid';
             request['client_oid'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
+            response = await this.privateGetOrdersClientClientOid (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -1647,12 +1651,9 @@ export default class coinbaseexchange extends Exchange {
             // 'product_id': market['id'], // the request will be more performant if you include it
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
-        let method: Str = undefined;
         if (clientOrderId === undefined) {
-            method = 'privateDeleteOrdersId';
             request['id'] = id;
         } else {
-            method = 'privateDeleteOrdersClientClientOid';
             request['client_oid'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
         }
@@ -1661,7 +1662,12 @@ export default class coinbaseexchange extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        const response = await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (clientOrderId === undefined) {
+            response = await this.privateDeleteOrdersId (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrdersClientClientOid (this.extend (request, params));
+        }
         return this.safeOrder ({ 'info': response });
     }
 
@@ -1716,19 +1722,18 @@ export default class coinbaseexchange extends Exchange {
             'currency': currency['id'],
             'amount': amount,
         };
-        let method = 'privatePostWithdrawals';
+        let response = undefined;
         if ('payment_method_id' in params) {
-            method += 'PaymentMethod';
+            response = await this.privatePostWithdrawalsPaymentMethod (this.extend (request, params));
         } else if ('coinbase_account_id' in params) {
-            method += 'CoinbaseAccount';
+            response = await this.privatePostWithdrawalsCoinbaseAccount (this.extend (request, params));
         } else {
-            method += 'Crypto';
             request['crypto_address'] = address;
             if (tag !== undefined) {
                 request['destination_tag'] = tag;
             }
+            response = await this.privatePostWithdrawalsCrypto (this.extend (request, params));
         }
-        const response = await this[method] (this.extend (request, params));
         if (!response) {
             throw new ExchangeError (this.id + ' withdraw() error: ' + this.json (response));
         }
@@ -2160,7 +2165,7 @@ export default class coinbaseexchange extends Exchange {
         let request = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 request += '?' + this.urlencode (query);
             }
         }
@@ -2170,7 +2175,7 @@ export default class coinbaseexchange extends Exchange {
             const nonce = this.nonce ().toString ();
             let payload = '';
             if (method !== 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     payload = body;
                 }

@@ -1191,7 +1191,7 @@ class ndax(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        if not self.login:
+        if (self.login is None) or (self.login == ''):
             raise AuthenticationError(self.id + ' fetchAccounts() requires exchange.login email credential')
         omsId = self.safe_integer(self.options, 'omsId', 1)
         self.check_required_credentials()
@@ -2598,7 +2598,7 @@ class ndax(Exchange, ImplicitAPI):
                         # 'Content-Type': 'application/json',
                     }
                     query = self.omit(query, 'pending2faToken')
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -2621,7 +2621,7 @@ class ndax(Exchange, ImplicitAPI):
                 headers['Content-Type'] = 'application/json'
                 body = self.json(query)
             else:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

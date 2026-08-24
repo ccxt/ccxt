@@ -116,7 +116,7 @@ public partial class deepcoin : ccxt.deepcoin
         {
             marketId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
-        object action = "1"; // subscribe
+        string action = "1"; // subscribe
         if (isTrue(unWatch))
         {
             action = "0"; // unsubscribe
@@ -184,37 +184,78 @@ public partial class deepcoin : ccxt.deepcoin
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object time = this.milliseconds();
-        object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
-        object expired = isGreaterThan((subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
-        object listenKey = this.safeString(this.options, "listenKey");
-        object response = null;
-        if (isTrue(isEqual(listenKey, null)))
+        Int64 time = this.milliseconds();
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
+        // ws url query string, so racing acquires mint several keys, the last
+        // write wins the cache and every loser dials a stream keyed to an
+        // orphaned credential that never delivers.
+        // the whole check-then-fetch is the critical section here: the
+        // acquire-vs-extend branch reads the very key and expiry the leader
+        // rewrites. the flight IS the entry in client.futures - registered
+        // before the first fetch and settled through client.resolve /
+        // ((WebSocketClient)client).reject, so every mutation of that registry happens inside the
+        // client, which is what keeps the go port's map access under one lock
+        string messageHash = "authenticate";
+        var client = this.client("authenticationFlights");
+        if (isTrue(inOp(client.futures, messageHash)))
         {
-            response = await this.privateGetDeepcoinListenkeyAcquire(parameters);
-        } else if (isTrue(expired))
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future(messageHash);
+            return this.safeString(this.options, "listenKey");
+        }
+        var future = client.reusableFuture(messageHash);
+        object listenKey = null;
+        try
         {
-            object method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
-            object getNewKey = (isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
-            if (isTrue(getNewKey))
+            object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
+            bool expired = isGreaterThan((subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
+            listenKey = this.safeString(this.options, "listenKey");
+            object response = null;
+            if (isTrue(isEqual(listenKey, null)))
             {
                 response = await this.privateGetDeepcoinListenkeyAcquire(parameters);
-            } else
+            } else if (isTrue(expired))
             {
-                object request = new Dictionary<string, object>() {
-                    { "listenkey", listenKey },
-                };
-                response = await this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters));
+                object method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
+                bool getNewKey = (isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
+                if (isTrue(getNewKey))
+                {
+                    response = await this.privateGetDeepcoinListenkeyAcquire(parameters);
+                } else
+                {
+                    object request = new Dictionary<string, object>() {
+                        { "listenkey", listenKey },
+                    };
+                    response = await this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters));
+                }
             }
-        }
-        if (isTrue(!isEqual(response, null)))
+            if (isTrue(!isEqual(response, null)))
+            {
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                listenKey = this.safeString(data, "listenkey");
+                if (isTrue(isEqual(listenKey, null)))
+                {
+                    throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+                }
+                listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
+                ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+                ((IDictionary<string,object>)this.options)["listenKeyExpiryTimestamp"] = listenKeyExpiryTimestamp;
+            }
+            // settle the flight: client.resolve wakes every waiter and drops
+            // the future from the registry under the client's own lock, so the
+            // next refresh cycle elects a fresh leader
+            callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+        } catch(Exception e)
         {
-            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            listenKey = this.safeString(data, "listenkey");
-            listenKeyExpiryTimestamp = this.safeTimestamp(data, "expire_time");
-            ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
-            ((IDictionary<string,object>)this.options)["listenKeyExpiryTimestamp"] = listenKeyExpiryTimestamp;
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            ((WebSocketClient)client).reject(e, messageHash);
         }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from killing the process
+        await future;
         return listenKey;
     }
 
@@ -701,7 +742,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object market = this.market(symbol);
         object messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
-        object suffix = "_0.1";
+        string suffix = "_0.1";
         object orderbook = await this.watchPublic(market, messageHash, "25", parameters, suffix);
         return (orderbook as IOrderBook).limit();
     }
@@ -724,7 +765,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object market = this.market(symbol);
         object messageHash = add(add("orderbook", "::"), getValue(market, "symbol"));
-        object suffix = "_0.1";
+        string suffix = "_0.1";
         object subscription = new Dictionary<string, object>() {
             { "topic", "orderbook" },
         };
@@ -940,7 +981,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = this.safeString(data, "I");
         object market = this.safeMarket(marketId, null, "/");
         object symbol = this.safeSymbol(marketId, market);
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isTrue((inOp(client.futures, messageHash))) || isTrue((inOp(client.futures, symbolMessageHash)))))
         {
@@ -1027,7 +1068,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = this.safeString(data, "I");
         object market = this.safeMarket(marketId, null, "/");
         object symbol = this.safeSymbol(marketId, market);
-        object messageHash = "orders";
+        string messageHash = "orders";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isTrue((inOp(client.futures, messageHash))) || isTrue((inOp(client.futures, symbolMessageHash)))))
         {
@@ -1129,7 +1170,7 @@ public partial class deepcoin : ccxt.deepcoin
         }
         object listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
-        object messageHash = "positions";
+        string messageHash = "positions";
         object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -1183,7 +1224,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = this.safeString(data, "I");
         object market = this.safeMarket(marketId, null, "/");
         object symbol = this.safeSymbol(marketId, market);
-        object messageHash = "positions";
+        string messageHash = "positions";
         object symbolMessageHash = add(add(messageHash, "::"), symbol);
         if (isTrue(isTrue((inOp(client.futures, messageHash))) || isTrue((inOp(client.futures, symbolMessageHash)))))
         {
@@ -1342,7 +1383,7 @@ public partial class deepcoin : ccxt.deepcoin
         object action = this.safeString(data, "A"); // 1 = subscribe, 0 = unsubscribe
         if (isTrue(isEqual(action, "0")))
         {
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+            Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subId = this.safeInteger(data, "L");
             object subscription = this.safeDict(subscriptionsById, subId, new Dictionary<string, object>() {}); // original watch subscription
             object subHash = this.safeString(subscription, "subHash");
@@ -1384,7 +1425,7 @@ public partial class deepcoin : ccxt.deepcoin
         object first = this.safeDict(response, 0, new Dictionary<string, object>() {});
         object data = this.safeDict(first, "d", new Dictionary<string, object>() {});
         object requestId = this.safeInteger(data, "L");
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, requestId, new Dictionary<string, object>() {});
         object messageHash = this.safeString(subscription, "subHash");
         object feedback = add(add(this.id, " "), this.json(message));

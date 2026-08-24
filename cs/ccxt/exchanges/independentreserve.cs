@@ -1308,7 +1308,7 @@ public partial class independentreserve : Exchange
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -1317,15 +1317,15 @@ public partial class independentreserve : Exchange
             this.checkRequiredCredentials();
             object nonce = this.nonce();
             object auth = new List<object>() {url, add("apiKey=", this.apiKey), add("nonce=", ((object)nonce).ToString())};
-            object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
-                object value = ((object)getValue(parameters, key)).ToString();
+                string value = ((object)getValue(parameters, key)).ToString();
                 ((IList<object>)auth).Add(add(add(key, "="), value));
             }
-            object message = String.Join(",", ((IList<object>)auth).ToArray());
-            object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
+            string message = String.Join(",", ((IList<object>)auth).ToArray());
+            string signature = this.hmac(this.encode(message), this.encode(this.secret), sha256);
             object query = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;

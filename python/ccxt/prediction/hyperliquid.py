@@ -197,7 +197,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param str description: the raw outcome description string
         :returns dict: a dict of the parsed key/value pairs
         """
-        if not description:
+        if (description is None) or (description == ''):
             return {}
         parts = description.split('|')
         result = {}
@@ -226,9 +226,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         expiryDate = expiry.split('-')[0] if expiry else ''
         label = 'YES' if (side == 0) else 'NO'
         base = underlying.upper()
-        if targetPrice:
+        if (targetPrice is not None) and (targetPrice != ''):
             base = base + '_ABOVE_' + targetPrice
-        if expiryDate:
+        if (expiryDate is not None) and (expiryDate != ''):
             base = base + '_' + expiryDate
         return base + ':' + label
 
@@ -243,18 +243,18 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :returns str: the parent market outcome
         """
         underlying = self.safe_string(desc, 'underlying')
-        if underlying:
+        if (underlying is not None) and (underlying != ''):
             targetPrice = self.safe_string(desc, 'targetPrice')
             expiry = self.safe_string(desc, 'expiry', '')
             expiryDate = expiry.split('-')[0] if expiry else ''
             base = underlying.upper()
-            if targetPrice:
+            if (targetPrice is not None) and (targetPrice != ''):
                 base = base + '_ABOVE_' + targetPrice
-            if expiryDate:
+            if (expiryDate is not None) and (expiryDate != ''):
                 base = base + '_' + expiryDate
             return base
         questionDescription = self.safe_string(question, 'description')
-        if questionDescription:
+        if (questionDescription is not None) and (questionDescription != ''):
             questionDesc = self.parse_outcome_description(questionDescription)
             questionClass = self.safe_string_lower(questionDesc, 'class')
             if questionClass == 'pricebucket':
@@ -284,19 +284,19 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                         else:
                             bucketLabel = 'BETWEEN_' + thresholds[index - 1] + '_' + thresholds[index]
                         base = questionUnderlying.upper() + '_' + bucketLabel
-                        if expiryDate:
+                        if (expiryDate is not None) and (expiryDate != ''):
                             base = base + '_' + expiryDate
                         return base
                 isFallbackLike = (rawDescription == 'other') or (nameLower.find('fallback') >= 0) or (nameLower.find('other') >= 0)
                 if questionUnderlying and isFallbackLike:
                     base = questionUnderlying.upper() + '_OTHER'
-                    if expiryDate:
+                    if (expiryDate is not None) and (expiryDate != ''):
                         base = base + '_' + expiryDate
                     return base
         questionName = self.safe_string(question, 'name')
-        if questionName:
+        if (questionName is not None) and (questionName != ''):
             questionSlug = self.shorten_slug(questionName)
-            if questionSlug:
+            if (questionSlug is not None) and (questionSlug != ''):
                 outcomeSlug = self.shorten_slug(name)
                 genericOutcomeNames = {
                     'RECURRING': True,
@@ -308,11 +308,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                         outcomeSlug = 'OTHER'
                     else:
                         outcomeSlug = ''
-                if outcomeSlug:
+                if (outcomeSlug is not None) and (outcomeSlug != ''):
                     return questionSlug + '_' + outcomeSlug + '_' + str(outcomeId)
                 return questionSlug + '_' + str(outcomeId)
         # Fallback: use name slugified, or OUTCOME-<id>
-        if name:
+        if (name is not None) and (name != ''):
             return self.shorten_slug(name) + '_' + str(outcomeId)
         return 'OUTCOME_' + str(outcomeId)
 
@@ -416,7 +416,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         expiry = self.safe_string(desc, 'expiry')
         expiryMs = None
         expiryDatetime = None
-        if expiry:
+        if (expiry is not None) and (expiry != ''):
             # e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             expParts = expiry.split('-')
             expPartsLength = len(expParts)
@@ -1020,7 +1020,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         return self.safe_dict(outcomesList, 0, {})
 
     def parse_outcome_input_side_hint(self, outcomeInput: str) -> Str:
-        if not outcomeInput:
+        if (outcomeInput is None) or (outcomeInput == ''):
             return None
         colonIndex = outcomeInput.find(':')
         if colonIndex > -1 and colonIndex < len(outcomeInput) - 1:
@@ -1067,7 +1067,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             market = self.safe_market(outcomeInput)
             sideHintOrDefault = sideHint if (sideHint is not None) else 'YES'
             found = self.find_outcome_in_market(market, sideHintOrDefault)
-            if found > 0:
+            if len(found) > 0:
                 return found
         raise ArgumentsRequired(self.id + ' cannot resolve outcome from input: ' + outcomeInput + '. Provide an outcome symbol(e.g. MARKET:YES), outcome id(#<encoding>), or market id with side.')
 
@@ -1761,7 +1761,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         expiryRaw = self.safe_string(desc, 'expiry')
         expiryMs = None
         expiryDatetime = None
-        if expiryRaw:
+        if (expiryRaw is not None) and (expiryRaw != ''):
             parts = expiryRaw.split('-')
             partsLength = len(parts)
             if partsLength >= 1 and len(parts[0]) == 8:
@@ -1774,9 +1774,9 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         title = parentSymbol
         if underlying is not None:
             titleSuffix = ''
-            if targetPrice:
+            if (targetPrice is not None) and (targetPrice != ''):
                 titleSuffix = titleSuffix + ' ABOVE ' + targetPrice
-            if expiryRaw:
+            if (expiryRaw is not None) and (expiryRaw != ''):
                 titleSuffix = titleSuffix + ' @ ' + expiryRaw
             title = underlying + titleSuffix
         endValue = expiryMs if (expiryMs is not None) else firstExpiry

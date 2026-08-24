@@ -954,7 +954,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < fapiRows.length; i++) {
             const market = fapiRows[i];
             // tmp skip some markets with base = undefined
-            if (this.safeString(market, 'baseAsset')) {
+            if (this.safeString(market, 'baseAsset') !== undefined) {
                 fapiRowsFiltered.push(market);
             }
         }
@@ -4284,7 +4284,7 @@ class aster extends aster$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.rawencode(params);
             }
         }

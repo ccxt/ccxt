@@ -3159,11 +3159,11 @@ class woo(Exchange, ImplicitAPI):
         params = self.keysort(params)
         if access == 'public':
             url += access + '/' + pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         elif access == 'pub':
             url += pathWithParams
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         else:
             self.check_required_credentials()
@@ -3192,7 +3192,7 @@ class woo(Exchange, ImplicitAPI):
                     auth += body
                     headers['content-type'] = 'application/json'
                 else:
-                    if params:
+                    if len(params) > 0:
                         query = self.urlencode(params)
                         url += '?' + query
                         auth += '?' + query
@@ -3201,7 +3201,7 @@ class woo(Exchange, ImplicitAPI):
                 if method == 'POST' or method == 'PUT' or method == 'DELETE':
                     body = auth
                 else:
-                    if params:
+                    if len(params) > 0:
                         url += '?' + auth
                 auth += '|' + ts
                 headers['content-type'] = 'application/x-www-form-urlencoded'

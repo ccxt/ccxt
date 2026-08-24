@@ -187,23 +187,32 @@ def test_ticker(exchange, skipped_properties, method, entry, symbol):
         assert Precise.string_ge(last_string, median_low) and Precise.string_le(last_string, median_high), 'last price should be within 1% of the bid/ask median price' + log_text
     percentage = exchange.safe_string(entry, 'percentage')
     change = exchange.safe_string(entry, 'change')
+    # option markets are exempt from the UPPER percentage/change caps only:
+    # expiry-day convexity makes any finite cap wrong - a formerly-OTM
+    # contract moving into the money legitimately gains 1000x+ (observed: a
+    # paradex call at +109055% on its expiry date, mark price equal to
+    # intrinsic). the floors stay: a long option cannot lose more than its
+    # premium, so percentage >= -100 and change >= -open hold for options too
+    is_option_market = exchange.safe_bool(market, 'option', False)
     if not ('maxIncrease' in skipped_properties) and not is_unrecognized_symbol:
         #
         # percentage
         #
         max_increase = '1000'  # if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
         if percentage is not None:
-            # - should be above -100 and below MAX
+            # - should be above -100 and (for non-options) below MAX
             assert Precise.string_ge(percentage, '-100'), 'percentage should be above -100% ' + log_text
-            assert Precise.string_le(percentage, Precise.string_mul('+100', max_increase)), 'percentage should be below ' + max_increase + '00% ' + log_text
+            if not is_option_market:
+                assert Precise.string_le(percentage, Precise.string_mul('+100', max_increase)), 'percentage should be below ' + max_increase + '00% ' + log_text
         #
         # change
         #
         approx_value = exchange.safe_string_n(entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose'])
         if change is not None:
-            # - should be between -price & +price*100
+            # - should be above -price and (for non-options) below +price*maxIncrease
             assert Precise.string_ge(change, Precise.string_neg(approx_value)), 'change should be above -price ' + log_text
-            assert Precise.string_le(change, Precise.string_mul(approx_value, max_increase)), 'change should be below ' + max_increase + 'x price ' + log_text
+            if not is_option_market:
+                assert Precise.string_le(change, Precise.string_mul(approx_value, max_increase)), 'change should be below ' + max_increase + 'x price ' + log_text
     #
     # ensure all expected values are defined
     #

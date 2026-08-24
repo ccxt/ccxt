@@ -2799,7 +2799,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 ])
                 rawMarkets = self.safe_list(responses, 0, [])
                 rawQuestions = self.safe_list(responses, 1, [])
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         seenMarketHandles = {}
         result = []
@@ -3548,6 +3548,6 @@ class myriad(PredictionExchange, ImplicitAPI):
             queryKeysLength = len(queryKeys)
             if queryKeysLength > 0:
                 body = self.json(query)
-        if self.apiKey:
+        if (self.apiKey is not None) and (self.apiKey != ''):
             headers = self.extend(headers, {'x-api-key': self.apiKey})
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

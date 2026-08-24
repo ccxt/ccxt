@@ -2235,7 +2235,7 @@ public class LatokenCore extends LatokenApi
         Object urlencodedQuery = this.urlencode(query);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 requestString = Helpers.add(requestString, Helpers.add("?", urlencodedQuery));
             }

@@ -245,7 +245,7 @@ public partial class mudrex : Exchange
         {
             ((IDictionary<string,object>)requestHeaders)["Partner-Id"] = brokerId;
         }
-        object methodUpper = ((string)method).ToUpper();
+        string methodUpper = ((string)method).ToUpper();
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -271,7 +271,7 @@ public partial class mudrex : Exchange
                         { "headers", requestHeaders },
                     };
                 }
-                object bodyStr = this.json(query);
+                string bodyStr = this.json(query);
                 return new Dictionary<string, object>() {
                     { "url", url },
                     { "method", methodUpper },
@@ -280,7 +280,7 @@ public partial class mudrex : Exchange
                 };
             }
         }
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
         {
             url = add(url, add("?", this.urlencode(query)));
         }
@@ -309,7 +309,7 @@ public partial class mudrex : Exchange
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, add(add(this.id, " "), text));
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), text, add(add(this.id, " "), text));
             object msg = add(add(this.id, " "), text);
-            object low = ((string)text).ToLower();
+            string low = ((string)text).ToLower();
             if (isTrue(isTrue(isEqual(code, 401)) || isTrue(isGreaterThanOrEqual(getIndexOf(low, "auth"), 0))))
             {
                 throw new AuthenticationError ((string)msg) ;
@@ -378,7 +378,7 @@ public partial class mudrex : Exchange
         {
             requestLimit = 500;
         }
-        object now = this.seconds();
+        Int64 now = this.seconds();
         object startTime = null;
         if (isTrue(!isEqual(since, null)))
         {
@@ -519,7 +519,7 @@ public partial class mudrex : Exchange
         object ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
         object symbol = getValue(market, "symbol");
-        object ts = this.milliseconds();
+        Int64 ts = this.milliseconds();
         object pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -559,10 +559,10 @@ public partial class mudrex : Exchange
         object aggregated = new List<object>() {};
         object offset = 0;
         object pageLimit = 100;
-        object paging = true;
+        bool paging = true;
         while (isEqual(paging, true))
         {
-            object q = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> q = this.extend(new Dictionary<string, object>() {
                 { "limit", pageLimit },
                 { "offset", offset },
             }, parameters);
@@ -573,8 +573,8 @@ public partial class mudrex : Exchange
             {
                 items = this.safeList(data, "items", new List<object>() {});
                 // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                object itemsLength = getArrayLength(items);
-                if (!isTrue(itemsLength))
+                int itemsLength = getArrayLength(items);
+                if (isTrue(isTrue((isEqual(itemsLength, null))) || isTrue((isEqual(itemsLength, 0)))))
                 {
                     items = this.safeList(data, "results", new List<object>() {});
                     itemsLength = getArrayLength(items);
@@ -587,8 +587,8 @@ public partial class mudrex : Exchange
             {
                 items = this.toArray(data);
             }
-            object numItems = getArrayLength(items);
-            if (!isTrue(numItems))
+            int numItems = getArrayLength(items);
+            if (isTrue(isTrue((isEqual(numItems, null))) || isTrue((isEqual(numItems, 0)))))
             {
                 paging = false;
                 break;
@@ -622,8 +622,8 @@ public partial class mudrex : Exchange
         {
             bs = slice(ms, 0, -4);
         }
-        object quote = "USDT";
-        object settle = "USDT";
+        string quote = "USDT";
+        string settle = "USDT";
         object symbol = null;
         if (isTrue(!isEqual(bs, null)))
         {
@@ -738,7 +738,7 @@ public partial class mudrex : Exchange
     {
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object currency = this.safeString(response, "currency", "USDT");
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         object result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", timestamp },
@@ -1128,7 +1128,7 @@ public partial class mudrex : Exchange
         {
             ((IDictionary<string,object>)q)["limit"] = limit;
         }
-        object request = this.extend(q, parameters);
+        Dictionary<string, object> request = this.extend(q, parameters);
         object response = null;
         if (isTrue(isEqual(state, "closed")))
         {
@@ -1594,7 +1594,7 @@ public partial class mudrex : Exchange
             { "to_wallet_type", tw },
             { "amount", this.numberToString(amount) },
         };
-        object useInr = false;
+        bool useInr = false;
         if (isTrue(isEqual(code, "INR")))
         {
             useInr = true;

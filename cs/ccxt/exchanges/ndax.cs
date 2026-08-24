@@ -836,7 +836,7 @@ public partial class ndax : Exchange
         object quote = this.safeCurrencyCode(this.safeString(market, "Product2Symbol"));
         object sessionStatus = this.safeString(market, "SessionStatus");
         object isDisable = this.safeValue(market, "IsDisable");
-        object sessionRunning = (isEqual(sessionStatus, "Running"));
+        bool sessionRunning = (isEqual(sessionStatus, "Running"));
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
@@ -1218,7 +1218,7 @@ public partial class ndax : Exchange
             { "Interval", this.safeString(this.timeframes, timeframe, timeframe) },
         };
         object duration = this.parseTimeframe(timeframe);
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         if (isTrue(isEqual(since, null)))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -1474,7 +1474,7 @@ public partial class ndax : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.login))
+        if (isTrue(isTrue((isEqual(this.login, null))) || isTrue((isEqual(this.login, "")))))
         {
             throw new AuthenticationError ((string)add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
         }
@@ -2521,7 +2521,7 @@ public partial class ndax : Exchange
         //         },
         //     ]
         //
-        object grouped = this.groupBy(response, "ChangeReason");
+        Dictionary<string, object> grouped = this.groupBy(response, "ChangeReason");
         object trades = this.safeList(grouped, "Trade", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
@@ -2587,9 +2587,9 @@ public partial class ndax : Exchange
         //
         object depositInfoString = this.safeString(depositAddress, "DepositInfo", "[]");
         object depositInfo = parseJson(depositInfoString);
-        object depositInfoLength = getArrayLength(depositInfo);
+        int depositInfoLength = getArrayLength(depositInfo);
         object lastString = this.safeString(depositInfo, subtract(depositInfoLength, 1), "");
-        object parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)lastString).Split(new [] {((string)"?memo=")}, StringSplitOptions.None).ToList<object>();
         object address = this.safeString(parts, 0);
         object tag = this.safeString(parts, 1);
         object code = null;
@@ -3054,7 +3054,7 @@ public partial class ndax : Exchange
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -3064,9 +3064,9 @@ public partial class ndax : Exchange
             object sessionToken = this.safeString(this.options, "sessionToken");
             if (isTrue(isEqual(sessionToken, null)))
             {
-                object nonce = ((object)this.nonce()).ToString();
+                string nonce = ((object)this.nonce()).ToString();
                 object auth = add(add(nonce, this.uid), this.apiKey);
-                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 headers = new Dictionary<string, object>() {
                     { "Nonce", nonce },
                     { "APIKey", this.apiKey },
@@ -3085,7 +3085,7 @@ public partial class ndax : Exchange
                 body = this.json(query);
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }

@@ -3942,7 +3942,7 @@ class deribit extends deribit$1["default"] {
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + 'api/' + this.version + '/' + api + '/' + path;
         if (api === 'public') {
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
         }
@@ -3951,7 +3951,7 @@ class deribit extends deribit$1["default"] {
             const nonce = this.nonce().toString();
             const timestamp = this.milliseconds().toString();
             const requestBody = '';
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 request += '?' + this.urlencode(params);
             }
             const requestData = method + "\n" + request + "\n" + requestBody + "\n"; // eslint-disable-line quotes

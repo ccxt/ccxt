@@ -896,7 +896,7 @@ class hibachi extends Exchange {
             $sideInternal = 'BID';
         }
         $priceInternal = '';
-        if ($price) {
+        if (($price !== null) && ($price !== 0)) {
             $priceInternal = $this->price_to_precision($symbol, $price);
         }
         $message = $this->order_message($market, $nonce, $feeRate, $type, $side, $amount, $price);

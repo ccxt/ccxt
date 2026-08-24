@@ -292,7 +292,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
         });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
@@ -305,7 +305,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
         });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
@@ -318,7 +318,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createStopLimitOrderWs() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
         return await this.createOrderWs(symbol, "limit", side, amount, price, query);
@@ -361,7 +361,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createStopMarketOrderWs() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
         return await this.createOrderWs(symbol, "market", side, amount, null, query);
@@ -378,7 +378,7 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
         return await this.createOrderWs(symbol, type, side, amount, price, query);
@@ -682,7 +682,7 @@ public partial class Exchange
     public async virtual Task<object> editOrderWithClientOrderId(object clientOrderId, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderId", clientOrderId },
         });
         return await this.editOrder("", symbol, type, side, amount, price, extendedParams);
@@ -771,7 +771,7 @@ public partial class Exchange
     public async virtual Task<object> fetchOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderId", clientOrderId },
         });
         return await this.fetchOrder("", symbol, extendedParams);
@@ -1069,7 +1069,7 @@ public partial class Exchange
     public async virtual Task<object> cancelOrderWithClientOrderId(object clientOrderId, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderId", clientOrderId },
         });
         return await this.cancelOrder("", symbol, extendedParams);
@@ -1093,7 +1093,7 @@ public partial class Exchange
     public async virtual Task<object> cancelOrdersWithClientOrderIds(object clientOrderIds, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "clientOrderIds", clientOrderIds },
         });
         return await this.cancelOrders(new List<object>() {}, symbol, extendedParams);
@@ -1216,7 +1216,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createPostOnlyOrder() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "postOnly", true },
         });
         return await this.createOrder(symbol, type, side, amount, price, query);
@@ -1229,7 +1229,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createReduceOnlyOrder() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "reduceOnly", true },
         });
         return await this.createOrder(symbol, type, side, amount, price, query);
@@ -1246,7 +1246,7 @@ public partial class Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " create_stop_order() requires a stopPrice argument")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
         return await this.createOrder(symbol, type, side, amount, price, query);
@@ -1259,7 +1259,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createStopLimitOrder() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
         return await this.createOrder(symbol, "limit", side, amount, price, query);
@@ -1272,7 +1272,7 @@ public partial class Exchange
         {
             throw new NotSupported ((string)add(this.id, " createStopMarketOrder() is not supported yet")) ;
         }
-        object query = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> query = this.extend(parameters, new Dictionary<string, object>() {
             { "stopPrice", triggerPrice },
         });
         return await this.createOrder(symbol, "market", side, amount, null, query);

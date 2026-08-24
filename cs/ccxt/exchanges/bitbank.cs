@@ -1203,7 +1203,7 @@ public partial class bitbank : Exchange
         if (isTrue(isTrue((isEqual(api, "public"))) || isTrue((isEqual(api, "markets")))))
         {
             url = add(url, this.implodeParams(path, parameters));
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -1215,10 +1215,10 @@ public partial class bitbank : Exchange
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
             object authMethod = this.safeString(this.options, "authMethod", "timeWindow");
-            object isTimeWindow = (isEqual(authMethod, "timeWindow"));
-            object requestTime = ((object)this.milliseconds()).ToString();
+            bool isTimeWindow = (isEqual(authMethod, "timeWindow"));
+            string requestTime = ((object)this.milliseconds()).ToString();
             object timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object auth = null;
             if (isTrue(isTimeWindow))
             {
@@ -1235,7 +1235,7 @@ public partial class bitbank : Exchange
             } else
             {
                 auth = add(auth, add(add(add("/", this.version), "/"), path));
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     query = this.urlencode(query);
                     url = add(url, add("?", query));

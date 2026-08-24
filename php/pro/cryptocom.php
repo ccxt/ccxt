@@ -138,7 +138,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $symbols = $this->market_symbols($symbols);
         $topics = array();
         $messageHashes = array();
-        if (!$limit) {
+        if (($limit === null) || ($limit === 0)) {
             $limit = 50;
         }
         $topicParams = $this->safe_value($params, 'params');
@@ -1001,7 +1001,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() $symbols is required');
             }
-            $messageHash = '::' . implode(',', $symbols);
+            $messageHash = 'positions::' . implode(',', $symbols);
         }
         $client = $this->client($url);
         $this->set_positions_cache($client, $symbols);

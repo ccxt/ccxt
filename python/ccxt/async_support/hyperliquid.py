@@ -2139,7 +2139,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice', triggerPrice)
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
-        isTrigger = (stopLossPrice or takeProfitPrice)
+        isTrigger = ((stopLossPrice is not None) or (takeProfitPrice is not None))
         px = None
         if isMarket:
             if price is None:
@@ -2630,7 +2630,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             triggerPrice = self.safe_string_2(orderParams, 'triggerPrice', 'stopPrice')
             stopLossPrice = self.safe_string(orderParams, 'stopLossPrice', triggerPrice)
             takeProfitPrice = self.safe_string(orderParams, 'takeProfitPrice')
-            isTrigger = (stopLossPrice or takeProfitPrice)
+            isTrigger = ((stopLossPrice is not None) or (takeProfitPrice is not None))
             reduceOnly = self.safe_bool(orderParams, 'reduceOnly', False)
             orderParams = self.omit(orderParams, ['slippage', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'clientOrderId', 'client_id', 'postOnly', 'reduceOnly'])
             px = self.number_to_string(price)
@@ -4592,7 +4592,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if coin is None:
             return None
         hi3TokensByname = self.safe_dict(self.options, 'hip3TokensByName', {})
-        if self.safe_dict(hi3TokensByname, coin):
+        if self.safe_dict(hi3TokensByname, coin) is not None:
             hip3Dict = self.safe_dict(hi3TokensByname, coin)
             quote = self.safe_string(hip3Dict, 'quote', 'USDC')
             code = self.safe_string(hip3Dict, 'code', coin)

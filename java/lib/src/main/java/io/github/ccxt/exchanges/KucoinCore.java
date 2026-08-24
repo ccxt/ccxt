@@ -3464,7 +3464,7 @@ public class KucoinCore extends KucoinApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", KucoinCore.this.safeString(ticker, "priceChg") );
-            put( "percentage", KucoinCore.this.safeString(ticker, "priceChgPct") );
+            put( "percentage", Precise.stringMul(KucoinCore.this.safeString(ticker, "priceChgPct"), "100") );
             put( "average", null );
             put( "baseVolume", KucoinCore.this.safeString(ticker, "volumeOf24h") );
             put( "quoteVolume", KucoinCore.this.safeString(ticker, "turnoverOf24h") );
@@ -6693,7 +6693,7 @@ public class KucoinCore extends KucoinApi
                 {
                     Helpers.addElementToObject(request, "pageSize", limit);
                 }
-                if (Helpers.isTrue(until))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((!Helpers.isEqual(until, 0)))))
                 {
                     Helpers.addElementToObject(request, "endAt", until);
                 }

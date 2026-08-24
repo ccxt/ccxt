@@ -1160,7 +1160,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request = {
             'instrument_name': market['id'],
         }
-        if limit:
+        if (limit is not None) and (limit != 0):
             request['depth'] = min(limit, 50)  # max 50
         response = await self.v1PublicGetPublicGetBook(self.extend(request, params))
         #
@@ -3393,7 +3393,7 @@ class cryptocom(Exchange, ImplicitAPI):
         url = self.urls['api'][type] + '/' + path
         query = self.omit(params, self.extract_params(path))
         if access == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()

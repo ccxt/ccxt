@@ -332,7 +332,7 @@ public partial class hibachi : Exchange
     {
         object marketId = this.safeString(market, "symbol");
         object numericId = this.safeNumber(market, "id");
-        object marketType = "swap";
+        string marketType = "swap";
         object baseId = this.safeString(market, "underlyingSymbol");
         object quoteId = this.safeString(market, "settlementSymbol");
         object bs = this.safeCurrencyCode(baseId);
@@ -440,7 +440,7 @@ public partial class hibachi : Exchange
         // We don't have an API endpoint to expose this information yet
         object result = new Dictionary<string, object>() {};
         object networks = new Dictionary<string, object>() {};
-        object networkId = "ARBITRUM";
+        string networkId = "ARBITRUM";
         ((IDictionary<string,object>)networks)[(string)networkId] = new Dictionary<string, object>() {
             { "id", networkId },
             { "network", networkId },
@@ -793,10 +793,10 @@ public partial class hibachi : Exchange
         {
             remainingString = Precise.stringSub(totalQuantity, filled);
         }
-        object timeInForce = "GTC";
+        string timeInForce = "GTC";
         object orderFlags = this.safeValue(order, "orderFlags");
-        object postOnly = false;
-        object reduceOnly = false;
+        bool postOnly = false;
+        bool reduceOnly = false;
         if (isTrue(isEqual(orderFlags, "POST_ONLY")))
         {
             timeInForce = "PO";
@@ -939,9 +939,9 @@ public partial class hibachi : Exchange
         object info = this.safeDict(market, "info");
         object underlying = add("1e", this.safeString(info, "underlyingDecimals"));
         object settlement = add("1e", this.safeString(info, "settlementDecimals"));
-        object one = "1";
-        object feeRateFactor = "100000000"; // 10^8
-        object priceFactor = "4294967296"; // 2^32
+        string one = "1";
+        string feeRateFactor = "100000000"; // 10^8
+        string priceFactor = "4294967296"; // 2^32
         object quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, underlying), one, 0);
         object feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
@@ -991,7 +991,7 @@ public partial class hibachi : Exchange
         object takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
         object makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
-        object sideInternal = "";
+        string sideInternal = "";
         if (isTrue(isEqual(side, "sell")))
         {
             sideInternal = "ASK";
@@ -1000,7 +1000,7 @@ public partial class hibachi : Exchange
             sideInternal = "BID";
         }
         object priceInternal = "";
-        if (isTrue(price))
+        if (isTrue(isTrue((!isEqual(price, null))) && isTrue((!isEqual(price, 0)))))
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
@@ -1375,10 +1375,10 @@ public partial class hibachi : Exchange
         // - maxFees: Internal = External * (10^6)
         // We only have USDT as our currency as this time
         object USDTAssetId = 1;
-        object USDTFactor = "1000000";
+        string USDTFactor = "1000000";
         object amountStr = this.numberToString(amount);
         object maxFeesStr = this.numberToString(maxFees);
-        object one = "1";
+        string one = "1";
         object quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, USDTFactor), one, 0);
         object maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
@@ -2542,7 +2542,7 @@ public partial class hibachi : Exchange
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         return this.safeOpenInterest(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "openInterestAmount", this.safeString(response, "totalQuantity") },
@@ -2589,7 +2589,7 @@ public partial class hibachi : Exchange
         // }
         //
         object funding = this.safeDict(response, "fundingRateEstimation", new Dictionary<string, object>() {});
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         object nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
         return new Dictionary<string, object>() {
             { "info", funding },

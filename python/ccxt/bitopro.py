@@ -1823,7 +1823,7 @@ class bitopro(Exchange, ImplicitAPI):
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature
             elif method == 'GET' or method == 'DELETE':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
                 nonce = self.milliseconds()
                 rawData = {
@@ -1836,7 +1836,7 @@ class bitopro(Exchange, ImplicitAPI):
                 headers['X-BITOPRO-PAYLOAD'] = payload
                 headers['X-BITOPRO-SIGNATURE'] = signature
         elif api == 'public' and method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + url
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

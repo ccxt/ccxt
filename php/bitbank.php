@@ -1086,7 +1086,7 @@ class bitbank extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api]) . '/';
         if (($api === 'public') || ($api === 'markets')) {
             $url .= $this->implode_params($path, $params);
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1112,7 +1112,7 @@ class bitbank extends Exchange {
                 $auth .= $body;
             } else {
                 $auth .= '/' . $this->version . '/' . $path;
-                if ($query) {
+                if (count($query) > 0) {
                     $query = $this->urlencode($query);
                     $url .= '?' . $query;
                     $auth .= '?' . $query;

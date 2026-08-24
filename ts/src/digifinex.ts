@@ -1927,7 +1927,7 @@ export default class digifinex extends Exchange {
             request['amount'] = quantity;
         }
         if (postOnly) {
-            if (postOnlyParsed) {
+            if ((postOnlyParsed !== undefined) && (postOnlyParsed !== 0)) {
                 request['post_only'] = postOnlyParsed;
             } else {
                 request['post_only'] = postOnly;
@@ -4505,7 +4505,7 @@ export default class digifinex extends Exchange {
                 nonce = this.milliseconds ().toString ();
                 auth = nonce + method + payload;
                 if (method === 'GET') {
-                    if (urlencoded) {
+                    if ((urlencoded !== undefined) && (urlencoded !== '')) {
                         auth += '?' + urlencoded;
                     }
                 } else if (method === 'POST') {
@@ -4517,14 +4517,14 @@ export default class digifinex extends Exchange {
             }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             if (method === 'GET') {
-                if (urlencoded) {
+                if ((urlencoded !== undefined) && (urlencoded !== '')) {
                     url += '?' + urlencoded;
                 }
             } else if (method === 'POST') {
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 };
-                if (urlencoded) {
+                if ((urlencoded !== undefined) && (urlencoded !== '')) {
                     body = urlencoded;
                 }
             }
@@ -4534,7 +4534,7 @@ export default class digifinex extends Exchange {
                 'ACCESS-TIMESTAMP': nonce,
             };
         } else {
-            if (urlencoded) {
+            if ((urlencoded !== undefined) && (urlencoded !== '')) {
                 url += '?' + urlencoded;
             }
         }

@@ -2872,7 +2872,9 @@ export default class kucoin extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': this.safeString(ticker, 'priceChg'),
-            'percentage': this.safeString(ticker, 'priceChgPct'),
+            // priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
+            // of 2878.7 on a price near 64000, which is a move of 4.47 per cent
+            'percentage': Precise.stringMul(this.safeString(ticker, 'priceChgPct'), '100'),
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volumeOf24h'),
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
@@ -5557,7 +5559,7 @@ export default class kucoin extends Exchange {
             if (limit !== undefined) {
                 request['pageSize'] = limit;
             }
-            if (until) {
+            if ((until !== undefined) && (until !== 0)) {
                 request['endAt'] = until;
             }
             if (trigger) {

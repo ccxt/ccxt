@@ -2192,7 +2192,7 @@ export default class woofipro extends Exchange {
         params = this.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids']);
         const request = {};
         let response = undefined;
-        if (clientOrderIds) {
+        if (clientOrderIds !== undefined) {
             request['client_order_ids'] = clientOrderIds.join(',');
             response = await this.v1PrivateDeleteClientBatchOrder(this.extend(request, params));
         }
@@ -2292,7 +2292,7 @@ export default class woofipro extends Exchange {
         params = this.omit(params, ['stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id']);
         let response = undefined;
         if (trigger) {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetAlgoClientOrderClientOrderId(this.extend(request, params));
             }
@@ -2302,7 +2302,7 @@ export default class woofipro extends Exchange {
             }
         }
         else {
-            if (clientOrderId) {
+            if ((clientOrderId !== undefined) && (clientOrderId !== '')) {
                 request['client_order_id'] = clientOrderId;
                 response = await this.v1PrivateGetClientOrderClientOrderId(this.extend(request, params));
             }
@@ -3416,7 +3416,7 @@ export default class woofipro extends Exchange {
         params = this.keysort(params);
         if (access === 'public') {
             url += pathWithParams;
-            if (Object.keys(params).length) {
+            if (Object.keys(params).length > 0) {
                 url += '?' + this.urlencode(params);
             }
         }
@@ -3457,7 +3457,7 @@ export default class woofipro extends Exchange {
                 headers['content-type'] = 'application/json';
             }
             else {
-                if (Object.keys(params).length) {
+                if (Object.keys(params).length > 0) {
                     url += '?' + this.urlencode(params);
                     auth += '?' + this.rawencode(params);
                 }

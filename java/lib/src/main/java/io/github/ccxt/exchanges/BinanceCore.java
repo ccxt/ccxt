@@ -2906,7 +2906,7 @@ public class BinanceCore extends BinanceApi
                 put( "sandboxMode", false );
                 put( "fetchMargins", true );
                 put( "fetchMarkets", new java.util.HashMap<String, Object>() {{
-                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse")) );
+                    put( "types", new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse", "stock")) );
                     put( "loadAllOptions", false );
                 }} );
                 put( "fetchCurrencies", true );
@@ -4983,10 +4983,6 @@ public class BinanceCore extends BinanceApi
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetMarginAllPairs(parameters));
                         ((java.util.List<Object>)promisesRaw).add(this.sapiGetMarginIsolatedAllPairs(parameters));
                     }
-                    if (Helpers.isTrue(!Helpers.isTrue(isDemoEnv) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.apiKey, null)) && Helpers.isTrue(!Helpers.isEqual(this.apiKey, ""))))))
-                    {
-                        ((java.util.List<Object>)promisesRaw).add(this.sapiGetEquityMarketExchangeInfo(parameters));
-                    }
                 } else if (Helpers.isTrue(Helpers.isEqual(marketType, "linear")))
                 {
                     ((java.util.List<Object>)promisesRaw).add(this.fapiPublicGetExchangeInfo(parameters));
@@ -4996,6 +4992,12 @@ public class BinanceCore extends BinanceApi
                 } else if (Helpers.isTrue(Helpers.isEqual(marketType, "option")))
                 {
                     ((java.util.List<Object>)promisesRaw).add(this.eapiPublicGetExchangeInfo(parameters));
+                } else if (Helpers.isTrue(Helpers.isEqual(marketType, "stock")))
+                {
+                    if (Helpers.isTrue(!Helpers.isTrue(isDemoEnv) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.apiKey, null)) && Helpers.isTrue(!Helpers.isEqual(this.apiKey, ""))))))
+                    {
+                        ((java.util.List<Object>)promisesRaw).add(this.sapiGetEquityMarketExchangeInfo(parameters));
+                    }
                 } else
                 {
                     throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")) ;
@@ -11733,7 +11735,7 @@ public class BinanceCore extends BinanceApi
         Object priceString = null;
         if (Helpers.isTrue(!Helpers.isEqual(costString, null)))
         {
-            if (Helpers.isTrue(amountString))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountString, null))) && Helpers.isTrue((!Helpers.isEqual(amountString, "")))))
             {
                 priceString = Precise.stringDiv(costString, amountString);
             }
@@ -16031,7 +16033,7 @@ final Object finalMarket = market;
         url = Helpers.add(url, Helpers.add("/", path));
         if (Helpers.isTrue(Helpers.isEqual(path, "historicalTrades")))
         {
-            if (Helpers.isTrue(this.apiKey))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, "")))))
             {
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "X-MBX-APIKEY", BinanceCore.this.apiKey );
@@ -16044,7 +16046,7 @@ final Object finalMarket = market;
         Object userDataStream = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "userDataStream"))) || Helpers.isTrue((Helpers.isEqual(path, "listenKey")))) || Helpers.isTrue((Helpers.isEqual(path, "userListenToken")));
         if (Helpers.isTrue(userDataStream))
         {
-            if (Helpers.isTrue(this.apiKey))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
                 headers = new java.util.HashMap<String, Object>() {{
@@ -16188,7 +16190,7 @@ final Object finalMarket = market;
             }
         } else
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -17326,10 +17328,10 @@ final Object finalMarket = market;
             Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
             Object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
-            if (Helpers.isTrue(endTime))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(endTime, null))) && Helpers.isTrue((!Helpers.isEqual(endTime, 0)))))
             {
                 Helpers.addElementToObject(request, "endTime", endTime);
-            } else if (Helpers.isTrue(since))
+            } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((!Helpers.isEqual(since, 0)))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {

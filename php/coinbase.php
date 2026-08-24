@@ -913,7 +913,14 @@ class coinbase extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'v2PrivateGetAccountsAccountIdTransactions') {
+            $response = $this->v2PrivateGetAccountsAccountIdTransactions($this->extend($request, $params));
+        } elseif ($method === 'v2PrivateGetAccountsAccountIdWithdrawals') {
+            $response = $this->v2PrivateGetAccountsAccountIdWithdrawals($this->extend($request, $params));
+        } else {
+            $response = $this->v2PrivateGetAccountsAccountIdDeposits($this->extend($request, $params));
+        }
         return $this->parse_transactions($response['data'], null, $since, $limit);
     }
 
@@ -5296,7 +5303,7 @@ class coinbase extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $savedPath = $fullPath;
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $fullPath .= '?' . $this->urlencode_with_array_repeat($query);
             }
         }
@@ -5313,13 +5320,13 @@ class coinbase extends Exchange {
                 $seconds = $this->seconds();
                 $payload = '';
                 if ($method !== 'GET') {
-                    if ($query) {
+                    if (count($query) > 0) {
                         $body = $this->json($query);
                         $payload = $body;
                     }
                 } else {
                     if (!$isV3) {
-                        if ($query) {
+                        if (count($query) > 0) {
                             $payload .= '?' . $this->urlencode($query);
                         }
                     }
@@ -5376,7 +5383,7 @@ class coinbase extends Exchange {
                     'Content-Type' => 'application/json',
                 );
                 if ($method !== 'GET') {
-                    if ($query) {
+                    if (count($query) > 0) {
                         $body = $this->json($query);
                     }
                 }

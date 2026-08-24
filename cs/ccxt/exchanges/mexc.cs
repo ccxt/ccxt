@@ -1362,8 +1362,8 @@ public partial class mexc : Exchange
             //
             //     {}
             //
-            object keys = new List<object>(((IDictionary<string,object>)response).Keys);
-            object length = getArrayLength(keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
+            int length = getArrayLength(keys);
             status = ((bool) isTrue(length)) ? this.json(response) : "ok";
         } else if (isTrue(isEqual(marketType, "swap")))
         {
@@ -1622,7 +1622,7 @@ public partial class mexc : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object status = this.safeString(market, "status");
             object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
-            object active = false;
+            bool active = false;
             if (isTrue(isTrue((isEqual(status, "1"))) && isTrue((isSpotTradingAllowed))))
             {
                 active = true;
@@ -1759,7 +1759,7 @@ public partial class mexc : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = this.safeCurrencyCode(settleId);
             object state = this.safeString(market, "state");
-            object isLinear = isEqual(quote, settle);
+            bool isLinear = isEqual(quote, settle);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(add(add(bs, "/"), quote), ":"), settle) },
@@ -2212,7 +2212,7 @@ public partial class mexc : Exchange
                 {
                     // we have to calculate it assuming we can get at most 2000 entries per request
                     object end = this.sum(since, multiply(maxLimit, duration));
-                    object now = this.milliseconds();
+                    Int64 now = this.milliseconds();
                     ((IDictionary<string,object>)request)["endTime"] = mathMin(end, now);
                 }
             }
@@ -2315,10 +2315,10 @@ public partial class mexc : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object market = null;
-        object isSingularMarket = false;
+        bool isSingularMarket = false;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             isSingularMarket = isEqual(length, 1);
             object firstSymbol = this.safeString(symbols, 0);
             market = this.market(firstSymbol);
@@ -2575,10 +2575,10 @@ public partial class mexc : Exchange
             await this.loadMarkets();
         }
         object market = null;
-        object isSingularMarket = false;
+        bool isSingularMarket = false;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object length = getArrayLength(symbols);
+            int length = getArrayLength(symbols);
             isSingularMarket = isEqual(length, 1);
             market = this.market(getValue(symbols, 0));
         }
@@ -2708,7 +2708,7 @@ public partial class mexc : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object symbol = getValue(market, "symbol");
-        object orderSide = ((string)side).ToUpper();
+        string orderSide = ((string)side).ToUpper();
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", orderSide },
@@ -2978,7 +2978,7 @@ public partial class mexc : Exchange
         object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"});
         object response = null;
-        if (isTrue(triggerPrice))
+        if (isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isEqual(triggerPrice, 0)))))
         {
             ((IDictionary<string,object>)request)["triggerPrice"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = this.safeInteger(parameters, "triggerType", 1);
@@ -5431,7 +5431,7 @@ public partial class mexc : Exchange
                 result = this.safeDict(addressStructures, defaultNetworkForCurrency);
             } else
             {
-                object keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
+                List<object> keys = new List<object>(((IDictionary<string,object>)addressStructures).Keys);
                 object key = this.safeString(keys, 0);
                 result = this.safeDict(addressStructures, key);
             }
@@ -6111,12 +6111,12 @@ public partial class mexc : Exchange
         object toId = this.safeString(accounts, toAccount, toAccount);
         if (isTrue(isEqual(fromId, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
             throw new ExchangeError ((string)add(add(this.id, " fromAccount must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         if (isTrue(isEqual(toId, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)accounts).Keys);
             throw new ExchangeError ((string)add(add(this.id, " toAccount must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         object request = new Dictionary<string, object>() {
@@ -6723,7 +6723,7 @@ public partial class mexc : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbolsLength = getArrayLength(symbols);
+            int symbolsLength = getArrayLength(symbols);
             if (isTrue(isEqual(symbolsLength, 1)))
             {
                 object market = this.market(getValue(symbols, 0));
@@ -6804,7 +6804,7 @@ public partial class mexc : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setMarginMode() supports contract markets only")) ;
         }
-        object marginModeLower = ((string)marginMode).ToLower();
+        string marginModeLower = ((string)marginMode).ToLower();
         if (isTrue(isTrue(!isEqual(marginModeLower, "isolated")) && isTrue(!isEqual(marginModeLower, "cross"))))
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -6877,7 +6877,7 @@ public partial class mexc : Exchange
                 }
             }
             object paramsEncoded = "";
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)urlParams).Keys)), 0)))
             {
                 paramsEncoded = this.urlencode(urlParams);
                 url = add(url, add("?", paramsEncoded));
@@ -6885,7 +6885,7 @@ public partial class mexc : Exchange
             if (isTrue(isEqual(access, "private")))
             {
                 this.checkRequiredCredentials();
-                object signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
+                string signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256);
                 url = add(url, add(add("&", "signature="), signature));
                 headers = new Dictionary<string, object>() {
                     { "X-MEXC-APIKEY", this.apiKey },
@@ -6903,14 +6903,14 @@ public partial class mexc : Exchange
             parameters = this.omit(parameters, this.extractParams(path));
             if (isTrue(isEqual(access, "public")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(parameters)));
                 }
             } else
             {
                 this.checkRequiredCredentials();
-                object timestamp = ((object)this.nonce()).ToString();
+                string timestamp = ((object)this.nonce()).ToString();
                 object auth = "";
                 headers = new Dictionary<string, object>() {
                     { "ApiKey", this.apiKey },
@@ -6925,14 +6925,14 @@ public partial class mexc : Exchange
                 } else
                 {
                     parameters = this.keysort(parameters);
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                    if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                     {
                         auth = add(auth, this.urlencode(parameters));
                         url = add(url, add("?", auth));
                     }
                 }
                 auth = add(add(this.apiKey, timestamp), auth);
-                object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+                string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 ((IDictionary<string,object>)headers)["Signature"] = signature;
             }
         }

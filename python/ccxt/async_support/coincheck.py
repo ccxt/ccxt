@@ -952,17 +952,17 @@ class coincheck(Exchange, ImplicitAPI):
         url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
             queryString = ''
             if method == 'GET':
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(self.keysort(query))
             else:
-                if query:
+                if len(query) > 0:
                     body = self.urlencode(self.keysort(query))
                     queryString = body
             auth = nonce + url + queryString

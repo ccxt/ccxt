@@ -1140,40 +1140,49 @@ class tokocrypto extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            'symbol' => $this->get_market_id_by_type($market),
             // 'fromId' => 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime' => 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
             // 'endTime' => 789,   // Timestamp in ms to get aggregate trades until INCLUSIVE.
             // 'limit' => 500,     // default = 500, maximum = 1000
         );
-        if ($market['quote'] !== 'USDT') {
+        // the venue routes $market $data by the $symbol type reported by fetchMarkets,
+        // not by the quote currency => type 1 markets are served by the binance host
+        // with the underscore-less id, every other type by open/v1 with the raw id
+        $marketInfo = $this->safe_dict($market, 'info', array());
+        $symbolType = $this->safe_string($marketInfo, 'type');
+        if ($symbolType !== '1') {
+            $request['symbol'] = $market['id'];
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $responseInner = $this->publicGetOpenV1MarketTrades($this->extend($request, $params));
+            // open/v1/market/trades answers an empty $list for every $market, the
+            // aggregate endpoint is the one that carries $data for these markets
+            $responseInner = Async\await($this->publicGetOpenV1MarketAggTrades($this->extend($request, $params)));
             //
             //    {
             //       "code" => 0,
-            //       "msg" => "success",
+            //       "msg" => "Success",
             //       "data" => {
             //           "list" => array(
             //                array(
-            //                    "id" => 28457,
-            //                    "price" => "4.00000100",
-            //                    "qty" => "12.00000000",
-            //                    "time" => 1499865549590,
-            //                    "isBuyerMaker" => true,
-            //                    "isBestMatch" => true
+            //                    "a" => 14433,             // aggregate tradeId
+            //                    "p" => "495.00",          // price
+            //                    "q" => "42.00000000",     // quantity
+            //                    "f" => 15578,             // first tradeId
+            //                    "l" => 15578,             // last tradeId
+            //                    "T" => 1787292236948,     // timestamp
+            //                    "m" => false              // was the buyer the maker?
             //                }
             //            )
             //        ),
-            //        "timestamp" => 1571921637091
+            //        "timestamp" => 1787318052414
             //    }
             //
             $data = $this->safe_dict($responseInner, 'data', array());
             $list = $this->safe_list($data, 'list', array());
             return $this->parse_trades($list, $market, $since, $limit);
         }
+        $request['symbol'] = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
         if ($limit !== null) {
             $request['limit'] = $limit; // default = 500, maximum = 1000
         }
@@ -2659,7 +2668,7 @@ class tokocrypto extends Exchange {
         }
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey');
         if ($userDataStream) {
-            if ($this->apiKey) {
+            if (($this->apiKey !== null) && ($this->apiKey !== '')) {
                 // v1 special case for $userDataStream
                 $headers = array(
                     'X-MBX-APIKEY' => $this->apiKey,
@@ -2704,7 +2713,7 @@ class tokocrypto extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }

@@ -2045,11 +2045,11 @@ class zebpay extends Exchange {
         $timestamp = (string) $this->milliseconds();
         $signature = '';
         $query = $this->omit($params, $this->extract_params($path));
-        $queryLength = $query;
+        $queryLength = count($query);
         $access = $this->safe_string($api, 0, 'public');
         if ($access === 'public') {
             if ($method === 'GET' || $method === 'DELETE') {
-                if ($queryLength) {
+                if (($queryLength !== null) && ($queryLength !== 0)) {
                     $url .= '?' . $this->urlencode($query);
                 }
             } else {

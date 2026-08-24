@@ -226,6 +226,13 @@ public class TestTicker extends BaseTest {
         }
         Object percentage = exchange.safeString(entry, "percentage");
         Object change = exchange.safeString(entry, "change");
+        // option markets are exempt from the UPPER percentage/change caps only:
+        // expiry-day convexity makes any finite cap wrong - a formerly-OTM
+        // contract moving into the money legitimately gains 1000x+ (observed: a
+        // paradex call at +109055% on its expiry date, mark price equal to
+        // intrinsic). the floors stay: a long option cannot lose more than its
+        // premium, so percentage >= -100 and change >= -open hold for options too
+        Object isOptionMarket = exchange.safeBool(market, "option", false);
         if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(skippedProperties, "maxIncrease"))) && !Helpers.isTrue(isUnrecognizedSymbol)))
         {
             //
@@ -234,9 +241,12 @@ public class TestTicker extends BaseTest {
             Object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
             {
-                // - should be above -100 and below MAX
+                // - should be above -100 and (for non-options) below MAX
                 Assert(Precise.stringGe(percentage, "-100"), Helpers.add("percentage should be above -100% ", logText));
-                Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), Helpers.add(Helpers.add(Helpers.add("percentage should be below ", maxIncrease), "00% "), logText));
+                if (!Helpers.isTrue(isOptionMarket))
+                {
+                    Assert(Precise.stringLe(percentage, Precise.stringMul("+100", maxIncrease)), Helpers.add(Helpers.add(Helpers.add("percentage should be below ", maxIncrease), "00% "), logText));
+                }
             }
             //
             // change
@@ -244,9 +254,12 @@ public class TestTicker extends BaseTest {
             Object approxValue = exchange.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "close", "average", "bid", "ask", "vwap", "previousClose")));
             if (Helpers.isTrue(!Helpers.isEqual(change, null)))
             {
-                // - should be between -price & +price*100
+                // - should be above -price and (for non-options) below +price*maxIncrease
                 Assert(Precise.stringGe(change, Precise.stringNeg(approxValue)), Helpers.add("change should be above -price ", logText));
-                Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), Helpers.add(Helpers.add(Helpers.add("change should be below ", maxIncrease), "x price "), logText));
+                if (!Helpers.isTrue(isOptionMarket))
+                {
+                    Assert(Precise.stringLe(change, Precise.stringMul(approxValue, maxIncrease)), Helpers.add(Helpers.add(Helpers.add("change should be below ", maxIncrease), "x price "), logText));
+                }
             }
         }
         //

@@ -112,15 +112,9 @@ func (this *Gemini) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 		opt(&opts)
 	}
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrderBook(symbol, limit, params)
 	if IsError(res) {
 		return OrderBook{}, CreateReturnError(res)
@@ -135,10 +129,7 @@ func (this *Gemini) FetchTickerV1(symbol string, options ...FetchTickerV1Options
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTickerV1(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -153,10 +144,7 @@ func (this *Gemini) FetchTickerV2(symbol string, options ...FetchTickerV2Options
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTickerV2(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -171,10 +159,7 @@ func (this *Gemini) FetchTickerV1AndV2(symbol string, options ...FetchTickerV1An
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTickerV1AndV2(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -201,10 +186,7 @@ func (this *Gemini) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTicker(symbol, params)
 	if IsError(res) {
 		return Ticker{}, CreateReturnError(res)
@@ -229,15 +211,9 @@ func (this *Gemini) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 		opt(&opts)
 	}
 
-	var symbols any = nil
-	if opts.Symbols != nil {
-		symbols = *opts.Symbols
-	}
+	var symbols *[]string = opts.Symbols
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTickers(symbols, params)
 	if IsError(res) {
 		return Tickers{}, CreateReturnError(res)
@@ -264,20 +240,11 @@ func (this *Gemini) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 		opt(&opts)
 	}
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -335,15 +302,9 @@ func (this *Gemini) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -370,25 +331,13 @@ func (this *Gemini) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOpenOrders(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -417,15 +366,9 @@ func (this *Gemini) CreateOrder(symbol string, typeVar string, side string, amou
 		opt(&opts)
 	}
 
-	var price any = nil
-	if opts.Price != nil {
-		price = *opts.Price
-	}
+	var price *float64 = opts.Price
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CreateOrder(symbol, typeVar, side, amount, price, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -451,15 +394,9 @@ func (this *Gemini) CancelOrder(id string, options ...CancelOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CancelOrder(id, symbol, params)
 	if IsError(res) {
 		return Order{}, CreateReturnError(res)
@@ -486,25 +423,13 @@ func (this *Gemini) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 		opt(&opts)
 	}
 
-	var symbol any = nil
-	if opts.Symbol != nil {
-		symbol = *opts.Symbol
-	}
+	var symbol *string = opts.Symbol
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchMyTrades(symbol, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -532,15 +457,9 @@ func (this *Gemini) Withdraw(code string, amount float64, address string, option
 		opt(&opts)
 	}
 
-	var tag any = nil
-	if opts.Tag != nil {
-		tag = *opts.Tag
-	}
+	var tag *string = opts.Tag
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.Withdraw(code, amount, address, tag, params)
 	if IsError(res) {
 		return Transaction{}, CreateReturnError(res)
@@ -567,25 +486,13 @@ func (this *Gemini) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawals
 		opt(&opts)
 	}
 
-	var code any = nil
-	if opts.Code != nil {
-		code = *opts.Code
-	}
+	var code *string = opts.Code
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositsWithdrawals(code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -611,10 +518,7 @@ func (this *Gemini) FetchDepositAddress(code string, options ...FetchDepositAddr
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddress(code, params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
@@ -640,10 +544,7 @@ func (this *Gemini) FetchDepositAddressesByNetwork(code string, options ...Fetch
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -668,10 +569,7 @@ func (this *Gemini) CreateDepositAddress(code string, options ...CreateDepositAd
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.CreateDepositAddress(code, params)
 	if IsError(res) {
 		return DepositAddress{}, CreateReturnError(res)
@@ -699,25 +597,13 @@ func (this *Gemini) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 		opt(&opts)
 	}
 
-	var timeframe any = nil
-	if opts.Timeframe != nil {
-		timeframe = *opts.Timeframe
-	}
+	var timeframe *string = opts.Timeframe
 
-	var since any = nil
-	if opts.Since != nil {
-		since = *opts.Since
-	}
+	var since *int64 = opts.Since
 
-	var limit any = nil
-	if opts.Limit != nil {
-		limit = *opts.Limit
-	}
+	var limit *int64 = opts.Limit
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOHLCV(symbol, timeframe, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -742,10 +628,7 @@ func (this *Gemini) FetchOpenInterest(symbol string, options ...FetchOpenInteres
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchOpenInterest(symbol, params)
 	if IsError(res) {
 		return OpenInterest{}, CreateReturnError(res)

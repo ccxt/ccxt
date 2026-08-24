@@ -2267,7 +2267,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(headers, "X-BITOPRO-SIGNATURE", signature);
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
@@ -2284,7 +2284,7 @@ final Object finalJ = j;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "public")) && Helpers.isTrue(Helpers.isEqual(method, "GET"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

@@ -1928,7 +1928,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-PAYLOAD'] = payload;
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             } else if (method === 'GET' || method === 'DELETE') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
                 const nonce = this.milliseconds ();
@@ -1943,7 +1943,7 @@ export default class bitopro extends Exchange {
                 headers['X-BITOPRO-SIGNATURE'] = signature;
             }
         } else if (api === 'public' && method === 'GET') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }

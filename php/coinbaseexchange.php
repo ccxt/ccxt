@@ -978,7 +978,12 @@ class coinbaseexchange extends Exchange {
         );
         // publicGetProductsIdTicker or publicGetProductsIdStats
         $method = $this->safe_string($this->options, 'fetchTickerMethod', 'publicGetProductsIdTicker');
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($method === 'publicGetProductsIdStats') {
+            $response = $this->publicGetProductsIdStats($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetProductsIdTicker($this->extend($request, $params));
+        }
         //
         // publicGetProductsIdTicker
         //
@@ -1401,16 +1406,15 @@ class coinbaseexchange extends Exchange {
         }
         $request = array();
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-        $method = null;
+        $response = null;
         if ($clientOrderId === null) {
-            $method = 'privateGetOrdersId';
             $request['id'] = $id;
+            $response = $this->privateGetOrdersId($this->extend($request, $params));
         } else {
-            $method = 'privateGetOrdersClientClientOid';
             $request['client_oid'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
+            $response = $this->privateGetOrdersClientClientOid($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1633,12 +1637,9 @@ class coinbaseexchange extends Exchange {
             // 'product_id' => $market['id'], // the $request will be more performant if you include it
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_oid');
-        $method = null;
         if ($clientOrderId === null) {
-            $method = 'privateDeleteOrdersId';
             $request['id'] = $id;
         } else {
-            $method = 'privateDeleteOrdersClientClientOid';
             $request['client_oid'] = $clientOrderId;
             $params = $this->omit($params, array( 'clientOrderId', 'client_oid' ));
         }
@@ -1647,7 +1648,12 @@ class coinbaseexchange extends Exchange {
             $market = $this->market($symbol);
             $request['product_id'] = $market['symbol']; // the $request will be more performant if you include it
         }
-        $response = $this->$method($this->extend($request, $params));
+        $response = null;
+        if ($clientOrderId === null) {
+            $response = $this->privateDeleteOrdersId($this->extend($request, $params));
+        } else {
+            $response = $this->privateDeleteOrdersClientClientOid($this->extend($request, $params));
+        }
         return $this->safe_order(array( 'info' => $response ));
     }
 
@@ -1702,19 +1708,18 @@ class coinbaseexchange extends Exchange {
             'currency' => $currency['id'],
             'amount' => $amount,
         );
-        $method = 'privatePostWithdrawals';
+        $response = null;
         if (is_array($params) && array_key_exists('payment_method_id' ?? '', $params)) {
-            $method .= 'PaymentMethod';
+            $response = $this->privatePostWithdrawalsPaymentMethod($this->extend($request, $params));
         } elseif (is_array($params) && array_key_exists('coinbase_account_id' ?? '', $params)) {
-            $method .= 'CoinbaseAccount';
+            $response = $this->privatePostWithdrawalsCoinbaseAccount($this->extend($request, $params));
         } else {
-            $method .= 'Crypto';
             $request['crypto_address'] = $address;
             if ($tag !== null) {
                 $request['destination_tag'] = $tag;
             }
+            $response = $this->privatePostWithdrawalsCrypto($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         if (!$response) {
             throw new ExchangeError($this->id . ' withdraw() error => ' . $this->json($response));
         }
@@ -2145,7 +2150,7 @@ class coinbaseexchange extends Exchange {
         $request = '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
-            if ($query) {
+            if (count($query) > 0) {
                 $request .= '?' . $this->urlencode($query);
             }
         }
@@ -2155,7 +2160,7 @@ class coinbaseexchange extends Exchange {
             $nonce = (string) $this->nonce();
             $payload = '';
             if ($method !== 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->json($query);
                     $payload = $body;
                 }

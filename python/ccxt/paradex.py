@@ -1445,11 +1445,12 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'trigger_price'))
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
-        flags = self.safe_list(order, 'flags', [])
+        flags = self.safe_list(order, 'flags')
         reduceOnly = None
-        if 'REDUCE_ONLY' in flags:
-            reduceOnly = True
+        if flags is not None:
+            reduceOnly = self.in_array('REDUCE_ONLY', flags)
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1465,7 +1466,7 @@ class paradex(Exchange, ImplicitAPI):
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': self.safe_string(order, 'trigger_price'),
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': None,
             'stopLossPrice': None,
             'average': average,
@@ -3145,7 +3146,7 @@ class paradex(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][version]) + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             headers = {
@@ -3183,7 +3184,7 @@ class paradex(Exchange, ImplicitAPI):
             #     body = self.json(query)
             #     headers['Content-Type'] = 'application/json'
             # else:
-            #     if query:
+            #     if len(query):
             #         url += '?' + self.urlencode(query)
             #     }
             # }

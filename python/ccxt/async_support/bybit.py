@@ -6876,6 +6876,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = until
+        elif since is not None:
+            # the endpoint walks backwards from endTime and ignores a lone startTime
+            duration = self.parse_timeframe(timeframe)
+            requestedLimit = 50 if (limit is None) else limit  # exchange default
+            request['endTime'] = self.sum(since, duration * requestedLimit * 1000)
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetV5MarketOpenInterest(self.extend(request, params))
@@ -6975,9 +6980,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
 
         :param str symbol: Unified market symbol
         :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
-        :param int [since]: Not used by Bybit
+        :param int [since]: Timestamp in ms of the earliest open interest to fetch
         :param int [limit]: The number of open interest structures to return. Max 200, default 50
         :param dict [params]: Exchange specific parameters
+        :param int [params.until]: Timestamp in ms of the latest open interest to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An array of open interest structures
         """
@@ -9381,7 +9387,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.rawencode(params)
         elif api == 'private':
             self.check_required_credentials()
@@ -9391,7 +9397,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             isV5UnifiedAccount = url.find('v5') >= 0
             timestamp = str(self.nonce())
             if isOpenapi:
-                if params:
+                if len(params) > 0:
                     body = self.json(params)
                 else:
                     # self fix for PHP is required otherwise it generates

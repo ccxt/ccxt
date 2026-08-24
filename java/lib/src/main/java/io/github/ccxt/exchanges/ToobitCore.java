@@ -99,8 +99,7 @@ public class ToobitCore extends ToobitApi
                 put( "www", "https://www.toobit.com/" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://api-docs.toobit.com/")) );
                 put( "referral", new java.util.HashMap<String, Object>() {{
-                    put( "url", "https://www.toobit.com/en-US/r?i=IFFPy0" );
-                    put( "discount", 0.1 );
+                    put( "url", "https://www.toobit.com/en-US/r?i=dvCpJj" );
                 }} );
                 put( "fees", "https://www.toobit.com/fee" );
             }} );
@@ -2148,10 +2147,10 @@ public class ToobitCore extends ToobitApi
         parameters = ((java.util.List<Object>) reduceOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
-            side = ((Helpers.isTrue(reduceOnly))) ? "SELL_CLOSE" : "BUY_OPEN";
+            side = ((Helpers.isTrue(reduceOnly))) ? "BUY_CLOSE" : "BUY_OPEN";
         } else if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
         {
-            side = ((Helpers.isTrue(reduceOnly))) ? "BUY_CLOSE" : "SELL_OPEN";
+            side = ((Helpers.isTrue(reduceOnly))) ? "SELL_CLOSE" : "SELL_OPEN";
         }
         Helpers.addElementToObject(request, "side", side);
         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -2295,6 +2294,20 @@ public class ToobitCore extends ToobitApi
         market = this.safeMarket(marketId, market);
         Object rawType = this.safeString(order, "type");
         Object rawSideLower = this.safeStringLower(order, "side");
+        Object reduceOnly = null;
+        if (Helpers.isTrue(!Helpers.isEqual(rawSideLower, null)))
+        {
+            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries reduceOnly, so read
+            // it before discarding it (spot sides have no suffix: undefined)
+            Object sideParts = Helpers.split(rawSideLower, "_");
+            Object sideSuffix = this.safeString(sideParts, 1);
+            if (Helpers.isTrue(!Helpers.isEqual(sideSuffix, null)))
+            {
+                reduceOnly = (Helpers.isEqual(sideSuffix, "close"));
+            }
+            rawSideLower = this.safeString(sideParts, 0);
+        }
         Object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
         if (Helpers.isTrue(Helpers.isEqual(triggerPrice, "0.0")))
         {
@@ -2302,7 +2315,9 @@ public class ToobitCore extends ToobitApi
         }
         final Object finalMarket = market;
         final Object finalRawType = rawType;
+        final Object finalRawSideLower = rawSideLower;
         final Object finalTriggerPrice = triggerPrice;
+        final Object finalReduceOnly = reduceOnly;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", ToobitCore.this.safeString(order, "orderId") );
@@ -2316,7 +2331,7 @@ public class ToobitCore extends ToobitApi
             put( "type", ToobitCore.this.parseOrderType(finalRawType) );
             put( "timeInForce", ToobitCore.this.safeString(order, "timeInForce") );
             put( "postOnly", (Helpers.isEqual(finalRawType, "LIMIT_MAKER")) );
-            put( "side", rawSideLower );
+            put( "side", finalRawSideLower );
             put( "price", ToobitCore.this.omitZero(ToobitCore.this.safeString(order, "price")) );
             put( "triggerPrice", finalTriggerPrice );
             put( "cost", ToobitCore.this.omitZero(ToobitCore.this.safeString(order, "cumulativeQuoteQty")) );
@@ -2327,7 +2342,7 @@ public class ToobitCore extends ToobitApi
             put( "trades", null );
             put( "fee", null );
             put( "marginMode", null );
-            put( "reduceOnly", null );
+            put( "reduceOnly", finalReduceOnly );
             put( "leverage", null );
             put( "hedged", null );
         }}, market);
@@ -3687,7 +3702,7 @@ public class ToobitCore extends ToobitApi
             // Public endpoints
             if (!Helpers.isTrue(isPost))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }

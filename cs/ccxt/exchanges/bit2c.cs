@@ -335,13 +335,13 @@ public partial class bit2c : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object account = this.account();
             object currency = this.currency(code);
-            object uppercase = ((string)getValue(currency, "id")).ToUpper();
+            string uppercase = ((string)getValue(currency, "id")).ToUpper();
             if (isTrue(inOp(response, uppercase)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, add("AVAILABLE_", uppercase));
@@ -619,7 +619,7 @@ public partial class bit2c : Exchange
         //     }
         //
         object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)fees).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -662,15 +662,21 @@ public partial class bit2c : Exchange
         {
             await this.loadMarkets();
         }
-        object method = "privatePostOrderAddOrder";
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "Amount", amount },
             { "Pair", getValue(market, "id") },
         };
+        object response = null;
         if (isTrue(isEqual(type, "market")))
         {
-            method = add(method, add("MarketPrice", this.capitalize(side)));
+            if (isTrue(isEqual(side, "buy")))
+            {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, parameters));
+            }
         } else
         {
             ((IDictionary<string,object>)request)["Price"] = price;
@@ -678,8 +684,8 @@ public partial class bit2c : Exchange
             object priceString = this.numberToString(price);
             ((IDictionary<string,object>)request)["Total"] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
             ((IDictionary<string,object>)request)["IsBid"] = (isEqual(side, "buy"));
+            response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         return this.parseOrder(response, market);
     }
 
@@ -808,7 +814,7 @@ public partial class bit2c : Exchange
         //      }
         //
         object orderUnified = null;
-        object isNewOrder = false;
+        bool isNewOrder = false;
         if (isTrue(inOp(order, "NewOrder")))
         {
             orderUnified = getValue(order, "NewOrder");
@@ -989,7 +995,7 @@ public partial class bit2c : Exchange
     public virtual object removeCommaFromValue(object str)
     {
         object newString = "";
-        object strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
         for (object i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
         {
             newString = add(newString, getValue(strParts, i));
@@ -1047,7 +1053,7 @@ public partial class bit2c : Exchange
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            object reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            List<object> reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             object marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(getValue(reference_parts, 0), market);
@@ -1079,7 +1085,7 @@ public partial class bit2c : Exchange
             side = this.safeValue(trade, "isBid");
             if (isTrue(!isEqual(side, null)))
             {
-                if (isTrue(side))
+                if (isTrue(isTrue((!isEqual(side, null))) && isTrue((!isEqual(side, "")))))
                 {
                     side = "buy";
                 } else
@@ -1183,13 +1189,13 @@ public partial class bit2c : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = this.nonce();
-            object query = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);
             object auth = this.urlencode(query);
             if (isTrue(isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", auth));
                 }
@@ -1197,7 +1203,7 @@ public partial class bit2c : Exchange
             {
                 body = auth;
             }
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },

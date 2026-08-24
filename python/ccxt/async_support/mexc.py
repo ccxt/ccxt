@@ -2532,7 +2532,7 @@ class mexc(Exchange, ImplicitAPI):
         triggerPrice = self.safe_number_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['clientOrderId', 'externalOid', 'postOnly', 'stopPrice', 'triggerPrice', 'hedged'])
         response: dict
-        if triggerPrice:
+        if (triggerPrice is not None) and (triggerPrice != 0):
             request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
             request['triggerType'] = self.safe_integer(params, 'triggerType', 1)
             request['executeCycle'] = self.safe_integer(params, 'executeCycle', 1)
@@ -5972,7 +5972,7 @@ class mexc(Exchange, ImplicitAPI):
                     urlParams['timestamp'] = self.nonce()
                     urlParams['recvWindow'] = self.safe_integer(self.options, 'recvWindow', 5000)
             paramsEncoded = ''
-            if urlParams:
+            if len(urlParams) > 0:
                 paramsEncoded = self.urlencode(urlParams)
                 url += '?' + paramsEncoded
             if access == 'private':
@@ -5990,7 +5990,7 @@ class mexc(Exchange, ImplicitAPI):
             url = self.urls['api'][section][access] + '/' + self.implode_params(path, params)
             params = self.omit(params, self.extract_params(path))
             if access == 'public':
-                if params:
+                if len(params) > 0:
                     url += '?' + self.urlencode(params)
             else:
                 self.check_required_credentials()
@@ -6007,7 +6007,7 @@ class mexc(Exchange, ImplicitAPI):
                     body = auth
                 else:
                     params = self.keysort(params)
-                    if params:
+                    if len(params) > 0:
                         auth += self.urlencode(params)
                         url += '?' + auth
                 auth = self.apiKey + timestamp + auth

@@ -3955,14 +3955,14 @@ public class WooCore extends WooApi
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
             url = Helpers.add(url, Helpers.add(Helpers.add(access, "/"), pathWithParams));
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
         } else if (Helpers.isTrue(Helpers.isEqual(access, "pub")))
         {
             url = Helpers.add(url, pathWithParams);
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }
@@ -4005,7 +4005,7 @@ public class WooCore extends WooApi
                     Helpers.addElementToObject(headers, "content-type", "application/json");
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
                         Object query = this.urlencode(parameters);
                         url = Helpers.add(url, Helpers.add("?", query));
@@ -4020,7 +4020,7 @@ public class WooCore extends WooApi
                     body = auth;
                 } else
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
                         url = Helpers.add(url, Helpers.add("?", auth));
                     }

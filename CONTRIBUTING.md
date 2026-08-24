@@ -972,6 +972,17 @@ You can create a static-request test by running this command and pasting the res
 node cli.js binance fetchTrades "BTC/USDT:USDT" --report
 ````
 
+The `output` field holds the expected HTTP body. When that body is itself JSON, store it
+as a JSON object (or array) so the fixture stays valid RFC 8259 and readable:
+
+```json
+"output": { "symbol": "BTC_USDT_PERP", "side": "BUY", "type": "LIMIT", "sz": "1", "px": "84000" }
+```
+
+The request comparator already parses string `output` values as JSON when `outputType` is
+`json`, so an object and a stringified object compare the same. Query-string bodies stay
+plain strings (`"symbol=BTCUSDT&side=BUY"`).
+
 
 **Response-static**
 - Emulate a mocked response from the server and assert the CCXT parses the raw HTTP response correctly.

@@ -199,7 +199,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object topic = "realtimes";
+        string topic = "realtimes";
         object messageHash = add("ticker:", symbol);
         return await this.wathPublic(market, topic, messageHash, parameters);
     }
@@ -263,7 +263,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object topic = "trade";
+        string topic = "trade";
         object messageHash = add("trades:", symbol);
         object trades = await this.wathPublic(market, topic, messageHash, parameters);
         if (isTrue(this.newUpdates))
@@ -342,7 +342,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object topic = "depth";
+        string topic = "depth";
         object messageHash = add("orderbook:", symbol);
         object orderbook = await this.wathPublic(market, topic, messageHash, parameters);
         return (orderbook as IOrderBook).limit();
@@ -474,7 +474,7 @@ public partial class hashkey : ccxt.hashkey
         object parsed = this.parseWsOrder(message);
         object orders = this.orders;
         callDynamically(orders, "append", new object[] {parsed});
-        object messageHash = "orders";
+        string messageHash = "orders";
         callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
         object symbol = getValue(parsed, "symbol");
         object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
@@ -595,7 +595,7 @@ public partial class hashkey : ccxt.hashkey
         object parsed = this.parseWsTrade(message);
         callDynamically(tradesArray, "append", new object[] {parsed});
         this.myTrades = tradesArray;
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
         object symbol = getValue(parsed, "symbol");
         object symbolSpecificMessageHash = add(add(messageHash, ":"), symbol);
@@ -634,7 +634,7 @@ public partial class hashkey : ccxt.hashkey
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(trade, "t");
         object isBuyerMaker = this.safeBool(trade, "m");
-        object isPublicTrade = isEqual(this.safeString(trade, "e"), null);
+        bool isPublicTrade = isEqual(this.safeString(trade, "e"), null);
         object side = null;
         object takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
@@ -686,7 +686,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
-        object messageHash = "positions";
+        string messageHash = "positions";
         object messageHashes = new List<object>() {};
         if (isTrue(isEqual(symbols, null)))
         {
@@ -738,7 +738,7 @@ public partial class hashkey : ccxt.hashkey
         object positions = this.positions;
         object parsed = this.parseWsPosition(message);
         callDynamically(positions, "append", new object[] {parsed});
-        object messageHash = "positions";
+        string messageHash = "positions";
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, messageHash});
         object symbol = getValue(parsed, "symbol");
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsed, add(add(messageHash, ":"), symbol)});
@@ -879,7 +879,7 @@ public partial class hashkey : ccxt.hashkey
         object eventVar = this.safeString(message, "e");
         object data = this.safeList(message, "B", new List<object>() {});
         object balanceUpdate = this.safeDict(data, 0);
-        object isSpot = isEqual(eventVar, "outboundAccountInfo");
+        bool isSpot = isEqual(eventVar, "outboundAccountInfo");
         object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
@@ -908,16 +908,55 @@ public partial class hashkey : ccxt.hashkey
         {
             return listenKey;
         }
-        object response = await this.privatePostApiV1UserDataStream(parameters);
-        //
-        //    {
-        //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-        //    }
-        //
-        listenKey = this.safeString(response, "listenKey");
-        ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
-        object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
-        this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+        // mint their own listenKey and each schedules its own
+        // keepAliveListenKey timer, and the key rides the private url built by
+        // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+        // subscriptions never deliver. the flight is registered in
+        // client.futures and settled through client.resolve () /
+        // ((WebSocketClient)client).reject (), so every mutation of the futures map goes through
+        // the client's own accessors
+        string messageHash = "authenticateFlight";
+        var client = this.client("authenticationFlights");
+        if (isTrue(inOp(client.futures, messageHash)))
+        {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future(messageHash);
+            return this.safeString(this.options, "listenKey");
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch below finds it and waits instead of re-leading
+        var future = client.reusableFuture(messageHash);
+        try
+        {
+            object response = await this.privatePostApiV1UserDataStream(parameters);
+            //
+            //    {
+            //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            //    }
+            //
+            listenKey = this.safeString(response, "listenKey");
+            if (isTrue(isEqual(listenKey, null)))
+            {
+                throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;
+            }
+            ((IDictionary<string,object>)this.options)["listenKey"] = listenKey;
+            object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
+            this.delay(listenKeyRefreshRate,  this.keepAliveListenKey, new object[] { listenKey, parameters});
+            // settle the flight: client.resolve () wakes every waiter and
+            // drops the future from the map
+            callDynamically(client as WebSocketClient, "resolve", new object[] {listenKey, messageHash});
+        } catch(Exception e)
+        {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            ((WebSocketClient)client).reject(e, messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
         return listenKey;
     }
 

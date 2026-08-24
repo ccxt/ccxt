@@ -855,9 +855,9 @@ public partial class tokocrypto : Exchange
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(bs, "/"), quote);
             object filters = this.safeValue(market, "filters", new List<object>() {});
-            object filtersByType = this.indexBy(filters, "filterType");
+            Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
             object status = this.safeString(market, "spotTradingEnable");
-            object active = (isEqual(status, "1"));
+            bool active = (isEqual(status, "1"));
             object permissions = this.safeValue(market, "permissions", new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
             {
@@ -1205,44 +1205,52 @@ public partial class tokocrypto : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
-            { "symbol", this.getMarketIdByType(market) },
-        };
-        if (isTrue(!isEqual(getValue(market, "quote"), "USDT")))
+        object request = new Dictionary<string, object>() {};
+        // the venue routes market data by the symbol type reported by fetchMarkets,
+        // not by the quote currency: type 1 markets are served by the binance host
+        // with the underscore-less id, every other type by open/v1 with the raw id
+        object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
+        object symbolType = this.safeString(marketInfo, "type");
+        if (isTrue(!isEqual(symbolType, "1")))
         {
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
-            object responseInner = this.publicGetOpenV1MarketTrades(this.extend(request, parameters));
+            // open/v1/market/trades answers an empty list for every market, the
+            // aggregate endpoint is the one that carries data for these markets
+            object responseInner = await this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters));
             //
             //    {
             //       "code": 0,
-            //       "msg": "success",
+            //       "msg": "Success",
             //       "data": {
             //           "list": [
             //                {
-            //                    "id": 28457,
-            //                    "price": "4.00000100",
-            //                    "qty": "12.00000000",
-            //                    "time": 1499865549590,
-            //                    "isBuyerMaker": true,
-            //                    "isBestMatch": true
+            //                    "a": 14433,             // aggregate tradeId
+            //                    "p": "495.00",          // price
+            //                    "q": "42.00000000",     // quantity
+            //                    "f": 15578,             // first tradeId
+            //                    "l": 15578,             // last tradeId
+            //                    "T": 1787292236948,     // timestamp
+            //                    "m": false              // was the buyer the maker?
             //                }
             //            ]
             //        },
-            //        "timestamp": 1571921637091
+            //        "timestamp": 1787318052414
             //    }
             //
             object data = this.safeDict(responseInner, "data", new Dictionary<string, object>() {});
             object list = this.safeList(data, "list", new List<object>() {});
             return this.parseTrades(list, market, since, limit);
         }
+        ((IDictionary<string,object>)request)["symbol"] = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", ""));
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default = 500, maximum = 1000
         }
-        object defaultMethod = "binanceGetTrades";
+        string defaultMethod = "binanceGetTrades";
         object method = this.safeString(this.options, "fetchTradesMethod", defaultMethod);
         object response = null;
         if (isTrue(isTrue((isEqual(method, "binanceGetAggTrades"))) && isTrue((!isEqual(since, null)))))
@@ -1350,7 +1358,7 @@ public partial class tokocrypto : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market);
         object last = this.safeString(ticker, "lastPrice");
-        object isCoinm = (inOp(ticker, "baseVolume"));
+        bool isCoinm = (inOp(ticker, "baseVolume"));
         object baseVolume = null;
         object quoteVolume = null;
         if (isTrue(isCoinm))
@@ -1831,7 +1839,7 @@ public partial class tokocrypto : Exchange
             // GTX means "Good Till Crossing" and is an equivalent way of saying Post Only
             timeInForce = "PO";
         }
-        object postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
+        bool postOnly = isTrue((isEqual(type, "limit_maker"))) || isTrue((isEqual(timeInForce, "PO")));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -1900,7 +1908,7 @@ public partial class tokocrypto : Exchange
             type = "LIMIT_MAKER";
         }
         parameters = this.omit(parameters, new List<object>() {"clientId", "clientOrderId"});
-        object initialUppercaseType = ((string)type).ToUpper();
+        string initialUppercaseType = ((string)type).ToUpper();
         object uppercaseType = initialUppercaseType;
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(!isEqual(triggerPrice, null)))
@@ -1961,9 +1969,9 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)request)["clientId"] = clientOrderId;
         }
         // additional required fields depending on the order type
-        object priceIsRequired = false;
-        object triggerPriceIsRequired = false;
-        object quantityIsRequired = false;
+        bool priceIsRequired = false;
+        bool triggerPriceIsRequired = false;
+        bool quantityIsRequired = false;
         //
         // spot/margin
         //
@@ -2683,7 +2691,7 @@ public partial class tokocrypto : Exchange
             ((IDictionary<string,object>)fee)["cost"] = feeCost;
         }
         object internalRaw = this.safeInteger(transaction, "transferType");
-        object intern = false;
+        bool intern = false;
         if (isTrue(!isEqual(internalRaw, null)))
         {
             intern = true;
@@ -2789,10 +2797,10 @@ public partial class tokocrypto : Exchange
         {
             url = add(url, ".html");
         }
-        object userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
+        bool userDataStream = isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")));
         if (isTrue(userDataStream))
         {
-            if (isTrue(this.apiKey))
+            if (isTrue(isTrue((!isEqual(this.apiKey, null))) && isTrue((!isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
                 headers = new Dictionary<string, object>() {
@@ -2812,7 +2820,7 @@ public partial class tokocrypto : Exchange
             this.checkRequiredCredentials();
             object query = null;
             object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            object extendedParams = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
             }, parameters);
             if (isTrue(!isEqual(defaultRecvWindow, null)))
@@ -2834,7 +2842,7 @@ public partial class tokocrypto : Exchange
             {
                 query = this.urlencode(extendedParams);
             }
-            object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
             query = add(query, add(add("&", "signature="), signature));
             headers = new Dictionary<string, object>() {
                 { "X-MBX-APIKEY", this.apiKey },
@@ -2849,7 +2857,7 @@ public partial class tokocrypto : Exchange
             }
         } else
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }

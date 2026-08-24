@@ -316,7 +316,6 @@ public partial class bithumb : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "ALT", "ArchLoot" },
                 { "FTC", "FTC2" },
                 { "SOC", "Soda Coin" },
             } },
@@ -351,7 +350,7 @@ public partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
         object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+        List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
         object promises = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
@@ -368,7 +367,7 @@ public partial class bithumb : Exchange
             object response = getValue(results, i);
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
-            object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
+            List<object> currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
             {
                 object currencyId = getValue(currencyIds, j);
@@ -378,16 +377,16 @@ public partial class bithumb : Exchange
                 }
                 object market = getValue(data, currencyId);
                 object bs = this.safeCurrencyCode(currencyId);
-                object active = true;
+                bool active = true;
                 if (isTrue(((market is IList<object>) || (market.GetType().IsGenericType && market.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
-                    object numElements = getArrayLength(market);
+                    int numElements = getArrayLength(market);
                     if (isTrue(isEqual(numElements, 0)))
                     {
                         active = false;
                     }
                 }
-                object entry = this.deepExtend(new Dictionary<string, object>() {
+                Dictionary<string, object> entry = this.deepExtend(new Dictionary<string, object>() {
                     { "id", currencyId },
                     { "symbol", add(add(bs, "/"), quote) },
                     { "base", bs },
@@ -445,7 +444,7 @@ public partial class bithumb : Exchange
             { "info", response },
         };
         object balances = this.safeDict(response, "data");
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -602,7 +601,7 @@ public partial class bithumb : Exchange
         }
         object result = new Dictionary<string, object>() {};
         object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
-        object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+        List<object> quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
         object promises = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
@@ -640,7 +639,7 @@ public partial class bithumb : Exchange
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object timestamp = this.safeInteger(data, "date");
             object tickers = this.omit(data, "date");
-            object currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
+            List<object> currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
             {
                 object currencyId = getValue(currencyIds, j);
@@ -798,8 +797,8 @@ public partial class bithumb : Exchange
         object transactionDatetime = this.safeString(trade, "transaction_date");
         if (isTrue(!isEqual(transactionDatetime, null)))
         {
-            object parts = ((string)transactionDatetime).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object numParts = getArrayLength(parts);
+            List<object> parts = ((string)transactionDatetime).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
+            int numParts = getArrayLength(parts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
                 object transactionDate = getValue(parts, 0);
@@ -928,16 +927,19 @@ public partial class bithumb : Exchange
             { "payment_currency", getValue(market, "quote") },
             { "units", amount },
         };
-        object method = "privatePostTradePlace";
+        object response = null;
         if (isTrue(isEqual(type, "limit")))
         {
             ((IDictionary<string,object>)request)["price"] = price;
             ((IDictionary<string,object>)request)["type"] = ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask";
+            response = await this.privatePostTradePlace(this.extend(request, parameters));
+        } else if (isTrue(isEqual(side, "buy")))
+        {
+            response = await this.privatePostTradeMarketBuy(this.extend(request, parameters));
         } else
         {
-            method = add("privatePostTradeMarket", this.capitalize(side));
+            response = await this.privatePostTradeMarketSell(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         object id = this.safeString(response, "order_id");
         if (isTrue(isEqual(id, null)))
         {
@@ -1071,7 +1073,7 @@ public partial class bithumb : Exchange
         object side = ((bool) isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
         object status = this.parseOrderStatus(this.safeString(order, "order_status"));
         object price = this.safeString2(order, "order_price", "price");
-        object type = "limit";
+        string type = "limit";
         if (isTrue(Precise.stringEquals(price, "0")))
         {
             type = "market";
@@ -1204,7 +1206,7 @@ public partial class bithumb : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        object side_in_params = (inOp(parameters, "side"));
+        bool side_in_params = (inOp(parameters, "side"));
         if (!isTrue(side_in_params))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a `side` parameter (sell or buy)")) ;
@@ -1348,7 +1350,7 @@ public partial class bithumb : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -1359,11 +1361,11 @@ public partial class bithumb : Exchange
                 { "endpoint", endpoint },
             }, query));
             // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-            object bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
+            List<object> bodyParts = ((string)body).Split(new [] {((string)"%20")}, StringSplitOptions.None).ToList<object>();
             body = String.Join("+", ((IList<object>)bodyParts).ToArray());
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object auth = add(add(add(add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             object signature64 = this.stringToBase64(signature);
             headers = new Dictionary<string, object>() {
                 { "Accept", "application/json" },

@@ -557,7 +557,7 @@ class pacifica extends \ccxt\async\pacifica {
         $timestamp = $this->safe_integer($entry, 't');
         $snapshot = $this->parse_order_book($result, $symbol, $timestamp, 'bids', 'asks', 'p', 'a');
         $nonce = $this->safe_integer($entry, 'li');
-        if ($nonce) {
+        if (($nonce !== null) && ($nonce !== 0)) {
             $snapshot['nonce'] = $nonce;
         }
         if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {

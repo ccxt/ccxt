@@ -1108,7 +1108,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
     public Object checkRequiredUid(Object... optionalArgs)
     {
         Object error = Helpers.getArg(optionalArgs, 0, true);
-        if (!Helpers.isTrue(this.uid))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.uid, null))) || Helpers.isTrue((Helpers.isEqual(this.uid, "")))))
         {
             if (Helpers.isTrue(error))
             {

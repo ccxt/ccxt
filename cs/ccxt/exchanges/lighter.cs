@@ -456,7 +456,7 @@ public partial class lighter : Exchange
         var libraryPathparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
         libraryPath = ((IList<object>)libraryPathparametersVariable)[0];
         parameters = ((IList<object>)libraryPathparametersVariable)[1];
-        object lighterPrivateKeyIsSet = isTrue((!isEqual(privateKey, null))) && isTrue((!isEqual(privateKey, "")));
+        bool lighterPrivateKeyIsSet = isTrue((!isEqual(privateKey, null))) && isTrue((!isEqual(privateKey, "")));
         if (isTrue(isTrue(isTrue(isTrue(lighterPrivateKeyIsSet) && isTrue((!isEqual(libraryPath, null)))) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
         {
             // load lighter library, and create lighter client
@@ -464,7 +464,7 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex))["signer"] = signer;
             return signer;
         }
-        object privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
+        bool privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
         if (isTrue(isTrue(isTrue(privateKeyIsSet) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
         {
             if (isTrue(isGreaterThan(((string)this.privateKey).Length, 66)))
@@ -899,9 +899,9 @@ public partial class lighter : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument")) ;
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
-        object orderSide = ((string)((string)side)).ToUpper();
+        string orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
         };
@@ -932,10 +932,10 @@ public partial class lighter : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
-        object isConditional = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
-        object isMarketOrder = (isEqual(orderType, "MARKET"));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
+        bool isConditional = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
+        bool isMarketOrder = (isEqual(orderType, "MARKET"));
         object timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "timeInForce"});
@@ -1032,7 +1032,7 @@ public partial class lighter : Exchange
         {
             // group order
             ((IDictionary<string,object>)getValue(orders, 0))["client_order_index"] = 0; // client order index should be 0
-            object triggerOrderSide = "";
+            string triggerOrderSide = "";
             if (isTrue(isEqual(side, "BUY")))
             {
                 triggerOrderSide = "sell";
@@ -1119,7 +1119,7 @@ public partial class lighter : Exchange
         groupingType = ((IList<object>)groupingTypeparametersVariable)[0];
         parameters = ((IList<object>)groupingTypeparametersVariable)[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        object totalOrderRequests = getArrayLength(orderRequests);
+        int totalOrderRequests = getArrayLength(orderRequests);
         object apiKeyIndex = null;
         object order = null;
         if (isTrue(isGreaterThan(totalOrderRequests, 0)))
@@ -1444,7 +1444,7 @@ public partial class lighter : Exchange
             {
                 baseId = getValue(((string)baseId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0);
             }
-            object quoteId = "USDC";
+            string quoteId = "USDC";
             object settleId = ((bool) isTrue((isEqual(type, "swap")))) ? "USDC" : null;
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
@@ -1557,7 +1557,7 @@ public partial class lighter : Exchange
         object id = this.safeString(rawCurrency, "asset_id");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
         object decimals = this.safeString(rawCurrency, "decimals");
-        object isUSDC = (isEqual(code, "USDC"));
+        bool isUSDC = (isEqual(code, "USDC"));
         object depositMin = null;
         object withdrawMin = null;
         if (isTrue(isUSDC))
@@ -1902,7 +1902,7 @@ public partial class lighter : Exchange
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object startTs = null;
         object endTs = null;
         if (isTrue(!isEqual(since, null)))
@@ -3900,7 +3900,7 @@ public partial class lighter : Exchange
                 { "Authorization", this.createAuth(parameters) },
             };
         }
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
         {
             if (isTrue(isEqual(method, "POST")))
             {

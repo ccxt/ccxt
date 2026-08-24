@@ -610,22 +610,26 @@ class bit2c extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = 'privatePostOrderAddOrder';
         $market = $this->market($symbol);
         $request = array(
             'Amount' => $amount,
             'Pair' => $market['id'],
         );
+        $response = null;
         if ($type === 'market') {
-            $method .= 'MarketPrice' . $this->capitalize($side);
+            if ($side === 'buy') {
+                $response = Async\await($this->privatePostOrderAddOrderMarketPriceBuy($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->privatePostOrderAddOrderMarketPriceSell($this->extend($request, $params)));
+            }
         } else {
             $request['Price'] = $price;
             $amountString = $this->number_to_string($amount);
             $priceString = $this->number_to_string($price);
             $request['Total'] = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
             $request['IsBid'] = ($side === 'buy');
+            $response = Async\await($this->privatePostOrderAddOrder($this->extend($request, $params)));
         }
-        $response = Async\await($this->$method($this->extend($request, $params)));
         return $this->parse_order($response, $market);
     }
 
@@ -998,7 +1002,7 @@ class bit2c extends Exchange {
             $amount = $this->safe_string($trade, 'amount');
             $side = $this->safe_value($trade, 'isBid');
             if ($side !== null) {
-                if ($side) {
+                if (($side !== null) && ($side !== '')) {
                     $side = 'buy';
                 } else {
                     $side = 'sell';
@@ -1096,7 +1100,7 @@ class bit2c extends Exchange {
             ), $params);
             $auth = $this->urlencode($query);
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $auth;
                 }
             } else {

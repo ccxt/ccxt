@@ -443,7 +443,7 @@ public partial class upbit : Exchange
         object walletState = this.safeString(currencyInfo, "wallet_state");
         object walletLocked = this.safeValue(memberInfo, "wallet_locked");
         object locked = this.safeValue(memberInfo, "locked");
-        object active = true;
+        bool active = true;
         if (isTrue(isTrue((!isEqual(canWithdraw, null))) && !isTrue(canWithdraw)))
         {
             active = false;
@@ -919,9 +919,12 @@ public partial class upbit : Exchange
      * @name upbit#fetchTickers
      * @see https://docs.upbit.com/kr/reference/list-tickers
      * @see https://global-docs.upbit.com/reference/list-tickers
+     * @see https://docs.upbit.com/kr/reference/tickers_by_quote
+     * @see https://global-docs.upbit.com/reference/tickers_by_quote
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.quote_currencies] comma-separated quote currency ids to fetch all tickers for, defaults to every quote currency of the loaded markets, only used when symbols is undefined
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
@@ -932,17 +935,50 @@ public partial class upbit : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object ids = ((bool) isTrue((!isEqual(symbols, null)))) ? this.marketIds(symbols) : this.ids;
-        object promises = new List<object>() {};
-        object queries = this.idsQueryStrings(ids, 6400); // seems upbit server limitations
-        for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
+        object tickers = new List<object>() {};
+        if (isTrue(isEqual(symbols, null)))
         {
-            object idsQuery = getValue(queries, i);
-            ((IList<object>)promises).Add(this.publicGetTicker(new Dictionary<string, object>() {
-                { "markets", idsQuery },
-            }));
+            // ticker/all returns every market of the requested quote currencies with a single request
+            object quoteIds = new List<object>() {};
+            object marketSymbols = this.symbols;
+            for (object i = 0; isLessThan(i, getArrayLength(marketSymbols)); postFixIncrement(ref i))
+            {
+                object market = this.market(getValue(marketSymbols, i));
+                object quoteId = getValue(market, "quoteId");
+                if (!isTrue(this.inArray(quoteId, quoteIds)))
+                {
+                    ((IList<object>)quoteIds).Add(quoteId);
+                }
+            }
+            object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
+            object quoteCurrencies = "";
+            for (object i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); postFixIncrement(ref i))
+            {
+                if (isTrue(!isEqual(quoteCurrencies, "")))
+                {
+                    quoteCurrencies = add(quoteCurrencies, ",");
+                }
+                quoteCurrencies = add(quoteCurrencies, getValue(sortedQuoteIds, i));
+            }
+            object request = new Dictionary<string, object>() {
+                { "quote_currencies", quoteCurrencies },
+            };
+            tickers = await this.publicGetTickerAll(this.extend(request, parameters));
+        } else
+        {
+            object ids = this.marketIds(symbols);
+            object promises = new List<object>() {};
+            object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
+            for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
+            {
+                object idsQuery = getValue(queries, i);
+                ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
+                    { "markets", idsQuery },
+                }, parameters)));
+            }
+            object responses = await promiseAll(promises);
+            tickers = this.arraysConcat(responses);
         }
-        object responses = await promiseAll(promises);
         //
         //     [ {                market: "BTC-ETH",
         //                    "trade_date": "20181122",
@@ -971,8 +1007,7 @@ public partial class upbit : Exchange
         //           "lowest_52_week_date": "2017-12-08",
         //                     "timestamp":  1542883543813  } ]
         //
-        object concated = this.arraysConcat(responses);
-        return this.parseTickers(concated, symbols);
+        return this.parseTickers(tickers, symbols);
     }
 
     public virtual object idsQueryStrings(object ids, object maxQueryLength)
@@ -1319,7 +1354,7 @@ public partial class upbit : Exchange
         }
         if (isTrue(isEqual(timeframeValue, "minutes")))
         {
-            object numMinutes = Math.Round(Convert.ToDouble(divide(timeframePeriod, 60)));
+            double numMinutes = Math.Round(Convert.ToDouble(divide(timeframePeriod, 60)));
             ((IDictionary<string,object>)request)["unit"] = numMinutes;
             response = await this.publicGetCandlesTimeframeUnit(this.extend(request, parameters));
         } else
@@ -2113,11 +2148,11 @@ public partial class upbit : Exchange
         //        new_order_identifier: '22'
         //      }
         object id = this.safeString(order, "uuid");
-        object side = this.safeString(order, "side");
+        object side = this.safeStringLower(order, "side");
         if (isTrue(isEqual(side, "bid")))
         {
             side = "buy";
-        } else
+        } else if (isTrue(isEqual(side, "ask")))
         {
             side = "sell";
         }
@@ -2147,12 +2182,12 @@ public partial class upbit : Exchange
             { "order", id },
             { "type", type },
         });
-        object numTrades = getArrayLength(trades);
+        int numTrades = getArrayLength(trades);
         if (isTrue(isGreaterThan(numTrades, 0)))
         {
             // the timestamp in fetchOrder trades is missing
             lastTradeTimestamp = getValue(getValue(trades, subtract(numTrades, 1)), "timestamp");
-            object getFeesFromTrades = false;
+            bool getFeesFromTrades = false;
             if (isTrue(isEqual(feeCost, null)))
             {
                 getFeesFromTrades = true;
@@ -2704,7 +2739,7 @@ public partial class upbit : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(!isEqual(method, "POST")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -2713,19 +2748,19 @@ public partial class upbit : Exchange
         {
             this.checkRequiredCredentials();
             headers = new Dictionary<string, object>() {};
-            object nonce = this.uuid();
+            string nonce = this.uuid();
             object request = new Dictionary<string, object>() {
                 { "access_key", this.apiKey },
                 { "nonce", nonce },
             };
-            object hasQuery = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
+            int hasQuery = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
             object auth = null;
             if (isTrue(isTrue((!isEqual(method, "GET"))) && isTrue((!isEqual(method, "DELETE")))))
             {
                 body = this.json(parameters);
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
-            if (isTrue(hasQuery))
+            if (isTrue(isTrue((!isEqual(hasQuery, null))) && isTrue((!isEqual(hasQuery, 0)))))
             {
                 auth = this.rawencode(query);
             }

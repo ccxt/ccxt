@@ -1291,7 +1291,7 @@ public class AsterCore extends AsterApi
             {
                 Object market = Helpers.GetValue(fapiRows, i);
                 // tmp skip some markets with base = undefined
-                if (Helpers.isTrue(this.safeString(market, "baseAsset")))
+                if (Helpers.isTrue(!Helpers.isEqual(this.safeString(market, "baseAsset"), null)))
                 {
                     ((java.util.List<Object>)fapiRowsFiltered).add(market);
                 }
@@ -5261,7 +5261,7 @@ public class AsterCore extends AsterApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "fapiPublic")) || Helpers.isTrue(Helpers.isEqual(api, "sapiPublic"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.rawencode(parameters)));
             }

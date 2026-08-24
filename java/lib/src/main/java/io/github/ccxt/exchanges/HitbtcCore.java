@@ -4650,7 +4650,7 @@ public class HitbtcCore extends HitbtcApi
         }};
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(queryLength))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(queryLength, null))) && Helpers.isTrue((!Helpers.isEqual(queryLength, 0)))))
             {
                 getRequest = Helpers.add("?", this.urlencode(query));
                 url = Helpers.add(url, getRequest);

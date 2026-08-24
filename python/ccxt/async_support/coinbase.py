@@ -903,7 +903,13 @@ class coinbase(Exchange, ImplicitAPI):
         request, params = await self.prepare_account_request_with_currency_code(code, limit, params)
         if self.markets is None:
             await self.load_markets()
-        response = await getattr(self, method)(self.extend(request, params))
+        response = None
+        if method == 'v2PrivateGetAccountsAccountIdTransactions':
+            response = await self.v2PrivateGetAccountsAccountIdTransactions(self.extend(request, params))
+        elif method == 'v2PrivateGetAccountsAccountIdWithdrawals':
+            response = await self.v2PrivateGetAccountsAccountIdWithdrawals(self.extend(request, params))
+        else:
+            response = await self.v2PrivateGetAccountsAccountIdDeposits(self.extend(request, params))
         return self.parse_transactions(response['data'], None, since, limit)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
@@ -5006,7 +5012,7 @@ class coinbase(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = fullPath
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -5021,12 +5027,12 @@ class coinbase(Exchange, ImplicitAPI):
                 seconds = self.seconds()
                 payload = ''
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
                         payload = body
                 else:
                     if not isV3:
-                        if query:
+                        if len(query) > 0:
                             payload += '?' + self.urlencode(query)
                 # v3: 'GET' doesn't need payload in the signature. inside url is enough
                 # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
@@ -5077,7 +5083,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'Content-Type': 'application/json',
                 }
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

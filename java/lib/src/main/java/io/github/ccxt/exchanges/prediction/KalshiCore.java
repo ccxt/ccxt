@@ -436,7 +436,7 @@ public class KalshiCore extends KalshiApi
                     {
                         Object m = Helpers.GetValue(parsed, j);
                         ((java.util.List<Object>)flatMarkets).add(m);
-                        if (Helpers.isTrue(eventKey))
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventKey, null))) && Helpers.isTrue((!Helpers.isEqual(eventKey, "")))))
                         {
                             if (!Helpers.isTrue((Helpers.inOp(eventsDict, eventKey))))
                             {
@@ -785,7 +785,7 @@ public class KalshiCore extends KalshiApi
         Object openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
         // Derive series ticker: drop last hyphen-segment from event_ticker
         Object eventParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        if (Helpers.isTrue(eventTicker))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventTicker, null))) && Helpers.isTrue((!Helpers.isEqual(eventTicker, "")))))
         {
             eventParts = Helpers.split(eventTicker, "-");
         }
@@ -841,6 +841,7 @@ public class KalshiCore extends KalshiApi
             Object settleFraction = settleFractionRaw;
 final Object finalOi = oi;
             final Object finalTicker = ticker;
+            final Object finalEventTicker = eventTicker;
             final Object finalSeriesTicker = seriesTicker;
             final Object finalSubtitle = subtitle;
                         ((java.util.List<Object>)outcomes).add(new java.util.HashMap<String, Object>() {{
@@ -855,7 +856,7 @@ final Object finalOi = oi;
                 put( "precision", precision );
                 put( "info", new java.util.HashMap<String, Object>() {{
                     put( "ticker", finalTicker );
-                    put( "eventTicker", eventTicker );
+                    put( "eventTicker", finalEventTicker );
                     put( "seriesTicker", finalSeriesTicker );
                     put( "subtitle", finalSubtitle );
                     put( "outcomeLabel", label );
@@ -869,6 +870,7 @@ final Object finalOi = oi;
         Object marketResolvedOutcome = resolvedOutcome;
         final Object finalTicker = ticker;
         final Object finalResolved = resolved;
+        final Object finalEventTicker = eventTicker;
         final Object finalSeriesTicker = seriesTicker;
         final Object finalSubtitle = subtitle;
         return new java.util.HashMap<String, Object>() {{
@@ -927,7 +929,7 @@ final Object finalOi = oi;
             put( "outcomes", outcomes );
             put( "info", KalshiCore.this.extend(raw, new java.util.HashMap<String, Object>() {{
                 put( "ticker", finalTicker );
-                put( "eventTicker", eventTicker );
+                put( "eventTicker", finalEventTicker );
                 put( "seriesTicker", finalSeriesTicker );
                 put( "subtitle", finalSubtitle );
                 put( "volume", volume );
@@ -2797,7 +2799,7 @@ final Object finalOi = oi;
             }
             // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker")));
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }

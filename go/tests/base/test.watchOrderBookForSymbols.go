@@ -6,63 +6,63 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestWatchOrderBookForSymbols(exchange ccxt.ICoreExchange, skippedProperties any, symbols any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		var method any = "watchOrderBookForSymbols"
-		// as in `watchOrderBook`, a pending subscription can not be cancelled, so the
-		// loop has to be bounded by the deadline alone. waiting for every requested
-		// symbol to be seen would hang forever whenever one of them stays idle.
-		var maxIdleTime any = 5000
-		var currentTime any = exchange.Milliseconds()
-		var deadline any = Add(currentTime, 15000)
-		var idle any = false
-		for IsTrue((IsLessThan(currentTime, deadline))) && !IsTrue(idle) {
-			var response any = nil
-			var succeeded any = true
-			var startTime any = exchange.Milliseconds()
+	ch := make(chan any, 1)
+	go testWatchOrderBookForSymbolsBody(ch, exchange, skippedProperties, symbols)
+	return ch
+}
+func testWatchOrderBookForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any, symbols any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var method string = "watchOrderBookForSymbols"
+	// as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+	// loop has to be bounded by the deadline alone. waiting for every requested
+	// symbol to be seen would hang forever whenever one of them stays idle.
+	var maxIdleTime any = 5000
+	var currentTime any = exchange.Milliseconds()
+	var deadline any = Add(currentTime, 15000)
+	var idle bool = false
+	for IsTrue((IsLessThan(currentTime, deadline))) && !IsTrue(idle) {
+		var response any = nil
+		var succeeded bool = true
+		var startTime any = exchange.Milliseconds()
 
-			{
-				func() (ret_ any) {
-					defer func() {
-						if e := recover(); e != nil {
-							if e == "break" {
-								return
-							}
-							ret_ = func() any {
-								// catch block:
-								// interim workaround for InvalidNonce raised by the c# runtime
-								if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
-									panic(e)
-								}
-								succeeded = false
-								return nil
-							}()
+		{
+			func() (ret_ any) {
+				defer func() {
+					if e := recover(); e != nil {
+						if e == "break" {
+							return
 						}
-					}()
-					// try block:
-
-					response = (<-exchange.(ccxt.IWatchOrderBookForSymbols).WatchOrderBookForSymbols(symbols))
-					PanicOnError(response)
-					return nil
+						ret_ = func() any {
+							// catch block:
+							// interim workaround for InvalidNonce raised by the c# runtime
+							if IsTrue(!IsTrue(IsTemporaryFailure(e)) && !IsTrue((IsInstance(e, InvalidNonce)))) {
+								panic(e)
+							}
+							succeeded = false
+							return nil
+						}()
+					}
 				}()
+				// try block:
 
-			}
-			currentTime = exchange.Milliseconds()
-			if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
-				TestOrderBook(exchange, skippedProperties, method, response, nil)
-				AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
-				var elapsed any = Subtract(currentTime, startTime)
-				if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
-					idle = true
-				}
+				response = (<-exchange.(ccxt.IWatchOrderBookForSymbols).WatchOrderBookForSymbols(symbols))
+				PanicOnError(response)
+				return nil
+			}()
+
+		}
+		currentTime = exchange.Milliseconds()
+		if IsTrue(IsTrue((IsEqual(succeeded, true))) && IsTrue((!IsEqual(response, nil)))) {
+			TestOrderBook(exchange, skippedProperties, method, response, nil)
+			AssertInArray(exchange, skippedProperties, method, response, "symbol", symbols)
+			var elapsed any = Subtract(currentTime, startTime)
+			if IsTrue(IsGreaterThan(elapsed, maxIdleTime)) {
+				idle = true
 			}
 		}
+	}
 
-		ch <- true
-		return nil
-
-	}()
-	return ch
+	ch <- true
+	return nil
 }

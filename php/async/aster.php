@@ -971,7 +971,7 @@ class aster extends Exchange {
         for ($i = 0; $i < count($fapiRows); $i++) {
             $market = $fapiRows[$i];
             // tmp skip some markets with base = null
-            if ($this->safe_string($market, 'baseAsset')) {
+            if ($this->safe_string($market, 'baseAsset') !== null) {
                 $fapiRowsFiltered[] = $market;
             }
         }
@@ -4462,7 +4462,7 @@ class aster extends Exchange {
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->rawencode($params);
             }
         } elseif ($api === 'fapiPrivate' || $api === 'sapiPrivate') {

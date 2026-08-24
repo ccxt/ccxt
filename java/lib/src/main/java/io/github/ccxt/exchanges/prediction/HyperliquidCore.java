@@ -221,7 +221,7 @@ public class HyperliquidCore extends HyperliquidApi
      */
     public Object parseOutcomeDescription(Object description)
     {
-        if (!Helpers.isTrue(description))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(description, null))) || Helpers.isTrue((Helpers.isEqual(description, "")))))
         {
             return new java.util.HashMap<String, Object>() {{}};
         }
@@ -260,11 +260,11 @@ public class HyperliquidCore extends HyperliquidApi
         Object expiryDate = ((Helpers.isTrue(expiry))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
         Object label = ((Helpers.isTrue((Helpers.isEqual(side, 0))))) ? "YES" : "NO";
         Object base = ((String)underlying).toUpperCase();
-        if (Helpers.isTrue(targetPrice))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
         {
             base = Helpers.add(Helpers.add(base, "_ABOVE_"), targetPrice);
         }
-        if (Helpers.isTrue(expiryDate))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
         {
             base = Helpers.add(Helpers.add(base, "_"), expiryDate);
         }
@@ -287,24 +287,24 @@ public class HyperliquidCore extends HyperliquidApi
         Object name = Helpers.getArg(optionalArgs, 0, "");
         Object question = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object underlying = this.safeString(desc, "underlying");
-        if (Helpers.isTrue(underlying))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(underlying, null))) && Helpers.isTrue((!Helpers.isEqual(underlying, "")))))
         {
             Object targetPrice = this.safeString(desc, "targetPrice");
             Object expiry = this.safeString(desc, "expiry", "");
             Object expiryDate = ((Helpers.isTrue(expiry))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
             Object base = ((String)underlying).toUpperCase();
-            if (Helpers.isTrue(targetPrice))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
             {
                 base = Helpers.add(Helpers.add(base, "_ABOVE_"), targetPrice);
             }
-            if (Helpers.isTrue(expiryDate))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
             {
                 base = Helpers.add(Helpers.add(base, "_"), expiryDate);
             }
             return base;
         }
         Object questionDescription = this.safeString(question, "description");
-        if (Helpers.isTrue(questionDescription))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(questionDescription, null))) && Helpers.isTrue((!Helpers.isEqual(questionDescription, "")))))
         {
             Object questionDesc = this.parseOutcomeDescription(questionDescription);
             Object questionClass = this.safeStringLower(questionDesc, "class");
@@ -346,7 +346,7 @@ public class HyperliquidCore extends HyperliquidApi
                             bucketLabel = Helpers.add(Helpers.add(Helpers.add("BETWEEN_", Helpers.GetValue(thresholds, Helpers.subtract(index, 1))), "_"), Helpers.GetValue(thresholds, index));
                         }
                         Object base = Helpers.add(Helpers.add(((String)questionUnderlying).toUpperCase(), "_"), bucketLabel);
-                        if (Helpers.isTrue(expiryDate))
+                        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
                         {
                             base = Helpers.add(Helpers.add(base, "_"), expiryDate);
                         }
@@ -357,7 +357,7 @@ public class HyperliquidCore extends HyperliquidApi
                 if (Helpers.isTrue(Helpers.isTrue(questionUnderlying) && Helpers.isTrue(isFallbackLike)))
                 {
                     Object base = Helpers.add(((String)questionUnderlying).toUpperCase(), "_OTHER");
-                    if (Helpers.isTrue(expiryDate))
+                    if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
                     {
                         base = Helpers.add(Helpers.add(base, "_"), expiryDate);
                     }
@@ -366,10 +366,10 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         Object questionName = this.safeString(question, "name");
-        if (Helpers.isTrue(questionName))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(questionName, null))) && Helpers.isTrue((!Helpers.isEqual(questionName, "")))))
         {
             Object questionSlug = this.shortenSlug(questionName);
-            if (Helpers.isTrue(questionSlug))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(questionSlug, null))) && Helpers.isTrue((!Helpers.isEqual(questionSlug, "")))))
             {
                 Object outcomeSlug = this.shortenSlug(name);
                 Object genericOutcomeNames = new java.util.HashMap<String, Object>() {{
@@ -387,7 +387,7 @@ public class HyperliquidCore extends HyperliquidApi
                         outcomeSlug = "";
                     }
                 }
-                if (Helpers.isTrue(outcomeSlug))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(outcomeSlug, null))) && Helpers.isTrue((!Helpers.isEqual(outcomeSlug, "")))))
                 {
                     return Helpers.add(Helpers.add(Helpers.add(Helpers.add(questionSlug, "_"), outcomeSlug), "_"), String.valueOf(outcomeId));
                 }
@@ -395,7 +395,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (Helpers.isTrue(name))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(name, null))) && Helpers.isTrue((!Helpers.isEqual(name, "")))))
         {
             return Helpers.add(Helpers.add(this.shortenSlug(name), "_"), String.valueOf(outcomeId));
         }
@@ -536,7 +536,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object expiry = this.safeString(desc, "expiry");
         Object expiryMs = null;
         Object expiryDatetime = null;
-        if (Helpers.isTrue(expiry))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiry, null))) && Helpers.isTrue((!Helpers.isEqual(expiry, "")))))
         {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             Object expParts = Helpers.split(expiry, "-");
@@ -1322,7 +1322,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public Object parseOutcomeInputSideHint(Object outcomeInput)
     {
-        if (!Helpers.isTrue(outcomeInput))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(outcomeInput, null))) || Helpers.isTrue((Helpers.isEqual(outcomeInput, "")))))
         {
             return null;
         }
@@ -2407,7 +2407,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object expiryRaw = this.safeString(desc, "expiry");
         Object expiryMs = null;
         Object expiryDatetime = null;
-        if (Helpers.isTrue(expiryRaw))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryRaw, null))) && Helpers.isTrue((!Helpers.isEqual(expiryRaw, "")))))
         {
             Object parts = Helpers.split(expiryRaw, "-");
             Object partsLength = Helpers.getArrayLength(parts);
@@ -2425,11 +2425,11 @@ public class HyperliquidCore extends HyperliquidApi
         if (Helpers.isTrue(!Helpers.isEqual(underlying, null)))
         {
             Object titleSuffix = "";
-            if (Helpers.isTrue(targetPrice))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
             {
                 titleSuffix = Helpers.add(Helpers.add(titleSuffix, " ABOVE "), targetPrice);
             }
-            if (Helpers.isTrue(expiryRaw))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryRaw, null))) && Helpers.isTrue((!Helpers.isEqual(expiryRaw, "")))))
             {
                 titleSuffix = Helpers.add(Helpers.add(titleSuffix, " @ "), expiryRaw);
             }
@@ -2438,6 +2438,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object endValue = ((Helpers.isTrue((!Helpers.isEqual(expiryMs, null))))) ? expiryMs : firstExpiry;
         final Object finalTitle = title;
         final Object finalUnderlying = underlying;
+        final Object finalTargetPrice = targetPrice;
         final Object finalExpiryDatetime = expiryDatetime;
         return this.extend(new java.util.HashMap<String, Object>() {{
             put( "id", parentSymbol );
@@ -2446,7 +2447,7 @@ public class HyperliquidCore extends HyperliquidApi
             put( "title", finalTitle );
             put( "markets", markets );
             put( "underlying", finalUnderlying );
-            put( "targetPrice", targetPrice );
+            put( "targetPrice", finalTargetPrice );
             put( "class", HyperliquidCore.this.safeString(desc, "class") );
             put( "period", HyperliquidCore.this.safeString(desc, "period") );
             put( "url", null );

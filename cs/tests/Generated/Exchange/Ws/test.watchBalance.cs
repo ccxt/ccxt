@@ -10,13 +10,13 @@ public partial class testMainClass : BaseTest
 {
     async static public Task testWatchBalance(Exchange exchange, object skippedProperties, object code)
     {
-        object method = "watchBalance";
+        string method = "watchBalance";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
             object response = new Dictionary<string, object>() {};
-            object success = true;
+            bool success = true;
             try
             {
                 response = await exchange.watchBalance();

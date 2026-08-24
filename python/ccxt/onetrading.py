@@ -1823,7 +1823,7 @@ class onetrading(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             self.check_required_credentials()
@@ -1835,7 +1835,7 @@ class onetrading(Exchange, ImplicitAPI):
                 body = self.json(query)
                 headers['Content-Type'] = 'application/json'
             else:
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

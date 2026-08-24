@@ -610,7 +610,7 @@ public partial class coinbaseinternational : Exchange
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
-        object pageKey = "ccxtPageKey";
+        string pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
@@ -923,11 +923,14 @@ public partial class coinbaseinternational : Exchange
             parameters = ((IList<object>)networkIdparametersVariable)[1];
             ((IDictionary<string,object>)request)["network_arn_id"] = networkId;
         }
-        if (isTrue(isEqual(method, null)))
+        object response = null;
+        if (isTrue(isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId")))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " method is required")) ;
+            response = await this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PrivatePostTransfersAddress(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         // v1PrivatePostTransfersAddress
         //    {
@@ -1008,7 +1011,7 @@ public partial class coinbaseinternational : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
         {
-            object network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
+            Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
         }
         return result;
@@ -1119,7 +1122,7 @@ public partial class coinbaseinternational : Exchange
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
-        object pageKey = "ccxtPageKey";
+        string pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest);
@@ -1249,7 +1252,7 @@ public partial class coinbaseinternational : Exchange
         object marketId = this.safeString(position, "symbol");
         object quantity = this.safeString(position, "net_size");
         market = this.safeMarket(marketId, market, "-");
-        object side = "long";
+        string side = "long";
         if (isTrue(Precise.stringLe(quantity, "0")))
         {
             side = "short";
@@ -1606,7 +1609,7 @@ public partial class coinbaseinternational : Exchange
         object baseId = this.safeString(market, "base_asset_name");
         object quoteId = this.safeString(market, "quote_asset_name");
         object typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
-        object isSpot = (isEqual(typeId, "SPOT"));
+        bool isSpot = (isEqual(typeId, "SPOT"));
         object fees = this.fees;
         object symbol = add(add(baseId, "/"), quoteId);
         object settleId = null;
@@ -1989,7 +1992,7 @@ public partial class coinbaseinternational : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object typeId = ((string)type).ToUpper();
+        string typeId = ((string)type).ToUpper();
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop_price"});
         object clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
         object clientOrderId = add(add(clientOrderIdprefix, "-"), this.uuid());
@@ -2251,7 +2254,7 @@ public partial class coinbaseinternational : Exchange
             { "portfolio", portfolio },
         };
         object market = null;
-        if (isTrue(symbol))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(symbol, "")))))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument"] = getValue(market, "id");
@@ -2409,7 +2412,7 @@ public partial class coinbaseinternational : Exchange
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
         parameters = ((IList<object>)maxEntriesPerRequestparametersVariable)[1];
-        object pageKey = "ccxtPageKey";
+        string pageKey = "ccxtPageKey";
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
@@ -2421,7 +2424,7 @@ public partial class coinbaseinternational : Exchange
             { "result_offset", offSet },
         };
         object market = null;
-        if (isTrue(symbol))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(symbol, "")))))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument"] = symbol;
@@ -2501,7 +2504,7 @@ public partial class coinbaseinternational : Exchange
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
-        object pageKey = "ccxtPageKey";
+        string pageKey = "ccxtPageKey";
         object maxEntriesPerRequest = 100;
         var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
         maxEntriesPerRequest = ((IList<object>)maxEntriesPerRequestparametersVariable)[0];
@@ -2633,11 +2636,14 @@ public partial class coinbaseinternational : Exchange
             { "network_arn_id", networkId },
             { "nonce", this.nonce() },
         };
-        if (isTrue(isEqual(method, null)))
+        object response = null;
+        if (isTrue(isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " method is required")) ;
+            response = await this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PrivatePostTransfersWithdraw(this.extend(request, parameters));
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
         //
         //    {
         //        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -2652,13 +2658,13 @@ public partial class coinbaseinternational : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object version = getValue(api, 0);
-        object signed = isEqual(getValue(api, 1), "private");
+        bool signed = isEqual(getValue(api, 1), "private");
         object fullPath = add(add(add("/", version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         object savedPath = add("/api", fullPath);
         if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 fullPath = add(fullPath, add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -2667,18 +2673,18 @@ public partial class coinbaseinternational : Exchange
         if (isTrue(signed))
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object payload = "";
             if (isTrue(!isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     payload = body;
                 }
             }
             object auth = add(add(add(nonce, method), savedPath), payload);
-            object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+            string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
             headers = new Dictionary<string, object>() {
                 { "CB-ACCESS-TIMESTAMP", nonce },
                 { "CB-ACCESS-SIGN", signature },

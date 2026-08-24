@@ -3600,6 +3600,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         //        "price": "0.7533",
         //        "fillTime": "2022-03-03T22:51:16.566Z",
         //        "size": "230",
+        //        "unrealizedPnl": "-607250.006654067",
         //        "unrealizedFunding": "-0.001878596918214635"
         //    }
         //
@@ -3610,6 +3611,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         //        "price":"0.4921",
         //        "fillTime":"2023-02-22T11:37:16.685Z",
         //        "size":"1",
+        //        "unrealizedPnl":"12.34",
         //        "unrealizedFunding":"-8.155240068885155E-8",
         //        "pnlCurrency":"USD",
         //        "maxFixedLeverage":"1.0"
@@ -3640,7 +3642,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             put( "entryPrice", KrakenfuturesCore.this.safeNumber(position, "price") );
             put( "notional", null );
             put( "leverage", finalLeverage );
-            put( "unrealizedPnl", null );
+            put( "unrealizedPnl", KrakenfuturesCore.this.safeNumber(position, "unrealizedPnl") );
             put( "contracts", KrakenfuturesCore.this.safeNumber(position, "size") );
             put( "contractSize", KrakenfuturesCore.this.safeNumber(finalMarket, "contractSize") );
             put( "marginRatio", null );
@@ -4141,7 +4143,7 @@ final Object finalI = i;
         {
             postData = Helpers.add("json=", this.json(parameters));
             body = postData;
-        } else if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+        } else if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
         {
             if (Helpers.isTrue(Helpers.inOp(parameters, "orderIds")))
             {

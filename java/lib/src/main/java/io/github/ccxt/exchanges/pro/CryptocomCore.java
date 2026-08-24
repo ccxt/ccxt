@@ -158,7 +158,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             symbols = this.marketSymbols(symbols);
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            if (!Helpers.isTrue(limit))
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, null))) || Helpers.isTrue((Helpers.isEqual(limit, 0)))))
             {
                 limit = 50;
             }
@@ -1179,7 +1179,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " watchPositions() symbols is required")) ;
                 }
-                messageHash = Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols));
+                messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)symbols));
             }
             Client client = this.client(url);
             this.setPositionsCache(client, symbols);

@@ -1355,6 +1355,7 @@ class binance extends Exchange {
                         'spot', // allows CORS in browsers
                         'linear', // allows CORS in browsers
                         'inverse', // allows CORS in browsers
+                        'stock',
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ),
                     'loadAllOptions' => false,
@@ -3465,15 +3466,16 @@ class binance extends Exchange {
                     $promisesRaw[] = $this->sapiGetMarginAllPairs($params);
                     $promisesRaw[] = $this->sapiGetMarginIsolatedAllPairs($params);
                 }
-                if (!$isDemoEnv && ($this->apiKey !== null && $this->apiKey !== '')) {
-                    $promisesRaw[] = $this->sapiGetEquityMarketExchangeInfo($params);
-                }
             } elseif ($marketType === 'linear') {
                 $promisesRaw[] = $this->fapiPublicGetExchangeInfo($params);
             } elseif ($marketType === 'inverse') {
                 $promisesRaw[] = $this->dapiPublicGetExchangeInfo($params);
             } elseif ($marketType === 'option') {
                 $promisesRaw[] = $this->eapiPublicGetExchangeInfo($params);
+            } elseif ($marketType === 'stock') {
+                if (!$isDemoEnv && ($this->apiKey !== null && $this->apiKey !== '')) {
+                    $promisesRaw[] = $this->sapiGetEquityMarketExchangeInfo($params);
+                }
             } else {
                 throw new ExchangeError($this->id . ' $fetchMarkets() $this->options $fetchMarkets "' . $marketType . '" is not a supported market type');
             }
@@ -9382,7 +9384,7 @@ class binance extends Exchange {
         }
         $priceString = null;
         if ($costString !== null) {
-            if ($amountString) {
+            if (($amountString !== null) && ($amountString !== '')) {
                 $priceString = Precise::string_div($costString, $amountString);
             }
         }
@@ -13305,7 +13307,7 @@ class binance extends Exchange {
         $url = $this->urls['api'][$api];
         $url .= '/' . $path;
         if ($path === 'historicalTrades') {
-            if ($this->apiKey) {
+            if (($this->apiKey !== null) && ($this->apiKey !== '')) {
                 $headers = array(
                     'X-MBX-APIKEY' => $this->apiKey,
                 );
@@ -13315,7 +13317,7 @@ class binance extends Exchange {
         }
         $userDataStream = ($path === 'userDataStream') || ($path === 'listenKey') || ($path === 'userListenToken');
         if ($userDataStream) {
-            if ($this->apiKey) {
+            if (($this->apiKey !== null) && ($this->apiKey !== '')) {
                 // v1 special case for $userDataStream
                 $headers = array(
                     'X-MBX-APIKEY' => $this->apiKey,
@@ -13430,7 +13432,7 @@ class binance extends Exchange {
                 $headers['Content-Type'] = 'application/x-www-form-urlencoded';
             }
         } else {
-            if ($params) {
+            if (count($params) > 0) {
                 $url .= '?' . $this->urlencode($params);
             }
         }
@@ -13577,7 +13579,7 @@ class binance extends Exchange {
     }
 
     private function do_request(mixed $path, $api = 'public', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null, $config = array()) {
-        $response = Async\await($this->fetch2($path, $api, $method, $params, $headers, $body, $config));
+        $response = $this->do_fetch2($path, $api, $method, $params, $headers, $body, $config);
         // a workaround for array("code":-2015,"msg":"Invalid API-key, IP, or permissions for action.")
         if ($api === 'private') {
             $this->options['hasAlreadyAuthenticatedSuccessfully'] = true;
@@ -14417,9 +14419,9 @@ class binance extends Exchange {
         $until = $this->safe_integer($params, 'until'); // unified in milliseconds
         $endTime = $this->safe_integer($params, 'endTime', $until); // exchange-specific in milliseconds
         $params = $this->omit($params, array( 'endTime', 'until' ));
-        if ($endTime) {
+        if (($endTime !== null) && ($endTime !== 0)) {
             $request['endTime'] = $endTime;
-        } elseif ($since) {
+        } elseif (($since !== null) && ($since !== 0)) {
             if ($limit === null) {
                 $limit = 30; // Exchange default
             }

@@ -1052,7 +1052,7 @@ class coincheck extends Exchange {
         $url = $this->urls['api']['rest'] . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
@@ -1060,11 +1060,11 @@ class coincheck extends Exchange {
             $nonce = (string) $this->nonce();
             $queryString = '';
             if ($method === 'GET') {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($this->keysort($query));
                 }
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $body = $this->urlencode($this->keysort($query));
                     $queryString = $body;
                 }

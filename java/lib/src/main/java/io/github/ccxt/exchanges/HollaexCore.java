@@ -2414,7 +2414,7 @@ public class HollaexCore extends HollaexApi
         path = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 path = Helpers.add(path, Helpers.add("?", this.urlencode(query)));
             }
@@ -2434,7 +2434,7 @@ public class HollaexCore extends HollaexApi
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
                 Helpers.addElementToObject(headers, "Content-type", "application/json");
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     auth = Helpers.add(auth, body);

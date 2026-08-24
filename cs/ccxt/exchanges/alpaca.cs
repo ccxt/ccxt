@@ -640,7 +640,7 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        object parts = ((string)marketId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)marketId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object assetClass = this.safeString(asset, "class");
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
@@ -654,7 +654,7 @@ public partial class alpaca : Exchange
         }
         object symbol = add(add(bs, "/"), quote);
         object status = this.safeString(asset, "status");
-        object active = (isEqual(status, "active"));
+        bool active = (isEqual(status, "active"));
         object minAmount = this.safeNumber(asset, "min_order_size");
         object amount = this.safeNumber(asset, "min_trade_increment");
         object price = this.safeNumber(asset, "price_increment");
@@ -1099,7 +1099,7 @@ public partial class alpaca : Exchange
         //
         object results = new List<object>() {};
         object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -1140,9 +1140,9 @@ public partial class alpaca : Exchange
     public virtual object generateClientOrderId(object parameters)
     {
         object clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
-        object uuid = this.uuid();
-        object parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-        object random_id = String.Join("", ((IList<object>)parts).ToArray());
+        string uuid = this.uuid();
+        List<object> parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+        string random_id = String.Join("", ((IList<object>)parts).ToArray());
         object defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
@@ -1913,7 +1913,7 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        if (isTrue(tag))
+        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((!isEqual(tag, "")))))
         {
             address = add(add(address, ":"), tag);
         }
@@ -1960,7 +1960,7 @@ public partial class alpaca : Exchange
         {
             currency = this.currency(code);
         }
-        object sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
+        bool sandboxMode = isTrue(this.isSandboxModeEnabled) || isTrue(this.safeBool(this.options, "sandboxMode", false));
         if (isTrue(sandboxMode))
         {
             // paper-trading hosts do not serve the crypto wallets api at all, so route
@@ -1992,7 +1992,7 @@ public partial class alpaca : Exchange
                 object entry = getValue(ledger, i);
                 object activityType = this.safeString(entry, "activity_type");
                 object amount = this.safeString(entry, "net_amount");
-                object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
+                bool isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(amount, "0"))));
                 object entryDirection = ((bool) isTrue(isIncoming)) ? "INCOMING" : "OUTGOING";
                 if (isTrue(isTrue((isEqual(type, "BOTH"))) || isTrue((isEqual(entryDirection, type)))))
                 {
@@ -2140,7 +2140,7 @@ public partial class alpaca : Exchange
         if (isTrue(!isEqual(activityType, null)))
         {
             object netAmount = this.safeString(transaction, "net_amount");
-            object isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(netAmount, "0"))));
+            bool isIncoming = isTrue((isEqual(activityType, "CSD"))) || isTrue((isTrue((isEqual(activityType, "TRANS"))) && !isTrue(Precise.stringLt(netAmount, "0"))));
             timestamp = this.parse8601(add(this.safeString(transaction, "date"), "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
             type = ((bool) isTrue(isIncoming)) ? "deposit" : "withdrawal";
@@ -2329,7 +2329,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)headers)["APCA-API-SECRET-KEY"] = this.secret;
         }
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
         {
             if (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))
             {

@@ -1267,7 +1267,7 @@ class ndax extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
          */
-        if (!$this->login) {
+        if (($this->login === null) || ($this->login === '')) {
             throw new AuthenticationError($this->id . ' fetchAccounts() requires exchange.login email credential');
         }
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
@@ -2827,7 +2827,7 @@ class ndax extends Exchange {
                     $query = $this->omit($query, 'pending2faToken');
                 }
             }
-            if ($query) {
+            if (count($query) > 0) {
                 $url .= '?' . $this->urlencode($query);
             }
         } elseif ($api === 'private') {
@@ -2852,7 +2852,7 @@ class ndax extends Exchange {
                 $headers['Content-Type'] = 'application/json';
                 $body = $this->json($query);
             } else {
-                if ($query) {
+                if (count($query) > 0) {
                     $url .= '?' . $this->urlencode($query);
                 }
             }

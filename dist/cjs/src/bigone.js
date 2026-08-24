@@ -1968,7 +1968,7 @@ class bigone extends bigone$1["default"] {
         let url = baseUrl + '/' + this.implodeParams(path, params);
         headers = {};
         if (api === 'public' || api === 'webExchange' || api === 'contractPublic') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -1984,7 +1984,7 @@ class bigone extends bigone$1["default"] {
             const token = rsa.jwt(request, this.encode(this.secret), sha2_js.sha256);
             headers['Authorization'] = 'Bearer ' + token;
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (Object.keys(query).length > 0) {
                     url += '?' + this.urlencode(query);
                 }
             }

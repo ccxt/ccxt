@@ -2355,7 +2355,7 @@ public class BitsoCore extends BitsoApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", this.urlencode(query)));
             }
@@ -2370,7 +2370,7 @@ public class BitsoCore extends BitsoApi
             Object request = String.join((String)"", (java.util.List<String>)content);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(method, "GET")) && Helpers.isTrue(!Helpers.isEqual(method, "DELETE"))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     request = Helpers.add(request, body);

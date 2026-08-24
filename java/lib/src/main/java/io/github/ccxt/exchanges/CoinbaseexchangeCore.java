@@ -1194,7 +1194,14 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }};
             // publicGetProductsIdTicker or publicGetProductsIdStats
             Object method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(method, "publicGetProductsIdStats")))
+            {
+                response = (this.publicGetProductsIdStats(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.publicGetProductsIdTicker(this.extend(request, parameters))).join();
+            }
             //
             // publicGetProductsIdTicker
             //
@@ -1712,18 +1719,17 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-            Object method = null;
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                method = "privateGetOrdersId";
                 Helpers.addElementToObject(request, "id", id);
+                response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
             } else
             {
-                method = "privateGetOrdersClientClientOid";
                 Helpers.addElementToObject(request, "client_oid", clientOrderId);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_oid")));
+                response = (this.privateGetOrdersClientClientOid(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             return this.parseOrder(response);
         });
 
@@ -2013,14 +2019,11 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-            Object method = null;
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
-                method = "privateDeleteOrdersId";
                 Helpers.addElementToObject(request, "id", id);
             } else
             {
-                method = "privateDeleteOrdersClientClientOid";
                 Helpers.addElementToObject(request, "client_oid", clientOrderId);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_oid")));
             }
@@ -2030,9 +2033,17 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "product_id", Helpers.GetValue(market, "symbol")); // the request will be more performant if you include it
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
+            Object response = null;
+            if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
+            {
+                response = (this.privateDeleteOrdersId(this.extend(request, parameters))).join();
+            } else
+            {
+                response = (this.privateDeleteOrdersClientClientOid(this.extend(request, parameters))).join();
+            }
+            final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
-                put( "info", response );
+                put( "info", finalResponse );
             }});
         });
 
@@ -2117,23 +2128,22 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
             }};
-            Object method = "privatePostWithdrawals";
+            Object response = null;
             if (Helpers.isTrue(Helpers.inOp(parameters, "payment_method_id")))
             {
-                method = Helpers.add(method, "PaymentMethod");
+                response = (this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.inOp(parameters, "coinbase_account_id")))
             {
-                method = Helpers.add(method, "CoinbaseAccount");
+                response = (this.privatePostWithdrawalsCoinbaseAccount(this.extend(request, parameters))).join();
             } else
             {
-                method = Helpers.add(method, "Crypto");
                 Helpers.addElementToObject(request, "crypto_address", address);
                 if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
                 {
                     Helpers.addElementToObject(request, "destination_tag", tag);
                 }
+                response = (this.privatePostWithdrawalsCrypto(this.extend(request, parameters))).join();
             }
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { this.extend(request, parameters) })).join();
             if (!Helpers.isTrue(response))
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() error: "), this.json(response))) ;
@@ -2666,7 +2676,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(query)));
             }
@@ -2679,7 +2689,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

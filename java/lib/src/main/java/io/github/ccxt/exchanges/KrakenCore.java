@@ -3178,7 +3178,7 @@ final Object finalId = id;
                 response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             } catch(Exception e)
             {
-                if (Helpers.isTrue(this.last_http_response))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.last_http_response, null))) && Helpers.isTrue((!Helpers.isEqual(this.last_http_response, "")))))
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.last_http_response, "EOrder:Unknown order"), 0)))
                     {
@@ -4390,7 +4390,7 @@ final Object finalId = id;
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), api), "/"), path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = Helpers.add(url, Helpers.add("?", this.urlencodeNested(parameters)));

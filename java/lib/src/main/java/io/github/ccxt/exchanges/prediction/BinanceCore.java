@@ -461,7 +461,7 @@ public class BinanceCore extends BinanceApi
             Object eventId = this.safeString(parameters, "eventId");
             Object l1Category = this.safeString(parameters, "l1Category");
             Object l2Category = this.safeString(parameters, "l2Category");
-            if (!Helpers.isTrue(this.markets))
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 this.markets = this.createSafeDictionary();
             }

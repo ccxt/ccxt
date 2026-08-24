@@ -83,35 +83,35 @@ func (this *AlpacaCore) Describe() any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *AlpacaCore) WatchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
-
-		retRes788 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes788)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes8012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes8012)
-		}
-		var market any = this.Market(symbol)
-		var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
-		var request any = map[string]any{
-			"action": "subscribe",
-			"quotes": []any{ccxt.GetValue(market, "id")},
-		}
-
-		retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(retRes8815)
-		ch <- retRes8815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) watchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+
+	retRes788 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes788)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes8012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes8012)
+	}
+	var market any = this.Market(symbol)
+	var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
+	var request map[string]any = map[string]any{
+		"action": "subscribe",
+		"quotes": []any{ccxt.GetValue(market, "id")},
+	}
+
+	retRes8815 := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(retRes8815)
+	ch <- retRes8815
+	return nil
 }
 func (this *AlpacaCore) HandleTicker(client any, message any) {
 	//
@@ -186,46 +186,46 @@ func (this *AlpacaCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *AlpacaCore) WatchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
-
-		retRes1648 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes1648)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes16612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes16612)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var request any = map[string]any{
-			"action": "subscribe",
-			"bars":   []any{ccxt.GetValue(market, "id")},
-		}
-		var messageHash any = ccxt.Add("ohlcv:", symbol)
-
-		ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(ohlcv)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	timeframe := ccxt.GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+
+	retRes1648 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes1648)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes16612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes16612)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var request map[string]any = map[string]any{
+		"action": "subscribe",
+		"bars":   []any{ccxt.GetValue(market, "id")},
+	}
+	var messageHash any = ccxt.Add("ohlcv:", symbol)
+
+	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(ohlcv)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(ohlcv, since, limit, 0, true)
+	return nil
 }
 func (this *AlpacaCore) HandleOHLCV(client any, message any) {
 	//
@@ -267,39 +267,39 @@ func (this *AlpacaCore) HandleOHLCV(client any, message any) {
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *AlpacaCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		limit := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
-
-		retRes2238 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes2238)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes22512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes22512)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
-		var request any = map[string]any{
-			"action":     "subscribe",
-			"orderbooks": []any{ccxt.GetValue(market, "id")},
-		}
-
-		orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(orderbook)
-
-		ch <- orderbook.(ccxt.OrderBookInterface).Limit()
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	limit := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+
+	retRes2238 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes2238)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes22512 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes22512)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
+	var request map[string]any = map[string]any{
+		"action":     "subscribe",
+		"orderbooks": []any{ccxt.GetValue(market, "id")},
+	}
+
+	orderbook := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(orderbook)
+
+	ch <- orderbook.(ccxt.OrderBookInterface).Limit()
+	return nil
 }
 func (this *AlpacaCore) HandleOrderBook(client any, message any) {
 	//
@@ -369,44 +369,44 @@ func (this *AlpacaCore) HandleDeltas(bookside any, deltas any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *AlpacaCore) WatchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		since := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
-
-		retRes3098 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes3098)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes31112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes31112)
-		}
-		var market any = this.Market(symbol)
-		symbol = ccxt.GetValue(market, "symbol")
-		var messageHash any = ccxt.Add("trade:", symbol)
-		var request any = map[string]any{
-			"action": "subscribe",
-			"trades": []any{ccxt.GetValue(market, "id")},
-		}
-
-		trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) watchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	since := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
+
+	retRes3098 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes3098)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes31112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes31112)
+	}
+	var market any = this.Market(symbol)
+	symbol = ccxt.GetValue(market, "symbol")
+	var messageHash any = ccxt.Add("trade:", symbol)
+	var request map[string]any = map[string]any{
+		"action": "subscribe",
+		"trades": []any{ccxt.GetValue(market, "id")},
+	}
+
+	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 func (this *AlpacaCore) HandleTrades(client any, message any) {
 	//
@@ -447,50 +447,50 @@ func (this *AlpacaCore) HandleTrades(client any, message any) {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *AlpacaCore) WatchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
-
-		retRes3678 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes3678)
-		var messageHash any = "myTrades"
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes37012 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes37012)
-		}
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			symbol = this.Symbol(symbol)
-			messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
-		}
-		var request any = map[string]any{
-			"action": "listen",
-			"data": map[string]any{
-				"streams": []any{"trade_updates"},
-			},
-		}
-
-		trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(trades)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
+
+	retRes3678 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes3678)
+	var messageHash any = "myTrades"
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes37012 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes37012)
+	}
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		symbol = this.Symbol(symbol)
+		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
+	}
+	var request map[string]any = map[string]any{
+		"action": "listen",
+		"data": map[string]any{
+			"streams": []any{"trade_updates"},
+		},
+	}
+
+	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(trades)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySinceLimit(trades, since, limit, "timestamp", true)
+	return nil
 }
 
 /**
@@ -504,51 +504,51 @@ func (this *AlpacaCore) WatchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *AlpacaCore) WatchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		symbol := ccxt.GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := ccxt.GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := ccxt.GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
-
-		retRes4018 := (<-this.Authenticate(url))
-		ccxt.PanicOnError(retRes4018)
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
-
-			retRes40312 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes40312)
-		}
-		var messageHash any = "orders"
-		if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			symbol = ccxt.GetValue(market, "symbol")
-			messageHash = ccxt.Add("orders:", symbol)
-		}
-		var request any = map[string]any{
-			"action": "listen",
-			"data": map[string]any{
-				"streams": []any{"trade_updates"},
-			},
-		}
-
-		orders := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-		ccxt.PanicOnError(orders)
-		if ccxt.IsTrue(this.NewUpdates) {
-			limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
-		}
-
-		ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.watchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	symbol := ccxt.GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := ccxt.GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := ccxt.GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
+
+	retRes4018 := (<-this.Authenticate(url))
+	ccxt.PanicOnError(retRes4018)
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+
+		retRes40312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes40312)
+	}
+	var messageHash any = "orders"
+	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		symbol = ccxt.GetValue(market, "symbol")
+		messageHash = ccxt.Add("orders:", symbol)
+	}
+	var request map[string]any = map[string]any{
+		"action": "listen",
+		"data": map[string]any{
+			"streams": []any{"trade_updates"},
+		},
+	}
+
+	orders := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+	ccxt.PanicOnError(orders)
+	if ccxt.IsTrue(this.NewUpdates) {
+		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
+	}
+
+	ch <- this.FilterBySymbolSinceLimit(orders, symbol, since, limit, true)
+	return nil
 }
 func (this *AlpacaCore) HandleTradeUpdate(client any, message any) {
 	this.HandleOrder(client, message)
@@ -748,43 +748,43 @@ func (this *AlpacaCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *AlpacaCore) Authenticate(url any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ccxt.ReturnPanicError(ch)
-		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		this.CheckRequiredCredentials()
-		var messageHash any = "authenticated"
-		var client any = this.Client(url)
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-		var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-		if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
-			var request any = map[string]any{
-				"action": "auth",
-				"key":    this.ApiKey,
-				"secret": this.Secret,
-			}
-			if ccxt.IsTrue(ccxt.IsEqual(url, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))) {
-				// this auth request is being deprecated in test environment
-				request = map[string]any{
-					"action": "authenticate",
-					"data": map[string]any{
-						"key_id":     this.ApiKey,
-						"secret_key": this.Secret,
-					},
-				}
-			}
-			this.Watch(url, messageHash, request, messageHash, future)
-		}
-
-		retRes64715 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes64715)
-		ch <- retRes64715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.authenticateBody(ch, url, optionalArgs...)
 	return ch
+}
+func (this *AlpacaCore) authenticateBody(ch chan any, url any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ccxt.ReturnPanicError(ch)
+	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	this.CheckRequiredCredentials()
+	var messageHash string = "authenticated"
+	var client any = this.Client(url)
+	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
+	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+		var request any = map[string]any{
+			"action": "auth",
+			"key":    this.ApiKey,
+			"secret": this.Secret,
+		}
+		if ccxt.IsTrue(ccxt.IsEqual(url, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))) {
+			// this auth request is being deprecated in test environment
+			request = map[string]any{
+				"action": "authenticate",
+				"data": map[string]any{
+					"key_id":     this.ApiKey,
+					"secret_key": this.Secret,
+				},
+			}
+		}
+		this.Watch(url, messageHash, request, messageHash, future)
+	}
+
+	retRes64715 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes64715)
+	ch <- retRes64715
+	return nil
 }
 func (this *AlpacaCore) HandleErrorMessage(client any, message any) any {
 	//
@@ -824,7 +824,7 @@ func (this *AlpacaCore) HandleCryptoMessage(client any, message any) {
 			this.HandleAuthenticate(client, data)
 			return
 		}
-		var methods any = map[string]any{
+		var methods map[string]any = map[string]any{
 			"error": this.HandleErrorMessage,
 			"b":     this.HandleOHLCV,
 			"q":     this.HandleTicker,
@@ -839,7 +839,7 @@ func (this *AlpacaCore) HandleCryptoMessage(client any, message any) {
 }
 func (this *AlpacaCore) HandleTradingMessage(client any, message any) {
 	var stream any = this.SafeString(message, "stream")
-	var methods any = map[string]any{
+	var methods map[string]any = map[string]any{
 		"authorization": this.HandleAuthenticate,
 		"listening":     this.HandleSubscription,
 		"trade_updates": this.HandleTradeUpdate,

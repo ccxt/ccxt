@@ -3113,7 +3113,7 @@ public class GateCore extends GateApi
                 //    }
                 //
                 Object obtainFailed = this.safeInteger(entry, "obtain_failed");
-                if (Helpers.isTrue(obtainFailed))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(obtainFailed, null))) && Helpers.isTrue((!Helpers.isEqual(obtainFailed, 0)))))
                 {
                     continue;
                 }
@@ -6524,12 +6524,12 @@ final Object finalPointFee = pointFee;
         Object cost = this.safeString(order, "filled_total");
         Object triggerPrice = this.safeNumber(trigger, "price");
         Object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
-        if (Helpers.isTrue(triggerPrice))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
         {
             remainingString = amount;
             cost = "0";
         }
-        if (Helpers.isTrue(contract))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contract, null))) && Helpers.isTrue((!Helpers.isEqual(contract, "")))))
         {
             Object isMarketOrder = Helpers.isTrue(Precise.stringEquals(price, "0")) && Helpers.isTrue((Helpers.isEqual(timeInForce, "IOC")));
             type = ((Helpers.isTrue(isMarketOrder))) ? "market" : "limit";
@@ -6654,6 +6654,7 @@ final Object finalRebate = rebate;
         final Object finalTimeInForce = timeInForce;
         final Object finalSide = side;
         final Object finalPrice = price;
+        final Object finalTriggerPrice = triggerPrice;
         final Object finalAverage = average;
         final Object finalAmount = amount;
         final Object finalCost = cost;
@@ -6672,7 +6673,7 @@ final Object finalRebate = rebate;
             put( "reduceOnly", reduceOnly );
             put( "side", finalSide );
             put( "price", finalPrice );
-            put( "triggerPrice", triggerPrice );
+            put( "triggerPrice", finalTriggerPrice );
             put( "average", finalAverage );
             put( "amount", Precise.stringAbs(finalAmount) );
             put( "cost", Precise.stringAbs(finalCost) );
@@ -8882,7 +8883,7 @@ final Object finalI = i;
         url = Helpers.add(url, entirePath);
         if (Helpers.isTrue(Helpers.isEqual(authentication, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }
@@ -8900,7 +8901,7 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))) || Helpers.isTrue(requiresURLEncoding)) || Helpers.isTrue((Helpers.isEqual(method, "PATCH")))))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     // https://github.com/ccxt/ccxt/issues/27663
                     rawQueryString = this.rawencode(query);
@@ -8919,7 +8920,7 @@ final Object finalI = i;
             } else
             {
                 Object urlQueryParams = this.safeValue(query, "query", new java.util.HashMap<String, Object>() {{}});
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(urlQueryParams))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(urlQueryParams)), 0)))
                 {
                     queryString = this.urlencode(urlQueryParams);
                     url = Helpers.add(url, Helpers.add("?", queryString));
@@ -9129,7 +9130,7 @@ final Object finalI = i;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Helpers.addElementToObject(request, "from", since);
+                Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Object response = (this.publicFuturesGetSettleContractStats(this.extend(request, parameters))).join();
             //

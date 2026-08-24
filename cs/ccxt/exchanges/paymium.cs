@@ -207,7 +207,7 @@ public partial class paymium : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> currencies = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object code = getValue(currencies, i);
@@ -723,14 +723,14 @@ public partial class paymium : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object auth = add(nonce, url);
             headers = new Dictionary<string, object>() {
                 { "Api-Key", this.apiKey },
@@ -738,7 +738,7 @@ public partial class paymium : Exchange
             };
             if (isTrue(isEqual(method, "POST")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     auth = add(auth, body);
@@ -746,7 +746,7 @@ public partial class paymium : Exchange
                 }
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     object queryString = this.urlencode(query);
                     auth = add(auth, queryString);

@@ -335,7 +335,7 @@ public partial class blockchaincom : Exchange
         //
         parameters ??= new Dictionary<string, object>();
         object markets = await this.publicGetSymbols(parameters);
-        object marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -675,7 +675,7 @@ public partial class blockchaincom : Exchange
         }
         object market = this.market(symbol);
         object orderType = this.safeString(parameters, "ordType", type);
-        object uppercaseOrderType = ((string)orderType).ToUpper();
+        string uppercaseOrderType = ((string)orderType).ToUpper();
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
         parameters = this.omit(parameters, new List<object>() {"ordType", "clientOrderId", "clOrdId"});
         if (isTrue(isEqual(side, null)))
@@ -708,8 +708,8 @@ public partial class blockchaincom : Exchange
                 ((IDictionary<string,object>)request)["ordType"] = "STOPLIMIT";
             }
         }
-        object priceRequired = false;
-        object stopPriceRequired = false;
+        bool priceRequired = false;
+        bool stopPriceRequired = false;
         if (isTrue(isTrue(isEqual(getValue(request, "ordType"), "LIMIT")) || isTrue(isEqual(getValue(request, "ordType"), "STOPLIMIT"))))
         {
             priceRequired = true;
@@ -840,7 +840,7 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object state = "CANCELED";
+        string state = "CANCELED";
         return await this.fetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
@@ -858,7 +858,7 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object state = "FILLED";
+        string state = "FILLED";
         return await this.fetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
@@ -876,7 +876,7 @@ public partial class blockchaincom : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object state = "OPEN";
+        string state = "OPEN";
         return await this.fetchOrdersByState(state, symbol, since, limit, parameters);
     }
 
@@ -1012,7 +1012,7 @@ public partial class blockchaincom : Exchange
         object address = null;
         if (isTrue(!isEqual(rawAddress, null)))
         {
-            object addressParts = ((string)rawAddress).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>();
+            List<object> addressParts = ((string)rawAddress).Split(new [] {((string)";")}, StringSplitOptions.None).ToList<object>();
             // if a tag or memo is used it is separated by a colon in the 'address' value
             tag = this.safeString(addressParts, 0);
             address = this.safeString(addressParts, 1);
@@ -1381,7 +1381,7 @@ public partial class blockchaincom : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -1393,7 +1393,7 @@ public partial class blockchaincom : Exchange
             };
             if (isTrue((isEqual(method, "GET"))))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }

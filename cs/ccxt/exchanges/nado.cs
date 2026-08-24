@@ -374,7 +374,7 @@ public partial class nado : Exchange
         object market = this.market(symbol);
         object request = await this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object placeOrder = this.safeDict(request, "place_order", new Dictionary<string, object>() {});
-        object isTriggerOrder = (inOp(placeOrder, "trigger"));
+        bool isTriggerOrder = (inOp(placeOrder, "trigger"));
         object response = null;
         if (isTrue(isTriggerOrder))
         {
@@ -467,14 +467,14 @@ public partial class nado : Exchange
         {
             ((IDictionary<string,object>)placeOrder)["spot_leverage"] = spotLeverage;
         }
-        object isBuy = (isEqual(side, "buy"));
+        bool isBuy = (isEqual(side, "buy"));
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
-        object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
-        object isStopOrder = !isEqual(triggerPrice, null);
-        object isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
+        bool isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isStopOrder = !isEqual(triggerPrice, null);
+        bool isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
         if (isTrue(isStopOrder))
         {
             object triggerDirection = this.safeStringLower(parameters, "triggerDirection");
@@ -1357,7 +1357,7 @@ public partial class nado : Exchange
         //
         object matches = this.safeList(response, "matches", new List<object>() {});
         object txs = this.safeList(response, "txs", new List<object>() {});
-        object txsBySubmission = this.indexBy(txs, "submission_idx");
+        Dictionary<string, object> txsBySubmission = this.indexBy(txs, "submission_idx");
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(matches)); postFixIncrement(ref i))
         {
@@ -1541,7 +1541,7 @@ public partial class nado : Exchange
                     break;
                 }
             }
-            object transaction = this.extend(new Dictionary<string, object>() {}, tx);
+            Dictionary<string, object> transaction = this.extend(new Dictionary<string, object>() {}, tx);
             transaction = this.extend(transaction, eventVar);
             ((IDictionary<string,object>)transaction)["transaction_type"] = transactionType;
             ((IList<object>)transactions).Add(this.parseTransaction(transaction, currency));
@@ -1771,7 +1771,7 @@ public partial class nado : Exchange
             object asset = this.safeDict(assetsById, id, new Dictionary<string, object>() {});
             object rawType = this.safeString(market, "type");
             object type = ((bool) isTrue((isEqual(rawType, "perp")))) ? "swap" : rawType;
-            object contract = (isEqual(type, "swap"));
+            bool contract = (isEqual(type, "swap"));
             object tickerId = this.safeString2(pair, "ticker_id", "tickerId");
             if (isTrue(isEqual(tickerId, null)))
             {
@@ -1793,7 +1793,7 @@ public partial class nado : Exchange
                 symbol = add(symbol, add(":", settle));
             }
             object tradingStatus = this.safeString(market, "trading_status");
-            object active = (!isEqual(tradingStatus, "not_tradable"));
+            bool active = (!isEqual(tradingStatus, "not_tradable"));
             object priceIncrement = this.parseX18(this.safeString(market, "price_increment_x18"));
             object amountIncrement = this.parseX18(this.safeString(market, "size_increment"));
             object minCost = this.parseX18(this.safeString(market, "min_size"));
@@ -2111,7 +2111,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        object tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         object rates = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -2208,7 +2208,7 @@ public partial class nado : Exchange
         //         }
         //     }
         //
-        object tickers = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         object interests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -2411,7 +2411,7 @@ public partial class nado : Exchange
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeTimestamp(trade, "timestamp");
         object rawOrder = this.safeDict(trade, "order");
-        object isArchiveMatch = !isEqual(rawOrder, null);
+        bool isArchiveMatch = !isEqual(rawOrder, null);
         object order = ((bool) isTrue((isEqual(rawOrder, null)))) ? new Dictionary<string, object>() {} : rawOrder;
         object amountString = this.safeString(trade, "base_filled");
         object costString = this.safeString(trade, "quote_filled");
@@ -3190,7 +3190,7 @@ public partial class nado : Exchange
         {
             subaccount = "default";
         }
-        object address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
+        string address = ((string)this.remove0xPrefix(walletAddress)).ToLower();
         if (isTrue(!isEqual(getArrayLength(address), 40)))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() requires a 20-byte walletAddress")) ;
@@ -3232,7 +3232,7 @@ public partial class nado : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " padHex() requires length")) ;
         }
-        object zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+        string zeros = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
         object padded = ((bool) isTrue(left)) ? (add(zeros, value)) : (add(value, zeros));
         if (isTrue(left))
         {
@@ -3360,7 +3360,7 @@ public partial class nado : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
+        string v = ((string)this.intToBase16(this.sum(27, getValue(signature, "v")))).ToLower();
         return add(add(add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }
 
@@ -3400,7 +3400,7 @@ public partial class nado : Exchange
         }
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
