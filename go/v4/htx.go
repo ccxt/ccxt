@@ -6530,7 +6530,7 @@ func (this *HtxCore) createSpotOrderRequestBody(ch chan any, symbol any, typeVar
 			panic(NotSupported(Add(Add(Add(this.Id, " createOrder() does not support "), typeVar), " orders")))
 		}
 	}
-	var postOnly any = nil
+	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly(IsEqual(orderType, "market"), IsEqual(orderType, "limit-maker"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
@@ -6639,7 +6639,7 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 		"contract_code": GetValue(market, "id"),
 		"volume":        this.AmountToPrecision(symbol, amount),
 	}
-	var postOnly any = nil
+	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), IsEqual(typeVar, "post_only"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)

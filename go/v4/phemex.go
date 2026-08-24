@@ -923,7 +923,7 @@ func (this *PhemexCore) ParseSwapMarket(market any) any {
 	var contractSize any = nil
 	if IsTrue(IsEqual(settle, "USDT")) {
 		contractSize = this.ParseNumber("1")
-	} else if IsTrue(GetIndexOf(contractSizeString, " ")) {
+	} else if IsTrue(!IsEqual(GetIndexOf(contractSizeString, " "), OpNeg(1))) {
 		// "1 USD"
 		// "0.005 ETH"
 		var parts []string = Split(contractSizeString, " ")
@@ -5512,7 +5512,7 @@ func (this *PhemexCore) Sign(path any, optionalArgs ...any) any {
 	var url any = requestPath
 	var queryString any = ""
 	if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) || IsTrue((IsEqual(method, "PUT")))) || IsTrue((IsEqual(url, "/positions/assign")))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			queryString = this.UrlencodeWithArrayRepeat(query)
 			url = Add(url, Add("?", queryString))
 		}

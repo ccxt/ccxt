@@ -427,7 +427,7 @@ func (this *LimitlessCore) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 		var eventKey any = ccxt.Ternary(ccxt.IsTrue(groupId), this.ShortenSlug(groupId), nil)
 		var m any = this.ParseMarket(raw)
 		ccxt.AppendToArray(&markets, m)
-		if ccxt.IsTrue(eventKey) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventKey, "")))) {
 			if !ccxt.IsTrue((ccxt.InOp(eventGroups, eventKey))) {
 				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
 					"groupId": groupId,
@@ -3561,10 +3561,10 @@ func (this *LimitlessCore) fetchEventsBody(ch chan any, optionalArgs ...any) any
 			ccxt.AppendToArray(&rawMarkets, ccxt.GetValue(listRaw, i))
 		}
 	}
-	if !ccxt.IsTrue(this.Events) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Events, nil)) {
 		this.Events = map[string]any{}
 	}
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var eventGroups map[string]any = map[string]any{}
@@ -3581,7 +3581,7 @@ func (this *LimitlessCore) fetchEventsBody(ch chan any, optionalArgs ...any) any
 			panic(ccxt.ExchangeError(ccxt.Add(this.Id, " fetchEvents() missing m")))
 		}
 		ccxt.AddElementToObject(this.Markets, ccxt.GetValue(m, "market"), m)
-		if ccxt.IsTrue(eventKey) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventKey, "")))) {
 			if !ccxt.IsTrue((ccxt.InOp(eventGroups, eventKey))) {
 				ccxt.AddElementToObject(eventGroups, eventKey, map[string]any{
 					"groupId": groupId,

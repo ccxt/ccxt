@@ -2331,7 +2331,7 @@ func (this *LatokenCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var urlencodedQuery any = this.Urlencode(query)
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			requestString = Add(requestString, Add("?", urlencodedQuery))
 		}
 	}

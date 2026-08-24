@@ -14087,7 +14087,7 @@ func (this *BitgetCore) Sign(path any, optionalArgs ...any) any {
 			body = this.Json(params)
 			auth = Add(auth, body)
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(params))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 				var sortedParams map[string]any = this.Keysort(params)
 				var queryInner any = Add("?", this.Urlencode(sortedParams, true))
 				// check #21169 pr

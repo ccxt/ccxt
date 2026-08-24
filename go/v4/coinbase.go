@@ -6610,7 +6610,7 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = fullPath
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			fullPath = Add(fullPath, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	}
@@ -6627,13 +6627,13 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 			var seconds int64 = this.Seconds()
 			var payload any = ""
 			if IsTrue(!IsEqual(method, "GET")) {
-				if IsTrue(GetArrayLength(ObjectKeys(query))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 					body = this.Json(query)
 					payload = body
 				}
 			} else {
 				if !IsTrue(isV3) {
-					if IsTrue(GetArrayLength(ObjectKeys(query))) {
+					if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 						payload = Add(payload, Add("?", this.Urlencode(query)))
 					}
 				}
@@ -6690,7 +6690,7 @@ func (this *CoinbaseCore) Sign(path any, optionalArgs ...any) any {
 				"Content-Type":  "application/json",
 			}
 			if IsTrue(!IsEqual(method, "GET")) {
-				if IsTrue(GetArrayLength(ObjectKeys(query))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 					body = this.Json(query)
 				}
 			}

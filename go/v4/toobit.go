@@ -3797,7 +3797,7 @@ func (this *ToobitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(api, "private")) {
 		// Public endpoints
 		if !IsTrue(isPost) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

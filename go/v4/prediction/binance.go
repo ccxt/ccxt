@@ -462,7 +462,7 @@ func (this *BinanceCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	var eventId any = this.SafeString(params, "eventId")
 	var l1Category any = this.SafeString(params, "l1Category")
 	var l2Category any = this.SafeString(params, "l2Category")
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var rawTopics any = []any{}

@@ -2909,10 +2909,10 @@ func (this *CoinexCore) CreateOrderRequest(symbol any, typeVar any, side any, am
 	if IsTrue(swap) {
 		AddElementToObject(request, "market_type", "FUTURES")
 		if IsTrue(IsTrue(stopLossPrice) || IsTrue(takeProfitPrice)) {
-			if IsTrue(stopLossPrice) {
+			if IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) && IsTrue((!IsEqual(stopLossPrice, "")))) {
 				AddElementToObject(request, "stop_loss_price", this.PriceToPrecision(symbol, stopLossPrice))
 				AddElementToObject(request, "stop_loss_type", this.SafeString(params, "stop_type", "latest_price"))
-			} else if IsTrue(takeProfitPrice) {
+			} else if IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) && IsTrue((!IsEqual(takeProfitPrice, "")))) {
 				AddElementToObject(request, "take_profit_price", this.PriceToPrecision(symbol, takeProfitPrice))
 				AddElementToObject(request, "take_profit_type", this.SafeString(params, "stop_type", "latest_price"))
 			}
@@ -6307,7 +6307,7 @@ func (this *CoinexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) an
 			AddElementToObject(GetValue(result, "withdraw"), "fee", this.SafeNumber(entry, "withdrawal_fee"))
 			AddElementToObject(GetValue(result, "withdraw"), "percentage", false)
 			var networkId any = this.SafeString(entry, "chain")
-			if IsTrue(networkId) {
+			if IsTrue(IsTrue((!IsEqual(networkId, nil))) && IsTrue((!IsEqual(networkId, "")))) {
 				var currencyId any = this.SafeString(asset, "ccy")
 				var feeCode any = this.SafeCurrencyCode(currencyId, currency)
 				var networkCode any = this.NetworkIdToCode(networkId, feeCode)
@@ -6679,7 +6679,7 @@ func (this *CoinexCore) Sign(path any, optionalArgs ...any) any {
 			body = urlencoded
 		}
 	} else if IsTrue(IsTrue(IsEqual(requestUrl, "public")) || IsTrue(IsEqual(requestUrl, "perpetualPublic"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {

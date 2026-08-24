@@ -7706,7 +7706,7 @@ func (this *BingxCore) Sign(path any, optionalArgs ...any) any {
 	AddElementToObject(params, "timestamp", this.Nonce())
 	params = this.Keysort(params)
 	if IsTrue(IsEqual(access, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else if IsTrue(IsEqual(access, "private")) {

@@ -434,7 +434,7 @@ func (this *KalshiCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(parsed)); j++ {
 				var m any = ccxt.GetValue(parsed, j)
 				ccxt.AppendToArray(&flatMarkets, m)
-				if ccxt.IsTrue(eventKey) {
+				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventKey, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventKey, "")))) {
 					if !ccxt.IsTrue((ccxt.InOp(eventsDict, eventKey))) {
 						ccxt.AddElementToObject(eventsDict, eventKey, map[string]any{
 							"id":      eventTicker,
@@ -798,7 +798,7 @@ func (this *KalshiCore) ParseMarket(raw any) any {
 	var openInt any = this.SafeNumber2(raw, "open_interest_fp", "open_interest")
 	// Derive series ticker: drop last hyphen-segment from event_ticker
 	var eventParts any = []any{}
-	if ccxt.IsTrue(eventTicker) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventTicker, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventTicker, "")))) {
 		eventParts = ccxt.Split(eventTicker, "-")
 	}
 	var seriesTicker any = eventTicker
@@ -2815,7 +2815,7 @@ func (this *KalshiCore) fetchEventsBody(ch chan any, optionalArgs ...any) any {
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
 	var rest any = this.Omit(params, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var eventId any = this.SafeString2(params, "eventId", "slug")

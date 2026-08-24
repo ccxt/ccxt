@@ -618,7 +618,7 @@ func (this *PolymarketCore) fetchMarketsBody(ch chan any, optionalArgs ...any) a
 		}
 		var parsedEvent any = this.ParseEvent(rawEvent)
 		var eventSlug any = this.SafeString(rawEvent, "slug")
-		if ccxt.IsTrue(eventSlug) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(eventSlug, nil))) && ccxt.IsTrue((!ccxt.IsEqual(eventSlug, "")))) {
 			var eventKey any = this.ShortenSlug(eventSlug)
 			ccxt.AddElementToObject(eventsDict, eventKey, parsedEvent)
 		}
@@ -3293,10 +3293,10 @@ func (this *PolymarketCore) fetchEventsBody(ch chan any, optionalArgs ...any) an
 		ccxt.PanicOnError(rawEvents)
 	}
 	// Parse and merge into class-level caches
-	if !ccxt.IsTrue(this.Events) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Events, nil)) {
 		this.Events = map[string]any{}
 	}
-	if !ccxt.IsTrue(this.Markets) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 		this.Markets = this.CreateSafeDictionary()
 	}
 	var result any = []any{}
@@ -4039,7 +4039,7 @@ func (this *PolymarketCore) HandleTrade(client any, event any) {
 		"cost":         nil,
 		"fee":          nil,
 	}, market)
-	if !ccxt.IsTrue(this.Trades) {
+	if ccxt.IsTrue(ccxt.IsEqual(this.Trades, nil)) {
 		this.Trades = map[string]any{}
 	}
 	var stored any = this.SafeValue(this.Trades, outcome)
@@ -4399,7 +4399,7 @@ func (this *PolymarketCore) HandleMyTrade(client any, event any) {
 	}
 }
 func (this *PolymarketCore) TokenIdToSymbol(tokenId any) any {
-	if !ccxt.IsTrue(tokenId) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(tokenId, nil))) || ccxt.IsTrue((ccxt.IsEqual(tokenId, "")))) {
 		return nil
 	}
 	// outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets)

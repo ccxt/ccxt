@@ -2801,7 +2801,7 @@ func (this *WoofiproCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ..
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsTrue(clientOrderIds) {
+	if IsTrue(!IsEqual(clientOrderIds, nil)) {
 		AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
 
 		response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
@@ -2937,7 +2937,7 @@ func (this *WoofiproCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
 	var response any = nil
 	if IsTrue(trigger) {
-		if IsTrue(clientOrderId) {
+		if IsTrue(IsTrue((!IsEqual(clientOrderId, nil))) && IsTrue((!IsEqual(clientOrderId, "")))) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
 
 			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
@@ -2949,7 +2949,7 @@ func (this *WoofiproCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 			PanicOnError(response)
 		}
 	} else {
-		if IsTrue(clientOrderId) {
+		if IsTrue(IsTrue((!IsEqual(clientOrderId, nil))) && IsTrue((!IsEqual(clientOrderId, "")))) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
 
 			response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
@@ -4545,7 +4545,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Keysort(params)
 	if IsTrue(IsEqual(access, "public")) {
 		url = Add(url, pathWithParams)
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
@@ -4583,7 +4583,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 			auth = Add(auth, body)
 			AddElementToObject(headers, "content-type", "application/json")
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(params))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(params)))
 				auth = Add(auth, Add("?", this.Rawencode(params)))
 			}

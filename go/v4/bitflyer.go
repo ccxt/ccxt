@@ -1649,7 +1649,7 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 	}
 	request = Add(request, path)
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			request = Add(request, Add("?", this.Urlencode(params)))
 		}
 	}
@@ -1660,7 +1660,7 @@ func (this *BitflyerCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var content []any = []any{nonce, method, request}
 		var auth any = Join(content, "")
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			if IsTrue(!IsEqual(method, "GET")) {
 				body = this.Json(params)
 				auth = Add(auth, body)

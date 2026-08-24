@@ -1621,7 +1621,7 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 		"withdraw_address": address,
 		"request_id":       ToString(requestId),
 	}
-	if IsTrue(tag) {
+	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((!IsEqual(tag, "")))) {
 		AddElementToObject(request, "withdraw_memo", tag)
 	}
 
@@ -1866,7 +1866,7 @@ func (this *IndodaxCore) Sign(path any, optionalArgs ...any) any {
 		var query any = this.Omit(params, this.ExtractParams(path))
 		var requestPath any = Add("/", this.ImplodeParams(path, params))
 		url = Add(url, requestPath)
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	} else {

@@ -4560,7 +4560,7 @@ func (this *BitmexCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = Add(Add(Add("/api/", this.Version), "/"), path)
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			query = Add(query, Add("?", this.Urlencode(params)))
 		}
 	} else {
@@ -4591,7 +4591,7 @@ func (this *BitmexCore) Sign(path any, optionalArgs ...any) any {
 		auth = Add(auth, stringExpires)
 		AddElementToObject(headers, "api-expires", stringExpires)
 		if IsTrue(IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) || IsTrue(IsEqual(method, "DELETE"))) {
-			if IsTrue(GetArrayLength(ObjectKeys(params))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 				body = this.Json(params)
 				auth = Add(auth, body)
 			}

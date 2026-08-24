@@ -2356,7 +2356,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		} else if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 			var nonce int64 = this.Milliseconds()
@@ -2371,7 +2371,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "X-BITOPRO-SIGNATURE", signature)
 		}
 	} else if IsTrue(IsTrue(IsEqual(api, "public")) && IsTrue(IsEqual(method, "GET"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}

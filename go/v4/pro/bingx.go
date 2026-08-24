@@ -1414,7 +1414,10 @@ func (this *BingxCore) SetBalanceCache(client any, typeVar any, subType any, sub
 	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetSubscriptions(), subscriptionHash)) {
 		return
 	}
-	var fetchBalanceSnapshot any = this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshot any = false
+	fetchBalanceSnapshotparamsVariable := this.HandleOptionAndParams(params, "watchBalance", "fetchBalanceSnapshot", true)
+	fetchBalanceSnapshot = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 0)
+	params = ccxt.GetValue(fetchBalanceSnapshotparamsVariable, 1)
 	if ccxt.IsTrue(fetchBalanceSnapshot) {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !ccxt.IsTrue((ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash))) {
@@ -1478,12 +1481,12 @@ func (this *BingxCore) watchPositionsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes120312 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes120312)
+		retRes120412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes120412)
 	}
 
-	retRes12058 := (<-this.Authenticate())
-	ccxt.PanicOnError(retRes12058)
+	retRes12068 := (<-this.Authenticate())
+	ccxt.PanicOnError(retRes12068)
 	var market any = nil
 	var messageHash any = ""
 	symbols = this.MarketSymbols(symbols)
@@ -1794,10 +1797,10 @@ func (this *BingxCore) keepAliveListenKeyBody(ch chan any, optionalArgs ...any) 
 			}()
 			// try block:
 
-			retRes142812 := (<-this.UserAuthPrivatePutUserDataStream(map[string]any{
+			retRes142912 := (<-this.UserAuthPrivatePutUserDataStream(map[string]any{
 				"listenKey": listenKey,
 			}))
-			ccxt.PanicOnError(retRes142812) // extend the expiry
+			ccxt.PanicOnError(retRes142912) // extend the expiry
 			return nil
 		}(this)
 
@@ -1834,8 +1837,8 @@ func (this *BingxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
-			retRes147116 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes147116)
+			retRes147216 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes147216)
 
 			return nil
 		}
@@ -1880,8 +1883,8 @@ func (this *BingxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 		}
 
-		retRes149812 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes149812)
+		retRes149912 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes149912)
 	}
 	return nil
 }
@@ -1912,17 +1915,17 @@ func (this *BingxCore) pongBody(ch chan any, client any, message any) any {
 			// try block:
 			if ccxt.IsTrue(ccxt.IsEqual(message, "Ping")) {
 
-				retRes151416 := (<-client.(ccxt.ClientInterface).Send("Pong"))
-				ccxt.PanicOnError(retRes151416)
+				retRes151516 := (<-client.(ccxt.ClientInterface).Send("Pong"))
+				ccxt.PanicOnError(retRes151516)
 			} else {
 				var ping any = this.SafeString(message, "ping")
 				var time any = this.SafeString(message, "time")
 
-				retRes151816 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+				retRes151916 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 					"pong": ping,
 					"time": time,
 				}))
-				ccxt.PanicOnError(retRes151816)
+				ccxt.PanicOnError(retRes151916)
 			}
 			return nil
 		}(this)

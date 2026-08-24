@@ -3782,7 +3782,7 @@ func (this *NadoCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "Accept-Encoding", "gzip, br, deflate")
 	}
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else {

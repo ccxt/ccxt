@@ -6846,7 +6846,7 @@ func (this *KucoinCore) fetchSpotOrdersByStatusBody(ch chan any, status any, opt
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "pageSize", limit)
 		}
-		if IsTrue(until) {
+		if IsTrue(IsTrue((!IsEqual(until, nil))) && IsTrue((!IsEqual(until, 0)))) {
 			AddElementToObject(request, "endAt", until)
 		}
 		if IsTrue(trigger) {

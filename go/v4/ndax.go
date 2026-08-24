@@ -1590,7 +1590,7 @@ func (this *NdaxCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if !IsTrue(this.Login) {
+	if IsTrue(IsTrue((IsEqual(this.Login, nil))) || IsTrue((IsEqual(this.Login, "")))) {
 		panic(AuthenticationError(Add(this.Id, " fetchAccounts() requires exchange.login email credential")))
 	}
 	var omsId any = this.SafeInteger(this.Options, "omsId", 1)
@@ -3401,7 +3401,7 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 				query = this.Omit(query, "pending2faToken")
 			}
 		}
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	} else if IsTrue(IsEqual(api, "private")) {
@@ -3426,7 +3426,7 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 			body = this.Json(query)
 		} else {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(query)))
 			}
 		}

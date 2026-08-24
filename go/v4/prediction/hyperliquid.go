@@ -209,7 +209,7 @@ func (this *HyperliquidCore) OutcomeToken(encoding any) any {
  * @returns {object} a dict of the parsed key/value pairs
  */
 func (this *HyperliquidCore) ParseOutcomeDescription(description any) any {
-	if !ccxt.IsTrue(description) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(description, nil))) || ccxt.IsTrue((ccxt.IsEqual(description, "")))) {
 		return map[string]any{}
 	}
 	var parts []string = ccxt.Split(description, "|")
@@ -244,10 +244,10 @@ func (this *HyperliquidCore) BuildOutcomeSymbol(desc any, side any, outcomeId an
 	var expiryDate any = ccxt.Ternary(ccxt.IsTrue(expiry), ccxt.GetValue(ccxt.Split(expiry, "-"), 0), "")
 	var label any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(side, 0))), "YES", "NO")
 	var base any = ccxt.ToUpper(underlying)
-	if ccxt.IsTrue(targetPrice) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(targetPrice, nil))) && ccxt.IsTrue((!ccxt.IsEqual(targetPrice, "")))) {
 		base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 	}
-	if ccxt.IsTrue(expiryDate) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiryDate, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiryDate, "")))) {
 		base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 	}
 	return ccxt.Add(ccxt.Add(base, ":"), label)
@@ -270,21 +270,21 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 	question := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = question
 	var underlying any = this.SafeString(desc, "underlying")
-	if ccxt.IsTrue(underlying) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(underlying, nil))) && ccxt.IsTrue((!ccxt.IsEqual(underlying, "")))) {
 		var targetPrice any = this.SafeString(desc, "targetPrice")
 		var expiry any = this.SafeString(desc, "expiry", "")
 		var expiryDate any = ccxt.Ternary(ccxt.IsTrue(expiry), ccxt.GetValue(ccxt.Split(expiry, "-"), 0), "")
 		var base any = ccxt.ToUpper(underlying)
-		if ccxt.IsTrue(targetPrice) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(targetPrice, nil))) && ccxt.IsTrue((!ccxt.IsEqual(targetPrice, "")))) {
 			base = ccxt.Add(ccxt.Add(base, "_ABOVE_"), targetPrice)
 		}
-		if ccxt.IsTrue(expiryDate) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiryDate, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiryDate, "")))) {
 			base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 		}
 		return base
 	}
 	var questionDescription any = this.SafeString(question, "description")
-	if ccxt.IsTrue(questionDescription) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(questionDescription, nil))) && ccxt.IsTrue((!ccxt.IsEqual(questionDescription, "")))) {
 		var questionDesc any = this.ParseOutcomeDescription(questionDescription)
 		var questionClass any = this.SafeStringLower(questionDesc, "class")
 		if ccxt.IsTrue(ccxt.IsEqual(questionClass, "pricebucket")) {
@@ -317,7 +317,7 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 						bucketLabel = ccxt.Add(ccxt.Add(ccxt.Add("BETWEEN_", ccxt.GetValue(thresholds, ccxt.Subtract(index, 1))), "_"), ccxt.GetValue(thresholds, index))
 					}
 					var base any = ccxt.Add(ccxt.Add(ccxt.ToUpper(questionUnderlying), "_"), bucketLabel)
-					if ccxt.IsTrue(expiryDate) {
+					if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiryDate, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiryDate, "")))) {
 						base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 					}
 					return base
@@ -326,7 +326,7 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 			var isFallbackLike bool = ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(rawDescription, "other"))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(nameLower, "fallback"), 0)))) || ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(nameLower, "other"), 0)))
 			if ccxt.IsTrue(ccxt.IsTrue(questionUnderlying) && ccxt.IsTrue(isFallbackLike)) {
 				var base any = ccxt.Add(ccxt.ToUpper(questionUnderlying), "_OTHER")
-				if ccxt.IsTrue(expiryDate) {
+				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiryDate, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiryDate, "")))) {
 					base = ccxt.Add(ccxt.Add(base, "_"), expiryDate)
 				}
 				return base
@@ -334,9 +334,9 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 		}
 	}
 	var questionName any = this.SafeString(question, "name")
-	if ccxt.IsTrue(questionName) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(questionName, nil))) && ccxt.IsTrue((!ccxt.IsEqual(questionName, "")))) {
 		var questionSlug any = this.ShortenSlug(questionName)
-		if ccxt.IsTrue(questionSlug) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(questionSlug, nil))) && ccxt.IsTrue((!ccxt.IsEqual(questionSlug, "")))) {
 			var outcomeSlug any = this.ShortenSlug(name)
 			var genericOutcomeNames map[string]any = map[string]any{
 				"RECURRING":               true,
@@ -350,14 +350,14 @@ func (this *HyperliquidCore) BuildOutcomeParentSymbol(desc any, outcomeId any, o
 					outcomeSlug = ""
 				}
 			}
-			if ccxt.IsTrue(outcomeSlug) {
+			if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(outcomeSlug, nil))) && ccxt.IsTrue((!ccxt.IsEqual(outcomeSlug, "")))) {
 				return ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(questionSlug, "_"), outcomeSlug), "_"), ccxt.ToString(outcomeId))
 			}
 			return ccxt.Add(ccxt.Add(questionSlug, "_"), ccxt.ToString(outcomeId))
 		}
 	}
 	// Fallback: use name slugified, or OUTCOME-<id>
-	if ccxt.IsTrue(name) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(name, nil))) && ccxt.IsTrue((!ccxt.IsEqual(name, "")))) {
 		return ccxt.Add(ccxt.Add(this.ShortenSlug(name), "_"), ccxt.ToString(outcomeId))
 	}
 	return ccxt.Add("OUTCOME_", ccxt.ToString(outcomeId))
@@ -493,7 +493,7 @@ func (this *HyperliquidCore) ParseOutcomeMarket(outcomeInfo any, outcomeId any, 
 	var expiry any = this.SafeString(desc, "expiry")
 	var expiryMs any = nil
 	var expiryDatetime any = nil
-	if ccxt.IsTrue(expiry) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiry, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiry, "")))) {
 		// e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
 		var expParts []string = ccxt.Split(expiry, "-")
 		var expPartsLength int = ccxt.GetArrayLength(expParts)
@@ -1280,7 +1280,7 @@ func (this *HyperliquidCore) FindOutcomeInMarket(market any, optionalArgs ...any
 	return this.SafeDict(outcomesList, 0, map[string]any{})
 }
 func (this *HyperliquidCore) ParseOutcomeInputSideHint(outcomeInput any) any {
-	if !ccxt.IsTrue(outcomeInput) {
+	if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(outcomeInput, nil))) || ccxt.IsTrue((ccxt.IsEqual(outcomeInput, "")))) {
 		return nil
 	}
 	var colonIndex int = ccxt.GetIndexOf(outcomeInput, ":")
@@ -2336,7 +2336,7 @@ func (this *HyperliquidCore) ParseEvent(raw any) any {
 	var expiryRaw any = this.SafeString(desc, "expiry")
 	var expiryMs any = nil
 	var expiryDatetime any = nil
-	if ccxt.IsTrue(expiryRaw) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiryRaw, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiryRaw, "")))) {
 		var parts []string = ccxt.Split(expiryRaw, "-")
 		var partsLength int = ccxt.GetArrayLength(parts)
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(partsLength, 1)) && ccxt.IsTrue(ccxt.IsEqual(ccxt.GetLength(ccxt.GetValue(parts, 0)), 8))) {
@@ -2351,10 +2351,10 @@ func (this *HyperliquidCore) ParseEvent(raw any) any {
 	var title any = parentSymbol
 	if ccxt.IsTrue(!ccxt.IsEqual(underlying, nil)) {
 		var titleSuffix any = ""
-		if ccxt.IsTrue(targetPrice) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(targetPrice, nil))) && ccxt.IsTrue((!ccxt.IsEqual(targetPrice, "")))) {
 			titleSuffix = ccxt.Add(ccxt.Add(titleSuffix, " ABOVE "), targetPrice)
 		}
-		if ccxt.IsTrue(expiryRaw) {
+		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(expiryRaw, nil))) && ccxt.IsTrue((!ccxt.IsEqual(expiryRaw, "")))) {
 			titleSuffix = ccxt.Add(ccxt.Add(titleSuffix, " @ "), expiryRaw)
 		}
 		title = ccxt.Add(underlying, titleSuffix)

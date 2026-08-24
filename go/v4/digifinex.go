@@ -2346,7 +2346,7 @@ func (this *DigifinexCore) CreateOrderRequest(symbol any, typeVar any, side any,
 		AddElementToObject(request, "amount", quantity)
 	}
 	if IsTrue(postOnly) {
-		if IsTrue(postOnlyParsed) {
+		if IsTrue(IsTrue((!IsEqual(postOnlyParsed, nil))) && IsTrue((!IsEqual(postOnlyParsed, 0)))) {
 			AddElementToObject(request, "post_only", postOnlyParsed)
 		} else {
 			AddElementToObject(request, "post_only", postOnly)
@@ -5575,7 +5575,7 @@ func (this *DigifinexCore) Sign(path any, optionalArgs ...any) any {
 			nonce = ToString(this.Milliseconds())
 			auth = Add(Add(nonce, method), payload)
 			if IsTrue(IsEqual(method, "GET")) {
-				if IsTrue(urlencoded) {
+				if IsTrue(IsTrue((!IsEqual(urlencoded, nil))) && IsTrue((!IsEqual(urlencoded, "")))) {
 					auth = Add(auth, Add("?", urlencoded))
 				}
 			} else if IsTrue(IsEqual(method, "POST")) {
@@ -5587,14 +5587,14 @@ func (this *DigifinexCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(urlencoded) {
+			if IsTrue(IsTrue((!IsEqual(urlencoded, nil))) && IsTrue((!IsEqual(urlencoded, "")))) {
 				url = Add(url, Add("?", urlencoded))
 			}
 		} else if IsTrue(IsEqual(method, "POST")) {
 			headers = map[string]any{
 				"Content-Type": "application/x-www-form-urlencoded",
 			}
-			if IsTrue(urlencoded) {
+			if IsTrue(IsTrue((!IsEqual(urlencoded, nil))) && IsTrue((!IsEqual(urlencoded, "")))) {
 				body = urlencoded
 			}
 		}
@@ -5604,7 +5604,7 @@ func (this *DigifinexCore) Sign(path any, optionalArgs ...any) any {
 			"ACCESS-TIMESTAMP": nonce,
 		}
 	} else {
-		if IsTrue(urlencoded) {
+		if IsTrue(IsTrue((!IsEqual(urlencoded, nil))) && IsTrue((!IsEqual(urlencoded, "")))) {
 			url = Add(url, Add("?", urlencoded))
 		}
 	}

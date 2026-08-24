@@ -3782,7 +3782,7 @@ func (this *BitfinexCore) Sign(path any, optionalArgs ...any) any {
 	}
 	var url any = Add(Add(GetValue(GetValue(this.Urls, "api"), api), "/"), request)
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
 	}

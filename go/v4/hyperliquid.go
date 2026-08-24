@@ -2759,7 +2759,7 @@ func (this *HyperliquidCore) CreateOrderRequest(symbol any, typeVar any, side an
 	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
 	var stopLossPrice any = this.SafeString(params, "stopLossPrice", triggerPrice)
 	var takeProfitPrice any = this.SafeString(params, "takeProfitPrice")
-	var isTrigger bool = (IsTrue(stopLossPrice) || IsTrue(takeProfitPrice))
+	var isTrigger bool = (IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil))))
 	var px any = nil
 	if IsTrue(isMarket) {
 		if IsTrue(IsEqual(price, nil)) {
@@ -3416,7 +3416,7 @@ func (this *HyperliquidCore) EditOrdersRequest(orders any, optionalArgs ...any) 
 		var triggerPrice any = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
 		var stopLossPrice any = this.SafeString(orderParams, "stopLossPrice", triggerPrice)
 		var takeProfitPrice any = this.SafeString(orderParams, "takeProfitPrice")
-		var isTrigger bool = (IsTrue(stopLossPrice) || IsTrue(takeProfitPrice))
+		var isTrigger bool = (IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil))))
 		var reduceOnly any = this.SafeBool(orderParams, "reduceOnly", false)
 		orderParams = this.Omit(orderParams, []any{"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"})
 		var px any = this.NumberToString(price)
@@ -6147,7 +6147,7 @@ func (this *HyperliquidCore) CoinToMarketId(coin any) any {
 		return nil
 	}
 	var hi3TokensByname any = this.SafeDict(this.Options, "hip3TokensByName", map[string]any{})
-	if IsTrue(this.SafeDict(hi3TokensByname, coin)) {
+	if IsTrue(!IsEqual(this.SafeDict(hi3TokensByname, coin), nil)) {
 		var hip3Dict any = this.SafeDict(hi3TokensByname, coin)
 		var quote any = this.SafeString(hip3Dict, "quote", "USDC")
 		var code any = this.SafeString(hip3Dict, "code", coin)

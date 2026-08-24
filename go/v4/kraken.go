@@ -3147,7 +3147,7 @@ func (this *KrakenCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 					}
 					ret_ = func(this *KrakenCore) any {
 						// catch block:
-						if IsTrue(this.Last_http_response) {
+						if IsTrue(IsTrue((!IsEqual(this.Last_http_response, nil))) && IsTrue((!IsEqual(this.Last_http_response, "")))) {
 							if IsTrue(IsGreaterThanOrEqual(GetIndexOf(this.Last_http_response, "EOrder:Unknown order"), 0)) {
 								panic(OrderNotFound(Add(Add(this.Id, " cancelOrder() error "), this.Last_http_response)))
 							}
@@ -4438,7 +4438,7 @@ func (this *KrakenCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = Add(Add(Add(Add(Add("/", this.Version), "/"), api), "/"), path)
 	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			// rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
 			url = Add(url, Add("?", this.UrlencodeNested(params)))
 		}

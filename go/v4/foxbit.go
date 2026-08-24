@@ -2372,7 +2372,7 @@ func (this *FoxbitCore) ParseOrder(order any, optionalArgs ...any) any {
 		amount = Precise.StringAdd(remaining, filled)
 	}
 	var cost any = this.SafeString(order, "funds_received")
-	if !IsTrue(cost) {
+	if IsTrue(IsTrue((IsEqual(cost, nil))) || IsTrue((IsEqual(cost, "")))) {
 		var priceAverage any = this.SafeString(order, "price_avg")
 		var priceToCalculate any = this.SafeString(order, "price", priceAverage)
 		cost = Precise.StringMul(priceToCalculate, amount)
@@ -2650,7 +2650,7 @@ func (this *FoxbitCore) HandleErrors(httpCode any, reason any, url any, method a
 	var details any = this.SafeList(error, "details")
 	var message any = this.SafeString(error, "message")
 	var detailsString any = ""
-	if IsTrue(details) {
+	if IsTrue(!IsEqual(details, nil)) {
 		for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
 			detailsString = Add(Add(detailsString, GetValue(details, i)), " ")
 		}

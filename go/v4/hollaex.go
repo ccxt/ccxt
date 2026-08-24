@@ -2546,7 +2546,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	path = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	if IsTrue(IsTrue((IsEqual(method, "GET"))) || IsTrue((IsEqual(method, "DELETE")))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			path = Add(path, Add("?", this.Urlencode(query)))
 		}
 	}
@@ -2563,7 +2563,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 		}
 		if IsTrue(IsEqual(method, "POST")) {
 			AddElementToObject(headers, "Content-type", "application/json")
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				auth = Add(auth, body)
 			}

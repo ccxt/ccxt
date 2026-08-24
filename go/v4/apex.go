@@ -2516,7 +2516,7 @@ func (this *ApexCore) Sign(path any, optionalArgs ...any) any {
 	var signPath any = Add("/api/", path)
 	var signBody any = body
 	if IsTrue(!IsEqual(ToUpper(method), "POST")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			signPath = Add(signPath, Add("?", this.Rawencode(params)))
 			url = Add(url, Add("?", this.Rawencode(params)))
 		}

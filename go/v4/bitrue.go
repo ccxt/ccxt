@@ -3839,7 +3839,7 @@ func (this *BitrueCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 	} else {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	}

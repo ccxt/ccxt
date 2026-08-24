@@ -3135,7 +3135,7 @@ func (this *MexcCore) createSwapOrderBody(ch chan any, market any, typeVar any, 
 	var triggerPrice any = this.SafeNumber2(params, "triggerPrice", "stopPrice")
 	params = this.Omit(params, []any{"clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged"})
 	var response any = nil
-	if IsTrue(triggerPrice) {
+	if IsTrue(IsTrue((!IsEqual(triggerPrice, nil))) && IsTrue((!IsEqual(triggerPrice, 0)))) {
 		AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
 		AddElementToObject(request, "triggerType", this.SafeInteger(params, "triggerType", 1))
 		AddElementToObject(request, "executeCycle", this.SafeInteger(params, "executeCycle", 1))
@@ -7515,7 +7515,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		var paramsEncoded any = ""
-		if IsTrue(GetArrayLength(ObjectKeys(urlParams))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(urlParams)), 0)) {
 			paramsEncoded = this.Urlencode(urlParams)
 			url = Add(url, Add("?", paramsEncoded))
 		}
@@ -7536,7 +7536,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 		url = Add(Add(GetValue(GetValue(GetValue(this.Urls, "api"), section), access), "/"), this.ImplodeParams(path, params))
 		params = this.Omit(params, this.ExtractParams(path))
 		if IsTrue(IsEqual(access, "public")) {
-			if IsTrue(GetArrayLength(ObjectKeys(params))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 				url = Add(url, Add("?", this.Urlencode(params)))
 			}
 		} else {
@@ -7554,7 +7554,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 				body = auth
 			} else {
 				params = this.Keysort(params)
-				if IsTrue(GetArrayLength(ObjectKeys(params))) {
+				if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 					auth = Add(auth, this.Urlencode(params))
 					url = Add(url, Add("?", auth))
 				}

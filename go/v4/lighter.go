@@ -4392,7 +4392,7 @@ func (this *LighterCore) Sign(path any, optionalArgs ...any) any {
 			"Authorization": this.CreateAuth(params),
 		}
 	}
-	if IsTrue(GetArrayLength(ObjectKeys(params))) {
+	if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 		if IsTrue(IsEqual(method, "POST")) {
 			headers = map[string]any{
 				"Content-Type": "multipart/form-data",

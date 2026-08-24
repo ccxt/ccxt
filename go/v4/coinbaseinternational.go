@@ -2528,7 +2528,7 @@ func (this *CoinbaseinternationalCore) cancelAllOrdersBody(ch chan any, optional
 		"portfolio": portfolio,
 	}
 	var market any = nil
-	if IsTrue(symbol) {
+	if IsTrue(IsTrue((!IsEqual(symbol, nil))) && IsTrue((!IsEqual(symbol, "")))) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument", GetValue(market, "id"))
 	}
@@ -2742,7 +2742,7 @@ func (this *CoinbaseinternationalCore) fetchOpenOrdersBody(ch chan any, optional
 		"result_offset": offSet,
 	}
 	var market any = nil
-	if IsTrue(symbol) {
+	if IsTrue(IsTrue((!IsEqual(symbol, nil))) && IsTrue((!IsEqual(symbol, "")))) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "instrument", symbol)
 	}
@@ -3016,7 +3016,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var savedPath any = Add("/api", fullPath)
 	if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			fullPath = Add(fullPath, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	}
@@ -3026,7 +3026,7 @@ func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
 		var nonce string = ToString(this.Nonce())
 		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 				body = this.Json(query)
 				payload = body
 			}

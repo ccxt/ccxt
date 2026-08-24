@@ -2056,7 +2056,7 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	}
 	var market any = this.Market(symbol)
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
-	if !IsTrue(clientOrderIds) {
+	if IsTrue(IsEqual(clientOrderIds, nil)) {
 		panic(NotSupported(Add(this.Id, " cancelOrders only support clientOrderIds.")))
 	}
 	var subAccountId any = 0
@@ -3150,7 +3150,7 @@ func (this *DydxCore) Sign(path any, optionalArgs ...any) any {
 	params = this.Keysort(params)
 	url = Add(url, Add("/", pathWithParams))
 	if IsTrue(IsEqual(method, "GET")) {
-		if IsTrue(GetArrayLength(ObjectKeys(params))) {
+		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(params)), 0)) {
 			url = Add(url, Add("?", this.Urlencode(params)))
 		}
 	} else {
@@ -3179,10 +3179,10 @@ func (this *DydxCore) HandleErrors(httpCode any, reason any, url any, method any
 	//
 	var result any = this.SafeDict(response, "result")
 	var errorCode any = this.SafeString(result, "code")
-	if !IsTrue(errorCode) {
+	if IsTrue(IsTrue((IsEqual(errorCode, nil))) || IsTrue((IsEqual(errorCode, "")))) {
 		errorCode = this.SafeString(response, "code")
 	}
-	if IsTrue(errorCode) {
+	if IsTrue(IsTrue((!IsEqual(errorCode, nil))) && IsTrue((!IsEqual(errorCode, "")))) {
 		var errorCodeNum any = this.ParseToNumeric(errorCode)
 		if IsTrue(IsGreaterThan(errorCodeNum, 0)) {
 			var feedback any = Add(Add(this.Id, " "), this.Json(response))

@@ -676,7 +676,7 @@ func (this *PacificaCore) HandleOrderBook(client any, message any) {
 	var timestamp any = this.SafeInteger(entry, "t")
 	var snapshot any = this.ParseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a")
 	var nonce any = this.SafeInteger(entry, "li")
-	if ccxt.IsTrue(nonce) {
+	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(nonce, nil))) && ccxt.IsTrue((!ccxt.IsEqual(nonce, 0)))) {
 		ccxt.AddElementToObject(snapshot, "nonce", nonce)
 	}
 	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
