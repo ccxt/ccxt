@@ -2526,7 +2526,7 @@
                     "initialMargin": null,
                     "initialMarginPercentage": null,
                     "leverage": null,
-                    "liquidationPrice": "241.7",
+                    "liquidationPrice": 241.7,
                     "marginRatio": null,
                     "marginMode": null,
                     "percentage": null
