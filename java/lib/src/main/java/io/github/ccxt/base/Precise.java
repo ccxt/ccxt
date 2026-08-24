@@ -148,8 +148,7 @@ public class Precise {
     }
 
     public Precise or(Precise other) {
-        int decimals = toInt(this.decimals) + toInt(other.decimals);
-        return new Precise(this.integer.or(other.integer), decimals);
+        return new Precise(this.integer.or(other.integer), toInt(this.decimals));
     }
 
     public Precise neg() {
