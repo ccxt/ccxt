@@ -205,6 +205,72 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding payments with an account history cursor",
+                "method": "fetchFundingHistory",
+                "url": "https://app.perpl.xyz/api/v1/trading/account-history?count=100&page=next-page-cursor",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    2,
+                    {
+                        "page": "next-page-cursor"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch deposits and withdrawals with an account history cursor",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://app.perpl.xyz/api/v1/trading/account-history?count=100&page=next-page-cursor",
+                "input": [
+                    "AUSD",
+                    null,
+                    3,
+                    {
+                        "page": "next-page-cursor"
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits through account history filtering",
+                "method": "fetchDeposits",
+                "url": "https://app.perpl.xyz/api/v1/trading/account-history?count=100",
+                "input": [
+                    "AUSD",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch withdrawals through account history filtering",
+                "method": "fetchWithdrawals",
+                "url": "https://app.perpl.xyz/api/v1/trading/account-history?count=100",
+                "input": [
+                    "AUSD",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetch transactions through the unified emulation",
+                "method": "fetchTransactions",
+                "url": "https://app.perpl.xyz/api/v1/trading/account-history?count=100",
+                "input": [
+                    "AUSD",
+                    null,
+                    2
+                ]
+            }
         ]
     }
 }

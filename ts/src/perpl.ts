@@ -6,7 +6,7 @@ import Exchange from './abstract/perpl.js';
 import { AuthenticationError, BadRequest, BadSymbol, OperationRejected, PermissionDenied } from './base/errors.js';
 import Precise from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
-import type { Currencies, CurrencyInterface, Dict, Endpoint, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, OpenInterest, OpenInterests, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Currencies, Currency, CurrencyInterface, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, LastPrice, LastPrices, Market, NullableDict, OHLCV, OpenInterest, OpenInterests, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -45,6 +45,9 @@ export default class perpl extends Exchange {
                 'fetchBidsAsks': 'emulated',
                 'fetchCurrencies': true,
                 'fetchCurrenciesWs': false,
+                'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
+                'fetchFundingHistory': true,
                 'fetchFundingIntervals': 'emulated',
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -65,6 +68,8 @@ export default class perpl extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': false,
+                'fetchTransactions': 'emulated',
+                'fetchWithdrawals': true,
                 'sandbox': true,
                 'watchBalance': false,
                 'watchMyTrades': false,
@@ -721,6 +726,338 @@ export default class perpl extends Exchange {
     }
 
     /**
+     * @ignore
+     * @method
+     * @description fetches and filters Perpl account history rows without stopping pagination on pages that contain unrelated event types
+     * @param {string} methodName unified method name used for pagination options
+     * @param {int[]} eventTypes Perpl account event types to retain
+     * @param {string} [marketId] Perpl market id to retain
+     * @param {string[]} [instanceIds] Perpl instance ids to retain
+     * @param {int} [since] timestamp in ms of the earliest event to retain
+     * @param {int} [limit] maximum number of matching events to retain
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {object[]} filtered Perpl account history rows
+     */
+    async fetchAccountHistoryRows (methodName: string, eventTypes: number[], marketId: Str = undefined, instanceIds: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate', false);
+        let paginationCalls = 10;
+        [ paginationCalls, params ] = this.handleOptionAndParams (params, methodName, 'paginationCalls', 10);
+        const requestCount = Math.min (this.safeInteger (params, 'count', 100), 100);
+        let page = this.safeString (params, 'page');
+        params = this.omit (params, [ 'count', 'page' ]);
+        const result: Dict[] = [];
+        let calls = 0;
+        while (calls < paginationCalls) {
+            const request: Dict = {
+                'count': requestCount,
+            };
+            if (page !== undefined) {
+                request['page'] = page;
+            }
+            const response = await this.privateGetV1TradingAccountHistory (this.extend (request, params));
+            //
+            //     {
+            //         "d": [
+            //             {
+            //                 "at": { "b": 97001410, "t": 1787037900000, "tx": 3, "txid": "0x1234", "l": 3 },
+            //                 "in": 1,
+            //                 "id": 42,
+            //                 "et": 8,
+            //                 "m": 1,
+            //                 "p": 7654321,
+            //                 "a": "-1250000",
+            //                 "b": "676750000",
+            //                 "lb": "0",
+            //                 "f": "0",
+            //                 "bfa": "0"
+            //             }
+            //         ],
+            //         "np": "next-page-cursor"
+            //     }
+            //
+            const data = this.safeList (response, 'd', []);
+            for (let i = 0; i < data.length; i++) {
+                const event = data[i];
+                const eventType = this.safeInteger (event, 'et');
+                const eventMarketId = this.safeString (event, 'm');
+                const eventInstanceId = this.safeString (event, 'in');
+                const matchesEventType = (eventType !== undefined) && this.inArray (eventType, eventTypes);
+                const matchesMarket = (marketId === undefined) || (eventMarketId === marketId);
+                const matchesInstance = (instanceIds === undefined) || this.inArray (eventInstanceId, instanceIds);
+                if (matchesEventType && matchesMarket && matchesInstance) {
+                    result.push (event);
+                }
+            }
+            if (!paginate) {
+                break;
+            }
+            const nextPage = this.safeString (response, 'np');
+            if ((nextPage === undefined) || (nextPage.length === 0) || (nextPage === page)) {
+                break;
+            }
+            const dataLength = data.length;
+            if (dataLength > 0) {
+                const last = data[dataLength - 1];
+                const at = this.safeDict (last, 'at', {});
+                const lastTimestamp = this.safeInteger (at, 't');
+                if ((since !== undefined) && (lastTimestamp !== undefined) && (lastTimestamp < since)) {
+                    break;
+                }
+            }
+            if ((limit !== undefined) && (result.length >= limit)) {
+                break;
+            }
+            page = nextPage;
+            calls += 1;
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchFundingHistory
+     * @description fetches the history of funding payments paid and received on this account
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        let marketId: Str = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            marketId = market['id'];
+        }
+        const rows = await this.fetchAccountHistoryRows ('fetchFundingHistory', [ 8 ], marketId, undefined, since, limit, params);
+        return this.parseIncomes (rows, market, since, limit);
+    }
+
+    override parseIncome (info: any, market: Market = undefined): object {
+        //
+        //     {
+        //         "at": { "b": 97001410, "t": 1787037900000, "tx": 3, "txid": "0x1234", "l": 3 },
+        //         "in": 1,
+        //         "id": 42,
+        //         "et": 8,
+        //         "m": 1,
+        //         "p": 7654321,
+        //         "a": "-1250000",
+        //         "b": "676750000",
+        //         "lb": "0",
+        //         "f": "0",
+        //         "bfa": "0"
+        //     }
+        //
+        const marketId = this.safeString (info, 'm');
+        market = this.safeMarket (marketId, market);
+        const at = this.safeDict (info, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const transactionId = this.safeString (at, 'txid');
+        const logIndex = this.safeString (at, 'l');
+        let id = transactionId;
+        if ((id !== undefined) && (logIndex !== undefined)) {
+            id = id + ':' + logIndex;
+        }
+        const currency = this.currency (market['settle']);
+        const precision = this.numberToString (currency['precision']);
+        return {
+            'info': info,
+            'symbol': market['symbol'],
+            'code': currency['code'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': id,
+            'amount': this.parseNumber (Precise.stringMul (this.safeString (info, 'a'), precision)),
+        } as FundingHistory;
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchDepositsWithdrawals
+     * @description fetches the history of deposits and withdrawals
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits and withdrawals for
+     * @param {int} [limit] the maximum number of transaction structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @param {string} [params.type] 'deposit' or 'withdrawal' to filter transactions by type
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        await this.loadMarkets ();
+        let callerMethodName: Str = undefined;
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'fetchDepositsWithdrawals');
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            code = currency['code'];
+        }
+        let instanceIds: Strings = undefined;
+        if (code !== undefined) {
+            instanceIds = [];
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const market = this.market (marketSymbols[i]);
+                if (market['settle'] === code) {
+                    const marketInfo = this.safeDict (market, 'info', {});
+                    const instanceId = this.safeString (marketInfo, 'instance_id');
+                    if ((instanceId !== undefined) && !this.inArray (instanceId, instanceIds)) {
+                        instanceIds.push (instanceId);
+                    }
+                }
+            }
+        }
+        let transactionType: Str = undefined;
+        [ transactionType, params ] = this.handleOptionAndParams (params, callerMethodName, 'type');
+        let eventTypes = [ 1, 2 ];
+        if (transactionType === 'deposit') {
+            eventTypes = [ 1 ];
+        } else if (transactionType === 'withdrawal') {
+            eventTypes = [ 2 ];
+        }
+        const rows = await this.fetchAccountHistoryRows (callerMethodName, eventTypes, undefined, instanceIds, since, limit, params);
+        return this.parseTransactions (rows, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchDeposits
+     * @description fetches all deposits made to an account
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch deposits for
+     * @param {int} [limit] the maximum number of deposit structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (params, {
+            'type': 'deposit',
+            'callerMethodName': 'fetchDeposits',
+        }));
+    }
+
+    /**
+     * @method
+     * @name perpl#fetchWithdrawals
+     * @description fetches all withdrawals made from an account
+     * @see https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1tradingaccount-history
+     * @param {string} [code] unified currency code
+     * @param {int} [since] the earliest time in ms to fetch withdrawals for
+     * @param {int} [limit] the maximum number of withdrawal structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.page] pagination cursor from the previous response
+     * @param {int} [params.count] number of account events to return per request, maximum 100
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
+     * @param {int} [params.paginationCalls] maximum number of pagination calls, default 10
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    override async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        return await this.fetchDepositsWithdrawals (code, since, limit, this.extend (params, {
+            'type': 'withdrawal',
+            'callerMethodName': 'fetchWithdrawals',
+        }));
+    }
+
+    override parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
+        //
+        //     {
+        //         "at": { "b": 97000001, "t": 1787036914000, "tx": 2, "txid": "0x1234", "l": 4 },
+        //         "in": 1,
+        //         "id": 42,
+        //         "et": 2,
+        //         "a": "-10100000",
+        //         "b": "667900000",
+        //         "lb": "0",
+        //         "f": "100000",
+        //         "bfa": "0"
+        //     }
+        //
+        let code = this.safeCurrencyCode (undefined, currency);
+        if (code === undefined) {
+            const instanceId = this.safeString (transaction, 'in');
+            const marketSymbols = this.symbols;
+            for (let i = 0; i < marketSymbols.length; i++) {
+                const market = this.market (marketSymbols[i]);
+                const marketInfo = this.safeDict (market, 'info', {});
+                if (this.safeString (marketInfo, 'instance_id') === instanceId) {
+                    code = market['settle'];
+                    break;
+                }
+            }
+        }
+        if ((currency === undefined) && (code !== undefined)) {
+            currency = this.currency (code);
+        }
+        const precision = (currency === undefined) ? undefined : this.numberToString (currency['precision']);
+        const eventType = this.safeInteger (transaction, 'et');
+        const type = (eventType === 1) ? 'deposit' : 'withdrawal';
+        const rawAmount = Precise.stringAbs (this.safeString (transaction, 'a'));
+        const rawFee = Precise.stringAbs (this.safeString (transaction, 'f'));
+        let amount = rawAmount;
+        if (eventType === 1) {
+            amount = Precise.stringAdd (rawAmount, rawFee);
+        } else if (eventType === 2) {
+            amount = Precise.stringSub (rawAmount, rawFee);
+        }
+        const at = this.safeDict (transaction, 'at', {});
+        const timestamp = this.safeInteger (at, 't');
+        const transactionId = this.safeString (at, 'txid');
+        const logIndex = this.safeString (at, 'l');
+        let id = transactionId;
+        if ((id !== undefined) && (logIndex !== undefined)) {
+            id = id + ':' + logIndex;
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': transactionId,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': undefined,
+            'addressFrom': undefined,
+            'addressTo': undefined,
+            'tag': undefined,
+            'tagFrom': undefined,
+            'tagTo': undefined,
+            'type': type,
+            'amount': this.parseNumber (Precise.stringMul (amount, precision)),
+            'currency': code,
+            'status': 'ok',
+            'updated': timestamp,
+            'fee': {
+                'currency': code,
+                'cost': this.parseNumber (Precise.stringMul (rawFee, precision)),
+            },
+            'network': undefined,
+            'comment': undefined,
+            'internal': false,
+        } as Transaction;
+    }
+
+    /**
      * @method
      * @name perpl#fetchOpenInterests
      * @description retrieves the open interest for a list of symbols
@@ -1231,8 +1568,7 @@ export default class perpl extends Exchange {
                 throw new AuthenticationError (this.id + ' private key must be 32 bytes encoded as 64 hexadecimal characters');
             }
             const timestamp = this.milliseconds ().toString ();
-            let nonceHex = this.randomBytes (16);
-            nonceHex = nonceHex.padStart (32, '0');
+            const nonceHex = this.uuid16 () + this.uuid16 ();
             const nonce = this.urlencodeBase64 (this.base16ToBinary (nonceHex));
             let requestTarget = endpoint;
             if (query.length > 0) {

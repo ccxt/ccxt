@@ -980,6 +980,415 @@
                     }
                 ]
             }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "funding payment filtered from account history",
+                "method": "fetchFundingHistory",
+                "input": [
+                    "BTC/AUSD:AUSD",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": {
+                                "b": 97001410,
+                                "t": 1787037900000,
+                                "tx": 3,
+                                "txid": "0xfunding",
+                                "l": 3
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 8,
+                            "m": 1,
+                            "p": 7654321,
+                            "a": "-1250000",
+                            "b": "676750000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        },
+                        {
+                            "at": {
+                                "b": 97001267,
+                                "t": 1787037820000,
+                                "tx": 2,
+                                "txid": "0xsettlement",
+                                "l": 2
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 4,
+                            "m": 1,
+                            "a": "1000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "1000"
+                        }
+                    ],
+                    "np": "next-page-cursor"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": {
+                                "b": 97001410,
+                                "t": 1787037900000,
+                                "tx": 3,
+                                "txid": "0xfunding",
+                                "l": 3
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 8,
+                            "m": 1,
+                            "p": 7654321,
+                            "a": "-1250000",
+                            "b": "676750000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        },
+                        "symbol": "BTC/AUSD:AUSD",
+                        "code": "AUSD",
+                        "timestamp": 1787037900000,
+                        "datetime": "2026-08-18T07:25:00.000Z",
+                        "id": "0xfunding:3",
+                        "amount": -1.25
+                    }
+                ]
+            }
+        ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "deposit and withdrawal filtered from account history",
+                "method": "fetchDepositsWithdrawals",
+                "input": [
+                    "AUSD",
+                    null,
+                    3
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": {
+                                "b": 97000001,
+                                "t": 1787036914000,
+                                "tx": 2,
+                                "txid": "0xwithdrawal",
+                                "l": 4
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 2,
+                            "a": "-10100000",
+                            "b": "667900000",
+                            "lb": "0",
+                            "f": "100000",
+                            "bfa": "0"
+                        },
+                        {
+                            "at": {
+                                "b": 97000000,
+                                "t": 1787033314000,
+                                "tx": 1,
+                                "txid": "0xdeposit",
+                                "l": 1
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "678000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        },
+                        {
+                            "at": {
+                                "b": 96999999,
+                                "t": 1787033200000,
+                                "tx": 0,
+                                "txid": "0xsettlement",
+                                "l": 0
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 4,
+                            "m": 1,
+                            "a": "1000000",
+                            "b": "0",
+                            "lb": "0",
+                            "f": "0"
+                        }
+                    ],
+                    "np": "next-page-cursor"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": {
+                                "b": 97000000,
+                                "t": 1787033314000,
+                                "tx": 1,
+                                "txid": "0xdeposit",
+                                "l": 1
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "678000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "0",
+                            "bfa": "0"
+                        },
+                        "id": "0xdeposit:1",
+                        "txid": "0xdeposit",
+                        "timestamp": 1787033314000,
+                        "datetime": "2026-08-18T06:08:34.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 678,
+                        "currency": "AUSD",
+                        "status": "ok",
+                        "updated": 1787033314000,
+                        "fee": {
+                            "currency": "AUSD",
+                            "cost": 0
+                        },
+                        "network": null,
+                        "comment": null,
+                        "internal": false
+                    },
+                    {
+                        "info": {
+                            "at": {
+                                "b": 97000001,
+                                "t": 1787036914000,
+                                "tx": 2,
+                                "txid": "0xwithdrawal",
+                                "l": 4
+                            },
+                            "in": 1,
+                            "id": 42,
+                            "et": 2,
+                            "a": "-10100000",
+                            "b": "667900000",
+                            "lb": "0",
+                            "f": "100000",
+                            "bfa": "0"
+                        },
+                        "id": "0xwithdrawal:4",
+                        "txid": "0xwithdrawal",
+                        "timestamp": 1787036914000,
+                        "datetime": "2026-08-18T07:08:34.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 10,
+                        "currency": "AUSD",
+                        "status": "ok",
+                        "updated": 1787036914000,
+                        "fee": {
+                            "currency": "AUSD",
+                            "cost": 0.1
+                        },
+                        "network": null,
+                        "comment": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "deposit wrapper filters account events",
+                "method": "fetchDeposits",
+                "input": [
+                    "AUSD",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": { "t": 1787033314000, "txid": "0xdeposit", "l": 1 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "678000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "0"
+                        }
+                    ],
+                    "np": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": { "t": 1787033314000, "txid": "0xdeposit", "l": 1 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "678000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "0"
+                        },
+                        "id": "0xdeposit:1",
+                        "txid": "0xdeposit",
+                        "timestamp": 1787033314000,
+                        "datetime": "2026-08-18T06:08:34.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 678,
+                        "currency": "AUSD",
+                        "status": "ok",
+                        "updated": 1787033314000,
+                        "fee": { "currency": "AUSD", "cost": 0 },
+                        "network": null,
+                        "comment": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "withdrawal wrapper filters account events",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "AUSD",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": { "t": 1787036914000, "txid": "0xwithdrawal", "l": 4 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 2,
+                            "a": "-10100000",
+                            "b": "667900000",
+                            "lb": "0",
+                            "f": "100000"
+                        }
+                    ],
+                    "np": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": { "t": 1787036914000, "txid": "0xwithdrawal", "l": 4 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 2,
+                            "a": "-10100000",
+                            "b": "667900000",
+                            "lb": "0",
+                            "f": "100000"
+                        },
+                        "id": "0xwithdrawal:4",
+                        "txid": "0xwithdrawal",
+                        "timestamp": 1787036914000,
+                        "datetime": "2026-08-18T07:08:34.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "withdrawal",
+                        "amount": 10,
+                        "currency": "AUSD",
+                        "status": "ok",
+                        "updated": 1787036914000,
+                        "fee": { "currency": "AUSD", "cost": 0.1 },
+                        "network": null,
+                        "comment": null,
+                        "internal": false
+                    }
+                ]
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "base transaction emulation uses combined history",
+                "method": "fetchTransactions",
+                "input": [
+                    "AUSD",
+                    null,
+                    2
+                ],
+                "httpResponse": {
+                    "d": [
+                        {
+                            "at": { "t": 1787033314000, "txid": "0xdeposit", "l": 1 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "678000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "0"
+                        }
+                    ],
+                    "np": ""
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "at": { "t": 1787033314000, "txid": "0xdeposit", "l": 1 },
+                            "in": 1,
+                            "id": 42,
+                            "et": 1,
+                            "a": "678000000",
+                            "b": "678000000",
+                            "lb": "0",
+                            "f": "0"
+                        },
+                        "id": "0xdeposit:1",
+                        "txid": "0xdeposit",
+                        "timestamp": 1787033314000,
+                        "datetime": "2026-08-18T06:08:34.000Z",
+                        "address": null,
+                        "addressFrom": null,
+                        "addressTo": null,
+                        "tag": null,
+                        "tagFrom": null,
+                        "tagTo": null,
+                        "type": "deposit",
+                        "amount": 678,
+                        "currency": "AUSD",
+                        "status": "ok",
+                        "updated": 1787033314000,
+                        "fee": { "currency": "AUSD", "cost": 0 },
+                        "network": null,
+                        "comment": null,
+                        "internal": false
+                    }
+                ]
+            }
         ]
     }
 }
