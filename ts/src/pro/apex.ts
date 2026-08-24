@@ -1013,6 +1013,12 @@ export default class apex extends apexRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
+        const ret_msg = this.safeString (message, 'ret_msg');
+        const pong = this.safeValue (message, 'pong');
+        if (ret_msg === 'pong' || pong !== undefined) {
+            this.handlePong (client, message);
+            return;
+        }
         const topic = this.safeString2 (message, 'topic', 'op', '');
         const methods: Dict = {
             'ws_zk_accounts_v3': this.handleAccount,
@@ -1051,7 +1057,6 @@ export default class apex extends apexRest {
 
     override ping (client: Client) {
         const timeStamp = this.milliseconds ();
-        client.lastPong = timeStamp;
         return {
             'args': [ timeStamp.toString () ],
             'op': 'ping',
