@@ -395,6 +395,9 @@ func (this *BaseExchange) EthAbiEncode(types2 any, args2 any) any {
 // static types EIP-712 signers use (uintN, intN, address, bytesN, bool); the ABI head encoding
 // of static types is simply each value padded to 32 bytes, so no dynamic-type support is needed.
 func ethAbiEncodeWord(typeStr string, value any) []byte {
+	// a Safe*-carried pointer must encode as the value it points at, not fall
+	// through every type switch below and encode as a zero word
+	value = derefScalar(value)
 	word := make([]byte, 32)
 	if typeStr == "address" {
 		s, _ := value.(string)
