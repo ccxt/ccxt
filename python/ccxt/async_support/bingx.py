@@ -6062,7 +6062,7 @@ class bingx(Exchange, ImplicitAPI):
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by bingx
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str|None [params.positionId]: the id of the position you would like to close
+        :param str|None [params.positionId]: the id of the position you would like to close, only supported for linear swap
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -6072,6 +6072,8 @@ class bingx(Exchange, ImplicitAPI):
         request = {}
         response: dict
         if positionId is not None:
+            if not market['swap'] or market['inverse']:
+                raise NotSupported(self.id + ' closePosition() with a positionId is only supported for linear swap markets')
             response = await self.swapV1PrivatePostTradeClosePosition(self.extend(request, params))
             #
             #    {
