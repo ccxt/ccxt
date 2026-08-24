@@ -432,7 +432,7 @@
         ],
         "fetchOrder": [
             {
-                "description": "Fetch order by id without symbol",
+                "description": "Fetch cancelled order by id without symbol, latest history event wins",
                 "method": "fetchOrder",
                 "input": ["241146145"],
                 "httpResponse": {
@@ -440,6 +440,24 @@
                     "data": [
                         {
                             "history_id": 641452639,
+                            "order_id": 241146145,
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "price": "87768",
+                            "initial_amount": "0.002",
+                            "filled_amount": "0",
+                            "cancelled_amount": "0.002",
+                            "event_type": "cancel",
+                            "order_type": "limit",
+                            "order_status": "cancelled",
+                            "stop_price": null,
+                            "stop_parent_order_id": null,
+                            "reduce_only": false,
+                            "created_at": 1769554095038
+                        },
+                        {
+                            "history_id": 641452513,
                             "order_id": 241146145,
                             "client_order_id": null,
                             "symbol": "BTC",
@@ -470,19 +488,19 @@
                         "price": "87768",
                         "initial_amount": "0.002",
                         "filled_amount": "0",
-                        "cancelled_amount": "0",
-                        "event_type": "make",
+                        "cancelled_amount": "0.002",
+                        "event_type": "cancel",
                         "order_type": "limit",
-                        "order_status": "open",
+                        "order_status": "cancelled",
                         "stop_price": null,
                         "stop_parent_order_id": null,
                         "reduce_only": false,
-                        "created_at": 1769554008249
+                        "created_at": 1769554095038
                     },
                     "id": "241146145",
                     "clientOrderId": null,
-                    "timestamp": 1769554008249,
-                    "datetime": "2026-01-27T22:46:48.249Z",
+                    "timestamp": 1769554095038,
+                    "datetime": "2026-01-27T22:48:15.038Z",
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "symbol": "BTC/USDC:USDC",
@@ -498,7 +516,7 @@
                     "average": null,
                     "filled": 0,
                     "remaining": 0.002,
-                    "status": "open",
+                    "status": "canceled",
                     "fee": null,
                     "trades": [],
                     "fees": [],

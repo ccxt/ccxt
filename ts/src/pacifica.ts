@@ -2466,7 +2466,7 @@ export default class pacifica extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         // return last state
-        const sorted = this.sortBy (data, 'created_at');
+        const sorted = this.sortBy (data, 'created_at', true);
         const lastIdx = sorted.length;
         let lastInfo = {};
         if (lastIdx > 0) {
