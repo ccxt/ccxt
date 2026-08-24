@@ -817,7 +817,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
-    public async override Task<object> fetchStatus(object parameters = null)
+    public async override Task<ccxt.Status> fetchStatus(object parameters = null)
     {
         //
         //    [1] // operative
@@ -826,16 +826,7 @@ public partial class bitfinex : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetPlatformStatus(parameters);
         object statusRaw = this.safeString(response, 0);
-        return new Dictionary<string, object>() {
-            { "status", this.safeString(new Dictionary<string, object>() {
-                { "0", "maintenance" },
-                { "1", "ok" },
-            }, statusRaw, statusRaw) },
-            { "updated", null },
-            { "eta", null },
-            { "url", null },
-            { "info", response },
-        };
+        return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", this.safeString(new Dictionary<string, object>() {                 { "0", "maintenance" },                 { "1", "ok" },             }, statusRaw, statusRaw) },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
     /**
@@ -1777,7 +1768,7 @@ public partial class bitfinex : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1790,7 +1781,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, 10000);
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, 10000));
         }
         object market = this.market(symbol);
         object sort = "-1";
@@ -1830,7 +1821,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(trades, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
-        return this.parseTrades(tradesList, market, null, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, null, limit));
     }
 
     /**
@@ -2172,7 +2163,7 @@ public partial class bitfinex : Exchange
      * @param {string} [params.trailingAmount] *swap only* the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2241,7 +2232,7 @@ public partial class bitfinex : Exchange
         object newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return this.parseOrder(newOrder, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(newOrder, market));
     }
 
     /**
@@ -2253,7 +2244,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrders(object orders, object parameters = null)
+    public async override Task<List<ccxt.Order>> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2312,7 +2303,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(individualOrder, 0) },
             });
         }
-        return this.parseOrders(results);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(results));
     }
 
     /**
@@ -2324,7 +2315,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2343,7 +2334,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(orders, i) },
             });
         }
-        return this.parseOrders(ordersList);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList));
     }
 
     /**
@@ -2506,7 +2497,7 @@ public partial class bitfinex : Exchange
         object request = new Dictionary<string, object>() {
             { "id", new List<object> {parseInt(id)} },
         };
-        object orders = await this.fetchOpenOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters));
+        object orders = ccxt.BaseExchange.FromOrderList(await this.fetchOpenOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
         object order = this.safeValue(orders, 0);
         if (isTrue(isEqual(order, null)))
         {
@@ -2532,7 +2523,7 @@ public partial class bitfinex : Exchange
         object request = new Dictionary<string, object>() {
             { "id", new List<object> {parseInt(id)} },
         };
-        object orders = await this.fetchClosedOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters));
+        object orders = ccxt.BaseExchange.FromOrderList(await this.fetchClosedOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(null),ccxt.BaseExchange.ToInt64Arg(null), this.extend(request, parameters)));
         object order = this.safeValue(orders, 0);
         if (isTrue(isEqual(order, null)))
         {
@@ -2553,7 +2544,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2617,7 +2608,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(response, i) },
             });
         }
-        return this.parseOrders(ordersList, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market, since, limit));
     }
 
     /**
@@ -2634,7 +2625,7 @@ public partial class bitfinex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         parameters ??= new Dictionary<string, object>();
@@ -2648,7 +2639,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters);
+            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters));
         }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
@@ -2718,7 +2709,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(response, i) },
             });
         }
-        return this.parseOrders(ordersList, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersList, market, since, limit));
     }
 
     /**
@@ -2775,7 +2766,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2811,7 +2802,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(response, i) },
             }); // convert to array of dicts to match parseOrder signature
         }
-        return this.parseTrades(tradesList, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradesList, market, since, limit));
     }
 
     /**
@@ -3200,7 +3191,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> fetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3257,7 +3248,7 @@ public partial class bitfinex : Exchange
         //         ]
         //     ]
         //
-        return this.parseTransactions(response, currency, since, limit);
+        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit));
     }
 
     /**
@@ -3367,7 +3358,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3418,7 +3409,7 @@ public partial class bitfinex : Exchange
                 { "result", getValue(rawPositions, i) },
             });
         }
-        return this.parsePositions(positionsList, symbols);
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(positionsList, symbols));
     }
 
     public override object parsePosition(object position, object market = null)
@@ -3671,7 +3662,7 @@ public partial class bitfinex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public async override Task<object> fetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.LedgerEntry>> fetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -3684,7 +3675,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 2500);
+            return ccxt.BaseExchange.ToLedgerEntryList(await this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters, 2500));
         }
         object currency = null;
         object request = new Dictionary<string, object>() {};
@@ -3732,7 +3723,7 @@ public partial class bitfinex : Exchange
                 { "result", item },
             });
         }
-        return this.parseLedger(ledgerObjects, currency, since, limit);
+        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(ledgerObjects, currency, since, limit));
     }
 
     /**
@@ -3806,7 +3797,7 @@ public partial class bitfinex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> fetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3823,7 +3814,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 5000);
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 5000));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -3884,7 +3875,7 @@ public partial class bitfinex : Exchange
             object valueAtIndex = getValue(rawRates, index);
             ((IList<object>)reversedArray).Add(valueAtIndex);
         }
-        return reversedArray;
+        return ccxt.BaseExchange.ToFundingRateHistoryList(reversedArray);
     }
 
     public override object parseFundingRate(object contract, object market = null)
@@ -4122,7 +4113,7 @@ public partial class bitfinex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public async override Task<object> fetchOpenInterestHistory(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OpenInterest>> fetchOpenInterestHistory(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
@@ -4136,7 +4127,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", parameters, 5000);
+            return ccxt.BaseExchange.ToOpenInterestList(await this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, "8h", parameters, 5000));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -4183,7 +4174,7 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return this.parseOpenInterestsHistory(response, market, since, limit);
+        return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(response, market, since, limit));
     }
 
     public override object parseOpenInterest(object interest, object market = null)
@@ -4273,7 +4264,7 @@ public partial class bitfinex : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<object> fetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> fetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4286,7 +4277,7 @@ public partial class bitfinex : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", parameters, 500);
+            return ccxt.BaseExchange.ToLiquidationList(await this.fetchPaginatedCallDeterministic("fetchLiquidations", symbol, since, limit, "8h", parameters, 500));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
@@ -4322,7 +4313,7 @@ public partial class bitfinex : Exchange
         //         ],
         //     ]
         //
-        return this.parseLiquidations(this.toArray(response), market, since, limit);
+        return ccxt.BaseExchange.ToLiquidationList(this.parseLiquidations(this.toArray(response), market, since, limit));
     }
 
     public override object parseLiquidation(object liquidation, object market = null)
@@ -4378,7 +4369,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public async override Task<object> setMargin(object symbol, object amount, object parameters = null)
+    public async override Task<ccxt.MarginModification> setMargin(object symbol, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4403,7 +4394,7 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object data = this.safeValue(response, 0);
-        return this.parseMarginModification(data, market);
+        return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(data, market));
     }
 
     public override object parseMarginModification(object data, object market = null)
@@ -4444,7 +4435,7 @@ public partial class bitfinex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -4507,7 +4498,7 @@ public partial class bitfinex : Exchange
         object newOrder = new Dictionary<string, object>() {
             { "result", order },
         };
-        return this.parseOrder(newOrder, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(newOrder, market));
     }
 
     /**

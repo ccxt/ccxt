@@ -1501,7 +1501,7 @@ public partial class hyperliquid : PredictionExchange
     public async override Task<ccxt.PredictionOrder> cancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrders(new List<object>() {id},((string)outcome), parameters);
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.cancelOrders(new List<object>() {id},((string)outcome), parameters));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0));
     }
 
@@ -2103,7 +2103,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string[]} [params.queries] multiple query strings (alternative to query)
      * @returns {PredictionEvent[]} array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
@@ -2207,7 +2207,7 @@ public partial class hyperliquid : PredictionExchange
         }
         // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
         // so getEvent() resolves these events by any of the three keys
-        return this.applyEventFetchParams(events, parameters, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(events, parameters, queries));
     }
 
     /**

@@ -4847,7 +4847,7 @@ public partial class binance : ccxt.binance
     public async override Task<List<ccxt.Order>> fetchClosedOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.fetchOrdersWs(((string)symbol), since, limit, parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.fetchOrdersWs(((string)symbol), since, limit, parameters));
         object closedOrders = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {

@@ -875,9 +875,10 @@ public partial class BaseExchange
         {
             return null; // a non-generic Task has no result to unwrap
         }
-        // reflective callers (callDynamically, promiseAll) feed the untyped object pipeline,
-        // so a typed candle list coming back from an OHLCV core is de-typed to raw rows here
-        return FromOHLCVList(resultProperty.GetValue(task));
+        // reflective callers (callDynamically, fetchPaginatedCall*, promiseAll) feed the
+        // untyped object pipeline, so any typed struct/list coming back from a typed core
+        // is de-typed here into the plain dictionaries/rows that pipeline reads keys from
+        return FromTyped(resultProperty.GetValue(task));
     }
 
     public static async Task<List<object>> PromiseAll(object promisesObj)

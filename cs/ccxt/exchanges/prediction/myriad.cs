@@ -1163,7 +1163,7 @@ public partial class myriad : PredictionExchange
             object amount = this.safeNumber(o, "amount");
             object price = this.safeNumber(o, "price");
             object orderParams = this.safeDict(o, "params", new Dictionary<string, object>() {});
-            object placed = await this.createOrderbookOrder(((string)outcome),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), this.extend(orderParams, parameters));
+            object placed = ccxt.BaseExchange.FromPredictionOrder(await this.createOrderbookOrder(((string)outcome),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), this.extend(orderParams, parameters)));
             ((IList<object>)result).Add(placed);
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
@@ -1191,7 +1191,7 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcome(outcome);
-        await this.cancelOrder(((string)id),((string)outcome), parameters);
+        ccxt.BaseExchange.FromPredictionOrder(await this.cancelOrder(((string)id),((string)outcome), parameters));
         return await this.createOrderbookOrder(((string)outcome),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), parameters);
     }
 
@@ -1854,7 +1854,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw response with the count of cancelled orders
      */
-    public async virtual Task<object> cancelAllOrders(string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> cancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
@@ -1886,7 +1886,7 @@ public partial class myriad : PredictionExchange
             { "signature", signature },
             { "network_id", this.parseToInt(networkId) },
         };
-        return await this.myriadPublicPostOrdersCancelAll(request);
+        return ccxt.BaseExchange.ToPredictionOrderList(await this.myriadPublicPostOrdersCancelAll(request));
     }
 
     /**
@@ -2193,7 +2193,7 @@ public partial class myriad : PredictionExchange
         object request = new Dictionary<string, object>() {
             { "status", "filled" },
         };
-        object orders = await this.fetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.fetchOrders(((string)outcome),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters)));
         object trades = new List<object>() {};
         object ordersLength = getArrayLength(orders);
         for (object i = 0; isLessThan(i, ordersLength); postFixIncrement(ref i))
@@ -3379,7 +3379,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.state] 'open', 'closed' or 'resolved', defaults to 'open'
      * @returns {object[]} an array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
@@ -3506,7 +3506,7 @@ public partial class myriad : PredictionExchange
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
         object postParams = this.omit(parameters, new List<object>() {"tags"});
-        return this.applyEventFetchParams(result, postParams, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, queries));
     }
 
     /**

@@ -542,9 +542,9 @@ public partial class hyperliquid
     /// </list>
     /// </remarks>
     /// <returns> <term>PredictionEvent[]</term> array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<ccxt.PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+        return res;
     }
 }

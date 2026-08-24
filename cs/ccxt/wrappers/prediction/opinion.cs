@@ -72,10 +72,10 @@ public partial class opinion
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<ccxt.PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+        return res;
     }
     /// <summary>
     /// fetches a single prediction-market event by its market id, or slug

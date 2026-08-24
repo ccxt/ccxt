@@ -305,7 +305,7 @@ public partial class poloniex : ccxt.poloniex
             object clientOrderIds = this.safeValue(parameters, "clientOrderId", new List<object>() {});
             ((IDictionary<string,object>)parameters)["clientOrderIds"] = this.arrayConcat(clientOrderIds, new List<object>() {clientOrderId});
         }
-        object orders = await this.cancelOrdersWs(new List<object>() {id},((string)symbol), parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.cancelOrdersWs(new List<object>() {id},((string)symbol), parameters));
         object order = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(order);
     }

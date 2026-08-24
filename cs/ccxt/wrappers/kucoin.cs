@@ -62,10 +62,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return new Status(res);
+        return res;
     }
     /// <summary>
     /// retrieves data on all markets for kucoin
@@ -95,15 +95,15 @@ public partial class kucoin
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<MarketInterface>> FetchContractMarkets(object parameters = null)
+    public async Task<List<ccxt.MarketInterface>> FetchContractMarkets(object parameters = null)
     {
         var res = await this.fetchContractMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+        return res;
     }
-    public async Task<List<MarketInterface>> FetchUTAMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.MarketInterface>> FetchUTAMarkets(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUTAMarkets(parameters);
-        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+        return res;
     }
     /// <summary>
     /// fetch all the accounts associated with a profile
@@ -126,10 +126,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
-    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+        return res;
     }
     /// <summary>
     /// *DEPRECATED* please use fetchDepositWithdrawFee instead
@@ -611,10 +611,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// helper method for creating spot orders
@@ -757,10 +757,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateSpotOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateSpotOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createSpotOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     public Dictionary<string, object> CreateSpotOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
@@ -916,10 +916,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateContractOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateContractOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createContractOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     public Dictionary<string, object> CreateContractOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
@@ -1061,10 +1061,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateUtaOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> CreateUtaOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createUtaOrder(symbol, type, side, amount, price, parameters);
-        return new Order(res);
+        return res;
     }
     public Dictionary<string, object> CreateUtaOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
@@ -1150,10 +1150,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// helper method for creating spot orders in batch
@@ -1184,10 +1184,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createSpotOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// helper method for creating contract orders in batch
@@ -1204,10 +1204,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createContractOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// edit an order, kucoin currently only supports the modification of HF orders
@@ -1455,10 +1455,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// helper method for cancelling all spot orders
@@ -1503,10 +1503,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllSpotOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// helper method for cancelling all contract orders
@@ -1530,10 +1530,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllContractOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// helper method for cancelling all uta orders
@@ -1562,10 +1562,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> CancelAllUtaOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllUtaOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllUtaOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// fetches a list of orders placed on the exchange
@@ -1609,10 +1609,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// fetch a list of spot orders
@@ -1700,10 +1700,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> FetchSpotOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> FetchSpotOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSpotOrdersByStatus(status, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// fetches a list of contract orders placed on the exchange
@@ -1763,10 +1763,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> FetchContractOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> FetchContractOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchContractOrdersByStatus(status, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// helper method for fetching orders by status with uta endpoint
@@ -1826,10 +1826,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<List<Order>> FetchUtaOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> FetchUtaOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUtaOrdersByStatus(status, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// fetches information on multiple closed orders made by the user
@@ -1906,10 +1906,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// fetch all unfilled currently open orders
@@ -1999,10 +1999,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -2041,10 +2041,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// fetch a spot order
@@ -2092,10 +2092,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>undefined</term> undefined.</returns>
-    public async Task<Order> FetchSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> FetchSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSpotOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// fetc contract order
@@ -2113,10 +2113,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> FetchContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> FetchContractOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchContractOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// fetch uta order
@@ -2151,10 +2151,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> FetchUtaOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Order> FetchUtaOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchUtaOrder(id, symbol, parameters);
-        return new Order(res);
+        return res;
     }
     /// <summary>
     /// fetch all the trades made from a single order
@@ -2244,10 +2244,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
     /// <summary>
     /// fetch all spot trades made by the user
@@ -2301,10 +2301,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMySpotTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchMySpotTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMySpotTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
     /// <summary>
     /// fetch all contract trades made by the user
@@ -2345,10 +2345,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyContractTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchMyContractTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyContractTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
     /// <summary>
     /// fetch all trades made by the user
@@ -2407,10 +2407,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyUtaTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchMyUtaTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyUtaTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
     /// <summary>
     /// get the list of most recent trades for a particular symbol
@@ -2447,10 +2447,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTrades(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+        return res;
     }
     /// <summary>
     /// fetch the trading fees for a market
@@ -2546,10 +2546,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDeposits(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
     /// <summary>
     /// helper method for fetching deposits for futures accounts
@@ -2577,10 +2577,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchContractDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchContractDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchContractDeposits(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
     /// <summary>
     /// fetch all withdrawals made from an account
@@ -2628,10 +2628,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
     /// <summary>
     /// helper method for fetching withdrawals for futures accounts
@@ -2659,10 +2659,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchContractWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchContractWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchContractWithdrawals(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
     /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
@@ -2942,10 +2942,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
-    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+        return res;
     }
     /// <summary>
     /// fetch the interest owed by the user for borrowing currency for margin trading
@@ -2993,10 +2993,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}.</returns>
-    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
+        return res;
     }
     /// <summary>
     /// retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is undefined
@@ -3188,10 +3188,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> response from the exchange.</returns>
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Leverage> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return res;
     }
     /// <summary>
     /// fetch the current funding rate interval
@@ -3281,10 +3281,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
-    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
+        return res;
     }
     /// <summary>
     /// fetch the history of funding payments paid and received on this account
@@ -3319,10 +3319,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
-    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+        return res;
     }
     /// <summary>
     /// fetch data on an open position
@@ -3397,10 +3397,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+        return res;
     }
     /// <summary>
     /// fetches historical positions
@@ -3448,10 +3448,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
-    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+        return res;
     }
     /// <summary>
     /// cancel multiple orders for contract markets
@@ -3689,10 +3689,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
-    public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "5m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterestHistory(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
+        return res;
     }
     /// <summary>
     /// fetch a history of internal transfers made on an account
@@ -3739,10 +3739,10 @@ public partial class kucoin
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
-    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+        return res;
     }
     /// <summary>
     /// fetches the auto deleveraging rank and risk percentage for a list of symbols

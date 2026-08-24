@@ -100,10 +100,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure).</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return res;
     }
     /// <summary>
     /// fetches the open interest of a prediction market outcome
@@ -596,10 +596,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
@@ -646,10 +646,10 @@ public partial class kalshi
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<ccxt.PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+        return res;
     }
     /// <summary>
     /// resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)

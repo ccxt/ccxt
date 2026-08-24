@@ -1,0 +1,772 @@
+{
+ "cast_only_wrappers": [
+  "cancelAllOrdersAfter",
+  "cancelAllOrdersRequest",
+  "cancelOrderRequest",
+  "cancelOrdersRequest",
+  "createAdvancedOrderRequest",
+  "createApiKey",
+  "createAuth",
+  "createAuthToken",
+  "createCcxtTradeId",
+  "createContractOrderRequest",
+  "createEditOrderRequest",
+  "createExtendedOrderRequest",
+  "createGiftCode",
+  "createOHLCVObject",
+  "createOrDeriveApiKey",
+  "createOrderAppendix",
+  "createOrderIdFromParts",
+  "createOrderNonce",
+  "createOrderRequest",
+  "createOrderSettlementData",
+  "createOrdersRequest",
+  "createRegularOrderRequest",
+  "createSafeDictionary",
+  "createSignedRequest",
+  "createSpotOrderRequest",
+  "createSubAccount",
+  "createSubaccount",
+  "createSwapOrderRequest",
+  "createTpslOrderRequest",
+  "createTransferSettlementData",
+  "createTriggerOrderRequest",
+  "createUtaOrderRequest",
+  "createVault",
+  "createWithdrawalSettlementData",
+  "editContractOrderRequest",
+  "editOrderRequest",
+  "editOrdersRequest",
+  "editSpotOrderRequest",
+  "fetch2",
+  "fetchAccountHelper",
+  "fetchAccountIdByType",
+  "fetchAccountSettings",
+  "fetchApiKey",
+  "fetchApiKeys",
+  "fetchBorrowRate",
+  "fetchBorrowRateHistories",
+  "fetchBorrowRateHistory",
+  "fetchBuilderApprovals",
+  "fetchCurrenciesFromCache",
+  "fetchCurrency",
+  "fetchCurrencyById",
+  "fetchDepositMethodId",
+  "fetchDepositMethodIds",
+  "fetchDepositMethods",
+  "fetchDepositsRequest",
+  "fetchDydxAccount",
+  "fetchEventsByQuery",
+  "fetchExtendedAccount",
+  "fetchFundingLimits",
+  "fetchLatestBlockHeight",
+  "fetchMarketsByTypeAndSubType",
+  "fetchMarketsFromAPI",
+  "fetchMarketsFromCache",
+  "fetchMarketsFromWeb",
+  "fetchMarketsV1",
+  "fetchMyDustTrades",
+  "fetchMySettlementHistory",
+  "fetchMyTradesRequest",
+  "fetchNetworkDepositAddress",
+  "fetchNonce",
+  "fetchOHLCVRequest",
+  "fetchOptionUnderlyings",
+  "fetchOrderRequest",
+  "fetchOrderStatus",
+  "fetchOrdersRequest",
+  "fetchOutcome",
+  "fetchOutcomes",
+  "fetchPaginatedCallCursor",
+  "fetchPaginatedCallDeterministic",
+  "fetchPaginatedCallDynamic",
+  "fetchPaginatedCallIncremental",
+  "fetchPaymentMethods",
+  "fetchPortfolioDetails",
+  "fetchPrivateDepositWithdrawFees",
+  "fetchPrivateTradingFee",
+  "fetchPrivateTradingFees",
+  "fetchPrivateTransactionFees",
+  "fetchPublicDepositWithdrawFees",
+  "fetchPublicTradingFee",
+  "fetchPublicTradingFees",
+  "fetchPublicTransactionFees",
+  "fetchQuote",
+  "fetchRawActiveMarkets",
+  "fetchRawEventByTicker",
+  "fetchRawEventsBySearch",
+  "fetchRawEventsList",
+  "fetchRawMarketById",
+  "fetchRawMarketsBySearch",
+  "fetchRawMarketsByTags",
+  "fetchRawMarketsList",
+  "fetchRawQuestionById",
+  "fetchRawQuestionsBySearch",
+  "fetchRawQuestionsList",
+  "fetchRawTopicDetail",
+  "fetchRawTopics",
+  "fetchSeriesEvents",
+  "fetchSettlementHistory",
+  "fetchSwapAndFutureMarkets",
+  "fetchTime",
+  "fetchTradeQuote",
+  "fetchTradingLimits",
+  "fetchTradingLimitsById",
+  "fetchTransactionFee",
+  "fetchTransactionFees",
+  "fetchUSDTMarkets",
+  "fetchUnderlyingAssets",
+  "fetchVolatilityHistory",
+  "fetchWallet",
+  "fetchWebEndpoint",
+  "fetchWithdrawAddresses",
+  "fetchWithdrawalsRequest",
+  "setMarginMode",
+  "setMarkets",
+  "setPositionMode",
+  "watchOHLCVForSymbols",
+  "watchOrderBook",
+  "watchOrderBookForSymbols",
+  "withdrawRequest"
+ ],
+ "cores": {
+  "createExpiredOptionMarket": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [
+    "cs/ccxt/base/Exchange.BaseMethods.cs:5591 return this.createExpiredOptionMarket(symbol);",
+    "cs/ccxt/exchanges/okx.cs:2405 return this.createExpiredOptionMarket(marketId);",
+    "cs/ccxt/exchanges/deribit.cs:812 return this.createExpiredOptionMarket(marketId);",
+    "cs/ccxt/exchanges/binance.cs:4372 return this.createExpiredOptionMarket(symbol);",
+    "cs/ccxt/exchanges/binance.cs:4384 return this.createExpiredOptionMarket(marketId);",
+    "cs/ccxt/exchanges/delta.cs:500 return this.createExpiredOptionMarket(marketId);"
+   ],
+   "consuming_count": 8,
+   "converting_wrappers": 7,
+   "crypto_type": "MarketInterface",
+   "declarations": 0,
+   "declared_wrapper_types": [
+    "MarketInterface"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new MarketInterface(res);",
+   "tail_call_sites": 0
+  },
+  "fetchCurrenciesFromWeb": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "Currencies",
+   "declarations": 1,
+   "declared_wrapper_types": [
+    "Currencies"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Currencies(res);",
+   "tail_call_sites": 1
+  },
+  "fetchCurrenciesWs": {
+   "blockers": [
+    "hand-written base declaration"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "Currencies",
+   "declarations": 1,
+   "declared_wrapper_types": [
+    "Currencies"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Currencies(res);",
+   "tail_call_sites": 0
+  },
+  "fetchL2OrderBook": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 2,
+   "crypto_type": "OrderBook",
+   "declarations": 2,
+   "declared_wrapper_types": [
+    "Dictionary<string, object>",
+    "OrderBook"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((Dictionary<string, object>)res);",
+   "tail_call_sites": 0
+  },
+  "fetchL3OrderBook": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 2,
+   "crypto_type": "OrderBook",
+   "declarations": 2,
+   "declared_wrapper_types": [
+    "OrderBook"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new OrderBook(res);",
+   "tail_call_sites": 1
+  },
+  "fetchMarkets": {
+   "blockers": [
+    "hand-written base declaration"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [
+    "cs/ccxt/exchanges/upbit.cs:1221 object fetchMarketResponse = await this.fetchMarkets(parameters);",
+    "cs/ccxt/exchanges/pacifica.cs:765 object markets = await this.fetchMarkets(parameters);",
+    "cs/ccxt/exchanges/binance.cs:17236 object markets = await this.fetchMarkets();",
+    "cs/ccxt/exchanges/hyperliquid.cs:1359 response = await this.fetchMarkets(parameters);"
+   ],
+   "consuming_count": 4,
+   "converting_wrappers": 97,
+   "crypto_type": "List<MarketInterface>",
+   "declarations": 96,
+   "declared_wrapper_types": [
+    "List<MarketInterface>"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": "List<MarketInterface>",
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();",
+   "tail_call_sites": 0
+  },
+  "fetchMarketsWs": {
+   "blockers": [
+    "hand-written base declaration"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<MarketInterface>",
+   "declarations": 1,
+   "declared_wrapper_types": [
+    "List<MarketInterface>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();",
+   "tail_call_sites": 0
+  },
+  "fetchOrderBook": {
+   "blockers": [
+    "no reverse From helper for ['OrderBook', 'PredictionOrderBook']"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [
+    "cs/ccxt/base/Exchange.BaseMethods.cs:7876 object orderBook = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters);",
+    "cs/ccxt/base/Exchange.TradingMethods.cs:652 object orderbook = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters);",
+    "cs/ccxt/exchanges/prediction/myriad.cs:3768 object snapshot = await this.fetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit));",
+    "cs/ccxt/exchanges/prediction/opinion.cs:2014 object snapshot = await this.fetchOrderBook(((string)outcome),ccxt.BaseExchange.ToInt64Arg(limit));",
+    "cs/ccxt/exchanges/pro/nado.cs:211 object snapshot = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit));",
+    "cs/ccxt/exchanges/pro/nado.cs:265 object snapshot = await this.fetchOrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit));"
+   ],
+   "consuming_count": 6,
+   "converting_wrappers": 98,
+   "crypto_type": "OrderBook",
+   "declarations": 99,
+   "declared_wrapper_types": [
+    "OrderBook",
+    "PredictionOrderBook"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": "PredictionOrderBook",
+   "reflective_hits": 0,
+   "sample_conversion": "return new OrderBook(res);",
+   "tail_call_sites": 0
+  },
+  "fetchOrderBooks": {
+   "blockers": [
+    "no reverse From helper for ['OrderBooks']"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [
+    "cs/ccxt/exchanges/upbit.cs:806 object orderbooks = await this.fetchOrderBooks(new List<object>() {symbol},ccxt.BaseExchange.ToInt64Arg(limit), paramete"
+   ],
+   "consuming_count": 1,
+   "converting_wrappers": 4,
+   "crypto_type": "OrderBooks",
+   "declarations": 4,
+   "declared_wrapper_types": [
+    "OrderBooks"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new OrderBooks(res);",
+   "tail_call_sites": 0
+  },
+  "watchBalance": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "Balances",
+   "declarations": 44,
+   "declared_wrapper_types": [
+    "Balances"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Balances(res);",
+   "tail_call_sites": 0
+  },
+  "watchBidsAsks": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "Tickers",
+   "declarations": 24,
+   "declared_wrapper_types": [
+    "Tickers"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Tickers(res);",
+   "tail_call_sites": 0
+  },
+  "watchFundingRate": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "FundingRate",
+   "declarations": 10,
+   "declared_wrapper_types": [
+    "FundingRate"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new FundingRate(res);",
+   "tail_call_sites": 0
+  },
+  "watchFundingRates": {
+   "blockers": [
+    "no reverse From helper for ['FundingRates']"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [
+    "cs/ccxt/exchanges/pro/okx.cs:390 object fr = await this.watchFundingRates(new List<object>() {symbol}, parameters);"
+   ],
+   "consuming_count": 1,
+   "converting_wrappers": 1,
+   "crypto_type": "FundingRates",
+   "declarations": 4,
+   "declared_wrapper_types": [
+    "FundingRates"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new FundingRates(res);",
+   "tail_call_sites": 1
+  },
+  "watchFundingRatesForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "FundingRates",
+   "declarations": 1,
+   "declared_wrapper_types": [
+    "FundingRates"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new FundingRates(res);",
+   "tail_call_sites": 0
+  },
+  "watchLiquidations": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Liquidation>",
+   "declarations": 5,
+   "declared_wrapper_types": [
+    "List<Liquidation>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();",
+   "tail_call_sites": 0
+  },
+  "watchLiquidationsForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Liquidation>",
+   "declarations": 4,
+   "declared_wrapper_types": [
+    "List<Liquidation>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();",
+   "tail_call_sites": 3
+  },
+  "watchMarkPrice": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "Ticker",
+   "declarations": 7,
+   "declared_wrapper_types": [
+    "Ticker"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Ticker(res);",
+   "tail_call_sites": 0
+  },
+  "watchMarkPrices": {
+   "blockers": [
+    "no reverse From helper for ['Tickers']"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [
+    "cs/ccxt/exchanges/pro/okx.cs:573 object ticker = await this.watchMarkPrices(new List<object>() {symbol}, parameters);",
+    "cs/ccxt/exchanges/pro/binance.cs:2391 object tickers = await this.watchMarkPrices(new List<object>() {symbol}, this.extend(parameters, new Dictionary<string, ",
+    "cs/ccxt/exchanges/pro/aster.cs:278 object tickers = await this.watchMarkPrices(new List<object>() {symbol}, parameters);"
+   ],
+   "consuming_count": 3,
+   "converting_wrappers": 1,
+   "crypto_type": "Tickers",
+   "declarations": 5,
+   "declared_wrapper_types": [
+    "Tickers"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Tickers(res);",
+   "tail_call_sites": 0
+  },
+  "watchMyLiquidations": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Liquidation>",
+   "declarations": 3,
+   "declared_wrapper_types": [
+    "List<Liquidation>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();",
+   "tail_call_sites": 0
+  },
+  "watchMyLiquidationsForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [
+    "cs/ccxt/base/Exchange.BaseMethods.cs:1067 return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);"
+   ],
+   "consuming_count": 1,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Liquidation>",
+   "declarations": 4,
+   "declared_wrapper_types": [
+    "List<Liquidation>"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();",
+   "tail_call_sites": 2
+  },
+  "watchMyTrades": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 4,
+   "crypto_type": "List<Trade>",
+   "declarations": 50,
+   "declared_wrapper_types": [
+    "List<PredictionTrade>",
+    "List<Trade>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": "List<PredictionTrade>",
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();",
+   "tail_call_sites": 1
+  },
+  "watchMyTradesForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Trade>",
+   "declarations": 2,
+   "declared_wrapper_types": [
+    "List<Trade>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();",
+   "tail_call_sites": 0
+  },
+  "watchOHLCV": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 2,
+   "crypto_type": "List<OHLCV>",
+   "declarations": 53,
+   "declared_wrapper_types": [
+    "List<OHLCV>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": "List<OHLCV>",
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();",
+   "tail_call_sites": 0
+  },
+  "watchOrders": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 4,
+   "crypto_type": "List<Order>",
+   "declarations": 61,
+   "declared_wrapper_types": [
+    "List<Order>",
+    "List<PredictionOrder>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": "List<PredictionOrder>",
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();",
+   "tail_call_sites": 1
+  },
+  "watchOrdersForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Order>",
+   "declarations": 4,
+   "declared_wrapper_types": [
+    "List<Order>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();",
+   "tail_call_sites": 2
+  },
+  "watchPosition": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "Position",
+   "declarations": 2,
+   "declared_wrapper_types": [
+    "Position"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return new Position(res);",
+   "tail_call_sites": 0
+  },
+  "watchPositionForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Position>",
+   "declarations": 1,
+   "declared_wrapper_types": [
+    "List<Position>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();",
+   "tail_call_sites": 0
+  },
+  "watchPositions": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 2,
+   "crypto_type": "List<Position>",
+   "declarations": 32,
+   "declared_wrapper_types": [
+    "List<Position>",
+    "List<PredictionPosition>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": "List<PredictionPosition>",
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();",
+   "tail_call_sites": 1
+  },
+  "watchTicker": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 4,
+   "crypto_type": "Ticker",
+   "declarations": 64,
+   "declared_wrapper_types": [
+    "PredictionTicker",
+    "Ticker"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": "PredictionTicker",
+   "reflective_hits": 0,
+   "sample_conversion": "return new Ticker(res);",
+   "tail_call_sites": 1
+  },
+  "watchTickers": {
+   "blockers": [
+    "no reverse From helper for ['Tickers', 'PredictionTickers']"
+   ],
+   "classification": "blocked",
+   "consuming_call_sites": [
+    "cs/ccxt/exchanges/pro/hitbtc.cs:348 object ticker = await this.watchTickers(new List<object>() {symbol}, parameters);",
+    "cs/ccxt/exchanges/pro/okx.cs:503 object ticker = await this.watchTickers(new List<object>() {symbol}, parameters);",
+    "cs/ccxt/exchanges/pro/kraken.cs:728 object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);",
+    "cs/ccxt/exchanges/pro/toobit.cs:460 object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);",
+    "cs/ccxt/exchanges/pro/blofin.cs:286 object result = await this.watchTickers(new List<object>() {symbol}, parameters);",
+    "cs/ccxt/exchanges/pro/bitmex.cs:72 object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);"
+   ],
+   "consuming_count": 16,
+   "converting_wrappers": 2,
+   "crypto_type": "Tickers",
+   "declarations": 47,
+   "declared_wrapper_types": [
+    "PredictionTickers",
+    "Tickers"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": "PredictionTickers",
+   "reflective_hits": 0,
+   "sample_conversion": "return new Tickers(res);",
+   "tail_call_sites": 2
+  },
+  "watchTrades": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [
+    "cs/ccxt/exchanges/prediction/myriad.cs:4085 object trades = await this.watchTrades(outcome,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), "
+   ],
+   "consuming_count": 1,
+   "converting_wrappers": 4,
+   "crypto_type": "List<Trade>",
+   "declarations": 69,
+   "declared_wrapper_types": [
+    "List<PredictionTrade>",
+    "List<Trade>"
+   ],
+   "needs_from_helper": true,
+   "plain_wrappers": 0,
+   "prediction_type": "List<PredictionTrade>",
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();",
+   "tail_call_sites": 0
+  },
+  "watchTradesForSymbols": {
+   "blockers": [],
+   "classification": "typeable",
+   "consuming_call_sites": [],
+   "consuming_count": 0,
+   "converting_wrappers": 1,
+   "crypto_type": "List<Trade>",
+   "declarations": 29,
+   "declared_wrapper_types": [
+    "List<Trade>"
+   ],
+   "needs_from_helper": false,
+   "plain_wrappers": 0,
+   "prediction_type": [],
+   "reflective_hits": 0,
+   "sample_conversion": "return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();",
+   "tail_call_sites": 23
+  }
+ }
+}

@@ -554,10 +554,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> the raw response with the count of cancelled orders.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(outcome, parameters);
-        return ((Dictionary<string, object>)res);
+        return res;
     }
     /// <summary>
     /// cancels multiple open order book orders by hash in one request (gasless)
@@ -1058,10 +1058,10 @@ public partial class myriad
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<ccxt.PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+        return res;
     }
     /// <summary>
     /// streams the order book for an outcome over the Centrifugo websocket; the channel is delta-only so the book is seeded from the REST snapshot

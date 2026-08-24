@@ -371,10 +371,10 @@ public partial class limitless
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [account structures].</returns>
-    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+        return res;
     }
     /// <summary>
     /// places a limit or market order on limitless for the given outcome token
@@ -481,10 +481,10 @@ public partial class limitless
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
-    public async Task<List<PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(outcome, parameters);
-        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+        return res;
     }
     /// <summary>
     /// fetch all trades made by the user
@@ -577,10 +577,10 @@ public partial class limitless
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> an array of event structures.</returns>
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<ccxt.PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+        return res;
     }
     /// <summary>
     /// pages the active-markets listing (or a single category's listing), bounded by limit (or options.fetchMarketsLimit)

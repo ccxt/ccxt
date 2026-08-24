@@ -1215,7 +1215,7 @@ public partial class grvt : Exchange
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1259,7 +1259,7 @@ public partial class grvt : Exchange
         //            ...
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseTrades(result, market, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, market, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1460,7 +1460,7 @@ public partial class grvt : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
-    public async override Task<object> fetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingRateHistory>> fetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1477,7 +1477,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters));
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -1512,7 +1512,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseFundingRateHistories(result, market);
+        return ccxt.BaseExchange.ToFundingRateHistoryList(this.parseFundingRateHistories(result, market));
     }
 
     public override object parseFundingRateHistory(object rawItem, object market = null)
@@ -1663,7 +1663,7 @@ public partial class grvt : Exchange
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> fetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -1691,7 +1691,7 @@ public partial class grvt : Exchange
             object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
             object filteredResults = this.filterTransfersByType(transfers, "deposit", true);
             object transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
-            return this.parseTransactions(transactions, currency, since, limit);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
         } else
         {
             object response = await this.privateTradingPostFullV1DepositHistory(this.extend(request, parameters));
@@ -1711,7 +1711,7 @@ public partial class grvt : Exchange
             // }
             //
             object result = this.safeList(response, "result", new List<object>() {});
-            return this.parseTransactions(result, currency, since, limit);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(result, currency, since, limit));
         }
     }
 
@@ -1727,7 +1727,7 @@ public partial class grvt : Exchange
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<object> fetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> fetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -1758,7 +1758,7 @@ public partial class grvt : Exchange
             object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
             object filteredResults = this.filterTransfersByType(transfers, "withdrawal", true);
             object transactions = this.getListFromObjectValues(getValue(filteredResults, 0), "info");
-            return this.parseTransactions(transactions, currency, since, limit);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(transactions, currency, since, limit));
         } else
         {
             object response = await this.privateTradingPostFullV1WithdrawalHistory(this.extend(request, parameters));
@@ -1787,7 +1787,7 @@ public partial class grvt : Exchange
             // }
             //
             object result = this.safeList(response, "result", new List<object>() {});
-            return this.parseTransactions(result, currency, since, limit);
+            return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(result, currency, since, limit));
         }
     }
 
@@ -1959,7 +1959,7 @@ public partial class grvt : Exchange
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<object> fetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.TransferEntry>> fetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(code, null)))
@@ -1976,7 +1976,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit);
+            return ccxt.BaseExchange.ToTransferEntryList(await this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit));
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -2022,7 +2022,7 @@ public partial class grvt : Exchange
         object rows = this.safeList(response, "result", new List<object>() {});
         object transfers = this.parseTransfers(rows, currency, since, limit);
         object filteredResults = this.filterTransfersByType(transfers, "internal", false);
-        return getValue(filteredResults, 1);
+        return ccxt.BaseExchange.ToTransferEntryList(getValue(filteredResults, 1));
     }
 
     public virtual object filterTransfersByType(object transfers, object transferType, object onlyMainAccount = null)
@@ -2308,7 +2308,7 @@ public partial class grvt : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> createOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2522,7 +2522,7 @@ public partial class grvt : Exchange
         //    }
         //
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
     public virtual object convertToBigIntCustom(object x)
@@ -2602,7 +2602,7 @@ public partial class grvt : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> fetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> fetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2612,7 +2612,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters);
+            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
         }
         object request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
@@ -2670,7 +2670,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseTrades(result, null, since, limit);
+        return ccxt.BaseExchange.ToTradeList(this.parseTrades(result, null, since, limit));
     }
 
     /**
@@ -2682,7 +2682,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2733,7 +2733,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parsePositions(result, symbols);
+        return ccxt.BaseExchange.ToPositionList(this.parsePositions(result, symbols));
     }
 
     public override object parsePosition(object position, object market = null)
@@ -2837,7 +2837,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public async override Task<object> setLeverage(object leverage, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Leverage> setLeverage(object leverage, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2857,7 +2857,7 @@ public partial class grvt : Exchange
         //        "success": true
         //    }
         //
-        return this.parseLeverage(response, market);
+        return ccxt.BaseExchange.ToLeverage(this.parseLeverage(response, market));
     }
 
     public override object parseLeverage(object leverage, object market = null)
@@ -2957,7 +2957,7 @@ public partial class grvt : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
-    public async override Task<object> fetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.FundingHistory>> fetchFundingHistory(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -2967,7 +2967,7 @@ public partial class grvt : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 1000);
+            return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingHistory", symbol, since, limit, parameters, 1000));
         }
         object request = new Dictionary<string, object>() {
             { "sub_account_id", this.getSubAccountId(parameters) },
@@ -3010,7 +3010,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseIncomes(result, market, since, limit);
+        return ccxt.BaseExchange.ToFundingHistoryList(this.parseIncomes(result, market, since, limit));
     }
 
     public override object parseIncome(object income, object market = null)
@@ -3051,7 +3051,7 @@ public partial class grvt : Exchange
      * @param {int} [params.until] timestamp in ms of the latest item
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -3143,7 +3143,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseOrders(result, market, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, since, limit));
     }
 
     /**
@@ -3157,7 +3157,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> fetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -3226,7 +3226,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return this.parseOrders(result, null, since, limit);
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, null, since, limit));
     }
 
     /**
@@ -3240,7 +3240,7 @@ public partial class grvt : Exchange
      * @param {string} [params.clientOrderId] client order id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> fetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> fetchOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -3317,7 +3317,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result);
+        return ccxt.BaseExchange.ToOrder(this.parseOrder(result));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -3499,7 +3499,7 @@ public partial class grvt : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> cancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> cancelAllOrders(string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarketsAndSignIn();
@@ -3523,7 +3523,7 @@ public partial class grvt : Exchange
         //    }
         //
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrders(new List<object>() {result});
+        return ccxt.BaseExchange.ToOrderList(this.parseOrders(new List<object>() {result}));
     }
 
     /**

@@ -121,7 +121,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         var orderglobalParamsVariable = this.parseCreateEditOrderArgs(null, symbol, type, side, amount, price, parameters);
         var order = ((IList<object>) orderglobalParamsVariable)[0];
         var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
-        object orders = await this.createOrdersWs(new List<object>() {((object)order)}, globalParams);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.createOrdersWs(new List<object>() {((object)order)}, globalParams));
         object ordersLength = getArrayLength(orders);
         if (isTrue(isEqual(ordersLength, 0)))
         {
@@ -234,7 +234,7 @@ public partial class hyperliquid : ccxt.hyperliquid
     public async override Task<ccxt.Order> cancelOrderWs(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrdersWs(new List<object>() {id},((string)symbol), parameters);
+        object orders = ccxt.BaseExchange.FromOrderList(await this.cancelOrdersWs(new List<object>() {id},((string)symbol), parameters));
         return ccxt.BaseExchange.ToOrder(this.safeDict(orders, 0));
     }
 

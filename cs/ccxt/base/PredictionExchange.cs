@@ -370,7 +370,7 @@ public partial class PredictionExchange : BaseExchange
         return result;
     }
 
-    public async virtual Task<object> fetchEvents(object parameters = null)
+    public async virtual Task<List<ccxt.PredictionEvent>> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchEvents() is not supported yet")) ;
@@ -452,7 +452,7 @@ public partial class PredictionExchange : BaseExchange
         {
             return this.events;
         }
-        object events = await this.fetchEvents(parameters);
+        object events = ccxt.BaseExchange.FromPredictionEventList(await this.fetchEvents(parameters));
         return this.setEvents(events);
     }
 
@@ -2116,10 +2116,10 @@ public partial class PredictionExchange : BaseExchange
 
 public partial class PredictionExchange
 {
-    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<ccxt.PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+        return res;
     }
     public async Task<ccxt.PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {

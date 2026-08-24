@@ -187,7 +187,7 @@ public partial class binance : PredictionExchange
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
             object eventParams = this.omit(parameters, new List<object>() {"limit"});
-            object events = await this.fetchEvents(eventParams);
+            object events = ccxt.BaseExchange.FromPredictionEventList(await this.fetchEvents(eventParams));
             object eventsLength = getArrayLength(events);
             object queryMarkets = new List<object>() {};
             for (object ei = 0; isLessThan(ei, eventsLength); postFixIncrement(ref ei))
@@ -390,7 +390,7 @@ public partial class binance : PredictionExchange
      * @param {string} [params.orderBy] order events by server side ('ASC' | 'DESC'), works when no queries and eveitId provided
      * @returns {object[]} a list of [prediction event structures](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
@@ -493,7 +493,7 @@ public partial class binance : PredictionExchange
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
         object postParams = this.omit(parameters, new List<object>() {"tags", "l1Category", "l2Category"});
-        return this.applyEventFetchParams(result, postParams, new List<object>() {});
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
     /**
@@ -2016,7 +2016,7 @@ public partial class binance : PredictionExchange
     public async override Task<ccxt.PredictionOrder> cancelOrder(string id, string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orders = await this.cancelOrders(new List<object>() {id},((string)outcome), parameters);
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.cancelOrders(new List<object>() {id},((string)outcome), parameters));
         return ccxt.BaseExchange.ToPredictionOrder(this.safeDict(orders, 0, new Dictionary<string, object>() {}));
     }
 

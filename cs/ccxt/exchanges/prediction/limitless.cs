@@ -1975,7 +1975,7 @@ public partial class limitless : PredictionExchange
         {
             await this.loadOutcome(outcome);
         }
-        object orders = await this.fetchOrdersByIds(new List<object>() {id},((string)outcome), parameters);
+        object orders = ccxt.BaseExchange.FromPredictionOrderList(await this.fetchOrdersByIds(new List<object>() {id},((string)outcome), parameters));
         object order = this.safeDict(orders, 0);
         if (isTrue(isEqual(order, null)))
         {
@@ -2274,12 +2274,12 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]
      */
-    public async override Task<object> fetchAccounts(object parameters = null)
+    public async override Task<List<ccxt.Account>> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.limitlessPrivateGetProfilesMe(parameters);
         object responseList = new List<object>() {response};
-        return this.parseAccounts(responseList);
+        return ccxt.BaseExchange.ToAccountList(this.parseAccounts(responseList));
     }
 
     /**
@@ -2746,7 +2746,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public async virtual Task<object> cancelAllOrders(string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> cancelAllOrders(string outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2776,9 +2776,7 @@ public partial class limitless : PredictionExchange
         //         "message": "Orders canceled successfully"
         //     }
         //
-        return new List<object> {this.safePredictionOrder(new Dictionary<string, object>() {
-    { "info", response },
-})};
+        return ccxt.BaseExchange.ToPredictionOrderList(new List<object> {this.safePredictionOrder(new Dictionary<string, object>() {     { "info", response }, })});
     }
 
     /**
@@ -3282,7 +3280,7 @@ public partial class limitless : PredictionExchange
      * @param {int} [params.limit] maximum number of markets per query, defaults to 50
      * @returns {object[]} an array of event structures
      */
-    public async override Task<object> fetchEvents(object parameters = null)
+    public async override Task<List<ccxt.PredictionEvent>> fetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
@@ -3410,7 +3408,7 @@ public partial class limitless : PredictionExchange
             { "searchIn", "both" },
         }, parameters);
         object postParams = this.omit(searchParams, new List<object>() {"tags"});
-        return this.applyEventFetchParams(result, postParams, queries);
+        return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, queries));
     }
 
     /**

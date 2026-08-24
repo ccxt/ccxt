@@ -26,10 +26,10 @@ public partial class BaseExchange
         var res = this.createSafeDictionary(isWs);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Account>> FetchAccounts(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccounts(parameters);
-        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+        return res;
     }
     public async Task<List<Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
@@ -136,10 +136,10 @@ public partial class BaseExchange
         var res = await this.createDepositAddress(code, parameters);
         return res;
     }
-    public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Leverage> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setLeverage(leverage, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return res;
     }
     public async Task<ccxt.Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
@@ -156,10 +156,10 @@ public partial class BaseExchange
         var res = await this.setPositionMode(hedged, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.MarginModification> SetMargin(string symbol, double amount, Dictionary<string, object> parameters = null)
     {
         var res = await this.setMargin(symbol, amount, parameters);
-        return new MarginModification(res);
+        return res;
     }
     public async Task<ccxt.LongShortRatio> FetchLongShortRatio(string symbol, string timeframe = null, Dictionary<string, object> parameters = null)
     {
@@ -186,10 +186,10 @@ public partial class BaseExchange
         var res = await this.fetchDepositAddressesByNetwork(code, parameters);
         return res;
     }
-    public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOpenInterestHistory(symbol, timeframe, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new OpenInterest(item)).ToList<OpenInterest>();
+        return res;
     }
     public async Task<ccxt.OpenInterests> FetchOpenInterests(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
@@ -251,15 +251,15 @@ public partial class BaseExchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBorrowInterest(code, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new BorrowInterest(item)).ToList<BorrowInterest>();
+        return res;
     }
-    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLedger(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+        return res;
     }
     public async Task<ccxt.LedgerEntry> FetchLedgerEntry(string id, string code = null, Dictionary<string, object> parameters = null)
     {
@@ -301,10 +301,10 @@ public partial class BaseExchange
         var res = await this.fetchTotalBalance(parameters);
         return res;
     }
-    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<ccxt.Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return new Status(res);
+        return res;
     }
     public async Task<Dictionary<string, object>> FetchTransactionFee(string code, Dictionary<string, object> parameters = null)
     {
@@ -391,15 +391,15 @@ public partial class BaseExchange
         var res = await this.fetchPositionADLRank(symbol, parameters);
         return res;
     }
-    public async Task<List<Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CreateSpotOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createSpotOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
-    public async Task<List<Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CreateContractOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.createContractOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     public async Task<ccxt.Order> CancelSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
@@ -411,15 +411,15 @@ public partial class BaseExchange
         var res = await this.cancelContractOrder(id, symbol, parameters);
         return res;
     }
-    public async Task<List<Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllSpotOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllSpotOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
-    public async Task<List<Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Order>> CancelAllContractOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllContractOrders(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        return res;
     }
     public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
     {
@@ -431,15 +431,15 @@ public partial class BaseExchange
         var res = await this.cancelOrdersForSymbols(orders, parameters);
         return res;
     }
-    public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMyLiquidations(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+        return res;
     }
-    public async Task<List<Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Liquidation>> FetchLiquidations(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLiquidations(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
+        return res;
     }
     public async Task<ccxt.Greeks> FetchGreeks(string symbol, Dictionary<string, object> parameters = null)
     {
@@ -466,20 +466,20 @@ public partial class BaseExchange
         var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
         return res;
     }
-    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDeposits(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
     public async Task<List<ccxt.Transaction>> FetchDepositsWs(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
@@ -491,15 +491,15 @@ public partial class BaseExchange
         var res = await this.fetchWithdrawalsWs(code, since, limit, parameters);
         return res;
     }
-    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
+        return res;
     }
-    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+        return res;
     }
     public async Task<ccxt.DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
@@ -571,10 +571,10 @@ public partial class BaseExchange
         var res = await this.fetchPremiumIndexOHLCV(symbol, timeframe, since, limit, parameters);
         return res;
     }
-    public async Task<List<Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.Transaction>> FetchTransactions(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransactions(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+        return res;
     }
     public Dictionary<string, Dictionary<string, OHLCV[]>> CreateOHLCVObject(string symbol, string timeframe, object data)
     {
@@ -606,10 +606,10 @@ public partial class BaseExchange
         var res = await this.fetchTransfer(id, code, parameters);
         return res;
     }
-    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    public async Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
+        return res;
     }
     public async Task<ccxt.Transaction> WithdrawWs(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {

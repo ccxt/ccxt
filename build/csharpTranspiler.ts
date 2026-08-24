@@ -59,7 +59,11 @@ if (platform === 'win32') {
 // of the same typed shape are listed — anything feeding an untyped helper or reflective pagination
 // (fetchPaginatedCall*, callDynamically) stays object, since there is no reverse From helper.
 const TYPED_CORES: Record<string, string> = {
+    'cancelAllContractOrders': 'List<Order>',
+    'cancelAllOrders': 'List<Order>',
     'cancelAllOrdersWs': 'List<Order>',
+    'cancelAllSpotOrders': 'List<Order>',
+    'cancelAllUtaOrders': 'List<Order>',
     'cancelContractOrder': 'Order',
     'cancelOrder': 'Order',
     'cancelOrderWithClientOrderId': 'Order',
@@ -74,6 +78,8 @@ const TYPED_CORES: Record<string, string> = {
     'cancelUtaOrder': 'Order',
     'cancelUtaOrders': 'List<Order>',
     'createAmmOrder': 'PredictionOrder',
+    'createContractOrder': 'Order',
+    'createContractOrders': 'List<Order>',
     'createConvertTrade': 'Conversion',
     'createDepositAddress': 'DepositAddress',
     'createLimitBuyOrder': 'Order',
@@ -92,15 +98,19 @@ const TYPED_CORES: Record<string, string> = {
     'createMarketSellOrder': 'Order',
     'createMarketSellOrderWithCost': 'Order',
     'createMarketSellOrderWs': 'Order',
+    'createOrder': 'Order',
     'createOrderWithTakeProfitAndStopLoss': 'Order',
     'createOrderWithTakeProfitAndStopLossWs': 'Order',
     'createOrderWs': 'Order',
     'createOrderbookOrder': 'PredictionOrder',
+    'createOrders': 'List<Order>',
     'createOrdersWs': 'List<Order>',
     'createPostOnlyOrder': 'Order',
     'createPostOnlyOrderWs': 'Order',
     'createReduceOnlyOrder': 'Order',
     'createReduceOnlyOrderWs': 'Order',
+    'createSpotOrder': 'Order',
+    'createSpotOrders': 'List<Order>',
     'createStopLimitOrder': 'Order',
     'createStopLimitOrderWs': 'Order',
     'createStopLossOrder': 'Order',
@@ -109,6 +119,7 @@ const TYPED_CORES: Record<string, string> = {
     'createStopMarketOrderWs': 'Order',
     'createStopOrder': 'Order',
     'createStopOrderWs': 'Order',
+    'createSwapOrder': 'Order',
     'createTakeProfitOrder': 'Order',
     'createTakeProfitOrderWs': 'Order',
     'createTrailingAmountOrder': 'Order',
@@ -118,6 +129,8 @@ const TYPED_CORES: Record<string, string> = {
     'createTriggerOrder': 'Order',
     'createTriggerOrderWs': 'Order',
     'createTwapOrder': 'Order',
+    'createUtaOrder': 'Order',
+    'createUtaOrders': 'List<Order>',
     'editContractOrder': 'Order',
     'editLimitBuyOrder': 'Order',
     'editLimitOrder': 'Order',
@@ -128,23 +141,41 @@ const TYPED_CORES: Record<string, string> = {
     'editOrders': 'List<Order>',
     'editSpotOrder': 'Order',
     'fetchADLRank': 'ADL',
+    'fetchAccount': 'Account',
+    'fetchAccountPositions': 'List<Position>',
+    'fetchAccounts': 'List<Account>',
+    'fetchAccountsV2': 'List<Account>',
+    'fetchAccountsV3': 'List<Account>',
     'fetchAllGreeks': 'List<Greeks>',
     'fetchAmmOrders': 'List<PredictionOrder>',
     'fetchBalance': 'Balances',
     'fetchBalanceWs': 'Balances',
     'fetchBidsAsks': 'Tickers',
+    'fetchBorrowInterest': 'List<BorrowInterest>',
+    'fetchCanceledAndClosedOrders': 'List<Order>',
+    'fetchCanceledOrders': 'List<Order>',
+    'fetchClosedContractOrders': 'List<Order>',
     'fetchClosedOrder': 'Order',
+    'fetchClosedOrders': 'List<Order>',
     'fetchClosedOrdersWs': 'List<Order>',
+    'fetchClosedSpotOrders': 'List<Order>',
     'fetchContractBalance': 'Balances',
     'fetchContractDepositAddress': 'DepositAddress',
+    'fetchContractDeposits': 'List<Transaction>',
+    'fetchContractMarkets': 'List<MarketInterface>',
     'fetchContractOHLCV': 'List<OHLCV>',
+    'fetchContractOrder': 'Order',
+    'fetchContractOrders': 'List<Order>',
+    'fetchContractOrdersByStatus': 'List<Order>',
     'fetchContractTickers': 'Tickers',
+    'fetchContractWithdrawals': 'List<Transaction>',
     'fetchConvertCurrencies': 'Currencies',
     'fetchConvertQuote': 'Conversion',
     'fetchConvertTrade': 'Conversion',
     'fetchConvertTradeHistory': 'List<Conversion>',
     'fetchCrossBorrowRate': 'CrossBorrowRate',
     'fetchCrossBorrowRates': 'CrossBorrowRates',
+    'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
     'fetchDepositAddressDefault': 'DepositAddress',
@@ -153,26 +184,37 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDepositAddressesByNetwork': 'List<DepositAddress>',
     'fetchDepositWithdrawFee': 'DepositWithdrawFee',
     'fetchDepositWithdrawFees': 'DepositWithdrawFees',
+    'fetchDeposits': 'List<Transaction>',
+    'fetchDepositsOrWithdrawalsHelper': 'List<Transaction>',
+    'fetchDepositsWithdrawals': 'List<Transaction>',
     'fetchDepositsWs': 'List<Transaction>',
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
     'fetchEvent': 'PredictionEvent',
     'fetchFinancialBalance': 'Balances',
     'fetchFreeBalance': 'Balance',
+    'fetchFundingHistory': 'List<FundingHistory>',
     'fetchFundingInterval': 'FundingRate',
     'fetchFundingIntervals': 'FundingRates',
     'fetchFundingRate': 'FundingRate',
+    'fetchFundingRateHistory': 'List<FundingRateHistory>',
     'fetchFundingRates': 'FundingRates',
+    'fetchFutureMarkets': 'List<MarketInterface>',
     'fetchGreeks': 'Greeks',
+    'fetchHip3Markets': 'List<MarketInterface>',
     'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchInverseSwapMarkets': 'List<MarketInterface>',
     'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
     'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
     'fetchLastPrices': 'LastPrices',
+    'fetchLedger': 'List<LedgerEntry>',
     'fetchLedgerByEntries': 'List<LedgerEntry>',
     'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
     'fetchLedgerEntry': 'LedgerEntry',
     'fetchLeverage': 'Leverage',
     'fetchLeverageTiers': 'LeverageTiers',
     'fetchLeverages': 'Leverages',
+    'fetchLiquidations': 'List<Liquidation>',
     'fetchLongShortRatio': 'LongShortRatio',
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
     'fetchMarginAdjustmentHistory': 'List<MarginModification>',
@@ -185,24 +227,51 @@ const TYPED_CORES: Record<string, string> = {
     'fetchMarket': 'MarketInterface',
     'fetchMarketById': 'MarketInterface',
     'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMarketsByType': 'List<MarketInterface>',
+    'fetchMarketsV2': 'List<MarketInterface>',
+    'fetchMarketsV3': 'List<MarketInterface>',
     'fetchMyBuys': 'List<Trade>',
+    'fetchMyContractTrades': 'List<Trade>',
+    'fetchMyLiquidations': 'List<Liquidation>',
     'fetchMySells': 'List<Trade>',
+    'fetchMySpotTrades': 'List<Trade>',
+    'fetchMyTrades': 'List<Trade>',
     'fetchMyTradesWs': 'List<Trade>',
+    'fetchMyUtaTrades': 'List<Trade>',
     'fetchOHLCV': 'List<OHLCV>',
     'fetchOHLCVWs': 'List<OHLCV>',
     'fetchOpenInterest': 'OpenInterest',
+    'fetchOpenInterestHistory': 'List<OpenInterest>',
     'fetchOpenInterests': 'OpenInterests',
     'fetchOpenOrder': 'Order',
+    'fetchOpenOrders': 'List<Order>',
+    'fetchOpenOrdersV1': 'List<Order>',
+    'fetchOpenOrdersV2': 'List<Order>',
     'fetchOpenOrdersWs': 'List<Order>',
+    'fetchOpenSpotOrders': 'List<Order>',
+    'fetchOpenSwapOrders': 'List<Order>',
     'fetchOption': 'Option',
     'fetchOptionChain': 'OptionChain',
+    'fetchOptionMarkets': 'List<MarketInterface>',
     'fetchOptionOHLCV': 'List<OHLCV>',
+    'fetchOptionPositions': 'List<Position>',
+    'fetchOrder': 'Order',
     'fetchOrderBookWs': 'OrderBook',
+    'fetchOrderClassic': 'Order',
+    'fetchOrderDefault': 'Order',
+    'fetchOrderSupplement': 'Order',
     'fetchOrderTrades': 'List<Trade>',
     'fetchOrderWithClientOrderId': 'Order',
     'fetchOrderWs': 'Order',
+    'fetchOrders': 'List<Order>',
     'fetchOrdersByIds': 'List<Order>',
+    'fetchOrdersByState': 'List<Order>',
+    'fetchOrdersByStates': 'List<Order>',
+    'fetchOrdersByStatus': 'List<Order>',
     'fetchOrdersByStatusWs': 'List<Order>',
+    'fetchOrdersByType': 'List<Order>',
+    'fetchOrdersClassic': 'List<Order>',
+    'fetchOrdersWithMethod': 'List<Order>',
     'fetchOrdersWs': 'List<Order>',
     'fetchPartialBalance': 'Balance',
     'fetchPortfolios': 'List<Account>',
@@ -211,17 +280,28 @@ const TYPED_CORES: Record<string, string> = {
     'fetchPositionHistory': 'List<Position>',
     'fetchPositionMode': 'PositionModeInfo',
     'fetchPositionWs': 'List<Position>',
+    'fetchPositions': 'List<Position>',
     'fetchPositionsADLRank': 'List<ADL>',
+    'fetchPositionsForSymbol': 'List<Position>',
     'fetchPositionsForSymbolWs': 'List<Position>',
+    'fetchPositionsHistory': 'List<Position>',
+    'fetchPositionsRisk': 'List<Position>',
     'fetchPositionsWs': 'List<Position>',
     'fetchPremiumIndexOHLCV': 'List<OHLCV>',
     'fetchRestOrderBookSafe': 'OrderBook',
     'fetchSettlements': 'List<PredictionSettlement>',
     'fetchSpotBalance': 'Balances',
+    'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
+    'fetchSpotOrder': 'Order',
     'fetchSpotOrderTrades': 'List<Trade>',
+    'fetchSpotOrders': 'List<Order>',
+    'fetchSpotOrdersByStates': 'List<Order>',
+    'fetchSpotOrdersByStatus': 'List<Order>',
     'fetchSpotTickers': 'Tickers',
+    'fetchStatus': 'Status',
     'fetchSwapBalance': 'Balances',
+    'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
     'fetchTickerV1': 'Ticker',
@@ -234,17 +314,31 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTickersV3': 'Tickers',
     'fetchTickersWs': 'Tickers',
     'fetchTotalBalance': 'Balance',
+    'fetchTrades': 'List<Trade>',
     'fetchTradesWs': 'List<Trade>',
     'fetchTradingFee': 'TradingFeeInterface',
     'fetchTradingFees': 'TradingFees',
     'fetchTradingFeesWs': 'TradingFees',
+    'fetchTransactions': 'List<Transaction>',
+    'fetchTransactionsByType': 'List<Transaction>',
+    'fetchTransactionsHelper': 'List<Transaction>',
+    'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
+    'fetchTransfers': 'List<TransferEntry>',
+    'fetchUTAMarkets': 'List<MarketInterface>',
     'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
     'fetchUtaBalance': 'Balances',
+    'fetchUtaCanceledAndClosedOrders': 'List<Order>',
+    'fetchUtaMarkets': 'List<MarketInterface>',
+    'fetchUtaOrder': 'Order',
+    'fetchUtaOrdersByStatus': 'List<Order>',
     'fetchWithdrawal': 'Transaction',
+    'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',
+    'setLeverage': 'Leverage',
+    'setMargin': 'MarginModification',
     'transfer': 'TransferEntry',
     'transferBetweenMainAndSubAccount': 'TransferEntry',
     'transferBetweenSubAccounts': 'TransferEntry',
@@ -269,9 +363,31 @@ const TYPED_CORES: Record<string, string> = {
 
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
 // structures, so the same method name is typed differently there — no invariance conflict
+// struct families that have a reverse `FromX` / `FromXList` helper in
+// cs/ccxt/base/Exchange.TypedCores.cs, i.e. that can be handed back to the untyped
+// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`;
+// the dictionary-like containers (Tickers, Balances, OrderBook, ...) are absent on purpose —
+// their constructors are not invertible, so a typed core of that shape may not reach a
+// consuming call site or reflective pagination.
+const REVERSIBLE_FAMILIES: string[] = [
+    'ADL', 'Account', 'Balance', 'BalanceAccount', 'BorrowInterest', 'CancellationRequest',
+    'Conversion', 'CrossBorrowRate', 'CurrencyLimits', 'DepositAddress', 'Fee',
+    'FundingHistory', 'FundingRate', 'FundingRateHistory', 'Greeks', 'IsolatedBorrowRate',
+    'LastPrice', 'LedgerEntry', 'Leverage', 'LeverageTier', 'Limits', 'Liquidation',
+    'LongShortRatio', 'MarginLoan', 'MarginMode', 'MarginModification', 'Market',
+    'MarketInterface', 'MarketMarginModes', 'MinMax', 'Network', 'NetworkLimits',
+    'OHLCV', 'OpenInterest', 'Option', 'Order', 'OrderRequest', 'Position',
+    'PositionModeInfo', 'Precision', 'PredictionEvent', 'PredictionFees', 'PredictionMarket',
+    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderRequest', 'PredictionOutcome',
+    'PredictionPosition', 'PredictionSettlement', 'PredictionTicker', 'PredictionTrade',
+    'PredictionTradingFee', 'Status', 'Ticker', 'Trade', 'TradingFeeInterface',
+    'Transaction', 'TransferEntry', 'WithdrawalResponse',
+];
+
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
 // structures, so the same method name is typed differently there — no invariance conflict
 const PREDICTION_TYPED_CORES: Record<string, string> = {
+    'cancelAllOrders': 'List<PredictionOrder>',
     'cancelOrder': 'PredictionOrder',
     'cancelOrders': 'List<PredictionOrder>',
     'createMarketBuyOrderWithCost': 'PredictionOrder',
@@ -280,8 +396,10 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'createOrder': 'PredictionOrder',
     'createOrders': 'List<PredictionOrder>',
     'editOrder': 'PredictionOrder',
+    'fetchAccounts': 'List<Account>',
     'fetchCanceledOrders': 'List<PredictionOrder>',
     'fetchClosedOrders': 'List<PredictionOrder>',
+    'fetchEvents': 'List<PredictionEvent>',
     'fetchMyTrades': 'List<PredictionTrade>',
     'fetchOpenInterest': 'PredictionOpenInterest',
     'fetchOpenOrders': 'List<PredictionOrder>',
@@ -1250,6 +1368,81 @@ class NewTranspiler {
         return [ start, lines[start].length ];
     }
 
+    // the reverse helper for a typed core's shape: `List<Order>` -> `FromOrderList`, or ''
+    // when the family is not invertible. Reflective pagination and any
+    // `object x = await this.fetchOrders(...)` consumer reads dictionary keys off the
+    // result, so a boxed struct has to be de-typed first.
+    typedCoreFromHelper (csharpType: string): string {
+        const family = csharpType.startsWith ('List<') ? csharpType.slice (5, -1) : csharpType;
+        if (!REVERSIBLE_FAMILIES.includes (family)) {
+            return '';
+        }
+        return 'ccxt.BaseExchange.From' + this.typedCoreHelperSuffix (csharpType);
+    }
+
+    // finds the `)` closing the call that starts at `open` (the `(` index), skipping
+    // string literals — generated argument lists carry `(`/`)` inside url templates
+    matchingParen (line: string, open: number): number {
+        let depth = 0;
+        let inString = false;
+        for (let i = open; i < line.length; i++) {
+            const ch = line[i];
+            if (inString) {
+                if (ch === '\\') { i++; continue; }
+                if (ch === '"') { inString = false; }
+                continue;
+            }
+            if (ch === '"') { inString = true; continue; }
+            if (ch === '(') { depth++; continue; }
+            if (ch === ')') { depth--; if (depth === 0) { return i; } }
+        }
+        return -1;
+    }
+
+    // wraps every `await this.<typedCore>(...)` on one line in its From* helper, so a typed
+    // struct never lands in an `object` local. Occurrences already funnelled through a
+    // To*/From* helper, and the tail-call returns typeCores deliberately left bare, are skipped.
+    wrapTypedCoreConsumers (line: string, names: string[], predictionTier: boolean, skipReturn: boolean): string {
+        let out = line;
+        for (const name of names) {
+            const typedType = this.typedCoreType (name, predictionTier);
+            if (typedType === '') {
+                continue;
+            }
+            const needle = 'await this.' + name + '(';
+            let from = 0;
+            while (true) {
+                const at = out.indexOf (needle, from);
+                if (at === -1) {
+                    break;
+                }
+                const before = out.substring (0, at);
+                const close = this.matchingParen (out, at + needle.length - 1);
+                if (close === -1) {
+                    // a call spanning several lines is left alone rather than mangled;
+                    // the runtime FromTyped dispatcher still de-types it if it is awaited reflectively
+                    break;
+                }
+                if (/ccxt\.BaseExchange\.(To|From)\w+\($/.test (before) || (skipReturn && /^\s*return $/.test (before))) {
+                    from = close;
+                    continue;
+                }
+                const helper = this.typedCoreFromHelper (typedType);
+                if (helper === '') {
+                    // a non-invertible family (Tickers / Balances / OrderBook): leave the call
+                    // exactly as it was before this pass. Those names are typed only where the
+                    // wrapper conversion was the sole consumer, so nothing regresses; the
+                    // analyzer refuses to ADD any such name that has consuming call sites.
+                    from = close;
+                    continue;
+                }
+                out = before + helper + '(' + out.substring (at, close + 1) + ')' + out.substring (close + 1);
+                from = close + helper.length + 2;
+            }
+        }
+        return out;
+    }
+
     // rewrites every core listed in TYPED_CORES so the generated core returns its typed shape:
     //   - the signature `Task<object> fetchOrder(` becomes `Task<Order>`
     //   - every return site inside it is funnelled through `BaseExchange.ToOrder(...)`,
@@ -1289,6 +1482,7 @@ class NewTranspiler {
             if (isTyped) {
                 lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${methodName}(` + lines[i].split (methodName + '(').slice (1).join (methodName + '(');
             }
+            const tailOk: Record<number, boolean> = {};
             for (let j = bodyStart + 1; j < bodyEnd; j++) {
                 if (!lines[j].trim ().startsWith ('return ')) {
                     continue;
@@ -1304,12 +1498,14 @@ class NewTranspiler {
                 if (isTyped && calledType !== typedType) {
                     wrapper = 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (typedType);
                 } else if (!isTyped && calledType !== '') {
-                    if (calledType !== 'List<OHLCV>') {
+                    // an untyped core forwarding a typed one has to hand back the untyped shape
+                    wrapper = this.typedCoreFromHelper (calledType);
+                    if (wrapper === '') {
                         throw new Error (`typeCores: untyped ${methodName} returns typed core ${calledCore[1]} (${calledType}) — drop it from TYPED_CORES or add a From helper`);
                     }
-                    wrapper = 'ccxt.BaseExchange.FromOHLCVList';
                 }
                 if (wrapper === '') {
+                    tailOk[j] = true;
                     j = lastLine;
                     continue;
                 }
@@ -1319,7 +1515,17 @@ class NewTranspiler {
                 for (let k = j + 1; k <= lastLine; k++) {
                     lines[k] = null as any;
                 }
+                tailOk[j] = true;
                 j = lastLine;
+            }
+            // every remaining `await this.<typedCore>(...)` in the body is a consuming site —
+            // its result lands in an `object` local or a bigger expression, where a boxed
+            // struct would read as null. Funnel those through the reverse From* helper.
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (lines[j] === null || lines[j].indexOf ('await this.') === -1) {
+                    continue;
+                }
+                lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
             }
             i = bodyEnd;
         }
