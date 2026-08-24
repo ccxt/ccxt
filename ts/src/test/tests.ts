@@ -1569,13 +1569,31 @@ class testMainClass {
         return result;
     }
 
+    // reproduces the JS falsiness of `!value` for the output values compared below.
+    // note: a plain `value === 0` is not enough, php's strict comparison says `0.0 !== 0`, so a
+    // computed float zero would not be treated as empty and would mismatch a stored null (#30082)
+    isEmptyOutputValue (exchange: Exchange, value: any) {
+        if ((value === undefined) || (value === false) || (value === '')) {
+            return true;
+        }
+        if (exchange.isDictionary (value) || Array.isArray (value)) {
+            return false; // a non-empty container, `!value` is false for containers in js
+        }
+        if ((typeof value === 'string') || (typeof value === 'boolean')) {
+            return false; // non-empty string / true, both handled above
+        }
+        // whatever is left is numeric - compare with inequalities so that int and float zero
+        // are both detected in every language
+        return (value <= 0) && (value >= 0);
+    }
+
     assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput: any, storedOutput: any, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
         }
-        const newOutputIsEmpty = (newOutput === undefined) || (newOutput === null) || (newOutput === '') || (newOutput === false) || (newOutput === 0);
-        const storedOutputIsEmpty = (storedOutput === undefined) || (storedOutput === null) || (storedOutput === '') || (storedOutput === false) || (storedOutput === 0);
+        const newOutputIsEmpty = this.isEmptyOutputValue (exchange, newOutput);
+        const storedOutputIsEmpty = this.isEmptyOutputValue (exchange, storedOutput);
         if (newOutputIsEmpty && storedOutputIsEmpty) {
             return true;
             // c# requirement
@@ -1619,8 +1637,8 @@ class testMainClass {
             // built-in types like strings, numbers, booleans
             const sanitizedNewOutput = (isNullValue (newOutput)) ? undefined : newOutput; // we store undefined as nulls in the json file so we need to convert it back
             const sanitizedStoredOutput = (isNullValue (storedOutput)) ? undefined : storedOutput;
-            const newIsEmpty = (sanitizedNewOutput === undefined) || (sanitizedNewOutput === null) || (sanitizedNewOutput === '') || (sanitizedNewOutput === false) || (sanitizedNewOutput === 0);
-            const storedIsEmpty = (sanitizedStoredOutput === undefined) || (sanitizedStoredOutput === null) || (sanitizedStoredOutput === '') || (sanitizedStoredOutput === false) || (sanitizedStoredOutput === 0);
+            const newIsEmpty = this.isEmptyOutputValue (exchange, sanitizedNewOutput);
+            const storedIsEmpty = this.isEmptyOutputValue (exchange, sanitizedStoredOutput);
             const newOutputString = newIsEmpty ? "undefined" : sanitizedNewOutput.toString ();
             const storedOutputString = storedIsEmpty ? "undefined" : sanitizedStoredOutput.toString ();
             const messageError = 'output value mismatch:' + newOutputString + ' != ' + storedOutputString;
