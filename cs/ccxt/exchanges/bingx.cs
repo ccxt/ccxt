@@ -6525,7 +6525,7 @@ public partial class bingx : Exchange
      * @param {string} symbol Unified CCXT market symbol
      * @param {string} [side] not used by bingx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string|undefined} [params.positionId] the id of the position you would like to close
+     * @param {string|undefined} [params.positionId] the id of the position you would like to close, only supported for linear swap
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
@@ -6541,6 +6541,10 @@ public partial class bingx : Exchange
         object response = null;
         if (isTrue(!isEqual(positionId, null)))
         {
+            if (isTrue(!isTrue(getValue(market, "swap")) || isTrue(getValue(market, "inverse"))))
+            {
+                throw new NotSupported ((string)add(this.id, " closePosition() with a positionId is only supported for linear swap markets")) ;
+            }
             response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters));
         } else
         {
