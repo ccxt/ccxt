@@ -3942,7 +3942,7 @@ class weex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         isBatch = (path.find('batch') >= 0)
         if not isBatch and ((method == 'GET') or (method == 'DELETE')):
-            if query:
+            if len(query) > 0:
                 endpoint += '?' + self.urlencode(query)
         if (api == 'private') or (api == 'contractPrivate'):
             sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)

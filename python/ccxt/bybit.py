@@ -9386,7 +9386,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.rawencode(params)
         elif api == 'private':
             self.check_required_credentials()
@@ -9396,7 +9396,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             isV5UnifiedAccount = url.find('v5') >= 0
             timestamp = str(self.nonce())
             if isOpenapi:
-                if params:
+                if len(params) > 0:
                     body = self.json(params)
                 else:
                     # self fix for PHP is required otherwise it generates

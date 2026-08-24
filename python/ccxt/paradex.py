@@ -3146,7 +3146,7 @@ class paradex(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][version]) + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         elif api == 'private':
             headers = {
@@ -3184,7 +3184,7 @@ class paradex(Exchange, ImplicitAPI):
             #     body = self.json(query)
             #     headers['Content-Type'] = 'application/json'
             # else:
-            #     if query:
+            #     if len(query):
             #         url += '?' + self.urlencode(query)
             #     }
             # }

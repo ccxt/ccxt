@@ -1775,7 +1775,7 @@ class latoken(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         urlencodedQuery = self.urlencode(query)
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 requestString += '?' + urlencodedQuery
         if api == 'private':
             self.check_required_credentials()

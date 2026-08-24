@@ -1980,7 +1980,7 @@ class hollaex(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         path = '/' + self.version + '/' + self.implode_params(path, params)
         if (method == 'GET') or (method == 'DELETE'):
-            if query:
+            if len(query) > 0:
                 path += '?' + self.urlencode(query)
         url = self.urls['api']['rest'] + path
         if api == 'private':
@@ -1995,7 +1995,7 @@ class hollaex(Exchange, ImplicitAPI):
             }
             if method == 'POST':
                 headers['Content-type'] = 'application/json'
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += body
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)

@@ -2049,7 +2049,7 @@ class poloniex(Exchange, ImplicitAPI):
                 request['mgnMode'] = marginMode.upper()
             hedged = None
             hedged, params = self.handle_param_string(params, 'hedged')
-            if hedged:
+            if (hedged is not None) and (hedged != ''):
                 if marginMode is None:
                     raise ArgumentsRequired(self.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders')
                 if not ('posSide' in params):
@@ -3517,7 +3517,7 @@ class poloniex(Exchange, ImplicitAPI):
         implodedPath = self.implode_params(path, params)
         if api == 'public' or api == 'swapPublic':
             url += '/' + implodedPath
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -3527,7 +3527,7 @@ class poloniex(Exchange, ImplicitAPI):
             auth += '/' + implodedPath
             if (method == 'POST') or (method == 'PUT') or (method == 'DELETE'):
                 auth += "\n"  # eslint-disable-line quotes
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     auth += 'requestBody=' + body + '&'
                 auth += 'signTimestamp=' + timestamp
@@ -3535,7 +3535,7 @@ class poloniex(Exchange, ImplicitAPI):
                 sortedQuery = self.extend({'signTimestamp': timestamp}, query)
                 sortedQuery = self.keysort(sortedQuery)
                 auth += "\n" + self.urlencode(sortedQuery)  # eslint-disable-line quotes
-                if query:
+                if len(query) > 0:
                     url += '?' + self.urlencode(query)
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             headers = {

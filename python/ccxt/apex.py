@@ -1897,7 +1897,7 @@ class apex(Exchange, ImplicitAPI):
         signPath = '/api/' + path
         signBody = body
         if method.upper() != 'POST':
-            if params:
+            if len(params) > 0:
                 signPath += '?' + self.rawencode(params)
                 url += '?' + self.rawencode(params)
         else:

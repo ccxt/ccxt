@@ -5011,7 +5011,7 @@ class coinbase(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = fullPath
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -5026,12 +5026,12 @@ class coinbase(Exchange, ImplicitAPI):
                 seconds = self.seconds()
                 payload = ''
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
                         payload = body
                 else:
                     if not isV3:
-                        if query:
+                        if len(query) > 0:
                             payload += '?' + self.urlencode(query)
                 # v3: 'GET' doesn't need payload in the signature. inside url is enough
                 # https://docs.cdp.coinbase.com/coinbase-app/authentication-authorization/api-key-authentication
@@ -5082,7 +5082,7 @@ class coinbase(Exchange, ImplicitAPI):
                     'Content-Type': 'application/json',
                 }
                 if method != 'GET':
-                    if query:
+                    if len(query) > 0:
                         body = self.json(query)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

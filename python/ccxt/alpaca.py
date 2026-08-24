@@ -1617,7 +1617,7 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         currency = self.currency(code)
-        if tag:
+        if (tag is not None) and (tag != ''):
             address = address + ':' + tag
         request = {
             'asset': currency['id'],
@@ -1970,7 +1970,7 @@ class alpaca(Exchange, ImplicitAPI):
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))
-        if query:
+        if len(query) > 0:
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.urlencode(query)
             else:

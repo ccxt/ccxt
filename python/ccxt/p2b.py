@@ -1303,7 +1303,7 @@ class p2b(Exchange, ImplicitAPI):
         url = self.urls['api'][api] + '/' + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         if method == 'GET':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         if api == 'private':
             params['request'] = '/api/v2/' + path

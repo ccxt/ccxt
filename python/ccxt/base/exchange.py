@@ -3744,7 +3744,7 @@ class BaseExchange(object):
         self.create_networks_by_id_object()
         self.features_generator()
         # init predefined markets if any
-        if self.markets:
+        if self.markets is not None:
             self.set_markets(self.markets)
         # init the request rate limiter
         self.init_rest_rate_limiter()
@@ -4309,7 +4309,7 @@ class BaseExchange(object):
                 debtBalance[code] = balance[code]['debt']
         debtBalanceArray = list(debtBalance.keys())
         length = len(debtBalanceArray)
-        if length:
+        if (length is not None) and (length != 0):
             balance['debt'] = debtBalance
         return balance
 
@@ -5727,7 +5727,7 @@ class BaseExchange(object):
         if reload:
             self.accounts = self.fetch_accounts(params)
         else:
-            if self.accounts:
+            if self.accounts is not None:
                 return self.accounts
             else:
                 self.accounts = self.fetch_accounts(params)

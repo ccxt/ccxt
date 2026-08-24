@@ -349,7 +349,7 @@ class binance(PredictionExchange, ImplicitAPI):
         eventId = self.safe_string(params, 'eventId')
         l1Category = self.safe_string(params, 'l1Category')
         l2Category = self.safe_string(params, 'l2Category')
-        if not self.markets:
+        if self.markets is None:
             self.markets = self.create_safe_dictionary()
         rawTopics = []
         if allQueriesLength > 0:

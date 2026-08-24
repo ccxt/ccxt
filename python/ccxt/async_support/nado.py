@@ -2922,7 +2922,7 @@ class nado(Exchange, ImplicitAPI):
         if (endpoint == 'gateway') or (endpoint == 'archive'):
             headers['Accept-Encoding'] = 'gzip, br, deflate'
         if method == 'GET':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             headers['Content-Type'] = 'application/json'

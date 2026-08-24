@@ -1911,7 +1911,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'portfolio': portfolio,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = market['id']
         orders = await self.v1PrivateDeleteOrders(self.extend(request, params))
@@ -2040,7 +2040,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'result_offset': offSet,
         }
         market = None
-        if symbol:
+        if (symbol is not None) and (symbol != ''):
             market = self.market(symbol)
             request['instrument'] = symbol
         if limit is not None:
@@ -2229,7 +2229,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         query = self.omit(params, self.extract_params(path))
         savedPath = '/api' + fullPath
         if method == 'GET' or method == 'DELETE':
-            if query:
+            if len(query) > 0:
                 fullPath += '?' + self.urlencode_with_array_repeat(query)
         url = self.urls['api']['rest'] + fullPath
         if signed:
@@ -2237,7 +2237,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             nonce = str(self.nonce())
             payload = ''
             if method != 'GET':
-                if query:
+                if len(query) > 0:
                     body = self.json(query)
                     payload = body
             auth = nonce + method + savedPath + payload

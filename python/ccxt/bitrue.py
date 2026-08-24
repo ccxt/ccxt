@@ -3158,7 +3158,7 @@ class bitrue(Exchange, ImplicitAPI):
                         'X-CH-TS': timestamp,
                     }
         else:
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

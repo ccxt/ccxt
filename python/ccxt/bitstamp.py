@@ -2562,7 +2562,7 @@ class bitstamp(Exchange, ImplicitAPI):
         url += self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
-            if query:
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
         else:
             self.check_required_credentials()
@@ -2578,7 +2578,7 @@ class bitstamp(Exchange, ImplicitAPI):
                 'X-Auth-Version': xAuthVersion,
             }
             if method == 'POST':
-                if query:
+                if len(query) > 0:
                     body = self.urlencode(query)
                     contentType = 'application/x-www-form-urlencoded'
                     headers['Content-Type'] = contentType

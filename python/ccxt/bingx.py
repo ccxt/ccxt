@@ -6665,7 +6665,7 @@ class bingx(Exchange, ImplicitAPI):
         params['timestamp'] = self.nonce()
         params = self.keysort(params)
         if access == 'public':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.urlencode(params)
         elif access == 'private':
             self.check_required_credentials()

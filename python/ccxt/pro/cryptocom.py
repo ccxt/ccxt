@@ -122,7 +122,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
-        if not limit:
+        if (limit is None) or (limit == 0):
             limit = 50
         topicParams = self.safe_value(params, 'params')
         if topicParams is None:

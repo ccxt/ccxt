@@ -1846,7 +1846,7 @@ class digifinex(Exchange, ImplicitAPI):
                 quantity = self.amount_to_precision(symbol, amount)
             request['amount'] = quantity
         if postOnly:
-            if postOnlyParsed:
+            if (postOnlyParsed is not None) and (postOnlyParsed != 0):
                 request['post_only'] = postOnlyParsed
             else:
                 request['post_only'] = postOnly
@@ -4225,7 +4225,7 @@ class digifinex(Exchange, ImplicitAPI):
                 nonce = str(self.milliseconds())
                 auth = nonce + method + payload
                 if method == 'GET':
-                    if urlencoded:
+                    if (urlencoded is not None) and (urlencoded != ''):
                         auth += '?' + urlencoded
                 elif method == 'POST':
                     auth += urlencoded
@@ -4234,13 +4234,13 @@ class digifinex(Exchange, ImplicitAPI):
                 auth = urlencoded
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             if method == 'GET':
-                if urlencoded:
+                if (urlencoded is not None) and (urlencoded != ''):
                     url += '?' + urlencoded
             elif method == 'POST':
                 headers = {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 }
-                if urlencoded:
+                if (urlencoded is not None) and (urlencoded != ''):
                     body = urlencoded
             headers = {
                 'ACCESS-KEY': self.apiKey,
@@ -4248,7 +4248,7 @@ class digifinex(Exchange, ImplicitAPI):
                 'ACCESS-TIMESTAMP': nonce,
             }
         else:
-            if urlencoded:
+            if (urlencoded is not None) and (urlencoded != ''):
                 url += '?' + urlencoded
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 

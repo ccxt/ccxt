@@ -974,7 +974,7 @@ class aster(Exchange, ImplicitAPI):
         for i in range(0, len(fapiRows)):
             market = fapiRows[i]
             # tmp skip some markets with base = None
-            if self.safe_string(market, 'baseAsset'):
+            if self.safe_string(market, 'baseAsset') is not None:
                 fapiRowsFiltered.append(market)
         rows = self.array_concat(sapiRows, fapiRowsFiltered)
         return self.parse_markets(rows)
@@ -4060,7 +4060,7 @@ class aster(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.urls['api'][api] + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
-            if params:
+            if len(params) > 0:
                 url += '?' + self.rawencode(params)
         elif api == 'fapiPrivate' or api == 'sapiPrivate':
             self.check_required_credentials()

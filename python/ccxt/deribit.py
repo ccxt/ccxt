@@ -3771,14 +3771,14 @@ class deribit(Exchange, ImplicitAPI):
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/' + 'api/' + self.version + '/' + api + '/' + path
         if api == 'public':
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             timestamp = str(self.milliseconds())
             requestBody = ''
-            if params:
+            if len(params) > 0:
                 request += '?' + self.urlencode(params)
             requestData = method + "\n" + request + "\n" + requestBody + "\n"  # eslint-disable-line quotes
             auth = timestamp + "\n" + nonce + "\n" + requestData  # eslint-disable-line quotes
