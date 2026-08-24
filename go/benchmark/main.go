@@ -18,6 +18,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"math"
 	"os"
 	"runtime"
 	"sort"
@@ -35,6 +36,14 @@ func env(key, def string) string {
 		return v
 	}
 	return def
+}
+
+func round2all(xs []float64) []float64 {
+	out := make([]float64, len(xs))
+	for i, x := range xs {
+		out[i] = math.Round(x*100) / 100
+	}
+	return out
 }
 
 func envInt(key string, def int) int {
@@ -257,14 +266,16 @@ func benchRest(exchange, symbol string) {
 		"iterations":    iters,
 		"loadMarketsMs": round(loadMarketsMs, 2),
 		"latencyMs":     stats(latency),
-		"networkMs":     stats(network),
-		"processingMs":  stats(processing),
-		"jsonDecodeMs":  stats(jsonDecode),
-		"cpuUserSec":    round(u1-u0, 3),
-		"cpuSystemSec":  round(s1-s0, 3),
-		"peakRssMb":     round(float64(peakRssKb())/1024.0, 1),
-		"bytesTotal":    totalBytes,
-		"bytesPerCall":  totalBytes / iters,
+		// raw per-call samples so any percentile can be recomputed from the data
+		"latencySamplesMs": round2all(latency),
+		"networkMs":        stats(network),
+		"processingMs":     stats(processing),
+		"jsonDecodeMs":     stats(jsonDecode),
+		"cpuUserSec":       round(u1-u0, 3),
+		"cpuSystemSec":     round(s1-s0, 3),
+		"peakRssMb":        round(float64(peakRssKb())/1024.0, 1),
+		"bytesTotal":       totalBytes,
+		"bytesPerCall":     totalBytes / iters,
 	})
 }
 

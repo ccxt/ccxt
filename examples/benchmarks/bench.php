@@ -162,6 +162,8 @@ $bench_rest = function() use ($EXCHANGE, $SYMBOL, $REST_ITERS, $SLEEP_MS, $WARMU
         'iterations' => $REST_ITERS,
         'loadMarketsMs' => round($load_markets_ms, 2),
         'latencyMs' => bstats($latency),
+        // raw per-call samples so any percentile can be recomputed from the data
+        'latencySamplesMs' => array_map(function ($x) { return round($x, 2); }, $latency),
         'networkMs' => bstats($network),
         'processingMs' => bstats($processing),
         'jsonDecodeMs' => bstats($json_decode),

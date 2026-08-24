@@ -131,6 +131,8 @@ async function benchRest () {
         'iterations': REST_ITERS,
         'loadMarketsMs': +loadMarketsMs.toFixed (2),
         'latencyMs': stats (latency),
+        // raw per-call samples so any percentile can be recomputed from the data
+        'latencySamplesMs': latency.map ((x) => Math.round (x * 100) / 100),
         'networkMs': stats (network),
         'processingMs': stats (processing),
         'jsonDecodeMs': stats (jsonDecode),

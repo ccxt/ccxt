@@ -109,6 +109,13 @@ namespace ccxtbench
             return Math.Round(v[Math.Min(i, v.Count - 1)], 2);
         }
 
+        static string Samples(List<double> xs)
+        {
+            var parts = new List<string>(xs.Count);
+            foreach (var x in xs) parts.Add(Math.Round(x, 2).ToString(CultureInfo.InvariantCulture));
+            return "[" + string.Join(",", parts) + "]";
+        }
+
         static string Stats(List<double> xs)
         {
             return "{\"p50\":" + N(Pct(xs, 50)) + ",\"p90\":" + N(Pct(xs, 90))
@@ -157,6 +164,8 @@ namespace ccxtbench
             sb.Append("\"symbol\":\"").Append(symbol).Append("\",");
             sb.Append("\"iterations\":").Append(iters).Append(',');
             sb.Append("\"latencyMs\":").Append(Stats(latency)).Append(',');
+            // raw per-call samples so any percentile can be recomputed from the data
+            sb.Append("\"latencySamplesMs\":").Append(Samples(latency)).Append(',');
             sb.Append("\"networkMs\":").Append(Stats(network)).Append(',');
             sb.Append("\"processingMs\":").Append(Stats(processing)).Append(',');
             sb.Append("\"jsonDecodeMs\":").Append(Stats(jsonDecode)).Append(',');

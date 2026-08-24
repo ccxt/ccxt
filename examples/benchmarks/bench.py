@@ -142,6 +142,8 @@ async def bench_rest():
         'iterations': REST_ITERS,
         'loadMarketsMs': round(load_markets_ms, 2),
         'latencyMs': stats(latency),
+        # raw per-call samples so any percentile can be recomputed from the data
+        'latencySamplesMs': [round(x, 2) for x in latency],
         'networkMs': stats(network),
         'processingMs': stats(processing),
         'jsonDecodeMs': stats(json_decode),

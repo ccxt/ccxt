@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import com.sun.management.OperatingSystemMXBean;
 
@@ -93,6 +94,12 @@ public class Main {
         return round(v.get(Math.min(i, v.size() - 1)), 2);
     }
 
+    static String samples(List<Double> xs) {
+        List<String> parts = new ArrayList<>(xs.size());
+        for (Double x : xs) parts.add(String.format(Locale.ROOT, "%.2f", x));
+        return "[" + String.join(",", parts) + "]";
+    }
+
     static String stats(List<Double> xs) {
         return "{\"p50\":" + pct(xs, 50) + ",\"p90\":" + pct(xs, 90)
              + ",\"p95\":" + pct(xs, 95) + ",\"p99\":" + pct(xs, 99) + "}";
@@ -137,6 +144,8 @@ public class Main {
         r.append("\"symbol\":\"").append(symbol).append("\",");
         r.append("\"iterations\":").append(iters).append(',');
         r.append("\"latencyMs\":").append(stats(latency)).append(',');
+        // raw per-call samples so any percentile can be recomputed from the data
+        r.append("\"latencySamplesMs\":").append(samples(latency)).append(',');
         r.append("\"networkMs\":").append(stats(network)).append(',');
         r.append("\"processingMs\":").append(stats(processing)).append(',');
         r.append("\"jsonDecodeMs\":").append(stats(jsonDecode)).append(',');
