@@ -7023,7 +7023,7 @@ public class BingxCore extends BingxApi
      * @name bingx#fetchPositionMode
      * @description fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
-     * @param {string} symbol unified symbol of the market to fetch the order book for
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
@@ -7034,6 +7034,20 @@ public class BingxCore extends BingxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                (this.loadMarkets()).join();
+                market = this.market(symbol);
+            }
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
+            }
             Object response = (this.swapV1PrivateGetPositionSideDual(parameters)).join();
             //
             //     {
@@ -7062,7 +7076,7 @@ public class BingxCore extends BingxApi
      * @description set hedged to true or false for a market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
      * @param {bool} hedged set to true to use dualSidePosition
-     * @param {string} symbol not used by setPositionMode ()
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
@@ -7073,6 +7087,20 @@ public class BingxCore extends BingxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            Object market = null;
+            if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+            {
+                (this.loadMarkets()).join();
+                market = this.market(symbol);
+            }
+            Object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
+            subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue(Helpers.GetValue(market, "inverse"))))))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " setPositionMode() is not supported for inverse swap markets")) ;
+            }
             Object dualSidePosition = null;
             if (Helpers.isTrue(hedged))
             {
@@ -7375,7 +7403,7 @@ public class BingxCore extends BingxApi
      * @name bingx#fetchMarketLeverageTiers
      * @description retrieve information on the maximum leverage, for different trade sizes for a single market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
-     * @param {string} symbol unified market symbol
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
@@ -7393,6 +7421,10 @@ public class BingxCore extends BingxApi
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports swap markets only")) ;
+            }
+            if (Helpers.isTrue(Helpers.GetValue(market, "inverse")))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " fetchMarketLeverageTiers() is not supported for inverse swap markets")) ;
             }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
