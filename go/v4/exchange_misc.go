@@ -48,7 +48,7 @@ func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
 }
 
 func ParseTimeframe(timeframe2 any) int64 {
-	timeframe := timeframe2.(string)
+	timeframe := derefScalar(timeframe2).(string)
 
 	if len(timeframe) < 2 {
 		return 0

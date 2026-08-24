@@ -141,15 +141,15 @@ func (this *WsOrderBook) Update(snapshot any) any {
 		nonce = 0
 	}
 	if snapshotNonce, ok := snapshot.(map[string]any)["nonce"]; ok {
-		if nonce != 0 && snapshotNonce.(int64) <= nonce.(int64) {
+		if nonce != 0 && derefScalar(snapshotNonce).(int64) <= derefScalar(nonce).(int64) {
 			return this
 		}
-		this.Nonce = snapshotNonce.(int64)
+		this.Nonce = derefScalar(snapshotNonce).(int64)
 	}
 
 	if timestamp, ok := snapshot.(map[string]any)["timestamp"]; ok {
-		this.Timestamp = timestamp.(int64)
-		this.Datetime = Iso8601(timestamp.(int64))
+		this.Timestamp = derefScalar(timestamp).(int64)
+		this.Datetime = Iso8601(derefScalar(timestamp).(int64))
 	}
 
 	return this.Reset(snapshot)

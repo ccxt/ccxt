@@ -62,7 +62,7 @@ func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 
 func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Mul(p.integer, other.integer)
-	decimals := p.Decimals.(int) + other.Decimals.(int)
+	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
 	return NewPrecise(integer.String(), decimals)
 }
 
@@ -91,45 +91,45 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStr
 func (p *PreciseStruct) Add(other *PreciseStruct) *PreciseStruct {
 	if p.Decimals == other.Decimals {
 		integerResult := new(big.Int).Add(p.integer, other.integer)
-		return NewPrecise(integerResult.String(), p.Decimals.(int))
+		return NewPrecise(integerResult.String(), derefScalar(p.Decimals).(int))
 	} else {
 		var smaller, bigger *PreciseStruct
-		if p.Decimals.(int) < other.Decimals.(int) {
+		if derefScalar(p.Decimals).(int) < derefScalar(other.Decimals).(int) {
 			smaller = p
 			bigger = other
 		} else {
 			smaller = other
 			bigger = p
 		}
-		exponent := bigger.Decimals.(int) - smaller.Decimals.(int)
+		exponent := derefScalar(bigger.Decimals).(int) - derefScalar(smaller.Decimals).(int)
 		normalized := new(big.Int).Mul(smaller.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(exponent)), nil))
 		result := new(big.Int).Add(normalized, bigger.integer)
-		return NewPrecise(result.String(), bigger.Decimals.(int))
+		return NewPrecise(result.String(), derefScalar(bigger.Decimals).(int))
 	}
 }
 
 func (p *PreciseStruct) Mod(other *PreciseStruct) *PreciseStruct {
-	rationizerNumerator := int(math.Max(float64(-p.Decimals.(int)+other.Decimals.(int)), 0))
+	rationizerNumerator := int(math.Max(float64(-derefScalar(p.Decimals).(int)+derefScalar(other.Decimals).(int)), 0))
 	numerator := new(big.Int).Mul(p.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerNumerator)), nil))
-	rationizerDenominator := int(math.Max(float64(-other.Decimals.(int)+p.Decimals.(int)), 0))
+	rationizerDenominator := int(math.Max(float64(-derefScalar(other.Decimals).(int)+derefScalar(p.Decimals).(int)), 0))
 	denominator := new(big.Int).Mul(other.integer, new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(rationizerDenominator)), nil))
 	result := new(big.Int).Mod(numerator, denominator)
-	return NewPrecise(result.String(), rationizerDenominator+other.Decimals.(int))
+	return NewPrecise(result.String(), rationizerDenominator+derefScalar(other.Decimals).(int))
 }
 
 func (p *PreciseStruct) Sub(other *PreciseStruct) *PreciseStruct {
-	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), other.Decimals.(int))
+	negative := NewPrecise(new(big.Int).Neg(other.integer).String(), derefScalar(other.Decimals).(int))
 	return p.Add(negative)
 }
 
 func (p *PreciseStruct) Or(other *PreciseStruct) *PreciseStruct {
 	integer := new(big.Int).Or(p.integer, other.integer)
-	decimals := p.Decimals.(int) + other.Decimals.(int)
+	decimals := derefScalar(p.Decimals).(int) + derefScalar(other.Decimals).(int)
 	return NewPrecise(integer.String(), decimals)
 }
 
 func (p *PreciseStruct) Neg() *PreciseStruct {
-	return NewPrecise(new(big.Int).Neg(p.integer).String(), p.Decimals.(int))
+	return NewPrecise(new(big.Int).Neg(p.integer).String(), derefScalar(p.Decimals).(int))
 }
 
 func (p *PreciseStruct) Min(other *PreciseStruct) *PreciseStruct {
@@ -171,7 +171,7 @@ func (p *PreciseStruct) Abs() *PreciseStruct {
 	} else {
 		result = p.integer
 	}
-	return NewPrecise(result.String(), p.Decimals.(int))
+	return NewPrecise(result.String(), derefScalar(p.Decimals).(int))
 }
 
 func (p *PreciseStruct) Reduce() *PreciseStruct {
@@ -202,7 +202,7 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 func (p *PreciseStruct) Equals(other *PreciseStruct) bool {
 	p.Reduce()
 	other.Reduce()
-	return p.integer.Cmp(other.integer) == 0 && p.Decimals.(int) == other.Decimals.(int)
+	return p.integer.Cmp(other.integer) == 0 && derefScalar(p.Decimals).(int) == derefScalar(other.Decimals).(int)
 }
 
 func (p *PreciseStruct) String() string {
@@ -252,7 +252,7 @@ func StringMul(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Mul(NewPrecise(string2.(string))).String()
+	return NewPrecise(derefScalar(string1).(string)).Mul(NewPrecise(derefScalar(string2).(string))).String()
 }
 
 func StringDiv(string1, string2 any, precision ...any) any {
@@ -260,11 +260,11 @@ func StringDiv(string1, string2 any, precision ...any) any {
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	string2Precise := NewPrecise(string2.(string))
+	string2Precise := NewPrecise(derefScalar(string2).(string))
 	if string2Precise.integer.Cmp(big.NewInt(0)) == 0 {
 		return nil
 	}
-	stringDiv := NewPrecise(string1.(string)).Div(string2Precise, precision...)
+	stringDiv := NewPrecise(derefScalar(string1).(string)).Div(string2Precise, precision...)
 	return stringDiv.String()
 }
 
@@ -273,7 +273,7 @@ func StringSub(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Sub(NewPrecise(string2.(string))).String()
+	return NewPrecise(derefScalar(string1).(string)).Sub(NewPrecise(derefScalar(string2).(string))).String()
 }
 
 // func (this *PreciseStruct) stringSub(string1, string2 any) string {
@@ -285,7 +285,7 @@ func StringAdd(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
+	return NewPrecise(derefScalar(string1).(string)).Add(NewPrecise(derefScalar(string2).(string))).String()
 }
 
 func StringOr(string1, string2 any) any {
@@ -293,7 +293,7 @@ func StringOr(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Or(NewPrecise(string2.(string))).String()
+	return NewPrecise(derefScalar(string1).(string)).Or(NewPrecise(derefScalar(string2).(string))).String()
 }
 
 func StringGt(a, b any) bool {
@@ -301,7 +301,7 @@ func StringGt(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Gt(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Gt(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringEq(a, b any) bool {
@@ -309,7 +309,7 @@ func StringEq(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Equals(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringMax(a, b any) any {
@@ -317,7 +317,7 @@ func StringMax(a, b any) any {
 	if a == nil || b == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Max(NewPrecise(b.(string))).String()
+	return NewPrecise(derefScalar(a).(string)).Max(NewPrecise(derefScalar(b).(string))).String()
 }
 
 func StringEquals(a, b any) bool {
@@ -325,7 +325,7 @@ func StringEquals(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Equals(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringMin(string1, string2 any) any {
@@ -333,7 +333,7 @@ func StringMin(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
 		return nil
 	}
-	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
+	return NewPrecise(derefScalar(string1).(string)).Min(NewPrecise(derefScalar(string2).(string))).String()
 }
 
 func StringLt(a, b any) bool {
@@ -341,7 +341,7 @@ func StringLt(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Lt(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Lt(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringAbs(a any) any {
@@ -349,7 +349,7 @@ func StringAbs(a any) any {
 	if a == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Abs().String()
+	return NewPrecise(derefScalar(a).(string)).Abs().String()
 }
 
 func StringNeg(a any) any {
@@ -357,7 +357,7 @@ func StringNeg(a any) any {
 	if a == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Neg().String()
+	return NewPrecise(derefScalar(a).(string)).Neg().String()
 }
 
 func StringLe(a, b any) bool {
@@ -365,7 +365,7 @@ func StringLe(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Le(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Le(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringGe(a, b any) bool {
@@ -373,7 +373,7 @@ func StringGe(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
-	return NewPrecise(a.(string)).Ge(NewPrecise(b.(string)))
+	return NewPrecise(derefScalar(a).(string)).Ge(NewPrecise(derefScalar(b).(string)))
 }
 
 func StringMod(a, b any) any {
@@ -381,7 +381,7 @@ func StringMod(a, b any) any {
 	if a == nil || b == nil {
 		return nil
 	}
-	return NewPrecise(a.(string)).Mod(NewPrecise(b.(string))).String()
+	return NewPrecise(derefScalar(a).(string)).Mod(NewPrecise(derefScalar(b).(string))).String()
 }
 
 func (p *PreciseStruct) ToString() string {

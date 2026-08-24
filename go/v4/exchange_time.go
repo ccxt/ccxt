@@ -62,7 +62,7 @@ func (this *BaseExchange) ParseDate(datetime2 any) any {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
-	datetime := datetime2.(string)
+	datetime := derefScalar(datetime2).(string)
 	var timestamp int64
 	// Layouts for the two formats you want to support
 	layouts := []string{
@@ -146,7 +146,7 @@ func (this *BaseExchange) Ymdhms(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("2006-01-02" + infix.(string) + "15:04:05")
+	return date.Format("2006-01-02" + derefScalar(infix).(string) + "15:04:05")
 }
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
@@ -160,7 +160,7 @@ func (this *BaseExchange) Yyyymmdd(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
+	return date.Format("2006" + derefScalar(infix).(string) + "01" + derefScalar(infix).(string) + "02")
 }
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
@@ -174,7 +174,7 @@ func (this *BaseExchange) Yymmdd(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("06" + infix.(string) + "01" + infix.(string) + "02")
+	return date.Format("06" + derefScalar(infix).(string) + "01" + derefScalar(infix).(string) + "02")
 }
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
@@ -188,7 +188,7 @@ func (this *BaseExchange) Ymd(ts any, args ...any) string {
 	}
 	startdatetime := ParseInt(ts)
 	date := time.Unix(0, startdatetime*int64(time.Millisecond)).UTC()
-	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
+	return date.Format("2006" + derefScalar(infix).(string) + "01" + derefScalar(infix).(string) + "02")
 }
 
 // parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
@@ -243,7 +243,7 @@ func (this *BaseExchange) Parse8601(datetime2 any) any {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
-	datetime := datetime2.(string)
+	datetime := derefScalar(datetime2).(string)
 	if strings.Contains(datetime, "+0") {
 		parts := strings.Split(datetime, "+")
 		datetime = parts[0]

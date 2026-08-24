@@ -126,7 +126,7 @@ func Hash(request2 any, hash func() string, digest2 any) any {
 	algorithm := hash()
 	digest := "hex"
 	if digest2 != nil {
-		digest = digest2.(string)
+		digest = derefScalar(digest2).(string)
 	}
 
 	var signature []byte
@@ -224,7 +224,7 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 	}
 	alg := algPrefix + strings.ToUpper(algorithm[3:])
 	if algOpt, ok := options["alg"]; ok {
-		alg = algOpt.(string)
+		alg = derefScalar(algOpt).(string)
 	}
 	header := map[string]any{
 		"alg": alg,
@@ -250,14 +250,14 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
 		ec := Ecdsa(token, secret, P256, hash)
-		r := ec["r"].(string)
-		s := ec["s"].(string)
+		r := derefScalar(ec["r"]).(string)
+		s := derefScalar(ec["s"]).(string)
 		converted, _ := convertHexStringToByteArray(r + s)
 		signature = Base64urlencode(converted)
 	} else if alg[:2] == "Ed" {
 		signature = Eddsa(token, secret, "ed25519")
 	} else {
-		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
+		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(derefScalar(secret).(string))))
 	}
 	// dirty quicky
 	signature = strings.Replace(signature, "+", "-", -1)
@@ -267,13 +267,13 @@ func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[s
 }
 
 func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...any) string {
-	data := data2.(string)
-	publicKey := privateKey2.(string)
+	data := derefScalar(data2).(string)
+	publicKey := derefScalar(privateKey2).(string)
 	// hashAlgorithm := hashAlgorithm2.(string)
 	hashAlgorithm := algorithm2()
 	paddingMode := "pkcs1"
 	if len(optionalArgs) > 0 && optionalArgs[0] != nil {
-		paddingMode = optionalArgs[0].(string)
+		paddingMode = derefScalar(optionalArgs[0]).(string)
 	}
 	// Remove PEM headers
 	// pkParts := strings.Split(publicKey, "\n")
@@ -359,7 +359,7 @@ func Base64ToBase64URL(base64Str string, stripPadding bool) string {
 
 func Eddsa(data2 any, secret any, curve any) string {
 	// it should use ed25519 and return a base64 string
-	data := data2.(string)
+	data := derefScalar(data2).(string)
 	secretsBytes := []uint8{}
 	if s, ok := secret.([]uint8); ok {
 		secretsBytes = s

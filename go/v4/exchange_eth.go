@@ -317,13 +317,13 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 	val, ok := messageData["nonce"]
 	if ok {
 		// messageData["nonce"] = uint64(val.(int64))
-		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
+		messageData["nonce"] = (*math.HexOrDecimal256)(big.NewInt(derefScalar(val).(int64)))
 	}
 
 	val, ok = messageData["time"]
 	if ok {
 		// messageData["time"] = uint64(val.(int64))
-		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(val.(int64)))
+		messageData["time"] = (*math.HexOrDecimal256)(big.NewInt(derefScalar(val).(int64)))
 	}
 
 	domainTyped := apitypes.TypedDataDomain{
@@ -343,8 +343,8 @@ func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any
 		for i, type_ := range types {
 			typeMap := type_.(map[string]any)
 			messageTypesTyped[key][i] = apitypes.Type{
-				Name: typeMap["name"].(string),
-				Type: typeMap["type"].(string),
+				Name: derefScalar(typeMap["name"]).(string),
+				Type: derefScalar(typeMap["type"]).(string),
 			}
 		}
 	}
@@ -862,7 +862,7 @@ func SafeInt(v any) int64 {
 func (this *BaseExchange) LoadLighterLibrary(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
 	ch := make(chan any)
 	go func() {
-		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
+		ch <- this.loadLighterLibraryHelper(derefScalar(path).(string), uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
 	}()
 	return ch
 }
@@ -876,7 +876,7 @@ func (this *BaseExchange) loadLighterLibraryHelper(path string, chainId uint32, 
 }
 
 func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKey any, apiKeyIndex any, accountIndex any) any {
-	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
+	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), derefScalar(privateKey).(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
 }
 
 func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
@@ -1183,7 +1183,7 @@ func (this *BaseExchange) LighterSignTransfer(signer any, request any) any {
 
 func (this *BaseExchange) lighterSignTransfer(signer *client.TxClient, request map[string]any) any {
 	var memoArr [32]byte
-	bs := []byte(request["memo"].(string))
+	bs := []byte(derefScalar(request["memo"]).(string))
 	if len(bs) != 32 {
 		panic(fmt.Errorf("memo expected to be 32 bytes long"))
 	}
@@ -1349,7 +1349,7 @@ func (this *BaseExchange) LighterSignChangePubkey(signer any, request any) any {
 }
 
 func (this *BaseExchange) lighterSignChangePubkey(signer *client.TxClient, request map[string]any) any {
-	decPubkey, err := hexutil.Decode(request["pubkey"].(string))
+	decPubkey, err := hexutil.Decode(derefScalar(request["pubkey"]).(string))
 	if err != nil {
 		panic(err)
 	}

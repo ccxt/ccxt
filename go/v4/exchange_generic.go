@@ -54,7 +54,7 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 	var desc bool
 	var defaultValue any = "a"
 	if len(desc2) > 0 {
-		desc = desc2[0].(bool)
+		desc = derefScalar(desc2[0]).(bool)
 	}
 	list := array.([]any)
 
@@ -72,7 +72,7 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 		}
 		return list
 	} else {
-		value := value1.(int)
+		value := derefScalar(value1).(int)
 		sort.Slice(list, func(i, j int) bool {
 			var a, b any
 			if reflect.TypeOf(list[i]).Kind() == reflect.Slice {
@@ -104,7 +104,7 @@ func (this *BaseExchange) SortBy(array any, value1 any, desc2 ...any) []any {
 func (this *BaseExchange) SortBy2(array any, key1 any, key2 any, desc2 ...any) []any {
 	var desc bool
 	if len(desc2) > 0 {
-		desc = desc2[0].(bool)
+		desc = derefScalar(desc2[0]).(bool)
 	}
 	list := array.([]any)
 
@@ -172,7 +172,7 @@ func (this *BaseExchange) FilterBy(aa any, key any, value any) []any {
 	var outList []any
 	for _, elem := range targetA {
 		if m, ok := elem.(map[string]any); ok {
-			if m[key.(string)] == value {
+			if m[derefScalar(key).(string)] == value {
 				outList = append(outList, m)
 			}
 		}
@@ -488,6 +488,7 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 // }
 
 func (this *BaseExchange) InArray(elem any, list any) bool {
+	elem = derefScalar(elem)
 	// Ensure the list is not nil and is of a slice type
 	if list == nil || reflect.TypeOf(list).Kind() != reflect.Slice {
 		return false
@@ -496,7 +497,7 @@ func (this *BaseExchange) InArray(elem any, list any) bool {
 	// Use reflection to iterate over the slice
 	listValue := reflect.ValueOf(list)
 	for i := 0; i < listValue.Len(); i++ {
-		listElem := listValue.Index(i).Interface()
+		listElem := derefScalar(listValue.Index(i).Interface())
 
 		// Handle number comparison
 		switch e := elem.(type) {
@@ -695,7 +696,7 @@ func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 // }
 
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
-	key := key2.(string)
+	key := derefScalar(key2).(string)
 	outDict := make(map[string]any)
 	list := trades.([]any)
 	for _, elem := range list {
@@ -704,7 +705,7 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 			if val == nil {
 				continue
 			}
-			elem2 := val.(string)
+			elem2 := derefScalar(val).(string)
 			if list2, exists := outDict[elem2]; exists {
 				list2 = append(list2.([]any), elem)
 				outDict[elem2] = list2
@@ -717,7 +718,7 @@ func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 }
 
 func (this *BaseExchange) OmitZero(value any) any {
-	switch v := value.(type) {
+	switch v := derefScalar(value).(type) {
 	case float64:
 		if v == 0.0 {
 			return nil

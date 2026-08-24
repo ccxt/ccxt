@@ -332,14 +332,14 @@ func SafeValueN(obj any, keys []any, defaultValue ...any) any {
 	default:
 		// Handle orderbook interfaces
 		if ob, ok := obj.(OrderBookInterface); ok { // TODO: should takes keys and not keys[0]
-			return ob.GetValue(keys[0].(string), defVal)
+			return ob.GetValue(derefScalar(keys[0]).(string), defVal)
 		}
 		if obs, ok := obj.(IOrderBookSide); ok { // TODO: should takes keys and not keys[0]
 			switch keys[0].(type) {
 			case string:
-				return obs.GetValue(keys[0].(string), defVal)
+				return obs.GetValue(derefScalar(keys[0]).(string), defVal)
 			case int:
-				return obs.GetData()[keys[0].(int)]
+				return obs.GetData()[derefScalar(keys[0]).(int)]
 			}
 		}
 	}
@@ -359,7 +359,7 @@ func SafeStringN(obj any, keys []any, defaultValue any) any {
 	case int:
 		return strconv.Itoa(v)
 	case int8, int16, int32, int64:
-		return strconv.FormatInt(v.(int64), 10)
+		return strconv.FormatInt(derefScalar(v).(int64), 10)
 	case uint, uint8, uint16, uint32, uint64:
 		return strconv.FormatUint(v.(uint64), 10)
 	case float32:
@@ -394,7 +394,7 @@ func SafeStringUpperN(obj any, keys []any, defaultValue any) any {
 	if value == nil {
 		return defaultValue
 	}
-	return strings.ToUpper(value.(string))
+	return strings.ToUpper(derefScalar(value).(string))
 }
 
 // SafeFloatN retrieves a float64 value from a nested structure
@@ -482,7 +482,7 @@ func SafeString(obj any, key any, defaultValue any) any {
 		case int:
 			return strconv.Itoa(v)
 		case int8, int16, int32, int64:
-			return strconv.FormatInt(v.(int64), 10)
+			return strconv.FormatInt(derefScalar(v).(int64), 10)
 		case uint, uint8, uint16, uint32, uint64:
 			return strconv.FormatUint(v.(uint64), 10)
 		case float32:
@@ -521,7 +521,7 @@ func SafeInteger(obj any, key any, defaultValue any) any {
 func SafeInt64(obj any, key any, defaultValue any) any {
 	res := SafeInteger(obj, key, defaultValue)
 	if res != nil {
-		return res.(int64)
+		return derefScalar(res).(int64)
 	}
 	return nil
 }
@@ -743,7 +743,7 @@ func SafeStringLowerN(obj any, keys []any, defaultValue any) any {
 	if value == nil {
 		return defaultValue
 	}
-	return strings.ToLower(value.(string))
+	return strings.ToLower(derefScalar(value).(string))
 }
 
 func (this *BaseExchange) SafeFloat(obj any, key any, defaultValue ...any) *float64 {

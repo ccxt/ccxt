@@ -173,7 +173,7 @@ func IsInteger(value any) bool {
 		return true
 	case float32, float64:
 		// Check if the float has no fractional part
-		return v == math.Trunc(v.(float64))
+		return v == math.Trunc(derefScalar(v).(float64))
 	default:
 		// // Handle other numeric types, including when value is a pointer to an int type
 		// val := reflect.ValueOf(value)
@@ -319,7 +319,7 @@ func GetValue(collection any, key any) any {
 	}
 
 	keyNum := -1
-	keyStr, isStr := key.(string)
+	keyStr, isStr := derefScalar(key).(string)
 	if !isStr {
 		keyNum64 := ParseInt(key)
 		if keyNum64 == math.MinInt64 {
@@ -429,7 +429,7 @@ func GetValue(collection any, key any) any {
 		reflectValue = reflectValue.Elem()
 	}
 	if reflectValue.Kind() == reflect.Struct {
-		stringKey := key.(string)
+		stringKey := derefScalar(key).(string)
 		stringKeyCapitalized := Capitalize(stringKey)
 		field := reflectValue.FieldByName(stringKey)
 
@@ -1185,7 +1185,7 @@ func AddElementToObject(arrayOrDict any, stringOrInt any, value any) {
 			if val.Kind() == reflect.Ptr {
 				val = val.Elem()
 			}
-			field := val.FieldByName(Capitalize(stringOrInt.(string))) // do remove reflection here??
+			field := val.FieldByName(Capitalize(derefScalar(stringOrInt).(string))) // do remove reflection here??
 			if field.IsValid() && field.CanSet() {
 				if value != nil {
 					// Convert value to the correct type
@@ -1284,7 +1284,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]map[string]*ArrayCacheByTimestamp:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1293,7 +1293,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]*ArrayCacheByTimestamp:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1302,7 +1302,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]*ArrayCache:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1311,7 +1311,7 @@ func InOp(dict any, key any) bool {
 			}
 		}
 	case map[string]*ArrayCacheBySymbolBySide:
-		if keyStr, ok2 := key.(string); ok2 {
+		if keyStr, ok2 := derefScalar(key).(string); ok2 {
 			addElementMu.Lock()
 			_, ok3 := v[keyStr]
 			addElementMu.Unlock()
@@ -1795,7 +1795,7 @@ func ObjectValues(v any) []any {
 
 func JsonParse(jsonStr2 any) any {
 	jsonStr2 = derefScalar(jsonStr2)
-	jsonStr := jsonStr2.(string)
+	jsonStr := derefScalar(jsonStr2).(string)
 	var result any
 	err := json.Unmarshal([]byte(jsonStr), &result)
 	if err != nil {
@@ -2092,7 +2092,7 @@ func Slice(str2 any, idx1 any, idx2 any) string {
 	if str2 == nil {
 		return ""
 	}
-	str := str2.(string)
+	str := derefScalar(str2).(string)
 	var start int64 = -1
 	if idx1 != nil {
 		start = ParseInt(idx1)
@@ -3169,8 +3169,8 @@ func CallInternalMethod(methodCache *sync.Map, itf any, name2 string, args ...an
 		// method := cachedMap["method"].(reflect.Method)
 		methodValue := cachedMap["methodValue"].(reflect.Value)
 		methodType := cachedMap["methodType"].(reflect.Type)
-		numIn := cachedMap["numIn"].(int)
-		isVariadic := cachedMap["isVariadic"].(bool)
+		numIn := derefScalar(cachedMap["numIn"]).(int)
+		isVariadic := derefScalar(cachedMap["isVariadic"]).(bool)
 
 		var in []reflect.Value
 		// Fixed argument handling for both regular and variadic functions

@@ -35,11 +35,11 @@ func (this *BaseExchange) GetLast_request_body() any {
 }
 
 func (this *BaseExchange) SetProxyUrl(proxyUrl any) {
-	this.ProxyUrl = proxyUrl.(string)
+	this.ProxyUrl = derefScalar(proxyUrl).(string)
 }
 
 func (this *BaseExchange) SetSocksProxy(proxyUrl any) {
-	this.SocksProxy = proxyUrl.(string)
+	this.SocksProxy = derefScalar(proxyUrl).(string)
 }
 
 func (this *BaseExchange) GetLast_request_headers() map[string]any {
@@ -87,15 +87,15 @@ func (this *BaseExchange) GetMarkets() *sync.Map {
 }
 
 func (this *BaseExchange) SetPrivateKey(privateKey any) {
-	this.PrivateKey = privateKey.(string)
+	this.PrivateKey = derefScalar(privateKey).(string)
 }
 
 func (this *BaseExchange) SetAccountId(accountId any) {
-	this.AccountId = accountId.(string)
+	this.AccountId = derefScalar(accountId).(string)
 }
 
 func (this *BaseExchange) SetWalletAddress(publicKey any) {
-	this.WalletAddress = publicKey.(string)
+	this.WalletAddress = derefScalar(publicKey).(string)
 }
 
 func (this *BaseExchange) SetCurrencies(currencies any) {
@@ -109,7 +109,7 @@ func (this *BaseExchange) SetPassword(password any) {
 	if password == nil {
 		return
 	}
-	this.Password = password.(string)
+	this.Password = derefScalar(password).(string)
 }
 
 func (this *BaseExchange) SetHttpProxy(httpProxy any) {
@@ -124,19 +124,19 @@ func (this *BaseExchange) SetUid(uid any) {
 	if uid == nil {
 		return
 	}
-	this.Uid = uid.(string)
+	this.Uid = derefScalar(uid).(string)
 }
 
 func (this *BaseExchange) SetTimeout(timeout any) {
-	this.Timeout = timeout.(int64)
+	this.Timeout = derefScalar(timeout).(int64)
 }
 
 func (this *BaseExchange) SetSecret(secret any) {
-	this.Secret = secret.(string)
+	this.Secret = derefScalar(secret).(string)
 }
 
 func (this *BaseExchange) SetApiKey(apiKey any) {
-	this.ApiKey = apiKey.(string)
+	this.ApiKey = derefScalar(apiKey).(string)
 }
 
 func (this *BaseExchange) SetAccounts(accounts any) {
@@ -151,14 +151,14 @@ func (this *BaseExchange) SetWssProxy(wssProxy any) {
 	if wssProxy == nil {
 		return
 	}
-	this.WssProxy = wssProxy.(string)
+	this.WssProxy = derefScalar(wssProxy).(string)
 }
 
 func (this *BaseExchange) SetWsProxy(wsProxy any) {
 	if wsProxy == nil {
 		return
 	}
-	this.WsProxy = wsProxy.(string)
+	this.WsProxy = derefScalar(wsProxy).(string)
 }
 
 func (this *BaseExchange) SetFetchResponse(fetchResponse any) {
@@ -166,7 +166,7 @@ func (this *BaseExchange) SetFetchResponse(fetchResponse any) {
 }
 
 func (this *BaseExchange) SetVerbose(verbose any) {
-	this.Verbose = verbose.(bool)
+	this.Verbose = derefScalar(verbose).(bool)
 }
 
 func (this *BaseExchange) GetCache() *sync.Map {
@@ -185,5 +185,5 @@ func (this *BaseExchange) SetReturnResponseHeaders(val any) {
 	if val == nil {
 		return
 	}
-	this.ReturnResponseHeaders = val.(bool)
+	this.ReturnResponseHeaders = derefScalar(val).(bool)
 }
