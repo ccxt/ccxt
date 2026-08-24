@@ -6886,28 +6886,28 @@ export class BaseExchange {
 
     handleSubTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue: any = undefined): [SubType, Dict] {
         let subType: SubType = undefined;
-        // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
-        // avoid omitting if it's not present
         if (subTypeInParams !== undefined) {
+            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
+        }
+        // at first, check from market object
+        if (market !== undefined) {
+            if (market['linear']) {
+                subType = 'linear';
+            } else if (market['inverse']) {
+                subType = 'inverse';
+            }
+        }
+        // if it was not defined in market object, check from params
+        if (subType === undefined) {
             if ((subTypeInParams === 'linear') || (subTypeInParams === 'inverse')) {
                 subType = subTypeInParams;
             }
-            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
-        } else {
-            // at first, check from market object
-            if (market !== undefined) {
-                if (market['linear']) {
-                    subType = 'linear';
-                } else if (market['inverse']) {
-                    subType = 'inverse';
-                }
-            }
-            // if it was not defined in market object
-            if (subType === undefined) {
-                const values = this.handleOptionAndParams ({}, methodName, 'subType', defaultValue); // no need to re-test params here
-                subType = values[0];
-            }
+        }
+        // if it was not defined in market object or params, check from options
+        if (subType === undefined) {
+            const values = this.handleOptionAndParams ({}, methodName, 'subType', defaultValue); // no need to re-test params here
+            subType = values[0];
         }
         return [ subType, params ];
     }
