@@ -1413,7 +1413,7 @@ public partial class indodax : Exchange
             { "withdraw_address", address },
             { "request_id", ((object)requestId).ToString() },
         };
-        if (isTrue(tag))
+        if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((!isEqual(tag, "")))))
         {
             ((IDictionary<string,object>)request)["withdraw_memo"] = tag;
         }
@@ -1651,7 +1651,7 @@ public partial class indodax : Exchange
             object query = this.omit(parameters, this.extractParams(path));
             object requestPath = add("/", this.implodeParams(path, parameters));
             url = add(url, requestPath);
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencodeWithArrayRepeat(query)));
             }

@@ -5915,7 +5915,7 @@ public partial class coinbase : Exchange
         object savedPath = fullPath;
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 fullPath = add(fullPath, add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -5938,7 +5938,7 @@ public partial class coinbase : Exchange
                 object payload = "";
                 if (isTrue(!isEqual(method, "GET")))
                 {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                    if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                     {
                         body = this.json(query);
                         payload = body;
@@ -5947,7 +5947,7 @@ public partial class coinbase : Exchange
                 {
                     if (!isTrue(isV3))
                     {
-                        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                         {
                             payload = add(payload, add("?", this.urlencode(query)));
                         }
@@ -6010,7 +6010,7 @@ public partial class coinbase : Exchange
                 };
                 if (isTrue(!isEqual(method, "GET")))
                 {
-                    if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                    if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                     {
                         body = this.json(query);
                     }

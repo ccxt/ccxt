@@ -208,7 +208,7 @@ public partial class hyperliquid : PredictionExchange
      */
     public virtual object parseOutcomeDescription(object description)
     {
-        if (!isTrue(description))
+        if (isTrue(isTrue((isEqual(description, null))) || isTrue((isEqual(description, "")))))
         {
             return new Dictionary<string, object>() {};
         }
@@ -247,11 +247,11 @@ public partial class hyperliquid : PredictionExchange
         object expiryDate = ((bool) isTrue(expiry)) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
         object label = ((bool) isTrue((isEqual(side, 0)))) ? "YES" : "NO";
         object bs = ((string)underlying).ToUpper();
-        if (isTrue(targetPrice))
+        if (isTrue(isTrue((!isEqual(targetPrice, null))) && isTrue((!isEqual(targetPrice, "")))))
         {
             bs = add(add(bs, "_ABOVE_"), targetPrice);
         }
-        if (isTrue(expiryDate))
+        if (isTrue(isTrue((!isEqual(expiryDate, null))) && isTrue((!isEqual(expiryDate, "")))))
         {
             bs = add(add(bs, "_"), expiryDate);
         }
@@ -274,24 +274,24 @@ public partial class hyperliquid : PredictionExchange
         name ??= "";
         question ??= new Dictionary<string, object>();
         object underlying = this.safeString(desc, "underlying");
-        if (isTrue(underlying))
+        if (isTrue(isTrue((!isEqual(underlying, null))) && isTrue((!isEqual(underlying, "")))))
         {
             object targetPrice = this.safeString(desc, "targetPrice");
             object expiry = this.safeString(desc, "expiry", "");
             object expiryDate = ((bool) isTrue(expiry)) ? getValue(((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>(), 0) : "";
             object bs = ((string)underlying).ToUpper();
-            if (isTrue(targetPrice))
+            if (isTrue(isTrue((!isEqual(targetPrice, null))) && isTrue((!isEqual(targetPrice, "")))))
             {
                 bs = add(add(bs, "_ABOVE_"), targetPrice);
             }
-            if (isTrue(expiryDate))
+            if (isTrue(isTrue((!isEqual(expiryDate, null))) && isTrue((!isEqual(expiryDate, "")))))
             {
                 bs = add(add(bs, "_"), expiryDate);
             }
             return bs;
         }
         object questionDescription = this.safeString(question, "description");
-        if (isTrue(questionDescription))
+        if (isTrue(isTrue((!isEqual(questionDescription, null))) && isTrue((!isEqual(questionDescription, "")))))
         {
             object questionDesc = this.parseOutcomeDescription(questionDescription);
             object questionClass = this.safeStringLower(questionDesc, "class");
@@ -333,7 +333,7 @@ public partial class hyperliquid : PredictionExchange
                             bucketLabel = add(add(add("BETWEEN_", getValue(thresholds, subtract(index, 1))), "_"), getValue(thresholds, index));
                         }
                         object bs = add(add(((string)questionUnderlying).ToUpper(), "_"), bucketLabel);
-                        if (isTrue(expiryDate))
+                        if (isTrue(isTrue((!isEqual(expiryDate, null))) && isTrue((!isEqual(expiryDate, "")))))
                         {
                             bs = add(add(bs, "_"), expiryDate);
                         }
@@ -344,7 +344,7 @@ public partial class hyperliquid : PredictionExchange
                 if (isTrue(isTrue(questionUnderlying) && isTrue(isFallbackLike)))
                 {
                     object bs = add(((string)questionUnderlying).ToUpper(), "_OTHER");
-                    if (isTrue(expiryDate))
+                    if (isTrue(isTrue((!isEqual(expiryDate, null))) && isTrue((!isEqual(expiryDate, "")))))
                     {
                         bs = add(add(bs, "_"), expiryDate);
                     }
@@ -353,10 +353,10 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         object questionName = this.safeString(question, "name");
-        if (isTrue(questionName))
+        if (isTrue(isTrue((!isEqual(questionName, null))) && isTrue((!isEqual(questionName, "")))))
         {
             object questionSlug = this.shortenSlug(questionName);
-            if (isTrue(questionSlug))
+            if (isTrue(isTrue((!isEqual(questionSlug, null))) && isTrue((!isEqual(questionSlug, "")))))
             {
                 object outcomeSlug = this.shortenSlug(name);
                 object genericOutcomeNames = new Dictionary<string, object>() {
@@ -374,7 +374,7 @@ public partial class hyperliquid : PredictionExchange
                         outcomeSlug = "";
                     }
                 }
-                if (isTrue(outcomeSlug))
+                if (isTrue(isTrue((!isEqual(outcomeSlug, null))) && isTrue((!isEqual(outcomeSlug, "")))))
                 {
                     return add(add(add(add(questionSlug, "_"), outcomeSlug), "_"), ((object)outcomeId).ToString());
                 }
@@ -382,7 +382,7 @@ public partial class hyperliquid : PredictionExchange
             }
         }
         // Fallback: use name slugified, or OUTCOME-<id>
-        if (isTrue(name))
+        if (isTrue(isTrue((!isEqual(name, null))) && isTrue((!isEqual(name, "")))))
         {
             return add(add(this.shortenSlug(name), "_"), ((object)outcomeId).ToString());
         }
@@ -518,7 +518,7 @@ public partial class hyperliquid : PredictionExchange
         object expiry = this.safeString(desc, "expiry");
         object expiryMs = null;
         object expiryDatetime = null;
-        if (isTrue(expiry))
+        if (isTrue(isTrue((!isEqual(expiry, null))) && isTrue((!isEqual(expiry, "")))))
         {
             // e.g. "20260503-0600" → "2026-05-03T06:00:00Z"
             List<object> expParts = ((string)expiry).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -1251,7 +1251,7 @@ public partial class hyperliquid : PredictionExchange
 
     public virtual object parseOutcomeInputSideHint(object outcomeInput)
     {
-        if (!isTrue(outcomeInput))
+        if (isTrue(isTrue((isEqual(outcomeInput, null))) || isTrue((isEqual(outcomeInput, "")))))
         {
             return null;
         }
@@ -2251,7 +2251,7 @@ public partial class hyperliquid : PredictionExchange
         object expiryRaw = this.safeString(desc, "expiry");
         object expiryMs = null;
         object expiryDatetime = null;
-        if (isTrue(expiryRaw))
+        if (isTrue(isTrue((!isEqual(expiryRaw, null))) && isTrue((!isEqual(expiryRaw, "")))))
         {
             List<object> parts = ((string)expiryRaw).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             int partsLength = getArrayLength(parts);
@@ -2269,11 +2269,11 @@ public partial class hyperliquid : PredictionExchange
         if (isTrue(!isEqual(underlying, null)))
         {
             object titleSuffix = "";
-            if (isTrue(targetPrice))
+            if (isTrue(isTrue((!isEqual(targetPrice, null))) && isTrue((!isEqual(targetPrice, "")))))
             {
                 titleSuffix = add(add(titleSuffix, " ABOVE "), targetPrice);
             }
-            if (isTrue(expiryRaw))
+            if (isTrue(isTrue((!isEqual(expiryRaw, null))) && isTrue((!isEqual(expiryRaw, "")))))
             {
                 titleSuffix = add(add(titleSuffix, " @ "), expiryRaw);
             }

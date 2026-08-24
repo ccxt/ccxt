@@ -7089,7 +7089,7 @@ public partial class bingx : Exchange
         parameters = this.keysort(parameters);
         if (isTrue(isEqual(access, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }

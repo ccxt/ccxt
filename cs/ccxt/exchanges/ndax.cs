@@ -1474,7 +1474,7 @@ public partial class ndax : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (!isTrue(this.login))
+        if (isTrue(isTrue((isEqual(this.login, null))) || isTrue((isEqual(this.login, "")))))
         {
             throw new AuthenticationError ((string)add(this.id, " fetchAccounts() requires exchange.login email credential")) ;
         }
@@ -3054,7 +3054,7 @@ public partial class ndax : Exchange
                     query = this.omit(query, "pending2faToken");
                 }
             }
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -3085,7 +3085,7 @@ public partial class ndax : Exchange
                 body = this.json(query);
             } else
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     url = add(url, add("?", this.urlencode(query)));
                 }

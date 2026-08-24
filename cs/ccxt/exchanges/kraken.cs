@@ -2980,7 +2980,7 @@ public partial class kraken : Exchange
             response = await this.privatePostCancelOrder(this.extend(request, parameters));
         } catch(Exception e)
         {
-            if (isTrue(this.last_http_response))
+            if (isTrue(isTrue((!isEqual(this.last_http_response, null))) && isTrue((!isEqual(this.last_http_response, "")))))
             {
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(this.last_http_response, "EOrder:Unknown order"), 0)))
                 {
@@ -4083,7 +4083,7 @@ public partial class kraken : Exchange
         object url = add(add(add(add(add("/", this.version), "/"), api), "/"), path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 // rawencode is used to address https://github.com/ccxt/ccxt/issues/12872
                 url = add(url, add("?", this.urlencodeNested(parameters)));

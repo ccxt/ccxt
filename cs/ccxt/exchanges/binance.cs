@@ -11432,7 +11432,7 @@ public partial class binance : Exchange
         object priceString = null;
         if (isTrue(!isEqual(costString, null)))
         {
-            if (isTrue(amountString))
+            if (isTrue(isTrue((!isEqual(amountString, null))) && isTrue((!isEqual(amountString, "")))))
             {
                 priceString = Precise.stringDiv(costString, amountString);
             }
@@ -15476,7 +15476,7 @@ public partial class binance : Exchange
         url = add(url, add("/", path));
         if (isTrue(isEqual(path, "historicalTrades")))
         {
-            if (isTrue(this.apiKey))
+            if (isTrue(isTrue((!isEqual(this.apiKey, null))) && isTrue((!isEqual(this.apiKey, "")))))
             {
                 headers = new Dictionary<string, object>() {
                     { "X-MBX-APIKEY", this.apiKey },
@@ -15489,7 +15489,7 @@ public partial class binance : Exchange
         bool userDataStream = isTrue(isTrue((isEqual(path, "userDataStream"))) || isTrue((isEqual(path, "listenKey")))) || isTrue((isEqual(path, "userListenToken")));
         if (isTrue(userDataStream))
         {
-            if (isTrue(this.apiKey))
+            if (isTrue(isTrue((!isEqual(this.apiKey, null))) && isTrue((!isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
                 headers = new Dictionary<string, object>() {
@@ -15633,7 +15633,7 @@ public partial class binance : Exchange
             }
         } else
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -16660,10 +16660,10 @@ public partial class binance : Exchange
         object until = this.safeInteger(parameters, "until"); // unified in milliseconds
         object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
         parameters = this.omit(parameters, new List<object>() {"endTime", "until"});
-        if (isTrue(endTime))
+        if (isTrue(isTrue((!isEqual(endTime, null))) && isTrue((!isEqual(endTime, 0)))))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
-        } else if (isTrue(since))
+        } else if (isTrue(isTrue((!isEqual(since, null))) && isTrue((!isEqual(since, 0)))))
         {
             if (isTrue(isEqual(limit, null)))
             {

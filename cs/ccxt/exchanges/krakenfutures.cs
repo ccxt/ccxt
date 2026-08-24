@@ -3862,7 +3862,7 @@ public partial class krakenfutures : Exchange
         {
             postData = add("json=", this.json(parameters));
             body = postData;
-        } else if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+        } else if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
         {
             if (isTrue(inOp(parameters, "orderIds")))
             {

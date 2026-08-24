@@ -1269,7 +1269,7 @@ public partial class aster : Exchange
         {
             object market = getValue(fapiRows, i);
             // tmp skip some markets with base = undefined
-            if (isTrue(this.safeString(market, "baseAsset")))
+            if (isTrue(!isEqual(this.safeString(market, "baseAsset"), null)))
             {
                 ((IList<object>)fapiRowsFiltered).Add(market);
             }
@@ -4909,7 +4909,7 @@ public partial class aster : Exchange
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isTrue(isEqual(api, "fapiPublic")) || isTrue(isEqual(api, "sapiPublic"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.rawencode(parameters)));
             }

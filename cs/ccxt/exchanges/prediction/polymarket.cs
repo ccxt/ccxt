@@ -603,7 +603,7 @@ public partial class polymarket : PredictionExchange
             }
             object parsedEvent = this.parseEvent(rawEvent);
             object eventSlug = this.safeString(rawEvent, "slug");
-            if (isTrue(eventSlug))
+            if (isTrue(isTrue((!isEqual(eventSlug, null))) && isTrue((!isEqual(eventSlug, "")))))
             {
                 object eventKey = this.shortenSlug(eventSlug);
                 ((IDictionary<string,object>)eventsDict)[(string)eventKey] = parsedEvent;
@@ -3026,11 +3026,11 @@ public partial class polymarket : PredictionExchange
             rawEvents = await this.fetchRawEventsList(rest);
         }
         // Parse and merge into class-level caches
-        if (!isTrue(this.events))
+        if (isTrue(isEqual(this.events, null)))
         {
             this.events = new Dictionary<string, object>() {};
         }
-        if (!isTrue(this.markets))
+        if (isTrue(isEqual(this.markets, null)))
         {
             this.markets = this.createSafeDictionary();
         }
@@ -3771,7 +3771,7 @@ public partial class polymarket : PredictionExchange
             { "cost", null },
             { "fee", null },
         }, market);
-        if (!isTrue(this.trades))
+        if (isTrue(isEqual(this.trades, null)))
         {
             this.trades = new Dictionary<string, object>() {};
         }
@@ -4060,7 +4060,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual object tokenIdToSymbol(object tokenId)
     {
-        if (!isTrue(tokenId))
+        if (isTrue(isTrue((isEqual(tokenId, null))) || isTrue((isEqual(tokenId, "")))))
         {
             return null;
         }

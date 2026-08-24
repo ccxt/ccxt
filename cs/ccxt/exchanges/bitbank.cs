@@ -1203,7 +1203,7 @@ public partial class bitbank : Exchange
         if (isTrue(isTrue((isEqual(api, "public"))) || isTrue((isEqual(api, "markets")))))
         {
             url = add(url, this.implodeParams(path, parameters));
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(query)));
             }
@@ -1235,7 +1235,7 @@ public partial class bitbank : Exchange
             } else
             {
                 auth = add(auth, add(add(add("/", this.version), "/"), path));
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     query = this.urlencode(query);
                     url = add(url, add("?", query));

@@ -6229,7 +6229,7 @@ public partial class htx : Exchange
                 throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support "), type), " orders")) ;
             }
         }
-        object postOnly = null;
+        object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isEqual(orderType, "market"), isEqual(orderType, "limit-maker"), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];
@@ -6353,7 +6353,7 @@ public partial class htx : Exchange
             { "contract_code", getValue(market, "id") },
             { "volume", this.amountToPrecision(symbol, amount) },
         };
-        object postOnly = null;
+        object postOnly = false;
         var postOnlyparametersVariable = this.handlePostOnly(isEqual(type, "market"), isEqual(type, "post_only"), parameters);
         postOnly = ((IList<object>)postOnlyparametersVariable)[0];
         parameters = ((IList<object>)postOnlyparametersVariable)[1];

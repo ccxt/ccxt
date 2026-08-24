@@ -11594,7 +11594,7 @@ public partial class bybit : Exchange
         object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
         if (isTrue(isEqual(api, "public")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.rawencode(parameters)));
             }
@@ -11608,7 +11608,7 @@ public partial class bybit : Exchange
             string timestamp = ((object)this.nonce()).ToString();
             if (isTrue(isOpenapi))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
                 {
                     body = this.json(parameters);
                 } else

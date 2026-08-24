@@ -2483,7 +2483,7 @@ public partial class hyperliquid : Exchange
         object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
         object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        bool isTrigger = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
+        bool isTrigger = (isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null))));
         object px = null;
         if (isTrue(isMarket))
         {
@@ -3117,7 +3117,7 @@ public partial class hyperliquid : Exchange
             object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             object stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             object takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
-            bool isTrigger = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
+            bool isTrigger = (isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null))));
             object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new List<object>() {"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"});
             object px = this.numberToString(price);
@@ -5549,7 +5549,7 @@ public partial class hyperliquid : Exchange
             return null;
         }
         object hi3TokensByname = this.safeDict(this.options, "hip3TokensByName", new Dictionary<string, object>() {});
-        if (isTrue(this.safeDict(hi3TokensByname, coin)))
+        if (isTrue(!isEqual(this.safeDict(hi3TokensByname, coin), null)))
         {
             object hip3Dict = this.safeDict(hi3TokensByname, coin);
             object quote = this.safeString(hip3Dict, "quote", "USDC");

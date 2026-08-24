@@ -1890,7 +1890,7 @@ public partial class dydx : Exchange
         }
         object market = this.market(symbol);
         object clientOrderIds = this.safeList(parameters, "clientOrderIds");
-        if (!isTrue(clientOrderIds))
+        if (isTrue(isEqual(clientOrderIds, null)))
         {
             throw new NotSupported ((string)add(this.id, " cancelOrders only support clientOrderIds.")) ;
         }
@@ -2823,7 +2823,7 @@ public partial class dydx : Exchange
         url = add(url, add("/", pathWithParams));
         if (isTrue(isEqual(method, "GET")))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
             {
                 url = add(url, add("?", this.urlencode(parameters)));
             }
@@ -2857,11 +2857,11 @@ public partial class dydx : Exchange
         //
         object result = this.safeDict(response, "result");
         object errorCode = this.safeString(result, "code");
-        if (!isTrue(errorCode))
+        if (isTrue(isTrue((isEqual(errorCode, null))) || isTrue((isEqual(errorCode, "")))))
         {
             errorCode = this.safeString(response, "code");
         }
-        if (isTrue(errorCode))
+        if (isTrue(isTrue((!isEqual(errorCode, null))) && isTrue((!isEqual(errorCode, "")))))
         {
             object errorCodeNum = this.parseToNumeric(errorCode);
             if (isTrue(isGreaterThan(errorCodeNum, 0)))

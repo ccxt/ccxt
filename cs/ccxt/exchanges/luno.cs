@@ -1869,7 +1869,7 @@ public partial class luno : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), api), "/"), this.version), "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
         {
             url = add(url, add("?", this.urlencode(query)));
         }

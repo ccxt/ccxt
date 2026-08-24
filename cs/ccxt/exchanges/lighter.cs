@@ -3900,7 +3900,7 @@ public partial class lighter : Exchange
                 { "Authorization", this.createAuth(parameters) },
             };
         }
-        if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+        if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys)), 0)))
         {
             if (isTrue(isEqual(method, "POST")))
             {

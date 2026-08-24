@@ -1004,7 +1004,7 @@ public partial class woo : ccxt.woo
     public virtual object checkRequiredUid(object error = null)
     {
         error ??= true;
-        if (!isTrue(this.uid))
+        if (isTrue(isTrue((isEqual(this.uid, null))) || isTrue((isEqual(this.uid, "")))))
         {
             if (isTrue(error))
             {

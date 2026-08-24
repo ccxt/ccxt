@@ -2254,7 +2254,7 @@ public partial class coinbaseinternational : Exchange
             { "portfolio", portfolio },
         };
         object market = null;
-        if (isTrue(symbol))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(symbol, "")))))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument"] = getValue(market, "id");
@@ -2424,7 +2424,7 @@ public partial class coinbaseinternational : Exchange
             { "result_offset", offSet },
         };
         object market = null;
-        if (isTrue(symbol))
+        if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(symbol, "")))))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["instrument"] = symbol;
@@ -2664,7 +2664,7 @@ public partial class coinbaseinternational : Exchange
         object savedPath = add("/api", fullPath);
         if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
         {
-            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+            if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
             {
                 fullPath = add(fullPath, add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -2677,7 +2677,7 @@ public partial class coinbaseinternational : Exchange
             object payload = "";
             if (isTrue(!isEqual(method, "GET")))
             {
-                if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
+                if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
                 {
                     body = this.json(query);
                     payload = body;
