@@ -7169,7 +7169,8 @@ export default class binance extends Exchange {
             const defaultId = (market['contract'] === true) ? 'x-xcKtGhcu' : 'x-TKT5PX2F';
             let idMarketType = 'spot';
             if (market['contract'] === true) {
-                idMarketType = ((market['swap'] === true) && (market['linear'] === true)) ? 'swap' : 'inverse';
+                const isLinearSwap = (market['swap'] === true) && (market['linear'] === true);
+                idMarketType = isLinearSwap ? 'swap' : 'inverse';
             }
             const brokerId = this.safeString (broker, idMarketType, defaultId);
             request[clientOrderIdRequest] = brokerId + this.uuid22 ();
@@ -14197,9 +14198,11 @@ export default class binance extends Exchange {
         const value = this.safeNumber2 (interest, 'sumOpenInterestValue', 'sumOpenInterestUsd');
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
+        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const baseVolume = isInverse ? undefined : amount;
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (id, market, undefined, 'contract'),
-            'baseVolume': (this.safeBool (market, 'inverse') === true) ? undefined : amount,  // deprecated
+            'baseVolume': baseVolume,  // deprecated
             'quoteVolume': value,  // deprecated
             'openInterestAmount': amount,
             'openInterestValue': value,

@@ -1512,13 +1512,14 @@ export default class bingx extends Exchange {
         const marketId = this.safeString2 (trade, 's', 'symbol');
         const isBuyerMaker = this.safeBoolN (trade, [ 'buyerMaker', 'isBuyerMaker', 'maker' ]);
         let takeOrMaker: Str = undefined;
+        const isMakerSide = (isBuyerMaker === true) || (m === true);
         if ((isBuyerMaker !== undefined) || (m !== undefined)) {
-            takeOrMaker = ((isBuyerMaker === true) || (m === true)) ? 'maker' : 'taker';
+            takeOrMaker = isMakerSide ? 'maker' : 'taker';
         }
         let side = this.safeStringLower2 (trade, 'side', 'S');
         if (side === undefined) {
             if ((isBuyerMaker !== undefined) || (m !== undefined)) {
-                side = ((isBuyerMaker === true) || (m === true)) ? 'sell' : 'buy';
+                side = isMakerSide ? 'sell' : 'buy';
                 takeOrMaker = 'taker';
             }
         }
@@ -2043,12 +2044,15 @@ export default class bingx extends Exchange {
         const symbol = this.safeSymbol (id, market, '-', 'swap');
         const openInterest = this.safeNumber (interest, 'openInterest');
         const inverse = this.safeBool (market, 'inverse', false);
+        const isInverse = (inverse === true);
+        const openInterestAmount = isInverse ? openInterest : undefined;
+        const openInterestValue = isInverse ? undefined : openInterest;
         return this.safeOpenInterest ({
             'symbol': symbol,
             'baseVolume': undefined,
             'quoteVolume': undefined,  // deprecated
-            'openInterestAmount': (inverse === true) ? openInterest : undefined,
-            'openInterestValue': (inverse === true) ? undefined : openInterest,
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

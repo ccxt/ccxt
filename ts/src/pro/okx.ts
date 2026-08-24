@@ -1781,7 +1781,8 @@ export default class okx extends okxRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        await this.authenticate ({ 'access': (isTrigger === true) ? 'business' : 'private' });
+        const access = (isTrigger === true) ? 'business' : 'private';
+        await this.authenticate ({ 'access': access });
         const channel = (isTrigger === true) ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
         let market: Market = undefined;

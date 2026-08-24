@@ -1085,7 +1085,8 @@ export default class mexc extends Exchange {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            status = (this.safeValue (response, 'success') === true) ? 'ok' : this.json (response);
+            const success = (this.safeBool (response, 'success') === true);
+            status = success ? 'ok' : this.json (response);
             updated = this.safeInteger (response, 'data');
         }
         return {
@@ -1789,7 +1790,8 @@ export default class mexc extends Exchange {
                     'cost': this.safeString (trade, 'fee'),
                     'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
                 };
-                takerOrMaker = (this.safeValue (trade, 'taker') === true) ? 'taker' : 'maker';
+                const isTaker = (this.safeBool (trade, 'taker') === true);
+                takerOrMaker = isTaker ? 'taker' : 'maker';
             } else {
                 timestamp = this.safeInteger2 (trade, 'time', 'T');
                 amountString = this.safeString2 (trade, 'qty', 'q');

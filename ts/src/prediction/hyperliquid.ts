@@ -1641,6 +1641,8 @@ export default class hyperliquid extends Exchange {
         const tifRaw = this.safeString (entry, 'tif');
         const tif = this.parseTimeInForce (tifRaw);
         const postOnly = (tif === 'PO');
+        const isTrigger = (this.safeBool (entry, 'isTrigger') === true);
+        const triggerPrice = isTrigger ? this.safeNumber (entry, 'triggerPx') : undefined;
         return this.safePredictionOrder ({
             'id': this.safeString (entry, 'oid'),
             'clientOrderId': this.safeString (entry, 'cloid'),
@@ -1659,7 +1661,7 @@ export default class hyperliquid extends Exchange {
             'reduceOnly': this.safeBool (entry, 'reduceOnly', false),
             'side': side,
             'price': this.safeNumber (entry, 'limitPx'),
-            'triggerPrice': (this.safeBool (entry, 'isTrigger') === true) ? this.safeNumber (entry, 'triggerPx') : undefined,
+            'triggerPrice': triggerPrice,
             'amount': this.parseNumber (totalAmount),
             'cost': undefined,
             'average': this.safeNumber (entry, 'avgPx'),
@@ -1840,6 +1842,8 @@ export default class hyperliquid extends Exchange {
         if ((price !== undefined) && (amount !== undefined)) {
             cost = this.parseNumber (Precise.stringMul (price, amount));
         }
+        const crossed = (this.safeBool (trade, 'crossed') === true);
+        const takerOrMaker = crossed ? 'taker' : 'maker';
         return this.safePredictionTrade ({
             'id': this.safeString (trade, 'tid'),
             'info': trade,
@@ -1852,7 +1856,7 @@ export default class hyperliquid extends Exchange {
             'order': this.safeString (trade, 'oid'),
             'type': 'limit',
             'side': side,
-            'takerOrMaker': (this.safeBool (trade, 'crossed') === true) ? 'taker' : 'maker',
+            'takerOrMaker': takerOrMaker,
             'price': this.parseNumber (price),
             'amount': this.parseNumber (amount),
             'cost': cost,

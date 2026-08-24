@@ -6987,7 +6987,8 @@ export default class bybit extends Exchange {
         if (liquidationPrice !== undefined) {
             if (market['settle'] === 'USDC') {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                const price = (this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false) === true) ? markPrice : entryPrice;
+                const useMarkPrice = (this.safeBool (this.options, 'useMarkPriceForPositionCollateral', false) === true);
+                const price = useMarkPrice ? markPrice : entryPrice;
                 const difference = Precise.stringAbs (Precise.stringSub (price, liquidationPrice));
                 collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
             } else {
@@ -7255,7 +7256,8 @@ export default class bybit extends Exchange {
             request['symbol'] = this.safeString (market, 'id');
         }
         if (symbol !== undefined) {
-            request['category'] = (this.safeBool (market, 'linear') === true) ? 'linear' : 'inverse';
+            const isLinear = (this.safeBool (market, 'linear') === true);
+            request['category'] = isLinear ? 'linear' : 'inverse';
         } else {
             let type: Str = undefined;
             [ type, params ] = this.getBybitType ('setPositionMode', market, params);
@@ -7452,8 +7454,10 @@ export default class bybit extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const openInterest = this.safeNumber2 (interest, 'open_interest', 'openInterest');
         // the openInterest is in the base asset for linear and quote asset for inverse
-        const amount = (this.safeBool (market, 'linear') === true) ? openInterest : undefined;
-        const value = (this.safeBool (market, 'inverse') === true) ? openInterest : undefined;
+        const isLinear = (this.safeBool (market, 'linear') === true);
+        const isInverse = (this.safeBool (market, 'inverse') === true);
+        const amount = isLinear ? openInterest : undefined;
+        const value = isInverse ? openInterest : undefined;
         return this.safeOpenInterest ({
             'symbol': this.safeString (market, 'symbol'),
             'openInterestAmount': amount,

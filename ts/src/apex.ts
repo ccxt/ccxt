@@ -1308,7 +1308,8 @@ export default class apex extends Exchange {
     }
 
     generateRandomClientIdOmni (_accountId: Str) {
-        const accountId = ((_accountId !== undefined) && (_accountId !== '')) ? _accountId : this.randNumber (12).toString ();
+        const hasAccountId = (_accountId !== undefined) && (_accountId !== '');
+        const accountId = hasAccountId ? _accountId : this.randNumber (12).toString ();
         return 'apexomni-' + accountId + '-' + this.milliseconds ().toString () + '-' + this.randNumber (6).toString ();
     }
 

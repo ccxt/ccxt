@@ -618,7 +618,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = ((isSwap === true) && settleIsUSDT) ? 'trade_p' : 'trade';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -659,7 +660,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = ((isSwap === true) && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {
@@ -698,7 +700,8 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const name = ((isSwap === true) && settleIsUSDT) ? 'kline_p' : 'kline';
+        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const name = isUsdtSwap ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
         const subscribe: Dict = {

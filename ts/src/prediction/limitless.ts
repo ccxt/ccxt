@@ -836,6 +836,10 @@ export default class limitless extends Exchange {
         const groupId = this.safeString (event, 'address', this.safeString (event, 'groupId', this.safeString (event, 'slug')));
         const endDate = this.safeString (event, 'deadline', this.safeString (event, 'expiresAt'));
         const title = this.safeString (event, 'title', groupId);
+        const hasGroupId = (groupId !== undefined) && (groupId !== '');
+        const eventSlug = hasGroupId ? this.shortenSlug (groupId) : undefined;
+        const hasEndDate = (endDate !== undefined) && (endDate !== '');
+        const endTimestamp = hasEndDate ? this.parse8601 (endDate) : undefined;
         const markets: Market[] = [];
         const rawMarkets = this.safeList (event, 'markets', []);
         // aggregate 24h volume across the markets so sort by volume works
@@ -859,7 +863,7 @@ export default class limitless extends Exchange {
         return this.extend ({
             'id': groupId,
             'slug': groupId,
-            'event': (groupId !== undefined && groupId !== '') ? this.shortenSlug (groupId) : undefined,
+            'event': eventSlug,
             'title': title,
             'description': this.safeString (event, 'description'),
             'markets': markets,
@@ -873,7 +877,7 @@ export default class limitless extends Exchange {
             'tags': this.safeList (event, 'tags'),
             'created': this.parse8601 (this.safeString (event, 'createdAt')),
             'createdDatetime': this.safeString (event, 'createdAt'),
-            'end': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
+            'end': endTimestamp,
             'endDatetime': endDate,
             'lastUpdatedAt': this.parse8601 (this.safeString (event, 'updatedAt')),
             'resolutionSource': this.safeString (event, 'resolutionSource'),

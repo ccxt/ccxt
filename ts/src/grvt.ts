@@ -1093,8 +1093,10 @@ export default class grvt extends Exchange {
             side = isTakerBuyer ? 'buy' : 'sell';
             takerOrMaker = 'taker';
         } else {
-            takerOrMaker = (this.safeBool (trade, 'is_taker') === true) ? 'taker' : 'maker';
-            side = (this.safeBool (trade, 'is_buyer') === true) ? 'buy' : 'sell';
+            const isTaker = (this.safeBool (trade, 'is_taker') === true);
+            const isBuyer = (this.safeBool (trade, 'is_buyer') === true);
+            takerOrMaker = isTaker ? 'taker' : 'maker';
+            side = isBuyer ? 'buy' : 'sell';
         }
         let fee: Fee = undefined;
         const feeString = this.safeString (trade, 'fee');
@@ -3012,7 +3014,8 @@ export default class grvt extends Exchange {
             const marketId = this.safeString (firstLeg, 'instrument');
             market = this.safeMarket (marketId, market);
             size = this.safeString (firstLeg, 'size');
-            side = (this.safeBool (firstLeg, 'is_buying_asset') === true) ? 'buy' : 'sell';
+            const isBuyingAsset = (this.safeBool (firstLeg, 'is_buying_asset') === true);
+            side = isBuyingAsset ? 'buy' : 'sell';
             price = this.safeString (firstLeg, 'limit_price');
             filled = this.safeString (filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString (avgPrices, primaryOrderIndex);

@@ -2572,6 +2572,8 @@ export default class kalshi extends Exchange {
         }
         const ticker = this.safeString (rawEvent, 'event_ticker');
         const title = this.safeString (rawEvent, 'title');
+        const hasTitle = (title !== undefined) && (title !== '');
+        const eventSlug = hasTitle ? this.shortenSlug (title) : undefined;
         let created = this.parse8601 (this.safeString (rawEvent, 'created_date_iso'));
         if (created === undefined) {
             created = earliestCreated;
@@ -2579,7 +2581,7 @@ export default class kalshi extends Exchange {
         return this.extend ({
             'id': ticker,
             'slug': ticker,
-            'event': (title !== undefined && title !== '') ? this.shortenSlug (title) : undefined,
+            'event': eventSlug,
             'title': title,
             'markets': marketsList,
             'volume': totalVolume,

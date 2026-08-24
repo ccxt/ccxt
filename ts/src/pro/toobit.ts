@@ -990,6 +990,8 @@ export default class toobit extends toobitRest {
     parseMyTrade (trade: any, market: Market = undefined) {
         const marketId = this.safeString (trade, 's');
         const ts = this.safeString (trade, 't');
+        const isMaker = (this.safeBool (trade, 'm') === true);
+        const takerOrMaker = isMaker ? 'maker' : 'taker';
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'T'),
@@ -999,7 +1001,7 @@ export default class toobit extends toobitRest {
             'order': this.safeString (trade, 'o'),
             'type': undefined,
             'side': this.safeStringLower (trade, 'S'),
-            'takerOrMaker': (this.safeBool (trade, 'm') === true) ? 'maker' : 'taker',
+            'takerOrMaker': takerOrMaker,
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,

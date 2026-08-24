@@ -5103,9 +5103,9 @@ export default class htx extends Exchange {
                 throw new NotSupported (this.id + ' createOrder() does not support ' + type + ' orders');
             }
         }
-        let postOnly: NullableDict = undefined;
+        let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (orderType === 'market', orderType === 'limit-maker', params);
-        if (postOnly !== undefined && postOnly !== null) {
+        if (postOnly === true) {
             orderType = 'limit-maker';
         }
         const timeInForce = this.safeString (params, 'timeInForce', 'GTC');
@@ -5203,9 +5203,9 @@ export default class htx extends Exchange {
             'contract_code': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        let postOnly: NullableDict = undefined;
+        let postOnly: Bool = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
-        if (postOnly !== undefined && postOnly !== null) {
+        if (postOnly === true) {
             type = 'post_only';
         }
         let subType: SubType = undefined;

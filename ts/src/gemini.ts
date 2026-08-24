@@ -456,7 +456,8 @@ export default class gemini extends Exchange {
         const id = this.safeString (rawCurrency, 0);
         const code = this.safeCurrencyCode (id);
         const fiatFlag = this.safeString (rawCurrency, 7);
-        const type = ((fiatFlag !== undefined) && (fiatFlag !== '')) ? 'fiat' : 'crypto';
+        const isFiat = (fiatFlag !== undefined) && (fiatFlag !== '');
+        const type = isFiat ? 'fiat' : 'crypto';
         const precision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 5)));
         const networks: Dict = {};
         const networkId = this.safeString (rawCurrency, 9);

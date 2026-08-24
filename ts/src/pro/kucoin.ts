@@ -484,7 +484,8 @@ export default class kucoin extends kucoinRest {
     async subscribePublicMultipleUta (messageHashes: any, channel: any, symbols: any, params = {}, subscription: Dict | undefined = undefined) {
         const requestId = this.requestId ().toString ();
         const market = this.getMarketFromSymbols (symbols);
-        const urlType = ((market as Dict)['contract'] === true) ? 'futures' : 'spot';
+        const isContract = ((market as Dict)['contract'] === true);
+        const urlType = isContract ? 'futures' : 'spot';
         const tradeType = urlType.toUpperCase ();
         let action = 'subscribe';
         if (subscription !== undefined) {

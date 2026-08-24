@@ -379,6 +379,7 @@ export default class indodax extends Exchange {
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const isMaintenance = this.safeInteger (market, 'is_maintenance');
+            const inMaintenance = (isMaintenance !== undefined) && (isMaintenance !== 0);
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -394,7 +395,7 @@ export default class indodax extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': (isMaintenance !== undefined && isMaintenance !== null && isMaintenance !== 0) ? false : true,
+                'active': inMaintenance ? false : true,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,

@@ -426,7 +426,8 @@ export default class gate extends gateRest {
         const marketId = market['id'];
         const url = this.getUrlByMarket (market);
         const isEuUrl = url.indexOf ('gateeu') >= 0;
-        const intervalDefault = ((market['spot'] === true) && !isEuUrl) ? '50' : '100ms';
+        const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
+        const intervalDefault = isNonEuSpot ? '50' : '100ms';
         const [ interval, query ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', intervalDefault);
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbol;
@@ -479,7 +480,8 @@ export default class gate extends gateRest {
         symbol = market['symbol'];
         const marketId = market['id'];
         const isEuUrl = url.indexOf ('gateeu') >= 0;
-        const intervalDefault = ((market['spot'] === true) && !isEuUrl) ? '50' : '100ms';
+        const isNonEuSpot = (market['spot'] === true) && !isEuUrl;
+        const intervalDefault = isNonEuSpot ? '50' : '100ms';
         let interval = intervalDefault;
         [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
         const messageType = this.getTypeByMarket (market);

@@ -368,7 +368,8 @@ export default class cex extends Exchange {
     override parseCurrency (rawCurrency: Dict): CurrencyInterface {
         const id = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (id);
-        const type = (this.safeBool (rawCurrency, 'fiat') === true) ? 'fiat' : 'crypto';
+        const isFiat = (this.safeBool (rawCurrency, 'fiat') === true);
+        const type = isFiat ? 'fiat' : 'crypto';
         const currencyPrecision = this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision')));
         const networks: Dict = {};
         const rawNetworks = this.safeDict (rawCurrency, 'blockchains', {});
