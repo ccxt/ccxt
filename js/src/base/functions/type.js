@@ -33,7 +33,18 @@ const prop2 = (o, k1, k2) => {
     }
     return undefined;
 };
-const getValueFromKeysInArray = (object, array) => isObject(object) ? object[array.find((k) => prop(object, k) !== undefined)] : undefined;
+const getValueFromKeysInArray = (object, keys) => {
+    if (!isObject(object))
+        return undefined;
+    for (const k of keys) {
+        if (k === undefined || k === null)
+            continue;
+        const v = object[k];
+        if (v !== undefined && v !== null && v !== '')
+            return v;
+    }
+    return undefined;
+};
 /*  .............................................   */
 const asFloat = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? parseFloat(x) : NaN);
 const asInteger = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? Math.trunc(Number(x)) : NaN);
