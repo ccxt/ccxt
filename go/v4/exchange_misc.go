@@ -15,14 +15,17 @@ import (
 
 // Function to replace parameters in the path
 func (this *BaseExchange) ImplodeParams(path any, parameter any) any {
+	// a pointer-carried path must still be interpolated and returned as a plain
+	// string, so message hashes and urls never carry the pointer on
+	path = derefScalar(path)
 	pathStr, ok := path.(string)
 	if !ok {
 		return path
 	}
 
-	paramValue := reflect.ValueOf(parameter)
+	paramValue := reflect.ValueOf(derefScalar(parameter))
 	if paramValue.Kind() != reflect.Map {
-		return path
+		return pathStr
 	}
 
 	// Iterate over the map keys and replace placeholders in the path
