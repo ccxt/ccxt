@@ -2100,7 +2100,7 @@ export default class poloniex extends Exchange {
             }
             let hedged: Str = undefined;
             [ hedged, params ] = this.handleParamString (params, 'hedged');
-            if (hedged) {
+            if ((hedged !== undefined) && (hedged !== '')) {
                 if (marginMode === undefined) {
                     throw new ArgumentsRequired (this.id + ' createOrder() requires a marginMode parameter "cross" or "isolated" for hedged orders');
                 }
@@ -3682,7 +3682,7 @@ export default class poloniex extends Exchange {
         const implodedPath = this.implodeParams (path, params);
         if (api === 'public' || api === 'swapPublic') {
             url += '/' + implodedPath;
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -3693,7 +3693,7 @@ export default class poloniex extends Exchange {
             auth += '/' + implodedPath;
             if ((method === 'POST') || (method === 'PUT') || (method === 'DELETE')) {
                 auth += "\n"; // eslint-disable-line quotes
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     auth += 'requestBody=' + body + '&';
                 }
@@ -3702,7 +3702,7 @@ export default class poloniex extends Exchange {
                 let sortedQuery = this.extend ({ 'signTimestamp': timestamp }, query);
                 sortedQuery = this.keysort (sortedQuery);
                 auth += "\n" + this.urlencode (sortedQuery); // eslint-disable-line quotes
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     url += '?' + this.urlencode (query);
                 }
             }

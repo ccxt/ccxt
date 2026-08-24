@@ -9963,7 +9963,7 @@ export default class bybit extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
         if (api === 'public') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.rawencode (params);
             }
         } else if (api === 'private') {
@@ -9974,7 +9974,7 @@ export default class bybit extends Exchange {
             const isV5UnifiedAccount = url.indexOf ('v5') >= 0;
             const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
-                if (Object.keys (params).length) {
+                if (Object.keys (params).length > 0) {
                     body = this.json (params);
                 } else {
                     // this fix for PHP is required otherwise it generates

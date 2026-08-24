@@ -904,7 +904,7 @@ export default class woo extends wooRest {
     }
 
     checkRequiredUid (error = true) {
-        if (!this.uid) {
+        if ((this.uid === undefined) || (this.uid === '')) {
             if (error) {
                 throw new AuthenticationError (this.id + ' requires `uid` credential (woox calls it `application_id`)');
             } else {

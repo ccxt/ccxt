@@ -2287,7 +2287,7 @@ export default class hyperliquid extends Exchange {
         const sz: Str = this.amountToPrecision (symbol, amount);
         const reduceOnly = this.safeBool (params, 'reduceOnly', false);
         const orderType: Dict = {};
-        if (isTrigger) {
+        if ((isTrigger !== undefined) && (isTrigger !== '')) {
             let isTp = false;
             if (takeProfitPrice !== undefined) {
                 triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
@@ -2836,7 +2836,7 @@ export default class hyperliquid extends Exchange {
             }
             const sz: Str = this.amountToPrecision (symbol, amount);
             const orderType: Dict = {};
-            if (isTrigger) {
+            if ((isTrigger !== undefined) && (isTrigger !== '')) {
                 let isTp = false;
                 if (takeProfitPrice !== undefined) {
                     triggerPrice = this.priceToPrecision (symbol, takeProfitPrice);
@@ -4996,7 +4996,7 @@ export default class hyperliquid extends Exchange {
             return undefined;
         }
         const hi3TokensByname = this.safeDict (this.options, 'hip3TokensByName', {});
-        if (this.safeDict (hi3TokensByname, coin)) {
+        if (this.safeDict (hi3TokensByname, coin) !== undefined) {
             const hip3Dict = this.safeDict (hi3TokensByname, coin);
             const quote = this.safeString (hip3Dict, 'quote', 'USDC');
             const code = this.safeString (hip3Dict, 'code', coin);

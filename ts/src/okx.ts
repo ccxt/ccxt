@@ -6686,7 +6686,7 @@ export default class okx extends Exchange {
         let url = this.implodeHostname (this.urls['api']['rest']) + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         } else if (api === 'private') {
@@ -6723,7 +6723,7 @@ export default class okx extends Exchange {
             };
             let auth = timestamp + method + request;
             if (method === 'GET') {
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     const urlencodedQuery = '?' + this.urlencode (query);
                     url += urlencodedQuery;
                     auth += urlencodedQuery;
@@ -7655,7 +7655,7 @@ export default class okx extends Exchange {
         const market = this.market (symbol);
         const type = market['spot'] ? 'MARGIN' : this.convertToInstrumentType (market['type']);
         const uly = this.safeString (market['info'], 'uly');
-        if (!uly) {
+        if ((uly === undefined) || (uly === '')) {
             if (type !== 'MARGIN') {
                 throw new BadRequest (this.id + ' fetchMarketLeverageTiers() cannot fetch leverage tiers for ' + symbol);
             }

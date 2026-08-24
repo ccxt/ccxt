@@ -3328,7 +3328,7 @@ export default class bitrue extends Exchange {
                 }
             }
         } else {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 url += '?' + this.urlencode (params);
             }
         }

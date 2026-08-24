@@ -2400,7 +2400,7 @@ export default class upbit extends Exchange {
         url += '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (method !== 'POST') {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 url += '?' + this.urlencode (query);
             }
         }
@@ -2418,7 +2418,7 @@ export default class upbit extends Exchange {
                 body = this.json (params);
                 headers['Content-Type'] = 'application/json';
             }
-            if (hasQuery) {
+            if ((hasQuery !== undefined) && (hasQuery !== 0)) {
                 auth = this.rawencode (query);
             }
             if (auth !== undefined) {

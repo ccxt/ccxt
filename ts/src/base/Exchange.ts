@@ -625,7 +625,7 @@ export class BaseExchange {
             this['has' + this.capitalize (k)] = !!this.has[k]; // converts 'emulated' to true
         }
         // generate implicit api
-        if (this.api) {
+        if (this.api !== undefined) {
             this.defineRestApi (this.api, 'request');
         }
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
@@ -724,7 +724,7 @@ export class BaseExchange {
                 }
             // the options HTTP method conflicts with the 'options' API url path
             // } else if (key.match (/^(?:get|post|put|delete|options|head|patch)$/i)) {
-            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i)) {
+            } else if (key.match (/^(?:get|post|put|delete|head|patch)$/i) !== null) {
                 const endpoints = Object.keys (value);
                 for (let j = 0; j < endpoints.length; j++) {
                     const endpoint = endpoints[j];
@@ -1487,7 +1487,7 @@ export class BaseExchange {
 
     async loadMarketsHelper (reload = false, params = {}): Promise<Dictionary<Market>> {
         if (!reload && this.markets) {
-            if (!this.markets_by_id) {
+            if (this.markets_by_id === undefined) {
                 return this.setMarkets (this.markets);
             }
             return this.markets;
@@ -1695,7 +1695,7 @@ export class BaseExchange {
             throw new ArgumentsRequired (this.id + ' client() requires a url argument');
         }
         this.clients = this.clients || {};
-        if (!this.clients[url]) {
+        if (this.clients[url] === undefined) {
             const onMessage = this.handleMessage.bind (this);
             const onError = this.onError.bind (this);
             const onClose = this.onClose.bind (this);
@@ -1973,7 +1973,7 @@ export class BaseExchange {
             // connection closed due to an error, do nothing
         } else {
             // server disconnected a working connection
-            if (this.clients[client.url]) {
+            if (this.clients[client.url] !== undefined) {
                 delete this.clients[client.url];
             }
         }
@@ -4027,7 +4027,7 @@ export class BaseExchange {
         this.createNetworksByIdObject ();
         this.featuresGenerator ();
         // init predefined markets if any
-        if (this.markets) {
+        if (this.markets !== undefined) {
             this.setMarkets (this.markets);
         }
         // init the request rate limiter
@@ -4695,7 +4695,7 @@ export class BaseExchange {
         }
         const debtBalanceArray = Object.keys (debtBalance);
         const length = debtBalanceArray.length;
-        if (length) {
+        if ((length !== undefined) && (length !== 0)) {
             balance['debt'] = debtBalance;
         }
         return balance as any;
@@ -6461,7 +6461,7 @@ export class BaseExchange {
         if (reload) {
             this.accounts = await this.fetchAccounts (params);
         } else {
-            if (this.accounts) {
+            if (this.accounts !== undefined) {
                 return this.accounts;
             } else {
                 this.accounts = await this.fetchAccounts (params);
@@ -7373,7 +7373,7 @@ export class BaseExchange {
 
     forceString (value: any) {
         if (typeof value !== 'string') {
-            return this.numberToString (value);
+            return this.numberToString (value); 
         }
         return value;
     }

@@ -2071,7 +2071,7 @@ export default class hollaex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         path = '/' + this.version + '/' + this.implodeParams (path, params);
         if ((method === 'GET') || (method === 'DELETE')) {
-            if (Object.keys (query).length) {
+            if (Object.keys (query).length > 0) {
                 path += '?' + this.urlencode (query);
             }
         }
@@ -2088,7 +2088,7 @@ export default class hollaex extends Exchange {
             };
             if (method === 'POST') {
                 headers['Content-type'] = 'application/json';
-                if (Object.keys (query).length) {
+                if (Object.keys (query).length > 0) {
                     body = this.json (query);
                     auth += body;
                 }

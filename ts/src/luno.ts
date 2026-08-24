@@ -1712,7 +1712,7 @@ export default class luno extends Exchange {
     override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
+        if (Object.keys (query).length > 0) {
             url += '?' + this.urlencode (query);
         }
         if ((api === 'private') || (api === 'exchangePrivate')) {

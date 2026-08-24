@@ -1243,7 +1243,7 @@ export default class bitflyer extends Exchange {
         }
         request += path;
         if (method === 'GET') {
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 request += '?' + this.urlencode (params);
             }
         }
@@ -1254,7 +1254,7 @@ export default class bitflyer extends Exchange {
             const nonce = this.nonce ().toString ();
             const content = [ nonce, method, request ];
             let auth = content.join ('');
-            if (Object.keys (params).length) {
+            if (Object.keys (params).length > 0) {
                 if (method !== 'GET') {
                     body = this.json (params);
                     auth += body;
