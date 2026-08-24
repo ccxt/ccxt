@@ -124,7 +124,7 @@ public partial class BaseExchange
             while (isLessThan(tries, maxRetries))
             {
                 var cache = stored.cache;
-                object orderBook = await this.FetchRestOrderBookSafe(symbol, limit, parameters);
+                object orderBook = await this.FetchRestOrderBookSafe((string)symbol, ToInt64Arg(limit), parameters as Dictionary<string, object>);
                 object index = this.getCacheIndex(orderBook, cache);
                 if (isTrue(isGreaterThanOrEqual(index, 0)))
                 {

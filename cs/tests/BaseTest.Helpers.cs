@@ -231,15 +231,131 @@ public partial class testMainClass : BaseTest
         }
         var res = method.Invoke(exchange, ccxt.BaseExchange.coerceArgs(method, newArgs));
         // Implicit API methods may return Task<Dictionary<…>> / Task<List<object>>
-        // rather than Task<object>; Task is invariant, so a hard cast throws.
-        // AsTaskOfObject awaits any Task<T> and re-boxes the result.
-        var asObject = ccxt.Exchange.AsTaskOfObject(res);
-        if (asObject != null)
+        // and typed cores return Task<Order> / Task<Tickers> / Task<List<Trade>>;
+        // Task<T> is invariant, so a hard cast to Task<object> throws for all of them.
+        // Await the task as-is and read its Result reflectively, then project the value
+        // for comparison here in the TEST path -- deliberately NOT through the
+        // production FromTyped reverse helpers, which rebuild a dictionary from the
+        // struct constructor and therefore drop every key the constructor does not map.
+        var awaited = await awaitAnyTask(res);
+        return detypeForComparison(awaited);
+    }
+
+    // Await any Task / Task<T> and re-box its result as object.
+    private static async Task<object> awaitAnyTask(object res)
+    {
+        var task = (Task)res;
+        await task.ConfigureAwait(false);
+        var resultProperty = task.GetType().GetProperty("Result");
+        if (resultProperty == null)
         {
-            return await asObject;
+            return null; // a non-generic Task carries no result
         }
-        var awaittedResult = await ((Task<object>)res);
-        return awaittedResult;
+        return resultProperty.GetValue(task);
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, FieldInfo[]> typedStructFields = new System.Collections.Concurrent.ConcurrentDictionary<Type, FieldInfo[]>();
+
+    private static bool isUnifiedStruct(Type type)
+    {
+        // the unified types (Order, Ticker, Tickers, Balances, ...) are all structs
+        // declared in the `ccxt` namespace. ccxt.pro caches are classes and keep their
+        // identity, so restricting to value types leaves the ws path untouched.
+        return type.IsValueType
+            && !type.IsPrimitive
+            && !type.IsEnum
+            && type.Namespace == "ccxt"
+            && !type.IsGenericType;
+    }
+
+    // Is this a generic collection whose element type is a unified struct? Only those
+    // are projected. Anything else -- Dictionary<string, object>, List<object>, and in
+    // particular the live ccxt.pro caches (ArrayCache*, IOrderBook) whose identity the
+    // ws tests depend on -- is handed back untouched.
+    private static Type unifiedElementType(Type type)
+    {
+        foreach (var iface in type.GetInterfaces())
+        {
+            if (!iface.IsGenericType)
+            {
+                continue;
+            }
+            var def = iface.GetGenericTypeDefinition();
+            if (def == typeof(IEnumerable<>))
+            {
+                var element = iface.GetGenericArguments()[0];
+                if (isUnifiedStruct(element))
+                {
+                    return element;
+                }
+            }
+        }
+        return null;
+    }
+
+    // Turn a boxed unified struct back into the plain dictionary the static-response
+    // comparator works on. Unlike the production From* helpers this reflects over the
+    // public fields, so a field the exchange never populated is emitted as an explicit
+    // null instead of vanishing -- which is exactly what the stored fixture holds.
+    // Strictly type-driven: a value that is not a unified struct (or a collection of
+    // them) is returned as-is, so nothing outside the typed-core surface is disturbed.
+    public static object detypeForComparison(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        var type = value.GetType();
+        if (isUnifiedStruct(type))
+        {
+            return detypeStruct(value, type);
+        }
+        if (unifiedElementType(type) != null && value is System.Collections.IEnumerable rawList)
+        {
+            var outList = new List<object>();
+            foreach (var item in rawList)
+            {
+                outList.Add(detypeForComparison(item));
+            }
+            return outList;
+        }
+        return value;
+    }
+
+    private static object detypeStruct(object value, Type type)
+    {
+        var fields = typedStructFields.GetOrAdd(type, t => t.GetFields(BindingFlags.Public | BindingFlags.Instance));
+        var result = new dict();
+        foreach (var field in fields)
+        {
+            var fieldValue = field.GetValue(value);
+            var fieldType = field.FieldType;
+            // container structs (Tickers, Balances, TradingFees, OpenInterests, ...) hold a
+            // Dictionary<string, SomeStruct>; the unified shape is that dictionary itself,
+            // keyed by symbol/currency, so splat its entries instead of nesting them.
+            if (fieldType.IsGenericType
+                && fieldType.GetGenericTypeDefinition() == typeof(Dictionary<,>)
+                && fieldType.GetGenericArguments()[0] == typeof(string)
+                && isUnifiedStruct(fieldType.GetGenericArguments()[1]))
+            {
+                if (fieldValue is System.Collections.IDictionary inner)
+                {
+                    foreach (System.Collections.DictionaryEntry entry in inner)
+                    {
+                        result[Convert.ToString(entry.Key)] = detypeForComparison(entry.Value);
+                    }
+                }
+                continue;
+            }
+            // `info` is the raw venue payload; the constructors set it to null when the
+            // source had no `info` key, and the fixture then has no `info` key either.
+            if (field.Name == "info" && fieldValue == null)
+            {
+                continue;
+            }
+            result[field.Name] = detypeForComparison(fieldValue);
+        }
+        return result;
     }
 
     public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)
