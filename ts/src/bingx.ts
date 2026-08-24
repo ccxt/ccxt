@@ -6812,6 +6812,7 @@ export default class bingx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
+        params = this.omit (params, [ 'type', 'defaultType', 'subType', 'defaultSubType' ]);
         const request: Dict = {
             'symbol': market['id'],
         };
