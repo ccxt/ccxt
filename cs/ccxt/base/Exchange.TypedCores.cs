@@ -82,30 +82,6 @@ public partial class BaseExchange
         return result;
     }
 
-    public static Balances ToBalances(object value)
-    {
-        return value is Balances ? (Balances)value : new Balances(value);
-    }
-
-    public static List<Balances> ToBalancesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<Balances>)
-        {
-            return (List<Balances>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<Balances>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is Balances ? (Balances)row : new Balances(row));
-        }
-        return result;
-    }
-
     public static BorrowInterest ToBorrowInterest(object value)
     {
         return value is BorrowInterest ? (BorrowInterest)value : new BorrowInterest(value);
@@ -174,30 +150,6 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is CrossBorrowRate ? (CrossBorrowRate)row : new CrossBorrowRate(row));
-        }
-        return result;
-    }
-
-    public static CrossBorrowRates ToCrossBorrowRates(object value)
-    {
-        return value is CrossBorrowRates ? (CrossBorrowRates)value : new CrossBorrowRates(value);
-    }
-
-    public static List<CrossBorrowRates> ToCrossBorrowRatesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<CrossBorrowRates>)
-        {
-            return (List<CrossBorrowRates>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<CrossBorrowRates>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is CrossBorrowRates ? (CrossBorrowRates)row : new CrossBorrowRates(row));
         }
         return result;
     }
@@ -274,30 +226,6 @@ public partial class BaseExchange
         return result;
     }
 
-    public static DepositWithdrawFees ToDepositWithdrawFees(object value)
-    {
-        return value is DepositWithdrawFees ? (DepositWithdrawFees)value : new DepositWithdrawFees(value);
-    }
-
-    public static List<DepositWithdrawFees> ToDepositWithdrawFeesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<DepositWithdrawFees>)
-        {
-            return (List<DepositWithdrawFees>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<DepositWithdrawFees>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is DepositWithdrawFees ? (DepositWithdrawFees)row : new DepositWithdrawFees(row));
-        }
-        return result;
-    }
-
     public static FundingHistory ToFundingHistory(object value)
     {
         return value is FundingHistory ? (FundingHistory)value : new FundingHistory(value);
@@ -370,30 +298,6 @@ public partial class BaseExchange
         return result;
     }
 
-    public static FundingRates ToFundingRates(object value)
-    {
-        return value is FundingRates ? (FundingRates)value : new FundingRates(value);
-    }
-
-    public static List<FundingRates> ToFundingRatesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<FundingRates>)
-        {
-            return (List<FundingRates>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<FundingRates>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is FundingRates ? (FundingRates)row : new FundingRates(row));
-        }
-        return result;
-    }
-
     public static Greeks ToGreeks(object value)
     {
         return value is Greeks ? (Greeks)value : new Greeks(value);
@@ -438,30 +342,6 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is IsolatedBorrowRate ? (IsolatedBorrowRate)row : new IsolatedBorrowRate(row));
-        }
-        return result;
-    }
-
-    public static IsolatedBorrowRates ToIsolatedBorrowRates(object value)
-    {
-        return value is IsolatedBorrowRates ? (IsolatedBorrowRates)value : new IsolatedBorrowRates(value);
-    }
-
-    public static List<IsolatedBorrowRates> ToIsolatedBorrowRatesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<IsolatedBorrowRates>)
-        {
-            return (List<IsolatedBorrowRates>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<IsolatedBorrowRates>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is IsolatedBorrowRates ? (IsolatedBorrowRates)row : new IsolatedBorrowRates(row));
         }
         return result;
     }
@@ -562,54 +442,6 @@ public partial class BaseExchange
         return result;
     }
 
-    public static LeverageTiers ToLeverageTiers(object value)
-    {
-        return value is LeverageTiers ? (LeverageTiers)value : new LeverageTiers(value);
-    }
-
-    public static List<LeverageTiers> ToLeverageTiersList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<LeverageTiers>)
-        {
-            return (List<LeverageTiers>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<LeverageTiers>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is LeverageTiers ? (LeverageTiers)row : new LeverageTiers(row));
-        }
-        return result;
-    }
-
-    public static Leverages ToLeverages(object value)
-    {
-        return value is Leverages ? (Leverages)value : new Leverages(value);
-    }
-
-    public static List<Leverages> ToLeveragesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<Leverages>)
-        {
-            return (List<Leverages>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<Leverages>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is Leverages ? (Leverages)row : new Leverages(row));
-        }
-        return result;
-    }
-
     public static Liquidation ToLiquidation(object value)
     {
         return value is Liquidation ? (Liquidation)value : new Liquidation(value);
@@ -678,30 +510,6 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is MarginMode ? (MarginMode)row : new MarginMode(row));
-        }
-        return result;
-    }
-
-    public static MarginModes ToMarginModes(object value)
-    {
-        return value is MarginModes ? (MarginModes)value : new MarginModes(value);
-    }
-
-    public static List<MarginModes> ToMarginModesList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<MarginModes>)
-        {
-            return (List<MarginModes>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<MarginModes>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is MarginModes ? (MarginModes)row : new MarginModes(row));
         }
         return result;
     }
@@ -798,30 +606,6 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is OpenInterest ? (OpenInterest)row : new OpenInterest(row));
-        }
-        return result;
-    }
-
-    public static OpenInterests ToOpenInterests(object value)
-    {
-        return value is OpenInterests ? (OpenInterests)value : new OpenInterests(value);
-    }
-
-    public static List<OpenInterests> ToOpenInterestsList(object values)
-    {
-        if (values == null)
-        {
-            return null;
-        }
-        if (values is List<OpenInterests>)
-        {
-            return (List<OpenInterests>)values;
-        }
-        var rows = (IList<object>)values;
-        var result = new List<OpenInterests>(rows.Count);
-        foreach (var row in rows)
-        {
-            result.Add(row is OpenInterests ? (OpenInterests)row : new OpenInterests(row));
         }
         return result;
     }
@@ -1456,6 +1240,10 @@ public partial class BaseExchange
         {
             result["code"] = typed.code;
         }
+        if (typed.name != null)
+        {
+            result["name"] = typed.name;
+        }
         return result;
     }
 
@@ -1818,6 +1606,14 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        if (typed.rate != null)
+        {
+            result["rate"] = typed.rate;
+        }
+        if (typed.type != null)
+        {
+            result["type"] = typed.type;
+        }
         return result;
     }
 
@@ -1961,6 +1757,54 @@ public partial class BaseExchange
         if (typed.fundingRate != null)
         {
             result["fundingRate"] = typed.fundingRate;
+        }
+        if (typed.markPrice != null)
+        {
+            result["markPrice"] = typed.markPrice;
+        }
+        if (typed.indexPrice != null)
+        {
+            result["indexPrice"] = typed.indexPrice;
+        }
+        if (typed.interestRate != null)
+        {
+            result["interestRate"] = typed.interestRate;
+        }
+        if (typed.estimatedSettlePrice != null)
+        {
+            result["estimatedSettlePrice"] = typed.estimatedSettlePrice;
+        }
+        if (typed.fundingTimestamp != null)
+        {
+            result["fundingTimestamp"] = typed.fundingTimestamp;
+        }
+        if (typed.fundingDatetime != null)
+        {
+            result["fundingDatetime"] = typed.fundingDatetime;
+        }
+        if (typed.nextFundingRate != null)
+        {
+            result["nextFundingRate"] = typed.nextFundingRate;
+        }
+        if (typed.nextFundingTimestamp != null)
+        {
+            result["nextFundingTimestamp"] = typed.nextFundingTimestamp;
+        }
+        if (typed.nextFundingDatetime != null)
+        {
+            result["nextFundingDatetime"] = typed.nextFundingDatetime;
+        }
+        if (typed.previousFundingRate != null)
+        {
+            result["previousFundingRate"] = typed.previousFundingRate;
+        }
+        if (typed.previousFundingTimestamp != null)
+        {
+            result["previousFundingTimestamp"] = typed.previousFundingTimestamp;
+        }
+        if (typed.previousFundingDatetime != null)
+        {
+            result["previousFundingDatetime"] = typed.previousFundingDatetime;
         }
         return result;
     }
@@ -3014,6 +2858,30 @@ public partial class BaseExchange
         {
             result["clientOrderId"] = typed.clientOrderId;
         }
+        if (typed.hedged != null)
+        {
+            result["hedged"] = typed.hedged;
+        }
+        if (typed.leverage != null)
+        {
+            result["leverage"] = typed.leverage;
+        }
+        if (typed.marginMode != null)
+        {
+            result["marginMode"] = typed.marginMode;
+        }
+        if (typed.isMultiLeg != null)
+        {
+            result["isMultiLeg"] = typed.isMultiLeg;
+        }
+        if (typed.lastTradeTimeStamp != null)
+        {
+            result["lastTradeTimeStamp"] = typed.lastTradeTimeStamp;
+        }
+        if (typed.trigger != null)
+        {
+            result["trigger"] = typed.trigger;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -3110,6 +2978,15 @@ public partial class BaseExchange
         if (typed.postOnly != null)
         {
             result["postOnly"] = typed.postOnly;
+        }
+        if (typed.fees != null)
+        {
+            var feesRows = new List<object>();
+            foreach (var item in typed.fees)
+            {
+                feesRows.Add(FromFee(item));
+            }
+            result["fees"] = feesRows;
         }
         if (typed.info != null)
         {
@@ -3252,6 +3129,18 @@ public partial class BaseExchange
         if (typed.stopLossPrice != null)
         {
             result["stopLossPrice"] = typed.stopLossPrice;
+        }
+        if (typed.isolated != null)
+        {
+            result["isolated"] = typed.isolated;
+        }
+        if (typed.exitPrice != null)
+        {
+            result["exitPrice"] = typed.exitPrice;
+        }
+        if (typed.marginType != null)
+        {
+            result["marginType"] = typed.marginType;
         }
         return result;
     }
@@ -4454,6 +4343,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        if (typed.id != null)
+        {
+            result["id"] = typed.id;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -4612,6 +4505,15 @@ public partial class BaseExchange
         {
             result["fee"] = FromFee(typed.fee);
         }
+        if (typed.fees != null)
+        {
+            var feesRows = new List<object>();
+            foreach (var item in typed.fees)
+            {
+                feesRows.Add(FromFee(item));
+            }
+            result["fees"] = feesRows;
+        }
         if (typed.info != null)
         {
             result["info"] = typed.info;
@@ -4739,6 +4641,10 @@ public partial class BaseExchange
         if (typed.network != null)
         {
             result["network"] = typed.network;
+        }
+        if (typed.tokenSide != null)
+        {
+            result["tokenSide"] = typed.tokenSide;
         }
         if (typed.comment != null)
         {

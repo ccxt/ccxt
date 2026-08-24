@@ -1666,7 +1666,10 @@ class testMainClass {
                 const newValue = newOutput[key];
                 this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if ((storedOutput !== undefined) && Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
+        // `newOutput !== undefined` is redundant in JS (Array.isArray (undefined) is false) but
+        // required in C#: Array.isArray transpiles to a `.GetType()` probe that throws on null,
+        // so a stored list against a computed null crashed here instead of failing the assert.
+        } else if ((storedOutput !== undefined) && (newOutput !== undefined) && Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
@@ -1703,16 +1706,27 @@ class testMainClass {
                     // c#: a typed core returns the unified `Num` fields as a real double, whereas the
                     // fixture was captured through the untyped path and kept the venue's quoted string
                     // (cost "0.02" vs 0.02) - same value, different json spelling
+                    // pass the sanitized VALUES, not their string forms: C# renders a small
+                    // double as "6.79E-05", which parseToNumeric cannot parse. And only the
+                    // STRING side needs parsing - parseToNumeric round-trips a double through
+                    // numberToString/decimal and drops its last significant digit, so a real
+                    // 81003.30644700001 stopped matching the stored "81003.306447000009".
                     let isNumber = false;
+                    let computedNumeric = sanitizedNewOutput;
+                    let storedNumeric = sanitizedStoredOutput;
                     try {
-                        exchange.parseToNumeric (newOutputString);
-                        exchange.parseToNumeric (storedOutputString);
+                        if (isComputedString) {
+                            computedNumeric = exchange.parseToNumeric (sanitizedNewOutput);
+                        }
+                        if (isStoredString) {
+                            storedNumeric = exchange.parseToNumeric (sanitizedStoredOutput);
+                        }
                         isNumber = true;
                     } catch (e) {
                         isNumber = false;
                     }
                     if (isNumber) {
-                        this.assertStaticError (exchange.parseToNumeric (newOutputString) === exchange.parseToNumeric (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        this.assertStaticError (computedNumeric === storedNumeric, messageError, storedOutput, newOutput, assertingKey);
                         return true;
                     }
                 }

@@ -151,8 +151,34 @@ const TYPED_CORES: Record<string, string> = {
     // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
     // annotation claims. ToGreeksList then throws on a Dictionary.
     'fetchAmmOrders': 'List<PredictionOrder>',
-    'fetchBalance': 'Balances',
-    'fetchBalanceWs': 'Balances',
+    // The dictionary-like container families (Balances, Tickers, MarginModes, Leverages,
+    // TradingFees, LeverageTiers, OpenInterests, FundingRates, CrossBorrowRates,
+    // IsolatedBorrowRates, DepositWithdrawFees) are NOT invertible - their constructors
+    // splat the payload into a Dictionary<string, T> that cannot be rebuilt. So the
+    // corresponding cores may only be typed when the wrapper conversion is their SOLE
+    // consumer. These all have real consuming call sites where the result lands in an
+    // `object` local and is then indexed / safeDict()ed - which silently returns null on
+    // a boxed struct - so they stay untyped:
+    //   fetchBalance / fetchBalanceWs   bydfi, weex, kucoin, toobit, hashkey, binance
+    //   fetchTickers / fetchTickersWs   bigone, poloniex, cex, nado, upbit, lbank + base fetchTicker
+    //   fetchMarkPrices                 base fetchMarkPrice
+    //   fetchMarginModes                woofipro, binance + base fetchMarginMode
+    //   fetchLeverages                  base fetchLeverage
+    //   fetchOpenInterests              hyperliquid, pacifica + base fetchOpenInterest
+    //   fetchLeverageTiers              btse, kucoin + base fetchMarketLeverageTiers
+    //   fetchTradingFees                hashkey, lbank + base fetchTradingFee
+    //   fetchFundingRates/Intervals     hyperliquid, lbank, whitebit + base fetchFundingRate
+    //   fetchCrossBorrowRates           base fetchCrossBorrowRate
+    //   fetchIsolatedBorrowRates        binance + base fetchIsolatedBorrowRate
+    //   fetchDepositWithdrawFees        base fetchDepositWithdrawFee
+    // Dropping those pulls their sub-cores with them, because a tail
+    // `return await this.fetchSwapBalance (params)` inside the now-untyped fetchBalance
+    // forwards a typed core with no From helper: fetchSpot/Swap/Margin/Financial/Contract/
+    // UtaBalance, fetchSpot/ContractTickers, fetchTickersV2/V3 are untyped for that reason.
+    // The set is a closed fixed point - verify with the closure check before adding a name.
+    // setLeverage is NOT typed either: on master its wrapper is cast-only
+    // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
+    // every venue-specific key from the public C# return - an API regression, not a win.
     'fetchBidsAsks': 'Tickers',
     'fetchBorrowInterest': 'List<BorrowInterest>',
     'fetchCanceledAndClosedOrders': 'List<Order>',
@@ -162,7 +188,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchClosedOrders': 'List<Order>',
     'fetchClosedOrdersWs': 'List<Order>',
     'fetchClosedSpotOrders': 'List<Order>',
-    'fetchContractBalance': 'Balances',
     'fetchContractDepositAddress': 'DepositAddress',
     'fetchContractDeposits': 'List<Transaction>',
     'fetchContractMarkets': 'List<MarketInterface>',
@@ -170,14 +195,12 @@ const TYPED_CORES: Record<string, string> = {
     'fetchContractOrder': 'Order',
     'fetchContractOrders': 'List<Order>',
     'fetchContractOrdersByStatus': 'List<Order>',
-    'fetchContractTickers': 'Tickers',
     'fetchContractWithdrawals': 'List<Transaction>',
     'fetchConvertCurrencies': 'Currencies',
     'fetchConvertQuote': 'Conversion',
     'fetchConvertTrade': 'Conversion',
     'fetchConvertTradeHistory': 'List<Conversion>',
     'fetchCrossBorrowRate': 'CrossBorrowRate',
-    'fetchCrossBorrowRates': 'CrossBorrowRates',
     'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
@@ -189,7 +212,6 @@ const TYPED_CORES: Record<string, string> = {
     // a dict keyed by currency - not the DepositAddress[] the TS return annotation
     // claims. ToDepositAddressList then throws on a Dictionary.
     'fetchDepositWithdrawFee': 'DepositWithdrawFee',
-    'fetchDepositWithdrawFees': 'DepositWithdrawFees',
     'fetchDeposits': 'List<Transaction>',
     'fetchDepositsOrWithdrawalsHelper': 'List<Transaction>',
     'fetchDepositsWithdrawals': 'List<Transaction>',
@@ -197,39 +219,30 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
     'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
     'fetchEvent': 'PredictionEvent',
-    'fetchFinancialBalance': 'Balances',
     'fetchFreeBalance': 'Balance',
     'fetchFundingHistory': 'List<FundingHistory>',
     'fetchFundingInterval': 'FundingRate',
-    'fetchFundingIntervals': 'FundingRates',
     'fetchFundingRate': 'FundingRate',
     'fetchFundingRateHistory': 'List<FundingRateHistory>',
-    'fetchFundingRates': 'FundingRates',
     'fetchFutureMarkets': 'List<MarketInterface>',
     'fetchGreeks': 'Greeks',
     'fetchHip3Markets': 'List<MarketInterface>',
     'fetchIndexOHLCV': 'List<OHLCV>',
     'fetchInverseSwapMarkets': 'List<MarketInterface>',
     'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
-    'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
     'fetchLastPrices': 'LastPrices',
     'fetchLedger': 'List<LedgerEntry>',
     'fetchLedgerByEntries': 'List<LedgerEntry>',
     'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
     'fetchLedgerEntry': 'LedgerEntry',
     'fetchLeverage': 'Leverage',
-    'fetchLeverageTiers': 'LeverageTiers',
-    'fetchLeverages': 'Leverages',
     'fetchLiquidations': 'List<Liquidation>',
     'fetchLongShortRatio': 'LongShortRatio',
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
     'fetchMarginAdjustmentHistory': 'List<MarginModification>',
-    'fetchMarginBalance': 'Balances',
     'fetchMarginMode': 'MarginMode',
-    'fetchMarginModes': 'MarginModes',
     'fetchMarkOHLCV': 'List<OHLCV>',
     'fetchMarkPrice': 'Ticker',
-    'fetchMarkPrices': 'Tickers',
     'fetchMarket': 'MarketInterface',
     'fetchMarketById': 'MarketInterface',
     'fetchMarketLeverageTiers': 'List<LeverageTier>',
@@ -248,7 +261,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOHLCVWs': 'List<OHLCV>',
     'fetchOpenInterest': 'OpenInterest',
     'fetchOpenInterestHistory': 'List<OpenInterest>',
-    'fetchOpenInterests': 'OpenInterests',
     'fetchOpenOrder': 'Order',
     'fetchOpenOrders': 'List<Order>',
     'fetchOpenOrdersV1': 'List<Order>',
@@ -299,7 +311,6 @@ const TYPED_CORES: Record<string, string> = {
     // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
     // produced an empty book (3 binance watchOrderBook static-ws failures).
     'fetchSettlements': 'List<PredictionSettlement>',
-    'fetchSpotBalance': 'Balances',
     'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
     'fetchSpotOrder': 'Order',
@@ -307,9 +318,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchSpotOrders': 'List<Order>',
     'fetchSpotOrdersByStates': 'List<Order>',
     'fetchSpotOrdersByStatus': 'List<Order>',
-    'fetchSpotTickers': 'Tickers',
     'fetchStatus': 'Status',
-    'fetchSwapBalance': 'Balances',
     'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
@@ -318,15 +327,10 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTickerV2': 'Ticker',
     'fetchTickerV3': 'Ticker',
     'fetchTickerWs': 'Ticker',
-    'fetchTickers': 'Tickers',
-    'fetchTickersV2': 'Tickers',
-    'fetchTickersV3': 'Tickers',
-    'fetchTickersWs': 'Tickers',
     'fetchTotalBalance': 'Balance',
     'fetchTrades': 'List<Trade>',
     'fetchTradesWs': 'List<Trade>',
     'fetchTradingFee': 'TradingFeeInterface',
-    'fetchTradingFees': 'TradingFees',
     'fetchTradingFeesWs': 'TradingFees',
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
@@ -341,7 +345,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
-    'fetchUtaBalance': 'Balances',
     'fetchUtaCanceledAndClosedOrders': 'List<Order>',
     'fetchUtaMarkets': 'List<MarketInterface>',
     'fetchUtaOrder': 'Order',
@@ -349,7 +352,6 @@ const TYPED_CORES: Record<string, string> = {
     'fetchWithdrawal': 'Transaction',
     'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',
-    'setLeverage': 'Leverage',
     'setMargin': 'MarginModification',
     'transfer': 'TransferEntry',
     'transferBetweenMainAndSubAccount': 'TransferEntry',

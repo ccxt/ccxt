@@ -385,6 +385,10 @@ public partial class testMainClass : BaseTest
             {
                 continue;
             }
+            if (field.Name == "info")
+            {
+                fieldValue = unwrapListInfo(fieldValue);
+            }
             result[field.Name] = detypeForComparison(fieldValue);
         }
         return result;
@@ -393,6 +397,19 @@ public partial class testMainClass : BaseTest
     private static bool isProjectable(Type type)
     {
         return isUnifiedStruct(type) || unifiedElementType(type) != null;
+    }
+
+    // Helper.GetInfo wraps a LIST payload as { "response": [...] } because the struct field
+    // is typed Dictionary<string, object> and a bare list will not fit. The fixture holds the
+    // list. Undo the wrap so the comparison sees what the venue actually returned.
+    private static object unwrapListInfo(object value)
+    {
+        var asDict = value as IDictionary<string, object>;
+        if (asDict != null && asDict.Count == 1 && asDict.ContainsKey("response") && asDict["response"] is System.Collections.IList)
+        {
+            return asDict["response"];
+        }
+        return value;
     }
 
     public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)

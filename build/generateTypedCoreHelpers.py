@@ -43,6 +43,9 @@ NEST_AS = re.compile(ASSIGN + r'\((?P<v>\w+) as IDictionary<string, object>\)\.C
 LIST_ST = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => new (?P<t>\w+)\(x\)\)(?:\.ToList\(\))? : null;$')
 LIST_STR = re.compile(ASSIGN + r'(?P<v>\w+)\.ContainsKey\("(?P<k>[^"]+)"\)(?: && (?P=v)\["(?P=k)"\] != null)? \? \(\(IEnumerable<object>\)(?P=v)\["(?P=k)"\]\)\.Select\(x => \(string\)x\)\.ToList\(\) : null;$')
 ALIAS = re.compile(r'^var \w+ = \(I?Dictionary<string, object>\)\w+;$')
+# safeOrder()/safeTrade() attach a `fees` list next to `fee`; Helper.GetFees returns null
+# when the source has no `fees` key, so it inverts exactly like a struct list.
+FEES = re.compile(ASSIGN + r'Helper\.GetFees\(\w+\);$')
 DECL = re.compile(r'^\s*public (?P<type>[\w\.<>,\? ]+?) (?P<name>@?\w+);\s*$')
 
 structs = {}   # name -> {'fields': [...], 'decls': {name: type}, 'error': str|None}
@@ -68,6 +71,9 @@ def parse_struct(name, body, ctor_param):
         m = INFO.match(line)
         if m:
             fields.append(('info', m.group('f'), 'info', None)); continue
+        m = FEES.match(line)
+        if m:
+            fields.append(('structlist', m.group('f'), 'fees', 'Fee')); continue
         m = NEST_CK.match(line) or NEST_SV.match(line) or NEST_AS.match(line)
         if m:
             fields.append(('struct', m.group('f'), m.group('k'), m.group('t'))); continue
