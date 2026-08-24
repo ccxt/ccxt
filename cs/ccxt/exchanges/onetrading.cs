@@ -561,7 +561,7 @@ public partial class onetrading : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object state = this.safeString(market, "state");
         object type = this.safeString(market, "type");
-        object isPerp = isEqual(type, "PERP");
+        bool isPerp = isEqual(type, "PERP");
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(isPerp))
         {
@@ -628,7 +628,7 @@ public partial class onetrading : Exchange
      * @param {string} [params.method] fetchPrivateTradingFees or fetchPublicTradingFees
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object method = this.safeString(parameters, "method");
@@ -640,10 +640,10 @@ public partial class onetrading : Exchange
         }
         if (isTrue(isEqual(method, "fetchPrivateTradingFees")))
         {
-            return ccxt.BaseExchange.ToTradingFees(await this.fetchPrivateTradingFees(parameters));
+            return await this.fetchPrivateTradingFees(parameters);
         } else if (isTrue(isEqual(method, "fetchPublicTradingFees")))
         {
-            return ccxt.BaseExchange.ToTradingFees(await this.fetchPublicTradingFees(parameters));
+            return await this.fetchPublicTradingFees(parameters);
         } else
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchTradingFees() does not support "), method), ", fetchPrivateTradingFees and fetchPublicTradingFees are supported")) ;
@@ -885,7 +885,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -915,7 +915,7 @@ public partial class onetrading : Exchange
         //         "low":"8110.0"
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**
@@ -927,7 +927,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -967,7 +967,7 @@ public partial class onetrading : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = ticker;
             }
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbols));
+        return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
     /**
@@ -980,7 +980,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1112,18 +1112,16 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
-        object limitVar = limit;
-        timeframeVar ??= "1m";
+        timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object periodUnit = this.safeString(this.timeframes, timeframeVar);
+        object periodUnit = this.safeString(this.timeframes, timeframe);
         if (isTrue(isEqual(periodUnit, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchOHLCV() missing periodUnit")) ;
@@ -1131,11 +1129,11 @@ public partial class onetrading : Exchange
         var periodunitVariable = ((string)periodUnit).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         var period = ((IList<object>) periodunitVariable)[0];
         var unit = ((IList<object>) periodunitVariable)[1];
-        object durationInSeconds = this.parseTimeframe(timeframeVar);
+        object durationInSeconds = this.parseTimeframe(timeframe);
         object duration = multiply(durationInSeconds, 1000);
-        if (isTrue(isEqual(limitVar, null)))
+        if (isTrue(isEqual(limit, null)))
         {
-            limitVar = 1500;
+            limit = 1500;
         }
         object request = new Dictionary<string, object>() {
             { "instrument_code", getValue(market, "id") },
@@ -1144,13 +1142,13 @@ public partial class onetrading : Exchange
         };
         if (isTrue(isEqual(since, null)))
         {
-            object now = this.milliseconds();
+            Int64 now = this.milliseconds();
             ((IDictionary<string,object>)request)["to"] = this.iso8601(now);
-            ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(now, multiply(limitVar, duration)));
+            ((IDictionary<string,object>)request)["from"] = this.iso8601(subtract(now, multiply(limit, duration)));
         } else
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
-            ((IDictionary<string,object>)request)["to"] = this.iso8601(this.sum(since, multiply(limitVar, duration)));
+            ((IDictionary<string,object>)request)["to"] = this.iso8601(this.sum(since, multiply(limit, duration)));
         }
         object response = await this.publicGetCandlesticksInstrumentCode(this.extend(request, parameters));
         //
@@ -1161,7 +1159,7 @@ public partial class onetrading : Exchange
         //     ]
         //
         object ohlcv = this.safeList(response, "candlesticks");
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market, timeframeVar, since, limitVar));
+        return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1279,7 +1277,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1303,7 +1301,7 @@ public partial class onetrading : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return this.parseBalance(response);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1464,7 +1462,7 @@ public partial class onetrading : Exchange
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1472,7 +1470,7 @@ public partial class onetrading : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
@@ -1483,7 +1481,7 @@ public partial class onetrading : Exchange
             { "side", ((string)side).ToUpper() },
             { "amount", this.amountToPrecision(symbol, amount) },
         };
-        object priceIsRequired = false;
+        bool priceIsRequired = false;
         if (isTrue(isTrue(isEqual(uppercaseType, "LIMIT")) || isTrue(isEqual(uppercaseType, "STOP"))))
         {
             priceIsRequired = true;
@@ -1531,7 +1529,7 @@ public partial class onetrading : Exchange
         //         "time_in_force": "GOOD_TILL_CANCELLED"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1545,7 +1543,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1554,7 +1552,7 @@ public partial class onetrading : Exchange
         }
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_id"});
-        object method = "privateDeleteAccountOrdersOrderId";
+        string method = "privateDeleteAccountOrdersOrderId";
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1575,7 +1573,7 @@ public partial class onetrading : Exchange
         //
         // responds with an empty body
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1587,7 +1585,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1606,7 +1604,9 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(new List<object> {this.safeOrder(new Dictionary<string, object>() {     { "info", response }, })});
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     /**
@@ -1619,7 +1619,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(object ids, string symbol = null, object parameters = null)
+    public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1638,7 +1638,7 @@ public partial class onetrading : Exchange
         object order = this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
-        return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
+        return new List<object>() {order};
     }
 
     /**
@@ -1651,7 +1651,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1703,7 +1703,7 @@ public partial class onetrading : Exchange
         //         ]
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -1717,7 +1717,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1825,7 +1825,7 @@ public partial class onetrading : Exchange
         //     }
         //
         object orderHistory = this.safeList(response, "order_history", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(orderHistory, market, since, limit));
+        return this.parseOrders(orderHistory, market, since, limit);
     }
 
     /**
@@ -1839,13 +1839,13 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "with_cancelled_and_rejected", true },
         };
-        return await this.FetchOpenOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(request, parameters));
+        return await this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters));
     }
 
     /**
@@ -1860,7 +1860,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1911,7 +1911,7 @@ public partial class onetrading : Exchange
         {
             market = this.market(symbol);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
+        return this.parseTrades(tradeHistory, market, since, limit);
     }
 
     /**
@@ -1925,7 +1925,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1984,7 +1984,7 @@ public partial class onetrading : Exchange
         //     }
         //
         object tradeHistory = this.safeList(response, "trade_history", new List<object>() {});
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
+        return this.parseTrades(tradeHistory, market, since, limit);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

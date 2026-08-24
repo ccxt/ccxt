@@ -87,7 +87,7 @@ public partial class bitvavo : ccxt.bitvavo
     { "markets", new List<object>() {getValue(market, "id")} },
 }} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -114,7 +114,7 @@ public partial class bitvavo : ccxt.bitvavo
     { "markets", args },
 }} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
@@ -150,7 +150,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object channel = "ticker24h";
+        string channel = "ticker24h";
         object tickers = await this.watchPublicMultiple(channel, channel, symbols, parameters);
         return this.filterByArray(tickers, "symbol", symbols);
     }
@@ -214,14 +214,14 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object channel = "ticker24h";
+        string channel = "ticker24h";
         object tickers = await this.watchPublicMultiple("bidask", channel, symbols, parameters);
         return this.filterByArray(tickers, "symbol", symbols);
     }
 
     public virtual void handleBidAsk(WebSocketClient client, object message)
     {
-        object eventVar = "bidask";
+        string eventVar = "bidask";
         object tickers = this.safeValue(message, "data", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
@@ -265,9 +265,8 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -277,9 +276,9 @@ public partial class bitvavo : ccxt.bitvavo
         object trades = await this.watchPublic("trades", symbol, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -298,7 +297,7 @@ public partial class bitvavo : ccxt.bitvavo
         object marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object name = "trades";
+        string name = "trades";
         object messageHash = add(add(name, "@"), marketId);
         object trade = this.parseTrade(message, market);
         object tradesArray = this.safeValue(this.trades, symbol);
@@ -331,7 +330,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object name = "trades";
+        string name = "trades";
         object marketIds = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -348,7 +347,7 @@ public partial class bitvavo : ccxt.bitvavo
     { "markets", marketIds },
 }} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -391,7 +390,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object name = "trades";
+        string name = "trades";
         object marketIds = new List<object>() {};
         object subMessageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -421,9 +420,8 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -432,7 +430,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object name = "candles";
+        string name = "candles";
         object marketId = getValue(market, "id");
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
@@ -445,13 +443,13 @@ public partial class bitvavo : ccxt.bitvavo
     { "markets", new List<object>() {marketId} },
 }} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object ohlcv = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
     public virtual void handleFetchOHLCV(WebSocketClient client, object message)
@@ -490,7 +488,7 @@ public partial class bitvavo : ccxt.bitvavo
         //         ]
         //     }
         //
-        object name = "candles";
+        string name = "candles";
         object marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
@@ -536,7 +534,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        object name = "candles";
+        string name = "candles";
         object messageHashes = new List<object>() {};
         object marketIdsByInterval = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -554,7 +552,7 @@ public partial class bitvavo : ccxt.bitvavo
             ((IList<object>)messageHashes).Add(add(add(add(add(add("multi:", name), "@"), getValue(market, "id")), "_"), interval));
         }
         object channels = new List<object>() {};
-        object intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
+        List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
         {
             object interval = getValue(intervals, i);
@@ -569,7 +567,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "action", "subscribe" },
             { "channels", channels },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, message, messageHashes);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
@@ -615,7 +613,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             await this.loadMarkets();
         }
-        object name = "candles";
+        string name = "candles";
         object subMessageHashes = new List<object>() {};
         object marketIdsByInterval = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -635,7 +633,7 @@ public partial class bitvavo : ccxt.bitvavo
             ((IList<object>)subMessageHashes).Add(add(add(add(add(add("multi:", name), "@"), getValue(market, "id")), "_"), interval));
         }
         object channels = new List<object>() {};
-        object intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
+        List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
         {
             object interval = getValue(intervals, i);
@@ -660,7 +658,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -669,7 +667,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object name = "book";
+        string name = "book";
         object messageHash = add(add(name, "@"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
@@ -688,7 +686,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "limit", limit },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash, subscription);
         return (orderbook as IOrderBook).limit();
     }
@@ -711,7 +709,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object name = "book";
+        string name = "book";
         object marketIds = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -736,7 +734,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "limit", limit },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
         return (orderbook as IOrderBook).limit();
     }
@@ -773,7 +771,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object name = "book";
+        string name = "book";
         object marketIds = new List<object>() {};
         object subMessageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -894,7 +892,7 @@ public partial class bitvavo : ccxt.bitvavo
             // order book - skip it so the getBook request is not sent for a dead market
             return null;
         }
-        object name = "getBook";
+        string name = "getBook";
         object messageHash = add(add(name, "@"), marketId);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object request = new Dictionary<string, object>() {
@@ -933,7 +931,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         object marketId = this.safeString(response, "market");
         object symbol = this.safeSymbol(marketId, null, "-");
-        object name = "book";
+        string name = "book";
         object messageHash = add(add(name, "@"), marketId);
         object orderbook = this.safeValue(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
@@ -976,7 +974,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, object message, object marketIds)
     {
-        object name = "book";
+        string name = "book";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = this.safeString(marketIds, i);
@@ -1013,12 +1011,12 @@ public partial class bitvavo : ccxt.bitvavo
         {
             ((IList<object>)unsubHashes).Add(add("unsubscribe:", getValue(subMessageHashes, i)));
         }
-        object subscription = this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = this.extend(new Dictionary<string, object>() {
             { "topic", topic },
             { "subMessageHashes", subMessageHashes },
             { "unsubHashes", unsubHashes },
         }, subscriptionArgs);
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription);
     }
 
@@ -1032,7 +1030,7 @@ public partial class bitvavo : ccxt.bitvavo
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        object keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -1045,7 +1043,7 @@ public partial class bitvavo : ccxt.bitvavo
                 continue;
             }
             object subscription = getValue(((WebSocketClient)client).subscriptions, key);
-            object subHash = ((string)key).Replace((string)"unsubscribe:", (string)"");
+            string subHash = ((string)key).Replace((string)"unsubscribe:", (string)"");
             this.cleanCache(subscription);
             this.cleanUnsubscription(client as WebSocketClient, subHash, key);
             // bitvavo resolves-and-deletes the data futures on every message, so at
@@ -1070,9 +1068,8 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1087,7 +1084,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object name = "account";
+        string name = "account";
         object messageHash = add("order:", symbol);
         object request = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -1099,9 +1096,9 @@ public partial class bitvavo : ccxt.bitvavo
         object orders = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
     /**
@@ -1114,9 +1111,8 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1131,7 +1127,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object name = "account";
+        string name = "account";
         object messageHash = add("myTrades:", symbol);
         object request = new Dictionary<string, object>() {
             { "action", "subscribe" },
@@ -1143,9 +1139,9 @@ public partial class bitvavo : ccxt.bitvavo
         object trades = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
 
     /**
@@ -1172,7 +1168,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrderWs(string symbol, string type, string side, object amount, object price = null, object parameters = null)
+    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1181,7 +1177,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        return ccxt.BaseExchange.ToOrder(await this.watchRequest("privateCreateOrder", request));
+        return await this.watchRequest("privateCreateOrder", request);
     }
 
     /**
@@ -1198,7 +1194,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrderWs(string id, string symbol, string type, string side, object amount = null, object price = null, object parameters = null)
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1207,7 +1203,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-        return ccxt.BaseExchange.ToOrder(await this.watchRequest("privateUpdateOrder", request));
+        return await this.watchRequest("privateUpdateOrder", request);
     }
 
     /**
@@ -1220,7 +1216,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrderWs(string id, string symbol = null, object parameters = null)
+    public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1229,7 +1225,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         await this.authenticate();
         object request = this.cancelOrderRequest(id, symbol, parameters);
-        return ccxt.BaseExchange.ToOrder(await this.watchRequest("privateCancelOrder", request));
+        return await this.watchRequest("privateCancelOrder", request);
     }
 
     /**
@@ -1241,7 +1237,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrdersWs(string symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1267,7 +1263,7 @@ public partial class bitvavo : ccxt.bitvavo
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
-        return ccxt.BaseExchange.ToOrderList(await this.watchRequest("privateCancelOrders", this.extend(request, parameters)));
+        return await this.watchRequest("privateCancelOrders", this.extend(request, parameters));
     }
 
     public virtual void handleMultipleOrders(WebSocketClient client, object message)
@@ -1302,7 +1298,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrderWs(string id, string symbol = null, object parameters = null)
+    public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1319,7 +1315,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "orderId", id },
             { "market", getValue(market, "id") },
         };
-        return ccxt.BaseExchange.ToOrder(await this.watchRequest("privateGetOrder", this.extend(request, parameters)));
+        return await this.watchRequest("privateGetOrder", this.extend(request, parameters));
     }
 
     /**
@@ -1333,7 +1329,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1347,21 +1343,21 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
         object orders = await this.watchRequest("privateGetOrders", request);
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
 
     public virtual object requestId()
     {
-        object ts = ((object)this.milliseconds()).ToString();
+        string ts = ((object)this.milliseconds()).ToString();
         object randomNumber = this.randNumber(4);
-        object randomPart = ((object)randomNumber).ToString();
+        string randomPart = ((object)randomNumber).ToString();
         return parseInt(add(ts, randomPart));
     }
 
     public async virtual Task<object> watchRequest(object action, object request)
     {
         object messageHash = this.requestId();
-        object messageHashStr = ((object)messageHash).ToString();
+        string messageHashStr = ((object)messageHash).ToString();
         ((IDictionary<string,object>)request)["action"] = action;
         ((IDictionary<string,object>)request)["requestId"] = messageHash;
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1378,7 +1374,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrdersWs(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1394,7 +1390,7 @@ public partial class bitvavo : ccxt.bitvavo
             ((IDictionary<string,object>)request)["market"] = getValue(market, "id");
         }
         object orders = await this.watchRequest("privateGetOrdersOpen", this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
     }
 
     /**
@@ -1408,7 +1404,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTradesWs(string symbol = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchMyTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -1422,7 +1418,7 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
         object myTrades = await this.watchRequest("privateGetTrades", request);
-        return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(myTrades, symbol, since, limit));
+        return this.filterBySymbolSinceLimit(myTrades, symbol, since, limit);
     }
 
     public virtual void handleMyTrades(WebSocketClient client, object message)
@@ -1468,12 +1464,11 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> WithdrawWs(string code, object amount, string address, string tag = null, object parameters = null)
+    public async override Task<object> withdrawWs(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
@@ -1481,8 +1476,8 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        object request = this.withdrawRequest(code, amount, address, tagVar, parameters);
-        return ccxt.BaseExchange.ToTransaction(await this.watchRequest("privateWithdrawAssets", request));
+        object request = this.withdrawRequest(code, amount, address, tag, parameters);
+        return await this.watchRequest("privateWithdrawAssets", request);
     }
 
     public virtual void handleWithdraw(WebSocketClient client, object message)
@@ -1516,7 +1511,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawalsWs(string code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawalsWs(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1526,7 +1521,7 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         object request = this.fetchWithdrawalsRequest(code, since, limit, parameters);
         object withdraws = await this.watchRequest("privateGetWithdrawalHistory", request);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(withdraws, code, since, limit));
+        return this.filterByCurrencySinceLimit(withdraws, code, since, limit);
     }
 
     public virtual void handleWithdraws(WebSocketClient client, object message)
@@ -1568,19 +1563,18 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchOHLCVWs(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
-        timeframeVar ??= "1m";
+        timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = this.fetchOHLCVRequest(symbol, timeframeVar, since, limit, parameters);
-        object action = "getCandles";
+        object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
+        string action = "getCandles";
         object ohlcv = await this.watchRequest(action, request);
-        return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limit, 0, true));
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
     /**
@@ -1594,7 +1588,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWs(string code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchDepositsWs(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1604,7 +1598,7 @@ public partial class bitvavo : ccxt.bitvavo
         await this.authenticate();
         object request = this.fetchDepositsRequest(code, since, limit, parameters);
         object deposits = await this.watchRequest("privateGetDepositHistory", request);
-        return ccxt.BaseExchange.ToTransactionList(this.filterByCurrencySinceLimit(deposits, code, since, limit));
+        return this.filterByCurrencySinceLimit(deposits, code, since, limit);
     }
 
     public virtual void handleDeposits(WebSocketClient client, object message)
@@ -1640,7 +1634,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFeesWs(object parameters = null)
+    public async override Task<object> fetchTradingFeesWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1648,7 +1642,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        return ccxt.BaseExchange.ToTradingFees(await this.watchRequest("privateGetAccount", parameters));
+        return await this.watchRequest("privateGetAccount", parameters);
     }
 
     /**
@@ -1739,7 +1733,7 @@ public partial class bitvavo : ccxt.bitvavo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalanceWs(object parameters = null)
+    public async override Task<object> fetchBalanceWs(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1747,7 +1741,7 @@ public partial class bitvavo : ccxt.bitvavo
             await this.loadMarkets();
         }
         await this.authenticate();
-        return ccxt.BaseExchange.ToBalances(await this.watchRequest("privateGetBalance", parameters));
+        return await this.watchRequest("privateGetBalance", parameters);
     }
 
     public virtual void handleFetchBalance(WebSocketClient client, object message)
@@ -1954,7 +1948,7 @@ public partial class bitvavo : ccxt.bitvavo
         object methods = new Dictionary<string, object>() {
             { "book", this.handleOrderBookSubscriptions },
         };
-        object names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(names)); postFixIncrement(ref i))
         {
             object name = getValue(names, i);
@@ -1973,22 +1967,22 @@ public partial class bitvavo : ccxt.bitvavo
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(future, null)))
         {
-            object timestamp = this.milliseconds();
-            object stringTimestamp = ((object)timestamp).ToString();
+            Int64 timestamp = this.milliseconds();
+            string stringTimestamp = ((object)timestamp).ToString();
             object auth = add(add(add(stringTimestamp, "GET/"), this.version), "/websocket");
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            object action = "authenticate";
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string action = "authenticate";
             object request = new Dictionary<string, object>() {
                 { "action", action },
                 { "key", this.apiKey },
                 { "signature", signature },
                 { "timestamp", timestamp },
             };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
@@ -2003,7 +1997,7 @@ public partial class bitvavo : ccxt.bitvavo
         //         "authenticated": true
         //     }
         //
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         object authenticated = this.safeBool(message, "authenticated", false);
         if (isTrue(authenticated))
         {
@@ -2043,7 +2037,7 @@ public partial class bitvavo : ccxt.bitvavo
         object action = this.safeString(message, "action");
         object buildMessage = this.buildMessageHash(action, message);
         object messageHash = this.safeString(message, "requestId", buildMessage);
-        object rejected = false;
+        bool rejected = false;
         try
         {
             this.handleErrors(code, ((string)error), client.url, "", new Dictionary<string, object>() {}, ((string)error), message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});

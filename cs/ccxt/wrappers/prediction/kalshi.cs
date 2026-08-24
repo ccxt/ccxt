@@ -66,6 +66,86 @@ public partial class kalshi
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetches the current market price and bid/ask for a single kalshi outcome
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/market/get-market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure).</returns>
+    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(outcome, parameters);
+        return new PredictionTicker(res);
+    }
+    /// <summary>
+    /// fetches the kalshi exchange status
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/exchange/get-exchange-status"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure).</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches the open interest of a prediction market outcome
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/market/get-market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure).</returns>
+    public async Task<PredictionOpenInterest> FetchOpenInterest(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(outcome, parameters);
+        return new PredictionOpenInterest(res);
+    }
+    /// <summary>
+    /// fetches tickers for multiple outcomes at once, batching their market tickers through the markets endpoint (100 per request)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/market/get-markets"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome.</returns>
+    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(outcomes, parameters);
+        return new PredictionTickers(res);
+    }
+    /// <summary>
     /// fetches the order book for a single kalshi outcome
     /// </summary>
     /// <remarks>
@@ -90,6 +170,486 @@ public partial class kalshi
     {
         var res = await this.fetchOrderBook(outcome, limit, parameters);
         return new PredictionOrderBook(res);
+    }
+    /// <summary>
+    /// fetches OHLCV candlesticks for a single kalshi outcome from the candlesticks endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/market/get-market-candlesticks"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of candles to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// fetches public trade history for a single kalshi market ticker
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/market/get-trades"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
+    public async Task<List<PredictionTrade>> FetchTrades(string outcome, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    /// <summary>
+    /// fetch the fills (executed trades) of the authenticated kalshi user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getfills"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter to a single unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest fill timestamp (ms) to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of fills to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMyTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    /// <summary>
+    /// fetches the authenticated user's USD portfolio balance from kalshi
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getbalance"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// fetches open market positions for the authenticated kalshi user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getportfoliopositions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure).</returns>
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(outcomes, parameters);
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
+    }
+    /// <summary>
+    /// fetches the user's settled (resolved) positions, with the collateral paid out and realized pnl
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getportfoliosettlements"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter to a single unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest settlement to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of settlements to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of prediction settlement structures.</returns>
+    public async Task<List<PredictionSettlement>> FetchSettlements(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchSettlements(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionSettlement(item)).ToList<PredictionSettlement>();
+    }
+    /// <summary>
+    /// fetches resting (open) orders for the authenticated kalshi user, optionally filtered by ticker
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getorders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches all orders (resting, executed and canceled) for the authenticated kalshi user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getorders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches the closed (executed or canceled) orders for the authenticated kalshi user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getorders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchClosedOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches a single order by id from the kalshi portfolio endpoint
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getorder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrder(id, outcome, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// places a limit or market order on kalshi for the given outcome token
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/createorder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : limit price in dollars (0–1 range)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrder(outcome, type, side, amount, price, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// edits a resting order by cancelling it and placing a new one with the updated terms
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/createorder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : the new number of contracts
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the new price (0..1)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> EditOrder(string id, string outcome, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.editOrder(id, outcome, type, side, amount, price, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// cancels a single open order by id on kalshi
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/cancelorder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrder(id, outcome, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// cancels all open orders on kalshi, optionally scoped to one outcome ticker
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/cancelorders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome to scope the cancellation to
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> CancelAllOrders(string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelAllOrders(outcome, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches kalshi events scoped by a search query, tag, category or series ticker — always live from the API, never from the local cache (it POPULATES the cache for later event()/outcome lookups). the scope decides the endpoint: a free-text `query` hits kalshi's ranked search endpoint and the top `limit` matches are fetched canonically; `tags`/`category` resolve to series via the /series listing then fetch their events; `series_ticker` is used verbatim. `limit` bounds how many events are actually fetched (broad scopes stop early), and any other param is forwarded straight to the /events endpoint.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.kalshi.com/api-reference/events/get-events"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint (unrecognised keys are forwarded to GET /events)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.query</term>
+    /// <description>
+    /// string : free-text search resolved server-side via kalshi's series search endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.series_ticker</term>
+    /// <description>
+    /// string : one or more comma-separated kalshi series tickers (e.g. 'KXBTC') — used verbatim, no search
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.category</term>
+    /// <description>
+    /// string : a kalshi series category (e.g. 'Crypto') — resolved to series via the /series listing
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.status</term>
+    /// <description>
+    /// string : 'active' | 'inactive' | 'closed', defaults to options.defaultEventStatus
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : max number of events to return
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of event structures.</returns>
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    {
+        var res = await this.fetchEvents(parameters);
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
     /// <summary>
     /// resolves free-text queries to ranked event tickers via kalshi's search endpoint, then fetches the top `limit` events canonically (with nested markets)
@@ -159,5 +719,25 @@ public partial class kalshi
     {
         var res = await this.fetchSeriesEvents(seriesTickers, status, limit, rest);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+    }
+    /// <summary>
+    /// fetches a single prediction-market event by its event ticker
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://trading-api.readme.io/reference/getevent"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchEvent(id, parameters);
+        return new PredictionEvent(res);
     }
 }

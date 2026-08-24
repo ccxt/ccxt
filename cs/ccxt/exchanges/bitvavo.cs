@@ -688,12 +688,12 @@ public partial class bitvavo : Exchange
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
-        object isFiat = this.inArray(code, fiatCurrencies);
+        bool isFiat = this.inArray(code, fiatCurrencies);
         object networks = new Dictionary<string, object>() {};
         object networksArray = this.safeList(rawCurrency, "networks", new List<object>() {});
-        object deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
-        object withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
-        object active = isTrue(deposit) && isTrue(withdrawal);
+        bool deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
+        bool withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        bool active = isTrue(deposit) && isTrue(withdrawal);
         object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         object precision = this.safeString(rawCurrency, "decimals", "8");
         object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
@@ -760,7 +760,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -788,7 +788,7 @@ public partial class bitvavo : Exchange
         //         "timestamp":1590381666900
         //     }
         //
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -851,7 +851,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -877,7 +877,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbols));
+        return this.parseTickers(response, symbols);
     }
 
     /**
@@ -893,7 +893,7 @@ public partial class bitvavo : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -907,7 +907,7 @@ public partial class bitvavo : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters));
+            return await this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters);
         }
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -935,7 +935,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1046,7 +1046,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1063,7 +1063,7 @@ public partial class bitvavo : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(response));
+        return this.parseTradingFees(response);
     }
 
     public virtual object parseTradingFees(object fees, object market = null)
@@ -1105,7 +1105,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.TradingFeeInterface> FetchTradingFee(string symbol, object parameters = null)
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1125,7 +1125,7 @@ public partial class bitvavo : Exchange
         //         "maker": "0.0015"
         //     }
         //
-        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(response, market));
+        return this.parseTradingFee(response, market);
     }
 
     public virtual object parseTradingFee(object fee, object market = null)
@@ -1150,7 +1150,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1249,10 +1249,9 @@ public partial class bitvavo : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object timeframeVar = timeframe;
-        timeframeVar ??= "1m";
+        timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -1265,9 +1264,9 @@ public partial class bitvavo : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframeVar, parameters, 1440));
+            return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1440);
         }
-        object request = this.fetchOHLCVRequest(symbol, timeframeVar, since, limit, parameters);
+        object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
         object response = await this.publicGetMarketCandles(request);
         //
         //     [
@@ -1276,7 +1275,7 @@ public partial class bitvavo : Exchange
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(this.toArray(response), market, timeframeVar, since, limit));
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseBalance(object response)
@@ -1310,7 +1309,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1327,7 +1326,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return this.parseBalance(response);
     }
 
     /**
@@ -1338,7 +1337,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
-    public async override Task<List<ccxt.Account>> FetchAccounts(object parameters = null)
+    public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1362,7 +1361,7 @@ public partial class bitvavo : Exchange
         //     }
         //
         object accounts = this.safeList(response, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToAccountList(this.parseAccounts(accounts));
+        return this.parseAccounts(accounts);
     }
 
     public override object parseAccount(object account)
@@ -1389,7 +1388,7 @@ public partial class bitvavo : Exchange
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, object parameters = null)
+    public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1444,7 +1443,7 @@ public partial class bitvavo : Exchange
         //         "createdAt": "1700000000000"
         //     }
         //
-        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
+        return this.parseTransfer(response, currency);
     }
 
     /**
@@ -1460,7 +1459,7 @@ public partial class bitvavo : Exchange
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<List<ccxt.TransferEntry>> FetchTransfers(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1511,7 +1510,7 @@ public partial class bitvavo : Exchange
         //     }
         //
         object items = this.safeList(response, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToTransferEntryList(this.parseTransfers(items, currency, since, limit));
+        return this.parseTransfers(items, currency, since, limit);
     }
 
     /**
@@ -1524,7 +1523,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public async override Task<ccxt.TransferEntry> FetchTransfer(string id, string code = null, object parameters = null)
+    public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1552,7 +1551,7 @@ public partial class bitvavo : Exchange
         //         "createdAt": "1700000000000"
         //     }
         //
-        return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(response, currency));
+        return this.parseTransfer(response, currency);
     }
 
     public virtual object parseTransferStatus(object status)
@@ -1609,7 +1608,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1630,7 +1629,13 @@ public partial class bitvavo : Exchange
         object address = this.safeString(response, "address");
         object tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
-        return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
+        return new Dictionary<string, object>() {
+            { "info", response },
+            { "currency", code },
+            { "network", null },
+            { "address", address },
+            { "tag", tag },
+        };
     }
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1650,8 +1655,8 @@ public partial class bitvavo : Exchange
             { "side", side },
             { "orderType", type },
         };
-        object isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
-        object isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        bool isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
+        bool isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
         object timeInForce = this.safeString(parameters, "timeInForce");
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
@@ -1685,8 +1690,8 @@ public partial class bitvavo : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
             ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        object isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
-        object isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
+        bool isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        bool isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
         if (isTrue(isStopLoss))
         {
             if (isTrue(!isEqual(stopLossPrice, null)))
@@ -1768,7 +1773,7 @@ public partial class bitvavo : Exchange
      * @param {bool} [params.responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1818,7 +1823,7 @@ public partial class bitvavo : Exchange
         //          "postOnly":false
         //      }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -1884,7 +1889,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1894,7 +1899,7 @@ public partial class bitvavo : Exchange
         object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePutOrder(request);
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual object cancelOrderRequest(object id, object symbol = null, object parameters = null)
@@ -1937,7 +1942,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1952,7 +1957,7 @@ public partial class bitvavo : Exchange
         //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -1964,7 +1969,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelAllOrders(string symbol = null, object parameters = null)
+    public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1997,7 +2002,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market));
+        return this.parseOrders(response, market);
     }
 
     /**
@@ -2053,7 +2058,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2108,7 +2113,7 @@ public partial class bitvavo : Exchange
         //         "disableMarketProtection":false
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public virtual object fetchOrdersRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2145,7 +2150,7 @@ public partial class bitvavo : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2162,7 +2167,7 @@ public partial class bitvavo : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters));
+            return await this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters);
         }
         object market = this.market(symbol);
         object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
@@ -2203,7 +2208,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     /**
@@ -2217,7 +2222,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2268,7 +2273,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(response, market, since, limit));
+        return this.parseOrders(response, market, since, limit);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -2431,7 +2436,7 @@ public partial class bitvavo : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -2448,7 +2453,7 @@ public partial class bitvavo : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters));
+            return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters);
         }
         object market = this.market(symbol);
         object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
@@ -2470,7 +2475,7 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
+        return this.parseTrades(response, market, since, limit);
     }
 
     /**
@@ -2486,7 +2491,7 @@ public partial class bitvavo : Exchange
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
      */
-    public async override Task<List<ccxt.LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2535,7 +2540,7 @@ public partial class bitvavo : Exchange
         //     }
         //
         object items = this.safeList(response, "items", new List<object>() {});
-        return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(items, currency, since, limit));
+        return this.parseLedger(items, currency, since, limit);
     }
 
     public virtual object parseLedgerEntryType(object type)
@@ -2558,7 +2563,7 @@ public partial class bitvavo : Exchange
         object type = this.parseLedgerEntryType(rawType);
         object currencyId = this.safeString(item, "receivedCurrency");
         object amount = this.safeString(item, "receivedAmount");
-        object direction = "in";
+        string direction = "in";
         if (isTrue(isEqual(amount, null)))
         {
             currencyId = this.safeString(item, "sentCurrency");
@@ -2626,12 +2631,11 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<ccxt.Transaction> Withdraw(string code, double amount, string address, string tag = null, object parameters = null)
+    public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
-        object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
-        tagVar = ((IList<object>)tagparametersVariable)[0];
+        var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+        tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
         if (isTrue(isEqual(this.markets, null)))
@@ -2639,7 +2643,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = this.withdrawRequest(code, amount, address, tagVar, parameters);
+        object request = this.withdrawRequest(code, amount, address, tag, parameters);
         object response = await this.privatePostWithdrawal(request);
         //
         //     {
@@ -2648,7 +2652,7 @@ public partial class bitvavo : Exchange
         //         "amount": "1.5"
         //     }
         //
-        return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
+        return this.parseTransaction(response, currency);
     }
 
     public virtual object fetchWithdrawalsRequest(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2683,7 +2687,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2711,7 +2715,9 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit, new Dictionary<string, object>() {             { "type", "withdrawal" },         }));
+        return this.parseTransactions(response, currency, since, limit, new Dictionary<string, object>() {
+            { "type", "withdrawal" },
+        });
     }
 
     public virtual object fetchDepositsRequest(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2746,7 +2752,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2772,7 +2778,9 @@ public partial class bitvavo : Exchange
         //         }
         //     ]
         //
-        return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response, currency, since, limit, new Dictionary<string, object>() {             { "type", "deposit" },         }));
+        return this.parseTransactions(response, currency, since, limit, new Dictionary<string, object>() {
+            { "type", "deposit" },
+        });
     }
 
     public virtual object parseTransactionStatus(object status)
@@ -2934,7 +2942,7 @@ public partial class bitvavo : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public async override Task<ccxt.DepositWithdrawFees> FetchDepositWithdrawFees(object codes = null, object parameters = null)
+    public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -2961,7 +2969,7 @@ public partial class bitvavo : Exchange
         //       },
         //   ]
         //
-        return ccxt.BaseExchange.ToDepositWithdrawFees(this.parseDepositWithdrawFees(response, codes, "symbol"));
+        return this.parseDepositWithdrawFees(response, codes, "symbol");
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2971,7 +2979,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
-        object getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
+        bool getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
         if (isTrue(getOrDelete))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
@@ -2991,9 +2999,9 @@ public partial class bitvavo : Exchange
                     payload = body;
                 }
             }
-            object timestamp = ((object)this.milliseconds()).ToString();
+            string timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },

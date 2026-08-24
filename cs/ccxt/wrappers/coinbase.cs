@@ -34,6 +34,268 @@ public partial class coinbase
         return (Int64)res;
     }
     /// <summary>
+    /// fetch all the accounts associated with a profile
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
+    public async Task<List<Account>> FetchAccounts(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAccounts(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+    }
+    public async Task<List<Account>> FetchAccountsV2(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAccountsV2(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+    }
+    public async Task<List<Account>> FetchAccountsV3(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchAccountsV3(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+    }
+    /// <summary>
+    /// fetch all the portfolios
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/list-portfolios"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type.</returns>
+    public async Task<List<Account>> FetchPortfolios(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPortfolios(parameters);
+        return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
+    }
+    /// <summary>
+    /// create a currency deposit address
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
+    public async Task<DepositAddress> CreateDepositAddress(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createDepositAddress(code, parameters);
+        return new DepositAddress(res);
+    }
+    /// <summary>
+    /// fetch sells
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest sell, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of sells to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [list of order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Trade>> FetchMySells(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMySells(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch buys
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/oauth2-integration/available-apis"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest buy, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of buys to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of  [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Trade>> FetchMyBuys(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMyBuys(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    public async Task<List<Transaction>> FetchTransactionsWithMethod(object method, string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTransactionsWithMethod(method, code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// Fetch all withdrawals made from an account. Won't return crypto withdrawals. Use fetchLedger for those.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/withdraw-fiat"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch withdrawals for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of withdrawals structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.currencyType</term>
+    /// <description>
+    /// string : "fiat" or "crypto"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// Fetch all fiat deposits made to an account. Won't return crypto deposits or staking rewards. Use fetchLedger for those.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch deposits for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of deposits structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.currencyType</term>
+    /// <description>
+    /// string : "fiat" or "crypto"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDeposits(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
+    /// fetch history of deposits and withdrawals
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code for the currency of the deposit/withdrawals, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest deposit/withdrawal, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
+    }
+    /// <summary>
     /// retrieves data on all markets for coinbase
     /// </summary>
     /// <remarks>
@@ -62,10 +324,717 @@ public partial class coinbase
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
+    public async Task<List<MarketInterface>> FetchMarketsV2(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarketsV2(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
+    public async Task<List<MarketInterface>> FetchMarketsV3(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMarketsV3(parameters);
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
+    }
     public async Task<Dictionary<string, object>> FetchCurrenciesFromCache(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesFromCache(parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/list-products"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/list-public-products"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/exchange-rates"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : use private endpoint for fetching tickers
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> FetchTickersV2(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickersV2(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> FetchTickersV3(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickersV3(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/prices"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : whether to use the private endpoint for fetching the ticker
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(symbol, parameters);
+        return new Ticker(res);
+    }
+    public async Task<Ticker> FetchTickerV2(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickerV2(symbol, parameters);
+        return new Ticker(res);
+    }
+    public async Task<Ticker> FetchTickerV3(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickerV3(symbol, parameters);
+        return new Ticker(res);
+    }
+    /// <summary>
+    /// query for balance and get the amount of funds available for trading or funds locked in orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/accounts/list-accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/accounts"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-balance-summary"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.v3</term>
+    /// <description>
+    /// boolean : default false, set true to use v3 api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : "spot" (default) or "swap" or "future"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : default 250, maximum number of accounts to return
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// Fetch the history of changes, i.e. actions done by the user or operations that altered the balance. Will return staking rewards, and crypto deposits or withdrawals.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/track-apis/transactions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest ledger entry, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : max number of ledger entries to return, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchLedger(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
+    }
+    /// <summary>
+    /// create a market buy order by providing the symbol and cost
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateMarketBuyOrderWithCost(string symbol, double cost, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createMarketBuyOrderWithCost(symbol, cost, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// create a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/create-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price to fulfill the order, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopPrice</term>
+    /// <description>
+    /// float : price to trigger stop orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.triggerPrice</term>
+    /// <description>
+    /// float : price to trigger stop orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stopLossPrice</term>
+    /// <description>
+    /// float : price to trigger stop-loss orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.takeProfitPrice</term>
+    /// <description>
+    /// float : price to trigger take-profit orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : true or false
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.stop_direction</term>
+    /// <description>
+    /// string : 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end_time</term>
+    /// <description>
+    /// string : '2023-05-25T17:01:05.092Z' for 'GTD' orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.preview</term>
+    /// <description>
+    /// boolean : default to false, wether to use the test/preview endpoint or not
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.leverage</term>
+    /// <description>
+    /// float : default to 1, the leverage to use for the order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.retail_portfolio_id</term>
+    /// <description>
+    /// string : portfolio uid
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.is_max</term>
+    /// <description>
+    /// boolean : Used in conjunction with tradable_balance to indicate the user wants to use their entire tradable balance
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.tradable_balance</term>
+    /// <description>
+    /// string : amount of tradable balance
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.reduceOnly</term>
+    /// <description>
+    /// float : set to true for closing a position or use closePosition
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrder(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// cancels an open order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/cancel-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// edit a trade order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/edit-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.preview</term>
+    /// <description>
+    /// boolean : default to false, wether to use the test/preview endpoint or not
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetches information on an order made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/get-order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrder(id, symbol, parameters);
+        return new Order(res);
+    }
+    /// <summary>
+    /// fetches information on multiple orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since = null, Int64 limit = 100, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on all currently open orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of open order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple closed orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of closed order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple canceled orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-orders"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of canceled order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-product-candles"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-product-candles"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch, not used by coinbase
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the candles
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// get the list of most recent trades for a particular symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-market-trades"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/public/get-public-market-trades"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : not used by coinbase fetchTrades
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trade structures to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.usePrivate</term>
+    /// <description>
+    /// boolean : default false, when true will use the private endpoint to fetch the trades
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
+    }
+    /// <summary>
+    /// fetch all trades made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/orders/list-fills"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order, default is undefined
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trade structures to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch trades for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMyTrades(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
     /// <summary>
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -99,6 +1068,101 @@ public partial class coinbase
     {
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
+    }
+    /// <summary>
+    /// fetches the bid and ask price and volume for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/products/get-best-bid-ask"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBidsAsks(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
+    /// make a withdrawal
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/send-crypto"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>tag</term>
+    /// <description>
+    /// string : an optional tag for the withdrawal
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.network</term>
+    /// <description>
+    /// string : the cryptocurrency network to use for the withdrawal using the lowercase name like bitcoin, ethereum, solana, etc.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.travel_rule_data</term>
+    /// <description>
+    /// object : some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.withdraw(code, amount, address, tag, parameters);
+        return new Transaction(res);
+    }
+    public async Task<List<DepositAddress>> FetchDepositAddressesByNetwork(string code, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddressesByNetwork(code, parameters);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
+    }
+    /// <summary>
+    /// fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/deposit-fiat"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : the id of the account that the funds were deposited into
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDeposit(id, code, parameters);
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch the deposit id for a fiat currency associated with this account
@@ -141,6 +1205,190 @@ public partial class coinbase
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetch a quote for converting from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/create-convert-quote"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trade_incentive_metadata</term>
+    /// <description>
+    /// object : an object to fill in user incentive data
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertQuote(string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertQuote(fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// convert from one currency to another
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/commit-convert-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much you want to trade in units of the from currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
+    public async Task<Conversion> CreateConvertTrade(string id, string fromCode, string toCode, double? amount = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createConvertTrade(id, fromCode, toCode, amount, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// fetch the data for a conversion trade
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/convert/get-convert-trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}.</returns>
+    public async Task<Conversion> FetchConvertTrade(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchConvertTrade(id, code, parameters);
+        return new Conversion(res);
+    }
+    /// <summary>
+    /// transfer currency internally between portfolios of the same account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/portfolios/move-portfolios-funds"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
+    public async Task<TransferEntry> Transfer(string code, double amount, string fromAccount, string toAccount, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
+        return new TransferEntry(res);
+    }
+    /// <summary>
+    /// fetch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/list-futures-positions"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/list-perpetuals-positions"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolio</term>
+    /// <description>
+    /// string : the portfolio UUID to fetch positions for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(symbols, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetch data on a single open contract trade position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/international-derivatives/get-perpetuals-position"/>  <br/>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/us-derivatives/get-futures-position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.product_id</term>
+    /// <description>
+    /// string : *futures only* the product id of the position to fetch, required for futures markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.portfolio</term>
+    /// <description>
+    /// string : *perpetual/swaps only* the portfolio UUID to fetch the position for, required for perpetual/swaps markets only
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPosition(symbol, parameters);
+        return new Position(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for multiple markets
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/api-reference/advanced-trade-api/rest-api/fees/get-transaction-summary"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// Fetch details for a specific portfolio by UUID
     /// </summary>
     /// <remarks>
@@ -164,5 +1412,31 @@ public partial class coinbase
     {
         var res = this.createAuthToken(seconds, method, url, useEddsa);
         return ((string)res);
+    }
+    /// <summary>
+    /// fetch deposit addresses for multiple currencies (when available)
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/onchain-addresses"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.accountId</term>
+    /// <description>
+    /// string : account ID to fetch deposit addresses for
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code.</returns>
+    public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDepositAddresses(codes, parameters);
+        return ((IList<object>)res).Select(item => new DepositAddress(item)).ToList<DepositAddress>();
     }
 }

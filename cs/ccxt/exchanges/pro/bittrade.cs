@@ -113,7 +113,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
         object ticker = this.parseTicker(tick, market);
@@ -136,9 +136,8 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -146,7 +145,7 @@ public partial class bittrade : ccxt.bittrade
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        // only supports a limitVar of 150 at this time
+        // only supports a limit of 150 at this time
         object messageHash = add(add("market.", getValue(market, "id")), ".trade.detail");
         object api = this.safeString(this.options, "api", "api");
         object hostname = new Dictionary<string, object>() {
@@ -167,9 +166,9 @@ public partial class bittrade : ccxt.bittrade
         object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(trades, since, limitVar, "timestamp", true);
+        return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }
 
     public virtual object handleTrades(WebSocketClient client, object message)
@@ -201,7 +200,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -232,9 +231,8 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -265,9 +263,9 @@ public partial class bittrade : ccxt.bittrade
         object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -293,7 +291,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return;
         }
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -322,11 +320,10 @@ public partial class bittrade : ccxt.bittrade
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isTrue((!isEqual(limitVar, null))) && isTrue((!isEqual(limitVar, 150)))))
+        if (isTrue(isTrue((!isEqual(limit, null))) && isTrue((!isEqual(limit, 150)))))
         {
             throw new ExchangeError ((string)add(this.id, " watchOrderBook accepts limit = 150 only")) ;
         }
@@ -336,9 +333,9 @@ public partial class bittrade : ccxt.bittrade
         }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        // only supports a limitVar of 150 at this time
-        limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? 150 : limitVar;
-        object messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), ((object)limitVar).ToString());
+        // only supports a limit of 150 at this time
+        limit = ((bool) isTrue((isEqual(limit, null)))) ? 150 : limit;
+        object messageHash = add(add(add("market.", getValue(market, "id")), ".mbp."), ((object)limit).ToString());
         object api = this.safeString(this.options, "api", "api");
         object hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
@@ -353,7 +350,7 @@ public partial class bittrade : ccxt.bittrade
             { "id", requestId },
             { "messageHash", messageHash },
             { "symbol", symbol },
-            { "limit", limitVar },
+            { "limit", limit },
             { "params", parameters },
             { "method", this.handleOrderBookSubscription },
         };
@@ -526,7 +523,7 @@ public partial class bittrade : ccxt.bittrade
         //
         object messageHash = this.safeString(message, "ch");
         object ch = this.safeValue(message, "ch");
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object symbol = this.safeSymbol(marketId);
         object orderbook = getValue(this.orderbooks, symbol);
@@ -572,7 +569,7 @@ public partial class bittrade : ccxt.bittrade
         {
             return message;
         }
-        object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+        Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeValue(subscriptionsById, id);
         if (isTrue(!isEqual(subscription, null)))
         {
@@ -628,7 +625,7 @@ public partial class bittrade : ccxt.bittrade
         //     }
         //
         object ch = this.safeValue(message, "ch");
-        object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object type = this.safeString(parts, 0);
         if (isTrue(isEqual(type, "market")))
         {
@@ -681,7 +678,7 @@ public partial class bittrade : ccxt.bittrade
             {
                 return false;
             }
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+            Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = this.safeValue(subscriptionsById, id);
             if (isTrue(!isEqual(subscription, null)))
             {

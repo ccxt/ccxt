@@ -61,7 +61,7 @@ public partial class derive : ccxt.derive
     {
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId(url);
-        object request = this.extend(message, new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
         subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -81,20 +81,19 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        if (isTrue(isEqual(limitVar, null)))
+        if (isTrue(isEqual(limit, null)))
         {
-            limitVar = 10;
+            limit = 10;
         }
         object market = this.market(symbol);
-        object topic = add(add(add("orderbook.", getValue(market, "id")), ".10."), this.numberToString(limitVar));
+        object topic = add(add(add("orderbook.", getValue(market, "id")), ".10."), this.numberToString(limit));
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -104,7 +103,7 @@ public partial class derive : ccxt.derive
         object subscription = new Dictionary<string, object>() {
             { "name", topic },
             { "symbol", symbol },
-            { "limit", limitVar },
+            { "limit", limit },
             { "params", parameters },
         };
         object orderbook = await this.watchPublic(topic, request, subscription);
@@ -255,7 +254,7 @@ public partial class derive : ccxt.derive
         {
             // the slim payload uses short keys and does not carry the instrument name,
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
-            object parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             object marketId = this.safeString(parts, 1);
             object market = this.safeMarket(marketId);
             object stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
@@ -359,7 +358,7 @@ public partial class derive : ccxt.derive
     {
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId(url);
-        object request = this.extend(message, new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
         subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -371,7 +370,7 @@ public partial class derive : ccxt.derive
 
     public virtual void handleOrderBookUnSubscription(WebSocketClient client, object topic)
     {
-        object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -390,7 +389,7 @@ public partial class derive : ccxt.derive
 
     public virtual void handleTradesUnSubscription(WebSocketClient client, object topic)
     {
-        object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -422,7 +421,7 @@ public partial class derive : ccxt.derive
         object status = this.safeDict(result, "status");
         if (isTrue(!isEqual(status, null)))
         {
-            object topics = new List<object>(((IDictionary<string,object>)status).Keys);
+            List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
             {
                 object topic = getValue(topics, i);
@@ -449,9 +448,8 @@ public partial class derive : ccxt.derive
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -473,9 +471,9 @@ public partial class derive : ccxt.derive
         object trades = await this.watchPublic(topic, request, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {getValue(market, "symbol"), limitVar});
+            limit = callDynamically(trades, "getLimit", new object[] {getValue(market, "symbol"), limit});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
 
     public virtual void handleTrade(WebSocketClient client, object message)
@@ -485,7 +483,7 @@ public partial class derive : ccxt.derive
         object parameters = this.safeDict(message, "params");
         object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object topic = this.safeValue(parameters, "channel");
-        object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -510,13 +508,13 @@ public partial class derive : ccxt.derive
         this.checkRequiredCredentials();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
             object requestId = this.requestId(url);
-            object now = ((object)this.milliseconds()).ToString();
+            string now = ((object)this.milliseconds()).ToString();
             object signature = this.signMessage(now, this.privateKey);
             object deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
             object request = new Dictionary<string, object>() {
@@ -533,7 +531,7 @@ public partial class derive : ccxt.derive
             //     'symbol': symbol,
             //     'params': params,
             // };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash, message);
         }
         return await (future as Exchange.Future);
@@ -544,7 +542,7 @@ public partial class derive : ccxt.derive
         await this.authenticate();
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId(url);
-        object request = this.extend(message, new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
         subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -566,9 +564,8 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -596,13 +593,13 @@ public partial class derive : ccxt.derive
             { "name", topic },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orders = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
     public virtual void handleOrder(WebSocketClient client, object message)
@@ -703,9 +700,8 @@ public partial class derive : ccxt.derive
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -733,13 +729,13 @@ public partial class derive : ccxt.derive
             { "name", topic },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
@@ -792,7 +788,7 @@ public partial class derive : ccxt.derive
         {
             if (isTrue(error is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -827,7 +823,7 @@ public partial class derive : ccxt.derive
             object channel = this.safeString(parameters, "channel");
             if (isTrue(!isEqual(channel, null)))
             {
-                object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                List<object> parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                 if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(channel, "orders"), 0))) || isTrue(isGreaterThan(getIndexOf(channel, "trades"), 0))))
                 {
                     eventVar = this.safeString(parsedChannel, 1);
@@ -851,7 +847,7 @@ public partial class derive : ccxt.derive
         if (isTrue(inOp(message, "id")))
         {
             object id = this.safeString(message, "id");
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+            Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = ((bool) isTrue((isEqual(id, null)))) ? new Dictionary<string, object>() {} : this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
             if (isTrue(inOp(subscription, "method")))
             {
@@ -874,7 +870,7 @@ public partial class derive : ccxt.derive
         //     result: [ 130837 ]
         // }
         //
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         object ids = this.safeList(message, "result", new List<object>() {});
         if (isTrue(isGreaterThan(getArrayLength(ids), 0)))
         {

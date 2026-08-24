@@ -92,7 +92,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             symbols = this.getActiveSymbols();
         }
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         object messageHashes = new List<object>() {};
         if (isTrue(isGreaterThan(symbolsLength, 1)))
         {
@@ -114,9 +114,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             throw new NotSupported ((string)add(this.id, " is not supported in sandbox environment")) ;
         }
-        object timestamp = ((object)this.nonce()).ToString();
+        string timestamp = ((object)this.nonce()).ToString();
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {name} },
@@ -177,7 +177,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         object timestamp = this.numberToString(this.seconds());
         object auth = add(add(add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-        object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
+        string signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256, "base64");
         object subscribe = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "time", timestamp },
@@ -506,9 +506,8 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -522,9 +521,9 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         object ohlcv = await this.subscribe(interval, new List<object>() {symbol}, parameters);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(ohlcv, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(ohlcv, since, limitVar, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -580,7 +579,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -689,7 +688,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);

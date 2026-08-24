@@ -9,8 +9,8 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchOpenInterestHistory(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchOpenInterestHistory";
-        object openInterestHistory = await ((dynamic)exchange).FetchOpenInterestHistory(symbol);
+        string method = "fetchOpenInterestHistory";
+        object openInterestHistory = await ((dynamic)exchange).fetchOpenInterestHistory(symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, openInterestHistory, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(openInterestHistory)); postFixIncrement(ref i))
         {

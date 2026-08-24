@@ -54,7 +54,7 @@ public partial class upbit : ccxt.upbit
             { "hostname", this.hostname },
         });
         var client = this.client(url);
-        object subscriptionsKey = "upbitPublicSubscriptions";
+        string subscriptionsKey = "upbitPublicSubscriptions";
         if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
@@ -78,7 +78,7 @@ public partial class upbit : ccxt.upbit
         object finalMessage = new List<object>() {new Dictionary<string, object>() {
     { "ticket", this.uuid() },
 }};
-        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
         {
             object key = getValue(channelKeys, i);
@@ -135,7 +135,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<object> watchTrades(object symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -175,7 +175,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> watchOrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object orderbook = await this.watchPublicMultiple(new List<object>() {symbol}, "orderbook");
@@ -195,7 +195,7 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {OHLCV[]} a list of [OHLCV structures]{@link https://docs.ccxt.com/?id=ohlcv-structure}
      */
-    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         timeframe ??= "1s";
         parameters ??= new Dictionary<string, object>();
@@ -419,7 +419,7 @@ public partial class upbit : ccxt.upbit
         url = add(url, "/private");
         var client = this.client(url);
         // Track private channel subscriptions to support multiple concurrent watches
-        object subscriptionsKey = "upbitPrivateSubscriptions";
+        string subscriptionsKey = "upbitPrivateSubscriptions";
         if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionsKey))))
         {
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionsKey] = new Dictionary<string, object>() {};
@@ -430,7 +430,7 @@ public partial class upbit : ccxt.upbit
             channelKey = add(add(channel, ":"), symbol);
         }
         object subscriptions = getValue(((WebSocketClient)client).subscriptions, subscriptionsKey);
-        object isNewChannel = !isTrue((inOp(subscriptions, channelKey)));
+        bool isNewChannel = !isTrue((inOp(subscriptions, channelKey)));
         if (isTrue(isNewChannel))
         {
             ((IDictionary<string,object>)subscriptions)[(string)channelKey] = request;
@@ -438,7 +438,7 @@ public partial class upbit : ccxt.upbit
         // Build subscription message with all requested private channels
         // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
         object requests = new List<object>() {};
-        object channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
+        List<object> channelKeys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(channelKeys)); postFixIncrement(ref i))
         {
             ((IList<object>)requests).Add(getValue(subscriptions, getValue(channelKeys, i)));
@@ -464,22 +464,21 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<object> watchOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object channel = "myOrder";
-        object messageHash = "myOrder";
+        string channel = "myOrder";
+        string messageHash = "myOrder";
         object orders = await this.watchPrivate(symbol, channel, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(orders, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(orders, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
     /**
@@ -493,22 +492,21 @@ public partial class upbit : ccxt.upbit
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<object> watchMyTrades(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
-        object limitVar = limit;
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object channel = "myOrder";
-        object messageHash = "myTrades";
+        string channel = "myOrder";
+        string messageHash = "myTrades";
         object trades = await this.watchPrivate(symbol, channel, messageHash);
         if (isTrue(this.newUpdates))
         {
-            limitVar = callDynamically(trades, "getLimit", new object[] {symbol, limitVar});
+            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limitVar, true);
+        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
     }
 
     public virtual object parseWsOrderStatus(object status)
@@ -720,8 +718,8 @@ public partial class upbit : ccxt.upbit
         {
             await this.loadMarkets();
         }
-        object channel = "myAsset";
-        object messageHash = "myAsset";
+        string channel = "myAsset";
+        string messageHash = "myAsset";
         return await this.watchPrivate(null, channel, messageHash);
     }
 

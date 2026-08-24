@@ -46,6 +46,98 @@ public partial class opinion
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
+    /// fetches Opinion's categorical markets - scope required via query/queries/tags/eventId/slug/labelId
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.labelId</term>
+    /// <description>
+    /// int : filter by opinion category label id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.limit</term>
+    /// <description>
+    /// int : max number of events to fetch (paginated server-side; defaults to options.maxFetchEventsResults, 100)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of event structures.</returns>
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
+    {
+        var res = await this.fetchEvents(parameters);
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
+    }
+    /// <summary>
+    /// fetches a single prediction-market event by its market id, or slug
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/market"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure).</returns>
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchEvent(id, parameters);
+        return new PredictionEvent(res);
+    }
+    /// <summary>
+    /// fetches the latest trade price and top of book for a single outcome token
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/token"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure).</returns>
+    public async Task<PredictionTicker> FetchTicker(string outcome, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTicker(outcome, parameters);
+        return new PredictionTicker(res);
+    }
+    /// <summary>
+    /// fetches tickers for multiple outcome tokens - opinion has no all-tickers endpoint, each token needs its own latest-price + orderbook request
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/token"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome.</returns>
+    public async Task<PredictionTickers> FetchTickers(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(outcomes, parameters);
+        return new PredictionTickers(res);
+    }
+    /// <summary>
     /// fetches the order book for a single outcome token
     /// </summary>
     /// <remarks>
@@ -70,6 +162,314 @@ public partial class opinion
     {
         var res = await this.fetchOrderBook(outcome, limit, parameters);
         return new PredictionOrderBook(res);
+    }
+    /// <summary>
+    /// fetches historical candlestick data for an outcome token
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/token"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of candles to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> a list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchOHLCV(string outcome, string timeframe = "1d", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOHLCV(outcome, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
+    /// places a limit or market order on the CLOB for the given outcome token
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price per outcome token between 0 and 1; required for limit orders and market SELL orders (where it acts as the reference / worst acceptable price for the taker amount); ignored for market BUY orders (amount is already the quote to spend)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.postOnly</term>
+    /// <description>
+    /// bool : limit orders only - reject the order if it would cross the spread
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> CreateOrder(string outcome, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrder(outcome, type, side, amount, price, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// cancels a single open order by id
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : not used by opinion cancelOrder
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> CancelOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrder(id, outcome, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// fetches all of the authenticated user's orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome or outcome token id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches a single order by id
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : unified outcome or outcome token id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<PredictionOrder> FetchOrder(string id, string outcome = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOrder(id, outcome, parameters);
+        return new PredictionOrder(res);
+    }
+    /// <summary>
+    /// fetches the authenticated user's open orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome or outcome token id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches the authenticated user's closed orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/order"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome or outcome token id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure).</returns>
+    public async Task<List<PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchClosedOrders(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionOrder(item)).ToList<PredictionOrder>();
+    }
+    /// <summary>
+    /// fetches the authenticated user's trades
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/trade"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>outcome</term>
+    /// <description>
+    /// string : filter by unified outcome or outcome token id
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest trade to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of trades to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure).</returns>
+    public async Task<List<PredictionTrade>> FetchMyTrades(string outcome = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchMyTrades(outcome, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new PredictionTrade(item)).ToList<PredictionTrade>();
+    }
+    /// <summary>
+    /// fetches the authenticated user's quote-token balances
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/quote-token"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure](https://docs.ccxt.com/#/?id=balance-structure).</returns>
+    public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// fetches the authenticated user's open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.opinion.trade/developer-guide/opinion-open-api/position"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure).</returns>
+    public async Task<List<PredictionPosition>> FetchPositions(List<String> outcomes = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositions(outcomes, parameters);
+        return ((IList<object>)res).Select(item => new PredictionPosition(item)).ToList<PredictionPosition>();
     }
     /// <summary>
     /// self-service creation of an Open API key linked to this.walletAddress via

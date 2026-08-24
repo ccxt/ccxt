@@ -335,13 +335,13 @@ public partial class bit2c : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object account = this.account();
             object currency = this.currency(code);
-            object uppercase = ((string)getValue(currency, "id")).ToUpper();
+            string uppercase = ((string)getValue(currency, "id")).ToUpper();
             if (isTrue(inOp(response, uppercase)))
             {
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, add("AVAILABLE_", uppercase));
@@ -360,7 +360,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -410,7 +410,7 @@ public partial class bit2c : Exchange
         //         }
         //     }
         //
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
+        return this.parseBalance(response);
     }
 
     /**
@@ -423,7 +423,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -510,7 +510,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
+    public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -522,7 +522,7 @@ public partial class bit2c : Exchange
             { "pair", getValue(market, "id") },
         };
         object response = await this.publicGetExchangesPairTicker(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
+        return this.parseTicker(response, market);
     }
 
     /**
@@ -537,7 +537,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -583,7 +583,7 @@ public partial class bit2c : Exchange
             }
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -594,7 +594,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -619,7 +619,7 @@ public partial class bit2c : Exchange
         //     }
         //
         object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)fees).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -639,7 +639,7 @@ public partial class bit2c : Exchange
                 { "tierBased", true },
             };
         }
-        return ccxt.BaseExchange.ToTradingFees(result);
+        return result;
     }
 
     /**
@@ -655,7 +655,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -686,7 +686,7 @@ public partial class bit2c : Exchange
             ((IDictionary<string,object>)request)["IsBid"] = (isEqual(side, "buy"));
             response = await this.privatePostOrderAddOrder(this.extend(request, parameters));
         }
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -699,14 +699,14 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
         object response = await this.privatePostOrderCancelOrder(this.extend(request, parameters));
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response));
+        return this.parseOrder(response);
     }
 
     /**
@@ -720,7 +720,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -739,7 +739,7 @@ public partial class bit2c : Exchange
         object orders = this.safeValue(response, getValue(market, "id"), new Dictionary<string, object>() {});
         object asks = this.safeValue(orders, "ask", new List<object>() {});
         object bids = this.safeList(orders, "bid", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(this.arrayConcat(asks, bids), market, since, limit));
+        return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
     }
 
     /**
@@ -752,7 +752,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -778,7 +778,7 @@ public partial class bit2c : Exchange
         //             "initialAmount": 2.00000000
         //         }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -814,7 +814,7 @@ public partial class bit2c : Exchange
         //      }
         //
         object orderUnified = null;
-        object isNewOrder = false;
+        bool isNewOrder = false;
         if (isTrue(inOp(order, "NewOrder")))
         {
             orderUnified = getValue(order, "NewOrder");
@@ -921,7 +921,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -989,13 +989,13 @@ public partial class bit2c : Exchange
         {
             responseList = this.toArray(response);
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(responseList, market, since, limit));
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public virtual object removeCommaFromValue(object str)
     {
         object newString = "";
-        object strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
         for (object i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
         {
             newString = add(newString, getValue(strParts, i));
@@ -1053,7 +1053,7 @@ public partial class bit2c : Exchange
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            object reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            List<object> reference_parts = ((string)reference).Split(new [] {((string)"|")}, StringSplitOptions.None).ToList<object>(); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             object marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(getValue(reference_parts, 0), market);
@@ -1126,7 +1126,7 @@ public partial class bit2c : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public async override Task<ccxt.DepositAddress> FetchDepositAddress(string code, object parameters = null)
+    public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1148,7 +1148,7 @@ public partial class bit2c : Exchange
         //         "hasTx": False
         //     }
         //
-        return ccxt.BaseExchange.ToDepositAddress(this.parseDepositAddress(response, currency));
+        return this.parseDepositAddress(response, currency);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -1189,7 +1189,7 @@ public partial class bit2c : Exchange
         {
             this.checkRequiredCredentials();
             object nonce = this.nonce();
-            object query = this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);
             object auth = this.urlencode(query);
@@ -1203,7 +1203,7 @@ public partial class bit2c : Exchange
             {
                 body = auth;
             }
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512, "base64");
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/x-www-form-urlencoded" },
                 { "key", this.apiKey },

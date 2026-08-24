@@ -343,7 +343,7 @@ public partial class cryptomus : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing marketId")) ;
         }
-        object parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = getValue(parts, 0);
         object quoteId = getValue(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -437,8 +437,8 @@ public partial class cryptomus : Exchange
         //     }
         //
         object coins = this.safeList(response, "result");
-        object groupedById = this.groupBy(coins, "currency_code");
-        object groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
+        Dictionary<string, object> groupedById = this.groupBy(coins, "currency_code");
+        List<object> groupedArray = new List<object>(((IDictionary<string,object>)groupedById).Values);
         return this.parseCurrencies(groupedArray);
     }
 
@@ -500,7 +500,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -522,7 +522,7 @@ public partial class cryptomus : Exchange
         //     }
         //
         object data = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbols));
+        return this.parseTickers(data, symbols);
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -574,7 +574,7 @@ public partial class cryptomus : Exchange
      * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -626,7 +626,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -658,7 +658,7 @@ public partial class cryptomus : Exchange
         {
             dataList = data;
         }
-        return ccxt.BaseExchange.ToTradeList(this.parseTrades(dataList, market, since, limit));
+        return this.parseTrades(dataList, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -702,7 +702,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
+    public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -723,7 +723,7 @@ public partial class cryptomus : Exchange
         //     }
         //
         object result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToBalances(this.parseBalance(result));
+        return this.parseBalance(result);
     }
 
     public override object parseBalance(object balance)
@@ -770,7 +770,7 @@ public partial class cryptomus : Exchange
      * @param {string} [params.clientOrderId] a unique identifier for the order (optional)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
+    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -789,7 +789,7 @@ public partial class cryptomus : Exchange
             parameters = this.omit(parameters, "clientOrderId");
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        object sideBuy = isEqual(side, "buy");
+        bool sideBuy = isEqual(side, "buy");
         object amountToString = this.numberToString(amount);
         object priceToString = this.numberToString(price);
         object cost = null;
@@ -842,7 +842,7 @@ public partial class cryptomus : Exchange
         //         "order_id": "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(response, market));
+        return this.parseOrder(response, market);
     }
 
     /**
@@ -855,7 +855,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -870,7 +870,9 @@ public partial class cryptomus : Exchange
         //         "success": true
         //     }
         //
-        return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },         }));
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -889,7 +891,7 @@ public partial class cryptomus : Exchange
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -954,7 +956,7 @@ public partial class cryptomus : Exchange
             object order = getValue(result, i);
             ((IList<object>)orders).Add(this.parseOrder(order, market));
         }
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return orders;
     }
 
     /**
@@ -973,7 +975,7 @@ public partial class cryptomus : Exchange
      * @param {string} [params.offset] A special parameter that sets the number of records from the beginning of the list
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1011,7 +1013,7 @@ public partial class cryptomus : Exchange
         //         ]
         //     }
         object result = this.safeList(response, "result", new List<object>() {});
-        return ccxt.BaseExchange.ToOrderList(this.parseOrders(result, market, null, null));
+        return this.parseOrders(result, market, null, null);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1148,7 +1150,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
+    public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.privateGetV2UserApiExchangeAccountTariffs(parameters);
@@ -1212,7 +1214,7 @@ public partial class cryptomus : Exchange
         object symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
-            return ccxt.BaseExchange.ToTradingFees(result);
+            return result;
         }
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -1227,7 +1229,7 @@ public partial class cryptomus : Exchange
                 { "tiers", tiers },
             };
         }
-        return ccxt.BaseExchange.ToTradingFees(result);
+        return result;
     }
 
     public virtual object parseFeeTiers(object feeTiers, object market = null)
