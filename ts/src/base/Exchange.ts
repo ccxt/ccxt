@@ -7373,7 +7373,7 @@ export class BaseExchange {
 
     forceString (value: any) {
         if (typeof value !== 'string') {
-            return this.numberToString (value); 
+            return this.numberToString (value);
         }
         return value;
     }

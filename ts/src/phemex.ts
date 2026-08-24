@@ -723,7 +723,7 @@ export default class phemex extends Exchange {
         let contractSize: Num = undefined;
         if (settle === 'USDT') {
             contractSize = this.parseNumber ('1');
-        } else if (contractSizeString.indexOf (' ') !== undefined) {
+        } else if (contractSizeString.indexOf (' ') !== -1) {
             // "1 USD"
             // "0.005 ETH"
             const parts = contractSizeString.split (' ');
