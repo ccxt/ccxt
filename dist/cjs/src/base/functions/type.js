@@ -50,8 +50,8 @@ const getValueFromKeysInArray = (object, keys) => {
     return undefined;
 };
 /*  .............................................   */
-const asFloat = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? parseFloat(x) : NaN);
-const asInteger = (x) => ((isNumber(x) || (isString(x) && x.length !== 0)) ? Math.trunc(Number(x)) : NaN);
+const asFloat = (x) => (((isString(x) && x.length !== 0) || isNumber(x)) ? parseFloat(x) : NaN);
+const asInteger = (x) => (((isString(x) && x.length !== 0) || isNumber(x)) ? Math.trunc(Number(x)) : NaN);
 /*  .............................................   */
 function safeFloat(o, k, $default) {
     const n = asFloat(prop(o, k));
