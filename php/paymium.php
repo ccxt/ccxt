@@ -62,38 +62,38 @@ class paymium extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'countries',
-                        'currencies',
-                        'data/{currency}/ticker',
-                        'data/{currency}/trades',
-                        'data/{currency}/depth',
-                        'bitcoin_charts/{id}/trades',
-                        'bitcoin_charts/{id}/depth',
+                        'countries' => array( 'cost' => 1 ),
+                        'currencies' => array( 'cost' => 1 ),
+                        'data/{currency}/ticker' => array( 'cost' => 1 ),
+                        'data/{currency}/trades' => array( 'cost' => 1 ),
+                        'data/{currency}/depth' => array( 'cost' => 1 ),
+                        'bitcoin_charts/{id}/trades' => array( 'cost' => 1 ),
+                        'bitcoin_charts/{id}/depth' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'user',
-                        'user/addresses',
-                        'user/addresses/{address}',
-                        'user/orders',
-                        'user/orders/{uuid}',
-                        'user/price_alerts',
-                        'merchant/get_payment/{uuid}',
+                        'user' => array( 'cost' => 1 ),
+                        'user/addresses' => array( 'cost' => 1 ),
+                        'user/addresses/{address}' => array( 'cost' => 1 ),
+                        'user/orders' => array( 'cost' => 1 ),
+                        'user/orders/{uuid}' => array( 'cost' => 1 ),
+                        'user/price_alerts' => array( 'cost' => 1 ),
+                        'merchant/get_payment/{uuid}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'user/addresses',
-                        'user/orders',
-                        'user/withdrawals',
-                        'user/email_transfers',
-                        'user/payment_requests',
-                        'user/price_alerts',
-                        'merchant/create_payment',
+                        'user/addresses' => array( 'cost' => 1 ),
+                        'user/orders' => array( 'cost' => 1 ),
+                        'user/withdrawals' => array( 'cost' => 1 ),
+                        'user/email_transfers' => array( 'cost' => 1 ),
+                        'user/payment_requests' => array( 'cost' => 1 ),
+                        'user/price_alerts' => array( 'cost' => 1 ),
+                        'merchant/create_payment' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'user/orders/{uuid}',
-                        'user/orders/{uuid}/cancel',
-                        'user/price_alerts/{id}',
+                        'user/orders/{uuid}' => array( 'cost' => 1 ),
+                        'user/orders/{uuid}/cancel' => array( 'cost' => 1 ),
+                        'user/price_alerts/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -152,7 +152,7 @@ class paymium extends Exchange {
         ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         $currencies = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($currencies); $i++) {
@@ -160,7 +160,7 @@ class paymium extends Exchange {
             $currency = $this->currency($code);
             $currencyId = $currency['id'];
             $free = 'balance_' . $currencyId;
-            if (is_array($response) && array_key_exists($free, $response)) {
+            if (is_array($response) && array_key_exists($free ?? '', $response)) {
                 $account = $this->account();
                 $used = 'locked_' . $currencyId;
                 $account['free'] = $this->safe_string($response, $free);
@@ -196,7 +196,7 @@ class paymium extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -425,7 +425,7 @@ class paymium extends Exchange {
         return $this->parse_deposit_addresses($response, $codes);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         //
         //     {
         //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -475,7 +475,7 @@ class paymium extends Exchange {
         $response = $this->privatePostUserOrders($this->extend($request, $params));
         return $this->safe_order(array(
             'info' => $response,
-            'id' => $response['uuid'],
+            'id' => $this->safe_string($response, 'uuid'),
         ), $market);
     }
 
@@ -486,7 +486,7 @@ class paymium extends Exchange {
          * @see https://paymium.github.io/api-documentation/#tag/Order/operation/cancel-order
          *
          * @param {string} $id order $id
-         * @param {string} $symbol not used by paymium cancelOrder ()
+         * @param {string} $symbol not used by cancelOrder ()
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
@@ -624,7 +624,7 @@ class paymium extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api']['rest'] . '/' . $this->version . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         if ($api === 'public') {
@@ -657,7 +657,7 @@ class paymium extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

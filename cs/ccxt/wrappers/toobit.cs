@@ -21,16 +21,16 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    public async Task<Status> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Status(res);
     }
     /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#check-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,8 +50,8 @@ public partial class toobit
     /// retrieves data on all markets for toobit
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#exchange-information"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -71,8 +71,8 @@ public partial class toobit
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#order-book"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -88,10 +88,9 @@ public partial class toobit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
@@ -99,8 +98,8 @@ public partial class toobit
     /// get a list of the most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#recent-trades-list"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#recent-trades-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -123,10 +122,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -134,8 +131,10 @@ public partial class toobit
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#index-price-kline-candlestick-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#mark-price-kline-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -158,10 +157,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -169,8 +166,8 @@ public partial class toobit
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#_24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#_24hr-ticker-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -190,7 +187,7 @@ public partial class toobit
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#symbol-price-ticker"/>  <br/>
     /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -211,7 +208,7 @@ public partial class toobit
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-market-data.html#symbol-order-book-ticker"/>  <br/>
     /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -232,7 +229,7 @@ public partial class toobit
     /// fetch the funding rate for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -242,7 +239,7 @@ public partial class toobit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexe by market symbols.</returns>
+    /// <returns> <term>object[]</term> a list of [funding rates structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols.</returns>
     public async Task<FundingRates> FetchFundingRates(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchFundingRates(symbols, parameters);
@@ -252,7 +249,7 @@ public partial class toobit
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-market-data.html#get-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -287,10 +284,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}.</returns>
-    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
@@ -298,13 +293,13 @@ public partial class toobit
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
-    /// object : extra parameters specific to the exchange API endpointinvalid
+    /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -319,8 +314,8 @@ public partial class toobit
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -334,24 +329,27 @@ public partial class toobit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.cost</term>
+    /// <description>
+    /// float : *spot market buy only* the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public List<Dictionary<string, object>> CreateOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public List<Dictionary<string, object>> CreateOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public List<Dictionary<string, object>> CreateContractOrderRequest(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public List<Dictionary<string, object>> CreateContractOrderRequest(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
@@ -359,8 +357,8 @@ public partial class toobit
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -380,8 +378,8 @@ public partial class toobit
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -401,8 +399,8 @@ public partial class toobit
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -428,8 +426,8 @@ public partial class toobit
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -449,8 +447,8 @@ public partial class toobit
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -473,10 +471,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -484,7 +480,7 @@ public partial class toobit
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -507,10 +503,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -518,7 +512,7 @@ public partial class toobit
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -541,10 +535,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -552,8 +544,8 @@ public partial class toobit
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -588,10 +580,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -599,7 +589,7 @@ public partial class toobit
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://open.big.one/docs/spot_transfer.html#transfer-of-user"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -619,8 +609,8 @@ public partial class toobit
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data"/>  <br/>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -655,10 +645,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}.</returns>
-    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
@@ -666,7 +654,7 @@ public partial class toobit
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-fee-rate-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-fee-rate-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -686,7 +674,7 @@ public partial class toobit
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -715,10 +703,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -726,7 +712,7 @@ public partial class toobit
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -755,10 +741,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -771,7 +755,7 @@ public partial class toobit
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -791,12 +775,18 @@ public partial class toobit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.addressType</term>
+    /// <description>
+    /// string : recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
     /// </description>
     /// </item>
     /// </list>
@@ -811,7 +801,7 @@ public partial class toobit
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -831,7 +821,7 @@ public partial class toobit
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-leverage-trade"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-leverage-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -851,7 +841,7 @@ public partial class toobit
     /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -871,7 +861,7 @@ public partial class toobit
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

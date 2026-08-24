@@ -10,7 +10,7 @@ public partial class xt
     /// fetches the current integer timestamp in milliseconds from the xt server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market1serverInfo"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/GetServerTime"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -24,8 +24,8 @@ public partial class xt
     /// retrieves data on all markets for xt
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market2symbol"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetSymbols"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/GetSymbolInformation"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-configuration-information-for-listed-and-tradeable-symbols"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -35,10 +35,10 @@ public partial class xt
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchSpotMarkets(Dictionary<string, object> parameters = null)
+    public async Task<List<MarketInterface>> FetchSpotMarkets(object parameters = null)
     {
         var res = await this.fetchSpotMarkets(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
     public async Task<List<Dictionary<string, object>>> FetchSwapAndFutureMarkets(Dictionary<string, object> parameters = null)
     {
@@ -49,8 +49,8 @@ public partial class xt
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market4kline"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetKLine"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/GetKlineData"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-trading-pair-information-of-kline"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -79,10 +79,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -90,8 +88,8 @@ public partial class xt
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market3depth"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetDepth"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/GetDepthData"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-depth-data-of-trading-pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -101,10 +99,9 @@ public partial class xt
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols.</returns>
-    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}.</returns>
+    public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
     }
@@ -112,8 +109,8 @@ public partial class xt
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market10ticker24h"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetAggTicker"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-aggregated-market-information-for-specific-trading-pair"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -127,8 +124,8 @@ public partial class xt
     /// fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market10ticker24h"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetAggTickers"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/Get24hStatisticsTicker"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get_aggregated_market_information_for_all_trading_pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbols</term>
@@ -148,14 +145,9 @@ public partial class xt
     /// fetches the bid and ask price and volume for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market9tickerBook"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/GetBestPendingOrderTicker"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-ask-bid-market-information-for-all-trading-pairs"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbols</term>
-    /// <description>
-    /// string : unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}.</returns>
@@ -168,8 +160,8 @@ public partial class xt
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#market5tradeRecent"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetDeal"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Market/QueryRecentTransactions"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-latest-transaction-information-of-trading-pairs"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -186,10 +178,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}.</returns>
-    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -197,8 +187,8 @@ public partial class xt
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#tradetradeGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordergetTrades"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Trade/QueryTrade"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/see-transaction-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -221,10 +211,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}.</returns>
-    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -232,8 +220,8 @@ public partial class xt
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#balancebalancesGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_usergetBalances"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Balance/GetBalances"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/GetUserFunds"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -247,7 +235,7 @@ public partial class xt
     /// create a market buy order by providing the symbol and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderorderPost"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/SubmitOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -267,10 +255,11 @@ public partial class xt
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderorderPost"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordercreate"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustcreatePlan"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustcreateProfit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/SubmitOrder"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/Create%20Orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateTriggerOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CreateTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -320,21 +309,44 @@ public partial class xt
     /// float : price to set a take-profit on an open position
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailingPercent</term>
+    /// <description>
+    /// float : the percent to trail away from the current market price, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingAmount</term>
+    /// <description>
+    /// float : the quote amount to trail away from the current market price, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.trailingTriggerPrice</term>
+    /// <description>
+    /// float : the price to activate a trailing order, swap markets only
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated', for trailing orders only, default is 'cross'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
-    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateSpotOrder(string symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateSpotOrder(string symbol, string type, object side, object amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createSpotOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
-    public async Task<Order> CreateContractOrder(string symbol, object type, object side, object amount, object price = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CreateContractOrder(string symbol, object type, object side, object amount, double? price = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.createContractOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
@@ -343,10 +355,11 @@ public partial class xt
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderorderGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordergetById"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetPlanById"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetProfitById"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/GetSingleOrder"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders-by-id"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersByEntrustId"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimitByProfitId"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetSingleTrackDetail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -366,6 +379,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the order is a trailing order or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -378,9 +397,10 @@ public partial class xt
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderhistoryOrderGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordergetHistory"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetPlanHistory"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/see-order-history"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrdersHistory"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -406,20 +426,22 @@ public partial class xt
     /// bool : if the order is a trigger order or not
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
-    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -427,10 +449,11 @@ public partial class xt
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderopenOrderGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordergetOrders"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetPlan"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetProfit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/QueryOpenOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/getTrackList"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -462,13 +485,17 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
-    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOpenOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -476,10 +503,11 @@ public partial class xt
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderhistoryOrderGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordergetOrders"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetPlan"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetProfit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -511,13 +539,17 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
-    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -525,10 +557,11 @@ public partial class xt
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderhistoryOrderGet"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordergetOrders"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetPlan"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustgetProfit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/QueryHistoricalOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/see-orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeTriggerOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/SeeStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetHistoryTrackListInactive"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -560,13 +593,17 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
-    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -574,10 +611,11 @@ public partial class xt
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderorderDel"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordercancel"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustcancelPlan"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustcancelProfit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/CancelOrder"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/cancel-orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelTriggerOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelSingleTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -597,6 +635,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the order is a trailing order or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -609,10 +653,11 @@ public partial class xt
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderopenOrderDel"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_ordercancelBatch"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustcancelPlanBatch"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustcancelProfitBatch"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/CancelCurrentPendingOrder"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/cancel-all-orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllTriggerOrders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllStopLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/CancelAllTrack"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -632,6 +677,12 @@ public partial class xt
     /// bool : if the order is a stop-loss or take-profit order
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.trailing</term>
+    /// <description>
+    /// bool : if the orders are trailing orders or not
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}.</returns>
@@ -644,7 +695,7 @@ public partial class xt
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderbatchOrderDel"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/CancelBatchOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -664,7 +715,7 @@ public partial class xt
     /// fetch the history of changes, actions done by the user or operations that altered the balance of the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_usergetBalanceBill"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Account%20Flow%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -687,10 +738,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}.</returns>
-    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<LedgerEntry>> FetchLedger(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new LedgerEntry(item)).ToList<LedgerEntry>();
     }
@@ -698,7 +747,7 @@ public partial class xt
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#deposit_withdrawaldepositAddressGet"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositAddress"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -712,7 +761,7 @@ public partial class xt
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#deposit_withdrawalhistoryDepositGet"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Deposit&Withdrawal/GetDepositHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -735,10 +784,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchDeposits(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -746,7 +793,7 @@ public partial class xt
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#deposit_withdrawalwithdrawHistory"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Deposit&Withdrawal/WithdrawHistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -769,10 +816,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}.</returns>
-    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
@@ -780,12 +825,12 @@ public partial class xt
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#deposit_withdrawalwithdraw"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Deposit&Withdrawal/Withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>tag</term>
     /// <description>
-    /// string :      * @param {object} params extra parameters specific to the xt api endpoint
+    /// string :      * @param {object} params extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -800,7 +845,7 @@ public partial class xt
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_useradjustLeverage"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Adjust%20Leverage"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -814,7 +859,7 @@ public partial class xt
     /// retrieve information on the maximum leverage for different trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetLeverageBrackets"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbols</term>
@@ -834,7 +879,7 @@ public partial class xt
     /// retrieve information on the maximum leverage for different trade sizes of a single market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetLeverageBracket"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/see-leverage-stratification-of-single-trading-pair"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -848,7 +893,7 @@ public partial class xt
     /// fetches historical funding rates
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetFundingRateRecord"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-funding-rate-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -871,10 +916,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}.</returns>
-    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<FundingRateHistory>> FetchFundingRateHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
     }
@@ -882,7 +925,7 @@ public partial class xt
     /// fetch the current funding rate interval
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetFundingRate"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -902,7 +945,7 @@ public partial class xt
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_quotesgetFundingRate"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -913,10 +956,76 @@ public partial class xt
         return new FundingRate(res);
     }
     /// <summary>
+    /// retrieves the open interest of a contract trading pair
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/MarketData/get-the-open-position-of-a-trading-pair"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}.</returns>
+    public async Task<OpenInterest> FetchOpenInterest(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchOpenInterest(symbol, parameters);
+        return new OpenInterest(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for a contract market, the same account-level rate applies to all contract markets of the same subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFee(symbol, parameters);
+        return new TradingFeeInterface(res);
+    }
+    /// <summary>
+    /// fetch the trading fees for multiple markets, the same account-level rate applies to all contract markets of the requested subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20User's%20Step%20Rate"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : 'linear' (default) or 'inverse'
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbol.</returns>
+    public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTradingFees(parameters);
+        return new TradingFees(res);
+    }
+    /// <summary>
     /// fetch the funding history
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_usergetFunding"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Fund%20Fee%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -933,10 +1042,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}.</returns>
-    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
     }
@@ -944,7 +1051,8 @@ public partial class xt
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_usergetPosition"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Position%20Information"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -958,7 +1066,8 @@ public partial class xt
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_usergetPosition"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Position%20Information"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Get%20Margin%20Call%20Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbols</term>
@@ -975,10 +1084,42 @@ public partial class xt
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }
     /// <summary>
+    /// fetches historical closed positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/GetPositionHistory"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest position to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of records to fetch, default=10
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest position to fetch
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}.</returns>
+    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#transfersubTransferPost"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Transfer/TransferBetweenUserSystems"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -992,7 +1133,7 @@ public partial class xt
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#futures_userchangePositionType"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/User/Change%20Position%20Type"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -1024,9 +1165,9 @@ public partial class xt
     /// cancels an order and places a new order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://doc.xt.com/#orderorderUpdate"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_orderupdate"/>  <br/>
-    /// See <see href="https://doc.xt.com/#futures_entrustupdateProfit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/spot/Order/UpdateOrderLimit"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Order/update-orders"/>  <br/>
+    /// See <see href="https://doc.xt.com/docs/futures/Entrust/AlterStopLimit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -1055,10 +1196,8 @@ public partial class xt
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, Dictionary<string, object> parameters = null)
     {
-        var amount = amount2 == 0 ? null : (object)amount2;
-        var price = price2 == 0 ? null : (object)price2;
         var res = await this.editOrder(id, symbol, type, side, amount, price, parameters);
         return new Order(res);
     }

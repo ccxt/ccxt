@@ -5,6 +5,7 @@ import path from 'path';
 import asTable from 'as-table';
 import { Agent } from 'https';
 import readline from 'readline';
+import { fileURLToPath } from 'url';
 import { getCacheDirectory, getExchangeSettings, loadConfigFile } from './cache.js';
 
 ansi.nice;
@@ -13,26 +14,52 @@ let add_static_result;
 
 try {
     // @ts-ignore
-    add_static_result = (await import ('../../utils/update-static-tests-data')).add_static_result;
+    add_static_result = (await import ('../../build/utils/update-static-tests-data')).add_static_result;
 } catch (e) {
     // noop
 }
+// when the cli itself runs as typescript (under tsx) inside the ccxt
+// repository, always load the typescript sources so that a new integration
+// works with the cli immediately, without any js or cjs build steps (built
+// artifacts can be stale or missing); when the cli runs as compiled js
+// (the built ccxt-cli package under plain node, in-repo or installed from
+// npm) importing raw typescript would crash, so fall back to import ('ccxt')
+const cliDirectory = path.dirname (fileURLToPath (import.meta.url));
+const isTsRuntime = import.meta.url.endsWith ('.ts');
+const detectLocalCcxt = () => {
+    try {
+        return isTsRuntime && fs.existsSync (path.join (cliDirectory, '..', '..', 'ts', 'ccxt.ts'));
+    } catch (e) {
+        // detection must never take the cli down - degrade to the package import
+        return false;
+    }
+};
+export const isLocalCcxt = detectLocalCcxt ();
 let ccxt;
 try {
-    // @ts-ignore
-    ccxt = await import ('ccxt');
-} catch (e) {
-    try {
+    if (isLocalCcxt) {
         // @ts-ignore
         // we import like this to trick tsc and avoid the crawling on the
         // local ccxt project
         ccxt = await (Function ('return import("../../ts/ccxt")') ());
-    } catch (ee) {
-        log.error (ee);
-        log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
-        process.exit (1);
+    } else {
+        // @ts-ignore
+        ccxt = await import ('ccxt');
     }
+    // unwrap the default export in case the import resolved through a
+    // cjs interop shape that does not expose named keys on the namespace
+    ccxt = ccxt.default ?? ccxt;
+} catch (e) {
+    log.error (e);
+    log.error ('Neither a local installation nor a global CCXT installation was detected, make `npm i` first, Also make sure your local ccxt version does not contain any syntax errors.');
+    process.exit (1);
 }
+export { ccxt };
+
+// the namespace's named `exchanges` export is a dictionary of exchange
+// classes while the default export carries an array of exchange ids -
+// normalize to an id array once so that consumers never depend on the shape
+export const exchangeIds: string[] = Array.isArray (ccxt.exchanges) ? ccxt.exchanges : Object.keys (ccxt.exchanges);
 
 const fsPromises = fs.promises;
 
@@ -89,7 +116,12 @@ function injectMissingUndefined (fn, args) {
         const paramsObj = args[args.length - 1];
         args.pop ();
         const newArgsArray = args;
-        const isPartialFunction = fn.toString ().indexOf ('(params = {}, context = {})');
+        // implicit api methods stringify differently depending on the loader:
+        // built js produces '(params = {}, context = {})' while the ts-sources
+        // loader produces 'async(params={},context={})=>...' - normalize the
+        // whitespace and the async prefix before matching the partial signature
+        const fnStr = fn.toString ().replace (/\s+/g, '').replace (/^async/, '');
+        const isPartialFunction = fnStr.startsWith ('(params={},context={})');
         for (let j = 0; j < missingParams; j++) {
             newArgsArray.push (undefined);
         }
@@ -133,20 +165,23 @@ function createRequestTemplate (cliOptions, exchange, methodName, args, result) 
         'input': args,
         'output': exchange.last_request_body ?? undefined,
     };
+    const isPrediction = (exchange.has !== undefined) && (exchange.has['prediction'] === true);
+    const requestSubFolder = isPrediction ? 'prediction/' : '';
     log (
         'Report: (paste inside static/request/'
+      + requestSubFolder
       + exchange.id
       + '.json ->'
       + methodName
       + ')'
     );
     log.green ('-------------------------------------------');
-    log (JSON.stringify (final, null, 2));
+    log (jsonStringify (final, 2));
     log.green ('-------------------------------------------');
     if (cliOptions.name) {
         final.description = cliOptions.name;
         log.green ('auto-saving static result');
-        add_static_result ('request', exchange.id, methodName, final);
+        add_static_result ('request', exchange.id, methodName, final, undefined, isPrediction);
     }
 }
 
@@ -167,8 +202,11 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
         'httpResponse': exchange.parseJson (exchange.last_http_response),
         'parsedResponse': result,
     };
+    const isPrediction = (exchange.has !== undefined) && (exchange.has['prediction'] === true);
+    const responseSubFolder = isPrediction ? 'prediction/' : '';
     log (
         'Report: (paste inside static/response/'
+      + responseSubFolder
       + exchange.id
       + '.json ->'
       + methodName
@@ -180,7 +218,7 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
     if (cliOptions.name) {
         final.description = cliOptions.name;
         log.green ('auto-saving static result');
-        add_static_result ('response', exchange.id, methodName, final);
+        add_static_result ('response', exchange.id, methodName, final, undefined, isPrediction);
     }
 }
 
@@ -190,7 +228,7 @@ function createResponseTemplate (cliOptions, exchange, methodName, args, result)
  *
  */
 function printSupportedExchanges () {
-    log ('Supported exchanges:', (ccxt.exchanges.join (', ') as any).green);
+    log ('Supported exchanges:', (exchangeIds.join (', ') as any).green);
 }
 
 //-----------------------------------------------------------------------------
@@ -385,6 +423,78 @@ async function handleMarketsLoading (
     }
 }
 
+/**
+ * Loads cached prediction events (event -> markets -> outcomes) from the prediction/ cache
+ * subfolder into the exchange, mirroring how markets/currencies are cached. Events are written
+ * by the fetchEvents command (see cacheEvents); this only reads a fresh cache so that subsequent
+ * prediction commands can resolve event handles without re-fetching.
+ * @param exchange
+ * @param forceRefresh
+ */
+async function handleEventsLoading (exchange, forceRefresh = false) {
+    const hasEvents = (exchange.has !== undefined) && (exchange.has['fetchEvents'] === true);
+    if (!hasEvents) {
+        return;
+    }
+    const eventsPath = path.join (getCacheDirectory (), 'prediction', exchange.id + '.json');
+    const cacheConfig = loadConfigFile ();
+    try {
+        if (fs.existsSync (eventsPath)) {
+            const stats = fs.statSync (eventsPath);
+            const diff = new Date ().getTime () - stats.mtime.getTime ();
+            if (!forceRefresh && (diff <= cacheConfig.refreshMarketsTimeout)) {
+                const events = JSON.parse (fs.readFileSync (eventsPath).toString ());
+                exchange.setEvents (events);
+                // the cached events carry their markets (each with nested outcomes); merge them
+                // into this.markets and rebuild the outcome lookups (setMarkets -> setOutcomes
+                // FromMarkets on prediction exchanges) so methods that require loaded outcomes
+                // (fetchOrderBook, createOrder, ...) work straight from the cache
+                const merged = {};
+                const existing = (exchange.markets !== undefined && exchange.markets !== null) ? exchange.markets : {};
+                const existingKeys = Object.keys (existing);
+                for (let i = 0; i < existingKeys.length; i++) {
+                    merged[existingKeys[i]] = existing[existingKeys[i]];
+                }
+                let added = false;
+                for (const event of events) {
+                    const eventMarkets = (event !== undefined && event !== null && event['markets']) ? event['markets'] : [];
+                    for (const market of eventMarkets) {
+                        const marketSymbol = (market['symbol'] !== undefined) ? market['symbol'] : market['market'];
+                        if (marketSymbol !== undefined) {
+                            merged[marketSymbol] = market;
+                            added = true;
+                        }
+                    }
+                }
+                if (added) {
+                    exchange.setMarkets (Object.keys (merged).map ((k) => merged[k]));
+                }
+            }
+        }
+    } catch (e) {
+        log.red ('loadEvents:', e);
+    // error loading cached events
+    }
+}
+
+/**
+ * Persists the events returned by fetchEvents under the prediction/ cache subfolder, keyed by
+ * exchange id, so they survive across CLI invocations (the markets/currencies equivalent).
+ * @param exchange
+ * @param events
+ */
+async function cacheEvents (exchange, events) {
+    if (events === undefined || events === null) {
+        return;
+    }
+    const eventsPath = path.join (getCacheDirectory (), 'prediction', exchange.id + '.json');
+    try {
+        await writeFile (eventsPath, jsonStringify (events));
+    } catch (e) {
+        log.red ('cacheEvents:', e);
+    }
+}
+
 //-----------------------------------------------------------------------------
 
 /**
@@ -480,13 +590,26 @@ async function loadSettingsAndCreateExchange (
     const timeout = 30000;
 
     try {
-        if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
+        const prediction = (ccxt as any).prediction;
+        const isPredictionExchange = (prediction !== undefined) && prediction.exchanges.includes (exchangeId);
+        if (isPredictionExchange && (cliOptions.prediction || ccxt[exchangeId] === undefined)) {
+            exchange = new prediction[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
+        } else if ((ccxt.pro as any).exchanges.includes (exchangeId)) {
             exchange = new ccxt.pro[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
         } else {
             exchange = new ccxt[exchangeId] ({ timeout, httpsAgent, ...finalSettings });
         }
         if (exchange === undefined) {
             process.exit ();
+        }
+        if (!cliOptions.keys) {
+            // --no-keys promises that no apiKeys are set even if detected, but
+            // the settings loaded from keys.json / keys.local.json used to
+            // reach the constructor regardless - strip every credential so the
+            // exchange behaves as truly unauthenticated
+            for (const credential of Object.keys (exchange.requiredCredentials)) {
+                exchange[credential] = undefined;
+            }
         }
         if (cliOptions.spot) {
             exchange.options['defaultType'] = 'spot';
@@ -548,6 +671,7 @@ async function loadSettingsAndCreateExchange (
     const no_load_markets = noSend ? false : (cliOptions.loadMarkets === false);
     if (!no_load_markets && !printUsageOnly) {
         await handleMarketsLoading (exchange, cliOptions.refreshMarkets);
+        await handleEventsLoading (exchange, cliOptions.refreshMarkets);
     }
 
     if (cliOptions.signIn && exchange.has.signIn) {
@@ -593,6 +717,151 @@ function handleStaticTests (cliOptions, exchange, methodName, args, result) {
     }
     if (cliOptions.response || cliOptions.static) {
         createResponseTemplate (cliOptions, exchange, methodName, args, result);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+const wsRecording = {
+    'active': false,
+    'frames': [] as any[],
+    'sent': [] as any[],
+    'results': [] as any[],
+    'httpResponse': undefined as any,
+};
+
+/**
+ * start recording every raw ws frame the exchange receives; the recording is
+ * saved as a static/ws fixture entry when the user presses ctrl+c
+ *
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param cliOptions
+ */
+function startWsRecording (exchange, methodName: string, args: any[], cliOptions) {
+    if (wsRecording.active) {
+        return;
+    }
+    wsRecording.active = true;
+    const origHandleMessage = exchange.handleMessage.bind (exchange);
+    exchange.handleMessage = (client, message) => {
+        // roundtrip so the saved frame is a plain json value with nulls kept
+        wsRecording.frames.push ({ 'url': client.url, 'message': JSON.parse (jsonStringify (message)) });
+        return origHandleMessage (client, message);
+    };
+    // wrap every client's send so the outgoing frames (subscribe requests
+    // etc) are captured too — saved as the entry's 'sentMessages'
+    const origClientFn = exchange.client.bind (exchange);
+    const wrappedClients = new Set ();
+    exchange.client = (url) => {
+        const client = origClientFn (url);
+        if (!wrappedClients.has (client)) {
+            wrappedClients.add (client);
+            const origSend = client.send.bind (client);
+            client.send = (message) => {
+                let parsed = message;
+                if (typeof message === 'string') {
+                    try {
+                        parsed = JSON.parse (message);
+                    } catch (e) {
+                        // raw non-json frames (e.g. plaintext pongs) are kept as-is
+                    }
+                } else {
+                    parsed = JSON.parse (jsonStringify (message));
+                }
+                wsRecording.sent.push ({ 'url': client.url, 'message': parsed });
+                return origSend (message);
+            };
+        }
+        return client;
+    };
+    process.once ('SIGINT', () => {
+        saveWsRecording (exchange, methodName, args, cliOptions);
+        process.exit (0);
+    });
+    log.green ('recording ws frames for ' + methodName + ' — press ctrl+c to stop and save the static ws test');
+}
+
+/**
+ * collect one watch resolution (and any rest snapshot the method fetched)
+ *
+ * @param exchange
+ * @param result
+ */
+function recordWsResult (exchange, result) {
+    wsRecording.results.push ({
+        'result': JSON.parse (jsonStringify (result)),
+        // remember how many frames had arrived when this resolution fired so
+        // the saved entry keeps a consistent frames/resolutions pairing
+        'framesSeen': wsRecording.frames.length,
+    });
+    if (exchange.last_http_response) {
+        // e.g. the orderbook snapshot fetched by watchOrderBook
+        wsRecording.httpResponse = exchange.parseJson (exchange.last_http_response);
+    }
+}
+
+/**
+ * assemble the recorded frames and resolutions into a static/ws fixture entry
+ *
+ * @param exchange
+ * @param methodName
+ * @param args
+ * @param cliOptions
+ */
+function saveWsRecording (exchange, methodName: string, args: any[], cliOptions) {
+    if (wsRecording.frames.length === 0) {
+        log.red ('no ws frames were recorded, nothing to save');
+        return;
+    }
+    // --recordLimit <n> keeps only the first n watch resolutions and cuts the
+    // frame list right after the frame that produced the last kept one (fast
+    // streams like orderbook deltas would otherwise store hundreds of frames
+    // and full book states) — without the option the full session is saved
+    const recordLimit = cliOptions.recordLimit ? parseInt (cliOptions.recordLimit, 10) : undefined;
+    let keptResultEntries = wsRecording.results;
+    let framesCutoff = wsRecording.frames.length;
+    if (recordLimit !== undefined) {
+        keptResultEntries = wsRecording.results.slice (0, recordLimit);
+        const lastKept = keptResultEntries[keptResultEntries.length - 1];
+        framesCutoff = (lastKept !== undefined) ? lastKept.framesSeen : Math.min (wsRecording.frames.length, 10);
+    }
+    const keptFrames = wsRecording.frames.slice (0, framesCutoff);
+    const keptResults = keptResultEntries.map ((r) => r.result);
+    // the watch method may fan out over several clients — keep the url that
+    // received the most frames (the stream under test)
+    const counts = {};
+    for (const frame of keptFrames) {
+        counts[frame.url] = (counts[frame.url] || 0) + 1;
+    }
+    const mainUrl = Object.keys (counts).sort ((a, b) => counts[b] - counts[a])[0];
+    const entry: any = {
+        'description': cliOptions.name || 'Fill this with a description of the method call',
+        'input': args,
+        'url': mainUrl,
+        'messages': keptFrames.filter ((f) => f.url === mainUrl).map ((f) => f.message),
+    };
+    if (wsRecording.httpResponse !== undefined) {
+        entry['httpResponse'] = wsRecording.httpResponse;
+    }
+    const sentForUrl = wsRecording.sent.filter ((f) => f.url === mainUrl).map ((f) => f.message);
+    if (sentForUrl.length > 0) {
+        // review before committing: ids/signatures/timestamps inside outgoing
+        // frames are volatile — list those keys in 'sentSkipKeys'
+        entry['sentMessages'] = sentForUrl;
+    }
+    // one expected result per watch resolution; trim to a single
+    // 'parsedResponse' manually for live structures like orderbooks where
+    // only the final state is deterministic
+    entry['parsedResponses'] = keptResults;
+    log ('Report: (paste inside static/ws/' + exchange.id + '.json -> ' + methodName + ')');
+    log.green ('-------------------------------------------');
+    log (jsonStringify (entry, 2));
+    log.green ('-------------------------------------------');
+    if (cliOptions.name) {
+        log.green ('auto-saving static ws result');
+        add_static_result ('ws', exchange.id, methodName, entry, undefined, false);
     }
 }
 
@@ -787,6 +1056,7 @@ export {
     printSavedCommand,
     printHumanReadable,
     handleMarketsLoading,
+    cacheEvents,
     setNoSend,
     parseMethodArgs,
     printUsage,
@@ -795,6 +1065,8 @@ export {
     injectMissingUndefined,
     handleDebug,
     handleStaticTests,
+    startWsRecording,
+    recordWsResult,
     askForArgv,
     printMethodUsage,
     parseValue,

@@ -48,6 +48,111 @@
                         "fees": []
                     }
                 ]
+            },
+            {
+                "description": "public trades on a type-1 market quoted in IDR, served by the binance host",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/IDR",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "id": 899732,
+                        "price": "1362602579.00",
+                        "qty": "0.00119000",
+                        "quoteQty": "1621497.06",
+                        "time": 1787316719435,
+                        "isBuyerMaker": true,
+                        "isBestMatch": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": 899732,
+                            "price": "1362602579.00",
+                            "qty": "0.00119000",
+                            "quoteQty": "1621497.06",
+                            "time": 1787316719435,
+                            "isBuyerMaker": true,
+                            "isBestMatch": true
+                        },
+                        "timestamp": 1787316719435,
+                        "datetime": "2026-08-21T12:51:59.435Z",
+                        "symbol": "BTC/IDR",
+                        "id": "899732",
+                        "order": null,
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 1362602579,
+                        "amount": 0.00119,
+                        "cost": 1621497.06,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "public trades on a type-3 market, served by open/v1 agg-trades with the data.list envelope",
+                "method": "fetchTrades",
+                "input": [
+                    "ALCH/IDR",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "list": [
+                            {
+                                "a": 14434,
+                                "p": "500.00",
+                                "q": "42.00000000",
+                                "f": 15579,
+                                "l": 15579,
+                                "T": 1787301873244,
+                                "m": false
+                            }
+                        ]
+                    },
+                    "timestamp": 1787318103624
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "a": 14434,
+                            "p": "500.00",
+                            "q": "42.00000000",
+                            "f": 15579,
+                            "l": 15579,
+                            "T": 1787301873244,
+                            "m": false
+                        },
+                        "timestamp": 1787301873244,
+                        "datetime": "2026-08-21T08:44:33.244Z",
+                        "symbol": "ALCH/IDR",
+                        "id": "14434",
+                        "order": null,
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 500,
+                        "amount": 42,
+                        "cost": 21000,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [
@@ -84,6 +189,49 @@
                         73238.68,
                         73414.21,
                         417.28959
+                    ]
+                ]
+            },
+            {
+                "description": "non-USDT quoted spot ohlcv, wrapped in a data.list envelope",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/IDR",
+                    "1h",
+                    null,
+                    1
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "msg": "Success",
+                    "data": {
+                        "list": [
+                            [
+                                1710327600000,
+                                "1160256010.00000000",
+                                "1163442950.00000000",
+                                "1159238680.00000000",
+                                "1162414210.00000000",
+                                "4.28959000",
+                                1710331199999,
+                                "4979902400.96809090",
+                                19577,
+                                "2.24362000",
+                                "2606706274.88880000",
+                                "0"
+                            ]
+                        ]
+                    },
+                    "timestamp": 1710327662491
+                },
+                "parsedResponse": [
+                    [
+                        1710327600000,
+                        1160256010,
+                        1163442950,
+                        1159238680,
+                        1162414210,
+                        4.28959
                     ]
                 ]
             }

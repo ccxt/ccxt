@@ -19,8 +19,8 @@ export default class weex extends weexRest {
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
-                'watchOrderBook': false,
-                'watchOrderBookForSymbols': false,
+                'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOrders': true,
                 'watchPositions': true,
                 'watchTicker': true,
@@ -31,8 +31,8 @@ export default class weex extends weexRest {
                 'unWatchMyTrades': true,
                 'unWatchOHLCV': true,
                 'unWatchOHLCVForSymbols': true,
-                'unWatchOrderBook': false,
-                'unWatchOrderBookForSymbols': false,
+                'unWatchOrderBook': true,
+                'unWatchOrderBookForSymbols': true,
                 'unWatchOrders': true,
                 'unWatchPositions': true,
                 'unWatchTicker': true,
@@ -295,6 +295,9 @@ export default class weex extends weexRest {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const tickers = this.safeList(message, 'd', []);
         const data = this.safeDict(tickers, 0, {});
         const ticker = this.parseWsTicker(data, market);
@@ -324,8 +327,9 @@ export default class weex extends weexRest {
         //
         const timestamp = this.safeInteger(ticker, 'C');
         const close = this.safeString(ticker, 'c');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'high': this.safeString(ticker, 'h'),
@@ -474,6 +478,9 @@ export default class weex extends weexRest {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const symbol = market['symbol'];
         const messageHash = 'trade::' + symbol;
         if (!(symbol in this.trades)) {
@@ -508,12 +515,13 @@ export default class weex extends weexRest {
         //     }
         //
         const timestamp = this.safeInteger(trade, 'T');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.safeTrade({
             'info': trade,
             'id': this.safeString(trade, 't'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': undefined,
@@ -689,6 +697,9 @@ export default class weex extends weexRest {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const symbol = market['symbol'];
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
@@ -697,11 +708,14 @@ export default class weex extends weexRest {
         const firstEntry = this.safeDict(data, 0, {});
         const interval = this.safeString(firstEntry, 'i');
         const timeframe = this.findTimeframe(interval);
-        if (!(timeframe in this.ohlcvs[symbol])) {
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
+        if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
-            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
+            stored = new ArrayCacheByTimestamp(limit);
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
-        const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
             const entry = this.safeDict(data, i, {});
             const parsed = this.parseWsOHLCV(entry);
@@ -747,7 +761,7 @@ export default class weex extends weexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params = this.extend(params, {
@@ -764,7 +778,7 @@ export default class weex extends weexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -867,6 +881,9 @@ export default class weex extends weexRest {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
@@ -993,16 +1010,22 @@ export default class weex extends weexRest {
         //     }
         //
         const market = this.getMarketFromClientAndMessage(client, message);
+        if (market === undefined) {
+            return;
+        }
         const ticker = this.parseWsBidAsk(message, market);
         const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = ticker;
+        }
         const messageHash = 'bidask::' + symbol;
         client.resolve(ticker, messageHash);
     }
     parseWsBidAsk(message, market = undefined) {
         const timestamp = this.safeInteger(message, 'E');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
         return this.safeTicker({
-            'symbol': market['symbol'],
+            'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'ask': this.safeString(message, 'a'),
@@ -1137,7 +1160,9 @@ export default class weex extends weexRest {
             const trade = this.safeDict(data, i, {});
             const parsed = this.parseWsMyTrade(trade);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
             trades.append(parsed);
         }
         let messageHash = 'myTrades';
@@ -1178,7 +1203,8 @@ export default class weex extends weexRest {
         if (positionSide !== undefined) {
             marketType = 'swap';
         }
-        market = this.safeMarket(marketId, undefined, undefined, marketType);
+        const marketResolved = this.safeMarket(marketId, undefined, undefined, marketType);
+        market = marketResolved;
         const side = this.safeStringLower(trade, 'orderSide');
         let fee = undefined;
         const commission = this.safeString(trade, 'fillFee');
@@ -1187,10 +1213,10 @@ export default class weex extends weexRest {
             let feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = market['base'];
+                    feeCurrency = marketResolved['base'];
                 }
                 else {
-                    feeCurrency = market['quote'];
+                    feeCurrency = marketResolved['quote'];
                 }
             }
             fee = {
@@ -1203,7 +1229,7 @@ export default class weex extends weexRest {
             'id': this.safeString(trade, 'id'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'order': this.safeString(trade, 'orderId'),
             'type': this.safeString(trade, 'type'),
             'side': side,
@@ -1340,7 +1366,9 @@ export default class weex extends weexRest {
             const parsed = this.parseWsOrder(rawOrder);
             orders.append(parsed);
             const symbol = parsed['symbol'];
-            symbols[symbol] = true;
+            if (symbol !== undefined) {
+                symbols[symbol] = true;
+            }
         }
         let messageHash = 'orders';
         const symbolKeys = Object.keys(symbols);
@@ -1448,7 +1476,8 @@ export default class weex extends weexRest {
         if (positionSide !== undefined) {
             marketType = 'swap';
         }
-        market = this.safeMarket(marketId, undefined, undefined, marketType);
+        const marketResolved = this.safeMarket(marketId, undefined, undefined, marketType);
+        market = marketResolved;
         const side = this.safeStringLower(order, 'orderSide');
         let fee = undefined;
         const commission = this.safeString(order, 'cumFillFee');
@@ -1457,10 +1486,10 @@ export default class weex extends weexRest {
             let feeCurrency = this.safeCurrencyCode(commissionAsset);
             if (marketType === 'spot') {
                 if (side === 'buy') {
-                    feeCurrency = market['base'];
+                    feeCurrency = marketResolved['base'];
                 }
                 else {
-                    feeCurrency = market['quote'];
+                    feeCurrency = marketResolved['quote'];
                 }
             }
             fee = {
@@ -1482,7 +1511,7 @@ export default class weex extends weexRest {
         return this.safeOrder({
             'id': this.safeString(order, 'id'),
             'clientOrderId': this.safeString(order, 'clientOrderId'),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': this.parseOrderType(rawType),
             'timeInForce': this.safeString(order, 'timeInForce'),
             'postOnly': undefined,
@@ -1586,7 +1615,7 @@ export default class weex extends weexRest {
         //         ]
         //     }
         //
-        // coontract
+        // contract
         //     {
         //         "e": "account",
         //         "E": 1776189629849,
@@ -1645,7 +1674,9 @@ export default class weex extends weexRest {
             account['free'] = this.safeString2(entry, 'available', 'amount');
             account['used'] = this.safeString(entry, 'frozen');
             account['total'] = this.safeString2(entry, 'equity', 'legacyAmount');
-            this.balance[accountType][code] = account;
+            if ((accountType !== undefined) && (code !== undefined)) {
+                this.balance[accountType][code] = account;
+            }
         }
         const timestamp = this.safeInteger(message, 'E');
         this.balance[accountType]['timestamp'] = timestamp;

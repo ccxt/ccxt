@@ -64,6 +64,7 @@ import testBinaryConcat from './test.binaryConcat.js';
 import testConstants from './test.constants.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
+import testIsDictionary from './test.isDictionary.js';
 import testEncodeDecode from './test.encodeDecode.js';
 async function baseTestsInit() {
     await testLanguageSpecific();
@@ -81,6 +82,7 @@ async function baseTestsInit() {
     testNumberToBE();
     testDecimalToPrecision();
     testCapitalize();
+    testIsDictionary();
     testNumberToString();
     testPrecise();
     testSafeMethods();

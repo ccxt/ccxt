@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any {
+func (this *BaseExchange) Fetch(url any, method any, headers any, body any) chan any {
 	ch := make(chan any)
 	go func() {
 		defer close(ch)
@@ -267,7 +267,7 @@ func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any
 	return ch
 }
 
-func (this *Exchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
+func (this *BaseExchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
 
 	codeString := ToString(code)
 	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)

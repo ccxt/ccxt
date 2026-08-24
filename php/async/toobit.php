@@ -17,6 +17,8 @@ use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class toobit extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -50,6 +52,7 @@ class toobit extends Exchange {
                 'fetchBorrowRateHistory' => false,
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
+                'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
@@ -63,6 +66,7 @@ class toobit extends Exchange {
                 'fetchIsolatedBorrowRates' => false,
                 'fetchLastPrices' => true,
                 'fetchLedger' => true,
+                'fetchLeverage' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
@@ -73,14 +77,17 @@ class toobit extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositions' => true,
                 'fetchStatus' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFees' => true,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
+                'setLeverage' => true,
                 'setMarginMode' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -93,89 +100,115 @@ class toobit extends Exchange {
                 ),
                 'www' => 'https://www.toobit.com/',
                 'doc' => array(
-                    'https://toobit-docs.github.io/apidocs/spot/v1/en/',
-                    'https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/',
+                    'https://api-docs.toobit.com/',
                 ),
                 'referral' => array(
-                    'url' => 'https://www.toobit.com/en-US/r?i=IFFPy0',
-                    'discount' => 0.1,
+                    'url' => 'https://www.toobit.com/en-US/r?i=dvCpJj',
                 ),
                 'fees' => 'https://www.toobit.com/fee',
             ),
             'api' => array(
                 'common' => array(
                     'get' => array(
-                        'api/v1/time' => 1,
-                        'api/v1/ping' => 1,
-                        'api/v1/exchangeInfo' => 1,
-                        'quote/v1/depth' => 1, // todo => by limit 1-10
-                        'quote/v1/depth/merged' => 1,
-                        'quote/v1/trades' => 1,
-                        'quote/v1/klines' => 1,
-                        'quote/v1/index/klines' => 1,
-                        'quote/v1/markPrice/klines' => 1,
-                        'quote/v1/markPrice' => 1,
-                        'quote/v1/index' => 1,
-                        'quote/v1/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
-                        'quote/v1/contract/ticker/24hr' => 40, // todo => 1-40 depenidng noSymbol
-                        'quote/v1/ticker/price' => 1,
-                        'quote/v1/ticker/bookTicker' => 1,
-                        'api/v1/futures/fundingRate' => 1,
-                        'api/v1/futures/historyFundingRate' => 1,
+                        'api/v1/time' => array( 'cost' => 1 ),
+                        'api/v1/ping' => array( 'cost' => 1 ),
+                        'api/v1/exchangeInfo' => array( 'cost' => 1 ),
+                        'quote/v1/depth' => array( 'cost' => 1 ), // todo => by limit 1-10
+                        'quote/v1/depth/merged' => array( 'cost' => 1 ),
+                        'quote/v1/trades' => array( 'cost' => 1 ),
+                        'quote/v1/klines' => array( 'cost' => 1 ),
+                        'quote/v1/index/klines' => array( 'cost' => 1 ),
+                        'quote/v1/indexPriceComponents' => array( 'cost' => 1 ),
+                        'quote/v1/markPrice/klines' => array( 'cost' => 1 ),
+                        'quote/v1/markPrice' => array( 'cost' => 10 ), // 5 requests per second
+                        'quote/v1/index' => array( 'cost' => 1 ),
+                        'quote/v1/ticker/24hr' => array( 'cost' => 40 ), // todo => 1-40 depending noSymbol
+                        'quote/v1/contract/ticker/24hr' => array( 'cost' => 40 ), // todo => 1-40 depending noSymbol
+                        'quote/v1/ticker/price' => array( 'cost' => 1 ),
+                        'quote/v1/contract/ticker/price' => array( 'cost' => 1 ),
+                        'quote/v1/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'quote/v1/contract/ticker/bookTicker' => array( 'cost' => 1 ),
+                        'api/v1/futures/fundingRate' => array( 'cost' => 1 ),
+                        'api/v1/futures/historyFundingRate' => array( 'cost' => 1 ),
+                        'api/v1/futures/riskLimits' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'api/v1/account' => 5,
-                        'api/v1/account/checkApiKey' => 1,
-                        'api/v1/spot/order' => 1 * 1.67,
-                        'api/v1/spot/openOrders' => 1 * 1.67,
-                        'api/v1/futures/openOrders' => 1 * 1.67,
-                        'api/v1/spot/tradeOrders' => 5 * 1.67,
-                        'api/v1/futures/historyOrders' => 5 * 1.67,
-                        'api/v1/account/trades' => 5 * 1.67,
-                        'api/v1/account/balanceFlow' => 5,
-                        'api/v1/account/depositOrders' => 5,
-                        'api/v1/account/withdrawOrders' => 5,
-                        'api/v1/account/deposit/address' => 1,
+                        'api/v1/account' => array( 'cost' => 5 ),
+                        'api/v1/account/checkApiKey' => array( 'cost' => 1 ),
+                        'api/v1/spot/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/openOrders' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/openOrders' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/tradeOrders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/historyOrders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/account/trades' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/account/balanceFlow' => array( 'cost' => 5 ),
+                        'api/v1/account/depositOrders' => array( 'cost' => 5 ),
+                        'api/v1/account/withdrawOrders' => array( 'cost' => 5 ),
+                        'api/v1/account/deposit/address' => array( 'cost' => 1 ),
                         // contracts
-                        'api/v1/subAccount' => 5,
-                        'api/v1/futures/accountLeverage' => 1,
-                        'api/v1/futures/order' => 1 * 1.67,
-                        'api/v1/futures/positions' => 5 * 1.67,
-                        'api/v1/futures/balance' => 5,
-                        'api/v1/futures/userTrades' => 5 * 1.67,
-                        'api/v1/futures/balanceFlow' => 5,
-                        'api/v1/futures/commissionRate' => 5,
-                        'api/v1/futures/todayPnl' => 5,
+                        'api/v1/subAccount' => array( 'cost' => 5 ),
+                        'api/v1/account/subAccount' => array( 'cost' => 5 ),
+                        'api/v1/subAccount/list' => array( 'cost' => 5 ),
+                        'api/v1/futures/accountLeverage' => array( 'cost' => 1 ),
+                        'api/v1/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/positions' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/historyPositions' => array( 'cost' => 5 ),
+                        'api/v1/futures/balance' => array( 'cost' => 5 ),
+                        'api/v1/futures/userTrades' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/balanceFlow' => array( 'cost' => 5 ),
+                        'api/v1/futures/commissionRate' => array( 'cost' => 5 ),
+                        'api/v1/futures/todayPnl' => array( 'cost' => 5 ),
+                        'api/v1/account/download/detail' => array( 'cost' => 10 ),
+                        'api/v1/agent/inviteUserList' => array( 'cost' => 1 ),
+                        'api/v1/agent/commissionDataList' => array( 'cost' => 1 ),
+                        'api/v1/agent/commissionDataInfo' => array( 'cost' => 1 ),
+                        'api/v1/agent/inviteRelationCheck' => array( 'cost' => 1 ),
+                        'api/v1/agent/depositDetailList' => array( 'cost' => 1 ),
+                        'api/v1/agent/querySubAgentData' => array( 'cost' => 1 ),
+                        'api/v1/agent/spotOrdersList' => array( 'cost' => 1 ),
+                        'api/v1/agent/futuresOrdersList' => array( 'cost' => 1 ),
+                        'api/v1/agent/futuresPositionsList' => array( 'cost' => 1 ),
+                        'api/v1/agent/invite-commission-detail' => array( 'cost' => 1 ),
+                        'api/v1/agent/user/export' => array( 'cost' => 1 ),
+                        'api/v1/agent/export-list' => array( 'cost' => 1 ),
+                        'api/v1/agent/export-url' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
-                        'api/v1/spot/orderTest' => 1 * 1.67,
-                        'api/v1/spot/order' => 1 * 1.67,
-                        'api/v1/futures/order' => 1 * 1.67,
-                        'api/v1/spot/batchOrders' => 2 * 1.67,
-                        'api/v1/subAccount/transfer' => 1,
-                        'api/v1/account/withdraw' => 1,
+                        'api/v1/spot/orderTest' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/batchOrders' => array( 'cost' => 2 * 1.67 ),
+                        'api/v1/subAccount/transfer' => array( 'cost' => 1 ),
+                        'api/v1/account/withdraw' => array( 'cost' => 1 ),
                         // contracts
-                        'api/v1/futures/marginType' => 1,
-                        'api/v1/futures/leverage' => 1,
-                        'api/v1/futures/batchOrders' => 2 * 1.67,
-                        'api/v1/futures/position/trading-stop' => 3 * 1.67,
-                        'api/v1/futures/positionMargin' => 1,
-                        'api/v1/userDataStream' => 1,
-                        'api/v1/listenKey' => 1,
+                        'api/v1/futures/marginType' => array( 'cost' => 1 ),
+                        'api/v1/futures/leverage' => array( 'cost' => 1 ),
+                        'api/v1/futures/batchOrders' => array( 'cost' => 2 * 1.67 ),
+                        'api/v1/futures/position/trading-stop' => array( 'cost' => 3 * 1.67 ),
+                        'api/v1/futures/positionMargin' => array( 'cost' => 1 ),
+                        'api/v1/futures/order/update' => array( 'cost' => 2 * 1.67 ),
+                        'api/v1/futures/autoAddMargin' => array( 'cost' => 1 ),
+                        'api/v1/futures/flashClose' => array( 'cost' => 1 ),
+                        'api/v1/futures/reversePosition' => array( 'cost' => 5 ),
+                        'api/v1/account/download/apply' => array( 'cost' => 1000 ),
+                        'api/v1/userDataStream' => array( 'cost' => 1 ),
+                        'api/v1/listenKey' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
-                        'api/v1/spot/order' => 1 * 1.67,
-                        'api/v1/futures/order' => 1 * 1.67,
-                        'api/v1/spot/openOrders' => 5 * 1.67,
-                        'api/v1/futures/batchOrders' => 5 * 1.67,
-                        'api/v1/spot/cancelOrderByIds' => 5 * 1.67,
-                        'api/v1/futures/cancelOrderByIds' => 5 * 1.67,
-                        'api/v1/listenKey' => 1,
+                        'api/v1/spot/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v1/spot/openOrders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/batchOrders' => array( 'cost' => 3 * 1.67 ),
+                        'api/v1/spot/cancelOrderByIds' => array( 'cost' => 5 * 1.67 ),
+                        'api/v1/futures/cancelOrderByIds' => array( 'cost' => 3 * 1.67 ),
+                        'api/v1/userDataStream' => array( 'cost' => 1 ),
+                        'api/v1/listenKey' => array( 'cost' => 1 ),
                     ),
                     'put' => array(
-                        'api/v1/listenKey' => 1,
+                        'api/v1/userDataStream' => array( 'cost' => 1 ),
+                        'api/v1/listenKey' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -201,53 +234,76 @@ class toobit extends Exchange {
                     '-1000' => '\\ccxt\\OperationFailed', // An unknown error occurred while processing the request.
                     '-1001' => '\\ccxt\\OperationFailed', // Internal error; unable to process your request. Please try again.
                     '-1002' => '\\ccxt\\PermissionDenied', // You are not authorized to execute this request.
-                    '-1003' => '\\ccxt\\RateLimitExceeded', // TOO_MANY_REQUESTS
+                    '-1003' => '\\ccxt\\RateLimitExceeded', // Too many requests queued.
                     '-1004' => '\\ccxt\\BadRequest', // array("code":-1004,"msg":"Missing required parameter \u0027xyz\u0027") | array("code":-1004,"msg":"Bad request")
-                    '-1006' => '\\ccxt\\OperationFailed', // An unexpected response was received from the message bus. Execution status unknown
+                    '-1005' => '\\ccxt\\PermissionDenied', // No Permission
+                    '-1006' => '\\ccxt\\OperationFailed', // An unexpected response was received from the message bus. Execution status unknown.
                     '-1007' => '\\ccxt\\OperationFailed', // Timeout waiting for response from backend server. Send status unknown; execution status unknown.
                     '-1014' => '\\ccxt\\OperationFailed', // Unsupported order combination.
-                    '-1015' => '\\ccxt\\RateLimitExceeded', // Too many new orders
+                    '-1015' => '\\ccxt\\RateLimitExceeded', // Reach the rate limit .Please slow down your request speed.
                     '-1016' => '\\ccxt\\OperationRejected', // This service is no longer available.
                     '-1020' => '\\ccxt\\OperationRejected', // This operation is not supported.
                     '-1021' => '\\ccxt\\OperationRejected', // Timestamp for this request is outside of the recvWindow.
                     '-1022' => '\\ccxt\\OperationRejected', // Signature for this request is not valid.
+                    '-1023' => '\\ccxt\\PermissionDenied', // Please set IP whitelist before using API
+                    '-1031' => '\\ccxt\\OperationRejected', // The feature has been suspended
                     '-1100' => '\\ccxt\\BadRequest', // Illegal characters found in a parameter.
                     '-1101' => '\\ccxt\\BadRequest', // Too many parameters sent for this endpoint.
-                    '-1102' => '\\ccxt\\BadRequest', // A mandatory parameter was not sent, was empty/null, or malformed
-                    '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent
-                    '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read
-                    '-1105' => '\\ccxt\\BadRequest', // A parameter was empty
-                    '-1106' => '\\ccxt\\BadRequest', // A parameter was sent when not required
+                    '-1102' => '\\ccxt\\BadRequest', // A mandatory parameter was not sent, was empty/null, or malformed.
+                    '-1103' => '\\ccxt\\BadRequest', // An unknown parameter was sent.
+                    '-1104' => '\\ccxt\\BadRequest', // Not all sent parameters were read.
+                    '-1105' => '\\ccxt\\BadRequest', // A parameter was empty.
+                    '-1106' => '\\ccxt\\BadRequest', // A parameter was sent when not required.
+                    '-1107' => '\\ccxt\\PermissionDenied', // The accessKey is missing from the request header or parameters, or the accessKey is not in the correct format.
                     '-1111' => '\\ccxt\\BadRequest', // Precision is over the maximum defined for this asset.
                     '-1112' => '\\ccxt\\OperationRejected', // No orders on book for symbol.
                     '-1114' => '\\ccxt\\BadRequest', // TimeInForce parameter sent when not required.
-                    '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce
-                    '-1116' => '\\ccxt\\BadRequest', // Invalid orderType
-                    '-1117' => '\\ccxt\\BadRequest', // Invalid side
+                    '-1115' => '\\ccxt\\BadRequest', // Invalid timeInForce.
+                    '-1116' => '\\ccxt\\BadRequest', // Invalid orderType.
+                    '-1117' => '\\ccxt\\BadRequest', // Invalid side.
                     '-1118' => '\\ccxt\\InvalidOrder', // New client order ID was empty.
-                    '-1119' => '\\ccxt\\InvalidOrder', // Original client order ID was empty
-                    '-1120' => '\\ccxt\\BadRequest', // Invalid interval
-                    '-1121' => '\\ccxt\\BadRequest', // Invalid symbol
+                    '-1119' => '\\ccxt\\InvalidOrder', // Original client order ID was empty.
+                    '-1120' => '\\ccxt\\BadRequest', // Invalid interval.
+                    '-1121' => '\\ccxt\\BadSymbol', // Invalid symbol.
                     '-1125' => '\\ccxt\\OperationRejected', // This listenKey does not exist.
-                    '-1127' => '\\ccxt\\OperationRejected', // Lookup interval is too big
-                    '-1128' => '\\ccxt\\BadRequest', // Combination of optional parameters invalid
-                    '-1130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter
-                    '-1132' => '\\ccxt\\OperationRejected', // Order price too high
-                    '-1133' => '\\ccxt\\OperationRejected', // Order price lower than the minimum,please check general broker info
-                    '-1134' => '\\ccxt\\OperationRejected', // Order price decimal too long,please check general broker info
-                    '-1135' => '\\ccxt\\OperationRejected', // Order quantity too large
-                    '-1136' => '\\ccxt\\OperationRejected', // Order quantity lower than the minimum
-                    '-1137' => '\\ccxt\\OperationRejected', // Order quantity decimal too long
-                    '-1138' => '\\ccxt\\OperationRejected', // Order price exceeds permissible range
-                    '-1139' => '\\ccxt\\OperationRejected', // Order has been filled
-                    '-1140' => '\\ccxt\\OperationRejected', // Transaction amount lower than the minimum
+                    '-1127' => '\\ccxt\\OperationRejected', // Lookup interval is too big.
+                    '-1128' => '\\ccxt\\BadRequest', // Combination of optional parameters invalid.
+                    '-1129' => '\\ccxt\\BadRequest', // The time range cannot exceed one year.
+                    '-1130' => '\\ccxt\\BadRequest', // Invalid data sent for a parameter.
+                    '-1131' => '\\ccxt\\InsufficientFunds', // Balance insufficient
+                    '-1132' => '\\ccxt\\OperationRejected', // Order price too high.
+                    '-1133' => '\\ccxt\\OperationRejected', // Order price lower than the minimum,please check general broker info.
+                    '-1134' => '\\ccxt\\OperationRejected', // Order price decimal too long,please check general broker info.
+                    '-1135' => '\\ccxt\\OperationRejected', // Order quantity too large.
+                    '-1136' => '\\ccxt\\OperationRejected', // Order quantity lower than the minimum.
+                    '-1137' => '\\ccxt\\OperationRejected', // Order quantity decimal too long.
+                    '-1138' => '\\ccxt\\OperationRejected', // Order price exceeds permissible range.
+                    '-1139' => '\\ccxt\\OperationRejected', // Order has been filled.
+                    '-1140' => '\\ccxt\\OperationRejected', // Transaction amount lower than the minimum.
                     '-1141' => '\\ccxt\\InvalidOrder', // Duplicate clientOrderId
                     '-1142' => '\\ccxt\\InvalidOrder', // Order has been canceled
-                    '-1143' => '\\ccxt\\InvalidOrder', // Cannot be found on order book
+                    '-1143' => '\\ccxt\\OrderNotFound', // Cannot be found on order book
                     '-1144' => '\\ccxt\\OperationRejected', // Order has been locked
                     '-1145' => '\\ccxt\\OperationRejected', // This order type does not support cancellation
                     '-1146' => '\\ccxt\\OperationFailed', // Order creation timeout
                     '-1147' => '\\ccxt\\OperationFailed', // Order cancellation timeout
+                    '-1148' => '\\ccxt\\InvalidOrder', // Market order amount decimal too long
+                    '-1149' => '\\ccxt\\OperationFailed', // Create order failed
+                    '-1150' => '\\ccxt\\OperationFailed', // Cancel order failed
+                    '-1151' => '\\ccxt\\OperationRejected', // The trading pair is not open yet
+                    '-1153' => '\\ccxt\\PermissionDenied', // User not exist
+                    '-1156' => '\\ccxt\\InvalidOrder', // Order quantity invalid
+                    '-1157' => '\\ccxt\\OperationRejected', // The trading pair is not available for api trading
+                    '-1158' => '\\ccxt\\InvalidOrder', // create limit maker order failed
+                    '-1161' => '\\ccxt\\OperationRejected', // Reduce margin forbidden
+                    '-1164' => '\\ccxt\\OperationRejected', // Auto add margin error
+                    '-1165' => '\\ccxt\\BadRequest', // Invalid stopType.
+                    '-1166' => '\\ccxt\\BadRequest', // Invalid callbackType.
+                    '-1170' => '\\ccxt\\OperationRejected', // finance account exist.
+                    '-1171' => '\\ccxt\\ExchangeError', // account not exist.
+                    '-1172' => '\\ccxt\\OperationFailed', // Balance transfer failed.
+                    '-1181' => '\\ccxt\\PermissionDenied', // Currently not allowed to withdraw.
+                    '-1182' => '\\ccxt\\PermissionDenied', // Currently not allowed to deposit.
                     '-1193' => '\\ccxt\\OperationRejected', // Create order count limit
                     '-1194' => '\\ccxt\\OperationRejected', // Create market order forbidden
                     '-1195' => '\\ccxt\\OperationRejected', // Create limit order price too small
@@ -259,34 +315,105 @@ class toobit extends Exchange {
                     '-1201' => '\\ccxt\\OperationRejected', // Create limit order sell price too big
                     '-1202' => '\\ccxt\\OperationRejected', // Create order sell quantity too small
                     '-1203' => '\\ccxt\\OperationRejected', // Create order sell quantity too big
+                    '-1204' => '\\ccxt\\PermissionDenied', // account not authorized
+                    '-1205' => '\\ccxt\\BadRequest', // same account not transfer
                     '-1206' => '\\ccxt\\OperationRejected', // Orders over the maximum transaction amount
+                    '-1207' => '\\ccxt\\InvalidOrder', // planOrder count limit.
+                    '-1208' => '\\ccxt\\InvalidOrder', // stopProfitLoss order count limit.
+                    '-1209' => '\\ccxt\\InvalidOrder', // stopProfitLoss order position limit.
+                    '-1210' => '\\ccxt\\InvalidOrder', // dynamic stop profit long fallQuantity high.
+                    '-1211' => '\\ccxt\\InvalidOrder', // dynamic stop profit activePrice low.
+                    '-1212' => '\\ccxt\\InvalidOrder', // dynamic stop profit activePrice high.
+                    '-1213' => '\\ccxt\\BadSymbol', // Account symbol does not match
+                    '-1214' => '\\ccxt\\PermissionDenied', // No opening trades
+                    '-1215' => '\\ccxt\\PermissionDenied', // No closing trades
+                    '-1216' => '\\ccxt\\OperationRejected', // Trigger transfer limit failed
+                    '-1217' => '\\ccxt\\InvalidOrder', // Create stop order buy price too big
+                    '-1300' => '\\ccxt\\BadRequest', // Duplicate transferId
+                    '-1400' => '\\ccxt\\BadRequest', // API voucher type is not allowed.
+                    '-1401' => '\\ccxt\\PermissionDenied', // You are not eligible to use API trial voucher.
+                    '-1402' => '\\ccxt\\OperationFailed', // API voucher query failed.
+                    '-1403' => '\\ccxt\\OperationFailed', // API voucher receive failed.
+                    '-1404' => '\\ccxt\\ExchangeError', // API voucher agent config failed.
+                    '-1405' => '\\ccxt\\ExchangeError', // API voucher not found.
+                    '-1406' => '\\ccxt\\OperationRejected', // API voucher is already in use.
+                    '-1407' => '\\ccxt\\OperationRejected', // API voucher threshold is not met.
+                    '-1408' => '\\ccxt\\InsufficientFunds', // Contract asset is less than zero.
+                    '-1409' => '\\ccxt\\OperationRejected', // API voucher status is invalid.
+                    '-1410' => '\\ccxt\\InsufficientFunds', // API voucher system account balance is insufficient.
+                    '-1411' => '\\ccxt\\OperationRejected', // API voucher transfer is processing.
+                    '-1412' => '\\ccxt\\OperationRejected', // API voucher can not be merged.
+                    '-1413' => '\\ccxt\\BadRequest', // API voucher trade rate does not match.
+                    '-1414' => '\\ccxt\\BadRequest', // API voucher fee rule does not match.
+                    '-1415' => '\\ccxt\\BadRequest', // API voucher token does not match.
+                    '-1416' => '\\ccxt\\InsufficientFunds', // Some API vouchers can not be received due to insufficient system balance.
+                    '-1417' => '\\ccxt\\OperationRejected', // Some API vouchers do not meet the receiving threshold.
                     '-2010' => '\\ccxt\\OperationFailed', // NEW_ORDER_REJECTED
                     '-2011' => '\\ccxt\\OperationFailed', // CANCEL_REJECTED
-                    '-2013' => '\\ccxt\\InvalidOrder', // Order does not exist.
+                    '-2013' => '\\ccxt\\OrderNotFound', // Order does not exist.
                     '-2014' => '\\ccxt\\PermissionDenied', // API-key format invalid.
                     '-2015' => '\\ccxt\\PermissionDenied', // Invalid API-key, IP, or permissions for action.
                     '-2016' => '\\ccxt\\BadRequest', // No trading window could be found for the symbol. Try ticker/24hrs instead.
+                    '-2017' => '\\ccxt\\PermissionDenied', // The API key has expired. Please update your API key immediately.
+                    '-2018' => '\\ccxt\\PermissionDenied', // API triggered risk control restrictions have been suspended, if you have any questions, please contact support@toobit.com .
                     // errors above 3xxx are from swap API
-                    '-3050' => '\\ccxt\\ExchangeError', // CREATE_API_KEY_EXCEED_LIMIT
-                    '-3101' => '\\ccxt\\OperationRejected', // open margin account error
-                    '-3102' => '\\ccxt\\OperationRejected', // get margin safety error
-                    '-3103' => '\\ccxt\\BadRequest', // risk config is not exit
-                    '-3105' => '\\ccxt\\OperationRejected', // token can not borrow
-                    '-3107' => '\\ccxt\\OperationRejected', // token can not withdraw
-                    '-3108' => '\\ccxt\\OperationRejected', // get token avail withdraw error
-                    '-3109' => '\\ccxt\\OperationRejected', // margin withdraw failed
-                    '-3110' => '\\ccxt\\InsufficientFunds', // margin avail withdraw not enough failed
-                    '-3116' => '\\ccxt\\OperationRejected', // repay fail
-                    '-3117' => '\\ccxt\\OperationRejected', // get margin all position fail
-                    '-3120' => '\\ccxt\\OperationRejected', // get repay order fail
+                    '-3000' => '\\ccxt\\BadRequest', // Option not exist.
+                    '-3001' => '\\ccxt\\OperationRejected', // The option has expired.
+                    '-3002' => '\\ccxt\\InvalidOrder', // Order failed => position exceeded limit
+                    '-3050' => '\\ccxt\\ExchangeError', // The ApiKey corresponding to the account already exists
+                    '-3051' => '\\ccxt\\OperationRejected', // The sub-user has assets are not allowed to be deleted
+                    '-3052' => '\\ccxt\\BadRequest', // sub-user id error
+                    '-3101' => '\\ccxt\\OperationRejected', // Open margin account error
+                    '-3102' => '\\ccxt\\OperationRejected', // Get margin safety error
+                    '-3103' => '\\ccxt\\BadRequest', // Risk config is not exit
+                    '-3105' => '\\ccxt\\OperationRejected', // Token can not borrow
+                    '-3107' => '\\ccxt\\OperationRejected', // Token can not withdraw
+                    '-3108' => '\\ccxt\\OperationRejected', // Get token avail withdraw error
+                    '-3109' => '\\ccxt\\OperationRejected', // Margin withdraw failed
+                    '-3110' => '\\ccxt\\InsufficientFunds', // Margin avail withdraw not enough failed
+                    '-3116' => '\\ccxt\\OperationRejected', // Repay fail
+                    '-3117' => '\\ccxt\\OperationRejected', // Get margin all position fail
+                    '-3120' => '\\ccxt\\OperationRejected', // Get repay order fail
                     '-3124' => '\\ccxt\\OperationRejected', // Position and order data error
                     '-3125' => '\\ccxt\\OperationRejected', // Position size cannot meet target leverage
                     '-3126' => '\\ccxt\\OperationRejected', // Adjust leverage fail
                     '-3127' => '\\ccxt\\OperationFailed', // Adjust leverage timeout
                     '-3128' => '\\ccxt\\OperationRejected', // The margin mode cannot be changed while you have an open order/position
-                    '-3129' => '\\ccxt\\BadRequest', // cone futures change position type error
-                    '-3130' => '\\ccxt\\OperationRejected', // order margin insufficient
+                    '-3129' => '\\ccxt\\BadRequest', // Cone futures change position type error
+                    '-3130' => '\\ccxt\\OperationRejected', // Order margin insufficient
                     '-3131' => '\\ccxt\\NotSupported', // Leverage reduction is not supported in Isolated Margin Mode with open positions.
+                    '-3132' => '\\ccxt\\InvalidOrder', // Maximum allowed leverage reached, please lower your leverage.
+                    '-3133' => '\\ccxt\\InvalidOrder', // The number of open orders exceeds the limit.
+                    '-3136' => '\\ccxt\\OperationRejected', // Quick symbol activity only limit/buy/ioc order is supported
+                    '-3137' => '\\ccxt\\OperationRejected', // Open countdown is not over
+                    '-3138' => '\\ccxt\\OperationRejected', // Open activity pre_hold is handling
+                    '-3139' => '\\ccxt\\OperationRejected', // Open activity max amount limit
+                    '-3140' => '\\ccxt\\OperationRejected', // Open activity min amount limit
+                    '-3141' => '\\ccxt\\InvalidOrder', // Invalid long stop profit price.
+                    '-3142' => '\\ccxt\\InvalidOrder', // Invalid long stop loss price.
+                    '-3143' => '\\ccxt\\InvalidOrder', // Invalid short stop profit price.
+                    '-3144' => '\\ccxt\\InvalidOrder', // Invalid short stop loss price.
+                    '-3145' => '\\ccxt\\InvalidOrder', // No position, Please confirm your position direction.
+                    '-3147' => '\\ccxt\\OperationRejected', // previous transfer is being processed. please try again later.
+                    '-3148' => '\\ccxt\\InvalidOrder', // create order exceeds max futures risk limit.
+                    '-3149' => '\\ccxt\\InvalidOrder', // The reduction in margin is unlawful.
+                    '-3150' => '\\ccxt\\NotSupported', // cross position margin adjustments are not supported.
+                    '-3151' => '\\ccxt\\NotSupported', // Separate position mode is not supported.
+                    '-3152' => '\\ccxt\\BadRequest', // Separate-position mismatch => position mode must be SEPARATE.
+                    '-3153' => '\\ccxt\\BadRequest', // Whole-position mismatch => position mode must be WHOLE.
+                    '-32045' => '\\ccxt\\ExchangeError', // Copy trading follower not found.
+                    '-32090' => '\\ccxt\\OperationRejected', // Trading pair change is not allowed.
+                    '-32093' => '\\ccxt\\OperationRejected', // Copy trading position type cannot be changed.
+                    '-120041' => '\\ccxt\\PermissionDenied', // Copy trading leader is not available.
+                    '-120047' => '\\ccxt\\ExchangeError', // Leader does not exist.
+                    '-120055' => '\\ccxt\\OperationRejected', // The follower currently has copy position, cannot be removed.
+                    '-120067' => '\\ccxt\\ExchangeError', // Copy trading level config not found.
+                    '-120072' => '\\ccxt\\BadRequest', // Copy trading leader config is invalid.
+                    '-120073' => '\\ccxt\\OperationRejected', // Unable to switch invite setting.
+                    '-120078' => '\\ccxt\\BadRequest', // unLeadStartTime or unLeadEndTime is invalid.
+                    '-120510' => '\\ccxt\\BadRequest', // Invite code already exists.
+                    '-120511' => '\\ccxt\\BadRequest', // Invite code contains sensitive content.
+                    '-120512' => '\\ccxt\\BadRequest', // Invite code is invalid.
                 ),
                 'broad' => array(
                     'Unknown order sent' => '\\ccxt\\OrderNotFound',
@@ -323,7 +450,7 @@ class toobit extends Exchange {
                     'TRC20' => 'TRX',
                     'SOL' => 'SOL',
                     'MATIC' => 'MATIC',
-                    'ARBONE' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARBITRUM',
                     'BASE' => 'BASE',
                     'TON' => 'TON',
                     'AVAXC' => 'AVAXC',
@@ -425,196 +552,205 @@ class toobit extends Exchange {
         ));
     }
 
-    public function fetch_status($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * the latest known information on the availability of the exchange API
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
-             */
-            $response = Async\await($this->commonGetApiV1Ping($params));
-            return array(
-                'status' => 'ok',
-                'updated' => null,
-                'eta' => null,
-                'url' => null,
-                'info' => $response,
-            );
-        })();
+    public function fetch_status($params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_status(...))($params);
+    }
+
+    private function do_fetch_status($params = array()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         *
+         * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#test-connectivity
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
+         */
+        $response = Async\await($this->commonGetApiV1Ping($params));
+        return array(
+            'status' => 'ok',
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
     }
 
     public function fetch_time($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches the current integer timestamp in milliseconds from the exchange server
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#check-server-time
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {int} the current integer timestamp in milliseconds from the exchange server
-             */
-            $response = Async\await($this->commonGetApiV1Time($params));
-            //
-            //     {
-            //         "serverTime" => 1699827319559
-            //     }
-            //
-            return $this->safe_integer($response, 'serverTime');
-        })();
+        return Async\async(self::do_fetch_time(...))($params);
+    }
+
+    private function do_fetch_time($params = array()) {
+        /**
+         * fetches the current integer timestamp in milliseconds from the exchange server
+         *
+         * @see https://api-docs.toobit.com/api/spot-market-data.html#check-server-time
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        $response = Async\await($this->commonGetApiV1Time($params));
+        //
+        //     {
+        //         "serverTime" => 1699827319559
+        //     }
+        //
+        return $this->safe_integer($response, 'serverTime');
     }
 
     public function fetch_currencies($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetches all available currencies on an exchange
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an associative dictionary of currencies
-             */
-            $response = Async\await($this->commonGetApiV1ExchangeInfo($params));
-            $this->options['exchangeInfo'] = $response; // we store it in options for later use in fetchMarkets
-            //
-            //    {
-            //        "timezone" => "UTC",
-            //        "serverTime" => "1755583099926",
-            //        "brokerFilters" => array(),
-            //        "symbols" => array(
-            //            {
-            //                "filters" => array(
-            //                    array(
-            //                        "minPrice" => "0.01",
-            //                        "maxPrice" => "10000000.00000000",
-            //                        "tickSize" => "0.01",
-            //                        "filterType" => "PRICE_FILTER"
-            //                    ),
-            //                    array(
-            //                        "minQty" => "0.0001",
-            //                        "maxQty" => "4000",
-            //                        "stepSize" => "0.0001",
-            //                        "filterType" => "LOT_SIZE"
-            //                    ),
-            //                    array(
-            //                        "minNotional" => "5",
-            //                        "filterType" => "MIN_NOTIONAL"
-            //                    ),
-            //                    array(
-            //                        "minAmount" => "5",
-            //                        "maxAmount" => "6600000",
-            //                        "minBuyPrice" => "0.01",
-            //                        "filterType" => "TRADE_AMOUNT"
-            //                    ),
-            //                    array(
-            //                        "maxSellPrice" => "99999999",
-            //                        "buyPriceUpRate" => "0.1",
-            //                        "sellPriceDownRate" => "0.1",
-            //                        "filterType" => "LIMIT_TRADING"
-            //                    ),
-            //                    array(
-            //                        "buyPriceUpRate" => "0.1",
-            //                        "sellPriceDownRate" => "0.1",
-            //                        "filterType" => "MARKET_TRADING"
-            //                    ),
-            //                    {
-            //                        "noAllowMarketStartTime" => "0",
-            //                        "noAllowMarketEndTime" => "0",
-            //                        "limitOrderStartTime" => "0",
-            //                        "limitOrderEndTime" => "0",
-            //                        "limitMinPrice" => "0",
-            //                        "limitMaxPrice" => "0",
-            //                        "filterType" => "OPEN_QUOTE"
-            //                    }
-            //                ),
-            //                "exchangeId" => "301",
-            //                "symbol" => "ETHUSDT",
-            //                "symbolName" => "ETHUSDT",
-            //                "status" => "TRADING",
-            //                "baseAsset" => "ETH",
-            //                "baseAssetName" => "ETH",
-            //                "baseAssetPrecision" => "0.0001",
-            //                "quoteAsset" => "USDT",
-            //                "quoteAssetName" => "USDT",
-            //                "quotePrecision" => "0.01",
-            //                "icebergAllowed" => false,
-            //                "isAggregate" => false,
-            //                "allowMargin" => true,
-            //             }
-            //        ),
-            //        "options" => array(),
-            //        "contracts" => array(
-            //            array(
-            //                 "filters" => array( ... ),
-            //                 "exchangeId" => "301",
-            //                 "symbol" => "BTC-SWAP-USDT",
-            //                 "symbolName" => "BTC-SWAP-USDTUSDT",
-            //                 "status" => "TRADING",
-            //                 "baseAsset" => "BTC-SWAP-USDT",
-            //                 "baseAssetPrecision" => "0.001",
-            //                 "quoteAsset" => "USDT",
-            //                 "quoteAssetPrecision" => "0.1",
-            //                 "icebergAllowed" => false,
-            //                 "inverse" => false,
-            //                 "index" => "BTC",
-            //                 "indexToken" => "BTCUSDT",
-            //                 "marginToken" => "USDT",
-            //                 "marginPrecision" => "0.0001",
-            //                 "contractMultiplier" => "0.001",
-            //                 "underlying" => "BTC",
-            //                 "riskLimits" => array(
-            //                     array(
-            //                         "riskLimitId" => "200020911",
-            //                         "quantity" => "42000.0",
-            //                         "initialMargin" => "0.02",
-            //                         "maintMargin" => "0.01",
-            //                         "isWhite" => false
-            //                     ),
-            //                     array(
-            //                         "riskLimitId" => "200020912",
-            //                         "quantity" => "84000.0",
-            //                         "initialMargin" => "0.04",
-            //                         "maintMargin" => "0.02",
-            //                         "isWhite" => false
-            //                     ),
-            //                     ...
-            //                 )
-            //            ),
-            //        ),
-            //        "coins" => [
-            //            {
-            //                "orgId" => "9001",
-            //                "coinId" => "TCOM",
-            //                "coinName" => "TCOM",
-            //                "coinFullName" => "TCOM",
-            //                "allowWithdraw" => true,
-            //                "allowDeposit" => true,
-            //                "chainTypes" => array(
-            //                    array(
-            //                        "chainType" => "BSC",
-            //                        "withdrawFee" => "49.55478",
-            //                        "minWithdrawQuantity" => "77",
-            //                        "maxWithdrawQuantity" => "0",
-            //                        "minDepositQuantity" => "48",
-            //                        "allowDeposit" => true,
-            //                        "allowWithdraw" => false
-            //                    }
-            //                ),
-            //                "isVirtual" => false
-            //            ),
-            //          ...
-            //
-            $coins = $this->safe_list($response, 'coins', array());
-            $result = array();
-            for ($i = 0; $i < count($coins); $i++) {
-                $coin = $coins[$i];
-                $parsed = $this->parse_currency($coin);
-                if ($parsed !== null) {
-                    $code = $parsed['code'];
-                    $result[$code] = $parsed;
-                }
+        return Async\async(self::do_fetch_currencies(...))($params);
+    }
+
+    private function do_fetch_currencies($params = array()) {
+        /**
+         * fetches all available currencies on an exchange
+         *
+         * @see https://api-docs.toobit.com/api/spot-market-data.html#exchange-information
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an associative dictionary of currencies
+         */
+        $response = Async\await($this->commonGetApiV1ExchangeInfo($params));
+        $this->options['exchangeInfo'] = $response; // we store it in options for later use in fetchMarkets
+        //
+        //    {
+        //        "timezone" => "UTC",
+        //        "serverTime" => "1755583099926",
+        //        "brokerFilters" => array(),
+        //        "symbols" => array(
+        //            {
+        //                "filters" => array(
+        //                    array(
+        //                        "minPrice" => "0.01",
+        //                        "maxPrice" => "10000000.00000000",
+        //                        "tickSize" => "0.01",
+        //                        "filterType" => "PRICE_FILTER"
+        //                    ),
+        //                    array(
+        //                        "minQty" => "0.0001",
+        //                        "maxQty" => "4000",
+        //                        "stepSize" => "0.0001",
+        //                        "filterType" => "LOT_SIZE"
+        //                    ),
+        //                    array(
+        //                        "minNotional" => "5",
+        //                        "filterType" => "MIN_NOTIONAL"
+        //                    ),
+        //                    array(
+        //                        "minAmount" => "5",
+        //                        "maxAmount" => "6600000",
+        //                        "minBuyPrice" => "0.01",
+        //                        "filterType" => "TRADE_AMOUNT"
+        //                    ),
+        //                    array(
+        //                        "maxSellPrice" => "99999999",
+        //                        "buyPriceUpRate" => "0.1",
+        //                        "sellPriceDownRate" => "0.1",
+        //                        "filterType" => "LIMIT_TRADING"
+        //                    ),
+        //                    array(
+        //                        "buyPriceUpRate" => "0.1",
+        //                        "sellPriceDownRate" => "0.1",
+        //                        "filterType" => "MARKET_TRADING"
+        //                    ),
+        //                    {
+        //                        "noAllowMarketStartTime" => "0",
+        //                        "noAllowMarketEndTime" => "0",
+        //                        "limitOrderStartTime" => "0",
+        //                        "limitOrderEndTime" => "0",
+        //                        "limitMinPrice" => "0",
+        //                        "limitMaxPrice" => "0",
+        //                        "filterType" => "OPEN_QUOTE"
+        //                    }
+        //                ),
+        //                "exchangeId" => "301",
+        //                "symbol" => "ETHUSDT",
+        //                "symbolName" => "ETHUSDT",
+        //                "status" => "TRADING",
+        //                "baseAsset" => "ETH",
+        //                "baseAssetName" => "ETH",
+        //                "baseAssetPrecision" => "0.0001",
+        //                "quoteAsset" => "USDT",
+        //                "quoteAssetName" => "USDT",
+        //                "quotePrecision" => "0.01",
+        //                "icebergAllowed" => false,
+        //                "isAggregate" => false,
+        //                "allowMargin" => true,
+        //             }
+        //        ),
+        //        "options" => array(),
+        //        "contracts" => array(
+        //            array(
+        //                 "filters" => array( ... ),
+        //                 "exchangeId" => "301",
+        //                 "symbol" => "BTC-SWAP-USDT",
+        //                 "symbolName" => "BTC-SWAP-USDTUSDT",
+        //                 "status" => "TRADING",
+        //                 "baseAsset" => "BTC-SWAP-USDT",
+        //                 "baseAssetPrecision" => "0.001",
+        //                 "quoteAsset" => "USDT",
+        //                 "quoteAssetPrecision" => "0.1",
+        //                 "icebergAllowed" => false,
+        //                 "inverse" => false,
+        //                 "index" => "BTC",
+        //                 "indexToken" => "BTCUSDT",
+        //                 "marginToken" => "USDT",
+        //                 "marginPrecision" => "0.0001",
+        //                 "contractMultiplier" => "0.001",
+        //                 "underlying" => "BTC",
+        //                 "riskLimits" => array(
+        //                     array(
+        //                         "riskLimitId" => "200020911",
+        //                         "quantity" => "42000.0",
+        //                         "initialMargin" => "0.02",
+        //                         "maintMargin" => "0.01",
+        //                         "isWhite" => false
+        //                     ),
+        //                     array(
+        //                         "riskLimitId" => "200020912",
+        //                         "quantity" => "84000.0",
+        //                         "initialMargin" => "0.04",
+        //                         "maintMargin" => "0.02",
+        //                         "isWhite" => false
+        //                     ),
+        //                     ...
+        //                 )
+        //            ),
+        //        ),
+        //        "coins" => [
+        //            {
+        //                "orgId" => "9001",
+        //                "coinId" => "TCOM",
+        //                "coinName" => "TCOM",
+        //                "coinFullName" => "TCOM",
+        //                "allowWithdraw" => true,
+        //                "allowDeposit" => true,
+        //                "chainTypes" => array(
+        //                    array(
+        //                        "chainType" => "BSC",
+        //                        "withdrawFee" => "49.55478",
+        //                        "minWithdrawQuantity" => "77",
+        //                        "maxWithdrawQuantity" => "0",
+        //                        "minDepositQuantity" => "48",
+        //                        "allowDeposit" => true,
+        //                        "allowWithdraw" => false
+        //                    }
+        //                ),
+        //                "isVirtual" => false
+        //            ),
+        //          ...
+        //
+        $coins = $this->safe_list($response, 'coins', array());
+        $result = array();
+        for ($i = 0; $i < count($coins); $i++) {
+            $coin = $coins[$i];
+            $parsed = $this->parse_currency($coin);
+            if ($parsed !== null) {
+                $code = $parsed['code'];
+                $result[$code] = $parsed;
             }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -626,27 +762,29 @@ class toobit extends Exchange {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string($rawNetwork, 'chainType');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'margin' => null,
-                'deposit' => $this->safe_bool($rawNetwork, 'allowDeposit'),
-                'withdraw' => $this->safe_bool($rawNetwork, 'allowWithdraw'),
-                'active' => null,
-                'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
-                'precision' => null,
-                'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($rawNetwork, 'minDepositQuantity'),
-                        'max' => null,
+            if ($networkCode !== null) {
+                $networks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'margin' => null,
+                    'deposit' => $this->safe_bool($rawNetwork, 'allowDeposit'),
+                    'withdraw' => $this->safe_bool($rawNetwork, 'allowWithdraw'),
+                    'active' => null,
+                    'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'deposit' => array(
+                            'min' => $this->safe_number($rawNetwork, 'minDepositQuantity'),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($rawNetwork, 'minWithdrawQuantity'),
+                            'max' => $this->safe_number($rawNetwork, 'maxWithdrawQuantity'),
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($rawNetwork, 'minWithdrawQuantity'),
-                        'max' => $this->safe_number($rawNetwork, 'maxWithdrawQuantity'),
-                    ),
-                ),
-                'info' => $rawNetwork,
-            );
+                    'info' => $rawNetwork,
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -674,163 +812,165 @@ class toobit extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on $all markets for toobit
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#exchange-information
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#exchange-information
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing $market data
-             */
-            $response = $this->safe_dict($this->options, 'exchangeInfo');
-            if ($response !== null) {
-                $this->options['exchangeInfo'] = null; // reset it to avoid using old cached data
-            } else {
-                $response = Async\await($this->commonGetApiV1ExchangeInfo($params));
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on $all markets for toobit
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#exchange-information
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#exchange-information
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing $market data
+         */
+        $response = $this->safe_dict($this->options, 'exchangeInfo');
+        if ($response !== null) {
+            $this->options['exchangeInfo'] = null; // reset it to avoid using old cached data
+        } else {
+            $response = Async\await($this->commonGetApiV1ExchangeInfo($params));
+        }
+        //
+        //    {
+        //        "timezone" => "UTC",
+        //        "serverTime" => "1755583099926",
+        //        "brokerFilters" => array(),
+        //        "symbols" => array(
+        //            {
+        //                "filters" => array(
+        //                    array(
+        //                        "minPrice" => "0.01",
+        //                        "maxPrice" => "10000000.00000000",
+        //                        "tickSize" => "0.01",
+        //                        "filterType" => "PRICE_FILTER"
+        //                    ),
+        //                    array(
+        //                        "minQty" => "0.0001",
+        //                        "maxQty" => "4000",
+        //                        "stepSize" => "0.0001",
+        //                        "filterType" => "LOT_SIZE"
+        //                    ),
+        //                    array(
+        //                        "minNotional" => "5",
+        //                        "filterType" => "MIN_NOTIONAL"
+        //                    ),
+        //                    array(
+        //                        "minAmount" => "5",
+        //                        "maxAmount" => "6600000",
+        //                        "minBuyPrice" => "0.01",
+        //                        "filterType" => "TRADE_AMOUNT"
+        //                    ),
+        //                    array(
+        //                        "maxSellPrice" => "99999999",
+        //                        "buyPriceUpRate" => "0.1",
+        //                        "sellPriceDownRate" => "0.1",
+        //                        "filterType" => "LIMIT_TRADING"
+        //                    ),
+        //                    array(
+        //                        "buyPriceUpRate" => "0.1",
+        //                        "sellPriceDownRate" => "0.1",
+        //                        "filterType" => "MARKET_TRADING"
+        //                    ),
+        //                    {
+        //                        "noAllowMarketStartTime" => "0",
+        //                        "noAllowMarketEndTime" => "0",
+        //                        "limitOrderStartTime" => "0",
+        //                        "limitOrderEndTime" => "0",
+        //                        "limitMinPrice" => "0",
+        //                        "limitMaxPrice" => "0",
+        //                        "filterType" => "OPEN_QUOTE"
+        //                    }
+        //                ),
+        //                "exchangeId" => "301",
+        //                "symbol" => "ETHUSDT",
+        //                "symbolName" => "ETHUSDT",
+        //                "status" => "TRADING",
+        //                "baseAsset" => "ETH",
+        //                "baseAssetName" => "ETH",
+        //                "baseAssetPrecision" => "0.0001",
+        //                "quoteAsset" => "USDT",
+        //                "quoteAssetName" => "USDT",
+        //                "quotePrecision" => "0.01",
+        //                "icebergAllowed" => false,
+        //                "isAggregate" => false,
+        //                "allowMargin" => true,
+        //             }
+        //        ),
+        //        "options" => array(),
+        //        "contracts" => array(
+        //            array(
+        //                 "filters" => array( ... ),
+        //                 "exchangeId" => "301",
+        //                 "symbol" => "BTC-SWAP-USDT",
+        //                 "symbolName" => "BTC-SWAP-USDTUSDT",
+        //                 "status" => "TRADING",
+        //                 "baseAsset" => "BTC-SWAP-USDT",
+        //                 "baseAssetPrecision" => "0.001",
+        //                 "quoteAsset" => "USDT",
+        //                 "quoteAssetPrecision" => "0.1",
+        //                 "icebergAllowed" => false,
+        //                 "inverse" => false,
+        //                 "index" => "BTC",
+        //                 "indexToken" => "BTCUSDT",
+        //                 "marginToken" => "USDT",
+        //                 "marginPrecision" => "0.0001",
+        //                 "contractMultiplier" => "0.001",
+        //                 "underlying" => "BTC",
+        //                 "riskLimits" => array(
+        //                     array(
+        //                         "riskLimitId" => "200020911",
+        //                         "quantity" => "42000.0",
+        //                         "initialMargin" => "0.02",
+        //                         "maintMargin" => "0.01",
+        //                         "isWhite" => false
+        //                     ),
+        //                     array(
+        //                         "riskLimitId" => "200020912",
+        //                         "quantity" => "84000.0",
+        //                         "initialMargin" => "0.04",
+        //                         "maintMargin" => "0.02",
+        //                         "isWhite" => false
+        //                     ),
+        //                     ...
+        //                 )
+        //            ),
+        //        ),
+        //        "coins" => [
+        //            {
+        //                "orgId" => "9001",
+        //                "coinId" => "TCOM",
+        //                "coinName" => "TCOM",
+        //                "coinFullName" => "TCOM",
+        //                "allowWithdraw" => true,
+        //                "allowDeposit" => true,
+        //                "chainTypes" => array(
+        //                    array(
+        //                        "chainType" => "BSC",
+        //                        "withdrawFee" => "49.55478",
+        //                        "minWithdrawQuantity" => "77",
+        //                        "maxWithdrawQuantity" => "0",
+        //                        "minDepositQuantity" => "48",
+        //                        "allowDeposit" => true,
+        //                        "allowWithdraw" => false
+        //                    }
+        //                ),
+        //                "isVirtual" => false
+        //            ),
+        //          ...
+        //
+        $symbols = $this->safe_list($response, 'symbols', array());
+        $contracts = $this->safe_list($response, 'contracts', array());
+        $all = $this->array_concat($symbols, $contracts);
+        $result = array();
+        for ($i = 0; $i < count($all); $i++) {
+            $market = $all[$i];
+            $parsed = $this->parse_market($market);
+            if ($parsed !== null) {
+                $result[] = $parsed;
             }
-            //
-            //    {
-            //        "timezone" => "UTC",
-            //        "serverTime" => "1755583099926",
-            //        "brokerFilters" => array(),
-            //        "symbols" => array(
-            //            {
-            //                "filters" => array(
-            //                    array(
-            //                        "minPrice" => "0.01",
-            //                        "maxPrice" => "10000000.00000000",
-            //                        "tickSize" => "0.01",
-            //                        "filterType" => "PRICE_FILTER"
-            //                    ),
-            //                    array(
-            //                        "minQty" => "0.0001",
-            //                        "maxQty" => "4000",
-            //                        "stepSize" => "0.0001",
-            //                        "filterType" => "LOT_SIZE"
-            //                    ),
-            //                    array(
-            //                        "minNotional" => "5",
-            //                        "filterType" => "MIN_NOTIONAL"
-            //                    ),
-            //                    array(
-            //                        "minAmount" => "5",
-            //                        "maxAmount" => "6600000",
-            //                        "minBuyPrice" => "0.01",
-            //                        "filterType" => "TRADE_AMOUNT"
-            //                    ),
-            //                    array(
-            //                        "maxSellPrice" => "99999999",
-            //                        "buyPriceUpRate" => "0.1",
-            //                        "sellPriceDownRate" => "0.1",
-            //                        "filterType" => "LIMIT_TRADING"
-            //                    ),
-            //                    array(
-            //                        "buyPriceUpRate" => "0.1",
-            //                        "sellPriceDownRate" => "0.1",
-            //                        "filterType" => "MARKET_TRADING"
-            //                    ),
-            //                    {
-            //                        "noAllowMarketStartTime" => "0",
-            //                        "noAllowMarketEndTime" => "0",
-            //                        "limitOrderStartTime" => "0",
-            //                        "limitOrderEndTime" => "0",
-            //                        "limitMinPrice" => "0",
-            //                        "limitMaxPrice" => "0",
-            //                        "filterType" => "OPEN_QUOTE"
-            //                    }
-            //                ),
-            //                "exchangeId" => "301",
-            //                "symbol" => "ETHUSDT",
-            //                "symbolName" => "ETHUSDT",
-            //                "status" => "TRADING",
-            //                "baseAsset" => "ETH",
-            //                "baseAssetName" => "ETH",
-            //                "baseAssetPrecision" => "0.0001",
-            //                "quoteAsset" => "USDT",
-            //                "quoteAssetName" => "USDT",
-            //                "quotePrecision" => "0.01",
-            //                "icebergAllowed" => false,
-            //                "isAggregate" => false,
-            //                "allowMargin" => true,
-            //             }
-            //        ),
-            //        "options" => array(),
-            //        "contracts" => array(
-            //            array(
-            //                 "filters" => array( ... ),
-            //                 "exchangeId" => "301",
-            //                 "symbol" => "BTC-SWAP-USDT",
-            //                 "symbolName" => "BTC-SWAP-USDTUSDT",
-            //                 "status" => "TRADING",
-            //                 "baseAsset" => "BTC-SWAP-USDT",
-            //                 "baseAssetPrecision" => "0.001",
-            //                 "quoteAsset" => "USDT",
-            //                 "quoteAssetPrecision" => "0.1",
-            //                 "icebergAllowed" => false,
-            //                 "inverse" => false,
-            //                 "index" => "BTC",
-            //                 "indexToken" => "BTCUSDT",
-            //                 "marginToken" => "USDT",
-            //                 "marginPrecision" => "0.0001",
-            //                 "contractMultiplier" => "0.001",
-            //                 "underlying" => "BTC",
-            //                 "riskLimits" => array(
-            //                     array(
-            //                         "riskLimitId" => "200020911",
-            //                         "quantity" => "42000.0",
-            //                         "initialMargin" => "0.02",
-            //                         "maintMargin" => "0.01",
-            //                         "isWhite" => false
-            //                     ),
-            //                     array(
-            //                         "riskLimitId" => "200020912",
-            //                         "quantity" => "84000.0",
-            //                         "initialMargin" => "0.04",
-            //                         "maintMargin" => "0.02",
-            //                         "isWhite" => false
-            //                     ),
-            //                     ...
-            //                 )
-            //            ),
-            //        ),
-            //        "coins" => [
-            //            {
-            //                "orgId" => "9001",
-            //                "coinId" => "TCOM",
-            //                "coinName" => "TCOM",
-            //                "coinFullName" => "TCOM",
-            //                "allowWithdraw" => true,
-            //                "allowDeposit" => true,
-            //                "chainTypes" => array(
-            //                    array(
-            //                        "chainType" => "BSC",
-            //                        "withdrawFee" => "49.55478",
-            //                        "minWithdrawQuantity" => "77",
-            //                        "maxWithdrawQuantity" => "0",
-            //                        "minDepositQuantity" => "48",
-            //                        "allowDeposit" => true,
-            //                        "allowWithdraw" => false
-            //                    }
-            //                ),
-            //                "isVirtual" => false
-            //            ),
-            //          ...
-            //
-            $symbols = $this->safe_list($response, 'symbols', array());
-            $contracts = $this->safe_list($response, 'contracts', array());
-            $all = $this->array_concat($symbols, $contracts);
-            $result = array();
-            for ($i = 0; $i < count($all); $i++) {
-                $market = $all[$i];
-                $parsed = $this->parse_market($market);
-                if ($parsed !== null) {
-                    $result[] = $parsed;
-                }
-            }
-            return $result;
-        })();
+        }
+        return $result;
     }
 
     public function parse_market(array $market): array {
@@ -851,7 +991,7 @@ class toobit extends Exchange {
         $lotSizeFilter = $this->safe_dict($filtersByType, 'LOT_SIZE', array());
         $minNotionalFilter = $this->safe_dict($filtersByType, 'MIN_NOTIONAL', array());
         $symbol = $base . '/' . $quote;
-        $isContract = (is_array($market) && array_key_exists('contractMultiplier', $market));
+        $isContract = (is_array($market) && array_key_exists('contractMultiplier' ?? '', $market));
         $inverse = $this->safe_bool_2($market, 'isInverse', 'inverse');
         if ($isContract) {
             $symbol .= ':' . $settle;
@@ -908,98 +1048,102 @@ class toobit extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#order-book
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#order-book
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->commonGetQuoteV1Depth($this->extend($request, $params)));
-            //
-            //    {
-            //        "t" => "1755593995237",
-            //        "b" => array(
-            //            array(
-            //                "115186.47",
-            //                "4.184864"
-            //            ),
-            //            array(
-            //                "115186.46",
-            //                "0.002756"
-            //            ),
-            //            ...
-            //        ),
-            //        "a" => array(
-            //            array(
-            //                "115186.48",
-            //                "6.137369"
-            //            ),
-            //            array(
-            //                "115186.49",
-            //                "0.002914"
-            //            ),
-            //            ...
-            //        )
-            //    }
-            //
-            $timestamp = $this->safe_integer($response, 't');
-            return $this->parse_order_book($response, $market['symbol'], $timestamp, 'b', 'a');
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#order-book
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#order-book
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->commonGetQuoteV1Depth($this->extend($request, $params)));
+        //
+        //    {
+        //        "t" => "1755593995237",
+        //        "b" => array(
+        //            array(
+        //                "115186.47",
+        //                "4.184864"
+        //            ),
+        //            array(
+        //                "115186.46",
+        //                "0.002756"
+        //            ),
+        //            ...
+        //        ),
+        //        "a" => array(
+        //            array(
+        //                "115186.48",
+        //                "6.137369"
+        //            ),
+        //            array(
+        //                "115186.49",
+        //                "0.002914"
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $timestamp = $this->safe_integer($response, 't');
+        return $this->parse_order_book($response, $market['symbol'], $timestamp, 'b', 'a');
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get a list of the most recent trades for a particular $symbol
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#recent-trades-list
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#recent-trades-list
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum number of trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->commonGetQuoteV1Trades($this->extend($request, $params)));
-            //
-            //    array(
-            //        array(
-            //            "t" => "1755594277287",
-            //            "p" => "115276.99",
-            //            "q" => "0.001508",
-            //            "ibm" => true
-            //        ),
-            //    )
-            //
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get a list of the most recent trades for a particular $symbol
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#recent-trades-list
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#recent-trades-list
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum number of trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->commonGetQuoteV1Trades($this->extend($request, $params)));
+        //
+        //    array(
+        //        array(
+        //            "t" => "1755594277287",
+        //            "p" => "115276.99",
+        //            "q" => "0.001508",
+        //            "ibm" => true
+        //        ),
+        //    )
+        //
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1103,115 +1247,123 @@ class toobit extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-data
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#kline-candlestick-data
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API $endpoint
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
-            );
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            $until = $this->safe_integer($params, 'until');
-            if ($until !== null) {
-                $params = $this->omit($params, 'until');
-                $request['endTime'] = $until;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = array();
-            $endpoint = null;
-            list($endpoint, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
-            if ($endpoint === 'index') {
-                $response = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $params)));
-                //
-                //     {
-                //         "code" => 200,
-                //         "data" => array(
-                //             array(
-                //                 "t" => 1669155300000,//time
-                //                 "s" => "ETHUSDT",// $symbol
-                //                 "sn" => "ETHUSDT",//symbol name
-                //                 "c" => "1127.1",//Close price
-                //                 "h" => "1130.81",//High price
-                //                 "l" => "1126.17",//Low price
-                //                 "o" => "1130.8",//Open price
-                //                 "v" => "0"//Volume
-                //             ),
-                //             {
-                //                 "t" => 1669156200000,
-                //                 "s" => "ETHUSDT",
-                //                 "sn" => "ETHUSDT",
-                //                 "c" => "1129.44",
-                //                 "h" => "1129.54",
-                //                 "l" => "1127.1",
-                //                 "o" => "1127.1",
-                //                 "v" => "0"
-                //             }
-                //         )
-                //     }
-                //
-            } elseif ($endpoint === 'mark') {
-                $response = Async\await($this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $params)));
-                //
-                //     {
-                //         "code" => 200,
-                //         "data" => array(
-                //             {
-                //                 "symbol" => "BTCUSDT",// Symbol
-                //                 "time" => 1670157900000,// time
-                //                 "low" => "16991.14096",//Low price
-                //                 "open" => "16991.78288",//Open price
-                //                 "high" => "16996.30641",// High prce
-                //                 "close" => "16996.30641",// Close price
-                //                 "volume" => "0",// Volume
-                //                 "curId" => 1670157900000
-                //             }
-                //         )
-                //     }
-                //
-            } else {
-                $response = Async\await($this->commonGetQuoteV1Klines($this->extend($request, $params)));
-                //
-                //    [
-                //        array(
-                //            1755540660000,
-                //            "116399.99",
-                //            "116399.99",
-                //            "116360.09",
-                //            "116360.1",
-                //            "2.236869",
-                //            0,
-                //            "260303.79722607",
-                //            22,
-                //            "2.221061",
-                //            "258464.10338267"
-                //        ),
-                //        ...
-                //
-            }
-            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#index-price-kline-candlestick-data
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#mark-price-kline-candlestick-data
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API $endpoint
+         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $params = $this->omit($params, 'until');
+            $request['endTime'] = $until;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = array();
+        $endpoint = null;
+        list($endpoint, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'price');
+        if ($endpoint === 'index') {
+            $response = Async\await($this->commonGetQuoteV1IndexKlines($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 200,
+            //         "data" => array(
+            //             array(
+            //                 "t" => 1669155300000,//time
+            //                 "s" => "ETHUSDT",// $symbol
+            //                 "sn" => "ETHUSDT",//symbol name
+            //                 "c" => "1127.1",//Close price
+            //                 "h" => "1130.81",//High price
+            //                 "l" => "1126.17",//Low price
+            //                 "o" => "1130.8",//Open price
+            //                 "v" => "0"//Volume
+            //             ),
+            //             {
+            //                 "t" => 1669156200000,
+            //                 "s" => "ETHUSDT",
+            //                 "sn" => "ETHUSDT",
+            //                 "c" => "1129.44",
+            //                 "h" => "1129.54",
+            //                 "l" => "1127.1",
+            //                 "o" => "1127.1",
+            //                 "v" => "0"
+            //             }
+            //         )
+            //     }
+            //
+        } elseif ($endpoint === 'mark') {
+            $response = Async\await($this->commonGetQuoteV1MarkPriceKlines($this->extend($request, $params)));
+            //
+            //     {
+            //         "code" => 200,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "BTCUSDT",// Symbol
+            //                 "time" => 1670157900000,// time
+            //                 "low" => "16991.14096",//Low price
+            //                 "open" => "16991.78288",//Open price
+            //                 "high" => "16996.30641",// High prce
+            //                 "close" => "16996.30641",// Close price
+            //                 "volume" => "0",// Volume
+            //                 "curId" => 1670157900000
+            //             }
+            //         )
+            //     }
+            //
+        } else {
+            $response = Async\await($this->commonGetQuoteV1Klines($this->extend($request, $params)));
+            //
+            //    [
+            //        array(
+            //            1755540660000,
+            //            "116399.99",
+            //            "116399.99",
+            //            "116360.09",
+            //            "116360.1",
+            //            "2.236869",
+            //            0,
+            //            "260303.79722607",
+            //            22,
+            //            "2.221061",
+            //            "258464.10338267"
+            //        ),
+            //        ...
+            //
+        }
+        $candles = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $candles = $response;
+        }
+        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer_n($ohlcv, array( 0, 'time', 't' )),
             $this->safe_number_n($ohlcv, array( 1, 'open', 'o' )),
@@ -1223,59 +1375,61 @@ class toobit extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#24hr-ticker-price-change-statistics
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#24hr-ticker-price-change-statistics
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#_24hr-ticker-price-change-statistics
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#_24hr-ticker-price-change-statistics
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $type = null;
+        $market = null;
+        $request = array();
+        if ($symbols !== null) {
+            $symbol = $this->safe_string($symbols, 0);
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
             }
-            $symbols = $this->market_symbols($symbols);
-            $type = null;
-            $market = null;
-            $request = array();
-            if ($symbols !== null) {
-                $symbol = $this->safe_string($symbols, 0);
-                if ($symbol !== null) {
-                    $market = $this->market($symbol);
-                }
-                $length = count($symbols);
-                if (($length === 1) && ($market !== null)) {
-                    $request['symbol'] = $market['id'];
-                }
+            $length = count($symbols);
+            if (($length === 1) && ($market !== null)) {
+                $request['symbol'] = $market['id'];
             }
-            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-            $response = null;
-            if ($type === 'spot') {
-                $response = Async\await($this->commonGetQuoteV1Ticker24hr($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->commonGetQuoteV1ContractTicker24hr($this->extend($request, $params)));
-            }
-            //
-            //    [
-            //        array(
-            //            "t" => "1755601440162",
-            //            "s" => "GRDRUSDT",
-            //            "o" => "0.38",
-            //            "h" => "0.38",
-            //            "l" => "0.38",
-            //            "c" => "0.38",
-            //            "v" => "0",
-            //            "qv" => "0",
-            //            "pc" => "0",
-            //            "pcp" => "0"
-            //        ),
-            //        ...
-            //
-            return $this->parse_tickers($response, $symbols, $params);
-        })();
+        }
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $response = null;
+        if ($type === 'spot') {
+            $response = Async\await($this->commonGetQuoteV1Ticker24hr($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->commonGetQuoteV1ContractTicker24hr($this->extend($request, $params)));
+        }
+        //
+        //    [
+        //        array(
+        //            "t" => "1755601440162",
+        //            "s" => "GRDRUSDT",
+        //            "o" => "0.38",
+        //            "h" => "0.38",
+        //            "l" => "0.38",
+        //            "c" => "0.38",
+        //            "v" => "0",
+        //            "qv" => "0",
+        //            "pc" => "0",
+        //            "pcp" => "0"
+        //        ),
+        //        ...
+        //
+        return $this->parse_tickers($response, $symbols, $params);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1283,6 +1437,11 @@ class toobit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($ticker, 't');
         $last = $this->safe_string($ticker, 'c');
+        $baseVolume = $this->safe_string($ticker, 'v');
+        if ($market['contract'] && ($market['contractSize'] !== null)) {
+            // 'v' counts contracts, and a $ticker reports base volume
+            $baseVolume = Precise::string_mul($baseVolume, $this->number_to_string($market['contractSize']));
+        }
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
@@ -1299,52 +1458,55 @@ class toobit extends Exchange {
             'last' => $last,
             'previousClose' => null,
             'change' => $this->safe_string($ticker, 'pc'),
-            'percentage' => $this->safe_string($ticker, 'pcp'),
+            // 'pcp' is a ratio, and a $ticker reports a percentage
+            'percentage' => Precise::string_mul($this->safe_string($ticker, 'pcp'), '100'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'v'),
+            'baseVolume' => $baseVolume,
             'quoteVolume' => $this->safe_string($ticker, 'qv'),
             'info' => $ticker,
         ), $market);
     }
 
     public function fetch_last_prices(?array $symbols = null, $params = array()) {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches the last price for multiple markets
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-price-ticker
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of lastprices structures
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $request = array();
-            if ($symbols !== null) {
-                $length = count($symbols);
-                if ($length === 1) {
-                    $market = $this->market($symbols[0]);
-                    $request['symbol'] = $market['id'];
-                }
-            }
-            $response = Async\await($this->commonGetQuoteV1TickerPrice($this->extend($request, $params)));
-            //
-            //    [
-            //        array(
-            //            "s" => "BNTUSDT",
-            //            "si" => "BNTUSDT",
-            //            "p" => "0.823"
-            //        ),
-            //
-            return $this->parse_last_prices($response, $symbols);
-        })();
+        return Async\async(self::do_fetch_last_prices(...))($symbols, $params);
     }
 
-    public function parse_last_price($entry, ?array $market = null) {
+    private function do_fetch_last_prices(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the last price for multiple markets
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-price-ticker
+         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-price-ticker
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the last prices
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of lastprices structures
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        if ($symbols !== null) {
+            $length = count($symbols);
+            if ($length === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->commonGetQuoteV1TickerPrice($this->extend($request, $params)));
+        //
+        //    [
+        //        array(
+        //            "s" => "BNTUSDT",
+        //            "si" => "BNTUSDT",
+        //            "p" => "0.823"
+        //        ),
+        //
+        return $this->parse_last_prices($response, $symbols);
+    }
+
+    public function parse_last_price(mixed $entry, ?array $market = null) {
         $marketId = $this->safe_string($entry, 's');
         $market = $this->safe_market($marketId, $market);
         return array(
@@ -1358,46 +1520,48 @@ class toobit extends Exchange {
     }
 
     public function fetch_bids_asks(?array $symbols = null, $params = array()) {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches the bid and ask price and volume for multiple markets
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#symbol-order-book-ticker
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
-             *
-             * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $request = array();
-            if ($symbols !== null) {
-                $length = count($symbols);
-                if ($length === 1) {
-                    $market = $this->market($symbols[0]);
-                    $request['symbol'] = $market['id'];
-                }
-            }
-            $response = Async\await($this->commonGetQuoteV1TickerBookTicker($this->extend($request, $params)));
-            //
-            //    [
-            //        array(
-            //            "s" => "GRDRUSDT",
-            //            "b" => "0",
-            //            "bq" => "0",
-            //            "a" => "0",
-            //            "aq" => "0",
-            //            "t" => "1755936610506"
-            //        ), ...
-            //
-            return $this->parse_bids_asks_custom($response, $symbols);
-        })();
+        return Async\async(self::do_fetch_bids_asks(...))($symbols, $params);
     }
 
-    public function parse_bids_asks_custom($tickers, ?array $symbols = null, $params = array()): array {
+    private function do_fetch_bids_asks(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         *
+         * @see https://api-docs.toobit.com/api/spot-$market-data.html#symbol-order-book-ticker
+         * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#symbol-order-book-ticker
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        if ($symbols !== null) {
+            $length = count($symbols);
+            if ($length === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->commonGetQuoteV1TickerBookTicker($this->extend($request, $params)));
+        //
+        //    [
+        //        array(
+        //            "s" => "GRDRUSDT",
+        //            "b" => "0",
+        //            "bq" => "0",
+        //            "a" => "0",
+        //            "aq" => "0",
+        //            "t" => "1755936610506"
+        //        ), ...
+        //
+        return $this->parse_bids_asks_custom($response, $symbols);
+    }
+
+    public function parse_bids_asks_custom(mixed $tickers, ?array $symbols = null, $params = array()): array {
         $results = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $parsedTicker = $this->parse_bid_ask_custom($tickers[$i]);
@@ -1408,7 +1572,7 @@ class toobit extends Exchange {
         return $this->filter_by_array($results, 'symbol', $symbols);
     }
 
-    public function parse_bid_ask_custom($ticker) {
+    public function parse_bid_ask_custom(mixed $ticker) {
         return array(
             'timestamp' => $this->safe_string($ticker, 't'),
             'symbol' => $this->safe_string($ticker, 's'),
@@ -1421,42 +1585,44 @@ class toobit extends Exchange {
     }
 
     public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch the funding rate for multiple markets
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#funding-rate
-             *
-             * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexe by $market $symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $symbols = $this->market_symbols($symbols);
-            $request = array();
-            if ($symbols !== null) {
-                $length = count($symbols);
-                if ($length === 1) {
-                    $market = $this->market($symbols[0]);
-                    $request['symbol'] = $market['id'];
-                }
-            }
-            $response = Async\await($this->commonGetApiV1FuturesFundingRate($this->extend($request, $params)));
-            //
-            //    [
-            //        array(
-            //            "symbol" => "BTC-SWAP-USDT",
-            //            "rate" => "0.0001071148112848",
-            //            "nextFundingTime" => "1755964800000"
-            //        ),...
-            //
-            return $this->parse_funding_rates($response, $symbols);
-        })();
+        return Async\async(self::do_fetch_funding_rates(...))($symbols, $params);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    private function do_fetch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * fetch the funding rate for multiple markets
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#funding-rate
+         *
+         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rates structures~, indexed by $market $symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $symbols = $this->market_symbols($symbols);
+        $request = array();
+        if ($symbols !== null) {
+            $length = count($symbols);
+            if ($length === 1) {
+                $market = $this->market($symbols[0]);
+                $request['symbol'] = $market['id'];
+            }
+        }
+        $response = Async\await($this->commonGetApiV1FuturesFundingRate($this->extend($request, $params)));
+        //
+        //    [
+        //        array(
+        //            "symbol" => "BTC-SWAP-USDT",
+        //            "rate" => "0.0001071148112848",
+        //            "nextFundingTime" => "1755964800000"
+        //        ),...
+        //
+        return $this->parse_funding_rates($response, $symbols);
+    }
+
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         $marketId = $this->safe_string($contract, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $nextFundingRate = $this->safe_number($contract, 'rate');
@@ -1484,53 +1650,55 @@ class toobit extends Exchange {
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches historical funding rate prices
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-funding-rate-history
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
-             * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-             * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] timestamp in ms of the latest funding rate to fetch
-             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $paginate = false;
-            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
-            if ($paginate) {
-                return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
-            }
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->commonGetApiV1FuturesHistoryFundingRate($this->extend($request, $params)));
-            //
-            //    [
-            //        array(
-            //            "id" => "869931",
-            //            "symbol" => "BTC-SWAP-USDT",
-            //            "settleTime" => "1755936000000",
-            //            "settleRate" => "0.0001"
-            //        ), ...
-            //
-            return $this->parse_funding_rate_histories($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
 
-    public function parse_funding_rate_history($contract, ?array $market = null) {
+    private function do_fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding rate prices
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-$market-data.html#get-funding-rate-history
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding rate to fetch
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
+        if ($paginate) {
+            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $params));
+        }
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->commonGetApiV1FuturesHistoryFundingRate($this->extend($request, $params)));
+        //
+        //    [
+        //        array(
+        //            "id" => "869931",
+        //            "symbol" => "BTC-SWAP-USDT",
+        //            "settleTime" => "1755936000000",
+        //            "settleRate" => "0.0001"
+        //        ), ...
+        //
+        return $this->parse_funding_rate_histories($response, $market, $since, $limit);
+    }
+
+    public function parse_funding_rate_history(mixed $contract, ?array $market = null) {
         $timestamp = $this->safe_integer($contract, 'settleTime');
         $marketId = $this->safe_string($contract, 'symbol');
         return array(
@@ -1543,59 +1711,61 @@ class toobit extends Exchange {
     }
 
     public function fetch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-information-user_data
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#futures-account-balance-user_data
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpointinvalid
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = null;
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-            if ($this->in_array($marketType, array( 'swap', 'future' ))) {
-                $response = Async\await($this->privateGetApiV1FuturesBalance());
-                //
-                //     array(
-                //         {
-                //             "asset" => "USDT", // asset
-                //             "balance" => "999999999999.982", // total
-                //             "availableBalance" => "1899999999978.4995", // available balance Include unrealized pnl
-                //             "positionMargin" => "11.9825", //position Margin
-                //             "orderMargin" => "9.5", //order Margin
-                //             "crossUnRealizedPnl" => "10.01" //The unrealized profit and loss of cross position
-                //         }
-                //     )
-                //
-            } else {
-                $response = Async\await($this->privateGetApiV1Account());
-                //
-                //    {
-                //        "userId" => "912902020",
-                //        "balances" => array(
-                //            {
-                //                "asset" => "ETH",
-                //                "assetId" => "ETH",
-                //                "assetName" => "ETH",
-                //                "total" => "0.025",
-                //                "free" => "0.025",
-                //                "locked" => "0"
-                //            }
-                //        )
-                //    }
-                //
-            }
-            return $this->parse_balance($response);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_balance($response): array {
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-information-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#futures-account-balance-user-data
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = null;
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        if ($this->in_array($marketType, array( 'swap', 'future' ))) {
+            $response = Async\await($this->privateGetApiV1FuturesBalance());
+            //
+            //     array(
+            //         {
+            //             "asset" => "USDT", // asset
+            //             "balance" => "999999999999.982", // total
+            //             "availableBalance" => "1899999999978.4995", // available balance Include unrealized pnl
+            //             "positionMargin" => "11.9825", //position Margin
+            //             "orderMargin" => "9.5", //order Margin
+            //             "crossUnRealizedPnl" => "10.01" //The unrealized profit and loss of cross position
+            //         }
+            //     )
+            //
+        } else {
+            $response = Async\await($this->privateGetApiV1Account());
+            //
+            //    {
+            //        "userId" => "912902020",
+            //        "balances" => array(
+            //            {
+            //                "asset" => "ETH",
+            //                "assetId" => "ETH",
+            //                "assetName" => "ETH",
+            //                "total" => "0.025",
+            //                "free" => "0.025",
+            //                "locked" => "0"
+            //            }
+            //        )
+            //    }
+            //
+        }
+        return $this->parse_balance($response);
+    }
+
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -1609,68 +1779,76 @@ class toobit extends Exchange {
             $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
             $account['total'] = $this->safe_string_2($balance, 'total', 'balance');
             $account['used'] = $this->safe_string($balance, 'locked');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#new-order-trade
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#new-order-trade
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type 'market', 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array();
-            $response = array();
-            if ($market['spot']) {
-                list($request, $params) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-                $response = Async\await($this->privatePostApiV1SpotOrder($this->extend($request, $params)));
-            } else {
-                list($request, $params) = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
-                $response = Async\await($this->privatePostApiV1FuturesOrder($this->extend($request, $params)));
-            }
-            //
-            //     {
-            //         "symbol" => "ETHUSDT",
-            //         "price" => "0",
-            //         "origQty" => "0.001",
-            //         "orderId" => "2024837825254460160",
-            //         "clientOrderId" => "1756115478113679",
-            //         "executedQty" => "0",
-            //         "status" => "PENDING_NEW",
-            //         "timeInForce" => "GTC",
-            //         "type" => "MARKET",
-            //         "side" => "SELL"
-            //         "accountId" => "1783404067076253952",    // only in spot
-            //         "symbolName" => "ETHUSDT",               // only in spot
-            //         "transactTime" => "1756115478604",       // only in spot
-            //         "time" => "1668418485058",               // only in contract
-            //         "updateTime" => "1668418485058",         // only in contract
-            //         "leverage" => "2",                       // only in contract
-            //         "avgPrice" => "0",                       // only in contract
-            //         "marginLocked" => "9.5",                 // only in contract
-            //         "priceType" => "INPUT"                   // only in contract
-            //     }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#new-order-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#new-order-trade
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market', 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array();
+        $response = array();
+        if ($market['spot']) {
+            list($request, $params) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->privatePostApiV1SpotOrder($this->extend($request, $params)));
+        } else {
+            list($request, $params) = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
+            $response = Async\await($this->privatePostApiV1FuturesOrder($this->extend($request, $params)));
+        }
+        //
+        //     {
+        //         "symbol" => "ETHUSDT",
+        //         "price" => "0",
+        //         "origQty" => "0.001",
+        //         "orderId" => "2024837825254460160",
+        //         "clientOrderId" => "1756115478113679",
+        //         "executedQty" => "0",
+        //         "status" => "PENDING_NEW",
+        //         "timeInForce" => "GTC",
+        //         "type" => "MARKET",
+        //         "side" => "SELL"
+        //         "accountId" => "1783404067076253952",    // only in spot
+        //         "symbolName" => "ETHUSDT",               // only in spot
+        //         "transactTime" => "1756115478604",       // only in spot
+        //         "time" => "1668418485058",               // only in contract
+        //         "updateTime" => "1668418485058",         // only in contract
+        //         "leverage" => "2",                       // only in contract
+        //         "avgPrice" => "0",                       // only in contract
+        //         "marginLocked" => "9.5",                 // only in contract
+        //         "priceType" => "INPUT"                   // only in contract
+        //     }
+        //
+        return $this->parse_order($response, $market);
+    }
+
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
         $market = $this->market($symbol);
         if ($side === null) {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
@@ -1685,12 +1863,11 @@ class toobit extends Exchange {
         }
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        if ($type === 'market') {
-            if ($cost === null && $side === 'buy') {
+        if ($type === 'market' && $side === 'buy') {
+            if ($cost === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires $params["cost"] for $market buy order');
-            } else {
-                $request['quantity'] = $this->cost_to_precision($symbol, $cost);
             }
+            $request['quantity'] = $this->cost_to_precision($symbol, $cost);
         } else {
             $request['quantity'] = $this->amount_to_precision($symbol, $amount);
         }
@@ -1704,7 +1881,13 @@ class toobit extends Exchange {
         return array( $request, $params );
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1713,9 +1896,9 @@ class toobit extends Exchange {
         $reduceOnly = null;
         list($reduceOnly, $params) = $this->handle_param_bool($params, 'reduceOnly');
         if ($side === 'buy') {
-            $side = $reduceOnly ? 'SELL_CLOSE' : 'BUY_OPEN';
+            $side = $reduceOnly ? 'BUY_CLOSE' : 'BUY_OPEN';
         } elseif ($side === 'sell') {
-            $side = $reduceOnly ? 'BUY_CLOSE' : 'SELL_OPEN';
+            $side = $reduceOnly ? 'SELL_CLOSE' : 'SELL_OPEN';
         }
         $request['side'] = $side;
         if ($price !== null) {
@@ -1773,7 +1956,7 @@ class toobit extends Exchange {
             }
             $params = $this->omit($params, 'takeProfit');
         }
-        if (!(is_array($params) && array_key_exists('newClientOrderId', $params))) {
+        if (!(is_array($params) && array_key_exists('newClientOrderId' ?? '', $params))) {
             $request['newClientOrderId'] = $this->uuid();
         }
         return array( $request, $params );
@@ -1843,6 +2026,18 @@ class toobit extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $rawType = $this->safe_string($order, 'type');
         $rawSideLower = $this->safe_string_lower($order, 'side');
+        $reduceOnly = null;
+        if ($rawSideLower !== null) {
+            // contract orders arrive, SELL_CLOSE and the like -
+            // the suffix is the only signal that carries $reduceOnly, so read
+            // it before discarding it (spot sides have no suffix => null)
+            $sideParts = explode('_', $rawSideLower);
+            $sideSuffix = $this->safe_string($sideParts, 1);
+            if ($sideSuffix !== null) {
+                $reduceOnly = ($sideSuffix === 'close');
+            }
+            $rawSideLower = $this->safe_string($sideParts, 0);
+        }
         $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         if ($triggerPrice === '0.0') {
             $triggerPrice = null;
@@ -1871,7 +2066,7 @@ class toobit extends Exchange {
             'trades' => null,
             'fee' => null,
             'marginMode' => null,
-            'reduceOnly' => null,
+            'reduceOnly' => $reduceOnly,
             'leverage' => null,
             'hedged' => null,
         ), $market);
@@ -1893,7 +2088,7 @@ class toobit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($status) {
+    public function parse_order_type(mixed $status) {
         $statuses = array(
             'MARKET' => 'market',
             'LIMIT' => 'limit',
@@ -1906,539 +2101,561 @@ class toobit extends Exchange {
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-order-trade
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-order-trade
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            $request = array();
-            if ($this->safe_string($params, 'clientOrderId') === null) {
-                $request['orderId'] = $id;
-            }
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params, 'none');
-            if ($marketType === 'none') {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
-            }
-            $response = array();
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateDeleteApiV1SpotOrder($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->privateDeleteApiV1FuturesOrder($this->extend($request, $params)));
-            }
-            // $response same `createOrder`
-            $status = $this->parse_order_status($this->safe_string($response, 'status'));
-            if ($status !== 'open') {
-                throw new OrderNotFound($this->id . ' order ' . $id . ' can not be canceled, ' . $this->json($response));
-            }
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-order-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-order-trade
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        $request = array();
+        if ($this->safe_string($params, 'clientOrderId') === null) {
+            $request['orderId'] = $id;
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params, 'none');
+        if ($marketType === 'none') {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+        }
+        $response = array();
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateDeleteApiV1SpotOrder($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateDeleteApiV1FuturesOrder($this->extend($request, $params)));
+        }
+        // $response same `createOrder`
+        $status = $this->parse_order_status($this->safe_string($response, 'status'));
+        if ($status !== 'open') {
+            throw new OrderNotFound($this->id . ' order ' . $id . ' can not be canceled, ' . $this->json($response));
+        }
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * cancel all open orders in a $market
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-all-open-orders-trade
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-orders-trade
-             *
-             * @param {string} $symbol unified $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'none');
-            if ($marketType === 'none') {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
-            }
-            $response = null;
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $params)));
-                //
-                // array("success":true)  // always same $response
-                //
-            } else {
-                $response = Async\await($this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $params)));
-                //
-                // array( "code" => 200, "message":"success", "timestamp":1541161088303 )
-                //
-            }
-            return array(
-                $this->safe_order(array(
-                    'info' => $response,
-                )),
-            );
-        })();
+        return Async\async(self::do_cancel_all_orders(...))($symbol, $params);
+    }
+
+    private function do_cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders in a $market
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-all-open-orders-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-orders-trade
+         *
+         * @param {string} $symbol unified $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params, 'none');
+        if ($marketType === 'none') {
+            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+        }
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateDeleteApiV1SpotOpenOrders($this->extend($request, $params)));
+            //
+            // array("success":true)  // always same $response
+            //
+        } else {
+            $response = Async\await($this->privateDeleteApiV1FuturesBatchOrders($this->extend($request, $params)));
+            //
+            // array( "code" => 200, "message":"success", "timestamp":1541161088303 )
+            //
+        }
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($ids, $symbol, $params) {
-            /**
-             * cancel multiple orders
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#cancel-multiple-orders-trade
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#cancel-multiple-orders-trade
-             *
-             * @param {string[]} $ids order $ids
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $idsString = implode(',', $ids);
-            $request = array(
-                'ids' => $idsString,
-            );
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params, 'none');
-            if ($marketType === 'none') {
-                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
-            }
-            $response = null;
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateDeleteApiV1SpotCancelOrderByIds($this->extend($request, $params)));
-                //
-                // array("success":true)  // always same $response
-                //
-            } else {
-                $response = Async\await($this->privateDeleteApiV1FuturesCancelOrderByIds($this->extend($request, $params)));
-                //
-                // {
-                //     "code":200,
-                //     "result":array(
-                //         array(
-                //             "orderId":"1327047813809448704",
-                //             "code":-2013
-                //         ),
-                //         {
-                //             "orderId":"1327047814212101888",
-                //             "code":-2013
-                //         }
-                //     )
-                // }
-                //
-                // or empty array if no orders were canceled
-            }
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_orders($result, $market);
-        })();
+        return Async\async(self::do_cancel_orders(...))($ids, $symbol, $params);
+    }
+
+    private function do_cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
+        /**
+         * cancel multiple orders
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#cancel-multiple-orders-trade
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#cancel-multiple-orders-trade
+         *
+         * @param {string[]} $ids order $ids
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $idsString = implode(',', $ids);
+        $request = array(
+            'ids' => $idsString,
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params, 'none');
+        if ($marketType === 'none') {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument or the "defaultType" parameter to be set to "spot" or "swap"');
+        }
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateDeleteApiV1SpotCancelOrderByIds($this->extend($request, $params)));
+            //
+            // array("success":true)  // always same $response
+            //
+        } else {
+            $response = Async\await($this->privateDeleteApiV1FuturesCancelOrderByIds($this->extend($request, $params)));
+            //
+            // {
+            //     "code":200,
+            //     "result":array(
+            //         array(
+            //             "orderId":"1327047813809448704",
+            //             "code":-2013
+            //         ),
+            //         {
+            //             "orderId":"1327047814212101888",
+            //             "code":-2013
+            //         }
+            //     )
+            // }
+            //
+            // or empty array if no orders were canceled
+        }
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_orders($result, $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * fetches information on an order made by the user
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#query-order-user_data
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-order-user_data
-             *
-             * @param {string} $id the order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array(
-                'orderId' => $id,
-            );
-            $market = $this->market($symbol);
-            $response = array();
-            if ($market['spot']) {
-                $response = Async\await($this->privateGetApiV1SpotOrder($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $params)));
-            }
-            //
-            //    {
-            //        "time" => "1756140208069",
-            //        "updateTime" => "1756140208078",
-            //        "orderId" => "2025045271033977089",
-            //        "clientOrderId" => "17561402075722006",
-            //        "symbol" => "ETHUSDT",
-            //        "price" => "3000",
-            //        "origQty" => "0.002",
-            //        "executedQty" => "0",
-            //        "avgPrice" => "0",
-            //        "type" => "LIMIT",
-            //        "side" => "BUY",
-            //        "timeInForce" => "GTC",
-            //        "status" => "NEW",
-            //        "accountId" => "1783404067076253952",  // only in SPOT
-            //        "exchangeId" => "301",                 // only in SPOT
-            //        "symbolName" => "ETHUSDT",             // only in SPOT
-            //        "cummulativeQuoteQty" => "0",          // only in SPOT
-            //        "cumulativeQuoteQty" => "0",           // only in SPOT
-            //        "stopPrice" => "0.0",                  // only in SPOT
-            //        "icebergQty" => "0.0",                 // only in SPOT
-            //        "isWorking" => true                    // only in SPOT
-            //        "leverage" => "2",                     // only in CONTRACT
-            //        "marginLocked" => "9.5",               // only in CONTRACT
-            //        "priceType" => "INPUT"                 // only in CONTRACT
-            //    }
-            //
-            return $this->parse_order($response, $market);
-        })();
+        return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
+    }
+
+    private function do_fetch_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * fetches information on an order made by the user
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#query-order-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-order-user-data
+         *
+         * @param {string} $id the order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array(
+            'orderId' => $id,
+        );
+        $market = $this->market($symbol);
+        $response = array();
+        if ($market['spot']) {
+            $response = Async\await($this->privateGetApiV1SpotOrder($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateGetApiV1FuturesOrder($this->extend($request, $params)));
+        }
+        //
+        //    {
+        //        "time" => "1756140208069",
+        //        "updateTime" => "1756140208078",
+        //        "orderId" => "2025045271033977089",
+        //        "clientOrderId" => "17561402075722006",
+        //        "symbol" => "ETHUSDT",
+        //        "price" => "3000",
+        //        "origQty" => "0.002",
+        //        "executedQty" => "0",
+        //        "avgPrice" => "0",
+        //        "type" => "LIMIT",
+        //        "side" => "BUY",
+        //        "timeInForce" => "GTC",
+        //        "status" => "NEW",
+        //        "accountId" => "1783404067076253952",  // only in SPOT
+        //        "exchangeId" => "301",                 // only in SPOT
+        //        "symbolName" => "ETHUSDT",             // only in SPOT
+        //        "cummulativeQuoteQty" => "0",          // only in SPOT
+        //        "cumulativeQuoteQty" => "0",           // only in SPOT
+        //        "stopPrice" => "0.0",                  // only in SPOT
+        //        "icebergQty" => "0.0",                 // only in SPOT
+        //        "isWorking" => true                    // only in SPOT
+        //        "leverage" => "2",                     // only in CONTRACT
+        //        "marginLocked" => "9.5",               // only in CONTRACT
+        //        "priceType" => "INPUT"                 // only in CONTRACT
+        //    }
+        //
+        return $this->parse_order($response, $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#current-open-orders-user_data
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-current-open-order-user_data
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-            $response = array();
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateGetApiV1SpotOpenOrders($this->extend($request, $params)));
-                //
-                //    array(
-                //        array(
-                //            "accountId" => "1783404067076253952",
-                //            "exchangeId" => "301",
-                //            "symbol" => "ETHUSDT",
-                //            "symbolName" => "ETHUSDT",
-                //            "clientOrderId" => "17561415157172008",
-                //            "orderId" => "2025056244339984384",
-                //            "price" => "3000",
-                //            "origQty" => "0.002",
-                //            "executedQty" => "0",
-                //            "cummulativeQuoteQty" => "0",
-                //            "cumulativeQuoteQty" => "0",
-                //            "avgPrice" => "0",
-                //            "status" => "NEW",
-                //            "timeInForce" => "GTC",
-                //            "type" => "LIMIT",
-                //            "side" => "BUY",
-                //            "stopPrice" => "0.0",
-                //            "icebergQty" => "0.0",
-                //            "time" => "1756141516189",
-                //            "updateTime" => "1756141516198",
-                //            "isWorking" => true
-                //        ), ...
-                //    )
-                //
-            } else {
-                $response = Async\await($this->privateGetApiV1FuturesOpenOrders($this->extend($request, $params)));
-            }
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#current-open-orders-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-current-open-order-user-data
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $response = array();
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateGetApiV1SpotOpenOrders($this->extend($request, $params)));
+            //
+            //    array(
+            //        array(
+            //            "accountId" => "1783404067076253952",
+            //            "exchangeId" => "301",
+            //            "symbol" => "ETHUSDT",
+            //            "symbolName" => "ETHUSDT",
+            //            "clientOrderId" => "17561415157172008",
+            //            "orderId" => "2025056244339984384",
+            //            "price" => "3000",
+            //            "origQty" => "0.002",
+            //            "executedQty" => "0",
+            //            "cummulativeQuoteQty" => "0",
+            //            "cumulativeQuoteQty" => "0",
+            //            "avgPrice" => "0",
+            //            "status" => "NEW",
+            //            "timeInForce" => "GTC",
+            //            "type" => "LIMIT",
+            //            "side" => "BUY",
+            //            "stopPrice" => "0.0",
+            //            "icebergQty" => "0.0",
+            //            "time" => "1756141516189",
+            //            "updateTime" => "1756141516198",
+            //            "isWorking" => true
+            //        ), ...
+            //    )
+            //
+        } else {
+            $response = Async\await($this->privateGetApiV1FuturesOpenOrders($this->extend($request, $params)));
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple orders made by the user
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#all-orders-user_data
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-            $response = array();
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateGetApiV1SpotTradeOrders($request));
-                //
-                //    array(
-                //        array(
-                //            "accountId" => "1783404067076253952",
-                //            "exchangeId" => "301",
-                //            "symbol" => "ETHUSDT",
-                //            "symbolName" => "ETHUSDT",
-                //            "clientOrderId" => "17561415157172008",
-                //            "orderId" => "2025056244339984384",
-                //            "price" => "3000",
-                //            "origQty" => "0.002",
-                //            "executedQty" => "0",
-                //            "cummulativeQuoteQty" => "0",
-                //            "cumulativeQuoteQty" => "0",
-                //            "avgPrice" => "0",
-                //            "status" => "NEW",
-                //            "timeInForce" => "GTC",
-                //            "type" => "LIMIT",
-                //            "side" => "BUY",
-                //            "stopPrice" => "0.0",
-                //            "icebergQty" => "0.0",
-                //            "time" => "1756141516189",
-                //            "updateTime" => "1756141516198",
-                //            "isWorking" => true
-                //        ), ...
-                //    )
-                //
-            } else {
-                throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
-            }
-            return $this->parse_orders($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple orders made by the user
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#all-orders-user-data
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $response = array();
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateGetApiV1SpotTradeOrders($request));
+            //
+            //    array(
+            //        array(
+            //            "accountId" => "1783404067076253952",
+            //            "exchangeId" => "301",
+            //            "symbol" => "ETHUSDT",
+            //            "symbolName" => "ETHUSDT",
+            //            "clientOrderId" => "17561415157172008",
+            //            "orderId" => "2025056244339984384",
+            //            "price" => "3000",
+            //            "origQty" => "0.002",
+            //            "executedQty" => "0",
+            //            "cummulativeQuoteQty" => "0",
+            //            "cumulativeQuoteQty" => "0",
+            //            "avgPrice" => "0",
+            //            "status" => "NEW",
+            //            "timeInForce" => "GTC",
+            //            "type" => "LIMIT",
+            //            "side" => "BUY",
+            //            "stopPrice" => "0.0",
+            //            "icebergQty" => "0.0",
+            //            "time" => "1756141516189",
+            //            "updateTime" => "1756141516198",
+            //            "isWorking" => true
+            //        ), ...
+            //    )
+            //
+        } else {
+            throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
+        }
+        return $this->parse_orders($response, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed orders made by the user
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-history-orders-user_data
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            // returns the most recent closed or canceled orders up to circa two weeks ago
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $request['symbol'] = $market['id'];
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-            $response = array();
-            if ($marketType === 'spot') {
-                throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
-            } else {
-                $response = Async\await($this->privateGetApiV1FuturesHistoryOrders($request));
-                //
-                //    array(
-                //        {
-                //            "time" => "1756756879360",
-                //            "updateTime" => "1756757165956",
-                //            "orderId" => "2030218284767504128",
-                //            "clientOrderId" => "1756756876002",
-                //            "symbol" => "SOL-SWAP-USDT",
-                //            "price" => "144",
-                //            "leverage" => "50",
-                //            "origQty" => "1",
-                //            "executedQty" => "0",
-                //            "executeQty" => "0",
-                //            "avgPrice" => "0",
-                //            "marginLocked" => "0",
-                //            "type" => "LIMIT",
-                //            "side" => "BUY_OPEN",
-                //            "timeInForce" => "GTC",
-                //            "status" => "CANCELED",
-                //            "priceType" => "INPUT",
-                //            "triggerType" => "0",
-                //            "fallType" => "0",
-                //            "activeStatus" => "0"
-                //        }
-                //    )
-                //
-            }
-            $ordersList = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $ordersList[] = array( 'result' => $response[$i] );
-            }
-            return $this->parse_orders($ordersList, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-history-orders-user-data
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        // returns the most recent closed or canceled orders up to circa two weeks ago
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+        $response = array();
+        if ($marketType === 'spot') {
+            throw new NotSupported($this->id . ' fetchOrders() is not supported for ' . $marketType . ' markets');
+        } else {
+            $response = Async\await($this->privateGetApiV1FuturesHistoryOrders($request));
+            //
+            //    array(
+            //        {
+            //            "time" => "1756756879360",
+            //            "updateTime" => "1756757165956",
+            //            "orderId" => "2030218284767504128",
+            //            "clientOrderId" => "1756756876002",
+            //            "symbol" => "SOL-SWAP-USDT",
+            //            "price" => "144",
+            //            "leverage" => "50",
+            //            "origQty" => "1",
+            //            "executedQty" => "0",
+            //            "executeQty" => "0",
+            //            "avgPrice" => "0",
+            //            "marginLocked" => "0",
+            //            "type" => "LIMIT",
+            //            "side" => "BUY_OPEN",
+            //            "timeInForce" => "GTC",
+            //            "status" => "CANCELED",
+            //            "priceType" => "INPUT",
+            //            "triggerType" => "0",
+            //            "fallType" => "0",
+            //            "activeStatus" => "0"
+            //        }
+            //    )
+            //
+        }
+        $ordersList = array();
+        $responseList = array();
+        if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+            $responseList = $response;
+        }
+        for ($i = 0; $i < count($responseList); $i++) {
+            $ordersList[] = array( 'result' => $responseList[$i] );
+        }
+        return $this->parse_orders($ordersList, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#account-trade-list-user_data
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#account-trade-list-user_data
-             *
-             * @param {string} [$symbol] unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch trades for
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $request = array();
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $response = array();
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateGetApiV1AccountTrades($this->extend($request, $params)));
-                //
-                //    [
-                //        array(
-                //            "id" => "2024934575206059008",
-                //            "symbol" => "ETHUSDT",
-                //            "symbolName" => "ETHUSDT",
-                //            "orderId" => "2024934575097029888",
-                //            "price" => "4641.21",
-                //            "qty" => "0.001",
-                //            "commission" => "0.00464121",
-                //            "commissionAsset" => "USDT",
-                //            "time" => "1756127012094",
-                //            "isBuyer" => false,
-                //            "isMaker" => false,
-                //            "fee" => array(
-                //                "feeCoinId" => "USDT",
-                //                "feeCoinName" => "USDT",
-                //                "fee" => "0.00464121"
-                //            ),
-                //            "feeCoinId" => "USDT",
-                //            "feeAmount" => "0.00464121",
-                //            "makerRebate" => "0",
-                //            "ticketId" => "4864450547563401875"
-                //        ), ...
-                //
-            } else {
-                $response = Async\await($this->privateGetApiV1FuturesUserTrades($request));
-                //
-                //    array(
-                //        {
-                //            "time" => "1756758426899",
-                //            "id" => "2030231266499116032",
-                //            "orderId" => "2030231266373265152",
-                //            "symbol" => "DOGE-SWAP-USDT",
-                //            "price" => "0.21191",
-                //            "qty" => "63",
-                //            "commissionAsset" => "USDT",
-                //            "commission" => "0.00801019",
-                //            "makerRebate" => "0",
-                //            "type" => "LIMIT",
-                //            "side" => "BUY_OPEN",
-                //            "realizedPnl" => "0",
-                //            "ticketId" => "4900760819871364854",
-                //            "isMaker" => false
-                //        }
-                //    )
-                //
-            }
-            return $this->parse_trades($response, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-trade-list-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#account-trade-list-user-data
+         *
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch trades for
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $market = $this->market($symbol);
+        $request['symbol'] = $market['id'];
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = array();
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateGetApiV1AccountTrades($this->extend($request, $params)));
+            //
+            //    [
+            //        array(
+            //            "id" => "2024934575206059008",
+            //            "symbol" => "ETHUSDT",
+            //            "symbolName" => "ETHUSDT",
+            //            "orderId" => "2024934575097029888",
+            //            "price" => "4641.21",
+            //            "qty" => "0.001",
+            //            "commission" => "0.00464121",
+            //            "commissionAsset" => "USDT",
+            //            "time" => "1756127012094",
+            //            "isBuyer" => false,
+            //            "isMaker" => false,
+            //            "fee" => array(
+            //                "feeCoinId" => "USDT",
+            //                "feeCoinName" => "USDT",
+            //                "fee" => "0.00464121"
+            //            ),
+            //            "feeCoinId" => "USDT",
+            //            "feeAmount" => "0.00464121",
+            //            "makerRebate" => "0",
+            //            "ticketId" => "4864450547563401875"
+            //        ), ...
+            //
+        } else {
+            $response = Async\await($this->privateGetApiV1FuturesUserTrades($request));
+            //
+            //    array(
+            //        {
+            //            "time" => "1756758426899",
+            //            "id" => "2030231266499116032",
+            //            "orderId" => "2030231266373265152",
+            //            "symbol" => "DOGE-SWAP-USDT",
+            //            "price" => "0.21191",
+            //            "qty" => "63",
+            //            "commissionAsset" => "USDT",
+            //            "commission" => "0.00801019",
+            //            "makerRebate" => "0",
+            //            "type" => "LIMIT",
+            //            "side" => "BUY_OPEN",
+            //            "realizedPnl" => "0",
+            //            "ticketId" => "4900760819871364854",
+            //            "isMaker" => false
+            //        }
+            //    )
+            //
+        }
+        return $this->parse_trades($response, $market, $since, $limit);
     }
 
     public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            /**
-             * transfer $currency internally between wallets on the same account
-             *
-             * @see https://open.big.one/docs/spot_transfer.html#transfer-of-user
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount amount to transfer
-             * @param {string} $fromAccount 'spot', 'swap'
-             * @param {string} $toAccount 'spot', 'swap'
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
-            $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
-            $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-            $request = array(
-                'asset' => $currency['id'],
-                'quantity' => $this->currency_to_precision($code, $amount),
-                'fromAccountType' => $fromId,
-                'toAccountType' => $toId,
-            );
-            $response = Async\await($this->privatePostApiV1SubAccountTransfer($this->extend($request, $params)));
-            //
-            //    {
-            //     "code" => 200, // 200 = success
-            //     "msg" => "success" // $response message
-            //    }
-            //
-            return $this->parse_transfer($response, $currency);
-        })();
+        return Async\async(self::do_transfer(...))($code, $amount, $fromAccount, $toAccount, $params);
+    }
+
+    private function do_transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()) {
+        /**
+         * transfer $currency internally between wallets on the same account
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#account-transfer
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount 'spot', 'swap'
+         * @param {string} $toAccount 'spot', 'swap'
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
+        $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
+        $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        $request = array(
+            'asset' => $currency['id'],
+            'quantity' => $this->currency_to_precision($code, $amount),
+            'fromAccountType' => $fromId,
+            'toAccountType' => $toId,
+        );
+        $response = Async\await($this->privatePostApiV1SubAccountTransfer($this->extend($request, $params)));
+        //
+        //    {
+        //     "code" => 200, // 200 = success
+        //     "msg" => "success" // $response message
+        //    }
+        //
+        return $this->parse_transfer($response, $currency);
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2462,64 +2679,66 @@ class toobit extends Exchange {
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch the history of changes, actions done by the user or operations that altered the balance of the user
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#get-account-transaction-history-list-user_data
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-future-account-transaction-history-list-user_data
-             *
-             * @param {string} [$code] unified $currency $code, default is null
-             * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
-             * @param {int} [$limit] max number of ledger entries to return, default is null
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] end time in ms
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            $request = array();
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['coin'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $marketType = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', null, $params);
-            $response = null;
-            if ($marketType === 'spot') {
-                $response = Async\await($this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params)));
-            } else {
-                $response = Async\await($this->privateGetApiV1FuturesBalanceFlow($this->extend($request, $params)));
-            }
-            //
-            // both answers are same format
-            //
-            // [
-            //     array(
-            //         "id" => "539870570957903104",
-            //         "accountId" => "122216245228131",
-            //         "coin" => "BTC",
-            //         "coinId" => "BTC",
-            //         "coinName" => "BTC",
-            //         "flowTypeValue" => 51,
-            //         "flowType" => "USER_ACCOUNT_TRANSFER",
-            //         "flowName" => "Transfer",
-            //         "change" => "-12.5",
-            //         "total" => "379.624059937852365",
-            //         "created" => "1579093587214"
-            //     ),
-            //
-            return $this->parse_ledger($response, $currency, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ledger(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         *
+         * @see https://api-docs.toobit.com/api/spot-account-and-trading.html#get-account-transaction-history-list-user-data
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-futures-account-transaction-history-list-user-data
+         *
+         * @param {string} [$code] unified $currency $code, default is null
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
+         * @param {int} [$limit] max number of ledger entries to return, default is null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] end time in ms
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params);
+        $response = null;
+        if ($marketType === 'spot') {
+            $response = Async\await($this->privateGetApiV1AccountBalanceFlow($this->extend($request, $params)));
+        } else {
+            $response = Async\await($this->privateGetApiV1FuturesBalanceFlow($this->extend($request, $params)));
+        }
+        //
+        // both answers are same format
+        //
+        // [
+        //     array(
+        //         "id" => "539870570957903104",
+        //         "accountId" => "122216245228131",
+        //         "coin" => "BTC",
+        //         "coinId" => "BTC",
+        //         "coinName" => "BTC",
+        //         "flowTypeValue" => 51,
+        //         "flowType" => "USER_ACCOUNT_TRANSFER",
+        //         "flowName" => "Transfer",
+        //         "change" => "-12.5",
+        //         "total" => "379.624059937852365",
+        //         "created" => "1579093587214"
+        //     ),
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
     }
 
     public function parse_ledger_entry(array $item, ?array $currency = null): array {
@@ -2552,7 +2771,7 @@ class toobit extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_type($type) {
+    public function parse_ledger_type(mixed $type) {
         $types = array(
             'USER_ACCOUNT_TRANSFER' => 'transfer',
             'AIRDROP' => 'rebate',
@@ -2561,55 +2780,57 @@ class toobit extends Exchange {
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * fetch the trading fees for multiple markets
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#user-trade-$fee-rate-user_data
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = null;
-            $marketType = null;
-            $market = null;
-            list($marketType, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
-            if ($marketType === 'spot') {
-                throw new NotSupported($this->id . ' fetchTradingFees() => does not support ' . $marketType . ' markets');
-            } elseif ($this->in_array($marketType, array( 'swap', 'future' ))) {
-                $symbol = null;
-                list($symbol, $params) = $this->handle_param_string($params, 'symbol');
-                if ($symbol === null) {
-                    throw new BadRequest($this->id . ' fetchTradingFees requires a $params["symbol"]');
-                }
-                $market = $this->market($symbol);
-                $request = array(
-                    'symbol' => $market['id'],
-                );
-                $response = Async\await($this->privateGetApiV1FuturesCommissionRate($this->extend($request, $params)));
-            }
-            //
-            // {
-            //     "openMakerFee" => "0.000006", // The trade $fee rate for opening pending orders
-            //     "openTakerFee" => "0.0001", // The trade $fee rate for open position taker
-            //     "closeMakerFee" => "0.0002", // The trade $fee rate for closing pending orders
-            //     "closeTakerFee" => "0.0004" // The trade $fee rate for closing a taker order
-            // }
-            //
-            $result = array();
-            $entry = $response;
-            $marketId = $this->safe_string($entry, 'symbol');
-            $market = $this->safe_market($marketId, $market);
-            $fee = $this->parse_trading_fee($entry, $market);
-            $result[$market['symbol']] = $fee;
-            return $result;
-        })();
+        return Async\async(self::do_fetch_trading_fees(...))($params);
     }
 
-    public function parse_trading_fee($data, ?array $market = null) {
+    private function do_fetch_trading_fees($params = array()) {
+        /**
+         * fetch the trading fees for multiple markets
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#user-trade-$fee-rate-user-data
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = null;
+        $marketType = null;
+        $market = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
+        if ($marketType === 'spot') {
+            throw new NotSupported($this->id . ' fetchTradingFees() => does not support ' . $marketType . ' markets');
+        } elseif ($this->in_array($marketType, array( 'swap', 'future' ))) {
+            $symbol = null;
+            list($symbol, $params) = $this->handle_param_string($params, 'symbol');
+            if ($symbol === null) {
+                throw new BadRequest($this->id . ' fetchTradingFees requires a $params["symbol"]');
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->privateGetApiV1FuturesCommissionRate($this->extend($request, $params)));
+        }
+        //
+        // {
+        //     "openMakerFee" => "0.000006", // The trade $fee rate for opening pending orders
+        //     "openTakerFee" => "0.0001", // The trade $fee rate for open position taker
+        //     "closeMakerFee" => "0.0002", // The trade $fee rate for closing pending orders
+        //     "closeTakerFee" => "0.0004" // The trade $fee rate for closing a taker order
+        // }
+        //
+        $result = array();
+        $entry = $response;
+        $marketId = $this->safe_string($entry, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $fee = $this->parse_trading_fee($entry, $market);
+        $result[$market['symbol']] = $fee;
+        return $result;
+    }
+
+    public function parse_trading_fee(mixed $data, ?array $market = null) {
         $marketId = $this->safe_string($data, 'symbol');
         return array(
             'info' => $data,
@@ -2622,113 +2843,119 @@ class toobit extends Exchange {
     }
 
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all deposits made to an account
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-history-user_data
-             *
-             * @param {string} [$code] unified currency $code
-             * @param {int} [$since] the earliest time in ms to fetch deposits for
-             * @param {int} [$limit] the maximum number of deposit structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            return Async\await($this->fetch_deposits_or_withdrawals_helper('deposits', $code, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_deposits(...))($code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all deposits made to an account
+         *
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-history-user-data
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch deposits for
+         * @param {int} [$limit] the maximum number of deposit structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        return Async\await($this->fetch_deposits_or_withdrawals_helper('deposits', $code, $since, $limit, $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $since, $limit, $params) {
-            /**
-             * fetch all withdrawals made from an account
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdrawal-records-user_data
-             *
-             * @param {string} [$code] unified currency $code
-             * @param {int} [$since] the earliest time in ms to fetch withdrawals for
-             * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
-             */
-            return Async\await($this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params));
-        })();
+        return Async\async(self::do_fetch_withdrawals(...))($code, $since, $limit, $params);
     }
 
-    public function fetch_deposits_or_withdrawals_helper($type, $code, $since, $limit, $params = array()) {
-        return Async\async(function () use ($type, $code, $since, $limit, $params) {
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = null;
-            $request = array();
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['coin'] = $currency['id'];
-            }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = array();
-            if ($type === 'deposits') {
-                $response = Async\await($this->privateGetApiV1AccountDepositOrders($this->extend($request, $params)));
-                //
-                // array(
-                //     {
-                //         "time" => 1499865549590,
-                //         "id" => 100234,
-                //         "coinName" => "EOS",
-                //         "statusCode" => "DEPOSIT_CAN_WITHDRAW",
-                //         "status" => "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
-                //         "address" => "deposit2bb",
-                //         "txId" => "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
-                //         "txIdUrl" => "",
-                //         "requiredConfirmTimes" => "5",
-                //         "confirmTimes" => "5",
-                //         "quantity" => "1.01",
-                //         "coin" => "EOS",
-                //         "fromAddress" => "clarkkent",
-                //         "fromAddressTag" => "19029901"
-                //         "addressTag" => "19012584",
-                //     }
-                // )
-                //
-            } elseif ($type === 'withdrawals') {
-                $response = Async\await($this->privateGetApiV1AccountWithdrawOrders($this->extend($request, $params)));
-                //
-                // array(
-                //     {
-                //         "time":"1536232111669",
-                //         "id ":"90161227158286336",
-                //         "accountId":"517256161325920",
-                //         "coinName":"BHC",
-                //         "statusCode":"PROCESSING_STATUS",
-                //         "status":3,
-                //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
-                //         "txId ":"",
-                //         "txIdUrl ":"",
-                //         "requiredConfirmTimes ":0, // Number of confirmation requests
-                //         "confirmTimes ":0, // number of confirmations
-                //         "quantity":"14", // Withdrawal amount
-                //         "coinId ":"BHC",
-                //         "addressExt":"address tag",
-                //         "arriveQuantity":"14",
-                //         "walletHandleTime":"1536232111669",
-                //         "feeCoinId ":"BHC",
-                //         "feeCoinName ":"BHC",
-                //         "fee":"0.1",
-                //         "kernelId":"", // Exclusive to BEAM and GRIN
-                //         "isInternalTransfer" => false // Whether internal transfer
-                //     }
-                // )
-                //
-            }
-            return $this->parse_transactions($response, $currency, $since, $limit, $params);
-        })();
+    private function do_fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all withdrawals made from an account
+         *
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#withdrawal-records-user-data
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        return Async\await($this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params));
+    }
+
+    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()) {
+        return Async\async(self::do_fetch_deposits_or_withdrawals_helper(...))($type, $code, $since, $limit, $params);
+    }
+
+    private function do_fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()) {
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = null;
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['coin'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = array();
+        if ($type === 'deposits') {
+            $response = Async\await($this->privateGetApiV1AccountDepositOrders($this->extend($request, $params)));
+            //
+            // array(
+            //     {
+            //         "time" => 1499865549590,
+            //         "id" => 100234,
+            //         "coinName" => "EOS",
+            //         "statusCode" => "DEPOSIT_CAN_WITHDRAW",
+            //         "status" => "2", // 2=SUCCESS, 11=REJECT, 12=AUDIT
+            //         "address" => "deposit2bb",
+            //         "txId" => "98A3EA560C6B3336D348B6C83F0F95ECE4F1F5919E94BD006E5BF3BF264FACFC",
+            //         "txIdUrl" => "",
+            //         "requiredConfirmTimes" => "5",
+            //         "confirmTimes" => "5",
+            //         "quantity" => "1.01",
+            //         "coin" => "EOS",
+            //         "fromAddress" => "clarkkent",
+            //         "fromAddressTag" => "19029901"
+            //         "addressTag" => "19012584",
+            //     }
+            // )
+            //
+        } elseif ($type === 'withdrawals') {
+            $response = Async\await($this->privateGetApiV1AccountWithdrawOrders($this->extend($request, $params)));
+            //
+            // array(
+            //     {
+            //         "time":"1536232111669",
+            //         "id ":"90161227158286336",
+            //         "accountId":"517256161325920",
+            //         "coinName":"BHC",
+            //         "statusCode":"PROCESSING_STATUS",
+            //         "status":3,
+            //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
+            //         "txId ":"",
+            //         "txIdUrl ":"",
+            //         "requiredConfirmTimes ":0, // Number of confirmation requests
+            //         "confirmTimes ":0, // number of confirmations
+            //         "quantity":"14", // Withdrawal amount
+            //         "coinId ":"BHC",
+            //         "addressExt":"address tag",
+            //         "arriveQuantity":"14",
+            //         "walletHandleTime":"1536232111669",
+            //         "feeCoinId ":"BHC",
+            //         "feeCoinName ":"BHC",
+            //         "fee":"0.1",
+            //         "kernelId":"", // Exclusive to BEAM and GRIN
+            //         "isInternalTransfer" => false // Whether internal transfer
+            //     }
+            // )
+            //
+        }
+        return $this->parse_transactions($response, $currency, $since, $limit, $params);
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2788,7 +3015,7 @@ class toobit extends Exchange {
         $tagFrom = $this->safe_string($transaction, 'fromAddressTag');
         $addressTo = $this->safe_string($transaction, 'address');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
-        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity', $transaction));
+        $isWithdraw = (is_array($transaction) && array_key_exists('arriveQuantity' ?? '', $transaction));
         $type = $isWithdraw ? 'withdrawal' : 'deposit';
         return array(
             'info' => $transaction,
@@ -2828,45 +3055,47 @@ class toobit extends Exchange {
     }
 
     public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $params) {
-            /**
-             * fetch the deposit address for a $currency associated with this account
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#deposit-address-user_data
-             *
-             * @param {string} $code unified $currency $code
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'coin' => $currency['id'],
-            );
-            list($networkCode, $paramsOmitted) = $this->handle_network_code_and_params($this->extend($request, $params));
-            if ($networkCode === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : param["network"] is required');
-            }
-            $request['chainType'] = $this->network_code_to_id($networkCode, $code);
-            $response = Async\await($this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsOmitted)));
-            //
-            //     {
-            //         "canDeposit":false,//Is it possible to recharge
-            //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
-            //         "addressExt":"address tag",
-            //         "minQuantity":"100",//minimum amount
-            //         "requiredConfirmTimes ":1,//Arrival confirmation number
-            //         "canWithdrawConfirmNum ":12,//Withdrawal confirmation number
-            //         "coinType":"ERC20_TOKEN"
-            //     }
-            //
-            return $this->parse_deposit_address($response, $currency);
-        })();
+        return Async\async(self::do_fetch_deposit_address(...))($code, $params);
     }
 
-    public function parse_deposit_address($depositAddress, ?array $currency = null): array {
+    private function do_fetch_deposit_address(string $code, $params = array()) {
+        /**
+         * fetch the deposit address for a $currency associated with this account
+         *
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#deposit-address-user-data
+         *
+         * @param {string} $code unified $currency $code
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+        );
+        list($networkCode, $paramsOmitted) = $this->handle_network_code_and_params($this->extend($request, $params));
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : param["network"] is required');
+        }
+        $request['chainType'] = $this->network_code_to_id($networkCode, $code);
+        $response = Async\await($this->privateGetApiV1AccountDepositAddress($this->extend($request, $paramsOmitted)));
+        //
+        //     {
+        //         "canDeposit":false,//Is it possible to recharge
+        //         "address":"0x815bF1c3cc0f49b8FC66B21A7e48fCb476051209",
+        //         "addressExt":"address tag",
+        //         "minQuantity":"100",//minimum amount
+        //         "requiredConfirmTimes ":1,//Arrival confirmation number
+        //         "canWithdrawConfirmNum ":12,//Withdrawal confirmation number
+        //         "coinType":"ERC20_TOKEN"
+        //     }
+        //
+        return $this->parse_deposit_address($response, $currency);
+    }
+
+    public function parse_deposit_address(mixed $depositAddress, ?array $currency = null): array {
         $address = $this->safe_string($depositAddress, 'address');
         $this->check_address($address);
         return array(
@@ -2879,157 +3108,166 @@ class toobit extends Exchange {
     }
 
     public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
-            /**
-             * make a withdrawal
-             *
-             * @see https://toobit-docs.github.io/apidocs/spot/v1/en/#withdraw-user_data
-             *
-             * @param {string} $code unified $currency $code
-             * @param {float} $amount the $amount to withdraw
-             * @param {string} $address the $address to withdraw to
-             * @param {string} $tag a memo for the transaction
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
-             */
-            $this->check_address($address);
-            $networkCode = null;
-            list($networkCode, $params) = $this->handle_network_code_and_params($params);
-            if ($networkCode === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $currency = $this->currency($code);
-            $request = array(
-                'coin' => $currency['id'],
-                'address' => $address,
-                'quantity' => $this->currency_to_precision($currency['code'], $amount),
-                'chainType' => $networkCode,
-                'clientOrderId' => $this->milliseconds(),
-            );
-            if ($tag !== null) {
-                $request['addressExt'] = $tag;
-            }
-            $response = Async\await($this->privatePostApiV1AccountWithdraw($this->extend($request, $params)));
-            //
-            // {
-            //     "status" => 0,
-            //     "success" => true,
-            //     "needBrokerAudit" => false, // Do you need a brokerage review?
-            //     "id" => "423885103582776064", // Withdrawal successful order id
-            //     "refuseReason":"" // failure rejection reason
-            // }
-            //
-            return $this->parse_transaction($response, $currency);
-        })();
+        return Async\async(self::do_withdraw(...))($code, $amount, $address, $tag, $params);
+    }
+
+    private function do_withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
+        /**
+         * make a withdrawal
+         *
+         * @see https://api-docs.toobit.com/api/spot-wallet.html#withdraw-user-data
+         *
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount the $amount to withdraw
+         * @param {string} $address the $address to withdraw to
+         * @param {string} $tag a memo for the transaction
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
+         */
+        $this->check_address($address);
+        $networkCode = null;
+        list($networkCode, $params) = $this->handle_network_code_and_params($params);
+        if ($networkCode === null) {
+            throw new ArgumentsRequired($this->id . ' withdraw() : param["network"] is required');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $currency = $this->currency($code);
+        $request = array(
+            'coin' => $currency['id'],
+            'address' => $address,
+            'quantity' => $this->currency_to_precision($currency['code'], $amount),
+            'chainType' => $this->network_code_to_id($networkCode, $code),
+            'clientOrderId' => $this->milliseconds(),
+        );
+        if ($tag !== null) {
+            $request['addressExt'] = $tag;
+        }
+        $response = Async\await($this->privatePostApiV1AccountWithdraw($this->extend($request, $params)));
+        //
+        // {
+        //     "status" => 0,
+        //     "success" => true,
+        //     "needBrokerAudit" => false, // Do you need a brokerage review?
+        //     "id" => "423885103582776064", // Withdrawal successful order id
+        //     "refuseReason":"" // failure rejection reason
+        // }
+        //
+        return $this->parse_transaction($response, $currency);
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($marginMode, $symbol, $params) {
-            /**
-             * set margin mode to 'cross' or 'isolated'
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-margin-type-trade
-             *
-             * @param {string} $marginMode 'cross' or 'isolated'
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} $response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            if ($market['type'] !== 'swap') {
-                throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
-            }
-            $marginMode = strtoupper($marginMode);
-            $request = array(
-                'symbol' => $market['id'],
-                'marginType' => $marginMode,
-            );
-            $response = Async\await($this->privatePostApiV1FuturesMarginType($this->extend($request, $params)));
-            //
-            // array("code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED")
-            //
-            return $response;
-        })();
+        return Async\async(self::do_set_margin_mode(...))($marginMode, $symbol, $params);
+    }
+
+    private function do_set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        /**
+         * set margin mode to 'cross' or 'isolated'
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-margin-type-trade
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
+        }
+        $marginMode = strtoupper($marginMode);
+        $request = array(
+            'symbol' => $market['id'],
+            'marginType' => $marginMode,
+        );
+        $response = Async\await($this->privatePostApiV1FuturesMarginType($this->extend($request, $params)));
+        //
+        // array("code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED")
+        //
+        return $response;
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($leverage, $symbol, $params) {
-            /**
-             * set the level of $leverage for a $market
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#change-initial-$leverage-trade
-             *
-             * @param {float} $leverage the rate of $leverage
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} $response from the exchange
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-                'leverage' => $leverage,
-            );
-            $response = Async\await($this->privatePostApiV1FuturesLeverage($this->extend($request, $params)));
-            //
-            // array("code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19")
-            //
-            return $response;
-        })();
+        return Async\async(self::do_set_leverage(...))($leverage, $symbol, $params);
+    }
+
+    private function do_set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+        /**
+         * set the level of $leverage for a $market
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#change-initial-$leverage-trade
+         *
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} $response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'leverage' => $leverage,
+        );
+        $response = Async\await($this->privatePostApiV1FuturesLeverage($this->extend($request, $params)));
+        //
+        // array("code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19")
+        //
+        return $response;
     }
 
     public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetch the set leverage for a $market
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#get-the-leverage-multiple-and-position-mode-user_data
-             *
-             * @param {string} $symbol unified $market $symbol
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->privateGetApiV1FuturesAccountLeverage($this->extend($request, $params)));
-            //
-            // array(
-            //     {
-            //         "symbol":"BTC-SWAP-USDT", //symbol
-            //         "leverage":"20",  // leverage
-            //         "marginType":"CROSS" // CROSS;ISOLATED
-            //     }
-            // )
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            return $this->parse_leverage($data, $market);
-        })();
+        return Async\async(self::do_fetch_leverage(...))($symbol, $params);
+    }
+
+    private function do_fetch_leverage(string $symbol, $params = array()) {
+        /**
+         * fetch the set leverage for a $market
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#get-the-leverage-multiple-and-position-mode-user-$data
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->privateGetApiV1FuturesAccountLeverage($this->extend($request, $params)));
+        //
+        // array(
+        //     {
+        //         "symbolId":"ETH-SWAP-USDT",
+        //         "leverage":"50",
+        //         "marginType":"CROSS" // CROSS;ISOLATED
+        //     }
+        // )
+        //
+        $data = $this->safe_dict($response, 0, array());
+        return $this->parse_leverage($data, $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
-        $marketId = $this->safe_string($leverage, 'symbol');
+        $marketId = $this->safe_string_2($leverage, 'symbolId', 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
-        $marginType = $this->safe_string($leverage, 'marginType');
-        $marginMode = ($marginType === 'crossed') ? 'cross' : 'isolated';
+        $marginType = $this->safe_string_lower($leverage, 'marginType');
+        $marginMode = ($marginType === 'cross') ? 'cross' : 'isolated';
         return array(
             'info' => $leverage,
             'symbol' => $this->safe_symbol($marketId, $market),
@@ -3040,58 +3278,60 @@ class toobit extends Exchange {
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetch all open positions
-             *
-             * @see https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#query-position-user_data
-             *
-             * @param {string[]|null} $symbols list of unified $market $symbols
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
+        return Async\async(self::do_fetch_positions(...))($symbols, $params);
+    }
+
+    private function do_fetch_positions(?array $symbols = null, $params = array()) {
+        /**
+         * fetch all open positions
+         *
+         * @see https://api-docs.toobit.com/api/usdt-m-account-and-trading.html#query-position-user-data
+         *
+         * @param {string[]|null} $symbols list of unified $market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $request = array();
+        $market = null;
+        if ($symbols !== null) {
+            $length = count($symbols);
+            if ($length > 1) {
+                throw new BadRequest($this->id . ' fetchPositions() only accepts an array with a single symbol or without $symbols argument');
             }
-            $request = array();
-            $market = null;
-            if ($symbols !== null) {
-                $length = count($symbols);
-                if ($length > 1) {
-                    throw new BadRequest($this->id . ' fetchPositions() only accepts an array with a single symbol or without $symbols argument');
-                }
-                $firstSymbol = $this->safe_string($symbols, 0);
-                if ($firstSymbol !== null) {
-                    $market = $this->market($firstSymbol);
-                    $request['symbol'] = $market['id'];
-                }
+            $firstSymbol = $this->safe_string($symbols, 0);
+            if ($firstSymbol !== null) {
+                $market = $this->market($firstSymbol);
+                $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetApiV1FuturesPositions($this->extend($request, $params)));
-            //
-            //    array(
-            //        {
-            //            "symbol" => "DOGE-SWAP-USDT",
-            //            "side" => "LONG",
-            //            "avgPrice" => "0.21191",
-            //            "position" => "63",
-            //            "available" => "63",
-            //            "leverage" => "25",
-            //            "lastPrice" => "0.20932",
-            //            "positionValue" => "13.3503",
-            //            "flp" => "0.05471",
-            //            "margin" => "0.5262",
-            //            "marginRate" => "",
-            //            "unrealizedPnL" => "-0.1701",
-            //            "profitRate" => "-0.3185",
-            //            "realizedPnL" => "-0.008",
-            //            "minMargin" => "0",
-            //            "maxNotionalValue" => "10000000",
-            //            "markPrice" => "0.20921"
-            //        }
-            //    )
-            //
-            return $this->parse_positions($response, $symbols);
-        })();
+        }
+        $response = Async\await($this->privateGetApiV1FuturesPositions($this->extend($request, $params)));
+        //
+        //    array(
+        //        {
+        //            "symbol" => "DOGE-SWAP-USDT",
+        //            "side" => "LONG",
+        //            "avgPrice" => "0.21191",
+        //            "position" => "63",
+        //            "available" => "63",
+        //            "leverage" => "25",
+        //            "lastPrice" => "0.20932",
+        //            "positionValue" => "13.3503",
+        //            "flp" => "0.05471",
+        //            "margin" => "0.5262",
+        //            "marginRate" => "",
+        //            "unrealizedPnL" => "-0.1701",
+        //            "profitRate" => "-0.3185",
+        //            "realizedPnL" => "-0.008",
+        //            "minMargin" => "0",
+        //            "maxNotionalValue" => "10000000",
+        //            "markPrice" => "0.20921"
+        //        }
+        //    )
+        //
+        return $this->parse_positions($response, $symbols);
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -3128,7 +3368,7 @@ class toobit extends Exchange {
         ));
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $isPost = $method === 'POST';
         $isDelete = $method === 'DELETE';
@@ -3181,7 +3421,7 @@ class toobit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

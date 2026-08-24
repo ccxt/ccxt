@@ -10,20 +10,13 @@ public partial class mexc
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#miniticker"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/get-a-single-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.miniTicker</term>
-    /// <description>
-    /// boolean : set to true for using the miniTicker endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -38,20 +31,12 @@ public partial class mexc
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#minitickers"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/tickers"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.miniTicker</term>
-    /// <description>
-    /// boolean : set to true for using the miniTicker endpoint
     /// </description>
     /// </item>
     /// </list>
@@ -66,7 +51,7 @@ public partial class mexc
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/individual-symbol-book-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -106,7 +91,8 @@ public partial class mexc
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/k-line-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/k-line-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -129,10 +115,8 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -140,8 +124,8 @@ public partial class mexc
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/diffdepth-stream"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/order-book-depth"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -163,10 +147,9 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBook(symbol, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
@@ -174,8 +157,8 @@ public partial class mexc
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams#trade-streams"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-market-streams/trade-streams"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/deal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -198,10 +181,8 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -209,8 +190,8 @@ public partial class mexc
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-deals"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-deals"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/fill-details"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -233,10 +214,8 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -244,8 +223,8 @@ public partial class mexc
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-orders"/>  <br/>
-    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-orders"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -268,10 +247,8 @@ public partial class mexc
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -279,7 +256,8 @@ public partial class mexc
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams#spot-account-update"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/spot-v3/websocket-user-data-streams/spot-account-update"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/assets"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -299,7 +277,7 @@ public partial class mexc
     /// watch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api#funding-rate"/>  <br/>
+    /// See <see href="https://www.mexc.com/api-docs/futures/websocket-api/funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

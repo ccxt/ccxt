@@ -88,54 +88,54 @@ export default class bitbns extends Exchange {
             },
             'api': {
                 'www': {
-                    'get': [
-                        'order/fetchMarkets',
-                        'order/fetchTickers',
-                        'order/fetchOrderbook',
-                        'order/getTickerWithVolume',
-                        'exchangeData/ohlc', // ?coin=${coin_name}&page=${page}
-                        'exchangeData/orderBook',
-                        'exchangeData/tradedetails',
-                    ],
+                    'get': {
+                        'order/fetchMarkets': { 'cost': 1 },
+                        'order/fetchTickers': { 'cost': 1 },
+                        'order/fetchOrderbook': { 'cost': 1 },
+                        'order/getTickerWithVolume': { 'cost': 1 },
+                        'exchangeData/ohlc': { 'cost': 1 },
+                        'exchangeData/orderBook': { 'cost': 1 },
+                        'exchangeData/tradedetails': { 'cost': 1 },
+                    },
                 },
                 'v1': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'orderbook/sell/{symbol}',
-                        'orderbook/buy/{symbol}',
-                    ],
-                    'post': [
-                        'currentCoinBalance/EVERYTHING',
-                        'getApiUsageStatus/USAGE',
-                        'getOrderSocketToken/USAGE',
-                        'currentCoinBalance/{symbol}',
-                        'orderStatus/{symbol}',
-                        'depositHistory/{symbol}',
-                        'withdrawHistory/{symbol}',
-                        'withdrawHistoryAll/{symbol}',
-                        'depositHistoryAll/{symbol}',
-                        'listOpenOrders/{symbol}',
-                        'listOpenStopOrders/{symbol}',
-                        'getCoinAddress/{symbol}',
-                        'placeSellOrder/{symbol}',
-                        'placeBuyOrder/{symbol}',
-                        'buyStopLoss/{symbol}',
-                        'sellStopLoss/{symbol}',
-                        'cancelOrder/{symbol}',
-                        'cancelStopLossOrder/{symbol}',
-                        'listExecutedOrders/{symbol}',
-                        'placeMarketOrder/{symbol}',
-                        'placeMarketOrderQnty/{symbol}',
-                    ],
+                    'get': {
+                        'platform/status': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'orderbook/sell/{symbol}': { 'cost': 1 },
+                        'orderbook/buy/{symbol}': { 'cost': 1 },
+                    },
+                    'post': {
+                        'currentCoinBalance/EVERYTHING': { 'cost': 1 },
+                        'getApiUsageStatus/USAGE': { 'cost': 1 },
+                        'getOrderSocketToken/USAGE': { 'cost': 1 },
+                        'currentCoinBalance/{symbol}': { 'cost': 1 },
+                        'orderStatus/{symbol}': { 'cost': 1 },
+                        'depositHistory/{symbol}': { 'cost': 1 },
+                        'withdrawHistory/{symbol}': { 'cost': 1 },
+                        'withdrawHistoryAll/{symbol}': { 'cost': 1 },
+                        'depositHistoryAll/{symbol}': { 'cost': 1 },
+                        'listOpenOrders/{symbol}': { 'cost': 1 },
+                        'listOpenStopOrders/{symbol}': { 'cost': 1 },
+                        'getCoinAddress/{symbol}': { 'cost': 1 },
+                        'placeSellOrder/{symbol}': { 'cost': 1 },
+                        'placeBuyOrder/{symbol}': { 'cost': 1 },
+                        'buyStopLoss/{symbol}': { 'cost': 1 },
+                        'sellStopLoss/{symbol}': { 'cost': 1 },
+                        'cancelOrder/{symbol}': { 'cost': 1 },
+                        'cancelStopLossOrder/{symbol}': { 'cost': 1 },
+                        'listExecutedOrders/{symbol}': { 'cost': 1 },
+                        'placeMarketOrder/{symbol}': { 'cost': 1 },
+                        'placeMarketOrderQnty/{symbol}': { 'cost': 1 },
+                    },
                 },
                 'v2': {
-                    'post': [
-                        'orders',
-                        'cancel',
-                        'getordersnew',
-                        'marginOrders',
-                    ],
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'cancel': { 'cost': 1 },
+                        'getordersnew': { 'cost': 1 },
+                        'marginOrders': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -285,8 +285,9 @@ export default class bitbns extends Exchange {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < response.length; i++) {
-            const market = response[i];
+        const rawMarkets = this.toArray(response);
+        for (let i = 0; i < rawMarkets.length; i++) {
+            const market = rawMarkets[i];
             const id = this.safeString(market, 'id');
             const baseId = this.safeString(market, 'base');
             const quoteId = this.safeString(market, 'quote');
@@ -360,7 +361,7 @@ export default class bitbns extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -522,7 +523,9 @@ export default class bitbns extends Exchange {
                     currencyId = 'INR';
                 }
                 const code = this.safeCurrencyCode(currencyId);
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -680,6 +683,9 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString(params, 'target_rate');
         const trailRate = this.safeString(params, 'trail_rate');
         params = this.omit(params, ['triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate']);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'side': side.toUpperCase(),
             'symbol': market['uppercaseId'],
@@ -688,12 +694,10 @@ export default class bitbns extends Exchange {
             // 't_rate': this.priceToPrecision (symbol, stopPrice),
             // 'trail_rate': this.priceToPrecision (symbol, trailRate),
         };
-        let method = 'v2PostOrders';
         if (type === 'limit') {
             request['rate'] = this.priceToPrecision(symbol, price);
         }
         else {
-            method = 'v1PostPlaceMarketOrderQntySymbol';
             request['market'] = market['quoteId'];
         }
         if (triggerPrice !== undefined) {
@@ -705,7 +709,13 @@ export default class bitbns extends Exchange {
         if (trailRate !== undefined) {
             request['trail_rate'] = this.priceToPrecision(symbol, trailRate);
         }
-        const response = await this[method](this.extend(request, params));
+        let response = undefined;
+        if (type === 'limit') {
+            response = await this.v2PostOrders(this.extend(request, params));
+        }
+        else {
+            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, params));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -715,7 +725,8 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        return this.parseOrder(response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder(parsed, market);
     }
     /**
      * @method
@@ -749,7 +760,8 @@ export default class bitbns extends Exchange {
         quoteSide += tail;
         request['side'] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, params));
-        return this.parseOrder(response, market);
+        const parsed = (response === undefined) ? {} : response;
+        return this.parseOrder(parsed, market);
     }
     /**
      * @method
@@ -804,7 +816,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeList(response, 'data', []);
-        const first = this.safeDict(data, 0);
+        const first = this.safeDict(data, 0, {});
         return this.parseOrder(first, market);
     }
     /**

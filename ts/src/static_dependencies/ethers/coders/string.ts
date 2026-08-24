@@ -15,15 +15,15 @@ export class StringCoder extends DynamicBytesCoder {
         super("string", localName);
     }
 
-    defaultValue(): string {
+    override defaultValue(): string {
         return "";
     }
 
-    encode(writer: Writer, _value: string | Typed): number {
+    override encode(writer: Writer, _value: string | Typed): number {
         return super.encode(writer, toUtf8Bytes(Typed.dereference(_value, "string")));
     }
 
-    decode(reader: Reader): any {
+    override decode(reader: Reader): any {
         return toUtf8String(super.decode(reader));
     }
 }

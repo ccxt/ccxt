@@ -90,7 +90,7 @@ public partial class BaseTest
 
     public static bool inOp(object a, object b) => Exchange.InOp(a, b);
     public static int getIndexOf(object a, object b) => Exchange.getIndexOf(a, b);
-    public static object getArrayLength(object a) => Exchange.getArrayLength(a);
+    public static int getArrayLength(object a) => Exchange.getArrayLength(a);
     public static bool isLessThan(object a, object b) => Exchange.isLessThan(a, b);
     public static bool isGreaterThan(object a, object b) => Exchange.isGreaterThan(a, b);
     public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
@@ -168,7 +168,8 @@ public partial class BaseTest
 
     }
 
-    public object json(object a)
+    // string (not object) so generated `string x = json(...)` locals compile
+    public string json(object a)
     {
         return Exchange.Json(a);
     }
@@ -203,7 +204,10 @@ public partial class BaseTest
     public async Task testLanguageSpecific()
     {
         MultithreadTest().Wait(); // temporary disable here
-        
+
+        // hand-written C#-only: dual-stack (IPv4 + IPv6) transport checks (offline)
+        testDualStack();
+
         // Run throttler performance test
         await testThrottlerPerformance();
     }

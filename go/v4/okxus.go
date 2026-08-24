@@ -40,7 +40,7 @@ func (this *OkxusCore) Describe() any {
 			"CORS":   nil,
 			"spot":   true,
 			"margin": nil,
-			"swap":   true,
+			"swap":   false,
 			"future": false,
 			"option": false,
 		},
@@ -48,6 +48,11 @@ func (this *OkxusCore) Describe() any {
 			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
+			},
+		},
+		"options": map[string]any{
+			"fetchMarkets": map[string]any{
+				"types": []any{"spot"},
 			},
 		},
 	})

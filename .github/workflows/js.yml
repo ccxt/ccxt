@@ -1,4 +1,8 @@
 name: Js
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
 on:
   workflow_dispatch:
@@ -10,10 +14,15 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, javascript ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
     - name: Print vars
       run: |
@@ -26,28 +35,31 @@ jobs:
         echo "Job Name: $GITHUB_JOB"
         echo "Ref: $GITHUB_REF"
         echo "SHA: $GITHUB_SHA"
-        echo "Head Commit: ${{ github.event.head_commit.message }}"
+        echo "Head Commit: $HEAD_COMMIT_MESSAGE"
         echo "Branch Name: ${GITHUB_REF##*/}"  # Extract the branch name from GITHUB_REF
-    - uses: actions/checkout@v4
+    - name: Generate App token
       if: github.ref == 'refs/heads/master'
+      id: app-token
+      uses: actions/create-github-app-token@v3
       with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+        client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+        private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+        permission-contents: write
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 2
+        clean: false
+        token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Debug binary FILES [REMOVE]
       run: git ls-files | grep binaries
     - name: Install npm dependencies
@@ -55,7 +67,9 @@ jobs:
     - name: Debug files changes
       run: git diff --name-only HEAD^1 HEAD
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
+    - name: Guard entry-point imports
+      run: ./build/utils/check_entry_point_imports.sh
     - name: Debug output
       run: |
         echo "Important files modified: ${{ env.important_modified }}"
@@ -68,6 +82,8 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         rm -rf js/
+    - name: Check base types are in sync with ts/src/base/types.ts
+      run: npm run transpile-types-check
     - name: Pre-transpile and transpile TS
       if: env.important_modified == 'true'
       run: npm run pre-transpile-js
@@ -82,14 +98,21 @@ jobs:
       run: |
         cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
         for exchange in $cleaned_rest_files; do
-          npm run eslint "ts/src/$exchange.ts"
+          # prediction-market exchanges live under ts/src/prediction/
+          if [ -f "ts/src/$exchange.ts" ]; then
+            npm run lint "ts/src/$exchange.ts"
+          elif [ -f "ts/src/prediction/$exchange.ts" ]; then
+            npm run lint "ts/src/prediction/$exchange.ts"
+          fi
         done
     - name: Lint Ws (specific)
       if: env.important_modified == 'false'
       run: |
         cleaned_ws_files=$(echo ${{ env.ws_files }} | tr -s ' ')
         for exchange in $cleaned_ws_files; do
-          npm run eslint "ts/src/pro/$exchange.ts"
+          if [ -f "ts/src/pro/$exchange.ts" ]; then
+            npm run lint "ts/src/pro/$exchange.ts"
+          fi
         done
     - name: Run Base Tests
       if: env.important_modified == 'true'
@@ -120,6 +143,22 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-js -- $exchange
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-js
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-js -- $exchange
+        done
+    - name: Request Prediction tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-ts-prediction
+    - name: Response Prediction tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-ts-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
@@ -131,39 +170,59 @@ jobs:
       with:
         name: js-files
         path: js/
+    - name: Get App bot user ID
+      if: github.ref == 'refs/heads/master'
+      id: app-user
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+          "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+          | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+        echo "id=${id}" >> "$GITHUB_OUTPUT"
+
     - name: Push JS changes to master
+      if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      if: github.ref == 'refs/heads/master'
+        APP_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin master
-          git add js/ dist/ wiki/ README.md ts/ccxt.ts examples/
-          git commit -m "[Automated changes] JS files" || echo "No changes to commit."
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git config --global pull.rebase false
-          git pull origin master
-          git push
-    - name: Push To CCXT.WIKI
-      if: github.ref == 'refs/heads/master'
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-      run: |
-        cd build/ccxt.wiki
-        cp -R ../../wiki/* .
-        git add .
-        git commit -a -m "[Automated changes] ${{ github.event.head_commit.message }}" || true
-        git remote remove origin
-        git remote add origin https://${GITHUB_TOKEN}@github.com/ccxt/ccxt.wiki.git
-        git push origin HEAD:master
-        cd ../..
+        git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+        git config user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+        git remote set-url origin \
+          "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        git add js/ dist/ wiki/ README.md ts/ccxt.ts examples/
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          exit 0
+        fi
+
+        git commit -m "[Automated changes] JS files"
+
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
+        # NB: the wiki/*.md committed above is mirrored to the ccxt/ccxt.wiki repo by the
+        # mirror-wiki job in docs-fumadocs.yml (on release / docs changes / manual dispatch).
 
   live-tests:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          clean: false
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
@@ -174,10 +233,10 @@ jobs:
           name: js-files
           path: js/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+        run: ./build/utils/restore_shared_env.sh
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

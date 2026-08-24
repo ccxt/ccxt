@@ -131,70 +131,70 @@ export default class delta extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'assets',
-                        'indices',
-                        'products',
-                        'products/{symbol}',
-                        'tickers',
-                        'tickers/{symbol}',
-                        'l2orderbook/{symbol}',
-                        'trades/{symbol}',
-                        'stats',
-                        'history/candles',
-                        'history/sparklines',
-                        'settings',
-                    ],
+                    'get': {
+                        'assets': { 'cost': 1 },
+                        'indices': { 'cost': 1 },
+                        'products': { 'cost': 1 },
+                        'products/{symbol}': { 'cost': 1 },
+                        'tickers': { 'cost': 1 },
+                        'tickers/{symbol}': { 'cost': 1 },
+                        'l2orderbook/{symbol}': { 'cost': 1 },
+                        'trades/{symbol}': { 'cost': 1 },
+                        'stats': { 'cost': 1 },
+                        'history/candles': { 'cost': 1 },
+                        'history/sparklines': { 'cost': 1 },
+                        'settings': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'get': [
-                        'orders',
-                        'orders/{order_id}',
-                        'orders/client_order_id/{client_oid}',
-                        'products/{product_id}/orders/leverage',
-                        'positions/margined',
-                        'positions',
-                        'orders/history',
-                        'fills',
-                        'fills/history/download/csv',
-                        'wallet/balances',
-                        'wallet/transactions',
-                        'wallet/transactions/download',
-                        'wallets/sub_accounts_transfer_history',
-                        'users/trading_preferences',
-                        'sub_accounts',
-                        'profile',
-                        'rate_limits/quota',
-                        'heartbeat',
-                        'deposits/address',
-                    ],
-                    'post': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'products/{product_id}/orders/leverage',
-                        'positions/change_margin',
-                        'positions/close_all',
-                        'wallets/sub_account_balance_transfer',
-                        'heartbeat/create',
-                        'heartbeat',
-                        'orders/cancel_after',
-                        'orders/leverage',
-                    ],
-                    'put': [
-                        'orders',
-                        'orders/bracket',
-                        'orders/batch',
-                        'positions/auto_topup',
-                        'users/update_mmp',
-                        'users/reset_mmp',
-                        'users/margin_mode',
-                    ],
-                    'delete': [
-                        'orders',
-                        'orders/all',
-                        'orders/batch',
-                    ],
+                    'get': {
+                        'orders': { 'cost': 1 },
+                        'orders/{order_id}': { 'cost': 1 },
+                        'orders/client_order_id/{client_oid}': { 'cost': 1 },
+                        'products/{product_id}/orders/leverage': { 'cost': 1 },
+                        'positions/margined': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
+                        'orders/history': { 'cost': 1 },
+                        'fills': { 'cost': 1 },
+                        'fills/history/download/csv': { 'cost': 1 },
+                        'wallet/balances': { 'cost': 1 },
+                        'wallet/transactions': { 'cost': 1 },
+                        'wallet/transactions/download': { 'cost': 1 },
+                        'wallets/sub_accounts_transfer_history': { 'cost': 1 },
+                        'users/trading_preferences': { 'cost': 1 },
+                        'sub_accounts': { 'cost': 1 },
+                        'profile': { 'cost': 1 },
+                        'rate_limits/quota': { 'cost': 1 },
+                        'heartbeat': { 'cost': 1 },
+                        'deposits/address': { 'cost': 1 },
+                    },
+                    'post': {
+                        'orders': { 'cost': 1 },
+                        'orders/bracket': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'products/{product_id}/orders/leverage': { 'cost': 1 },
+                        'positions/change_margin': { 'cost': 1 },
+                        'positions/close_all': { 'cost': 1 },
+                        'wallets/sub_account_balance_transfer': { 'cost': 1 },
+                        'heartbeat/create': { 'cost': 1 },
+                        'heartbeat': { 'cost': 1 },
+                        'orders/cancel_after': { 'cost': 1 },
+                        'orders/leverage': { 'cost': 1 },
+                    },
+                    'put': {
+                        'orders': { 'cost': 1 },
+                        'orders/bracket': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                        'positions/auto_topup': { 'cost': 1 },
+                        'users/update_mmp': { 'cost': 1 },
+                        'users/reset_mmp': { 'cost': 1 },
+                        'users/margin_mode': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'orders': { 'cost': 1 },
+                        'orders/all': { 'cost': 1 },
+                        'orders/batch': { 'cost': 1 },
+                    },
                 },
             },
             'fees': {
@@ -369,7 +369,7 @@ export default class delta extends Exchange {
         const datetime = this.convertExpireDate(expiry);
         const timestamp = this.parse8601(datetime);
         const optionTypeUnified = (optionType === 'C') ? 'call' : 'put';
-        return {
+        return this.safeMarketStructure({
             'id': optionType + '-' + base + '-' + strike + '-' + expiry,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
             'base': base,
@@ -412,11 +412,11 @@ export default class delta extends Exchange {
                 },
             },
             'info': undefined,
-        };
+        });
     }
     safeMarket(marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
         const isOption = (marketId !== undefined) && ((marketId.endsWith('-C')) || (marketId.endsWith('-P')) || (marketId.startsWith('C-')) || (marketId.startsWith('P-')));
-        if (isOption && !(marketId in this.markets_by_id)) {
+        if (isOption && ((this.markets_by_id === undefined) || !(marketId in this.markets_by_id))) {
             // handle expired option contracts
             return this.createExpiredOptionMarket(marketId);
         }
@@ -580,26 +580,28 @@ export default class delta extends Exchange {
             const chain = chains[j];
             const networkId = this.safeString(chain, 'network');
             const networkCode = this.networkIdToCode(networkId, code);
-            networks[networkCode] = {
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString(chain, 'name'),
-                'info': chain,
-                'active': this.safeString(chain, 'status') === 'enabled',
-                'deposit': this.safeString(chain, 'deposit_status') === 'enabled',
-                'withdraw': this.safeString(chain, 'withdrawal_status') === 'enabled',
-                'fee': this.safeNumber(chain, 'base_withdrawal_fee'),
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber(chain, 'min_deposit_amount'),
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString(chain, 'name'),
+                    'info': chain,
+                    'active': this.safeString(chain, 'status') === 'enabled',
+                    'deposit': this.safeString(chain, 'deposit_status') === 'enabled',
+                    'withdraw': this.safeString(chain, 'withdrawal_status') === 'enabled',
+                    'fee': this.safeNumber(chain, 'base_withdrawal_fee'),
+                    'limits': {
+                        'deposit': {
+                            'min': this.safeNumber(chain, 'min_deposit_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(chain, 'min_withdrawal_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber(chain, 'min_withdrawal_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': id,
@@ -845,7 +847,9 @@ export default class delta extends Exchange {
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             let type = this.safeString(market, 'contract_type');
-            if (type === 'options_combos') {
+            if ((type === 'options_combos') || (type === 'binary_call_options') || (type === 'binary_put_options')) {
+                // binary options can not be represented in the unified market
+                // structure, their symbols would collide with vanilla options
                 continue;
             }
             // const settlingAsset = this.safeValue (market, 'settling_asset', {});
@@ -910,7 +914,7 @@ export default class delta extends Exchange {
                 }
             }
             const state = this.safeString(market, 'state');
-            result.push({
+            result.push(this.safeMarketStructure({
                 'id': id,
                 'numericId': numericId,
                 'symbol': symbol,
@@ -961,7 +965,7 @@ export default class delta extends Exchange {
                 },
                 'created': this.parse8601(this.safeString(market, 'launch_time')),
                 'info': market,
-            });
+            }));
         }
         return result;
     }
@@ -1083,9 +1087,16 @@ export default class delta extends Exchange {
         //
         const timestamp = this.safeIntegerProduct(ticker, 'timestamp', 0.001);
         const marketId = this.safeString(ticker, 'symbol');
-        const symbol = this.safeSymbol(marketId, market);
+        market = this.safeMarket(marketId, market);
+        const symbol = market['symbol'];
         const last = this.safeString(ticker, 'close');
         const quotes = this.safeDict(ticker, 'quotes', {});
+        // turnover_symbol names the currency turnover is denominated in, and on
+        // spot markets that is the base currency rather than the quote
+        const turnoverSymbol = this.safeStringUpper(ticker, 'turnover_symbol');
+        const quoteId = this.safeStringUpper(market, 'quoteId');
+        const baseDenominated = (turnoverSymbol !== undefined) && (quoteId !== undefined) && (turnoverSymbol !== quoteId);
+        const quoteVolume = baseDenominated ? this.safeNumber(ticker, 'turnover_usd') : this.safeNumber(ticker, 'turnover');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1105,7 +1116,7 @@ export default class delta extends Exchange {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeNumber(ticker, 'volume'),
-            'quoteVolume': this.safeNumber(ticker, 'turnover'),
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeNumber(ticker, 'mark_price'),
             'indexPrice': this.safeNumber(ticker, 'spot_price'),
             'info': ticker,
@@ -1400,9 +1411,17 @@ export default class delta extends Exchange {
         const tickers = this.safeList(response, 'result', []);
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
-            const ticker = this.parseTicker(tickers[i]);
+            const rawTicker = tickers[i];
+            const contractType = this.safeString(rawTicker, 'contract_type');
+            if ((contractType === 'options_combos') || (contractType === 'binary_call_options') || (contractType === 'binary_put_options')) {
+                // these instruments are excluded from the unified markets, see fetchMarkets
+                continue;
+            }
+            const ticker = this.parseTicker(rawTicker);
             const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+            if (symbol !== undefined) {
+                result[symbol] = ticker;
+            }
         }
         return this.filterByArrayTickers(result, 'symbol', symbols);
     }
@@ -1414,7 +1433,7 @@ export default class delta extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1632,6 +1651,9 @@ export default class delta extends Exchange {
         if (since === undefined) {
             const end = untilIsDefined ? until : this.seconds();
             request['end'] = end;
+            if (end === undefined) {
+                throw new ExchangeError(this.id + ' fetchOHLCV() missing end');
+            }
             request['start'] = end - limit * duration;
         }
         else {
@@ -2083,7 +2105,11 @@ export default class delta extends Exchange {
             // "size": this.amountToPrecision (symbol, amount),
         };
         if (amount !== undefined) {
-            request['size'] = parseInt(this.amountToPrecision(symbol, amount));
+            let sizeString = this.amountToPrecision(symbol, amount);
+            if (sizeString === undefined) {
+                sizeString = '0';
+            }
+            request['size'] = parseInt(sizeString);
         }
         if (price !== undefined) {
             request['limit_price'] = this.priceToPrecision(symbol, price);
@@ -2106,7 +2132,7 @@ export default class delta extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**
@@ -2166,7 +2192,7 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**

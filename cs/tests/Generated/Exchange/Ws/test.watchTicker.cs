@@ -10,13 +10,16 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTicker(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchTicker";
+        string method = "watchTicker";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        bool idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
-            object success = true;
+            bool success = true;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchTicker(symbol);
@@ -26,15 +29,17 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
-            if (isTrue(isEqual(success, true)))
+            now = exchange.milliseconds();
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
-                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(response)));
-                now = exchange.milliseconds();
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dictionary. "), exchange.json(response)));
                 testTicker(exchange, skippedProperties, method, response, symbol);
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
         return true;

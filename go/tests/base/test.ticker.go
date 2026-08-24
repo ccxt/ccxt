@@ -6,7 +6,21 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any) {
-	var format any = map[string]any{
+	// prediction outcomes are keyed by an outcome handle (not a `symbol`) and trade thin 0..1
+	// books where bid==ask and a stale `last` far from the median are normal — skip the
+	// crypto-oriented price-relationship checks for them. the PredictionTicker type also
+	// omits vwap/previousClose entirely, so their presence must not be Asserted
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol":            true,
+			"spread":            true,
+			"lastBetweenBidAsk": true,
+			"maxIncrease":       true,
+			"vwap":              true,
+			"previousClose":     true,
+		}, skippedProperties)
+	}
+	var format map[string]any = map[string]any{
 		"info":          map[string]any{},
 		"symbol":        "ETH/BTC",
 		"timestamp":     1502962946216,
@@ -40,11 +54,11 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var logText any = LogTemplate(exchange, method, entry)
 	// check market
 	var market any = nil
-	var isUnrecognizedSymbol any = false
-	var isFetchTickerCalled any = IsEqual(method, "fetchTicker")
+	var isUnrecognizedSymbol bool = false
+	var isFetchTickerCalled bool = IsEqual(method, "fetchTicker")
 	var symbolForMarket any = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
 	if IsTrue(!IsEqual(symbolForMarket, nil)) {
-		if IsTrue(InOp(exchange.GetMarkets(), symbolForMarket)) {
+		if IsTrue(IsTrue((!IsEqual(exchange.GetMarkets(), nil))) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
 			market = exchange.Market(symbolForMarket)
 		} else {
 			isUnrecognizedSymbol = true
@@ -62,7 +76,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		}
 	}
 	// only check "above zero" values if exchange is not supposed to have exotic index markets
-	var isStandardMarket any = (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
+	var isStandardMarket bool = (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
 	var valuesShouldBePositive any = isStandardMarket // || (market === undefined) atm, no check for index markets
 	if IsTrue(IsTrue(valuesShouldBePositive) && !IsTrue((InOp(skippedProperties, "positiveValues")))) {
 		AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
@@ -97,13 +111,18 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var close any = exchange.OmitZero(exchange.SafeString(entry, "close"))
 	if !IsTrue((InOp(skippedProperties, "compareQuoteVolumeBaseVolume"))) {
 		// Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
-		if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) {
+		// skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
+		// volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
+		// far above baseVolume * high), so the spot-derived invariant does not hold there,
+		// see https://github.com/ccxt/ccxt/pull/29563
+		var isInverse any = exchange.SafeBool(market, "inverse", false)
+		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && !IsTrue(isInverse)) {
 			var baseLow any = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh any = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
 			var mPrecision any = exchange.SafeDict(market, "precision")
 			var amountPrecision any = exchange.SafeString(mPrecision, "amount")
-			var tolerance any = "1.0001"
+			var tolerance string = "1.0001"
 			if IsTrue(!IsEqual(amountPrecision, nil)) {
 				baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
 				baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringAdd(baseVolume, amountPrecision), high)
@@ -115,6 +134,19 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 			// because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
 			baseLow = ccxt.Precise.StringDiv(baseLow, tolerance)
 			baseHigh = ccxt.Precise.StringMul(baseHigh, tolerance)
+			// some exchanges round quoteVolume before reporting it - aster,
+			// for example, returns 8.07 when the true traded value is 8.0651,
+			// which on micro-price contracts (1000WOJAK etc) is enough to
+			// break the quoteVolume <= baseVolume * high sanity check below.
+			// the reported string reveals its own rounding step (trailing
+			// zeros are padding, so 8.07000000 -> 2 real decimals -> step
+			// 0.01), so we widen the acceptance window by one such step on
+			// each side - big enough to forgive rounding, far too small to
+			// hide a real bug like mismatched units or a wrong-field parse
+			var quoteVolumeDecimals any = exchange.PrecisionFromString(quoteVolume)
+			var quoteQuantum any = exchange.ParsePrecision(exchange.NumberToString(quoteVolumeDecimals))
+			baseLow = ccxt.Precise.StringSub(baseLow, quoteQuantum)
+			baseHigh = ccxt.Precise.StringAdd(baseHigh, quoteQuantum)
 			Assert(ccxt.Precise.StringGe(quoteVolume, baseLow), Add("quoteVolume should be => baseVolume * low", logText))
 			Assert(ccxt.Precise.StringLe(quoteVolume, baseHigh), Add("quoteVolume should be <= baseVolume * high", logText))
 		}
@@ -151,10 +183,11 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var askString any = exchange.SafeString(entry, "ask")
 	var bidString any = exchange.SafeString(entry, "bid")
 	if IsTrue(IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) && !IsTrue((InOp(skippedProperties, "spread")))) {
-		AssertGreater(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
+		// greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
+		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
 	}
 	// last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-	var allowedPercentageVariation any = "0.01"
+	var allowedPercentageVariation string = "0.01"
 	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(isFetchTickerCalled) && IsTrue(!IsEqual(lastString, nil))) && IsTrue(!IsEqual(bidString, nil))) && IsTrue(!IsEqual(askString, nil))) && !IsTrue((InOp(skippedProperties, "lastBetweenBidAsk")))) {
 		var medianPrice any = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
 		var medianLow any = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
@@ -163,24 +196,35 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	}
 	var percentage any = exchange.SafeString(entry, "percentage")
 	var change any = exchange.SafeString(entry, "change")
+	// option markets are exempt from the UPPER percentage/change caps only:
+	// expiry-day convexity makes any finite cap wrong - a formerly-OTM
+	// contract moving into the money legitimately gains 1000x+ (observed: a
+	// paradex call at +109055% on its expiry date, mark price equal to
+	// intrinsic). the floors stay: a long option cannot lose more than its
+	// premium, so percentage >= -100 and change >= -open hold for options too
+	var isOptionMarket any = exchange.SafeBool(market, "option", false)
 	if IsTrue(!IsTrue((InOp(skippedProperties, "maxIncrease"))) && !IsTrue(isUnrecognizedSymbol)) {
 		//
 		// percentage
 		//
-		var maxIncrease any = "100" // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+		var maxIncrease string = "1000" // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
 		if IsTrue(!IsEqual(percentage, nil)) {
-			// - should be above -100 and below MAX
+			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
-			Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
+			if !IsTrue(isOptionMarket) {
+				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
+			}
 		}
 		//
 		// change
 		//
 		var approxValue any = exchange.SafeStringN(entry, []any{"open", "close", "average", "bid", "ask", "vwap", "previousClose"})
 		if IsTrue(!IsEqual(change, nil)) {
-			// - should be between -price & +price*100
+			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
-			Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
+			if !IsTrue(isOptionMarket) {
+				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
+			}
 		}
 	}
 	//

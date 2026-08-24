@@ -17,6 +17,12 @@ from ccxt.test.exchange.base import test_ticker  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_fetch_tickers(exchange, skipped_properties, symbol):
+    # prediction venues list thousands of outcome markets, so fetching ALL tickers (no-arg)
+    # is impractical and the "every active market has a ticker" check doesn't apply — test
+    # fetchTickers by the outcome handle instead
+    if exchange.safe_bool(exchange.has, 'prediction', False):
+        prediction_result = await fetch_tickers_helper_test(exchange, skipped_properties, [symbol])
+        return [prediction_result]
     without_symbol = fetch_tickers_helper_test(exchange, skipped_properties, None)
     with_symbol = fetch_tickers_helper_test(exchange, skipped_properties, [symbol])
     results = await asyncio.gather(*[without_symbol, with_symbol])
@@ -27,7 +33,7 @@ async def test_fetch_tickers(exchange, skipped_properties, symbol):
 async def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, arg_params={}):
     method = 'fetchTickers'
     response = await exchange.fetch_tickers(arg_symbols, arg_params)
-    assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(arg_symbols) + ' must return a dict. ' + exchange.json(response)
+    test_shared_methods.assert_dictionary_response(exchange, method, response, exchange.json(arg_symbols))
     values = list(response.values())
     checked_symbol = None
     if arg_symbols is not None and len(arg_symbols) == 1:
@@ -39,7 +45,11 @@ async def fetch_tickers_helper_test(exchange, skipped_properties, arg_symbols, a
         try:
             test_ticker(exchange, skipped_properties, method, ticker, checked_symbol)
         except Exception as ex:
-            await test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker)
+            ohlcv = None
+            ticker_symbol = ticker['symbol']
+            if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
+                ohlcv = await exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
+            test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
     return response
 
 
@@ -58,5 +68,7 @@ def fetch_tickers_amounts_test(exchange, skipped_properties, tickers):
         # ensure tickers length is less than markets length
         #
         all_markets = exchange.markets
+        if all_markets is None:
+            return
         all_markets_length = len(list(all_markets.keys()))
         assert obtained_tickers_length <= all_markets_length, exchange.id + ' ' + 'fetchTickers' + ' must return <= than all markets, but returned: ' + str(obtained_tickers_length) + ' tickers, ' + str(all_markets_length) + ' markets'

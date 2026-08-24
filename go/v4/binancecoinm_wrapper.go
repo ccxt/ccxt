@@ -34,10 +34,7 @@ func (this *Binancecoinm) TransferIn(code string, amount any, options ...Transfe
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.TransferIn(code, amount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
@@ -52,10 +49,7 @@ func (this *Binancecoinm) TransferOut(code string, amount any, options ...Transf
 		opt(&opts)
 	}
 
-	var params any = nil
-	if opts.Params != nil {
-		params = *opts.Params
-	}
+	var params *map[string]any = opts.Params
 	res := <-this.Core.TransferOut(code, amount, params)
 	if IsError(res) {
 		return TransferEntry{}, CreateReturnError(res)
@@ -239,10 +233,10 @@ func (this *Binancecoinm) FetchDeposits(options ...FetchDepositsOptions) ([]Tran
 func (this *Binancecoinm) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Binancecoinm) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
+func (this *Binancecoinm) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (DepositWithdrawFee, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Binancecoinm) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
+func (this *Binancecoinm) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (DepositWithdrawFees, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
 func (this *Binancecoinm) FetchFreeBalance(params ...any) (Balance, error) {
@@ -386,7 +380,7 @@ func (this *Binancecoinm) FetchPosition(symbol string, options ...FetchPositionO
 func (this *Binancecoinm) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Binancecoinm) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
+func (this *Binancecoinm) FetchPositionMode(options ...FetchPositionModeOptions) (PositionModeInfo, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Binancecoinm) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -404,7 +398,7 @@ func (this *Binancecoinm) FetchPositionsRisk(options ...FetchPositionsRiskOption
 func (this *Binancecoinm) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Binancecoinm) FetchStatus(params ...any) (map[string]any, error) {
+func (this *Binancecoinm) FetchStatus(params ...any) (Status, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Binancecoinm) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
@@ -539,7 +533,7 @@ func (this *Binancecoinm) FetchBalanceWs(params ...any) (Balances, error) {
 func (this *Binancecoinm) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Binancecoinm) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
+func (this *Binancecoinm) FetchDepositsWs(options ...FetchDepositsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Binancecoinm) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -584,7 +578,7 @@ func (this *Binancecoinm) FetchTradesWs(symbol string, options ...FetchTradesWsO
 func (this *Binancecoinm) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Binancecoinm) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
+func (this *Binancecoinm) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
 func (this *Binancecoinm) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {

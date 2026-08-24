@@ -112,7 +112,7 @@ class Throttler {
         }
     }
 
-    throttle (cost = undefined) {
+    throttle (cost: Num = undefined) {
         let resolver;
         const promise = new Promise ((resolve, reject) => {
             resolver = resolve;

@@ -10,14 +10,17 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
-        object method = "watchTradesForSymbols";
+        string method = "watchTradesForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
+        object maxIdleTime = 5000;
+        bool idle = false;
         object returnedSymbols = new List<object>() {};
-        while (isTrue(isLessThan(now, ends)) || isTrue(isLessThan(getArrayLength(returnedSymbols), getArrayLength(symbols))))
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
-            object success = true;
+            bool success = true;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchTradesForSymbols(symbols);
@@ -27,12 +30,12 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
+                success = false;
             }
+            now = exchange.milliseconds();
             if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
-                now = exchange.milliseconds();
                 object symbol = null;
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
@@ -48,6 +51,10 @@ public partial class testMainClass : BaseTest
                     {
                         ((IList<object>)returnedSymbols).Add(symbol);
                     }
+                }
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
                 }
             }
         }

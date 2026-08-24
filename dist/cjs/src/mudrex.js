@@ -97,8 +97,8 @@ class mudrex extends mudrex$1["default"] {
             'api': {
                 'market': {
                     'get': {
-                        'price/kline': 1,
-                        'price/mark-kline': 1,
+                        'price/kline': { 'cost': 1 },
+                        'price/mark-kline': { 'cost': 1 },
                     },
                 },
                 'public': {
@@ -106,36 +106,36 @@ class mudrex extends mudrex$1["default"] {
                 },
                 'private': {
                     'get': {
-                        'futures': 1,
-                        'futures/{asset_id}': 1,
-                        'wallet/funds': 5,
-                        'futures/funds': 5,
-                        'futures/orders': 1,
-                        'futures/orders/history': 1,
-                        'futures/orders/{order_id}': 1,
-                        'futures/positions': 1,
-                        'futures/positions/history': 1,
-                        'futures/fee/history': 1,
-                        'futures/{asset_id}/leverage': 2,
-                        'futures/positions/{position_id}/liq-price': 1,
+                        'futures': { 'cost': 1 },
+                        'futures/{asset_id}': { 'cost': 1 },
+                        'wallet/funds': { 'cost': 5 },
+                        'futures/funds': { 'cost': 5 },
+                        'futures/orders': { 'cost': 1 },
+                        'futures/orders/history': { 'cost': 1 },
+                        'futures/orders/{order_id}': { 'cost': 1 },
+                        'futures/positions': { 'cost': 1 },
+                        'futures/positions/history': { 'cost': 1 },
+                        'futures/fee/history': { 'cost': 1 },
+                        'futures/{asset_id}/leverage': { 'cost': 2 },
+                        'futures/positions/{position_id}/liq-price': { 'cost': 1 },
                     },
                     'post': {
-                        'wallet/futures/transfer': 5,
-                        'futures/transfers/inr': 5,
-                        'futures/{asset_id}/order': 2,
-                        'futures/positions/{position_id}/close': 2,
-                        'futures/positions/{position_id}/close/partial': 2,
-                        'futures/positions/{position_id}/reverse': 2,
-                        'futures/positions/{position_id}/add-margin': 2,
-                        'futures/positions/{position_id}/riskorder': 2,
-                        'futures/{asset_id}/leverage': 2,
+                        'wallet/futures/transfer': { 'cost': 5 },
+                        'futures/transfers/inr': { 'cost': 5 },
+                        'futures/{asset_id}/order': { 'cost': 2 },
+                        'futures/positions/{position_id}/close': { 'cost': 2 },
+                        'futures/positions/{position_id}/close/partial': { 'cost': 2 },
+                        'futures/positions/{position_id}/reverse': { 'cost': 2 },
+                        'futures/positions/{position_id}/add-margin': { 'cost': 2 },
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2 },
+                        'futures/{asset_id}/leverage': { 'cost': 2 },
                     },
                     'patch': {
-                        'futures/orders/{order_id}': 1,
-                        'futures/positions/{position_id}/riskorder': 2,
+                        'futures/orders/{order_id}': { 'cost': 1 },
+                        'futures/positions/{position_id}/riskorder': { 'cost': 2 },
                     },
                     'delete': {
-                        'futures/orders/{order_id}': 2,
+                        'futures/orders/{order_id}': { 'cost': 2 },
                     },
                 },
             },
@@ -184,17 +184,20 @@ class mudrex extends mudrex$1["default"] {
         }
         let url = base + '/' + this.implodeParams(path, params);
         let query = this.omit(params, this.extractParams(path));
-        headers = (headers !== undefined) ? this.extend({}, headers) : {};
+        let requestHeaders = {};
+        if (headers !== undefined) {
+            requestHeaders = this.extend({}, headers);
+        }
         const brokerId = this.safeString(this.options, 'broker');
         if (brokerId !== undefined) {
-            headers['Partner-Id'] = brokerId;
+            requestHeaders['Partner-Id'] = brokerId;
         }
         const methodUpper = method.toUpperCase();
         if (api === 'private') {
             this.checkRequiredCredentials();
-            headers['X-Authentication'] = this.secret;
+            requestHeaders['X-Authentication'] = this.secret;
             if (methodUpper === 'POST' || methodUpper === 'PATCH' || methodUpper === 'DELETE') {
-                headers['Content-Type'] = 'application/json';
+                requestHeaders['Content-Type'] = 'application/json';
                 // is_symbol is a query-string flag even on write requests
                 const isSymbol = this.safeString(query, 'is_symbol');
                 if (isSymbol !== undefined) {
@@ -202,16 +205,16 @@ class mudrex extends mudrex$1["default"] {
                     url += '?' + this.urlencode({ 'is_symbol': isSymbol });
                 }
                 if ((methodUpper === 'DELETE') && this.isEmpty(query)) {
-                    return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': headers };
+                    return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
                 }
                 const bodyStr = this.json(query);
-                return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': headers };
+                return { 'url': url, 'method': methodUpper, 'body': bodyStr, 'headers': requestHeaders };
             }
         }
         if (Object.keys(query).length) {
             url += '?' + this.urlencode(query);
         }
-        return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': headers };
+        return { 'url': url, 'method': methodUpper, 'body': undefined, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined || typeof response !== 'object') {
@@ -298,6 +301,9 @@ class mudrex extends mudrex$1["default"] {
         }
         else {
             startTime = now - duration * requestLimit;
+        }
+        if (startTime === undefined) {
+            throw new errors.ExchangeError(this.id + ' fetchOHLCV() missing startTime');
         }
         let endTime = startTime + duration * requestLimit;
         const until = this.safeInteger(params, 'until');
@@ -451,28 +457,33 @@ class mudrex extends mudrex$1["default"] {
             let items = [];
             if (typeof data === 'object' && !Array.isArray(data)) {
                 items = this.safeList(data, 'items', []);
-                if (!items.length) {
+                // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
+                let itemsLength = items.length;
+                if (!itemsLength) {
                     items = this.safeList(data, 'results', []);
+                    itemsLength = items.length;
                 }
-                if (!items.length && ('symbol' in data)) {
+                if (!itemsLength && ('symbol' in data)) {
                     items = [data];
                 }
             }
             else {
                 items = this.toArray(data);
             }
-            if (!items.length) {
+            const numItems = items.length;
+            if (!numItems) {
                 paging = false;
                 break;
             }
-            for (let i = 0; i < items.length; i++) {
+            for (let i = 0; i < numItems; i++) {
                 aggregated.push(items[i]);
             }
-            if (items.length < pageLimit) {
+            if (numItems < pageLimit) {
                 paging = false;
             }
             else {
-                offset += pageLimit;
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum(offset, pageLimit);
             }
         }
         const result = [];
@@ -495,7 +506,7 @@ class mudrex extends mudrex$1["default"] {
         }
         const priceStep = this.safeString(asset, 'price_step', '0.01');
         const qtyStep = this.safeString(asset, 'quantity_step', '0.001');
-        return {
+        return this.safeMarketStructure({
             'id': ms,
             'lowercaseId': undefined,
             'symbol': symbol,
@@ -542,7 +553,7 @@ class mudrex extends mudrex$1["default"] {
             },
             'info': asset,
             'created': undefined,
-        };
+        });
     }
     /**
      * @method
@@ -579,6 +590,9 @@ class mudrex extends mudrex$1["default"] {
         let currency = requested;
         if (currency === undefined) {
             currency = 'USDT';
+        }
+        if (response === undefined) {
+            throw new errors.NullResponse(this.id + ' fetchBalance() returned empty response');
         }
         response['currency'] = currency;
         return this.parseBalance(response);
@@ -1166,10 +1180,12 @@ class mudrex extends mudrex$1["default"] {
                 request['limit_price'] = lp;
             }
             params = this.omit(params, ['order_type', 'limit_price', 'amount', 'position_id']);
-            return await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, params));
+            const partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, params));
+            return partialResponse;
         }
         params = this.omit(params, ['position_id']);
-        return await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, params));
+        const response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, params));
+        return response;
     }
     /**
      * @method
@@ -1205,7 +1221,8 @@ class mudrex extends mudrex$1["default"] {
             'margin': this.costToPrecision(symbol, amount),
         };
         params = this.omit(params, ['position_id']);
-        return await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, params));
+        const response = await this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, params));
+        return response;
     }
     /**
      * @method

@@ -468,7 +468,7 @@ public partial class bitget : ccxt.bitget
         object market = this.market(getValue(symbols, 0));
         object instType = null;
         object uta = null;
-        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+        var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
         var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
@@ -737,7 +737,7 @@ public partial class bitget : ccxt.bitget
         {
             return;
         }
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -892,7 +892,7 @@ public partial class bitget : ccxt.bitget
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -903,7 +903,7 @@ public partial class bitget : ccxt.bitget
         }
         symbols = this.marketSymbols(symbols);
         object channel = "books";
-        object incrementalFeed = true;
+        bool incrementalFeed = true;
         if (isTrue(isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))) || isTrue((isEqual(limit, 50)))))
         {
             channel = add(channel, ((object)limit).ToString());
@@ -1006,7 +1006,7 @@ public partial class bitget : ccxt.bitget
         object data = this.safeValue(message, "data");
         object rawOrderBook = this.safeValue(data, 0);
         object timestamp = this.safeInteger(rawOrderBook, "ts");
-        object incrementalBook = isEqual(channel, "books");
+        bool incrementalBook = isEqual(channel, "books");
         if (isTrue(incrementalBook))
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -1025,7 +1025,7 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
             object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            object isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
+            bool isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
             object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
@@ -1033,8 +1033,8 @@ public partial class bitget : ccxt.bitget
             {
                 object storedAsks = getValue(storedOrderBook, "asks");
                 object storedBids = getValue(storedOrderBook, "bids");
-                object asksLength = getArrayLength(storedAsks);
-                object bidsLength = getArrayLength(storedBids);
+                int asksLength = getArrayLength(storedAsks);
+                int bidsLength = getArrayLength(storedBids);
                 object payloadArray = new List<object>() {};
                 for (object i = 0; isLessThan(i, 25); postFixIncrement(ref i))
                 {
@@ -1049,7 +1049,7 @@ public partial class bitget : ccxt.bitget
                         ((IList<object>)payloadArray).Add(getValue(getValue(getValue(storedAsks, i), 2), 1));
                     }
                 }
-                object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
+                string payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
                 object calculatedChecksum = this.crc32(payload, true);
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
@@ -1060,8 +1060,8 @@ public partial class bitget : ccxt.bitget
         } else
         {
             object orderbook = this.orderBook(new Dictionary<string, object>() {});
-            object bidsKey = "bids";
-            object asksKey = "asks";
+            string bidsKey = "bids";
+            string asksKey = "asks";
             // bitget UTA has `a` and `b` instead of `asks` and `bids`
             if (isTrue(inOp(rawOrderBook, "a")))
             {
@@ -1145,7 +1145,7 @@ public partial class bitget : ccxt.bitget
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -1273,7 +1273,7 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object data = this.safeList(message, "data", new List<object>() {});
-        object length = getArrayLength(data);
+        int length = getArrayLength(data);
         // fix chronological order by reversing
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
@@ -1450,7 +1450,7 @@ public partial class bitget : ccxt.bitget
         }
         object market = null;
         object messageHash = "";
-        object subscriptionHash = "positions";
+        string subscriptionHash = "positions";
         object instType = "USDT-FUTURES";
         object uta = null;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
@@ -1597,9 +1597,9 @@ public partial class bitget : ccxt.bitget
         for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
-            object parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
             object symbolsString = getValue(parts, 1);
-            object symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+            List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
             {
@@ -1947,16 +1947,30 @@ public partial class bitget : ccxt.bitget
         object data = this.safeList(message, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object category = this.safeStringLower(first, "category", instType);
-        object isLinearSwap = (isEqual(category, "usdt-futures"));
-        object isInverseSwap = (isEqual(category, "coin-futures"));
-        object isUSDCFutures = (isEqual(category, "usdc-futures"));
+        bool isLinearSwap = (isEqual(category, "usdt-futures"));
+        bool isInverseSwap = (isEqual(category, "coin-futures"));
+        bool isUSDCFutures = (isEqual(category, "usdc-futures"));
+        if (isTrue(isEqual(instType, "uta")))
+        {
+            // UTA order/fill pushes carry the real product in 'category' (spot / *-futures);
+            // the instType->marketType mapping above defaults UTA to 'contract', which
+            // mis-resolves a UTA SPOT order to the swap market and yields a messageHash the
+            // watcher never matches. Derive marketType from category for UTA.
+            if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "margin")))))
+            {
+                marketType = "spot";
+            } else
+            {
+                marketType = "contract";
+            }
+        }
         if (isTrue(isEqual(this.orders, null)))
         {
             object limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCacheBySymbolById(limit);
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object isTrigger = isTrue((isEqual(channel, "orders-algo"))) || isTrue((isEqual(channel, "ordersAlgo")));
+        bool isTrigger = isTrue((isEqual(channel, "orders-algo"))) || isTrue((isEqual(channel, "ordersAlgo")));
         object stored = ((bool) isTrue(isTrigger)) ? this.triggerOrders : this.orders;
         object messageHash = ((bool) isTrue(isTrigger)) ? "triggerOrder" : "order";
         object marketSymbols = new Dictionary<string, object>() {};
@@ -1973,7 +1987,7 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)marketSymbols)[(string)symbol] = true;
             }
         }
-        object keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)marketSymbols).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object symbol = getValue(keys, i);
@@ -2013,8 +2027,8 @@ public partial class bitget : ccxt.bitget
         //         price: '0.81075', // limit price, field not present for market orders
         //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
         //         notional: '5.675250', // this is not cost! but notional
-        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
-        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         newSize: '7.0000', // this is not cost! quantity (for limit order or market sell) or cost (for market buy order)
+        //         size: '5.6752', // this is not cost, neither quantity, but notional! this field for "spot" can be ignored at all
         //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
         //         orderType: 'limit', // limit, market
         //         force: 'gtc',
@@ -2158,8 +2172,8 @@ public partial class bitget : ccxt.bitget
         //         "stpMode": "none"
         //     }
         //
-        object isSpot = !isTrue((inOp(order, "posMode")));
-        object isMargin = (inOp(order, "loanType"));
+        bool isSpot = !isTrue((inOp(order, "posMode")));
+        bool isMargin = (inOp(order, "loanType"));
         object category = this.safeStringLower(order, "category");
         if (isTrue(isEqual(category, "spot")))
         {
@@ -2187,7 +2201,7 @@ public partial class bitget : ccxt.bitget
             };
         }
         object triggerPrice = this.safeNumber(order, "triggerPrice");
-        object isTriggerOrder = (!isEqual(triggerPrice, null));
+        bool isTriggerOrder = (!isEqual(triggerPrice, null));
         object price = null;
         if (!isTrue(isTriggerOrder))
         {
@@ -2203,8 +2217,8 @@ public partial class bitget : ccxt.bitget
         object type = this.safeString(order, "orderType");
         object accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));
         object newSizeValue = this.omitZero(this.safeString2(order, "newSize", "cumExecValue"));
-        object isMarketOrder = (isEqual(type, "market"));
-        object isBuy = (isEqual(side, "buy"));
+        bool isMarketOrder = (isEqual(type, "market"));
+        bool isBuy = (isEqual(side, "buy"));
         object totalAmount = null;
         object filledAmount = null;
         object cost = null;
@@ -2479,12 +2493,29 @@ public partial class bitget : ccxt.bitget
         }
         object stored = this.myTrades;
         object data = this.safeList(message, "data", new List<object>() {});
-        object length = getArrayLength(data);
-        object messageHash = "myTrades";
+        int length = getArrayLength(data);
+        string messageHash = "myTrades";
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
+        object instType = this.safeStringLower(arg, "instType");
         for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object trade = getValue(data, i);
-            object parsed = this.parseWsTrade(trade);
+            object market = null;
+            if (isTrue(isEqual(instType, "uta")))
+            {
+                // UTA fills carry the product in 'category'; resolve the matching
+                // market so parseWsTrade yields the correct symbol (a UTA SPOT fill
+                // otherwise resolves to the swap market and the messageHash never matches).
+                object category = this.safeStringLower(trade, "category");
+                string marketType = "contract";
+                if (isTrue(isTrue((isEqual(category, "spot"))) || isTrue((isEqual(category, "margin")))))
+                {
+                    marketType = "spot";
+                }
+                object marketId = this.safeString2(trade, "instId", "symbol");
+                market = this.safeMarket(marketId, null, null, marketType);
+            }
+            object parsed = this.parseWsTrade(trade, market);
             callDynamically(stored, "append", new object[] {parsed});
             object symbol = getValue(parsed, "symbol");
             object symbolSpecificMessageHash = add("myTrades:", symbol);
@@ -2525,7 +2556,7 @@ public partial class bitget : ccxt.bitget
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
         object instType = null;
-        object channel = "account";
+        string channel = "account";
         if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
         {
             instType = "USDT-FUTURES";
@@ -2676,7 +2707,11 @@ public partial class bitget : ccxt.bitget
                     object entry = getValue(coins, j);
                     object currencyId = this.safeString(entry, "coin");
                     object code = this.safeCurrencyCode(currencyId);
-                    object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+                    object account = this.account();
+                    if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+                    {
+                        account = getValue(this.balance, code);
+                    }
                     object borrow = this.safeString(entry, "borrow");
                     object debts = this.safeString(entry, "debts");
                     if (isTrue(isTrue((!isEqual(borrow, null))) || isTrue((!isEqual(debts, null)))))
@@ -2686,13 +2721,20 @@ public partial class bitget : ccxt.bitget
                     ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
                     ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "locked");
                     ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
-                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                    }
                 }
             } else
             {
                 object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
                 object code = this.safeCurrencyCode(currencyId);
-                object account = ((bool) isTrue((inOp(this.balance, code)))) ? getValue(this.balance, code) : this.account();
+                object account = this.account();
+                if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
+                {
+                    account = getValue(this.balance, code);
+                }
                 object borrow = this.safeString(rawBalance, "borrow");
                 if (isTrue(!isEqual(borrow, null)))
                 {
@@ -2703,9 +2745,15 @@ public partial class bitget : ccxt.bitget
                 ((IDictionary<string,object>)account)["free"] = this.safeString(rawBalance, freeQuery);
                 ((IDictionary<string,object>)account)["total"] = this.safeString(rawBalance, "equity");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "frozen");
-                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)this.balance)[(string)code] = account;
+                }
             }
         }
+        // REST parseBalance sets info, keep the ws structure at parity,
+        // see https://github.com/ccxt/ccxt/issues/21973
+        ((IDictionary<string,object>)this.balance)["info"] = message;
         this.balance = this.safeBalance(this.balance);
         object messageHash = add("balance:", instType);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, messageHash});
@@ -2734,7 +2782,7 @@ public partial class bitget : ccxt.bitget
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -2761,7 +2809,7 @@ public partial class bitget : ccxt.bitget
             { "op", "unsubscribe" },
             { "args", new List<object>() {args} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, messageHash);
     }
 
@@ -2783,7 +2831,7 @@ public partial class bitget : ccxt.bitget
             { "op", "subscribe" },
             { "args", argsArray },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
@@ -2793,15 +2841,15 @@ public partial class bitget : ccxt.bitget
         this.checkRequiredCredentials();
         object url = this.safeString(parameters, "url", "");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
-            object timestamp = ((object)this.seconds()).ToString();
+            string timestamp = ((object)this.seconds()).ToString();
             object auth = add(add(timestamp, "GET"), "/user/verify");
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
-            object operation = "login";
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256, "base64");
+            string operation = "login";
             object request = new Dictionary<string, object>() {
                 { "op", operation },
                 { "args", new List<object>() {new Dictionary<string, object>() {
@@ -2811,7 +2859,7 @@ public partial class bitget : ccxt.bitget
     { "sign", signature },
 }} },
             };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
         return await (future as Exchange.Future);
@@ -2843,7 +2891,7 @@ public partial class bitget : ccxt.bitget
             { "op", "subscribe" },
             { "args", new List<object>() {args} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         return await this.watch(url, messageHash, message, subscriptionHash);
     }
 
@@ -2852,7 +2900,7 @@ public partial class bitget : ccxt.bitget
         //
         //  { event: "login", code: 0 }
         //
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = this.safeValue((client as WebSocketClient).futures, messageHash);
         (future as Future).resolve(true);
     }
@@ -2879,7 +2927,7 @@ public partial class bitget : ccxt.bitget
         {
             if (isTrue(e is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(e, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -3248,7 +3296,7 @@ public partial class bitget : ccxt.bitget
             object channel = this.safeString2(arg, "channel", "topic", "");
             if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "books"), 0)))
             {
-                // for now only unWatchOrderBook is supporteod
+                // for now only unWatchOrderBook is supported
                 this.handleOrderBookUnSubscription(client as WebSocketClient, message);
             } else if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(channel, "trade"), 0))) || isTrue((isGreaterThanOrEqual(getIndexOf(channel, "publicTrade"), 0)))))
             {

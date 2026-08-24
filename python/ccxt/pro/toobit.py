@@ -5,17 +5,17 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import NotSupported
 
 
 class toobit(ccxt.async_support.toobit):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(toobit, self).describe(), {
             'has': {
                 'ws': True,
@@ -80,7 +80,7 @@ class toobit(ccxt.async_support.toobit):
             'ping': self.milliseconds(),
         }
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: object):
         #
         # public
         #
@@ -157,11 +157,11 @@ class toobit(ccxt.async_support.toobit):
     def handle_incoming_pong(self, client: Client, pongTimestamp: Int):
         client.lastPong = pongTimestamp
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -171,11 +171,11 @@ class toobit(ccxt.async_support.toobit):
         """
         return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -209,7 +209,7 @@ class toobit(ccxt.async_support.toobit):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: object):
         #
         #     {
         #         symbol: "DOGEUSDT",
@@ -252,11 +252,12 @@ class toobit(ccxt.async_support.toobit):
     def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         return self.parse_trade(trade, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -269,11 +270,12 @@ class toobit(ccxt.async_support.toobit):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -312,7 +314,7 @@ class toobit(ccxt.async_support.toobit):
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         symbol: 'DOGEUSDT',
@@ -346,10 +348,12 @@ class toobit(ccxt.async_support.toobit):
         timeframe = self.find_timeframe(timeframeId)
         if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
-        if not (timeframe in self.ohlcvs[symbol]):
+        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        if stored is None:
             limit = self.safe_integer(self.options['ws'], 'OHLCVLimit', 1000)
-            self.ohlcvs[symbol][timeframe] = ArrayCacheByTimestamp(limit)
-        stored = self.ohlcvs[symbol][timeframe]
+            stored = ArrayCacheByTimestamp(limit)
+            if timeframe is not None:
+                self.ohlcvs[symbol][timeframe] = stored
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
@@ -358,7 +362,7 @@ class toobit(ccxt.async_support.toobit):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #             {
         #                 t: 1757251200000,
@@ -378,7 +382,8 @@ class toobit(ccxt.async_support.toobit):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
@@ -394,7 +399,8 @@ class toobit(ccxt.async_support.toobit):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
@@ -426,7 +432,7 @@ class toobit(ccxt.async_support.toobit):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_tickers(self, client: Client, message):
+    def handle_tickers(self, client: Client, message: object):
         #
         #    {
         #        "symbol": "DOGEUSDT",
@@ -463,25 +469,32 @@ class toobit(ccxt.async_support.toobit):
         #    }
         #
         data = self.safe_list(message, 'data')
+        if data is None:
+            return
         newTickers = {}
         for i in range(0, len(data)):
             ticker = data[i]
             parsed = self.parse_ws_ticker(ticker)
             symbol = parsed['symbol']
-            self.tickers[symbol] = parsed
-            newTickers[symbol] = parsed
+            if symbol is not None:
+                self.tickers[symbol] = parsed
+            if symbol is not None:
+                newTickers[symbol] = parsed
             messageHash = 'ticker::' + symbol
             client.resolve(parsed, messageHash)
         client.resolve(newTickers, 'tickers')
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker: dict, market: Market = None):
         return self.parse_ticker(ticker, market)
 
     def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
@@ -490,16 +503,19 @@ class toobit(ccxt.async_support.toobit):
         """
         return self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams
+        https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -524,7 +540,7 @@ class toobit(ccxt.async_support.toobit):
         orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: object):
         #
         #     {
         #         symbol: 'DOGEUSDT',
@@ -570,11 +586,11 @@ class toobit(ccxt.async_support.toobit):
             self.orderbooks[symbol] = orderBook
             client.resolve(orderBook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: object, delta: object):
         bidAsk = self.parse_order_book_bid_ask(delta)
         bookside.storeArray(bidAsk)
 
-    def handle_order_book_partial_snapshot(self, client: Client, message):
+    def handle_order_book_partial_snapshot(self, client: Client, message: object):
         #
         #     {
         #         symbol: 'DOGEUSDT',
@@ -599,7 +615,7 @@ class toobit(ccxt.async_support.toobit):
         #
         self.set_order_book_snapshot(client, message, 'depth')
 
-    def set_order_book_snapshot(self, client: Client, message, channel: str):
+    def set_order_book_snapshot(self, client: Client, message: object, channel: str):
         data = self.safe_list(message, 'data', [])
         length = len(data)
         if length == 0:
@@ -622,7 +638,8 @@ class toobit(ccxt.async_support.toobit):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update
+        https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -640,14 +657,16 @@ class toobit(ccxt.async_support.toobit):
         swapMessageHash = 'contract:balance'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         subscriptionHash = spotSubHash if isSpot else swapSubHash
+        if subscriptionHash is None:
+            raise ArgumentsRequired(self.id + ' watchBalance() requires a subscription hash')
         url = self.get_user_stream_url()
         client = self.client(url)
         self.set_balance_cache(client, marketType, subscriptionHash, params)
         client.future(type + ':fetchBalanceSnapshot')
         return await self.watch(url, messageHash, params, subscriptionHash)
 
-    def set_balance_cache(self, client: Client, marketType, subscriptionHash: Str = None, params={}):
-        if subscriptionHash in client.subscriptions:
+    def set_balance_cache(self, client: Client, marketType: object, subscriptionHash: Str = None, params={}):
+        if (subscriptionHash is None) or (subscriptionHash in client.subscriptions):
             return
         type = 'spot' if (marketType == 'spot') else 'contract'
         messageHash = type + ':fetchBalanceSnapshot'
@@ -655,7 +674,7 @@ class toobit(ccxt.async_support.toobit):
             client.future(messageHash)
             self.spawn(self.load_balance_snapshot, client, messageHash, marketType)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: object):
         #
         # spot
         #
@@ -706,11 +725,12 @@ class toobit(ccxt.async_support.toobit):
             account['info'] = balance
             account['used'] = self.safe_string(balance, 'l')
             account['free'] = self.safe_string(balance, 'f')
-            self.balance[type][code] = account
+            if (type is not None) and (code is not None):
+                self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
         client.resolve(self.balance[type], type + ':balance')
 
-    async def load_balance_snapshot(self, client, messageHash, marketType):
+    async def load_balance_snapshot(self, client: Client, messageHash: object, marketType: object):
         response = await self.fetch_balance({'type': marketType})
         type = 'spot' if (marketType == 'spot') else 'contract'
         self.balance[type] = self.extend(response, self.safe_dict(self.balance, type, {}))
@@ -721,11 +741,12 @@ class toobit(ccxt.async_support.toobit):
             client.resolve(self.balance[type], type + ':fetchBalanceSnapshot')
             client.resolve(self.balance[type], type + ':balance')  # we should also resolve right away after snapshot, so user doesn't double-fetch balance
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update
+        https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -747,7 +768,7 @@ class toobit(ccxt.async_support.toobit):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: object):
         #
         #    {
         #        "e": "executionReport",
@@ -790,7 +811,7 @@ class toobit(ccxt.async_support.toobit):
         messageHash = 'orders:' + self.safe_string(order, 'symbol')
         client.resolve(orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: object, market: Market = None):
         timestamp = self.safe_integer(order, 'O')
         marketId = self.safe_string(order, 's')
         symbol = self.safe_symbol(marketId, market)
@@ -833,11 +854,12 @@ class toobit(ccxt.async_support.toobit):
             'trades': None,
         }, market)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
-        https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push
+        https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -860,7 +882,7 @@ class toobit(ccxt.async_support.toobit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: object):
         #
         #    {
         #        "e": "ticketInfo",
@@ -888,7 +910,7 @@ class toobit(ccxt.async_support.toobit):
         messageHash = 'myTrades'
         client.resolve(myTrades, messageHash)
 
-    def parse_my_trade(self, trade, market=None):
+    def parse_my_trade(self, trade: object, market: Market = None):
         marketId = self.safe_string(trade, 's')
         ts = self.safe_string(trade, 't')
         return self.safe_trade({
@@ -907,10 +929,10 @@ class toobit(ccxt.async_support.toobit):
             'fee': None,
         }, market)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
 
-        https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update
+        https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update
 
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
@@ -925,6 +947,8 @@ class toobit(ccxt.async_support.toobit):
         messageHash = ''
         if not self.is_empty(symbols):
             symbols = self.market_symbols(symbols)
+            if symbols is None:
+                raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
             messageHash = '::' + ','.join(symbols)
         url = self.get_user_stream_url()
         client = self.client(url)
@@ -939,7 +963,7 @@ class toobit(ccxt.async_support.toobit):
             return newPositions
         return self.filter_by_symbols_since_limit(cache, symbols, since, limit, True)
 
-    def set_positions_cache(self, client: Client, type, symbols: Strings = None, isPortfolioMargin=False):
+    def set_positions_cache(self, client: Client, type: object, symbols: Strings = None, isPortfolioMargin=False):
         if self.positions is None:
             self.positions = {}
         if type in self.positions:
@@ -953,7 +977,7 @@ class toobit(ccxt.async_support.toobit):
         else:
             self.positions[type] = ArrayCacheBySymbolBySide()
 
-    async def load_positions_snapshot(self, client, messageHash, type):
+    async def load_positions_snapshot(self, client: Client, messageHash: object, type: object):
         params = {
             'type': type,
         }
@@ -969,7 +993,7 @@ class toobit(ccxt.async_support.toobit):
             future.resolve(cache)
             client.resolve(cache, type + ':positions')
 
-    def handle_positions(self, client, message):
+    def handle_positions(self, client: object, message: object):
         #
         # [
         #     {
@@ -1021,12 +1045,12 @@ class toobit(ccxt.async_support.toobit):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, accountType + ':positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position: object, market: Market = None):
         marketId = self.safe_string(position, 's')
         return self.safe_position({
             'info': position,
             'id': None,
-            'symbol': self.safe_symbol(marketId, None),
+            'symbol': self.safe_symbol(marketId),
             'notional': self.omit_zero(self.safe_string(position, 'pv')),
             'marginMode': self.safe_string_lower(position, 'mt'),
             'liquidationPrice': self.safe_string(position, 'f'),
@@ -1103,7 +1127,7 @@ class toobit(ccxt.async_support.toobit):
     def get_user_stream_url(self):
         return self.urls['api']['ws']['common'] + '/api/v1/ws/' + self.options['ws']['listenKey']
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #    {
         #        "code": '-100010',

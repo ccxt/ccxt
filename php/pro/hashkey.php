@@ -6,8 +6,13 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
+use ccxt\pro\ArrayCacheBySymbolById;
+use ccxt\pro\ArrayCacheBySymbolBySide;
+use ccxt\pro\ArrayCacheByTimestamp;
 
 class hashkey extends \ccxt\async\hashkey {
     public function describe(): mixed {
@@ -53,61 +58,67 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function wath_public(array $market, string $topic, string $messageHash, $params = array()) {
-        return Async\async(function () use ($market, $topic, $messageHash, $params) {
-            $request = array(
-                'symbol' => $market['id'],
-                'topic' => $topic,
-                'event' => 'sub',
-            );
-            $url = $this->urls['api']['ws']['public'];
-            return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-        })();
+        return Async\async(self::do_wath_public(...))($market, $topic, $messageHash, $params);
     }
 
-    public function watch_private($messageHash) {
-        return Async\async(function () use ($messageHash) {
-            $listenKey = Async\await($this->authenticate());
-            $url = $this->get_private_url($listenKey);
-            return Async\await($this->watch($url, $messageHash, null, $messageHash));
-        })();
+    private function do_wath_public(array $market, string $topic, string $messageHash, $params = array()) {
+        $request = array(
+            'symbol' => $market['id'],
+            'topic' => $topic,
+            'event' => 'sub',
+        );
+        $url = $this->urls['api']['ws']['public'];
+        return Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
     }
 
-    public function get_private_url($listenKey) {
+    public function watch_private(mixed $messageHash) {
+        return Async\async(self::do_watch_private(...))($messageHash);
+    }
+
+    private function do_watch_private(mixed $messageHash) {
+        $listenKey = Async\await($this->authenticate());
+        $url = $this->get_private_url($listenKey);
+        return Async\await($this->watch($url, $messageHash, null, $messageHash));
+    }
+
+    public function get_private_url(mixed $listenKey) {
         return $this->urls['api']['ws']['private'] . '/' . $listenKey;
     }
 
     public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe the length of time each candle represents
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] the maximum amount of candles to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->binary] true or false - default false
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $topic = 'kline_' . $interval;
-            $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
-            $ohlcv = Async\await($this->wath_public($market, $topic, $messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
-        })();
+        return Async\async(self::do_watch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function handle_ohlcv(Client $client, $message) {
+    private function do_watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->binary] true or false - default false
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
+        $topic = 'kline_' . $interval;
+        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
+        $ohlcv = Async\await($this->wath_public($market, $topic, $messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $ohlcv->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+    }
+
+    public function handle_ohlcv(Client $client, mixed $message) {
         //
         //     {
         //         "symbol" => "DOGEUSDT",
@@ -137,13 +148,13 @@ class hashkey extends \ccxt\async\hashkey {
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId, $market);
-        if (!(is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs))) {
+        if (!(is_array($this->ohlcvs) && array_key_exists($symbol ?? '', $this->ohlcvs))) {
             $this->ohlcvs[$symbol] = array();
         }
         $params = $this->safe_dict($message, 'params');
         $klineType = $this->safe_string($params, 'klineType');
         $timeframe = $this->find_timeframe($klineType);
-        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
+        if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe ?? '', $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
@@ -158,7 +169,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ws_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //         "t" => 1722861660000,
@@ -182,29 +193,31 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->binary] true or false - default false
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $topic = 'realtimes';
-            $messageHash = 'ticker:' . $symbol;
-            return Async\await($this->wath_public($market, $topic, $messageHash, $params));
-        })();
+        return Async\async(self::do_watch_ticker(...))($symbol, $params);
     }
 
-    public function handle_ticker(Client $client, $message) {
+    private function do_watch_ticker(string $symbol, $params = array()) {
+        /**
+         * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->binary] true or false - default false
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $topic = 'realtimes';
+        $messageHash = 'ticker:' . $symbol;
+        return Async\await($this->wath_public($market, $topic, $messageHash, $params));
+    }
+
+    public function handle_ticker(Client $client, mixed $message) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -242,35 +255,37 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made in a $market
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {bool} [$params->binary] true or false - default false
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $topic = 'trade';
-            $messageHash = 'trades:' . $symbol;
-            $trades = Async\await($this->wath_public($market, $topic, $messageHash, $params));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_trades(Client $client, $message) {
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made in a $market
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [$params->binary] true or false - default false
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $topic = 'trade';
+        $messageHash = 'trades:' . $symbol;
+        $trades = Async\await($this->wath_public($market, $topic, $messageHash, $params));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trades(Client $client, mixed $message) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -298,7 +313,7 @@ class hashkey extends \ccxt\async\hashkey {
         $marketId = $this->safe_string($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
-        if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
+        if (!(is_array($this->trades) && array_key_exists($symbol ?? '', $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
         }
@@ -317,30 +332,32 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return.
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $topic = 'depth';
-            $messageHash = 'orderbook:' . $symbol;
-            $orderbook = Async\await($this->wath_public($market, $topic, $messageHash, $params));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function handle_order_book(Client $client, $message) {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return.
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $topic = 'depth';
+        $messageHash = 'orderbook:' . $symbol;
+        $orderbook = Async\await($this->wath_public($market, $topic, $messageHash, $params));
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book(Client $client, mixed $message) {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -373,7 +390,7 @@ class hashkey extends \ccxt\async\hashkey {
         $marketId = $this->safe_string($message, 'symbol');
         $symbol = $this->safe_symbol($marketId);
         $messageHash = 'orderbook:' . $symbol;
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->order_book(array());
         }
         $orderbook = $this->orderbooks[$symbol];
@@ -388,35 +405,37 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $orders made by the user
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-             *
-             * @param {string} $symbol unified market $symbol of the market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'orders';
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash = $messageHash . ':' . $symbol;
-            }
-            $orders = Async\await($this->watch_private($messageHash));
-            if ($this->newUpdates) {
-                $limit = $orders->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_orders(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_order(Client $client, $message) {
+    private function do_watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $orders made by the user
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+         *
+         * @param {string} $symbol unified market $symbol of the market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'orders';
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash = $messageHash . ':' . $symbol;
+        }
+        $orders = Async\await($this->watch_private($messageHash));
+        if ($this->newUpdates) {
+            $limit = $orders->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+    }
+
+    public function handle_order(Client $client, mixed $message) {
         //
         // swap
         //     {
@@ -514,35 +533,37 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * watches information on multiple $trades made by the user
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-             *
-             * @param {string} $symbol unified market $symbol of the market $trades were made in
-             * @param {int} [$since] the earliest time in ms to fetch $trades for
-             * @param {int} [$limit] the maximum number of trade structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $messageHash = 'myTrades';
-            if ($symbol !== null) {
-                $symbol = $this->symbol($symbol);
-                $messageHash .= ':' . $symbol;
-            }
-            $trades = Async\await($this->watch_private($messageHash));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_my_trade(Client $client, $message, $subscription = array()) {
+    private function do_watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on multiple $trades made by the user
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+         *
+         * @param {string} $symbol unified market $symbol of the market $trades were made in
+         * @param {int} [$since] the earliest time in ms to fetch $trades for
+         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $messageHash = 'myTrades';
+        if ($symbol !== null) {
+            $symbol = $this->symbol($symbol);
+            $messageHash .= ':' . $symbol;
+        }
+        $trades = Async\await($this->watch_private($messageHash));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_my_trade(Client $client, mixed $message, $subscription = array()) {
         //
         //     {
         //         "e" => "ticketInfo",
@@ -574,7 +595,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve($tradesArray, $symbolSpecificMessageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(mixed $trade, ?array $market = null): array {
         //
         // watchTrades
         //     {
@@ -635,43 +656,45 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $since, $limit, $params) {
-            /**
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-             *
-             * watch all open $positions
-             * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
-             * @param {int} [$since] the earliest time in ms to fetch $positions for
-             * @param {int} [$limit] the maximum number of $positions to retrieve
-             * @param {array} $params extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $listenKey = Async\await($this->authenticate());
-            $symbols = $this->market_symbols($symbols);
-            $messageHash = 'positions';
-            $messageHashes = array();
-            if ($symbols === null) {
-                $messageHashes[] = $messageHash;
-            } else {
-                for ($i = 0; $i < count($symbols); $i++) {
-                    $symbol = $symbols[$i];
-                    $messageHashes[] = $messageHash . ':' . $symbol;
-                }
-            }
-            $url = $this->get_private_url($listenKey);
-            $positions = Async\await($this->watch_multiple($url, $messageHashes, null, $messageHashes));
-            if ($this->newUpdates) {
-                return $positions;
-            }
-            return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        })();
+        return Async\async(self::do_watch_positions(...))($symbols, $since, $limit, $params);
     }
 
-    public function handle_position(Client $client, $message) {
+    private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+         *
+         * watch all open $positions
+         * @param {string[]} [$symbols] list of unified market $symbols to watch $positions for
+         * @param {int} [$since] the earliest time in ms to fetch $positions for
+         * @param {int} [$limit] the maximum number of $positions to retrieve
+         * @param {array} $params extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $listenKey = Async\await($this->authenticate());
+        $symbols = $this->market_symbols($symbols);
+        $messageHash = 'positions';
+        $messageHashes = array();
+        if ($symbols === null) {
+            $messageHashes[] = $messageHash;
+        } else {
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $messageHashes[] = $messageHash . ':' . $symbol;
+            }
+        }
+        $url = $this->get_private_url($listenKey);
+        $positions = Async\await($this->watch_multiple($url, $messageHashes, null, $messageHashes));
+        if ($this->newUpdates) {
+            return $positions;
+        }
+        return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
+    }
+
+    public function handle_position(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "outboundContractPositionInfo",
@@ -705,7 +728,7 @@ class hashkey extends \ccxt\async\hashkey {
         $client->resolve($parsed, $messageHash . ':' . $symbol);
     }
 
-    public function parse_ws_position($position, ?array $market = null): array {
+    public function parse_ws_position(mixed $position, ?array $market = null): array {
         $marketId = $this->safe_string($position, 's');
         $market = $this->safe_market($marketId);
         $timestamp = $this->safe_integer($position, 'E');
@@ -742,46 +765,48 @@ class hashkey extends \ccxt\async\hashkey {
     }
 
     public function watch_balance($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * watch balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] 'spot' or 'swap' - the $type of the market to watch balance for (default 'spot')
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            $listenKey = Async\await($this->authenticate());
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $type = 'spot';
-            list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
-            $messageHash = 'balance:' . $type;
-            $url = $this->get_private_url($listenKey);
-            $client = $this->client($url);
-            $this->set_balance_cache($client, $type, $messageHash);
-            $fetchBalanceSnapshot = null;
-            $awaitBalanceSnapshot = null;
-            list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
-            list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
-            if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
-                Async\await($client->future($type . ':fetchBalanceSnapshot'));
-            }
-            return Async\await($this->watch($url, $messageHash, null, $messageHash));
-        })();
+        return Async\async(self::do_watch_balance(...))($params);
     }
 
-    public function set_balance_cache(Client $client, $type, $subscribeHash) {
-        if (is_array($client->subscriptions) && array_key_exists($subscribeHash, $client->subscriptions)) {
+    private function do_watch_balance($params = array()) {
+        /**
+         * watch balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] 'spot' or 'swap' - the $type of the market to watch balance for (default 'spot')
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        $listenKey = Async\await($this->authenticate());
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $type = 'spot';
+        list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
+        $messageHash = 'balance:' . $type;
+        $url = $this->get_private_url($listenKey);
+        $client = $this->client($url);
+        $this->set_balance_cache($client, $type, $messageHash);
+        $fetchBalanceSnapshot = null;
+        $awaitBalanceSnapshot = null;
+        list($fetchBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        list($awaitBalanceSnapshot, $params) = $this->handle_option_and_params($this->options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
+            Async\await($client->future($type . ':fetchBalanceSnapshot'));
+        }
+        return Async\await($this->watch($url, $messageHash, null, $messageHash));
+    }
+
+    public function set_balance_cache(Client $client, mixed $type, mixed $subscribeHash) {
+        if (is_array($client->subscriptions) && array_key_exists($subscribeHash ?? '', $client->subscriptions)) {
             return;
         }
         $options = $this->safe_dict($this->options, 'watchBalance');
         $snapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', true);
         if ($snapshot) {
             $messageHash = $type . ':' . 'fetchBalanceSnapshot';
-            if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
+            if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
                 $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
             }
@@ -790,20 +815,22 @@ class hashkey extends \ccxt\async\hashkey {
         // without this comment, transpilation breaks for some reason...
     }
 
-    public function load_balance_snapshot($client, $messageHash, $type) {
-        return Async\async(function () use ($client, $messageHash, $type) {
-            $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
-            // don't remove the $future from the .futures cache
-            if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
-                $future = $client->futures[$messageHash];
-                $future->resolve();
-                $client->resolve($this->balance[$type], 'balance:' . $type);
-            }
-        })();
+    public function load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+        return Async\async(self::do_load_balance_snapshot(...))($client, $messageHash, $type);
     }
 
-    public function handle_balance(Client $client, $message) {
+    private function do_load_balance_snapshot(Client $client, mixed $messageHash, mixed $type) {
+        $response = Async\await($this->fetch_balance(array( 'type' => $type )));
+        $this->balance[$type] = $this->extend($response, $this->safe_value($this->balance, $type, array()));
+        // don't remove the $future from the .futures cache
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            $future = $client->futures[$messageHash];
+            $future->resolve();
+            $client->resolve($this->balance[$type], 'balance:' . $type);
+        }
+    }
+
+    public function handle_balance(Client $client, mixed $message) {
         //
         //     {
         //         "e" => "outboundContractAccountInfo",        // $event $type
@@ -827,7 +854,7 @@ class hashkey extends \ccxt\async\hashkey {
         $balanceUpdate = $this->safe_dict($data, 0);
         $isSpot = $event === 'outboundAccountInfo';
         $type = $isSpot ? 'spot' : 'swap';
-        if (!(is_array($this->balance) && array_key_exists($type, $this->balance))) {
+        if (!(is_array($this->balance) && array_key_exists($type ?? '', $this->balance))) {
             $this->balance[$type] = array();
         }
         $this->balance[$type]['info'] = $message;
@@ -836,18 +863,44 @@ class hashkey extends \ccxt\async\hashkey {
         $account = $this->account();
         $account['free'] = $this->safe_string($balanceUpdate, 'f');
         $account['used'] = $this->safe_string($balanceUpdate, 'l');
-        $this->balance[$type][$code] = $account;
+        if (($type !== null) && ($code !== null)) {
+            $this->balance[$type][$code] = $account;
+        }
         $this->balance[$type] = $this->safe_balance($this->balance[$type]);
         $messageHash = 'balance:' . $type;
         $client->resolve($this->balance[$type], $messageHash);
     }
 
     public function authenticate($params = array()) {
-        return Async\async(function () use ($params) {
-            $listenKey = $this->safe_string($this->options, 'listenKey');
-            if ($listenKey !== null) {
-                return $listenKey;
-            }
+        return Async\async(self::do_authenticate(...))($params);
+    }
+
+    private function do_authenticate($params = array()) {
+        $listenKey = $this->safe_string($this->options, 'listenKey');
+        if ($listenKey !== null) {
+            return $listenKey;
+        }
+        // single-flight leader election on a never-dialed $client, see
+        // https://github.com/ccxt/ccxt/issues/29393 => racing cold callers each
+        // mint their own $listenKey and each schedules its own
+        // keepAliveListenKey timer, and the key rides the private url built by
+        // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+        // subscriptions never deliver. the flight is registered in
+        // $client->futures and settled through $client->resolve() /
+        // $client->reject(), so every mutation of the futures map goes through
+        // the client's own accessors
+        $messageHash = 'authenticateFlight';
+        $client = $this->client('authenticationFlights');
+        if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
+            // a flight is already in progress - wake when the leader
+            // settles it => the $listenKey is then in the bucket
+            Async\await($client->future($messageHash));
+            return $this->safe_string($this->options, 'listenKey');
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch below finds it and waits instead of re-leading
+        $future = $client->reusableFuture($messageHash);
+        try {
             $response = Async\await($this->privatePostApiV1UserDataStream($params));
             //
             //    {
@@ -855,36 +908,53 @@ class hashkey extends \ccxt\async\hashkey {
             //    }
             //
             $listenKey = $this->safe_string($response, 'listenKey');
+            if ($listenKey === null) {
+                // reject instead of caching an empty credential, so waiters
+                // retry rather than dial .../ws/null for an hour
+                throw new AuthenticationError($this->id . ' authenticate() received an empty listenKey');
+            }
             $this->options['listenKey'] = $listenKey;
             $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 3600000);
             $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
-            return $listenKey;
-        })();
+            // settle the flight => $client->resolve() wakes every waiter and
+            // drops the $future from the map
+            $client->resolve($listenKey, $messageHash);
+        } catch (Exception $e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            $client->reject($e, $messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        Async\await($future);
+        return $listenKey;
     }
 
-    public function keep_alive_listen_key($listenKey, $params = array()) {
-        return Async\async(function () use ($listenKey, $params) {
-            if ($listenKey === null) {
-                return;
-            }
-            $request = array(
-                'listenKey' => $listenKey,
-            );
-            try {
-                Async\await($this->privatePutApiV1UserDataStream($this->extend($request, $params)));
-                $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
-                $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
-            } catch (Exception $error) {
-                $url = $this->get_private_url($listenKey);
-                $client = $this->client($url);
-                $this->options['listenKey'] = null;
-                $client->reject($error);
-                unset($this->clients[$url]);
-            }
-        })();
+    public function keep_alive_listen_key(mixed $listenKey, $params = array()) {
+        return Async\async(self::do_keep_alive_listen_key(...))($listenKey, $params);
     }
 
-    public function handle_message(Client $client, $message) {
+    private function do_keep_alive_listen_key(mixed $listenKey, $params = array()) {
+        if ($listenKey === null) {
+            return;
+        }
+        $request = array(
+            'listenKey' => $listenKey,
+        );
+        try {
+            Async\await($this->privatePutApiV1UserDataStream($this->extend($request, $params)));
+            $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
+            $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
+        } catch (Exception $error) {
+            $url = $this->get_private_url($listenKey);
+            $client = $this->client($url);
+            $this->options['listenKey'] = null;
+            $client->reject($error);
+            unset($this->clients[$url]);
+        }
+    }
+
+    public function handle_message(Client $client, mixed $message) {
         if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
             $message = $this->safe_dict($message, 0, array());
         }

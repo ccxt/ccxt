@@ -4,19 +4,22 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import assert from 'assert';
 import testOrderBook from '../../../test/Exchange/base/test.orderBook.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { InvalidNonce } from '../../../base/errors.js';
 async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols) {
     const method = 'watchOrderBookForSymbols';
+    // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+    // loop has to be bounded by the deadline alone. waiting for every requested
+    // symbol to be seen would hang forever whenever one of them stays idle.
+    const maxIdleTime = 5000;
     let currentTime = exchange.milliseconds();
     const deadline = currentTime + 15000;
-    const seenSymbols = [];
-    // keep polling until the time window elapses and every requested symbol has been observed
-    while (currentTime < deadline || seenSymbols.length < symbols.length) {
+    let idle = false;
+    while ((currentTime < deadline) && !idle) {
         let response = undefined;
         let succeeded = true;
+        const startTime = exchange.milliseconds();
         try {
             response = await exchange.watchOrderBookForSymbols(symbols);
         }
@@ -25,17 +28,15 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
             if (!testSharedMethods.isTemporaryFailure(e) && !(e instanceof InvalidNonce)) {
                 throw e;
             }
-            currentTime = exchange.milliseconds();
             succeeded = false;
         }
+        currentTime = exchange.milliseconds();
         if ((succeeded === true) && (response !== undefined)) {
-            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
-            currentTime = exchange.milliseconds();
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
             testOrderBook(exchange, skippedProperties, method, response, undefined);
-            const symbol = response['symbol'];
-            if ((symbol !== undefined) && !exchange.inArray(symbol, seenSymbols)) {
-                seenSymbols.push(symbol);
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
+            const elapsed = currentTime - startTime;
+            if (elapsed > maxIdleTime) {
+                idle = true;
             }
         }
     }

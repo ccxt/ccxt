@@ -154,7 +154,7 @@ export default class upbit extends upbitRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const orderbook = await this.watchPublicMultiple([symbol], 'orderbook');
@@ -325,7 +325,7 @@ export default class upbit extends upbitRest {
         //     stream_type: 'REALTIME'
         //   }
         const marketId = this.safeString(message, 'code');
-        const symbol = this.safeSymbol(marketId, undefined);
+        const symbol = this.safeSymbol(marketId);
         const messageHash = 'candle.1s:' + symbol;
         const ohlcv = this.parseOHLCV(message);
         client.resolve(ohlcv, messageHash);
@@ -665,7 +665,9 @@ export default class upbit extends upbitRest {
             const account = this.account();
             account['free'] = available;
             account['used'] = frozen;
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
         const messageHash = this.safeString(message, 'type');

@@ -5,18 +5,18 @@ using System.Globalization;
 using dict = IDictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {
         desc2 ??= false;
-        var defaultValue = defaultValue2 ?? "";
+        var defaultValue = defaultValue2 ?? 0; // ts parity: generic.ts defaults the sort fallback to 0, not the empty string
         var desc = (bool)desc2;
         var list = (IList<object>)array;
 
         if (value1.GetType() == typeof(string))
         {
-            var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1]).ToList();
+            var sortedList2 = list.OrderBy(x => ((dict)x)[(string)value1], sortKeyComparer).ToList();
             if (desc)
                 sortedList2.Reverse();
             return sortedList2;
@@ -31,7 +31,7 @@ public partial class Exchange
                     return ((list)x)[value];
                 }
                 return defaultValue;
-            }).ToList();
+            }, sortKeyComparer).ToList();
 
             if (desc)
                 sortedList.Reverse();
@@ -39,6 +39,36 @@ public partial class Exchange
             return sortedList;
         }
     }
+
+    // a TOTAL comparator for sort keys, matching go's compareSortValues and
+    // java's compareJsLike: numeric pairs compare as double regardless of how
+    // they were boxed (Double from parsers next to Int32/Int64 from literals
+    // and integer math used to throw ArgumentException out of
+    // Double.CompareTo), and anything else falls back to ordinal string
+    // comparison, so no key mix can throw. caveat shared with the double
+    // route in go and java: integral keys above 2^53 can collide in double
+    // space and settle on input order - ccxt's real keys (ms timestamps,
+    // prices) sit well inside the exact range
+    private class SortKeyComparer : IComparer<object>
+    {
+        private static bool isNumeric(object key)
+        {
+            return key is sbyte || key is byte || key is short || key is ushort || key is int || key is uint || key is long || key is ulong || key is float || key is double || key is decimal;
+        }
+
+        public int Compare(object a, object b)
+        {
+            if (isNumeric(a) && isNumeric(b))
+            {
+                return Convert.ToDouble(a).CompareTo(Convert.ToDouble(b));
+            }
+            var sa = (a == null) ? "" : a.ToString();
+            var sb = (b == null) ? "" : b.ToString();
+            return string.CompareOrdinal(sa, sb);
+        }
+    }
+
+    private static readonly SortKeyComparer sortKeyComparer = new SortKeyComparer();
 
     public List<object> sortBy2(object array, object key1, object key2, object desc2 = null)
     {
@@ -49,9 +79,9 @@ public partial class Exchange
 
         if (key1.GetType() == typeof(string))
         {
-            var orderByResult = (from s in list
-                                 orderby ((dict)s)[(string)key1], ((dict)s)[(string)key2]
-                                 select s).ToList();
+            var orderByResult = list.OrderBy(s => ((dict)s)[(string)key1], sortKeyComparer)
+                                    .ThenBy(s => ((dict)s)[(string)key2], sortKeyComparer)
+                                    .ToList();
             if (desc)
                 orderByResult.Reverse();
             return orderByResult;
@@ -375,6 +405,11 @@ public partial class Exchange
             return value;
         }
 
+    }
+
+    public virtual object isDictionary(object value)
+    {
+        return isTrue(isTrue((!isEqual(value, null))) && isTrue(((value is IDictionary<string, object>)))) && !isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
     }
 
     public virtual object sum(params object[] args)

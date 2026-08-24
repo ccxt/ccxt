@@ -10,15 +10,19 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
-        object method = "watchOrderBookForSymbols";
+        string method = "watchOrderBookForSymbols";
+        // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+        // loop has to be bounded by the deadline alone. waiting for every requested
+        // symbol to be seen would hang forever whenever one of them stays idle.
+        object maxIdleTime = 5000;
         object currentTime = exchange.milliseconds();
         object deadline = add(currentTime, 15000);
-        object seenSymbols = new List<object>() {};
-        // keep polling until the time window elapses and every requested symbol has been observed
-        while (isTrue(isLessThan(currentTime, deadline)) || isTrue(isLessThan(getArrayLength(seenSymbols), getArrayLength(symbols))))
+        bool idle = false;
+        while (isTrue((isLessThan(currentTime, deadline))) && !isTrue(idle))
         {
             object response = null;
-            object succeeded = true;
+            bool succeeded = true;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
@@ -29,19 +33,17 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                currentTime = exchange.milliseconds();
                 succeeded = false;
             }
+            currentTime = exchange.milliseconds();
             if (isTrue(isTrue((isEqual(succeeded, true))) && isTrue((!isEqual(response, null)))))
             {
-                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
-                currentTime = exchange.milliseconds();
-                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
                 testOrderBook(exchange, skippedProperties, method, response, null);
-                object symbol = getValue(response, "symbol");
-                if (isTrue(isTrue((!isEqual(symbol, null))) && !isTrue(exchange.inArray(symbol, seenSymbols))))
+                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
+                object elapsed = subtract(currentTime, startTime);
+                if (isTrue(isGreaterThan(elapsed, maxIdleTime)))
                 {
-                    ((IList<object>)seenSymbols).Add(symbol);
+                    idle = true;
                 }
             }
         }

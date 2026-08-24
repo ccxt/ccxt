@@ -6,7 +6,7 @@ import bybit from './bybit.js';
 //  ---------------------------------------------------------------------------
 
 export default class bybiteu extends bybit {
-    describe (): any {
+    override describe (): any {
         return this.deepExtend (super.describe (), {
             'id': 'bybiteu',
             'name': 'Bybit EU',

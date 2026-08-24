@@ -30,6 +30,7 @@ func (this *OkxCore) Describe() any {
 			"future":                               true,
 			"option":                               true,
 			"addMargin":                            true,
+			"borrowCrossMargin":                    true,
 			"cancelAllOrders":                      false,
 			"cancelAllOrdersAfter":                 true,
 			"cancelOrder":                          true,
@@ -119,6 +120,7 @@ func (this *OkxCore) Describe() any {
 			"fetchOrderTrades":                     true,
 			"fetchPosition":                        true,
 			"fetchPositionHistory":                 "emulated",
+			"fetchPositionMode":                    true,
 			"fetchPositions":                       true,
 			"fetchPositionsForSymbol":              true,
 			"fetchPositionsHistory":                true,
@@ -190,447 +192,1352 @@ func (this *OkxCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"market/tickers":                             1,
-					"market/ticker":                              1,
-					"market/books":                               Divide(1, 2),
-					"market/books-full":                          2,
-					"market/candles":                             Divide(1, 2),
-					"market/history-candles":                     1,
-					"market/trades":                              Divide(1, 5),
-					"market/history-trades":                      2,
-					"market/option/instrument-family-trades":     1,
-					"market/platform-24-volume":                  10,
-					"market/call-auction-detail":                 1,
-					"market/call-auction-details":                1,
-					"market/books-sbe":                           10,
-					"market/block-tickers":                       1,
-					"market/block-ticker":                        1,
-					"market/sprd-ticker":                         1,
-					"market/sprd-candles":                        Divide(1, 2),
-					"market/sprd-history-candles":                1,
-					"market/index-tickers":                       1,
-					"market/index-candles":                       1,
-					"market/history-index-candles":               2,
-					"market/mark-price-candles":                  1,
-					"market/history-mark-price-candles":          1,
-					"market/exchange-rate":                       20,
-					"market/index-components":                    1,
-					"market/open-oracle":                         50,
-					"market/books-lite":                          Divide(5, 3),
-					"public/option-trades":                       1,
-					"public/block-trades":                        1,
-					"public/instruments":                         1,
-					"public/estimated-price":                     2,
-					"public/delivery-exercise-history":           Divide(1, 2),
-					"public/estimated-settlement-info":           2,
-					"public/settlement-history":                  Divide(1, 2),
-					"public/funding-rate":                        2,
-					"public/funding-rate-history":                2,
-					"public/open-interest":                       1,
-					"public/price-limit":                         1,
-					"public/opt-summary":                         1,
-					"public/discount-rate-interest-free-quota":   10,
-					"public/time":                                2,
-					"public/mark-price":                          2,
-					"public/position-tiers":                      2,
-					"public/interest-rate-loan-quota":            10,
-					"public/underlying":                          1,
-					"public/insurance-fund":                      2,
-					"public/convert-contract-coin":               2,
-					"public/instrument-tick-bands":               4,
-					"public/premium-history":                     1,
-					"public/economic-calendar":                   50,
-					"public/market-data-history":                 4,
-					"public/event-contract/events":               1,
-					"public/event-contract/markets":              1,
-					"public/event-contract/series":               1,
-					"public/vip-interest-rate-loan-quota":        10,
-					"rubik/stat/trading-data/support-coin":       4,
-					"rubik/stat/contracts/open-interest-history": 2,
-					"rubik/stat/taker-volume":                    4,
-					"rubik/stat/taker-volume-contract":           4,
-					"rubik/stat/margin/loan-ratio":               4,
-					"rubik/stat/contracts/long-short-account-ratio-contract-top-trader":  4,
-					"rubik/stat/contracts/long-short-position-ratio-contract-top-trader": 4,
-					"rubik/stat/contracts/long-short-account-ratio-contract":             4,
-					"rubik/stat/contracts/long-short-account-ratio":                      4,
-					"rubik/stat/contracts/open-interest-volume":                          4,
-					"rubik/stat/option/open-interest-volume":                             4,
-					"rubik/stat/option/open-interest-volume-ratio":                       4,
-					"rubik/stat/option/open-interest-volume-expiry":                      4,
-					"rubik/stat/option/open-interest-volume-strike":                      4,
-					"rubik/stat/option/taker-block-volume":                               4,
-					"system/status":                                                      50,
-					"sprd/spreads":                                                       1,
-					"sprd/books":                                                         1,
-					"sprd/public-trades":                                                 1,
-					"sprd/ticker":                                                        1,
-					"tradingBot/grid/ai-param":                                           1,
-					"tradingBot/grid/min-investment":                                     1,
-					"tradingBot/public/rsi-back-testing":                                 1,
-					"tradingBot/grid/grid-quantity":                                      4,
-					"asset/exchange-list":                                                Divide(5, 3),
-					"finance/staking-defi/eth/apy-history":                               Divide(5, 3),
-					"finance/staking-defi/sol/apy-history":                               Divide(5, 3),
-					"finance/savings/lending-rate-summary":                               Divide(5, 3),
-					"finance/savings/lending-rate-history":                               Divide(5, 3),
-					"finance/fixed-loan/lending-offers":                                  Divide(10, 3),
-					"finance/fixed-loan/lending-apy-history":                             Divide(10, 3),
-					"finance/fixed-loan/pending-lending-volume":                          Divide(10, 3),
-					"finance/sfp/dcd/products":                                           Divide(2, 3),
-					"copytrading/public-config":                                          4,
-					"copytrading/public-lead-traders":                                    4,
-					"copytrading/public-weekly-pnl":                                      4,
-					"copytrading/public-pnl":                                             4,
-					"copytrading/public-stats":                                           4,
-					"copytrading/public-preference-currency":                             4,
-					"copytrading/public-current-subpositions":                            4,
-					"copytrading/public-subpositions-history":                            4,
-					"copytrading/public-copy-traders":                                    4,
-					"support/announcements":                                              4,
-					"support/announcements-types":                                        20,
-					"support/announcement-types":                                         20,
+					"market/tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/ticker": map[string]any{
+						"cost": 1,
+					},
+					"market/books": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"market/books-full": map[string]any{
+						"cost": 2,
+					},
+					"market/candles": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"market/history-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/trades": map[string]any{
+						"cost": Divide(1, 5),
+					},
+					"market/history-trades": map[string]any{
+						"cost": 2,
+					},
+					"market/option/instrument-family-trades": map[string]any{
+						"cost": 1,
+					},
+					"market/platform-24-volume": map[string]any{
+						"cost": 10,
+					},
+					"market/call-auction-detail": map[string]any{
+						"cost": 1,
+					},
+					"market/call-auction-details": map[string]any{
+						"cost": 1,
+					},
+					"market/books-sbe": map[string]any{
+						"cost": 10,
+					},
+					"market/block-tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/block-ticker": map[string]any{
+						"cost": 1,
+					},
+					"market/sprd-ticker": map[string]any{
+						"cost": 1,
+					},
+					"market/sprd-candles": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"market/sprd-history-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/index-tickers": map[string]any{
+						"cost": 1,
+					},
+					"market/index-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/history-index-candles": map[string]any{
+						"cost": 2,
+					},
+					"market/mark-price-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/history-mark-price-candles": map[string]any{
+						"cost": 1,
+					},
+					"market/exchange-rate": map[string]any{
+						"cost": 20,
+					},
+					"market/index-components": map[string]any{
+						"cost": 1,
+					},
+					"market/open-oracle": map[string]any{
+						"cost": 50,
+					},
+					"market/books-lite": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"public/option-trades": map[string]any{
+						"cost": 1,
+					},
+					"public/block-trades": map[string]any{
+						"cost": 1,
+					},
+					"public/instruments": map[string]any{
+						"cost": 1,
+					},
+					"public/estimated-price": map[string]any{
+						"cost": 2,
+					},
+					"public/delivery-exercise-history": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"public/estimated-settlement-info": map[string]any{
+						"cost": 2,
+					},
+					"public/settlement-history": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"public/funding-rate": map[string]any{
+						"cost": 2,
+					},
+					"public/funding-rate-history": map[string]any{
+						"cost": 2,
+					},
+					"public/open-interest": map[string]any{
+						"cost": 1,
+					},
+					"public/price-limit": map[string]any{
+						"cost": 1,
+					},
+					"public/opt-summary": map[string]any{
+						"cost": 1,
+					},
+					"public/discount-rate-interest-free-quota": map[string]any{
+						"cost": 10,
+					},
+					"public/time": map[string]any{
+						"cost": 2,
+					},
+					"public/mark-price": map[string]any{
+						"cost": 2,
+					},
+					"public/position-tiers": map[string]any{
+						"cost": 2,
+					},
+					"public/interest-rate-loan-quota": map[string]any{
+						"cost": 10,
+					},
+					"public/underlying": map[string]any{
+						"cost": 1,
+					},
+					"public/insurance-fund": map[string]any{
+						"cost": 2,
+					},
+					"public/convert-contract-coin": map[string]any{
+						"cost": 2,
+					},
+					"public/instrument-tick-bands": map[string]any{
+						"cost": 4,
+					},
+					"public/premium-history": map[string]any{
+						"cost": 1,
+					},
+					"public/economic-calendar": map[string]any{
+						"cost": 50,
+					},
+					"public/market-data-history": map[string]any{
+						"cost": 4,
+					},
+					"public/event-contract/events": map[string]any{
+						"cost": 1,
+					},
+					"public/event-contract/markets": map[string]any{
+						"cost": 1,
+					},
+					"public/event-contract/series": map[string]any{
+						"cost": 1,
+					},
+					"public/vip-interest-rate-loan-quota": map[string]any{
+						"cost": 10,
+					},
+					"rubik/stat/trading-data/support-coin": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/open-interest-history": map[string]any{
+						"cost": 2,
+					},
+					"rubik/stat/taker-volume": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/taker-volume-contract": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/margin/loan-ratio": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-account-ratio-contract-top-trader": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-position-ratio-contract-top-trader": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-account-ratio-contract": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/long-short-account-ratio": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/contracts/open-interest-volume": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume-ratio": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume-expiry": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/open-interest-volume-strike": map[string]any{
+						"cost": 4,
+					},
+					"rubik/stat/option/taker-block-volume": map[string]any{
+						"cost": 4,
+					},
+					"system/status": map[string]any{
+						"cost": 50,
+					},
+					"sprd/spreads": map[string]any{
+						"cost": 1,
+					},
+					"sprd/books": map[string]any{
+						"cost": 1,
+					},
+					"sprd/public-trades": map[string]any{
+						"cost": 1,
+					},
+					"sprd/ticker": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/ai-param": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/min-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/public/rsi-back-testing": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/grid-quantity": map[string]any{
+						"cost": 4,
+					},
+					"asset/exchange-list": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/eth/apy-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/sol/apy-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/lending-rate-summary": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/lending-rate-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/fixed-loan/lending-offers": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/fixed-loan/lending-apy-history": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/fixed-loan/pending-lending-volume": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/sfp/dcd/products": map[string]any{
+						"cost": Divide(2, 3),
+					},
+					"copytrading/public-config": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-lead-traders": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-weekly-pnl": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-pnl": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-stats": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-preference-currency": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-current-subpositions": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-subpositions-history": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/public-copy-traders": map[string]any{
+						"cost": 4,
+					},
+					"support/announcements": map[string]any{
+						"cost": 4,
+					},
+					"support/announcements-types": map[string]any{
+						"cost": 20,
+					},
+					"support/announcement-types": map[string]any{
+						"cost": 20,
+					},
 				},
 				"post": map[string]any{
-					"tradingBot/grid/min-investment": 1,
+					"tradingBot/grid/min-investment": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"rfq/counterparties":                                 4,
-					"rfq/maker-instrument-settings":                      4,
-					"rfq/mmp-config":                                     4,
-					"rfq/rfqs":                                           10,
-					"rfq/quotes":                                         10,
-					"rfq/trades":                                         4,
-					"rfq/public-trades":                                  4,
-					"sprd/order":                                         1,
-					"sprd/orders-pending":                                2,
-					"sprd/orders-history":                                1,
-					"sprd/orders-history-archive":                        1,
-					"sprd/trades":                                        1,
-					"trade/order":                                        Divide(1, 3),
-					"trade/orders-pending":                               Divide(1, 3),
-					"trade/orders-history":                               Divide(1, 2),
-					"trade/orders-history-archive":                       1,
-					"trade/fills":                                        Divide(1, 3),
-					"trade/fills-history":                                2,
-					"trade/fills-archive":                                2,
-					"trade/order-algo":                                   1,
-					"trade/orders-algo-pending":                          1,
-					"trade/orders-algo-history":                          1,
-					"trade/easy-convert-currency-list":                   20,
-					"trade/easy-convert-history":                         20,
-					"trade/one-click-repay-currency-list":                20,
-					"trade/one-click-repay-currency-list-v2":             20,
-					"trade/one-click-repay-history":                      20,
-					"trade/one-click-repay-history-v2":                   20,
-					"trade/account-rate-limit":                           1,
-					"asset/currencies":                                   Divide(5, 3),
-					"asset/balances":                                     Divide(5, 3),
-					"asset/non-tradable-assets":                          Divide(5, 3),
-					"asset/asset-valuation":                              10,
-					"asset/transfer-state":                               1,
-					"asset/bills":                                        Divide(5, 3),
-					"asset/bills-history":                                10,
-					"asset/deposit-lightning":                            5,
-					"asset/deposit-address":                              Divide(5, 3),
-					"asset/deposit-history":                              Divide(5, 3),
-					"asset/withdrawal-history":                           Divide(5, 3),
-					"asset/deposit-withdraw-status":                      20,
-					"asset/monthly-statement":                            2,
-					"asset/convert/currencies":                           Divide(5, 3),
-					"asset/convert/currency-pair":                        Divide(5, 3),
-					"asset/convert/history":                              Divide(5, 3),
-					"account/instruments":                                1,
-					"account/balance":                                    2,
-					"account/positions":                                  2,
-					"account/positions-history":                          2,
-					"account/account-position-risk":                      2,
-					"account/bills":                                      2,
-					"account/bills-archive":                              4,
-					"account/bills-history-archive":                      2,
-					"account/config":                                     4,
-					"account/subtypes":                                   4,
-					"account/max-size":                                   1,
-					"account/max-avail-size":                             1,
-					"account/leverage-info":                              1,
-					"account/adjust-leverage-info":                       4,
-					"account/max-loan":                                   1,
-					"account/trade-fee":                                  4,
-					"account/interest-accrued":                           4,
-					"account/interest-rate":                              4,
-					"account/max-withdrawal":                             1,
-					"account/risk-state":                                 2,
-					"account/interest-limits":                            4,
-					"account/spot-borrow-repay-history":                  4,
-					"account/greeks":                                     2,
-					"account/position-tiers":                             2,
-					"account/set-account-switch-precheck":                4,
-					"account/collateral-assets":                          4,
-					"account/mmp-config":                                 4,
-					"account/move-positions-history":                     10,
-					"account/precheck-set-delta-neutral":                 20,
-					"account/quick-margin-borrow-repay-history":          4,
-					"account/borrow-repay-history":                       4,
-					"account/vip-interest-accrued":                       4,
-					"account/vip-interest-deducted":                      4,
-					"account/vip-loan-order-list":                        4,
-					"account/vip-loan-order-detail":                      4,
-					"account/fixed-loan/borrowing-limit":                 4,
-					"account/fixed-loan/borrowing-quote":                 5,
-					"account/fixed-loan/borrowing-orders-list":           5,
-					"account/spot-manual-borrow-repay":                   30,
-					"account/set-auto-repay":                             4,
-					"users/subaccount/list":                              10,
-					"account/subaccount/balances":                        Divide(10, 3),
-					"asset/subaccount/balances":                          Divide(10, 3),
-					"account/subaccount/max-withdrawal":                  1,
-					"asset/subaccount/bills":                             Divide(5, 3),
-					"asset/subaccount/managed-subaccount-bills":          Divide(5, 3),
-					"users/entrust-subaccount-list":                      10,
-					"account/subaccount/interest-limits":                 4,
-					"users/subaccount/apikey":                            10,
-					"tradingBot/grid/orders-algo-pending":                1,
-					"tradingBot/grid/orders-algo-history":                1,
-					"tradingBot/grid/orders-algo-details":                1,
-					"tradingBot/grid/sub-orders":                         1,
-					"tradingBot/grid/positions":                          1,
-					"tradingBot/grid/ai-param":                           1,
-					"tradingBot/signal/signals":                          1,
-					"tradingBot/signal/orders-algo-details":              1,
-					"tradingBot/signal/orders-algo-pending":              1,
-					"tradingBot/signal/orders-algo-history":              1,
-					"tradingBot/signal/positions":                        1,
-					"tradingBot/signal/positions-history":                2,
-					"tradingBot/signal/sub-orders":                       1,
-					"tradingBot/signal/event-history":                    1,
-					"tradingBot/recurring/orders-algo-pending":           1,
-					"tradingBot/recurring/orders-algo-history":           1,
-					"tradingBot/recurring/orders-algo-details":           1,
-					"tradingBot/recurring/sub-orders":                    1,
-					"tradingBot/dca/ongoing-list":                        1,
-					"tradingBot/dca/history-list":                        1,
-					"tradingBot/dca/orders":                              1,
-					"tradingBot/dca/position-details":                    1,
-					"tradingBot/dca/cycle-list":                          1,
-					"finance/savings/balance":                            Divide(5, 3),
-					"finance/savings/lending-history":                    Divide(5, 3),
-					"finance/staking-defi/offers":                        Divide(10, 3),
-					"finance/staking-defi/orders-active":                 Divide(10, 3),
-					"finance/staking-defi/orders-history":                Divide(10, 3),
-					"finance/staking-defi/eth/product-info":              Divide(10, 3),
-					"finance/staking-defi/eth/balance":                   Divide(5, 3),
-					"finance/staking-defi/eth/purchase-redeem-history":   Divide(5, 3),
-					"finance/staking-defi/sol/product-info":              Divide(10, 3),
-					"finance/staking-defi/sol/balance":                   Divide(5, 3),
-					"finance/staking-defi/sol/purchase-redeem-history":   Divide(5, 3),
-					"finance/flexible-loan/borrow-currencies":            4,
-					"finance/flexible-loan/collateral-assets":            4,
-					"finance/flexible-loan/max-collateral-redeem-amount": 4,
-					"finance/flexible-loan/loan-info":                    4,
-					"finance/flexible-loan/loan-history":                 4,
-					"finance/flexible-loan/interest-accrued":             4,
-					"copytrading/current-subpositions":                   1,
-					"copytrading/subpositions-history":                   1,
-					"copytrading/instruments":                            4,
-					"copytrading/profit-sharing-details":                 4,
-					"copytrading/total-profit-sharing":                   4,
-					"copytrading/unrealized-profit-sharing-details":      4,
-					"copytrading/total-unrealized-profit-sharing":        4,
-					"copytrading/config":                                 4,
-					"copytrading/copy-settings":                          4,
-					"copytrading/current-lead-traders":                   4,
-					"copytrading/batch-leverage-info":                    4,
-					"copytrading/lead-traders-history":                   4,
-					"broker/dma/subaccount-info":                         2,
-					"broker/dma/subaccount-trade-fee":                    10,
-					"broker/dma/subaccount/apikey":                       10,
-					"broker/dma/rebate-per-orders":                       300,
-					"broker/fd/rebate-per-orders":                        300,
-					"broker/fd/if-rebate":                                5,
-					"broker/nd/info":                                     10,
-					"broker/nd/subaccount-info":                          10,
-					"broker/nd/subaccount/apikey":                        10,
-					"asset/broker/nd/subaccount-deposit-address":         Divide(5, 3),
-					"asset/broker/nd/subaccount-deposit-history":         4,
-					"asset/broker/nd/subaccount-withdrawal-history":      4,
-					"broker/nd/rebate-daily":                             100,
-					"broker/nd/rebate-per-orders":                        300,
-					"finance/sfp/dcd/order":                              2,
-					"finance/sfp/dcd/orders":                             2,
-					"finance/sfp/dcd/currency-pair":                      2,
-					"finance/sfp/dcd/order-status":                       2,
-					"finance/sfp/dcd/order-history":                      2,
-					"affiliate/invitee/detail":                           1,
-					"users/partner/if-rebate":                            1,
-					"support/announcements":                              4,
+					"rfq/counterparties": map[string]any{
+						"cost": 4,
+					},
+					"rfq/maker-instrument-settings": map[string]any{
+						"cost": 4,
+					},
+					"rfq/mmp-config": map[string]any{
+						"cost": 4,
+					},
+					"rfq/rfqs": map[string]any{
+						"cost": 10,
+					},
+					"rfq/quotes": map[string]any{
+						"cost": 10,
+					},
+					"rfq/trades": map[string]any{
+						"cost": 4,
+					},
+					"rfq/public-trades": map[string]any{
+						"cost": 4,
+					},
+					"sprd/order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/orders-pending": map[string]any{
+						"cost": 2,
+					},
+					"sprd/orders-history": map[string]any{
+						"cost": 1,
+					},
+					"sprd/orders-history-archive": map[string]any{
+						"cost": 1,
+					},
+					"sprd/trades": map[string]any{
+						"cost": 1,
+					},
+					"trade/order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/orders-pending": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/orders-history": map[string]any{
+						"cost": Divide(1, 2),
+					},
+					"trade/orders-history-archive": map[string]any{
+						"cost": 1,
+					},
+					"trade/fills": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/fills-history": map[string]any{
+						"cost": 2,
+					},
+					"trade/fills-archive": map[string]any{
+						"cost": 2,
+					},
+					"trade/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"trade/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"trade/easy-convert-currency-list": map[string]any{
+						"cost": 20,
+					},
+					"trade/easy-convert-history": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-currency-list": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-currency-list-v2": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-history": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-history-v2": map[string]any{
+						"cost": 20,
+					},
+					"trade/account-rate-limit": map[string]any{
+						"cost": 1,
+					},
+					"asset/currencies": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/balances": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/non-tradable-assets": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/asset-valuation": map[string]any{
+						"cost": 10,
+					},
+					"asset/transfer-state": map[string]any{
+						"cost": 1,
+					},
+					"asset/bills": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/bills-history": map[string]any{
+						"cost": 10,
+					},
+					"asset/deposit-lightning": map[string]any{
+						"cost": 5,
+					},
+					"asset/deposit-address": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/deposit-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/withdrawal-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/deposit-withdraw-status": map[string]any{
+						"cost": 20,
+					},
+					"asset/monthly-statement": map[string]any{
+						"cost": 2,
+					},
+					"asset/convert/currencies": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/convert/currency-pair": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/convert/history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"fiat/deposit-payment-methods": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/withdrawal-payment-methods": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/deposit-order-history": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/deposit": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/withdrawal-order-history": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/withdrawal": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/buy-sell/currencies": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"fiat/buy-sell/currency-pair": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"fiat/buy-sell/history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"account/instruments": map[string]any{
+						"cost": 1,
+					},
+					"account/balance": map[string]any{
+						"cost": 2,
+					},
+					"account/positions": map[string]any{
+						"cost": 2,
+					},
+					"account/positions-history": map[string]any{
+						"cost": 2,
+					},
+					"account/account-position-risk": map[string]any{
+						"cost": 2,
+					},
+					"account/bills": map[string]any{
+						"cost": 2,
+					},
+					"account/bills-archive": map[string]any{
+						"cost": 4,
+					},
+					"account/bills-history-archive": map[string]any{
+						"cost": 2,
+					},
+					"account/config": map[string]any{
+						"cost": 4,
+					},
+					"account/subtypes": map[string]any{
+						"cost": 4,
+					},
+					"account/max-size": map[string]any{
+						"cost": 1,
+					},
+					"account/max-avail-size": map[string]any{
+						"cost": 1,
+					},
+					"account/leverage-info": map[string]any{
+						"cost": 1,
+					},
+					"account/adjust-leverage-info": map[string]any{
+						"cost": 4,
+					},
+					"account/max-loan": map[string]any{
+						"cost": 1,
+					},
+					"account/trade-fee": map[string]any{
+						"cost": 4,
+					},
+					"account/interest-accrued": map[string]any{
+						"cost": 4,
+					},
+					"account/interest-rate": map[string]any{
+						"cost": 4,
+					},
+					"account/max-withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"account/risk-state": map[string]any{
+						"cost": 2,
+					},
+					"account/interest-limits": map[string]any{
+						"cost": 4,
+					},
+					"account/spot-borrow-repay-history": map[string]any{
+						"cost": 4,
+					},
+					"account/greeks": map[string]any{
+						"cost": 2,
+					},
+					"account/position-tiers": map[string]any{
+						"cost": 2,
+					},
+					"account/set-account-switch-precheck": map[string]any{
+						"cost": 4,
+					},
+					"account/collateral-assets": map[string]any{
+						"cost": 4,
+					},
+					"account/mmp-config": map[string]any{
+						"cost": 4,
+					},
+					"account/move-positions-history": map[string]any{
+						"cost": 10,
+					},
+					"account/precheck-set-delta-neutral": map[string]any{
+						"cost": 20,
+					},
+					"account/quick-margin-borrow-repay-history": map[string]any{
+						"cost": 4,
+					},
+					"account/borrow-repay-history": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-interest-accrued": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-interest-deducted": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-loan-order-list": map[string]any{
+						"cost": 4,
+					},
+					"account/vip-loan-order-detail": map[string]any{
+						"cost": 4,
+					},
+					"account/fixed-loan/borrowing-limit": map[string]any{
+						"cost": 4,
+					},
+					"account/fixed-loan/borrowing-quote": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/borrowing-orders-list": map[string]any{
+						"cost": 5,
+					},
+					"account/spot-manual-borrow-repay": map[string]any{
+						"cost": 30,
+					},
+					"account/set-auto-repay": map[string]any{
+						"cost": 4,
+					},
+					"users/subaccount/list": map[string]any{
+						"cost": 10,
+					},
+					"account/subaccount/balances": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"asset/subaccount/balances": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"account/subaccount/max-withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"asset/subaccount/bills": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/subaccount/managed-subaccount-bills": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"users/entrust-subaccount-list": map[string]any{
+						"cost": 10,
+					},
+					"account/subaccount/interest-limits": map[string]any{
+						"cost": 4,
+					},
+					"users/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"tradingBot/grid/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/orders-algo-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/sub-orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/positions": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/ai-param": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/signals": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/orders-algo-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/positions": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/positions-history": map[string]any{
+						"cost": 2,
+					},
+					"tradingBot/signal/sub-orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/event-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/orders-algo-pending": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/orders-algo-history": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/orders-algo-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/sub-orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/ongoing-list": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/history-list": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/orders": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/position-details": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/cycle-list": map[string]any{
+						"cost": 1,
+					},
+					"finance/savings/balance": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/lending-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/offers": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/orders-active": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/orders-history": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/eth/product-info": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/eth/balance": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/eth/purchase-redeem-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/sol/product-info": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"finance/staking-defi/sol/balance": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/sol/purchase-redeem-history": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/flexible-loan/borrow-currencies": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/collateral-assets": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/max-collateral-redeem-amount": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/loan-info": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/loan-history": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/interest-accrued": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/current-subpositions": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/subpositions-history": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/instruments": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/profit-sharing-details": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/total-profit-sharing": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/unrealized-profit-sharing-details": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/total-unrealized-profit-sharing": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/config": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/copy-settings": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/current-lead-traders": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/batch-leverage-info": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/lead-traders-history": map[string]any{
+						"cost": 4,
+					},
+					"broker/dma/subaccount-info": map[string]any{
+						"cost": 2,
+					},
+					"broker/dma/subaccount-trade-fee": map[string]any{
+						"cost": 10,
+					},
+					"broker/dma/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"broker/dma/rebate-per-orders": map[string]any{
+						"cost": 300,
+					},
+					"broker/fd/rebate-per-orders": map[string]any{
+						"cost": 300,
+					},
+					"broker/fd/if-rebate": map[string]any{
+						"cost": 5,
+					},
+					"broker/nd/info": map[string]any{
+						"cost": 10,
+					},
+					"broker/nd/subaccount-info": map[string]any{
+						"cost": 10,
+					},
+					"broker/nd/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"asset/broker/nd/subaccount-deposit-address": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/broker/nd/subaccount-deposit-history": map[string]any{
+						"cost": 4,
+					},
+					"asset/broker/nd/subaccount-withdrawal-history": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/rebate-daily": map[string]any{
+						"cost": 100,
+					},
+					"broker/nd/rebate-per-orders": map[string]any{
+						"cost": 300,
+					},
+					"finance/sfp/dcd/order": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/orders": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/currency-pair": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/order-status": map[string]any{
+						"cost": 2,
+					},
+					"finance/sfp/dcd/order-history": map[string]any{
+						"cost": 2,
+					},
+					"affiliate/invitee/detail": map[string]any{
+						"cost": 1,
+					},
+					"users/partner/if-rebate": map[string]any{
+						"cost": 1,
+					},
+					"support/announcements": map[string]any{
+						"cost": 4,
+					},
 				},
 				"post": map[string]any{
-					"rfq/create-rfq":                                    4,
-					"rfq/cancel-rfq":                                    4,
-					"rfq/cancel-batch-rfqs":                             10,
-					"rfq/cancel-all-rfqs":                               10,
-					"rfq/execute-quote":                                 15,
-					"rfq/maker-instrument-settings":                     4,
-					"rfq/mmp-reset":                                     4,
-					"rfq/mmp-config":                                    100,
-					"rfq/create-quote":                                  0.4,
-					"rfq/cancel-quote":                                  0.4,
-					"rfq/cancel-batch-quotes":                           10,
-					"rfq/cancel-all-quotes":                             10,
-					"rfq/cancel-all-after":                              10,
-					"sprd/order":                                        1,
-					"sprd/cancel-order":                                 1,
-					"sprd/mass-cancel":                                  1,
-					"sprd/amend-order":                                  1,
-					"sprd/cancel-all-after":                             10,
-					"trade/order":                                       Divide(1, 3),
-					"trade/batch-orders":                                Divide(1, 15),
-					"trade/cancel-order":                                Divide(1, 3),
-					"trade/cancel-batch-orders":                         Divide(1, 15),
-					"trade/amend-order":                                 Divide(1, 3),
-					"trade/amend-batch-orders":                          Divide(1, 150),
-					"trade/close-position":                              1,
-					"trade/fills-archive":                               172800,
-					"trade/cancel-advance-algos":                        1,
-					"trade/easy-convert":                                20,
-					"trade/one-click-repay":                             20,
-					"trade/one-click-repay-v2":                          20,
-					"trade/mass-cancel":                                 4,
-					"trade/cancel-all-after":                            10,
-					"trade/order-precheck":                              4,
-					"trade/order-algo":                                  1,
-					"trade/cancel-algos":                                1,
-					"trade/amend-algos":                                 1,
-					"asset/transfer":                                    5,
-					"asset/withdrawal":                                  Divide(5, 3),
-					"asset/withdrawal-lightning":                        5,
-					"asset/cancel-withdrawal":                           Divide(5, 3),
-					"asset/convert-dust-assets":                         10,
-					"asset/monthly-statement":                           1296000,
-					"asset/convert/estimate-quote":                      50,
-					"asset/convert/trade":                               1,
-					"account/bills-history-archive":                     72000,
-					"account/set-position-mode":                         4,
-					"account/set-leverage":                              1,
-					"account/position/margin-balance":                   1,
-					"account/set-fee-type":                              4,
-					"account/set-greeks":                                4,
-					"account/set-isolated-mode":                         4,
-					"account/spot-manual-borrow-repay":                  30,
-					"account/set-auto-repay":                            4,
-					"account/quick-margin-borrow-repay":                 4,
-					"account/borrow-repay":                              Divide(5, 3),
-					"account/simulated_margin":                          10,
-					"account/position-builder":                          10,
-					"account/position-builder-graph":                    50,
-					"account/set-riskOffset-type":                       2,
-					"account/set-riskOffset-amt":                        2,
-					"account/activate-option":                           4,
-					"account/set-auto-loan":                             4,
-					"account/account-level-switch-preset":               4,
-					"account/set-account-level":                         4,
-					"account/set-collateral-assets":                     4,
-					"account/mmp-reset":                                 4,
-					"account/mmp-config":                                50,
-					"account/fixed-loan/borrowing-order":                5,
-					"account/fixed-loan/amend-borrowing-order":          5,
-					"account/fixed-loan/manual-reborrow":                5,
-					"account/fixed-loan/repay-borrowing-order":          5,
-					"account/move-positions":                            10,
-					"account/set-auto-earn":                             10,
-					"account/set-settle-currency":                       1,
-					"account/set-trading-config":                        20,
-					"account/demo-adjust-balance":                       20,
-					"asset/subaccount/transfer":                         10,
-					"account/subaccount/set-loan-allocation":            4,
-					"users/subaccount/create-subaccount":                10,
-					"users/subaccount/apikey":                           10,
-					"users/subaccount/modify-apikey":                    10,
-					"users/subaccount/subaccount-apikey":                10,
-					"users/subaccount/delete-apikey":                    10,
-					"users/subaccount/set-transfer-out":                 10,
-					"tradingBot/grid/order-algo":                        1,
-					"tradingBot/grid/copy-order-algo":                   1,
-					"tradingBot/grid/amend-algo-basic-param":            1,
-					"tradingBot/grid/amend-order-algo":                  1,
-					"tradingBot/grid/stop-order-algo":                   1,
-					"tradingBot/grid/close-position":                    1,
-					"tradingBot/grid/cancel-close-order":                1,
-					"tradingBot/grid/order-instant-trigger":             1,
-					"tradingBot/grid/withdraw-income":                   1,
-					"tradingBot/grid/compute-margin-balance":            1,
-					"tradingBot/grid/margin-balance":                    1,
-					"tradingBot/grid/min-investment":                    1,
-					"tradingBot/grid/adjust-investment":                 1,
-					"tradingBot/signal/create-signal":                   1,
-					"tradingBot/signal/order-algo":                      1,
-					"tradingBot/signal/stop-order-algo":                 1,
-					"tradingBot/signal/margin-balance":                  1,
-					"tradingBot/signal/amendTPSL":                       1,
-					"tradingBot/signal/set-instruments":                 1,
-					"tradingBot/signal/close-position":                  1,
-					"tradingBot/signal/sub-order":                       1,
-					"tradingBot/signal/cancel-sub-order":                1,
-					"tradingBot/recurring/order-algo":                   1,
-					"tradingBot/recurring/amend-order-algo":             1,
-					"tradingBot/recurring/stop-order-algo":              1,
-					"tradingBot/dca/create":                             1,
-					"tradingBot/dca/amend-order-algo":                   1,
-					"tradingBot/dca/stop":                               1,
-					"tradingBot/dca/orders/manual-buy":                  1,
-					"tradingBot/dca/settings/reinvestment":              1,
-					"tradingBot/dca/settings/take-profit":               1,
-					"tradingBot/dca/margin/add":                         1,
-					"tradingBot/dca/margin/reduce":                      1,
-					"tradingBot/recurring/add-investment":               1,
-					"tradingBot/recurring/amend-price-range":            1,
-					"tradingBot/recurring/amend-recurring-amount":       1,
-					"tradingBot/recurring/amend-recurring-time":         1,
-					"tradingBot/recurring/pause":                        1,
-					"tradingBot/recurring/restart":                      1,
-					"finance/savings/purchase-redempt":                  Divide(5, 3),
-					"finance/savings/set-lending-rate":                  Divide(5, 3),
-					"finance/staking-defi/purchase":                     5,
-					"finance/staking-defi/redeem":                       5,
-					"finance/staking-defi/cancel":                       5,
-					"finance/staking-defi/eth/purchase":                 5,
-					"finance/staking-defi/eth/redeem":                   5,
-					"finance/staking-defi/eth/cancel-redeem":            5,
-					"finance/staking-defi/sol/purchase":                 5,
-					"finance/staking-defi/sol/redeem":                   5,
-					"finance/staking-defi/sol/cancel-redeem":            5,
-					"finance/flexible-loan/max-loan":                    4,
-					"finance/flexible-loan/adjust-collateral":           4,
-					"copytrading/algo-order":                            1,
-					"copytrading/close-subposition":                     1,
-					"copytrading/set-instruments":                       4,
-					"copytrading/amend-profit-sharing-ratio":            4,
-					"copytrading/first-copy-settings":                   4,
-					"copytrading/amend-copy-settings":                   4,
-					"copytrading/stop-copy-trading":                     4,
-					"copytrading/batch-set-leverage":                    4,
-					"broker/nd/create-subaccount":                       0.25,
-					"broker/nd/delete-subaccount":                       1,
-					"broker/nd/subaccount/apikey":                       0.25,
-					"broker/nd/subaccount/modify-apikey":                1,
-					"broker/nd/subaccount/delete-apikey":                1,
-					"broker/nd/set-subaccount-level":                    4,
-					"broker/nd/set-subaccount-fee-rate":                 4,
-					"broker/nd/set-subaccount-assets":                   0.25,
-					"asset/broker/nd/subaccount-deposit-address":        1,
-					"asset/broker/nd/modify-subaccount-deposit-address": Divide(5, 3),
-					"broker/nd/rebate-per-orders":                       36000,
-					"finance/sfp/dcd/quote":                             10,
-					"finance/sfp/dcd/order":                             10,
-					"finance/sfp/dcd/trade":                             10,
-					"finance/sfp/dcd/redeem-quote":                      10,
-					"finance/sfp/dcd/redeem":                            10,
-					"broker/nd/report-subaccount-ip":                    0.25,
-					"broker/dma/subaccount/apikey":                      Divide(1, 4),
-					"broker/dma/trades":                                 36000,
-					"broker/fd/rebate-per-orders":                       36000,
+					"rfq/create-rfq": map[string]any{
+						"cost": 4,
+					},
+					"rfq/cancel-rfq": map[string]any{
+						"cost": 4,
+					},
+					"rfq/cancel-batch-rfqs": map[string]any{
+						"cost": 10,
+					},
+					"rfq/cancel-all-rfqs": map[string]any{
+						"cost": 10,
+					},
+					"rfq/execute-quote": map[string]any{
+						"cost": 15,
+					},
+					"rfq/maker-instrument-settings": map[string]any{
+						"cost": 4,
+					},
+					"rfq/mmp-reset": map[string]any{
+						"cost": 4,
+					},
+					"rfq/mmp-config": map[string]any{
+						"cost": 100,
+					},
+					"rfq/create-quote": map[string]any{
+						"cost": 0.4,
+					},
+					"rfq/cancel-quote": map[string]any{
+						"cost": 0.4,
+					},
+					"rfq/cancel-batch-quotes": map[string]any{
+						"cost": 10,
+					},
+					"rfq/cancel-all-quotes": map[string]any{
+						"cost": 10,
+					},
+					"rfq/cancel-all-after": map[string]any{
+						"cost": 10,
+					},
+					"sprd/order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/cancel-order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/mass-cancel": map[string]any{
+						"cost": 1,
+					},
+					"sprd/amend-order": map[string]any{
+						"cost": 1,
+					},
+					"sprd/cancel-all-after": map[string]any{
+						"cost": 10,
+					},
+					"trade/order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/batch-orders": map[string]any{
+						"cost": Divide(1, 15),
+					},
+					"trade/cancel-order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/cancel-batch-orders": map[string]any{
+						"cost": Divide(1, 15),
+					},
+					"trade/amend-order": map[string]any{
+						"cost": Divide(1, 3),
+					},
+					"trade/amend-batch-orders": map[string]any{
+						"cost": Divide(1, 150),
+					},
+					"trade/close-position": map[string]any{
+						"cost": 1,
+					},
+					"trade/fills-archive": map[string]any{
+						"cost": 172800,
+					},
+					"trade/cancel-advance-algos": map[string]any{
+						"cost": 1,
+					},
+					"trade/easy-convert": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay": map[string]any{
+						"cost": 20,
+					},
+					"trade/one-click-repay-v2": map[string]any{
+						"cost": 20,
+					},
+					"trade/mass-cancel": map[string]any{
+						"cost": 4,
+					},
+					"trade/cancel-all-after": map[string]any{
+						"cost": 10,
+					},
+					"trade/order-precheck": map[string]any{
+						"cost": 4,
+					},
+					"trade/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"trade/cancel-algos": map[string]any{
+						"cost": 1,
+					},
+					"trade/amend-algos": map[string]any{
+						"cost": 1,
+					},
+					"asset/transfer": map[string]any{
+						"cost": 5,
+					},
+					"asset/withdrawal": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/withdrawal-lightning": map[string]any{
+						"cost": 5,
+					},
+					"asset/cancel-withdrawal": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"asset/convert-dust-assets": map[string]any{
+						"cost": 10,
+					},
+					"asset/monthly-statement": map[string]any{
+						"cost": 1296000,
+					},
+					"asset/convert/estimate-quote": map[string]any{
+						"cost": 50,
+					},
+					"asset/convert/trade": map[string]any{
+						"cost": 1,
+					},
+					"fiat/create-withdrawal": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/cancel-withdrawal": map[string]any{
+						"cost": Divide(10, 3),
+					},
+					"fiat/buy-sell/quote": map[string]any{
+						"cost": 50,
+					},
+					"fiat/buy-sell/trade": map[string]any{
+						"cost": 50,
+					},
+					"account/bills-history-archive": map[string]any{
+						"cost": 72000,
+					},
+					"account/set-position-mode": map[string]any{
+						"cost": 4,
+					},
+					"account/set-leverage": map[string]any{
+						"cost": 1,
+					},
+					"account/position/margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"account/set-fee-type": map[string]any{
+						"cost": 4,
+					},
+					"account/set-greeks": map[string]any{
+						"cost": 4,
+					},
+					"account/set-isolated-mode": map[string]any{
+						"cost": 4,
+					},
+					"account/spot-manual-borrow-repay": map[string]any{
+						"cost": 30,
+					},
+					"account/set-auto-repay": map[string]any{
+						"cost": 4,
+					},
+					"account/quick-margin-borrow-repay": map[string]any{
+						"cost": 4,
+					},
+					"account/borrow-repay": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"account/simulated_margin": map[string]any{
+						"cost": 10,
+					},
+					"account/position-builder": map[string]any{
+						"cost": 10,
+					},
+					"account/position-builder-graph": map[string]any{
+						"cost": 50,
+					},
+					"account/set-riskOffset-type": map[string]any{
+						"cost": 2,
+					},
+					"account/set-riskOffset-amt": map[string]any{
+						"cost": 2,
+					},
+					"account/activate-option": map[string]any{
+						"cost": 4,
+					},
+					"account/set-auto-loan": map[string]any{
+						"cost": 4,
+					},
+					"account/account-level-switch-preset": map[string]any{
+						"cost": 4,
+					},
+					"account/set-account-level": map[string]any{
+						"cost": 4,
+					},
+					"account/set-collateral-assets": map[string]any{
+						"cost": 4,
+					},
+					"account/mmp-reset": map[string]any{
+						"cost": 4,
+					},
+					"account/mmp-config": map[string]any{
+						"cost": 50,
+					},
+					"account/fixed-loan/borrowing-order": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/amend-borrowing-order": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/manual-reborrow": map[string]any{
+						"cost": 5,
+					},
+					"account/fixed-loan/repay-borrowing-order": map[string]any{
+						"cost": 5,
+					},
+					"account/move-positions": map[string]any{
+						"cost": 10,
+					},
+					"account/set-auto-earn": map[string]any{
+						"cost": 10,
+					},
+					"account/set-settle-currency": map[string]any{
+						"cost": 1,
+					},
+					"account/set-trading-config": map[string]any{
+						"cost": 20,
+					},
+					"account/demo-adjust-balance": map[string]any{
+						"cost": 20,
+					},
+					"asset/subaccount/transfer": map[string]any{
+						"cost": 10,
+					},
+					"account/subaccount/set-loan-allocation": map[string]any{
+						"cost": 4,
+					},
+					"users/subaccount/create-subaccount": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/modify-apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/subaccount-apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/delete-apikey": map[string]any{
+						"cost": 10,
+					},
+					"users/subaccount/set-transfer-out": map[string]any{
+						"cost": 10,
+					},
+					"tradingBot/grid/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/copy-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/amend-algo-basic-param": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/amend-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/stop-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/close-position": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/cancel-close-order": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/order-instant-trigger": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/withdraw-income": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/compute-margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/min-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/grid/adjust-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/create-signal": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/stop-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/margin-balance": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/amendTPSL": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/set-instruments": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/close-position": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/sub-order": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/signal/cancel-sub-order": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/stop-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/create": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/amend-order-algo": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/stop": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/orders/manual-buy": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/settings/reinvestment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/settings/take-profit": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/margin/add": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/dca/margin/reduce": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/add-investment": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-price-range": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-recurring-amount": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/amend-recurring-time": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/pause": map[string]any{
+						"cost": 1,
+					},
+					"tradingBot/recurring/restart": map[string]any{
+						"cost": 1,
+					},
+					"finance/savings/purchase-redempt": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/savings/set-lending-rate": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"finance/staking-defi/purchase": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/cancel": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/eth/purchase": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/eth/redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/eth/cancel-redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/sol/purchase": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/sol/redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/staking-defi/sol/cancel-redeem": map[string]any{
+						"cost": 5,
+					},
+					"finance/flexible-loan/max-loan": map[string]any{
+						"cost": 4,
+					},
+					"finance/flexible-loan/adjust-collateral": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/algo-order": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/close-subposition": map[string]any{
+						"cost": 1,
+					},
+					"copytrading/set-instruments": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/amend-profit-sharing-ratio": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/first-copy-settings": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/amend-copy-settings": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/stop-copy-trading": map[string]any{
+						"cost": 4,
+					},
+					"copytrading/batch-set-leverage": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/create-subaccount": map[string]any{
+						"cost": 0.25,
+					},
+					"broker/nd/delete-subaccount": map[string]any{
+						"cost": 1,
+					},
+					"broker/nd/subaccount/apikey": map[string]any{
+						"cost": 0.25,
+					},
+					"broker/nd/subaccount/modify-apikey": map[string]any{
+						"cost": 1,
+					},
+					"broker/nd/subaccount/delete-apikey": map[string]any{
+						"cost": 1,
+					},
+					"broker/nd/set-subaccount-level": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/set-subaccount-fee-rate": map[string]any{
+						"cost": 4,
+					},
+					"broker/nd/set-subaccount-assets": map[string]any{
+						"cost": 0.25,
+					},
+					"asset/broker/nd/subaccount-deposit-address": map[string]any{
+						"cost": 1,
+					},
+					"asset/broker/nd/modify-subaccount-deposit-address": map[string]any{
+						"cost": Divide(5, 3),
+					},
+					"broker/nd/rebate-per-orders": map[string]any{
+						"cost": 36000,
+					},
+					"finance/sfp/dcd/quote": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/order": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/trade": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/redeem-quote": map[string]any{
+						"cost": 10,
+					},
+					"finance/sfp/dcd/redeem": map[string]any{
+						"cost": 10,
+					},
+					"broker/nd/report-subaccount-ip": map[string]any{
+						"cost": 0.25,
+					},
+					"broker/dma/subaccount/apikey": map[string]any{
+						"cost": Divide(1, 4),
+					},
+					"broker/dma/trades": map[string]any{
+						"cost": 36000,
+					},
+					"broker/fd/rebate-per-orders": map[string]any{
+						"cost": 36000,
+					},
 				},
 			},
 		},
@@ -1095,7 +2002,7 @@ func (this *OkxCore) Describe() any {
 				"APT":          "Aptos",
 				"SONIC":        "Sonic",
 				"SCROLL":       "Scroll",
-				"ARBONE":       "Arbitrum One",
+				"ARBITRUM":     "Arbitrum One",
 				"AVAXC":        "Avalanche C-Chain",
 				"AVAXX":        "Avalanche X-Chain",
 				"BASE":         "Base",
@@ -1218,10 +2125,12 @@ func (this *OkxCore) Describe() any {
 				"method": "privatePostTradeCancelBatchOrders",
 			},
 			"fetchCanceledOrders": map[string]any{
-				"method": "privateGetTradeOrdersHistory",
+				"method":              "privateGetTradeOrdersHistory",
+				"paginationDirection": "forward",
 			},
 			"fetchClosedOrders": map[string]any{
-				"method": "privateGetTradeOrdersHistory",
+				"method":              "privateGetTradeOrdersHistory",
+				"paginationDirection": "forward",
 			},
 			"withdraw": map[string]any{
 				"password": nil,
@@ -1417,9 +2326,9 @@ func (this *OkxCore) ConvertToInstrumentType(typeVar any) any {
 }
 func (this *OkxCore) CreateExpiredOptionMarket(symbol any) any {
 	// support expired option contracts
-	var quote any = "USD"
-	var optionParts any = Split(symbol, "-")
-	var symbolBase any = Split(symbol, "/")
+	var quote string = "USD"
+	var optionParts []string = Split(symbol, "-")
+	var symbolBase []string = Split(symbol, "/")
 	var base any = nil
 	if IsTrue(IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1))) {
 		base = this.SafeString(symbolBase, 0)
@@ -1486,10 +2395,10 @@ func (this *OkxCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption any = false
+	var isOption bool = false
 	if IsTrue(!IsEqual(marketId, nil)) {
-		var parts any = Split(marketId, "-")
-		var partsLength any = GetArrayLength(parts)
+		var parts []string = Split(marketId, "-")
+		var partsLength int = GetArrayLength(parts)
 		// a valid OKX option ends with the call/put flag and carries expiry+strike segments,
 		// e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
 		// BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
@@ -1498,7 +2407,7 @@ func (this *OkxCore) SafeMarket(optionalArgs ...any) any {
 		// on the missing expiry.
 		isOption = IsTrue((IsGreaterThan(partsLength, 3))) && IsTrue((IsTrue(EndsWith(marketId, "-C")) || IsTrue(EndsWith(marketId, "-P"))))
 	}
-	if IsTrue(IsTrue(IsTrue(isOption) && IsTrue((!IsEqual(marketId, nil)))) && !IsTrue((InOp(this.Markets_by_id, marketId)))) {
+	if IsTrue(IsTrue(IsTrue(isOption) && IsTrue((!IsEqual(marketId, nil)))) && IsTrue((IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
 	}
@@ -1514,65 +2423,65 @@ func (this *OkxCore) SafeMarket(optionalArgs ...any) any {
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *OkxCore) FetchStatus(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetSystemStatus(params))
-		PanicOnError(response)
-		//
-		// Note, if there is no maintenance around, the 'data' array is empty
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "begin": "1621328400000",
-		//                 "end": "1621329000000",
-		//                 "href": "https://www.okx.com/support/hc/en-us/articles/360060882172",
-		//                 "scheDesc": "",
-		//                 "serviceType": "1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
-		//                 "state": "scheduled", // ongoing, completed, canceled
-		//                 "system": "classic", // classic, unified
-		//                 "title": "Classic Spot System Upgrade"
-		//             },
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var dataLength any = GetArrayLength(data)
-		var update any = map[string]any{
-			"updated": nil,
-			"status":  Ternary(IsTrue((IsEqual(dataLength, 0))), "ok", "maintenance"),
-			"eta":     nil,
-			"url":     nil,
-			"info":    response,
-		}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var event any = GetValue(data, i)
-			var state any = this.SafeString(event, "state")
-			AddElementToObject(update, "eta", this.SafeInteger(event, "end"))
-			AddElementToObject(update, "url", this.SafeString(event, "href"))
-			if IsTrue(IsEqual(state, "ongoing")) {
-				AddElementToObject(update, "status", "maintenance")
-			} else if IsTrue(IsEqual(state, "scheduled")) {
-				AddElementToObject(update, "status", "ok")
-			} else if IsTrue(IsEqual(state, "completed")) {
-				AddElementToObject(update, "status", "ok")
-			} else if IsTrue(IsEqual(state, "canceled")) {
-				AddElementToObject(update, "status", "ok")
-			}
-		}
-
-		ch <- update
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetSystemStatus(params))
+	PanicOnError(response)
+	//
+	// Note, if there is no maintenance around, the 'data' array is empty
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "begin": "1621328400000",
+	//                 "end": "1621329000000",
+	//                 "href": "https://www.okx.com/support/hc/en-us/articles/360060882172",
+	//                 "scheDesc": "",
+	//                 "serviceType": "1", // 0 WebSocket, 1 Spot/Margin, 2 Futures, 3 Perpetual, 4 Options, 5 Trading service
+	//                 "state": "scheduled", // ongoing, completed, canceled
+	//                 "system": "classic", // classic, unified
+	//                 "title": "Classic Spot System Upgrade"
+	//             },
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var dataLength int = GetArrayLength(data)
+	var update map[string]any = map[string]any{
+		"updated": nil,
+		"status":  Ternary(IsTrue((IsEqual(dataLength, 0))), "ok", "maintenance"),
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
+	}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var event any = GetValue(data, i)
+		var state any = this.SafeString(event, "state")
+		AddElementToObject(update, "eta", this.SafeInteger(event, "end"))
+		AddElementToObject(update, "url", this.SafeString(event, "href"))
+		if IsTrue(IsEqual(state, "ongoing")) {
+			AddElementToObject(update, "status", "maintenance")
+		} else if IsTrue(IsEqual(state, "scheduled")) {
+			AddElementToObject(update, "status", "ok")
+		} else if IsTrue(IsEqual(state, "completed")) {
+			AddElementToObject(update, "status", "ok")
+		} else if IsTrue(IsEqual(state, "canceled")) {
+			AddElementToObject(update, "status", "ok")
+		}
+	}
+
+	ch <- update
+	return nil
 }
 
 /**
@@ -1584,32 +2493,32 @@ func (this *OkxCore) FetchStatus(optionalArgs ...any) <-chan any {
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *OkxCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetPublicTime(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {"ts": "1621247923668"}
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var first any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.SafeInteger(first, "ts")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetPublicTime(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {"ts": "1621247923668"}
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.SafeInteger(first, "ts")
+	return nil
 }
 
 /**
@@ -1621,73 +2530,73 @@ func (this *OkxCore) FetchTime(optionalArgs ...any) <-chan any {
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
 func (this *OkxCore) FetchAccounts(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PrivateGetAccountConfig(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "acctLv": "2",
-		//                 "acctStpMode": "cancel_maker",
-		//                 "autoLoan": false,
-		//                 "ctIsoMode": "automatic",
-		//                 "enableSpotBorrow": false,
-		//                 "greeksType": "PA",
-		//                 "feeType": "0",
-		//                 "ip": "",
-		//                 "type": "0",
-		//                 "kycLv": "3",
-		//                 "label": "v5 test",
-		//                 "level": "Lv1",
-		//                 "levelTmp": "",
-		//                 "liquidationGear": "-1",
-		//                 "mainUid": "44705892343619584",
-		//                 "mgnIsoMode": "automatic",
-		//                 "opAuth": "1",
-		//                 "perm": "read_only,withdraw,trade",
-		//                 "posMode": "long_short_mode",
-		//                 "roleType": "0",
-		//                 "spotBorrowAutoRepay": false,
-		//                 "spotOffsetType": "",
-		//                 "spotRoleType": "0",
-		//                 "spotTraderInsts": [],
-		//                 "traderInsts": [],
-		//                 "uid": "44705892343619584",
-		//                 "settleCcy": "USDT",
-		//                 "settleCcyList": ["USD", "USDC", "USDG"],
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var account any = GetValue(data, i)
-			var accountId any = this.SafeString(account, "uid")
-			var typeVar any = this.SafeString(account, "acctLv")
-			AppendToArray(&result, map[string]any{
-				"id":       accountId,
-				"type":     typeVar,
-				"currency": nil,
-				"info":     account,
-				"code":     nil,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchAccountsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PrivateGetAccountConfig(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "acctLv": "2",
+	//                 "acctStpMode": "cancel_maker",
+	//                 "autoLoan": false,
+	//                 "ctIsoMode": "automatic",
+	//                 "enableSpotBorrow": false,
+	//                 "greeksType": "PA",
+	//                 "feeType": "0",
+	//                 "ip": "",
+	//                 "type": "0",
+	//                 "kycLv": "3",
+	//                 "label": "v5 test",
+	//                 "level": "Lv1",
+	//                 "levelTmp": "",
+	//                 "liquidationGear": "-1",
+	//                 "mainUid": "44705892343619584",
+	//                 "mgnIsoMode": "automatic",
+	//                 "opAuth": "1",
+	//                 "perm": "read_only,withdraw,trade",
+	//                 "posMode": "long_short_mode",
+	//                 "roleType": "0",
+	//                 "spotBorrowAutoRepay": false,
+	//                 "spotOffsetType": "",
+	//                 "spotRoleType": "0",
+	//                 "spotTraderInsts": [],
+	//                 "traderInsts": [],
+	//                 "uid": "44705892343619584",
+	//                 "settleCcy": "USDT",
+	//                 "settleCcyList": ["USD", "USDC", "USDG"],
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var account any = GetValue(data, i)
+		var accountId any = this.SafeString(account, "uid")
+		var typeVar any = this.SafeString(account, "acctLv")
+		AppendToArray(&result, map[string]any{
+			"id":       accountId,
+			"type":     typeVar,
+			"currency": nil,
+			"info":     account,
+			"code":     nil,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 func (this *OkxCore) Nonce() any {
 	return Subtract(this.Milliseconds(), GetValue(this.Options, "timeDifference"))
@@ -1702,41 +2611,41 @@ func (this *OkxCore) Nonce() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *OkxCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
-
-			retRes170712 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes170712)
-		}
-		var types any = []any{"spot", "future", "swap", "option"}
-		var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
-		if IsTrue(!IsEqual(fetchMarketsOption, nil)) {
-			types = this.SafeList(fetchMarketsOption, "types", types)
-		} else {
-			types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support
-		}
-		var promises any = []any{}
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
-			AppendToArray(&promises, this.FetchMarketsByType(GetValue(types, i), params))
-		}
-
-		promises = (<-promiseAll(promises))
-		PanicOnError(promises)
-		for i := 0; IsLessThan(i, GetArrayLength(promises)); i++ {
-			result = this.ArrayConcat(result, GetValue(promises, i))
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
+
+		retRes172612 := (<-this.LoadTimeDifference())
+		PanicOnError(retRes172612)
+	}
+	var types any = []any{"spot", "future", "swap", "option"}
+	var fetchMarketsOption any = this.SafeDict(this.Options, "fetchMarkets")
+	if IsTrue(!IsEqual(fetchMarketsOption, nil)) {
+		types = this.SafeList(fetchMarketsOption, "types", types)
+	} else {
+		types = this.SafeList(this.Options, "fetchMarkets", types) // backward-support
+	}
+	var promises any = []any{}
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(types)); i++ {
+		AppendToArray(&promises, this.FetchMarketsByType(GetValue(types, i), params))
+	}
+
+	promises = (<-promiseAll(promises))
+	PanicOnError(promises)
+	for i := 0; IsLessThan(i, GetArrayLength(promises)); i++ {
+		result = this.ArrayConcat(result, GetValue(promises, i))
+	}
+
+	ch <- result
+	return nil
 }
 func (this *OkxCore) ParseMarket(market any) any {
 	//
@@ -1800,24 +2709,24 @@ func (this *OkxCore) ParseMarket(market any) any {
 	if IsTrue(IsEqual(typeVar, "futures")) {
 		typeVar = "future"
 	}
-	var spot any = (IsEqual(typeVar, "spot"))
-	var future any = (IsEqual(typeVar, "future"))
-	var swap any = (IsEqual(typeVar, "swap"))
-	var option any = (IsEqual(typeVar, "option"))
-	var contract any = IsTrue(IsTrue(swap) || IsTrue(future)) || IsTrue(option)
+	var spot bool = (IsEqual(typeVar, "spot"))
+	var future bool = (IsEqual(typeVar, "future"))
+	var swap bool = (IsEqual(typeVar, "swap"))
+	var option bool = (IsEqual(typeVar, "option"))
+	var contract bool = IsTrue(IsTrue(swap) || IsTrue(future)) || IsTrue(option)
 	var baseId any = this.SafeString(market, "baseCcy", "") // defaulting to '' because some weird preopen markets have empty baseId
 	var quoteId any = this.SafeString(market, "quoteCcy", "")
 	var settleId any = this.SafeString(market, "settleCcy")
 	var settle any = this.SafeCurrencyCode(settleId)
 	var underlying any = this.SafeString(market, "uly")
 	if IsTrue(IsTrue((!IsEqual(underlying, nil))) && !IsTrue(spot)) {
-		var parts any = Split(underlying, "-")
+		var parts []string = Split(underlying, "-")
 		baseId = this.SafeString(parts, 0, "")
 		quoteId = this.SafeString(parts, 1, "")
 	}
 	if IsTrue(IsTrue((IsTrue((IsEqual(baseId, ""))) || IsTrue((IsEqual(quoteId, ""))))) && IsTrue(spot)) {
 		var instId any = this.SafeString(market, "instId", "")
-		var parts any = Split(instId, "-")
+		var parts []string = Split(instId, "-")
 		baseId = this.SafeString(parts, 0, "")
 		quoteId = this.SafeString(parts, 1, "")
 	}
@@ -1857,9 +2766,9 @@ func (this *OkxCore) ParseMarket(market any) any {
 	var maxLeverage any = this.SafeString(market, "lever", "1")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var maxSpotCost any = this.SafeNumber(market, "maxMktSz")
-	var leverageAboveOne any = Precise.StringGt(maxLeverage, "1")
-	var quoteEqualSettle any = (IsEqual(quoteId, settleId))
-	var baseEqualSettle any = (IsEqual(baseId, settleId))
+	var leverageAboveOne bool = Precise.StringGt(maxLeverage, "1")
+	var quoteEqualSettle bool = (IsEqual(quoteId, settleId))
+	var baseEqualSettle bool = (IsEqual(baseId, settleId))
 	var status any = this.SafeString(market, "state")
 	var instIdCode any = this.SafeInteger(market, "instIdCode")
 	return this.Extend(fees, map[string]any{
@@ -1899,7 +2808,7 @@ func (this *OkxCore) ParseMarket(market any) any {
 			},
 			"amount": map[string]any{
 				"min": this.SafeNumber(market, "minSz"),
-				"max": nil,
+				"max": this.SafeNumber(market, "maxLmtSz"),
 			},
 			"price": map[string]any{
 				"min": nil,
@@ -1914,94 +2823,94 @@ func (this *OkxCore) ParseMarket(market any) any {
 	})
 }
 func (this *OkxCore) FetchMarketsByType(typeVar any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"instType": this.ConvertToInstrumentType(typeVar),
-		}
-		if IsTrue(IsEqual(typeVar, "option")) {
-			var optionsUnderlying any = this.SafeList(this.Options, "defaultUnderlying", []any{"BTC-USD", "ETH-USD"})
-			var promises any = []any{}
-			for i := 0; IsLessThan(i, GetArrayLength(optionsUnderlying)); i++ {
-				var underlying any = GetValue(optionsUnderlying, i)
-				AddElementToObject(request, "uly", underlying)
-				AppendToArray(&promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
-			}
-
-			promisesResult := (<-promiseAll(promises))
-			PanicOnError(promisesResult)
-			var markets any = []any{}
-			for i := 0; IsLessThan(i, GetArrayLength(promisesResult)); i++ {
-				var res any = this.SafeDict(promisesResult, i, map[string]any{})
-				var options any = this.SafeList(res, "data", []any{})
-				markets = this.ArrayConcat(markets, options)
-			}
-
-			ch <- this.ParseMarkets(markets)
-			return nil
+	ch := make(chan any, 1)
+	go this.fetchMarketsByTypeBody(ch, typeVar, optionalArgs...)
+	return ch
+}
+func (this *OkxCore) fetchMarketsByTypeBody(ch chan any, typeVar any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"instType": this.ConvertToInstrumentType(typeVar),
+	}
+	if IsTrue(IsEqual(typeVar, "option")) {
+		var optionsUnderlying any = this.SafeList(this.Options, "defaultUnderlying", []any{"BTC-USD", "ETH-USD"})
+		var promises any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(optionsUnderlying)); i++ {
+			var underlying any = GetValue(optionsUnderlying, i)
+			AddElementToObject(request, "uly", underlying)
+			AppendToArray(&promises, this.PublicGetPublicInstruments(this.Extend(request, params)))
 		}
 
-		response := (<-this.PublicGetPublicInstruments(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// spot, future, swap, option
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "alias": "", // this_week, next_week, quarter, next_quarter
-		//                 "baseCcy": "BTC",
-		//                 "category": "1",
-		//                 "ctMult": "",
-		//                 "ctType": "", // inverse, linear
-		//                 "ctVal": "",
-		//                 "ctValCcy": "",
-		//                 "expTime": "",
-		//                 "instId": "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
-		//                 "instType": "SPOT", // SPOT, FUTURES, SWAP, OPTION
-		//                 "lever": "10",
-		//                 "listTime": "1548133413000",
-		//                 "lotSz": "0.00000001",
-		//                 "minSz": "0.00001",
-		//                 "optType": "",
-		//                 "quoteCcy": "USDT",
-		//                 "settleCcy": "",
-		//                 "state": "live",
-		//                 "stk": "",
-		//                 "tickSz": "0.1",
-		//                 "uly": ""
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var dataResponse any = this.SafeList(response, "data", []any{})
-		var marketsWithoutTest any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(dataResponse)); i++ {
-			var data any = GetValue(dataResponse, i)
-			var instId any = this.SafeString(data, "instId", "")
-			if IsTrue(IsEqual(instId, "")) {
+		promisesResult := (<-promiseAll(promises))
+		PanicOnError(promisesResult)
+		var markets any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(promisesResult)); i++ {
+			var res any = this.SafeDict(promisesResult, i, map[string]any{})
+			var options any = this.SafeList(res, "data", []any{})
+			markets = this.ArrayConcat(markets, options)
+		}
+
+		ch <- this.ParseMarkets(markets)
+		return nil
+	}
+
+	response := (<-this.PublicGetPublicInstruments(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// spot, future, swap, option
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "alias": "", // this_week, next_week, quarter, next_quarter
+	//                 "baseCcy": "BTC",
+	//                 "category": "1",
+	//                 "ctMult": "",
+	//                 "ctType": "", // inverse, linear
+	//                 "ctVal": "",
+	//                 "ctValCcy": "",
+	//                 "expTime": "",
+	//                 "instId": "BTC-USDT", // BTC-USD-210521, CSPR-USDT-SWAP, BTC-USD-210517-44000-C
+	//                 "instType": "SPOT", // SPOT, FUTURES, SWAP, OPTION
+	//                 "lever": "10",
+	//                 "listTime": "1548133413000",
+	//                 "lotSz": "0.00000001",
+	//                 "minSz": "0.00001",
+	//                 "optType": "",
+	//                 "quoteCcy": "USDT",
+	//                 "settleCcy": "",
+	//                 "state": "live",
+	//                 "stk": "",
+	//                 "tickSz": "0.1",
+	//                 "uly": ""
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var dataResponse any = this.SafeList(response, "data", []any{})
+	var marketsWithoutTest any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(dataResponse)); i++ {
+		var data any = GetValue(dataResponse, i)
+		var instId any = this.SafeString(data, "instId", "")
+		if IsTrue(IsEqual(instId, "")) {
+			continue
+		}
+		if IsTrue(this.IsSandboxModeEnabled) {
+			var instFamily any = this.SafeString(data, "instFamily", "")
+			if IsTrue(StartsWith(instFamily, "TEST")) {
 				continue
 			}
-			if IsTrue(this.IsSandboxModeEnabled) {
-				var instFamily any = this.SafeString(data, "instFamily", "")
-				if IsTrue(StartsWith(instFamily, "TEST")) {
-					continue
-				}
-			}
-			AppendToArray(&marketsWithoutTest, data)
 		}
+		AppendToArray(&marketsWithoutTest, data)
+	}
 
-		ch <- this.ParseMarkets(marketsWithoutTest)
-		return nil
-
-	}()
-	return ch
+	ch <- this.ParseMarkets(marketsWithoutTest)
+	return nil
 }
 
 /**
@@ -2013,82 +2922,82 @@ func (this *OkxCore) FetchMarketsByType(typeVar any, optionalArgs ...any) <-chan
  * @returns {object} an associative dictionary of currencies
  */
 func (this *OkxCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// this endpoint requires authentication
-		// while fetchCurrencies is a public API method by design
-		// therefore we check the keys here
-		// and fallback to generating the currencies from the markets
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
-		if IsTrue(!IsTrue(this.CheckRequiredCredentials(false)) || IsTrue(isSandboxMode)) {
-
-			ch <- map[string]any{}
-			return nil
-		}
-		//
-		// has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
-		//
-		//     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
-		//
-
-		response := (<-this.PrivateGetAssetCurrencies(params))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "canDep": true,
-		//                "canInternal": false,
-		//                "canWd": true,
-		//                "ccy": "USDT",
-		//                "chain": "USDT-TRC20",
-		//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-		//                "mainNet": false,
-		//                "maxFee": "1.6",
-		//                "maxWd": "8852150",
-		//                "minFee": "0.8",
-		//                "minWd": "2",
-		//                "name": "Tether",
-		//                "usedWdQuota": "0",
-		//                "wdQuota": "500",
-		//                "wdTickSz": "3"
-		//            },
-		//            {
-		//                "canDep": true,
-		//                "canInternal": false,
-		//                "canWd": true,
-		//                "ccy": "USDT",
-		//                "chain": "USDT-ERC20",
-		//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-		//                "mainNet": false,
-		//                "maxFee": "16",
-		//                "maxWd": "8852150",
-		//                "minFee": "8",
-		//                "minWd": "2",
-		//                "name": "Tether",
-		//                "usedWdQuota": "0",
-		//                "wdQuota": "500",
-		//                "wdTickSz": "3"
-		//            },
-		//            ...
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var dataByCurrencyId any = this.GroupBy(data, "ccy")
-		var currencies any = ObjectValues(dataByCurrencyId)
-
-		ch <- this.ParseCurrencies(currencies)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// this endpoint requires authentication
+	// while fetchCurrencies is a public API method by design
+	// therefore we check the keys here
+	// and fallback to generating the currencies from the markets
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var isSandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
+	if IsTrue(!IsTrue(this.CheckRequiredCredentials(false)) || IsTrue(isSandboxMode)) {
+
+		ch <- map[string]any{}
+		return nil
+	}
+	//
+	// has['fetchCurrencies'] is currently set to true, but an unauthorized request returns
+	//
+	//     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
+	//
+
+	response := (<-this.PrivateGetAssetCurrencies(params))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "canDep": true,
+	//                "canInternal": false,
+	//                "canWd": true,
+	//                "ccy": "USDT",
+	//                "chain": "USDT-TRC20",
+	//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+	//                "mainNet": false,
+	//                "maxFee": "1.6",
+	//                "maxWd": "8852150",
+	//                "minFee": "0.8",
+	//                "minWd": "2",
+	//                "name": "Tether",
+	//                "usedWdQuota": "0",
+	//                "wdQuota": "500",
+	//                "wdTickSz": "3"
+	//            },
+	//            {
+	//                "canDep": true,
+	//                "canInternal": false,
+	//                "canWd": true,
+	//                "ccy": "USDT",
+	//                "chain": "USDT-ERC20",
+	//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+	//                "mainNet": false,
+	//                "maxFee": "16",
+	//                "maxWd": "8852150",
+	//                "minFee": "8",
+	//                "minWd": "2",
+	//                "name": "Tether",
+	//                "usedWdQuota": "0",
+	//                "wdQuota": "500",
+	//                "wdTickSz": "3"
+	//            },
+	//            ...
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var dataByCurrencyId map[string]any = this.GroupBy(data, "ccy")
+	var currencies any = ObjectValues(dataByCurrencyId)
+
+	ch <- this.ParseCurrencies(currencies)
+	return nil
 }
 func (this *OkxCore) ParseCurrency(currency any) any {
 	var chains any = currency
@@ -2096,9 +3005,9 @@ func (this *OkxCore) ParseCurrency(currency any) any {
 	var firstChain any = this.SafeDict(chains, 0, map[string]any{})
 	var currencyId any = this.SafeString(firstChain, "ccy")
 	var code any = this.SafeCurrencyCode(currencyId)
-	var networks any = map[string]any{}
-	var typeVar any = "crypto"
-	var chainsLength any = GetArrayLength(chains)
+	var networks map[string]any = map[string]any{}
+	var typeVar string = "crypto"
+	var chainsLength int = GetArrayLength(chains)
 	for j := 0; IsLessThan(j, chainsLength); j++ {
 		var chain any = GetValue(chains, j)
 		// allow empty string for rare fiat-currencies, e.g. TRY
@@ -2107,26 +3016,28 @@ func (this *OkxCore) ParseCurrency(currency any) any {
 			// only happens for fiat 'TRY' currency
 			typeVar = "fiat"
 		}
-		var idParts any = Split(networkId, "-")
+		var idParts []string = Split(networkId, "-")
 		var parts any = this.ArraySlice(idParts, 1)
 		var chainPart any = Join(parts, "-")
 		var networkCode any = this.NetworkIdToCode(chainPart, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":        networkId,
-			"network":   networkCode,
-			"active":    nil,
-			"deposit":   this.SafeBool(chain, "canDep"),
-			"withdraw":  this.SafeBool(chain, "canWd"),
-			"fee":       this.SafeNumber(chain, "fee"),
-			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "wdTickSz"))),
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": this.SafeNumber(chain, "minWd"),
-					"max": this.SafeNumber(chain, "maxWd"),
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    nil,
+				"deposit":   this.SafeBool(chain, "canDep"),
+				"withdraw":  this.SafeBool(chain, "canWd"),
+				"fee":       this.SafeNumber(chain, "fee"),
+				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chain, "wdTickSz"))),
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": this.SafeNumber(chain, "minWd"),
+						"max": this.SafeNumber(chain, "maxWd"),
+					},
 				},
-			},
-			"info": chain,
-		})
+				"info": chain,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"info":      chains,
@@ -2159,92 +3070,85 @@ func (this *OkxCore) ParseCurrency(currency any) any {
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *OkxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes212312 := (<-this.LoadMarkets())
-			PanicOnError(retRes212312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		var method any = nil
-		methodparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "method", "publicGetMarketBooks")
-		method = GetValue(methodparamsVariable, 0)
-		params = GetValue(methodparamsVariable, 1)
-		if IsTrue(IsTrue(IsEqual(method, "publicGetMarketBooksFull")) && IsTrue(IsEqual(limit, nil))) {
-			limit = 5000
-		}
-		limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit)
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "sz", limit) // max 400
-		}
-		var response any = nil
-		if IsTrue(IsTrue((IsEqual(method, "publicGetMarketBooksFull"))) || IsTrue((IsGreaterThan(limit, 400)))) {
-
-			response = (<-this.PublicGetMarketBooksFull(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PublicGetMarketBooks(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "asks": [
-		//                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
-		//                     ["0.0723","299.880364","0","2"],
-		//                     ["0.07231","3.72832","0","1"],
-		//                 ],
-		//                 "bids": [
-		//                     ["0.07221","18.5","0","1"],
-		//                     ["0.0722","18.5","0","1"],
-		//                     ["0.07219","0.505407","0","1"],
-		//                 ],
-		//                 "ts": "1621438475342"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var first any = this.SafeDict(data, 0, map[string]any{})
-		var timestamp any = this.SafeInteger(first, "ts")
-
-		ch <- this.ParseOrderBook(first, symbol, timestamp)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes214412 := (<-this.LoadMarkets())
+		PanicOnError(retRes214412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	var method any = nil
+	methodparamsVariable := this.HandleOptionAndParams(params, "fetchOrderBook", "method", "publicGetMarketBooks")
+	method = GetValue(methodparamsVariable, 0)
+	params = GetValue(methodparamsVariable, 1)
+	if IsTrue(IsTrue(IsEqual(method, "publicGetMarketBooksFull")) && IsTrue(IsEqual(limit, nil))) {
+		limit = 5000
+	}
+	limit = Ternary(IsTrue((IsEqual(limit, nil))), 100, limit)
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "sz", limit) // max 400
+	}
+	var response any = nil
+	if IsTrue(IsTrue((IsEqual(method, "publicGetMarketBooksFull"))) || IsTrue((IsGreaterThan(limit, 400)))) {
+
+		response = (<-this.PublicGetMarketBooksFull(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PublicGetMarketBooks(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "asks": [
+	//                     ["0.07228","4.211619","0","2"], // price, amount, liquidated orders, total open orders
+	//                     ["0.0723","299.880364","0","2"],
+	//                     ["0.07231","3.72832","0","1"],
+	//                 ],
+	//                 "bids": [
+	//                     ["0.07221","18.5","0","1"],
+	//                     ["0.0722","18.5","0","1"],
+	//                     ["0.07219","0.505407","0","1"],
+	//                 ],
+	//                 "ts": "1621438475342"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
+	var timestamp any = this.SafeInteger(first, "ts")
+
+	ch <- this.ParseOrderBook(first, symbol, timestamp)
+	return nil
 }
 func (this *OkxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
-	//      {
-	//          "instType":"SWAP",
-	//          "instId":"BTC-USDT-SWAP",
-	//          "markPx":"200",
-	//          "ts":"1597026383085"
-	//      }
-	//
 	//     {
-	//         "instType": "SPOT",
-	//         "instId": "ETH-BTC",
+	//         "instType": "SPOT", // SPOT, SWAP, etc
+	//         "instId": "ETH-BTC", // BTC-USDT, BTC-USDT-SWAP, etc..
 	//         "last": "0.07319",
-	//         "lastSz": "0.044378",
+	//         "lastSz": "0.044378", // base size for spot, or contracts amount for derivatives
 	//         "askPx": "0.07322",
 	//         "askSz": "4.2",
 	//         "bidPx": "0.0732",
@@ -2252,12 +3156,13 @@ func (this *OkxCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//         "open24h": "0.07801",
 	//         "high24h": "0.07975",
 	//         "low24h": "0.06019",
-	//         "volCcy24h": "11788.887619",
+	//         "volCcy24h": "11788.887619", // note, for derivatives this is base-amount
 	//         "vol24h": "167493.829229",
 	//         "ts": "1621440583784",
 	//         "sodUtc0": "0.07872",
 	//         "sodUtc8": "0.07345"
 	//     }
+	//
 	//     {
 	//          instId: 'LTC-USDT',
 	//          idxPx: '65.74',
@@ -2323,58 +3228,58 @@ func (this *OkxCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes226212 := (<-this.LoadMarkets())
-			PanicOnError(retRes226212)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketTicker(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "instType": "SPOT",
-		//                 "instId": "ETH-BTC",
-		//                 "last": "0.07319",
-		//                 "lastSz": "0.044378",
-		//                 "askPx": "0.07322",
-		//                 "askSz": "4.2",
-		//                 "bidPx": "0.0732",
-		//                 "bidSz": "6.050058",
-		//                 "open24h": "0.07801",
-		//                 "high24h": "0.07975",
-		//                 "low24h": "0.06019",
-		//                 "volCcy24h": "11788.887619",
-		//                 "vol24h": "167493.829229",
-		//                 "ts": "1621440583784",
-		//                 "sodUtc0": "0.07872",
-		//                 "sodUtc8": "0.07345"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var first any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseTicker(first, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes227712 := (<-this.LoadMarkets())
+		PanicOnError(retRes227712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketTicker(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "instType": "SPOT",
+	//                 "instId": "ETH-BTC",
+	//                 "last": "0.07319",
+	//                 "lastSz": "0.044378",
+	//                 "askPx": "0.07322",
+	//                 "askSz": "4.2",
+	//                 "bidPx": "0.0732",
+	//                 "bidSz": "6.050058",
+	//                 "open24h": "0.07801",
+	//                 "high24h": "0.07975",
+	//                 "low24h": "0.06019",
+	//                 "volCcy24h": "11788.887619",
+	//                 "vol24h": "167493.829229",
+	//                 "ts": "1621440583784",
+	//                 "sodUtc0": "0.07872",
+	//                 "sodUtc8": "0.07345"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseTicker(first, market)
+	return nil
 }
 
 /**
@@ -2387,73 +3292,73 @@ func (this *OkxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes231112 := (<-this.LoadMarkets())
-			PanicOnError(retRes231112)
-		}
-		symbols = this.MarketSymbols(symbols)
-		var market any = this.GetMarketFromSymbols(symbols)
-		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
-		marketType = GetValue(marketTypeparamsVariable, 0)
-		params = GetValue(marketTypeparamsVariable, 1)
-		var request any = map[string]any{
-			"instType": this.ConvertToInstrumentType(marketType),
-		}
-		if IsTrue(IsEqual(marketType, "option")) {
-			var defaultUnderlying any = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
-			var currencyId any = this.SafeString2(params, "uly", "marketId", defaultUnderlying)
-			if IsTrue(IsEqual(currencyId, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")))
-			} else {
-				AddElementToObject(request, "uly", currencyId)
-			}
-		}
-
-		response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "instType": "SPOT",
-		//                 "instId": "BCD-BTC",
-		//                 "last": "0.0000769",
-		//                 "lastSz": "5.4788",
-		//                 "askPx": "0.0000777",
-		//                 "askSz": "3.2197",
-		//                 "bidPx": "0.0000757",
-		//                 "bidSz": "4.7509",
-		//                 "open24h": "0.0000885",
-		//                 "high24h": "0.0000917",
-		//                 "low24h": "0.0000596",
-		//                 "volCcy24h": "9.2877",
-		//                 "vol24h": "124824.1985",
-		//                 "ts": "1621441741434",
-		//                 "sodUtc0": "0.0000905",
-		//                 "sodUtc8": "0.0000729"
-		//             },
-		//         ]
-		//     }
-		//
-		var tickers any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTickers(tickers, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes232612 := (<-this.LoadMarkets())
+		PanicOnError(retRes232612)
+	}
+	symbols = this.MarketSymbols(symbols)
+	var market any = this.GetMarketFromSymbols(symbols)
+	var marketType any = nil
+	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params)
+	marketType = GetValue(marketTypeparamsVariable, 0)
+	params = GetValue(marketTypeparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"instType": this.ConvertToInstrumentType(marketType),
+	}
+	if IsTrue(IsEqual(marketType, "option")) {
+		var defaultUnderlying any = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
+		var currencyId any = this.SafeString2(params, "uly", "marketId", defaultUnderlying)
+		if IsTrue(IsEqual(currencyId, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchTickers() requires an underlying uly or marketId parameter for options markets")))
+		} else {
+			AddElementToObject(request, "uly", currencyId)
+		}
+	}
+
+	response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "instType": "SPOT",
+	//                 "instId": "BCD-BTC",
+	//                 "last": "0.0000769",
+	//                 "lastSz": "5.4788",
+	//                 "askPx": "0.0000777",
+	//                 "askSz": "3.2197",
+	//                 "bidPx": "0.0000757",
+	//                 "bidSz": "4.7509",
+	//                 "open24h": "0.0000885",
+	//                 "high24h": "0.0000917",
+	//                 "low24h": "0.0000596",
+	//                 "volCcy24h": "9.2877",
+	//                 "vol24h": "124824.1985",
+	//                 "ts": "1621441741434",
+	//                 "sodUtc0": "0.0000905",
+	//                 "sodUtc8": "0.0000729"
+	//             },
+	//         ]
+	//     }
+	//
+	var tickers any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTickers(tickers, symbols)
+	return nil
 }
 
 /**
@@ -2466,45 +3371,45 @@ func (this *OkxCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes237112 := (<-this.LoadMarkets())
-			PanicOnError(retRes237112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetPublicMarkPrice(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "code": "0",
-		//     "data": [
-		//         {
-		//             "instId": "ETH-USDT",
-		//             "instType": "MARGIN",
-		//             "markPx": "2403.98",
-		//             "ts": "1728578500703"
-		//         }
-		//     ],
-		//     "msg": ""
-		// }
-		//
-		var data any = this.SafeList(response, "data")
-
-		ch <- this.ParseTicker(this.SafeDict(data, 0), market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarkPriceBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes238612 := (<-this.LoadMarkets())
+		PanicOnError(retRes238612)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetPublicMarkPrice(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "code": "0",
+	//     "data": [
+	//         {
+	//             "instId": "ETH-USDT",
+	//             "instType": "MARGIN",
+	//             "markPx": "2403.98",
+	//             "ts": "1728578500703"
+	//         }
+	//     ],
+	//     "msg": ""
+	// }
+	//
+	var data any = this.SafeList(response, "data")
+
+	ch <- this.ParseTicker(this.SafeDict(data, 0), market)
+	return nil
 }
 
 /**
@@ -2517,47 +3422,47 @@ func (this *OkxCore) FetchMarkPrice(symbol any, optionalArgs ...any) <-chan any 
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *OkxCore) FetchMarkPrices(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes240712 := (<-this.LoadMarkets())
-			PanicOnError(retRes240712)
-		}
-		symbols = this.MarketSymbols(symbols)
-		var market any = this.GetMarketFromSymbols(symbols)
-		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchTickers", market, params, "swap")
-		marketType = GetValue(marketTypeparamsVariable, 0)
-		params = GetValue(marketTypeparamsVariable, 1)
-		var request any = map[string]any{
-			"instType": this.ConvertToInstrumentType(marketType),
-		}
-		if IsTrue(IsEqual(marketType, "option")) {
-			var defaultUnderlying any = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
-			var currencyId any = this.SafeString2(params, "uly", "marketId", defaultUnderlying)
-			if IsTrue(IsEqual(currencyId, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")))
-			} else {
-				AddElementToObject(request, "uly", currencyId)
-			}
-		}
-
-		response := (<-this.PublicGetPublicMarkPrice(this.Extend(request, params)))
-		PanicOnError(response)
-		var tickers any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTickers(tickers, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarkPricesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchMarkPricesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes242212 := (<-this.LoadMarkets())
+		PanicOnError(retRes242212)
+	}
+	symbols = this.MarketSymbols(symbols)
+	var market any = this.GetMarketFromSymbols(symbols)
+	var marketType any = nil
+	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchMarkPrices", market, params, "swap")
+	marketType = GetValue(marketTypeparamsVariable, 0)
+	params = GetValue(marketTypeparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"instType": this.ConvertToInstrumentType(marketType),
+	}
+	if IsTrue(IsEqual(marketType, "option")) {
+		var defaultUnderlying any = this.SafeString(this.Options, "defaultUnderlying", "BTC-USD")
+		var currencyId any = this.SafeString2(params, "uly", "marketId", defaultUnderlying)
+		if IsTrue(IsEqual(currencyId, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchMarkPrices() requires an underlying uly or marketId parameter for options markets")))
+		} else {
+			AddElementToObject(request, "uly", currencyId)
+		}
+	}
+
+	response := (<-this.PublicGetPublicMarkPrice(this.Extend(request, params)))
+	PanicOnError(response)
+	var tickers any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTickers(tickers, symbols)
+	return nil
 }
 func (this *OkxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -2670,100 +3575,100 @@ func (this *OkxCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *OkxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes254012 := (<-this.LoadMarkets())
-			PanicOnError(retRes254012)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes254519 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
-			PanicOnError(retRes254519)
-			ch <- retRes254519
-			return nil
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		var response any = nil
-		if IsTrue(GetValue(market, "option")) {
-
-			response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "limit", limit) // default 100
-			}
-			var method any = nil
-			methodparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "method", "publicGetMarketTrades")
-			method = GetValue(methodparamsVariable, 0)
-			params = GetValue(methodparamsVariable, 1)
-			if IsTrue(IsEqual(method, "publicGetMarketTrades")) {
-
-				response = (<-this.PublicGetMarketTrades(this.Extend(request, params)))
-				PanicOnError(response)
-			} else if IsTrue(IsEqual(method, "publicGetMarketHistoryTrades")) {
-
-				response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {"instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"},
-		//             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
-		//             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
-		//         ]
-		//     }
-		//
-		// option
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "fillVol": "0.46387625976562497",
-		//                 "fwdPx": "26299.754935451125",
-		//                 "indexPx": "26309.7",
-		//                 "instFamily": "BTC-USD",
-		//                 "instId": "BTC-USD-230526-26000-C",
-		//                 "markPx": "0.042386283557554236",
-		//                 "optType": "C",
-		//                 "px": "0.0415",
-		//                 "side": "sell",
-		//                 "sz": "90",
-		//                 "tradeId": "112",
-		//                 "ts": "1683907480154"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTrades(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes255512 := (<-this.LoadMarkets())
+		PanicOnError(retRes255512)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes256019 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+		PanicOnError(retRes256019)
+		ch <- retRes256019
+		return nil
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	var response any = nil
+	if IsTrue(GetValue(market, "option")) {
+
+		response = (<-this.PublicGetPublicOptionTrades(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit) // default 100
+		}
+		var method any = nil
+		methodparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "method", "publicGetMarketTrades")
+		method = GetValue(methodparamsVariable, 0)
+		params = GetValue(methodparamsVariable, 1)
+		if IsTrue(IsEqual(method, "publicGetMarketTrades")) {
+
+			response = (<-this.PublicGetMarketTrades(this.Extend(request, params)))
+			PanicOnError(response)
+		} else if IsTrue(IsEqual(method, "publicGetMarketHistoryTrades")) {
+
+			response = (<-this.PublicGetMarketHistoryTrades(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {"instId":"ETH-BTC","side":"sell","sz":"0.119501","px":"0.07065","tradeId":"15826757","ts":"1621446178316"},
+	//             {"instId":"ETH-BTC","side":"sell","sz":"0.03","px":"0.07068","tradeId":"15826756","ts":"1621446178066"},
+	//             {"instId":"ETH-BTC","side":"buy","sz":"0.507","px":"0.07069","tradeId":"15826755","ts":"1621446175085"},
+	//         ]
+	//     }
+	//
+	// option
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "fillVol": "0.46387625976562497",
+	//                 "fwdPx": "26299.754935451125",
+	//                 "indexPx": "26309.7",
+	//                 "instFamily": "BTC-USD",
+	//                 "instId": "BTC-USD-230526-26000-C",
+	//                 "markPx": "0.042386283557554236",
+	//                 "optType": "C",
+	//                 "px": "0.0415",
+	//                 "side": "sell",
+	//                 "sz": "90",
+	//                 "tradeId": "112",
+	//                 "ts": "1683907480154"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTrades(data, market, since, limit)
+	return nil
 }
 func (this *OkxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -2810,136 +3715,136 @@ func (this *OkxCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *OkxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *OkxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes265512 := (<-this.LoadMarkets())
-			PanicOnError(retRes265512)
-		}
-		var market any = this.Market(symbol)
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
+		retRes267012 := (<-this.LoadMarkets())
+		PanicOnError(retRes267012)
+	}
+	var market any = this.Market(symbol)
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
 
-			retRes266119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
-			PanicOnError(retRes266119)
-			ch <- retRes266119
-			return nil
-		}
-		var priceType any = this.SafeString(params, "price")
-		var isMarkOrIndex any = this.InArray(priceType, []any{"mark", "index"})
-		params = this.Omit(params, "price")
-		var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
-		var timezone any = this.SafeString(options, "timezone", "UTC")
-		var limitIsUndefined any = (IsEqual(limit, nil))
-		if IsTrue(IsEqual(limit, nil)) {
-			limit = 100 // default 100, max 300
-		} else {
-			var maxLimit any = Ternary(IsTrue(isMarkOrIndex), 100, 300) // default 300, only 100 if 'mark' or 'index'
+		retRes267619 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 200))
+		PanicOnError(retRes267619)
+		ch <- retRes267619
+		return nil
+	}
+	var priceType any = this.SafeString(params, "price")
+	var isMarkOrIndex bool = this.InArray(priceType, []any{"mark", "index"})
+	params = this.Omit(params, "price")
+	var options any = this.SafeDict(this.Options, "fetchOHLCV", map[string]any{})
+	var timezone any = this.SafeString(options, "timezone", "UTC")
+	var limitIsUndefined bool = (IsEqual(limit, nil))
+	if IsTrue(IsEqual(limit, nil)) {
+		limit = 100 // default 100, max 300
+	} else {
+		var maxLimit any = Ternary(IsTrue(isMarkOrIndex), 100, 300) // default 300, only 100 if 'mark' or 'index'
+		limit = mathMin(limit, maxLimit)
+	}
+	var duration any = this.ParseTimeframe(timeframe)
+	var bar any = this.SafeString(this.Timeframes, timeframe, timeframe)
+	if IsTrue(IsTrue((IsEqual(timezone, "UTC"))) && IsTrue((IsGreaterThanOrEqual(duration, 21600)))) {
+		bar = Add(bar, ToLower(timezone))
+	}
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+		"bar":    bar,
+		"limit":  limit,
+	}
+	var defaultType any = "Candles"
+	if IsTrue(!IsEqual(since, nil)) {
+		var now int64 = this.Milliseconds()
+		var durationInMilliseconds any = Multiply(duration, 1000)
+		// switch to history candles if since is past the cutoff for current candles
+		var historyBorder any = Subtract(now, (Multiply((Subtract(1440, 1)), durationInMilliseconds)))
+		if IsTrue(IsLessThan(since, historyBorder)) {
+			defaultType = "HistoryCandles"
+			var maxLimit any = Ternary(IsTrue(isMarkOrIndex), 100, 300)
 			limit = mathMin(limit, maxLimit)
 		}
-		var duration any = this.ParseTimeframe(timeframe)
-		var bar any = this.SafeString(this.Timeframes, timeframe, timeframe)
-		if IsTrue(IsTrue((IsEqual(timezone, "UTC"))) && IsTrue((IsGreaterThanOrEqual(duration, 21600)))) {
-			bar = Add(bar, ToLower(timezone))
-		}
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-			"bar":    bar,
-			"limit":  limit,
-		}
-		var defaultType any = "Candles"
-		if IsTrue(!IsEqual(since, nil)) {
-			var now any = this.Milliseconds()
-			var durationInMilliseconds any = Multiply(duration, 1000)
-			// switch to history candles if since is past the cutoff for current candles
-			var historyBorder any = Subtract(now, (Multiply((Subtract(1440, 1)), durationInMilliseconds)))
-			if IsTrue(IsLessThan(since, historyBorder)) {
-				defaultType = "HistoryCandles"
-				var maxLimit any = Ternary(IsTrue(isMarkOrIndex), 100, 300)
-				limit = mathMin(limit, maxLimit)
-			}
-			var startTime any = mathMax(Subtract(since, 1), 0)
-			AddElementToObject(request, "before", startTime)
-			AddElementToObject(request, "after", this.Sum(since, Multiply(durationInMilliseconds, limit)))
-		}
-		var until any = this.SafeInteger(params, "until")
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "after", until)
-			params = this.Omit(params, "until")
-		}
-		defaultType = this.SafeString(options, "type", defaultType) // Candles or HistoryCandles
-		var typeVar any = this.SafeString(params, "type", defaultType)
-		params = this.Omit(params, "type")
-		var isHistoryCandles any = (IsEqual(typeVar, "HistoryCandles"))
-		var response any = nil
-		if IsTrue(IsEqual(priceType, "mark")) {
-			if IsTrue(isHistoryCandles) {
+		var startTime any = mathMax(Subtract(since, 1), 0)
+		AddElementToObject(request, "before", startTime)
+		AddElementToObject(request, "after", this.Sum(since, Multiply(durationInMilliseconds, limit)))
+	}
+	var until any = this.SafeInteger(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "after", until)
+		params = this.Omit(params, "until")
+	}
+	defaultType = this.SafeString(options, "type", defaultType) // Candles or HistoryCandles
+	var typeVar any = this.SafeString(params, "type", defaultType)
+	params = this.Omit(params, "type")
+	var isHistoryCandles bool = (IsEqual(typeVar, "HistoryCandles"))
+	var response any = nil
+	if IsTrue(IsEqual(priceType, "mark")) {
+		if IsTrue(isHistoryCandles) {
 
-				response = (<-this.PublicGetMarketHistoryMarkPriceCandles(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PublicGetMarketMarkPriceCandles(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		} else if IsTrue(IsEqual(priceType, "index")) {
-			AddElementToObject(request, "instId", GetValue(GetValue(market, "info"), "instFamily")) // okx index candles require instFamily instead of instId
-			if IsTrue(isHistoryCandles) {
-
-				response = (<-this.PublicGetMarketHistoryIndexCandles(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PublicGetMarketIndexCandles(this.Extend(request, params)))
-				PanicOnError(response)
-			}
+			response = (<-this.PublicGetMarketHistoryMarkPriceCandles(this.Extend(request, params)))
+			PanicOnError(response)
 		} else {
-			if IsTrue(isHistoryCandles) {
-				if IsTrue(IsTrue(limitIsUndefined) && IsTrue((IsEqual(limit, 100)))) {
-					limit = 300
-					AddElementToObject(request, "limit", 300) // reassign to 300, but this whole logic needs to be simplified...
-				}
 
-				response = (<-this.PublicGetMarketHistoryCandles(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.PublicGetMarketCandles(this.Extend(request, params)))
-				PanicOnError(response)
-			}
+			response = (<-this.PublicGetMarketMarkPriceCandles(this.Extend(request, params)))
+			PanicOnError(response)
 		}
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             ["1678928760000","24341.4","24344","24313.2","24323","628","2.5819","62800","0"],
-		//             ["1678928700000","24324.1","24347.6","24321.7","24341.4","2565","10.5401","256500","1"],
-		//             ["1678928640000","24300.2","24324.1","24288","24324.1","3304","13.5937","330400","1"],
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
+	} else if IsTrue(IsEqual(priceType, "index")) {
+		AddElementToObject(request, "instId", GetValue(GetValue(market, "info"), "instFamily")) // okx index candles require instFamily instead of instId
+		if IsTrue(isHistoryCandles) {
 
-		ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
-		return nil
+			response = (<-this.PublicGetMarketHistoryIndexCandles(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
 
-	}()
-	return ch
+			response = (<-this.PublicGetMarketIndexCandles(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	} else {
+		if IsTrue(isHistoryCandles) {
+			if IsTrue(IsTrue(limitIsUndefined) && IsTrue((IsEqual(limit, 100)))) {
+				limit = 300
+				AddElementToObject(request, "limit", 300) // reassign to 300, but this whole logic needs to be simplified...
+			}
+
+			response = (<-this.PublicGetMarketHistoryCandles(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+
+			response = (<-this.PublicGetMarketCandles(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             ["1678928760000","24341.4","24344","24313.2","24323","628","2.5819","62800","0"],
+	//             ["1678928700000","24324.1","24347.6","24321.7","24341.4","2565","10.5401","256500","1"],
+	//             ["1678928640000","24300.2","24324.1","24288","24324.1","3304","13.5937","330400","1"],
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOHLCVs(data, market, timeframe, since, limit)
+	return nil
 }
 
 /**
@@ -2955,92 +3860,92 @@ func (this *OkxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *OkxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes276612 := (<-this.LoadMarkets())
-			PanicOnError(retRes276612)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes277119 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-			PanicOnError(retRes277119)
-			ch <- retRes277119
-			return nil
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetPublicFundingRateHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code":"0",
-		//         "msg":"",
-		//         "data":[
-		//             {
-		//                 "instType":"SWAP",
-		//                 "instId":"BTC-USDT-SWAP",
-		//                 "fundingRate":"0.018",
-		//                 "realizedRate":"0.017",
-		//                 "fundingTime":"1597026383085"
-		//             },
-		//             {
-		//                 "instType":"SWAP",
-		//                 "instId":"BTC-USDT-SWAP",
-		//                 "fundingRate":"0.018",
-		//                 "realizedRate":"0.017",
-		//                 "fundingTime":"1597026383085"
-		//             }
-		//         ]
-		//     }
-		//
-		var rates any = []any{}
-		var data any = this.SafeList(response, "data", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var rate any = GetValue(data, i)
-			var timestamp any = this.SafeInteger(rate, "fundingTime")
-			AppendToArray(&rates, map[string]any{
-				"info":        rate,
-				"symbol":      this.SafeSymbol(this.SafeString(rate, "instId")),
-				"fundingRate": this.SafeNumber(rate, "realizedRate"),
-				"timestamp":   timestamp,
-				"datetime":    this.Iso8601(timestamp),
-			})
-		}
-		var sorted any = this.SortBy(rates, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes278112 := (<-this.LoadMarkets())
+		PanicOnError(retRes278112)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes278619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+		PanicOnError(retRes278619)
+		ch <- retRes278619
+		return nil
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetPublicFundingRateHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code":"0",
+	//         "msg":"",
+	//         "data":[
+	//             {
+	//                 "instType":"SWAP",
+	//                 "instId":"BTC-USDT-SWAP",
+	//                 "fundingRate":"0.018",
+	//                 "realizedRate":"0.017",
+	//                 "fundingTime":"1597026383085"
+	//             },
+	//             {
+	//                 "instType":"SWAP",
+	//                 "instId":"BTC-USDT-SWAP",
+	//                 "fundingRate":"0.018",
+	//                 "realizedRate":"0.017",
+	//                 "fundingTime":"1597026383085"
+	//             }
+	//         ]
+	//     }
+	//
+	var rates any = []any{}
+	var data any = this.SafeList(response, "data", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var rate any = GetValue(data, i)
+		var timestamp any = this.SafeInteger(rate, "fundingTime")
+		AppendToArray(&rates, map[string]any{
+			"info":        rate,
+			"symbol":      this.SafeSymbol(this.SafeString(rate, "instId")),
+			"fundingRate": this.SafeNumber(rate, "realizedRate"),
+			"timestamp":   timestamp,
+			"datetime":    this.Iso8601(timestamp),
+		})
+	}
+	var sorted any = this.SortBy(rates, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	return nil
 }
 func (this *OkxCore) ParseBalanceByType(typeVar any, response any) any {
 	if IsTrue(IsEqual(typeVar, "funding")) {
@@ -3050,7 +3955,7 @@ func (this *OkxCore) ParseBalanceByType(typeVar any, response any) any {
 	}
 }
 func (this *OkxCore) ParseTradingBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var data any = this.SafeList(response, "data", []any{})
@@ -3072,14 +3977,16 @@ func (this *OkxCore) ParseTradingBalance(response any) any {
 		} else {
 			AddElementToObject(account, "free", availEq)
 		}
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	AddElementToObject(result, "timestamp", timestamp)
 	AddElementToObject(result, "datetime", this.Iso8601(timestamp))
 	return this.SafeBalance(result)
 }
 func (this *OkxCore) ParseFundingBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var data any = this.SafeList(response, "data", []any{})
@@ -3092,7 +3999,9 @@ func (this *OkxCore) ParseFundingBalance(response any) any {
 		AddElementToObject(account, "total", this.SafeString(balance, "bal"))
 		AddElementToObject(account, "free", this.SafeString(balance, "availBal"))
 		AddElementToObject(account, "used", this.SafeString(balance, "frozenBal"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -3132,57 +4041,57 @@ func (this *OkxCore) ParseTradingFee(fee any, optionalArgs ...any) any {
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *OkxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes291212 := (<-this.LoadMarkets())
-			PanicOnError(retRes291212)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instType": this.ConvertToInstrumentType(GetValue(market, "type")),
-		}
-		if IsTrue(GetValue(market, "spot")) {
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		} else if IsTrue(IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) || IsTrue(GetValue(market, "option"))) {
-			AddElementToObject(request, "uly", Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId")))
-		} else {
-			panic(NotSupported(Add(this.Id, " fetchTradingFee() supports spot, swap, future or option markets only")))
-		}
-
-		response := (<-this.PrivateGetAccountTradeFee(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "category": "1",
-		//                 "delivery": "",
-		//                 "exercise": "",
-		//                 "instType": "SPOT",
-		//                 "level": "Lv1",
-		//                 "maker": "-0.0008",
-		//                 "taker": "-0.001",
-		//                 "ts": "1639043138472"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var first any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseTradingFee(first, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeeBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes293112 := (<-this.LoadMarkets())
+		PanicOnError(retRes293112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instType": this.ConvertToInstrumentType(GetValue(market, "type")),
+	}
+	if IsTrue(GetValue(market, "spot")) {
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	} else if IsTrue(IsTrue(IsTrue(GetValue(market, "swap")) || IsTrue(GetValue(market, "future"))) || IsTrue(GetValue(market, "option"))) {
+		AddElementToObject(request, "uly", Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId")))
+	} else {
+		panic(NotSupported(Add(this.Id, " fetchTradingFee() supports spot, swap, future or option markets only")))
+	}
+
+	response := (<-this.PrivateGetAccountTradeFee(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "category": "1",
+	//                 "delivery": "",
+	//                 "exercise": "",
+	//                 "instType": "SPOT",
+	//                 "level": "Lv1",
+	//                 "maker": "-0.0008",
+	//                 "taker": "-0.001",
+	//                 "ts": "1639043138472"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseTradingFee(first, market)
+	return nil
 }
 
 /**
@@ -3196,139 +4105,139 @@ func (this *OkxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *OkxCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes296412 := (<-this.LoadMarkets())
-			PanicOnError(retRes296412)
-		}
-		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-		marketType := GetValue(marketTypequeryVariable, 0)
-		query := GetValue(marketTypequeryVariable, 1)
-		var request any = map[string]any{}
-		var response any = nil
-		if IsTrue(IsEqual(marketType, "funding")) {
-
-			response = (<-this.PrivateGetAssetBalances(this.Extend(request, query)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetAccountBalance(this.Extend(request, query)))
-			PanicOnError(response)
-		}
-
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "adjEq": "",
-		//                 "details": [
-		//                     {
-		//                         "availBal": "",
-		//                         "availEq": "28.21006347",
-		//                         "cashBal": "28.21006347",
-		//                         "ccy": "USDT",
-		//                         "crossLiab": "",
-		//                         "disEq": "28.2687404020176",
-		//                         "eq":"28 .21006347",
-		//                         "eqUsd": "28.2687404020176",
-		//                         "frozenBal": "0",
-		//                         "interest": "",
-		//                         "isoEq": "0",
-		//                         "isoLiab": "",
-		//                         "liab": "",
-		//                         "maxLoan": "",
-		//                         "mgnRatio": "",
-		//                         "notionalLever": "0",
-		//                         "ordFrozen": "0",
-		//                         "twap": "0",
-		//                         "uTime": "1621556539861",
-		//                         "upl": "0",
-		//                         "uplLiab": ""
-		//                     }
-		//                 ],
-		//                 "imr": "",
-		//                 "isoEq": "0",
-		//                 "mgnRatio": "",
-		//                 "mmr": "",
-		//                 "notionalUsd": "",
-		//                 "ordFroz": "",
-		//                 "totalEq": "28.2687404020176",
-		//                 "uTime": "1621556553510"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "adjEq": "",
-		//                 "details": [
-		//                     {
-		//                         "availBal": "0.049",
-		//                         "availEq": "",
-		//                         "cashBal": "0.049",
-		//                         "ccy": "BTC",
-		//                         "crossLiab": "",
-		//                         "disEq": "1918.55678",
-		//                         "eq": "0.049",
-		//                         "eqUsd": "1918.55678",
-		//                         "frozenBal": "0",
-		//                         "interest": "",
-		//                         "isoEq": "",
-		//                         "isoLiab": "",
-		//                         "liab": "",
-		//                         "maxLoan": "",
-		//                         "mgnRatio": "",
-		//                         "notionalLever": "",
-		//                         "ordFrozen": "0",
-		//                         "twap": "0",
-		//                         "uTime": "1621973128591",
-		//                         "upl": "",
-		//                         "uplLiab": ""
-		//                     }
-		//                 ],
-		//                 "imr": "",
-		//                 "isoEq": "",
-		//                 "mgnRatio": "",
-		//                 "mmr": "",
-		//                 "notionalUsd": "",
-		//                 "ordFroz": "",
-		//                 "totalEq": "1918.55678",
-		//                 "uTime": "1622045126908"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		// funding
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "availBal": "0.00005426",
-		//                 "bal": 0.0000542600000000,
-		//                 "ccy": "BTC",
-		//                 "frozenBal": "0"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		ch <- this.ParseBalanceByType(marketType, response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes298312 := (<-this.LoadMarkets())
+		PanicOnError(retRes298312)
+	}
+	marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
+	marketType := GetValue(marketTypequeryVariable, 0)
+	query := GetValue(marketTypequeryVariable, 1)
+	var request map[string]any = map[string]any{}
+	var response any = nil
+	if IsTrue(IsEqual(marketType, "funding")) {
+
+		response = (<-this.PrivateGetAssetBalances(this.Extend(request, query)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetAccountBalance(this.Extend(request, query)))
+		PanicOnError(response)
+	}
+
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "adjEq": "",
+	//                 "details": [
+	//                     {
+	//                         "availBal": "",
+	//                         "availEq": "28.21006347",
+	//                         "cashBal": "28.21006347",
+	//                         "ccy": "USDT",
+	//                         "crossLiab": "",
+	//                         "disEq": "28.2687404020176",
+	//                         "eq":"28 .21006347",
+	//                         "eqUsd": "28.2687404020176",
+	//                         "frozenBal": "0",
+	//                         "interest": "",
+	//                         "isoEq": "0",
+	//                         "isoLiab": "",
+	//                         "liab": "",
+	//                         "maxLoan": "",
+	//                         "mgnRatio": "",
+	//                         "notionalLever": "0",
+	//                         "ordFrozen": "0",
+	//                         "twap": "0",
+	//                         "uTime": "1621556539861",
+	//                         "upl": "0",
+	//                         "uplLiab": ""
+	//                     }
+	//                 ],
+	//                 "imr": "",
+	//                 "isoEq": "0",
+	//                 "mgnRatio": "",
+	//                 "mmr": "",
+	//                 "notionalUsd": "",
+	//                 "ordFroz": "",
+	//                 "totalEq": "28.2687404020176",
+	//                 "uTime": "1621556553510"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "adjEq": "",
+	//                 "details": [
+	//                     {
+	//                         "availBal": "0.049",
+	//                         "availEq": "",
+	//                         "cashBal": "0.049",
+	//                         "ccy": "BTC",
+	//                         "crossLiab": "",
+	//                         "disEq": "1918.55678",
+	//                         "eq": "0.049",
+	//                         "eqUsd": "1918.55678",
+	//                         "frozenBal": "0",
+	//                         "interest": "",
+	//                         "isoEq": "",
+	//                         "isoLiab": "",
+	//                         "liab": "",
+	//                         "maxLoan": "",
+	//                         "mgnRatio": "",
+	//                         "notionalLever": "",
+	//                         "ordFrozen": "0",
+	//                         "twap": "0",
+	//                         "uTime": "1621973128591",
+	//                         "upl": "",
+	//                         "uplLiab": ""
+	//                     }
+	//                 ],
+	//                 "imr": "",
+	//                 "isoEq": "",
+	//                 "mgnRatio": "",
+	//                 "mmr": "",
+	//                 "notionalUsd": "",
+	//                 "ordFroz": "",
+	//                 "totalEq": "1918.55678",
+	//                 "uTime": "1622045126908"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	// funding
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "availBal": "0.00005426",
+	//                 "bal": 0.0000542600000000,
+	//                 "ccy": "BTC",
+	//                 "frozenBal": "0"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	ch <- this.ParseBalanceByType(marketType, response)
+	return nil
 }
 
 /**
@@ -3342,33 +4251,33 @@ func (this *OkxCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes309312 := (<-this.LoadMarkets())
-			PanicOnError(retRes309312)
-		}
-		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "spot")) {
-			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot markets only")))
-		}
-		var req any = map[string]any{
-			"createMarketBuyOrderRequiresPrice": false,
-			"tgtCcy":                            "quote_ccy",
-		}
-
-		retRes310315 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes310315)
-		ch <- retRes310315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) createMarketBuyOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes311212 := (<-this.LoadMarkets())
+		PanicOnError(retRes311212)
+	}
+	var market any = this.Market(symbol)
+	if !IsTrue(GetValue(market, "spot")) {
+		panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot markets only")))
+	}
+	var req map[string]any = map[string]any{
+		"createMarketBuyOrderRequiresPrice": false,
+		"tgtCcy":                            "quote_ccy",
+	}
+
+	retRes312215 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes312215)
+	ch <- retRes312215
+	return nil
 }
 
 /**
@@ -3382,51 +4291,57 @@ func (this *OkxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateMarketSellOrderWithCost(symbol any, cost any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes311812 := (<-this.LoadMarkets())
-			PanicOnError(retRes311812)
-		}
-		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "spot")) {
-			panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot markets only")))
-		}
-		var req any = map[string]any{
-			"createMarketBuyOrderRequiresPrice": false,
-			"tgtCcy":                            "quote_ccy",
-		}
-
-		retRes312815 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
-		PanicOnError(retRes312815)
-		ch <- retRes312815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) createMarketSellOrderWithCostBody(ch chan any, symbol any, cost any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes313712 := (<-this.LoadMarkets())
+		PanicOnError(retRes313712)
+	}
+	var market any = this.Market(symbol)
+	if !IsTrue(GetValue(market, "spot")) {
+		panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() supports spot markets only")))
+	}
+	var req map[string]any = map[string]any{
+		"createMarketBuyOrderRequiresPrice": false,
+		"tgtCcy":                            "quote_ccy",
+	}
+
+	retRes314715 := (<-this.CreateOrder(symbol, "market", "sell", cost, nil, this.Extend(req, params)))
+	PanicOnError(retRes314715)
+	ch <- retRes314715
+	return nil
 }
 func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
 	price := GetArg(optionalArgs, 0, nil)
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	var market any = this.Market(symbol)
 	var takeProfitPrice any = this.SafeValue2(params, "takeProfitPrice", "tpTriggerPx")
 	var stopLossPrice any = this.SafeValue2(params, "stopLossPrice", "slTriggerPx")
-	var conditional any = IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))) || IsTrue((IsEqual(typeVar, "conditional")))
+	var conditional bool = IsTrue(IsTrue((!IsEqual(stopLossPrice, nil))) || IsTrue((!IsEqual(takeProfitPrice, nil)))) || IsTrue((IsEqual(typeVar, "conditional")))
 	var request any = map[string]any{
 		"instId":  GetValue(market, "id"),
 		"side":    side,
 		"ordType": typeVar,
 	}
-	var isConditionalOrOCO any = IsTrue(conditional) || IsTrue((IsEqual(typeVar, "oco")))
+	var isConditionalOrOCO bool = IsTrue(conditional) || IsTrue((IsEqual(typeVar, "oco")))
 	var closeFraction any = this.SafeString(params, "closeFraction")
-	var shouldOmitSize any = IsTrue(isConditionalOrOCO) && IsTrue(!IsEqual(closeFraction, nil))
+	var shouldOmitSize bool = IsTrue(isConditionalOrOCO) && IsTrue(!IsEqual(closeFraction, nil))
 	if !IsTrue(shouldOmitSize) {
 		AddElementToObject(request, "sz", this.AmountToPrecision(symbol, amount))
 	}
@@ -3449,10 +4364,10 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var isTrailingPercentOrder any = !IsEqual(trailingPercent, nil)
 	var trailingPrice any = this.SafeString2(params, "trailingPrice", "callbackSpread")
 	var isTrailingPriceOrder any = !IsEqual(trailingPrice, nil)
-	var trigger any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((IsEqual(typeVar, "trigger")))
-	var isReduceOnly any = IsTrue(this.SafeValue(params, "reduceOnly", false)) || IsTrue((!IsEqual(closeFraction, nil)))
+	var trigger bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((IsEqual(typeVar, "trigger")))
+	var isReduceOnly bool = IsTrue(this.SafeValue(params, "reduceOnly", false)) || IsTrue((!IsEqual(closeFraction, nil)))
 	var defaultMarginMode any = this.SafeString2(this.Options, "defaultMarginMode", "marginMode", "cross")
-	var marginMode any = this.SafeString2(params, "marginMode", "tdMode") // cross or isolated, tdMode not ommited so as to be extended into the request
+	var marginMode any = this.SafeString2(params, "marginMode", "tdMode") // cross or isolated, tdMode not omitted so as to be extended into the request
 	var margin any = false
 	if IsTrue(IsTrue((!IsEqual(marginMode, nil))) && IsTrue((!IsEqual(marginMode, "cash")))) {
 		margin = true
@@ -3482,8 +4397,8 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 				hedged = GetValue(hedgedparamsVariable, 0)
 				params = GetValue(hedgedparamsVariable, 1)
 				if IsTrue(hedged) {
-					var isBuy any = (IsEqual(side, "buy"))
-					var isProtective any = IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) || IsTrue((!IsEqual(stopLossPrice, nil)))) || IsTrue(isReduceOnly)
+					var isBuy bool = (IsEqual(side, "buy"))
+					var isProtective bool = IsTrue(IsTrue((!IsEqual(takeProfitPrice, nil))) || IsTrue((!IsEqual(stopLossPrice, nil)))) || IsTrue(isReduceOnly)
 					if IsTrue(isProtective) {
 						// in case of protective orders, the posSide should be opposite of position side
 						// reduceOnly is emulated and not natively supported by the exchange
@@ -3499,16 +4414,16 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		}
 		AddElementToObject(request, "tdMode", marginMode)
 	}
-	var isMarketOrder any = IsEqual(typeVar, "market")
+	var isMarketOrder bool = IsEqual(typeVar, "market")
 	var postOnly any = false
 	postOnlyparamsVariable := this.HandlePostOnly(isMarketOrder, IsEqual(typeVar, "post_only"), params)
 	postOnly = GetValue(postOnlyparamsVariable, 0)
 	params = GetValue(postOnlyparamsVariable, 1)
 	params = this.Omit(params, []any{"currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent"})
-	var ioc any = IsTrue((IsEqual(timeInForce, "IOC"))) || IsTrue((IsEqual(typeVar, "ioc")))
-	var fok any = IsTrue((IsEqual(timeInForce, "FOK"))) || IsTrue((IsEqual(typeVar, "fok")))
+	var ioc bool = IsTrue((IsEqual(timeInForce, "IOC"))) || IsTrue((IsEqual(typeVar, "ioc")))
+	var fok bool = IsTrue((IsEqual(timeInForce, "FOK"))) || IsTrue((IsEqual(typeVar, "fok")))
 	// const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
-	var marketIOC any = IsTrue((IsTrue(isMarketOrder) && IsTrue(ioc))) || IsTrue((IsEqual(typeVar, "optimal_limit_ioc")))
+	var marketIOC bool = IsTrue((IsTrue(isMarketOrder) && IsTrue(ioc))) || IsTrue((IsEqual(typeVar, "optimal_limit_ioc")))
 	var defaultTgtCcy any = this.SafeString(this.Options, "tgtCcy", "base_ccy")
 	var tgtCcy any = this.SafeString(params, "tgtCcy", defaultTgtCcy)
 	if IsTrue(IsTrue((!IsTrue(contract))) && IsTrue((!IsTrue(margin)))) {
@@ -3536,7 +4451,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 							notional = this.ParseNumber(quoteAmount)
 						}
 					} else if IsTrue(IsEqual(notional, nil)) {
-						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\\'createMarketBuyOrderRequiresPrice\\'] = false and supply the total cost value in the \\'amount\\' argument or in the \\'cost\\' unified extra parameter or in exchange-specific \\'sz\\' extra parameter (the exchange-specific behaviour)")))
+						panic(InvalidOrder(Add(this.Id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)")))
 					}
 				} else {
 					notional = Ternary(IsTrue((IsEqual(notional, nil))), amount, notional)
@@ -3567,20 +4482,20 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		AddElementToObject(request, "callbackSpread", trailingPrice)
 		AddElementToObject(request, "ordType", "move_order_stop")
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
-		var attachAlgoOrd any = map[string]any{}
+		var attachAlgoOrd map[string]any = map[string]any{}
 		if IsTrue(hasStopLoss) {
 			var stopLossTriggerPrice any = this.SafeValueN(stopLoss, []any{"triggerPrice", "stopPrice", "slTriggerPx"})
 			if IsTrue(IsEqual(stopLossTriggerPrice, nil)) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"stopLoss\"][\"triggerPrice\"], or params[\"stopLoss\"][\"stopPrice\"], or params[\"stopLoss\"][\"slTriggerPx\"] for a stop loss order")))
 			}
 			var slTriggerPx any = this.PriceToPrecision(symbol, stopLossTriggerPrice)
-			var slOrder any = map[string]any{}
+			var slOrder map[string]any = map[string]any{}
 			AddElementToObject(slOrder, "slTriggerPx", slTriggerPx)
 			var stopLossLimitPrice any = this.SafeValueN(stopLoss, []any{"price", "stopLossPrice", "slOrdPx"})
 			var stopLossOrderType any = this.SafeString(stopLoss, "type")
 			if IsTrue(!IsEqual(stopLossOrderType, nil)) {
-				var stopLossLimitOrderType any = (IsEqual(stopLossOrderType, "limit"))
-				var stopLossMarketOrderType any = (IsEqual(stopLossOrderType, "market"))
+				var stopLossLimitOrderType bool = (IsEqual(stopLossOrderType, "limit"))
+				var stopLossMarketOrderType bool = (IsEqual(stopLossOrderType, "market"))
 				if IsTrue(IsTrue((!IsTrue(stopLossLimitOrderType))) && IsTrue((!IsTrue(stopLossMarketOrderType)))) {
 					panic(InvalidOrder(Add(this.Id, " createOrder() params[\"stopLoss\"][\"type\"] must be either \"limit\" or \"market\"")))
 				} else if IsTrue(stopLossLimitOrderType) {
@@ -3611,13 +4526,13 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			if IsTrue(IsEqual(takeProfitTriggerPrice, nil)) {
 				panic(InvalidOrder(Add(this.Id, " createOrder() requires a trigger price in params[\"takeProfit\"][\"triggerPrice\"], or params[\"takeProfit\"][\"stopPrice\"], or params[\"takeProfit\"][\"tpTriggerPx\"] for a take profit order")))
 			}
-			var tpOrder any = map[string]any{}
+			var tpOrder map[string]any = map[string]any{}
 			AddElementToObject(tpOrder, "tpTriggerPx", this.PriceToPrecision(symbol, takeProfitTriggerPrice))
 			var takeProfitLimitPrice any = this.SafeValueN(takeProfit, []any{"price", "takeProfitPrice", "tpOrdPx"})
 			var takeProfitOrderType any = this.SafeString2(takeProfit, "type", "tpOrdKind")
 			if IsTrue(!IsEqual(takeProfitOrderType, nil)) {
-				var takeProfitLimitOrderType any = (IsEqual(takeProfitOrderType, "limit"))
-				var takeProfitMarketOrderType any = (IsEqual(takeProfitOrderType, "market"))
+				var takeProfitLimitOrderType bool = (IsEqual(takeProfitOrderType, "limit"))
+				var takeProfitMarketOrderType bool = (IsEqual(takeProfitOrderType, "market"))
 				if IsTrue(IsTrue((!IsTrue(takeProfitLimitOrderType))) && IsTrue((!IsTrue(takeProfitMarketOrderType)))) {
 					panic(InvalidOrder(Add(this.Id, " createOrder() params[\"takeProfit\"][\"type\"] must be either \"limit\" or \"market\"")))
 				} else if IsTrue(takeProfitLimitOrderType) {
@@ -3645,8 +4560,8 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 			}
 			attachAlgoOrd = this.Extend(attachAlgoOrd, tpOrder)
 		}
-		var attachOrdKeys any = ObjectKeys(attachAlgoOrd)
-		var attachOrdLen any = GetArrayLength(attachOrdKeys)
+		var attachOrdKeys []string = ObjectKeys(attachAlgoOrd)
+		var attachOrdLen int = GetArrayLength(attachOrdKeys)
 		if IsTrue(IsGreaterThan(attachOrdLen, 0)) {
 			AddElementToObject(request, "attachAlgoOrds", []any{attachAlgoOrd})
 		}
@@ -3658,7 +4573,7 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 		AddElementToObject(request, "orderPx", Ternary(IsTrue(isMarketOrder), "-1", this.PriceToPrecision(symbol, price)))
 	} else if IsTrue(conditional) {
 		AddElementToObject(request, "ordType", "conditional")
-		var twoWayCondition any = (IsTrue((!IsEqual(takeProfitPrice, nil))) && IsTrue((!IsEqual(stopLossPrice, nil))))
+		var twoWayCondition bool = (IsTrue((!IsEqual(takeProfitPrice, nil))) && IsTrue((!IsEqual(stopLossPrice, nil))))
 		// if TP and SL are sent together
 		// as ordType 'conditional' only stop-loss order will be applied
 		// tpOrdKind is 'condition' which is the default
@@ -3736,60 +4651,60 @@ func (this *OkxCore) CreateOrderRequest(symbol any, typeVar any, side any, amoun
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes346712 := (<-this.LoadMarkets())
-			PanicOnError(retRes346712)
-		}
-		var market any = this.Market(symbol)
-		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		var method any = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
-		var requestOrdType any = this.SafeString(request, "ordType")
-		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(requestOrdType, "trigger"))) || IsTrue((IsEqual(requestOrdType, "conditional")))) || IsTrue((IsEqual(requestOrdType, "move_order_stop")))) || IsTrue((IsEqual(typeVar, "move_order_stop")))) || IsTrue((IsEqual(typeVar, "oco")))) || IsTrue((IsEqual(typeVar, "iceberg")))) || IsTrue((IsEqual(typeVar, "twap")))) {
-			method = "privatePostTradeOrderAlgo"
-		}
-		if IsTrue(IsTrue(IsTrue((!IsEqual(method, "privatePostTradeOrder"))) && IsTrue((!IsEqual(method, "privatePostTradeOrderAlgo")))) && IsTrue((!IsEqual(method, "privatePostTradeBatchOrders")))) {
-			panic(ExchangeError(Add(this.Id, " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")))
-		}
-		if IsTrue(IsEqual(method, "privatePostTradeBatchOrders")) {
-			// keep the request body the same
-			// submit a single order in an array to the batch order endpoint
-			// because it has a lower ratelimit
-			request = []any{request}
-		}
-		var response any = nil
-		if IsTrue(IsEqual(method, "privatePostTradeOrder")) {
-
-			response = (<-this.PrivatePostTradeOrder(request))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(method, "privatePostTradeOrderAlgo")) {
-
-			response = (<-this.PrivatePostTradeOrderAlgo(request))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostTradeBatchOrders(request))
-			PanicOnError(response)
-		}
-		var data any = this.SafeList(response, "data", []any{})
-		var first any = this.SafeDict(data, 0, map[string]any{})
-		var order any = this.ParseOrder(first, market)
-		AddElementToObject(order, "type", typeVar)
-		AddElementToObject(order, "side", side)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes349212 := (<-this.LoadMarkets())
+		PanicOnError(retRes349212)
+	}
+	var market any = this.Market(symbol)
+	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var method any = this.SafeString(this.Options, "createOrder", "privatePostTradeBatchOrders")
+	var requestOrdType any = this.SafeString(request, "ordType")
+	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(requestOrdType, "trigger"))) || IsTrue((IsEqual(requestOrdType, "conditional")))) || IsTrue((IsEqual(requestOrdType, "move_order_stop")))) || IsTrue((IsEqual(typeVar, "move_order_stop")))) || IsTrue((IsEqual(typeVar, "oco")))) || IsTrue((IsEqual(typeVar, "iceberg")))) || IsTrue((IsEqual(typeVar, "twap")))) {
+		method = "privatePostTradeOrderAlgo"
+	}
+	if IsTrue(IsTrue(IsTrue((!IsEqual(method, "privatePostTradeOrder"))) && IsTrue((!IsEqual(method, "privatePostTradeOrderAlgo")))) && IsTrue((!IsEqual(method, "privatePostTradeBatchOrders")))) {
+		panic(ExchangeError(Add(this.Id, " createOrder() this.options[\"createOrder\"] must be either privatePostTradeBatchOrders or privatePostTradeOrder or privatePostTradeOrderAlgo")))
+	}
+	if IsTrue(IsEqual(method, "privatePostTradeBatchOrders")) {
+		// keep the request body the same
+		// submit a single order in an array to the batch order endpoint
+		// because it has a lower ratelimit
+		request = []any{request}
+	}
+	var response any = nil
+	if IsTrue(IsEqual(method, "privatePostTradeOrder")) {
+
+		response = (<-this.PrivatePostTradeOrder(request))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(method, "privatePostTradeOrderAlgo")) {
+
+		response = (<-this.PrivatePostTradeOrderAlgo(request))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostTradeBatchOrders(request))
+		PanicOnError(response)
+	}
+	var data any = this.SafeList(response, "data", []any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
+	var order any = this.ParseOrder(first, market)
+	AddElementToObject(order, "type", typeVar)
+	AddElementToObject(order, "side", side)
+
+	ch <- order
+	return nil
 }
 
 /**
@@ -3802,65 +4717,65 @@ func (this *OkxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes351212 := (<-this.LoadMarkets())
-			PanicOnError(retRes351212)
-		}
-		var ordersRequests any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder any = GetValue(orders, i)
-			var marketId any = this.SafeString(rawOrder, "symbol")
-			if IsTrue(IsEqual(marketId, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " createOrders() requires a symbol for each order")))
-			}
-			var typeVar any = this.SafeString(rawOrder, "type", "")
-			var side any = this.SafeString(rawOrder, "side")
-			var amount any = this.SafeValue(rawOrder, "amount")
-			var price any = this.SafeValue(rawOrder, "price")
-			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-			var extendedParams any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
-			var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
-			AppendToArray(&ordersRequests, orderRequest)
-		}
-
-		response := (<-this.PrivatePostTradeBatchOrders(ordersRequests))
-		PanicOnError(response)
-		// {
-		//     "code": "0",
-		//     "data": [
-		//        {
-		//           "clOrdId": "e847386590ce4dBCc7f2a1b4c4509f82",
-		//           "ordId": "636305438765568000",
-		//           "sCode": "0",
-		//           "sMsg": "Order placed",
-		//           "tag": "e847386590ce4dBC"
-		//        },
-		//        {
-		//           "clOrdId": "e847386590ce4dBC0b9993fe642d8f62",
-		//           "ordId": "636305438765568001",
-		//           "sCode": "0",
-		//           "sMsg": "Order placed",
-		//           "tag": "e847386590ce4dBC"
-		//        }
-		//     ],
-		//     "inTime": "1697979038584486",
-		//     "msg": "",
-		//     "outTime": "1697979038586493"
-		// }
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes353712 := (<-this.LoadMarkets())
+		PanicOnError(retRes353712)
+	}
+	var ordersRequests any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+		var rawOrder any = GetValue(orders, i)
+		var marketId any = this.SafeString(rawOrder, "symbol")
+		if IsTrue(IsEqual(marketId, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " createOrders() requires a symbol for each order")))
+		}
+		var typeVar any = this.SafeString(rawOrder, "type", "")
+		var side any = this.SafeString(rawOrder, "side")
+		var amount any = this.SafeValue(rawOrder, "amount")
+		var price any = this.SafeValue(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var extendedParams map[string]any = this.Extend(orderParams, params) // the request does not accept extra params since it's a list, so we're extending each order with the common params
+		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, extendedParams)
+		AppendToArray(&ordersRequests, orderRequest)
+	}
+
+	response := (<-this.PrivatePostTradeBatchOrders(ordersRequests))
+	PanicOnError(response)
+	// {
+	//     "code": "0",
+	//     "data": [
+	//        {
+	//           "clOrdId": "e847386590ce4dBCc7f2a1b4c4509f82",
+	//           "ordId": "636305438765568000",
+	//           "sCode": "0",
+	//           "sMsg": "Order placed",
+	//           "tag": "e847386590ce4dBC"
+	//        },
+	//        {
+	//           "clOrdId": "e847386590ce4dBC0b9993fe642d8f62",
+	//           "ordId": "636305438765568001",
+	//           "sCode": "0",
+	//           "sMsg": "Order placed",
+	//           "tag": "e847386590ce4dBC"
+	//        }
+	//     ],
+	//     "inTime": "1697979038584486",
+	//     "msg": "",
+	//     "outTime": "1697979038586493"
+	// }
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(data)
+	return nil
 }
 func (this *OkxCore) EditOrderRequest(id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
 	amount := GetArg(optionalArgs, 0, nil)
@@ -3870,7 +4785,7 @@ func (this *OkxCore) EditOrderRequest(id any, symbol any, typeVar any, side any,
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var market any = this.Market(symbol)
-	var request any = map[string]any{
+	var request map[string]any = map[string]any{
 		"instId": GetValue(market, "id"),
 	}
 	var isAlgoOrder any = nil
@@ -3994,63 +4909,63 @@ func (this *OkxCore) EditOrderRequest(id any, symbol any, typeVar any, side any,
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes368412 := (<-this.LoadMarkets())
-			PanicOnError(retRes368412)
-		}
-		var market any = this.Market(symbol)
-		var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
-		var isAlgoOrder any = nil
-		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "trigger"))) || IsTrue((IsEqual(typeVar, "conditional")))) || IsTrue((IsEqual(typeVar, "move_order_stop")))) || IsTrue((IsEqual(typeVar, "oco")))) || IsTrue((IsEqual(typeVar, "iceberg")))) || IsTrue((IsEqual(typeVar, "twap")))) {
-			isAlgoOrder = true
-		}
-		var response any = nil
-		if IsTrue(isAlgoOrder) {
-
-			response = (<-this.PrivatePostTradeAmendAlgos(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivatePostTradeAmendOrder(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
-		//                 "ordId": "559176536793178112",
-		//                 "reqId": "",
-		//                 "sCode": "0",
-		//                 "sMsg": ""
-		//            }
-		//        ],
-		//        "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var first any = this.SafeDict(data, 0, map[string]any{})
-		var order any = this.ParseOrder(first, market)
-		AddElementToObject(order, "type", typeVar)
-		AddElementToObject(order, "side", side)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes370912 := (<-this.LoadMarkets())
+		PanicOnError(retRes370912)
+	}
+	var market any = this.Market(symbol)
+	var request any = this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params)
+	var isAlgoOrder any = nil
+	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "trigger"))) || IsTrue((IsEqual(typeVar, "conditional")))) || IsTrue((IsEqual(typeVar, "move_order_stop")))) || IsTrue((IsEqual(typeVar, "oco")))) || IsTrue((IsEqual(typeVar, "iceberg")))) || IsTrue((IsEqual(typeVar, "twap")))) {
+		isAlgoOrder = true
+	}
+	var response any = nil
+	if IsTrue(isAlgoOrder) {
+
+		response = (<-this.PrivatePostTradeAmendAlgos(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivatePostTradeAmendOrder(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                 "clOrdId": "e847386590ce4dBCc1a045253497a547",
+	//                 "ordId": "559176536793178112",
+	//                 "reqId": "",
+	//                 "sCode": "0",
+	//                 "sMsg": ""
+	//            }
+	//        ],
+	//        "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
+	var order any = this.ParseOrder(first, market)
+	AddElementToObject(order, "type", typeVar)
+	AddElementToObject(order, "side", side)
+
+	ch <- order
+	return nil
 }
 
 /**
@@ -4067,55 +4982,55 @@ func (this *OkxCore) EditOrder(id any, symbol any, typeVar any, side any, option
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
-		}
-		var trigger any = this.SafeValue2(params, "stop", "trigger")
-		var trailing any = this.SafeBool(params, "trailing", false)
-		if IsTrue(IsTrue(trigger) || IsTrue(trailing)) {
-
-			orderInner := (<-this.CancelOrders([]any{id}, symbol, params))
-			PanicOnError(orderInner)
-
-			ch <- this.SafeDict(orderInner, 0)
-			return nil
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes374512 := (<-this.LoadMarkets())
-			PanicOnError(retRes374512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		var clientOrderId any = this.SafeString2(params, "clOrdId", "clientOrderId")
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "clOrdId", clientOrderId)
-		} else {
-			AddElementToObject(request, "ordId", id)
-		}
-		var query any = this.Omit(params, []any{"clOrdId", "clientOrderId"})
-
-		response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
-		PanicOnError(response)
-		// {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-		var data any = this.SafeValue(response, "data", []any{})
-		var order any = this.SafeDict(data, 0)
-
-		ch <- this.ParseOrder(order, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+	}
+	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trailing any = this.SafeBool(params, "trailing", false)
+	if IsTrue(IsTrue(trigger) || IsTrue(trailing)) {
+
+		orderInner := (<-this.CancelOrders([]any{id}, symbol, params))
+		PanicOnError(orderInner)
+
+		ch <- this.SafeDict(orderInner, 0)
+		return nil
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes377012 := (<-this.LoadMarkets())
+		PanicOnError(retRes377012)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	var clientOrderId any = this.SafeString2(params, "clOrdId", "clientOrderId")
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "clOrdId", clientOrderId)
+	} else {
+		AddElementToObject(request, "ordId", id)
+	}
+	var query any = this.Omit(params, []any{"clOrdId", "clientOrderId"})
+
+	response := (<-this.PrivatePostTradeCancelOrder(this.Extend(request, query)))
+	PanicOnError(response)
+	// {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
+	var data any = this.SafeValue(response, "data", []any{})
+	var order any = this.SafeDict(data, 0)
+
+	ch <- this.ParseOrder(order, market)
+	return nil
 }
 func (this *OkxCore) ParseIds(ids any) any {
 	/**
@@ -4146,119 +5061,119 @@ func (this *OkxCore) ParseIds(ids any) any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		// TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes380112 := (<-this.LoadMarkets())
-			PanicOnError(retRes380112)
-		}
-		var market any = this.Market(symbol)
-		var request any = []any{}
-		var options any = this.SafeValue(this.Options, "cancelOrders", map[string]any{})
-		var defaultMethod any = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
-		var method any = this.SafeString(params, "method", defaultMethod)
-		var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
-		var algoIds any = this.ParseIds(this.SafeValue(params, "algoId"))
-		var trigger any = this.SafeValue2(params, "stop", "trigger")
-		var trailing any = this.SafeBool(params, "trailing", false)
-		if IsTrue(IsTrue(trigger) || IsTrue(trailing)) {
-			method = "privatePostTradeCancelAlgos"
-		}
-		if IsTrue(IsEqual(clientOrderIds, nil)) {
-			ids = this.ParseIds(ids)
-			if IsTrue(!IsEqual(algoIds, nil)) {
-				for i := 0; IsLessThan(i, GetArrayLength(algoIds)); i++ {
-					AppendToArray(&request, map[string]any{
-						"algoId": GetValue(algoIds, i),
-						"instId": GetValue(market, "id"),
-					})
-				}
-			}
-			for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-				if IsTrue(IsTrue(trailing) || IsTrue(trigger)) {
-					AppendToArray(&request, map[string]any{
-						"algoId": GetValue(ids, i),
-						"instId": GetValue(market, "id"),
-					})
-				} else {
-					AppendToArray(&request, map[string]any{
-						"ordId":  GetValue(ids, i),
-						"instId": GetValue(market, "id"),
-					})
-				}
-			}
-		} else {
-			for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
-				if IsTrue(IsTrue(trailing) || IsTrue(trigger)) {
-					AppendToArray(&request, map[string]any{
-						"instId":      GetValue(market, "id"),
-						"algoClOrdId": GetValue(clientOrderIds, i),
-					})
-				} else {
-					AppendToArray(&request, map[string]any{
-						"instId":  GetValue(market, "id"),
-						"clOrdId": GetValue(clientOrderIds, i),
-					})
-				}
-			}
-		}
-		var response any = nil
-		if IsTrue(IsEqual(method, "privatePostTradeCancelAlgos")) {
-
-			response = (<-this.PrivatePostTradeCancelAlgos(request))
-			PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
-		} else {
-
-			response = (<-this.PrivatePostTradeCancelBatchOrders(request))
-			PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
-		//                 "ordId": "405071912345641543",
-		//                 "sCode": "0",
-		//                 "sMsg": ""
-		//             },
-		//             ...
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		// Algo order
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "algoId": "431375349042380800",
-		//                 "sCode": "0",
-		//                 "sMsg": ""
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var ordersData any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(ordersData, market, nil, nil, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	// TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At this moment, `params` is not being used too.
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes382612 := (<-this.LoadMarkets())
+		PanicOnError(retRes382612)
+	}
+	var market any = this.Market(symbol)
+	var request any = []any{}
+	var options any = this.SafeValue(this.Options, "cancelOrders", map[string]any{})
+	var defaultMethod any = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
+	var method any = this.SafeString(params, "method", defaultMethod)
+	var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
+	var algoIds any = this.ParseIds(this.SafeValue(params, "algoId"))
+	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trailing any = this.SafeBool(params, "trailing", false)
+	if IsTrue(IsTrue(trigger) || IsTrue(trailing)) {
+		method = "privatePostTradeCancelAlgos"
+	}
+	if IsTrue(IsEqual(clientOrderIds, nil)) {
+		ids = this.ParseIds(ids)
+		if IsTrue(!IsEqual(algoIds, nil)) {
+			for i := 0; IsLessThan(i, GetArrayLength(algoIds)); i++ {
+				AppendToArray(&request, map[string]any{
+					"algoId": GetValue(algoIds, i),
+					"instId": GetValue(market, "id"),
+				})
+			}
+		}
+		for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
+			if IsTrue(IsTrue(trailing) || IsTrue(trigger)) {
+				AppendToArray(&request, map[string]any{
+					"algoId": GetValue(ids, i),
+					"instId": GetValue(market, "id"),
+				})
+			} else {
+				AppendToArray(&request, map[string]any{
+					"ordId":  GetValue(ids, i),
+					"instId": GetValue(market, "id"),
+				})
+			}
+		}
+	} else {
+		for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
+			if IsTrue(IsTrue(trailing) || IsTrue(trigger)) {
+				AppendToArray(&request, map[string]any{
+					"instId":      GetValue(market, "id"),
+					"algoClOrdId": GetValue(clientOrderIds, i),
+				})
+			} else {
+				AppendToArray(&request, map[string]any{
+					"instId":  GetValue(market, "id"),
+					"clOrdId": GetValue(clientOrderIds, i),
+				})
+			}
+		}
+	}
+	var response any = nil
+	if IsTrue(IsEqual(method, "privatePostTradeCancelAlgos")) {
+
+		response = (<-this.PrivatePostTradeCancelAlgos(request))
+		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+	} else {
+
+		response = (<-this.PrivatePostTradeCancelBatchOrders(request))
+		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+	//                 "ordId": "405071912345641543",
+	//                 "sCode": "0",
+	//                 "sMsg": ""
+	//             },
+	//             ...
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	// Algo order
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "algoId": "431375349042380800",
+	//                 "sCode": "0",
+	//                 "sMsg": ""
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var ordersData any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(ordersData, market, nil, nil, params)
+	return nil
 }
 
 /**
@@ -4274,98 +5189,98 @@ func (this *OkxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) CancelOrdersForSymbols(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes390612 := (<-this.LoadMarkets())
-			PanicOnError(retRes390612)
-		}
-		var request any = []any{}
-		var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
-		var defaultMethod any = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
-		var method any = this.SafeString(params, "method", defaultMethod)
-		var trigger any = this.SafeBool2(params, "stop", "trigger")
-		var trailing any = this.SafeBool(params, "trailing", false)
-		var isStopOrTrailing any = IsTrue(trigger) || IsTrue(trailing)
-		if IsTrue(isStopOrTrailing) {
-			method = "privatePostTradeCancelAlgos"
-		}
-		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var order any = GetValue(orders, i)
-			var id any = this.SafeString(order, "id")
-			var clientOrderId any = this.SafeString2(order, "clOrdId", "clientOrderId")
-			var symbol any = this.SafeString(order, "symbol")
-			if IsTrue(IsEqual(symbol, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol for each order")))
-			}
-			var market any = this.Market(symbol)
-			var idKey any = "ordId"
-			if IsTrue(isStopOrTrailing) {
-				idKey = "algoId"
-			} else if IsTrue(!IsEqual(clientOrderId, nil)) {
-				if IsTrue(isStopOrTrailing) {
-					idKey = "algoClOrdId"
-				} else {
-					idKey = "clOrdId"
-				}
-			}
-			var requestItem any = map[string]any{
-				"instId": GetValue(market, "id"),
-			}
-			AddElementToObject(requestItem, idKey, Ternary(IsTrue((!IsEqual(clientOrderId, nil))), clientOrderId, id))
-			AppendToArray(&request, requestItem)
-		}
-		var response any = nil
-		if IsTrue(IsEqual(method, "privatePostTradeCancelAlgos")) {
-
-			response = (<-this.PrivatePostTradeCancelAlgos(request))
-			PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
-		} else {
-
-			response = (<-this.PrivatePostTradeCancelBatchOrders(request))
-			PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
-		//                 "ordId": "405071912345641543",
-		//                 "sCode": "0",
-		//                 "sMsg": ""
-		//             },
-		//             ...
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		// Algo order
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "algoId": "431375349042380800",
-		//                 "sCode": "0",
-		//                 "sMsg": ""
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var ordersData any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(ordersData, nil, nil, nil, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersForSymbolsBody(ch, orders, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) cancelOrdersForSymbolsBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes393112 := (<-this.LoadMarkets())
+		PanicOnError(retRes393112)
+	}
+	var request any = []any{}
+	var options any = this.SafeDict(this.Options, "cancelOrders", map[string]any{})
+	var defaultMethod any = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
+	var method any = this.SafeString(params, "method", defaultMethod)
+	var trigger any = this.SafeBool2(params, "stop", "trigger")
+	var trailing any = this.SafeBool(params, "trailing", false)
+	var isStopOrTrailing bool = IsTrue(trigger) || IsTrue(trailing)
+	if IsTrue(isStopOrTrailing) {
+		method = "privatePostTradeCancelAlgos"
+	}
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+		var order any = GetValue(orders, i)
+		var id any = this.SafeString(order, "id")
+		var clientOrderId any = this.SafeString2(order, "clOrdId", "clientOrderId")
+		var symbol any = this.SafeString(order, "symbol")
+		if IsTrue(IsEqual(symbol, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol for each order")))
+		}
+		var market any = this.Market(symbol)
+		var idKey string = "ordId"
+		if IsTrue(isStopOrTrailing) {
+			idKey = "algoId"
+		} else if IsTrue(!IsEqual(clientOrderId, nil)) {
+			if IsTrue(isStopOrTrailing) {
+				idKey = "algoClOrdId"
+			} else {
+				idKey = "clOrdId"
+			}
+		}
+		var requestItem map[string]any = map[string]any{
+			"instId": GetValue(market, "id"),
+		}
+		AddElementToObject(requestItem, idKey, Ternary(IsTrue((!IsEqual(clientOrderId, nil))), clientOrderId, id))
+		AppendToArray(&request, requestItem)
+	}
+	var response any = nil
+	if IsTrue(IsEqual(method, "privatePostTradeCancelAlgos")) {
+
+		response = (<-this.PrivatePostTradeCancelAlgos(request))
+		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+	} else {
+
+		response = (<-this.PrivatePostTradeCancelBatchOrders(request))
+		PanicOnError(response) // * dont extend with params, otherwise ARRAY will be turned into OBJECT
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "clOrdId": "e123456789ec4dBC1123456ba123b45e",
+	//                 "ordId": "405071912345641543",
+	//                 "sCode": "0",
+	//                 "sMsg": ""
+	//             },
+	//             ...
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	// Algo order
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "algoId": "431375349042380800",
+	//                 "sCode": "0",
+	//                 "sMsg": ""
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var ordersData any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(ordersData, nil, nil, nil, params)
+	return nil
 }
 
 /**
@@ -4378,48 +5293,48 @@ func (this *OkxCore) CancelOrdersForSymbols(orders any, optionalArgs ...any) <-c
  * @returns {object} the api result
  */
 func (this *OkxCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes399312 := (<-this.LoadMarkets())
-			PanicOnError(retRes399312)
-		}
-		var timeOut any = 0
-		if IsTrue(IsTrue((!IsEqual(timeout, nil))) && IsTrue((IsGreaterThan(timeout, 0)))) {
-			timeOut = this.ParseToInt(Divide(timeout, 1000))
-		}
-		var request any = map[string]any{
-			"timeOut": timeOut,
-		}
-
-		response := (<-this.PrivatePostTradeCancelAllAfter(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "code":"0",
-		//         "msg":"",
-		//         "data":[
-		//             {
-		//                 "triggerTime":"1587971460",
-		//                 "ts":"1587971400"
-		//             }
-		//         ]
-		//     }
-		//
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersAfterBody(ch, timeout, optionalArgs...)
 	return ch
 }
+func (this *OkxCore) cancelAllOrdersAfterBody(ch chan any, timeout any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes401812 := (<-this.LoadMarkets())
+		PanicOnError(retRes401812)
+	}
+	var timeOut any = 0
+	if IsTrue(IsTrue((!IsEqual(timeout, nil))) && IsTrue((IsGreaterThan(timeout, 0)))) {
+		timeOut = this.ParseToInt(Divide(timeout, 1000))
+	}
+	var request map[string]any = map[string]any{
+		"timeOut": timeOut,
+	}
+
+	response := (<-this.PrivatePostTradeCancelAllAfter(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "code":"0",
+	//         "msg":"",
+	//         "data":[
+	//             {
+	//                 "triggerTime":"1587971460",
+	//                 "ts":"1587971400"
+	//             }
+	//         ]
+	//     }
+	//
+	ch <- response
+	return nil
+}
 func (this *OkxCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"canceled":         "canceled",
 		"order_failed":     "canceled",
 		"live":             "open",
@@ -4684,7 +5599,7 @@ func (this *OkxCore) ParseOrder(order any, optionalArgs ...any) any {
 	var stopLossPrice any = this.SafeNumber2(order, "slTriggerPx", "slOrdPx")
 	var takeProfitPrice any = this.SafeNumber2(order, "tpTriggerPx", "tpOrdPx")
 	var reduceOnlyRaw any = this.SafeString(order, "reduceOnly")
-	var reduceOnly any = false
+	var reduceOnly bool = false
 	if IsTrue(!IsEqual(reduceOnly, nil)) {
 		reduceOnly = (IsEqual(reduceOnlyRaw, "true"))
 	}
@@ -4730,160 +5645,160 @@ func (this *OkxCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes433312 := (<-this.LoadMarkets())
-			PanicOnError(retRes433312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		var clientOrderId any = this.SafeString2(params, "clOrdId", "clientOrderId")
-		var options any = this.SafeValue(this.Options, "fetchOrder", map[string]any{})
-		var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrder")
-		var method any = this.SafeString(params, "method", defaultMethod)
-		var trigger any = this.SafeValue2(params, "stop", "trigger")
-		if IsTrue(trigger) {
-			method = "privateGetTradeOrderAlgo"
-			if IsTrue(!IsEqual(clientOrderId, nil)) {
-				AddElementToObject(request, "algoClOrdId", clientOrderId)
-			} else {
-				AddElementToObject(request, "algoId", id)
-			}
-		} else {
-			if IsTrue(!IsEqual(clientOrderId, nil)) {
-				AddElementToObject(request, "clOrdId", clientOrderId)
-			} else {
-				AddElementToObject(request, "ordId", id)
-			}
-		}
-		var query any = this.Omit(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"})
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetTradeOrderAlgo")) {
-
-			response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetTradeOrder(this.Extend(request, query)))
-			PanicOnError(response)
-		}
-		//
-		// Spot and Swap
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "accFillSz": "0",
-		//                 "avgPx": "",
-		//                 "cTime": "1621910749815",
-		//                 "category": "normal",
-		//                 "ccy": "",
-		//                 "clOrdId": "",
-		//                 "fee": "0",
-		//                 "feeCcy": "ETH",
-		//                 "fillPx": "",
-		//                 "fillSz": "0",
-		//                 "fillTime": "",
-		//                 "instId": "ETH-USDT",
-		//                 "instType": "SPOT",
-		//                 "lever": "",
-		//                 "ordId": "317251910906576896",
-		//                 "ordType": "limit",
-		//                 "pnl": "0",
-		//                 "posSide": "net",
-		//                 "px":"20 00",
-		//                 "rebate": "0",
-		//                 "rebateCcy": "USDT",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "state": "live",
-		//                 "sz":"0. 001",
-		//                 "tag": "",
-		//                 "tdMode": "cash",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tradeId": "",
-		//                 "uTime": "1621910749815"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		// Algo order
-		//     {
-		//         "code":"0",
-		//         "msg":"",
-		//         "data":[
-		//             {
-		//                 "instType":"FUTURES",
-		//                 "instId":"BTC-USD-200329",
-		//                 "ordId":"123445",
-		//                 "ccy":"BTC",
-		//                 "clOrdId":"",
-		//                 "algoId":"1234",
-		//                 "sz":"999",
-		//                 "closeFraction":"",
-		//                 "ordType":"oco",
-		//                 "side":"buy",
-		//                 "posSide":"long",
-		//                 "tdMode":"cross",
-		//                 "tgtCcy": "",
-		//                 "state":"effective",
-		//                 "lever":"20",
-		//                 "tpTriggerPx":"",
-		//                 "tpTriggerPxType":"",
-		//                 "tpOrdPx":"",
-		//                 "slTriggerPx":"",
-		//                 "slTriggerPxType":"",
-		//                 "triggerPx":"99",
-		//                 "triggerPxType":"last",
-		//                 "ordPx":"12",
-		//                 "actualSz":"",
-		//                 "actualPx":"",
-		//                 "actualSide":"",
-		//                 "pxVar":"",
-		//                 "pxSpread":"",
-		//                 "pxLimit":"",
-		//                 "szLimit":"",
-		//                 "tag": "adadadadad",
-		//                 "timeInterval":"",
-		//                 "callbackRatio":"",
-		//                 "callbackSpread":"",
-		//                 "activePx":"",
-		//                 "moveTriggerPx":"",
-		//                 "reduceOnly": "false",
-		//                 "triggerTime":"1597026383085",
-		//                 "last": "16012",
-		//                 "failCode": "",
-		//                 "algoClOrdId": "",
-		//                 "cTime":"1597026383000"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeValue(response, "data", []any{})
-		var order any = this.SafeDict(data, 0)
-
-		ch <- this.ParseOrder(order, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes435812 := (<-this.LoadMarkets())
+		PanicOnError(retRes435812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	var clientOrderId any = this.SafeString2(params, "clOrdId", "clientOrderId")
+	var options any = this.SafeValue(this.Options, "fetchOrder", map[string]any{})
+	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrder")
+	var method any = this.SafeString(params, "method", defaultMethod)
+	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	if IsTrue(trigger) {
+		method = "privateGetTradeOrderAlgo"
+		if IsTrue(!IsEqual(clientOrderId, nil)) {
+			AddElementToObject(request, "algoClOrdId", clientOrderId)
+		} else {
+			AddElementToObject(request, "algoId", id)
+		}
+	} else {
+		if IsTrue(!IsEqual(clientOrderId, nil)) {
+			AddElementToObject(request, "clOrdId", clientOrderId)
+		} else {
+			AddElementToObject(request, "ordId", id)
+		}
+	}
+	var query any = this.Omit(params, []any{"method", "clOrdId", "clientOrderId", "stop", "trigger"})
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetTradeOrderAlgo")) {
+
+		response = (<-this.PrivateGetTradeOrderAlgo(this.Extend(request, query)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetTradeOrder(this.Extend(request, query)))
+		PanicOnError(response)
+	}
+	//
+	// Spot and Swap
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "accFillSz": "0",
+	//                 "avgPx": "",
+	//                 "cTime": "1621910749815",
+	//                 "category": "normal",
+	//                 "ccy": "",
+	//                 "clOrdId": "",
+	//                 "fee": "0",
+	//                 "feeCcy": "ETH",
+	//                 "fillPx": "",
+	//                 "fillSz": "0",
+	//                 "fillTime": "",
+	//                 "instId": "ETH-USDT",
+	//                 "instType": "SPOT",
+	//                 "lever": "",
+	//                 "ordId": "317251910906576896",
+	//                 "ordType": "limit",
+	//                 "pnl": "0",
+	//                 "posSide": "net",
+	//                 "px":"20 00",
+	//                 "rebate": "0",
+	//                 "rebateCcy": "USDT",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "state": "live",
+	//                 "sz":"0. 001",
+	//                 "tag": "",
+	//                 "tdMode": "cash",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tradeId": "",
+	//                 "uTime": "1621910749815"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	// Algo order
+	//     {
+	//         "code":"0",
+	//         "msg":"",
+	//         "data":[
+	//             {
+	//                 "instType":"FUTURES",
+	//                 "instId":"BTC-USD-200329",
+	//                 "ordId":"123445",
+	//                 "ccy":"BTC",
+	//                 "clOrdId":"",
+	//                 "algoId":"1234",
+	//                 "sz":"999",
+	//                 "closeFraction":"",
+	//                 "ordType":"oco",
+	//                 "side":"buy",
+	//                 "posSide":"long",
+	//                 "tdMode":"cross",
+	//                 "tgtCcy": "",
+	//                 "state":"effective",
+	//                 "lever":"20",
+	//                 "tpTriggerPx":"",
+	//                 "tpTriggerPxType":"",
+	//                 "tpOrdPx":"",
+	//                 "slTriggerPx":"",
+	//                 "slTriggerPxType":"",
+	//                 "triggerPx":"99",
+	//                 "triggerPxType":"last",
+	//                 "ordPx":"12",
+	//                 "actualSz":"",
+	//                 "actualPx":"",
+	//                 "actualSide":"",
+	//                 "pxVar":"",
+	//                 "pxSpread":"",
+	//                 "pxLimit":"",
+	//                 "szLimit":"",
+	//                 "tag": "adadadadad",
+	//                 "timeInterval":"",
+	//                 "callbackRatio":"",
+	//                 "callbackSpread":"",
+	//                 "activePx":"",
+	//                 "moveTriggerPx":"",
+	//                 "reduceOnly": "false",
+	//                 "triggerTime":"1597026383085",
+	//                 "last": "16012",
+	//                 "failCode": "",
+	//                 "algoClOrdId": "",
+	//                 "cTime":"1597026383000"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeValue(response, "data", []any{})
+	var order any = this.SafeDict(data, 0)
+
+	ch <- this.ParseOrder(order, market)
+	return nil
 }
 
 /**
@@ -4897,179 +5812,179 @@ func (this *OkxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @param {int} [limit] the maximum number of  open orders structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] True if fetching trigger or conditional orders
- * @param {string} [params.ordType] "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
+ * @param {string} [params.ordType] market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap
  * @param {string} [params.algoId] Algo ID "'433845797218942976'"
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes448812 := (<-this.LoadMarkets())
-			PanicOnError(retRes448812)
-		}
-		var maxLimit any = 100
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes449419 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes449419)
-			ch <- retRes449419
-			return nil
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, maxLimit)) // default 100, max 100
-		}
-		var options any = this.SafeValue(this.Options, "fetchOpenOrders", map[string]any{})
-		var algoOrderTypes any = this.SafeValue(this.Options, "algoOrderTypes", map[string]any{})
-		var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersPending")
-		var method any = this.SafeString(params, "method", defaultMethod)
-		var ordType any = this.SafeString(params, "ordType")
-		var trigger any = this.SafeValue2(params, "stop", "trigger")
-		var trailing any = this.SafeBool(params, "trailing", false)
-		if IsTrue(IsTrue(IsTrue(trailing) || IsTrue(trigger)) || IsTrue((IsTrue((!IsEqual(ordType, nil))) && IsTrue((InOp(algoOrderTypes, ordType)))))) {
-			method = "privateGetTradeOrdersAlgoPending"
-		}
-		if IsTrue(trailing) {
-			AddElementToObject(request, "ordType", "move_order_stop")
-		} else if IsTrue(IsTrue(trigger) && IsTrue((IsEqual(ordType, nil)))) {
-			AddElementToObject(request, "ordType", "trigger")
-		}
-		var query any = this.Omit(params, []any{"method", "stop", "trigger", "trailing"})
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetTradeOrdersAlgoPending")) {
-
-			response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetTradeOrdersPending(this.Extend(request, query)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "accFillSz": "0",
-		//                 "avgPx": "",
-		//                 "cTime": "1621910749815",
-		//                 "category": "normal",
-		//                 "ccy": "",
-		//                 "clOrdId": "",
-		//                 "fee": "0",
-		//                 "feeCcy": "ETH",
-		//                 "fillPx": "",
-		//                 "fillSz": "0",
-		//                 "fillTime": "",
-		//                 "instId": "ETH-USDT",
-		//                 "instType": "SPOT",
-		//                 "lever": "",
-		//                 "ordId": "317251910906576896",
-		//                 "ordType": "limit",
-		//                 "pnl": "0",
-		//                 "posSide": "net",
-		//                 "px":"20 00",
-		//                 "rebate": "0",
-		//                 "rebateCcy": "USDT",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "state": "live",
-		//                 "sz":"0. 001",
-		//                 "tag": "",
-		//                 "tdMode": "cash",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tradeId": "",
-		//                 "uTime": "1621910749815"
-		//             }
-		//         ],
-		//         "msg":""
-		//     }
-		//
-		// Algo order
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "activePx": "",
-		//                 "activePxType": "",
-		//                 "actualPx": "",
-		//                 "actualSide": "buy",
-		//                 "actualSz": "0",
-		//                 "algoId": "431375349042380800",
-		//                 "cTime": "1649119897778",
-		//                 "callbackRatio": "",
-		//                 "callbackSpread": "",
-		//                 "ccy": "",
-		//                 "ctVal": "0.01",
-		//                 "instId": "BTC-USDT-SWAP",
-		//                 "instType": "SWAP",
-		//                 "last": "46538.9",
-		//                 "lever": "125",
-		//                 "moveTriggerPx": "",
-		//                 "notionalUsd": "467.059",
-		//                 "ordId": "",
-		//                 "ordPx": "50000",
-		//                 "ordType": "trigger",
-		//                 "posSide": "long",
-		//                 "pxLimit": "",
-		//                 "pxSpread": "",
-		//                 "pxVar": "",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "slTriggerPxType": "",
-		//                 "state": "live",
-		//                 "sz": "1",
-		//                 "szLimit": "",
-		//                 "tag": "",
-		//                 "tdMode": "isolated",
-		//                 "tgtCcy": "",
-		//                 "timeInterval": "",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tpTriggerPxType": "",
-		//                 "triggerPx": "50000",
-		//                 "triggerPxType": "last",
-		//                 "triggerTime": "",
-		//                 "uly": "BTC-USDT"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes451312 := (<-this.LoadMarkets())
+		PanicOnError(retRes451312)
+	}
+	var maxLimit any = 100
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes451919 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params, maxLimit))
+		PanicOnError(retRes451919)
+		ch <- retRes451919
+		return nil
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, maxLimit)) // default 100, max 100
+	}
+	var options any = this.SafeValue(this.Options, "fetchOpenOrders", map[string]any{})
+	var algoOrderTypes any = this.SafeValue(this.Options, "algoOrderTypes", map[string]any{})
+	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersPending")
+	var method any = this.SafeString(params, "method", defaultMethod)
+	var ordType any = this.SafeString(params, "ordType")
+	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trailing any = this.SafeBool(params, "trailing", false)
+	if IsTrue(IsTrue(IsTrue(trailing) || IsTrue(trigger)) || IsTrue((IsTrue((!IsEqual(ordType, nil))) && IsTrue((InOp(algoOrderTypes, ordType)))))) {
+		method = "privateGetTradeOrdersAlgoPending"
+	}
+	if IsTrue(trailing) {
+		AddElementToObject(request, "ordType", "move_order_stop")
+	} else if IsTrue(IsTrue(trigger) && IsTrue((IsEqual(ordType, nil)))) {
+		AddElementToObject(request, "ordType", "trigger")
+	}
+	var query any = this.Omit(params, []any{"method", "stop", "trigger", "trailing"})
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetTradeOrdersAlgoPending")) {
+
+		response = (<-this.PrivateGetTradeOrdersAlgoPending(this.Extend(request, query)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetTradeOrdersPending(this.Extend(request, query)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "accFillSz": "0",
+	//                 "avgPx": "",
+	//                 "cTime": "1621910749815",
+	//                 "category": "normal",
+	//                 "ccy": "",
+	//                 "clOrdId": "",
+	//                 "fee": "0",
+	//                 "feeCcy": "ETH",
+	//                 "fillPx": "",
+	//                 "fillSz": "0",
+	//                 "fillTime": "",
+	//                 "instId": "ETH-USDT",
+	//                 "instType": "SPOT",
+	//                 "lever": "",
+	//                 "ordId": "317251910906576896",
+	//                 "ordType": "limit",
+	//                 "pnl": "0",
+	//                 "posSide": "net",
+	//                 "px":"20 00",
+	//                 "rebate": "0",
+	//                 "rebateCcy": "USDT",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "state": "live",
+	//                 "sz":"0. 001",
+	//                 "tag": "",
+	//                 "tdMode": "cash",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tradeId": "",
+	//                 "uTime": "1621910749815"
+	//             }
+	//         ],
+	//         "msg":""
+	//     }
+	//
+	// Algo order
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "activePx": "",
+	//                 "activePxType": "",
+	//                 "actualPx": "",
+	//                 "actualSide": "buy",
+	//                 "actualSz": "0",
+	//                 "algoId": "431375349042380800",
+	//                 "cTime": "1649119897778",
+	//                 "callbackRatio": "",
+	//                 "callbackSpread": "",
+	//                 "ccy": "",
+	//                 "ctVal": "0.01",
+	//                 "instId": "BTC-USDT-SWAP",
+	//                 "instType": "SWAP",
+	//                 "last": "46538.9",
+	//                 "lever": "125",
+	//                 "moveTriggerPx": "",
+	//                 "notionalUsd": "467.059",
+	//                 "ordId": "",
+	//                 "ordPx": "50000",
+	//                 "ordType": "trigger",
+	//                 "posSide": "long",
+	//                 "pxLimit": "",
+	//                 "pxSpread": "",
+	//                 "pxVar": "",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "slTriggerPxType": "",
+	//                 "state": "live",
+	//                 "sz": "1",
+	//                 "szLimit": "",
+	//                 "tag": "",
+	//                 "tdMode": "isolated",
+	//                 "tgtCcy": "",
+	//                 "timeInterval": "",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tpTriggerPxType": "",
+	//                 "triggerPx": "50000",
+	//                 "triggerPxType": "last",
+	//                 "triggerTime": "",
+	//                 "uly": "BTC-USDT"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -5090,188 +6005,188 @@ func (this *OkxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes465412 := (<-this.LoadMarkets())
-			PanicOnError(retRes465412)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		}
-		var typeVar any = nil
-		var query any = nil
-		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
-		typeVar = GetValue(typeVarqueryVariable, 0)
-		query = GetValue(typeVarqueryVariable, 1)
-		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 100, max 100
-		}
-		AddElementToObject(request, "state", "canceled")
-		var options any = this.SafeValue(this.Options, "fetchCanceledOrders", map[string]any{})
-		var algoOrderTypes any = this.SafeValue(this.Options, "algoOrderTypes", map[string]any{})
-		var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
-		var method any = this.SafeString(params, "method", defaultMethod)
-		var ordType any = this.SafeString(params, "ordType")
-		var trigger any = this.SafeValue2(params, "stop", "trigger")
-		var trailing any = this.SafeBool(params, "trailing", false)
-		if IsTrue(trailing) {
-			method = "privateGetTradeOrdersAlgoHistory"
-			AddElementToObject(request, "ordType", "move_order_stop")
-		} else if IsTrue(IsTrue(trigger) || IsTrue((IsTrue((!IsEqual(ordType, nil))) && IsTrue((InOp(algoOrderTypes, ordType)))))) {
-			method = "privateGetTradeOrdersAlgoHistory"
-			var algoId any = this.SafeString(params, "algoId")
-			if IsTrue(!IsEqual(algoId, nil)) {
-				AddElementToObject(request, "algoId", algoId)
-				params = this.Omit(params, "algoId")
-			}
-			if IsTrue(trigger) {
-				if IsTrue(IsEqual(ordType, nil)) {
-					panic(ArgumentsRequired(Add(this.Id, " fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")))
-				}
-			}
-		} else {
-			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "begin", since)
-			}
-			var until any = this.SafeInteger(query, "until")
-			if IsTrue(!IsEqual(until, nil)) {
-				AddElementToObject(request, "end", until)
-				query = this.Omit(query, []any{"until"})
-			}
-		}
-		var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetTradeOrdersAlgoHistory")) {
-
-			response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, send)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "accFillSz": "0",
-		//                 "avgPx": "",
-		//                 "cTime": "1644037822494",
-		//                 "category": "normal",
-		//                 "ccy": "",
-		//                 "clOrdId": "",
-		//                 "fee": "0",
-		//                 "feeCcy": "BTC",
-		//                 "fillPx": "",
-		//                 "fillSz": "0",
-		//                 "fillTime": "",
-		//                 "instId": "BTC-USDT",
-		//                 "instType": "SPOT",
-		//                 "lever": "",
-		//                 "ordId": "410059580352409602",
-		//                 "ordType": "limit",
-		//                 "pnl": "0",
-		//                 "posSide": "net",
-		//                 "px": "30000",
-		//                 "rebate": "0",
-		//                 "rebateCcy": "USDT",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "slTriggerPxType": "",
-		//                 "source": "",
-		//                 "state": "canceled",
-		//                 "sz": "0.0005452",
-		//                 "tag": "",
-		//                 "tdMode": "cash",
-		//                 "tgtCcy": "",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tpTriggerPxType": "",
-		//                 "tradeId": "",
-		//                 "uTime": "1644038165667"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		// Algo order
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "activePx": "",
-		//                 "activePxType": "",
-		//                 "actualPx": "",
-		//                 "actualSide": "buy",
-		//                 "actualSz": "0",
-		//                 "algoId": "433845797218942976",
-		//                 "cTime": "1649708898523",
-		//                 "callbackRatio": "",
-		//                 "callbackSpread": "",
-		//                 "ccy": "",
-		//                 "ctVal": "0.01",
-		//                 "instId": "BTC-USDT-SWAP",
-		//                 "instType": "SWAP",
-		//                 "last": "39950.4",
-		//                 "lever": "125",
-		//                 "moveTriggerPx": "",
-		//                 "notionalUsd": "1592.1760000000002",
-		//                 "ordId": "",
-		//                 "ordPx": "29000",
-		//                 "ordType": "trigger",
-		//                 "posSide": "long",
-		//                 "pxLimit": "",
-		//                 "pxSpread": "",
-		//                 "pxVar": "",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "slTriggerPxType": "",
-		//                 "state": "canceled",
-		//                 "sz": "4",
-		//                 "szLimit": "",
-		//                 "tag": "",
-		//                 "tdMode": "isolated",
-		//                 "tgtCcy": "",
-		//                 "timeInterval": "",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tpTriggerPxType": "",
-		//                 "triggerPx": "30000",
-		//                 "triggerPxType": "last",
-		//                 "triggerTime": "",
-		//                 "uly": "BTC-USDT"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCanceledOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes467912 := (<-this.LoadMarkets())
+		PanicOnError(retRes467912)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	}
+	var typeVar any = nil
+	var query any = nil
+	typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
+	typeVar = GetValue(typeVarqueryVariable, 0)
+	query = GetValue(typeVarqueryVariable, 1)
+	AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 100, max 100
+	}
+	AddElementToObject(request, "state", "canceled")
+	var options any = this.SafeValue(this.Options, "fetchCanceledOrders", map[string]any{})
+	var algoOrderTypes any = this.SafeValue(this.Options, "algoOrderTypes", map[string]any{})
+	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
+	var method any = this.SafeString(params, "method", defaultMethod)
+	var ordType any = this.SafeString(params, "ordType")
+	var trigger any = this.SafeValue2(params, "stop", "trigger")
+	var trailing any = this.SafeBool(params, "trailing", false)
+	if IsTrue(trailing) {
+		method = "privateGetTradeOrdersAlgoHistory"
+		AddElementToObject(request, "ordType", "move_order_stop")
+	} else if IsTrue(IsTrue(trigger) || IsTrue((IsTrue((!IsEqual(ordType, nil))) && IsTrue((InOp(algoOrderTypes, ordType)))))) {
+		method = "privateGetTradeOrdersAlgoHistory"
+		var algoId any = this.SafeString(params, "algoId")
+		if IsTrue(!IsEqual(algoId, nil)) {
+			AddElementToObject(request, "algoId", algoId)
+			params = this.Omit(params, "algoId")
+		}
+		if IsTrue(trigger) {
+			if IsTrue(IsEqual(ordType, nil)) {
+				panic(ArgumentsRequired(Add(this.Id, " fetchCanceledOrders() requires an \"ordType\" string parameter, \"conditional\", \"oco\", \"trigger\", \"move_order_stop\", \"iceberg\", or \"twap\"")))
+			}
+		}
+	} else {
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "begin", since)
+		}
+		var until any = this.SafeInteger(query, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			AddElementToObject(request, "end", until)
+			query = this.Omit(query, []any{"until"})
+		}
+	}
+	var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetTradeOrdersAlgoHistory")) {
+
+		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, send)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "accFillSz": "0",
+	//                 "avgPx": "",
+	//                 "cTime": "1644037822494",
+	//                 "category": "normal",
+	//                 "ccy": "",
+	//                 "clOrdId": "",
+	//                 "fee": "0",
+	//                 "feeCcy": "BTC",
+	//                 "fillPx": "",
+	//                 "fillSz": "0",
+	//                 "fillTime": "",
+	//                 "instId": "BTC-USDT",
+	//                 "instType": "SPOT",
+	//                 "lever": "",
+	//                 "ordId": "410059580352409602",
+	//                 "ordType": "limit",
+	//                 "pnl": "0",
+	//                 "posSide": "net",
+	//                 "px": "30000",
+	//                 "rebate": "0",
+	//                 "rebateCcy": "USDT",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "slTriggerPxType": "",
+	//                 "source": "",
+	//                 "state": "canceled",
+	//                 "sz": "0.0005452",
+	//                 "tag": "",
+	//                 "tdMode": "cash",
+	//                 "tgtCcy": "",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tpTriggerPxType": "",
+	//                 "tradeId": "",
+	//                 "uTime": "1644038165667"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	// Algo order
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "activePx": "",
+	//                 "activePxType": "",
+	//                 "actualPx": "",
+	//                 "actualSide": "buy",
+	//                 "actualSz": "0",
+	//                 "algoId": "433845797218942976",
+	//                 "cTime": "1649708898523",
+	//                 "callbackRatio": "",
+	//                 "callbackSpread": "",
+	//                 "ccy": "",
+	//                 "ctVal": "0.01",
+	//                 "instId": "BTC-USDT-SWAP",
+	//                 "instType": "SWAP",
+	//                 "last": "39950.4",
+	//                 "lever": "125",
+	//                 "moveTriggerPx": "",
+	//                 "notionalUsd": "1592.1760000000002",
+	//                 "ordId": "",
+	//                 "ordPx": "29000",
+	//                 "ordType": "trigger",
+	//                 "posSide": "long",
+	//                 "pxLimit": "",
+	//                 "pxSpread": "",
+	//                 "pxVar": "",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "slTriggerPxType": "",
+	//                 "state": "canceled",
+	//                 "sz": "4",
+	//                 "szLimit": "",
+	//                 "tag": "",
+	//                 "tdMode": "isolated",
+	//                 "tgtCcy": "",
+	//                 "timeInterval": "",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tpTriggerPxType": "",
+	//                 "triggerPx": "30000",
+	//                 "triggerPxType": "last",
+	//                 "triggerTime": "",
+	//                 "uly": "BTC-USDT"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -5295,195 +6210,195 @@ func (this *OkxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *OkxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes484412 := (<-this.LoadMarkets())
-			PanicOnError(retRes484412)
-		}
-		var maxLimit any = 100
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes485019 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, maxLimit))
-			PanicOnError(retRes485019)
-			ch <- retRes485019
-			return nil
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		}
-		var typeVar any = nil
-		var query any = nil
-		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
-		typeVar = GetValue(typeVarqueryVariable, 0)
-		query = GetValue(typeVarqueryVariable, 1)
-		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, maxLimit)) // default 100, max 100
-		}
-		var options any = this.SafeDict(this.Options, "fetchClosedOrders", map[string]any{})
-		var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
-		var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
-		var method any = this.SafeString(params, "method", defaultMethod)
-		var ordType any = this.SafeString(params, "ordType")
-		var trigger any = this.SafeBool2(params, "stop", "trigger")
-		var trailing any = this.SafeBool(params, "trailing", false)
-		if IsTrue(IsTrue(IsTrue(trailing) || IsTrue(trigger)) || IsTrue((IsTrue((!IsEqual(ordType, nil))) && IsTrue((InOp(algoOrderTypes, ordType)))))) {
-			method = "privateGetTradeOrdersAlgoHistory"
-			AddElementToObject(request, "state", "effective")
-		}
-		if IsTrue(trailing) {
-			AddElementToObject(request, "ordType", "move_order_stop")
-		} else if IsTrue(trigger) {
-			if IsTrue(IsEqual(ordType, nil)) {
-				AddElementToObject(request, "ordType", "trigger")
-			}
-		} else {
-			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "begin", since)
-			}
-			var until any = this.SafeInteger(query, "until")
-			if IsTrue(!IsEqual(until, nil)) {
-				AddElementToObject(request, "end", until)
-				query = this.Omit(query, []any{"until"})
-			}
-			AddElementToObject(request, "state", "filled")
-		}
-		var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetTradeOrdersAlgoHistory")) {
-
-			response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send)))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(method, "privateGetTradeOrdersHistoryArchive")) {
-
-			response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, send)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, send)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "accFillSz": "0",
-		//                 "avgPx": "",
-		//                 "cTime": "1621910749815",
-		//                 "category": "normal",
-		//                 "ccy": "",
-		//                 "clOrdId": "",
-		//                 "fee": "0",
-		//                 "feeCcy": "ETH",
-		//                 "fillPx": "",
-		//                 "fillSz": "0",
-		//                 "fillTime": "",
-		//                 "instId": "ETH-USDT",
-		//                 "instType": "SPOT",
-		//                 "lever": "",
-		//                 "ordId": "317251910906576896",
-		//                 "ordType": "limit",
-		//                 "pnl": "0",
-		//                 "posSide": "net",
-		//                 "px": "2000",
-		//                 "rebate": "0",
-		//                 "rebateCcy": "USDT",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "state": "live",
-		//                 "sz": "0.001",
-		//                 "tag": "",
-		//                 "tdMode": "cash",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tradeId": "",
-		//                 "uTime": "1621910749815"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		// Algo order
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "activePx": "",
-		//                 "activePxType": "",
-		//                 "actualPx": "",
-		//                 "actualSide": "buy",
-		//                 "actualSz": "0",
-		//                 "algoId": "433845797218942976",
-		//                 "cTime": "1649708898523",
-		//                 "callbackRatio": "",
-		//                 "callbackSpread": "",
-		//                 "ccy": "",
-		//                 "ctVal": "0.01",
-		//                 "instId": "BTC-USDT-SWAP",
-		//                 "instType": "SWAP",
-		//                 "last": "39950.4",
-		//                 "lever": "125",
-		//                 "moveTriggerPx": "",
-		//                 "notionalUsd": "1592.1760000000002",
-		//                 "ordId": "",
-		//                 "ordPx": "29000",
-		//                 "ordType": "trigger",
-		//                 "posSide": "long",
-		//                 "pxLimit": "",
-		//                 "pxSpread": "",
-		//                 "pxVar": "",
-		//                 "side": "buy",
-		//                 "slOrdPx": "",
-		//                 "slTriggerPx": "",
-		//                 "slTriggerPxType": "",
-		//                 "state": "effective",
-		//                 "sz": "4",
-		//                 "szLimit": "",
-		//                 "tag": "",
-		//                 "tdMode": "isolated",
-		//                 "tgtCcy": "",
-		//                 "timeInterval": "",
-		//                 "tpOrdPx": "",
-		//                 "tpTriggerPx": "",
-		//                 "tpTriggerPxType": "",
-		//                 "triggerPx": "30000",
-		//                 "triggerPxType": "last",
-		//                 "triggerTime": "",
-		//                 "uly": "BTC-USDT"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes486912 := (<-this.LoadMarkets())
+		PanicOnError(retRes486912)
+	}
+	var maxLimit any = 100
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes487519 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, maxLimit))
+		PanicOnError(retRes487519)
+		ch <- retRes487519
+		return nil
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	}
+	var typeVar any = nil
+	var query any = nil
+	typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchClosedOrders", market, params)
+	typeVar = GetValue(typeVarqueryVariable, 0)
+	query = GetValue(typeVarqueryVariable, 1)
+	AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, maxLimit)) // default 100, max 100
+	}
+	var options any = this.SafeDict(this.Options, "fetchClosedOrders", map[string]any{})
+	var algoOrderTypes any = this.SafeDict(this.Options, "algoOrderTypes", map[string]any{})
+	var defaultMethod any = this.SafeString(options, "method", "privateGetTradeOrdersHistory")
+	var method any = this.SafeString(params, "method", defaultMethod)
+	var ordType any = this.SafeString(params, "ordType")
+	var trigger any = this.SafeBool2(params, "stop", "trigger")
+	var trailing any = this.SafeBool(params, "trailing", false)
+	if IsTrue(IsTrue(IsTrue(trailing) || IsTrue(trigger)) || IsTrue((IsTrue((!IsEqual(ordType, nil))) && IsTrue((InOp(algoOrderTypes, ordType)))))) {
+		method = "privateGetTradeOrdersAlgoHistory"
+		AddElementToObject(request, "state", "effective")
+	}
+	if IsTrue(trailing) {
+		AddElementToObject(request, "ordType", "move_order_stop")
+	} else if IsTrue(trigger) {
+		if IsTrue(IsEqual(ordType, nil)) {
+			AddElementToObject(request, "ordType", "trigger")
+		}
+	} else {
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "begin", since)
+		}
+		var until any = this.SafeInteger(query, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			AddElementToObject(request, "end", until)
+			query = this.Omit(query, []any{"until"})
+		}
+		AddElementToObject(request, "state", "filled")
+	}
+	var send any = this.Omit(query, []any{"method", "stop", "trigger", "trailing"})
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetTradeOrdersAlgoHistory")) {
+
+		response = (<-this.PrivateGetTradeOrdersAlgoHistory(this.Extend(request, send)))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(method, "privateGetTradeOrdersHistoryArchive")) {
+
+		response = (<-this.PrivateGetTradeOrdersHistoryArchive(this.Extend(request, send)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetTradeOrdersHistory(this.Extend(request, send)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "accFillSz": "0",
+	//                 "avgPx": "",
+	//                 "cTime": "1621910749815",
+	//                 "category": "normal",
+	//                 "ccy": "",
+	//                 "clOrdId": "",
+	//                 "fee": "0",
+	//                 "feeCcy": "ETH",
+	//                 "fillPx": "",
+	//                 "fillSz": "0",
+	//                 "fillTime": "",
+	//                 "instId": "ETH-USDT",
+	//                 "instType": "SPOT",
+	//                 "lever": "",
+	//                 "ordId": "317251910906576896",
+	//                 "ordType": "limit",
+	//                 "pnl": "0",
+	//                 "posSide": "net",
+	//                 "px": "2000",
+	//                 "rebate": "0",
+	//                 "rebateCcy": "USDT",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "state": "live",
+	//                 "sz": "0.001",
+	//                 "tag": "",
+	//                 "tdMode": "cash",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tradeId": "",
+	//                 "uTime": "1621910749815"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	// Algo order
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "activePx": "",
+	//                 "activePxType": "",
+	//                 "actualPx": "",
+	//                 "actualSide": "buy",
+	//                 "actualSz": "0",
+	//                 "algoId": "433845797218942976",
+	//                 "cTime": "1649708898523",
+	//                 "callbackRatio": "",
+	//                 "callbackSpread": "",
+	//                 "ccy": "",
+	//                 "ctVal": "0.01",
+	//                 "instId": "BTC-USDT-SWAP",
+	//                 "instType": "SWAP",
+	//                 "last": "39950.4",
+	//                 "lever": "125",
+	//                 "moveTriggerPx": "",
+	//                 "notionalUsd": "1592.1760000000002",
+	//                 "ordId": "",
+	//                 "ordPx": "29000",
+	//                 "ordType": "trigger",
+	//                 "posSide": "long",
+	//                 "pxLimit": "",
+	//                 "pxSpread": "",
+	//                 "pxVar": "",
+	//                 "side": "buy",
+	//                 "slOrdPx": "",
+	//                 "slTriggerPx": "",
+	//                 "slTriggerPxType": "",
+	//                 "state": "effective",
+	//                 "sz": "4",
+	//                 "szLimit": "",
+	//                 "tag": "",
+	//                 "tdMode": "isolated",
+	//                 "tgtCcy": "",
+	//                 "timeInterval": "",
+	//                 "tpOrdPx": "",
+	//                 "tpTriggerPx": "",
+	//                 "tpTriggerPxType": "",
+	//                 "triggerPx": "30000",
+	//                 "triggerPxType": "last",
+	//                 "triggerTime": "",
+	//                 "uly": "BTC-USDT"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
 }
 
 /**
@@ -5500,88 +6415,88 @@ func (this *OkxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OkxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes502612 := (<-this.LoadMarkets())
-			PanicOnError(retRes502612)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes503119 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes503119)
-			ch <- retRes503119
-			return nil
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "begin", since)
-		}
-		requestparamsVariable := this.HandleUntilOption("end", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
-		typeVar := GetValue(typeVarqueryVariable, 0)
-		query := GetValue(typeVarqueryVariable, 1)
-		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-		if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsEqual(since, nil)))) {
-			AddElementToObject(request, "limit", limit) // default 100, max 100
-		}
-
-		response := (<-this.PrivateGetTradeFillsHistory(this.Extend(request, query)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "side": "buy",
-		//                 "fillSz": "0.007533",
-		//                 "fillPx": "2654.98",
-		//                 "fee": "-0.000007533",
-		//                 "ordId": "317321390244397056",
-		//                 "instType": "SPOT",
-		//                 "instId": "ETH-USDT",
-		//                 "clOrdId": "",
-		//                 "posSide": "net",
-		//                 "billId": "317321390265368576",
-		//                 "tag": "0",
-		//                 "execType": "T",
-		//                 "tradeId": "107601752",
-		//                 "feeCcy": "ETH",
-		//                 "ts": "1621927314985"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTrades(data, market, since, limit, query)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes505112 := (<-this.LoadMarkets())
+		PanicOnError(retRes505112)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes505619 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes505619)
+		ch <- retRes505619
+		return nil
+	}
+	var request any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "begin", since)
+	}
+	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
+	typeVar := GetValue(typeVarqueryVariable, 0)
+	query := GetValue(typeVarqueryVariable, 1)
+	AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	if IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsEqual(since, nil)))) {
+		AddElementToObject(request, "limit", limit) // default 100, max 100
+	}
+
+	response := (<-this.PrivateGetTradeFillsHistory(this.Extend(request, query)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "side": "buy",
+	//                 "fillSz": "0.007533",
+	//                 "fillPx": "2654.98",
+	//                 "fee": "-0.000007533",
+	//                 "ordId": "317321390244397056",
+	//                 "instType": "SPOT",
+	//                 "instId": "ETH-USDT",
+	//                 "clOrdId": "",
+	//                 "posSide": "net",
+	//                 "billId": "317321390265368576",
+	//                 "tag": "0",
+	//                 "execType": "T",
+	//                 "tradeId": "107601752",
+	//                 "feeCcy": "ETH",
+	//                 "ts": "1621927314985"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTrades(data, market, since, limit, query)
+	return nil
 }
 
 /**
@@ -5597,29 +6512,29 @@ func (this *OkxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *OkxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"ordId": id,
-		}
-
-		retRes510615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes510615)
-		ch <- retRes510615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"ordId": id,
+	}
+
+	retRes513115 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes513115)
+	ch <- retRes513115
+	return nil
 }
 
 /**
@@ -5639,140 +6554,140 @@ func (this *OkxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *OkxCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes512712 := (<-this.LoadMarkets())
-			PanicOnError(retRes512712)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes513219 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-			PanicOnError(retRes513219)
-			ch <- retRes513219
-			return nil
-		}
-		var options any = this.SafeDict(this.Options, "fetchLedger", map[string]any{})
-		var method any = this.SafeString(options, "method")
-		method = this.SafeString(params, "method", method)
-		params = this.Omit(params, "method")
-		var request any = map[string]any{}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLedger", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		if IsTrue(IsEqual(marginMode, nil)) {
-			marginMode = this.SafeString(params, "mgnMode")
-		}
-		if IsTrue(!IsEqual(method, "privateGetAssetBills")) {
-			if IsTrue(!IsEqual(marginMode, nil)) {
-				AddElementToObject(request, "mgnMode", marginMode)
-			}
-		}
-		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
-		typeVar := GetValue(typeVarqueryVariable, 0)
-		query := GetValue(typeVarqueryVariable, 1)
-		if IsTrue(!IsEqual(typeVar, nil)) {
-			AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-		requestparamsVariable := this.HandleUntilOption("end", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetAccountBillsArchive")) {
-
-			response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query)))
-			PanicOnError(response)
-		} else if IsTrue(IsEqual(method, "privateGetAssetBills")) {
-
-			response = (<-this.PrivateGetAssetBills(this.Extend(request, query)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetAccountBills(this.Extend(request, query)))
-			PanicOnError(response)
-		}
-		//
-		// privateGetAccountBills, privateGetAccountBillsArchive
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "bal": "0.0000819307998198",
-		//                 "balChg": "-664.2679586599999802",
-		//                 "billId": "310394313544966151",
-		//                 "ccy": "USDT",
-		//                 "fee": "0",
-		//                 "from": "",
-		//                 "instId": "LTC-USDT",
-		//                 "instType": "SPOT",
-		//                 "mgnMode": "cross",
-		//                 "notes": "",
-		//                 "ordId": "310394313519800320",
-		//                 "pnl": "0",
-		//                 "posBal": "0",
-		//                 "posBalChg": "0",
-		//                 "subType": "2",
-		//                 "sz": "664.26795866",
-		//                 "to": "",
-		//                 "ts": "1620275771196",
-		//                 "type": "2"
-		//             }
-		//         ]
-		//     }
-		//
-		// privateGetAssetBills
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "billId": "12344",
-		//                 "ccy": "BTC",
-		//                 "balChg": "2",
-		//                 "bal": "12",
-		//                 "type": "1",
-		//                 "ts": "1597026383085"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseLedger(data, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
 }
+func (this *OkxCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes515212 := (<-this.LoadMarkets())
+		PanicOnError(retRes515212)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes515719 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+		PanicOnError(retRes515719)
+		ch <- retRes515719
+		return nil
+	}
+	var options any = this.SafeDict(this.Options, "fetchLedger", map[string]any{})
+	var method any = this.SafeString(options, "method")
+	method = this.SafeString(params, "method", method)
+	params = this.Omit(params, "method")
+	var request any = map[string]any{}
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLedger", params)
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	if IsTrue(IsEqual(marginMode, nil)) {
+		marginMode = this.SafeString(params, "mgnMode")
+	}
+	if IsTrue(!IsEqual(method, "privateGetAssetBills")) {
+		if IsTrue(!IsEqual(marginMode, nil)) {
+			AddElementToObject(request, "mgnMode", marginMode)
+		}
+	}
+	typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchLedger", nil, params)
+	typeVar := GetValue(typeVarqueryVariable, 0)
+	query := GetValue(typeVarqueryVariable, 1)
+	if IsTrue(!IsEqual(typeVar, nil)) {
+		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+	requestparamsVariable := this.HandleUntilOption("end", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetAccountBillsArchive")) {
+
+		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query)))
+		PanicOnError(response)
+	} else if IsTrue(IsEqual(method, "privateGetAssetBills")) {
+
+		response = (<-this.PrivateGetAssetBills(this.Extend(request, query)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetAccountBills(this.Extend(request, query)))
+		PanicOnError(response)
+	}
+	//
+	// privateGetAccountBills, privateGetAccountBillsArchive
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "bal": "0.0000819307998198",
+	//                 "balChg": "-664.2679586599999802",
+	//                 "billId": "310394313544966151",
+	//                 "ccy": "USDT",
+	//                 "fee": "0",
+	//                 "from": "",
+	//                 "instId": "LTC-USDT",
+	//                 "instType": "SPOT",
+	//                 "mgnMode": "cross",
+	//                 "notes": "",
+	//                 "ordId": "310394313519800320",
+	//                 "pnl": "0",
+	//                 "posBal": "0",
+	//                 "posBalChg": "0",
+	//                 "subType": "2",
+	//                 "sz": "664.26795866",
+	//                 "to": "",
+	//                 "ts": "1620275771196",
+	//                 "type": "2"
+	//             }
+	//         ]
+	//     }
+	//
+	// privateGetAssetBills
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "billId": "12344",
+	//                 "ccy": "BTC",
+	//                 "balChg": "2",
+	//                 "bal": "12",
+	//                 "type": "1",
+	//                 "ts": "1597026383085"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseLedger(data, currency, since, limit)
+	return nil
+}
 func (this *OkxCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"1":  "transfer",
 		"2":  "trade",
 		"3":  "trade",
@@ -5900,7 +6815,7 @@ func (this *OkxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
 	var code any = GetValue(currency, "code")
 	var chain any = this.SafeString(depositAddress, "chain")
 	var networks any = this.SafeValue(currency, "networks", map[string]any{})
-	var networksById any = this.IndexBy(networks, "id")
+	var networksById map[string]any = this.IndexBy(networks, "id")
 	var networkData any = Ternary(IsTrue((IsEqual(chain, nil))), nil, this.SafeValue(networksById, chain))
 	// inconsistent naming responses from exchange
 	// with respect to network naming provided in currency info vs address chain-names and ids
@@ -5968,54 +6883,54 @@ func (this *OkxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
 func (this *OkxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes543012 := (<-this.LoadMarkets())
-			PanicOnError(retRes543012)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"ccy": GetValue(currency, "id"),
-		}
-
-		response := (<-this.PrivateGetAssetDepositAddress(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "addr": "okbtothemoon",
-		//                 "memo": "971668", // may be missing
-		//                 "tag":"52055", // may be missing
-		//                 "pmtId": "", // may be missing
-		//                 "ccy": "BTC",
-		//                 "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
-		//                 "selected": true
-		//             },
-		//             // {"ccy":"usdt-erc20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
-		//             // {"ccy":"usdt-trc20","to":"6","addr":"TRrd5SiSZrfQVRKm4e9SRSbn2LNTYqCjqx","selected":true},
-		//             // {"ccy":"usdt_okexchain","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
-		//             // {"ccy":"usdt_kip20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var filtered any = this.FilterBy(data, "selected", true)
-		var parsed any = this.ParseDepositAddresses(filtered, []any{GetValue(currency, "code")}, false)
-
-		ch <- this.IndexBy(parsed, "network")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressesByNetworkBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchDepositAddressesByNetworkBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes545512 := (<-this.LoadMarkets())
+		PanicOnError(retRes545512)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"ccy": GetValue(currency, "id"),
+	}
+
+	response := (<-this.PrivateGetAssetDepositAddress(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "addr": "okbtothemoon",
+	//                 "memo": "971668", // may be missing
+	//                 "tag":"52055", // may be missing
+	//                 "pmtId": "", // may be missing
+	//                 "ccy": "BTC",
+	//                 "to": "6", // 1 SPOT, 3 FUTURES, 6 FUNDING, 9 SWAP, 12 OPTION, 18 Unified account
+	//                 "selected": true
+	//             },
+	//             // {"ccy":"usdt-erc20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+	//             // {"ccy":"usdt-trc20","to":"6","addr":"TRrd5SiSZrfQVRKm4e9SRSbn2LNTYqCjqx","selected":true},
+	//             // {"ccy":"usdt_okexchain","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+	//             // {"ccy":"usdt_kip20","to":"6","addr":"0x696abb81974a8793352cbd33aadcf78eda3cfdfa","selected":true},
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var filtered any = this.FilterBy(data, "selected", true)
+	var parsed any = this.ParseDepositAddresses(filtered, []any{GetValue(currency, "code")}, false)
+
+	ch <- this.IndexBy(parsed, "network")
+	return nil
 }
 
 /**
@@ -6029,48 +6944,49 @@ func (this *OkxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...an
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *OkxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes547612 := (<-this.LoadMarkets())
-			PanicOnError(retRes547612)
-		}
-		var rawNetwork any = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
-		params = this.Omit(params, "network")
-		code = this.SafeCurrencyCode(code)
-		var network any = this.NetworkIdToCode(rawNetwork, code)
-
-		response := (<-this.FetchDepositAddressesByNetwork(code, params))
-		PanicOnError(response)
-		if IsTrue(!IsEqual(network, nil)) {
-			var result any = this.SafeDict(response, network)
-			if IsTrue(IsEqual(result, nil)) {
-				panic(InvalidAddress(Add(Add(Add(Add(this.Id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)))
-			}
-
-			ch <- result
-			return nil
-		}
-		var codeNetwork any = this.NetworkIdToCode(code, code)
-		if IsTrue(InOp(response, codeNetwork)) {
-
-			ch <- GetValue(response, codeNetwork)
-			return nil
-		}
-		// if the network is not specified, return the first address
-		var keys any = ObjectKeys(response)
-		var first any = this.SafeString(keys, 0, "")
-
-		ch <- this.SafeDict(response, first)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes550112 := (<-this.LoadMarkets())
+		PanicOnError(retRes550112)
+	}
+	var rawNetwork any = this.SafeString(params, "network") // some networks are like "Dora Vota Mainnet"
+	params = this.Omit(params, "network")
+	code = this.SafeCurrencyCode(code)
+	var network any = this.NetworkIdToCode(rawNetwork, code)
+
+	responseRaw := (<-this.FetchDepositAddressesByNetwork(code, params))
+	PanicOnError(responseRaw)
+	var response any = responseRaw
+	if IsTrue(!IsEqual(network, nil)) {
+		var result any = this.SafeDict(response, network)
+		if IsTrue(IsEqual(result, nil)) {
+			panic(InvalidAddress(Add(Add(Add(Add(this.Id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)))
+		}
+
+		ch <- result
+		return nil
+	}
+	var codeNetwork any = this.NetworkIdToCode(code, code)
+	if IsTrue(IsTrue((!IsEqual(codeNetwork, nil))) && IsTrue((InOp(response, codeNetwork)))) {
+
+		ch <- GetValue(response, codeNetwork)
+		return nil
+	}
+	// if the network is not specified, return the first address
+	var keys []string = ObjectKeys(response)
+	var first any = this.SafeString(keys, 0, "")
+
+	ch <- this.SafeDict(response, first)
+	return nil
 }
 
 /**
@@ -6086,78 +7002,79 @@ func (this *OkxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
-		tag = GetValue(tagparamsVariable, 0)
-		params = GetValue(tagparamsVariable, 1)
-		this.CheckAddress(address)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes551612 := (<-this.LoadMarkets())
-			PanicOnError(retRes551612)
-		}
-		var currency any = this.Currency(code)
-		if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetLength(tag), 0)))) {
-			address = Add(Add(address, ":"), tag)
-		}
-		var request any = map[string]any{
-			"ccy":    GetValue(currency, "id"),
-			"toAddr": address,
-			"dest":   "4",
-			"amt":    this.NumberToString(amount),
-		}
-		var network any = this.SafeString(params, "network") // this line allows the user to specify either ERC20 or ETH
-		if IsTrue(!IsEqual(network, nil)) {
-			var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
-			network = this.SafeString(networks, ToUpper(network), network) // handle ETH>ERC20 alias
-			AddElementToObject(request, "chain", Add(Add(GetValue(currency, "id"), "-"), network))
-			params = this.Omit(params, "network")
-		}
-		var fee any = this.SafeString(params, "fee")
-		if IsTrue(IsEqual(fee, nil)) {
-
-			currencies := (<-this.FetchCurrencies())
-			PanicOnError(currencies)
-			this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
-			var targetNetwork any = this.SafeDict(GetValue(currency, "networks"), this.NetworkIdToCode(network, GetValue(currency, "code")), map[string]any{})
-			fee = this.SafeString(targetNetwork, "fee")
-			if IsTrue(IsEqual(fee, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.")))
-			}
-		}
-		AddElementToObject(request, "fee", this.NumberToString(fee)) // withdrawals to OKCoin or OKX are fee-free, please set 0
-		var query any = this.Omit(params, []any{"fee"})
-
-		response := (<-this.PrivatePostAssetWithdrawal(this.Extend(request, query)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "amt": "0.1",
-		//                 "wdId": "67485",
-		//                 "ccy": "BTC"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var transaction any = this.SafeDict(data, 0)
-
-		ch <- this.ParseTransaction(transaction, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+	this.CheckAddress(address)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes554212 := (<-this.LoadMarkets())
+		PanicOnError(retRes554212)
+	}
+	var currency any = this.Currency(code)
+	if IsTrue(IsTrue((!IsEqual(tag, nil))) && IsTrue((IsGreaterThan(GetLength(tag), 0)))) {
+		address = Add(Add(address, ":"), tag)
+	}
+	var request map[string]any = map[string]any{
+		"ccy":    GetValue(currency, "id"),
+		"toAddr": address,
+		"dest":   "4",
+		"amt":    this.NumberToString(amount),
+	}
+	var network any = this.SafeString(params, "network") // this line allows the user to specify either ERC20 or ETH
+	if IsTrue(!IsEqual(network, nil)) {
+		var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
+		network = this.SafeString(networks, ToUpper(network), network) // handle ETH>ERC20 alias
+		AddElementToObject(request, "chain", Add(Add(GetValue(currency, "id"), "-"), network))
+		params = this.Omit(params, "network")
+	}
+	var fee any = this.SafeString(params, "fee")
+	if IsTrue(IsEqual(fee, nil)) {
+
+		currencies := (<-this.FetchCurrencies())
+		PanicOnError(currencies)
+		this.Currencies = this.MapToSafeMap(this.DeepExtend(this.Currencies, currencies))
+		var networkCodeResolved any = this.NetworkIdToCode(network, GetValue(currency, "code"))
+		var targetNetwork any = Ternary(IsTrue((IsEqual(networkCodeResolved, nil))), map[string]any{}, this.SafeDict(GetValue(currency, "networks"), networkCodeResolved, map[string]any{}))
+		fee = this.SafeString(targetNetwork, "fee")
+		if IsTrue(IsEqual(fee, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a \"fee\" string parameter, network transaction fee must be ≥ 0. Withdrawals to OKCoin or OKX are fee-free, please set \"0\". Withdrawing to external digital asset address requires network transaction fee.")))
+		}
+	}
+	AddElementToObject(request, "fee", this.NumberToString(fee)) // withdrawals to OKCoin or OKX are fee-free, please set 0
+	var query any = this.Omit(params, []any{"fee"})
+
+	response := (<-this.PrivatePostAssetWithdrawal(this.Extend(request, query)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "amt": "0.1",
+	//                 "wdId": "67485",
+	//                 "ccy": "BTC"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var transaction any = this.SafeDict(data, 0)
+
+	ch <- this.ParseTransaction(transaction, currency)
+	return nil
 }
 
 /**
@@ -6174,97 +7091,97 @@ func (this *OkxCore) Withdraw(code any, amount any, address any, optionalArgs ..
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes558112 := (<-this.LoadMarkets())
-			PanicOnError(retRes558112)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes558619 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-			PanicOnError(retRes558619)
-			ch <- retRes558619
-			return nil
-		}
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 100, max 100
-		}
-		requestparamsVariable := this.HandleUntilOption("after", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-
-		response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "amt": "0.01044408",
-		//                 "txId": "1915737_3_0_0_asset",
-		//                 "ccy": "BTC",
-		//                 "from": "13801825426",
-		//                 "to": "",
-		//                 "ts": "1597026383085",
-		//                 "state": "2",
-		//                 "depId": "4703879"
-		//             },
-		//             {
-		//                 "amt": "491.6784211",
-		//                 "txId": "1744594_3_184_0_asset",
-		//                 "ccy": "OKB",
-		//                 "from": "",
-		//                 "to": "",
-		//                 "ts": "1597026383085",
-		//                 "state": "2",
-		//                 "depId": "4703809"
-		//             },
-		//             {
-		//                 "amt": "223.18782496",
-		//                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
-		//                 "ccy": "USDT",
-		//                 "from": "",
-		//                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
-		//                 "ts": "1597026383085",
-		//                 "state": "2",
-		//                 "depId": "4703779"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTransactions(data, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes560812 := (<-this.LoadMarkets())
+		PanicOnError(retRes560812)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes561319 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+		PanicOnError(retRes561319)
+		ch <- retRes561319
+		return nil
+	}
+	var request any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 100, max 100
+	}
+	requestparamsVariable := this.HandleUntilOption("after", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+
+	response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "amt": "0.01044408",
+	//                 "txId": "1915737_3_0_0_asset",
+	//                 "ccy": "BTC",
+	//                 "from": "13801825426",
+	//                 "to": "",
+	//                 "ts": "1597026383085",
+	//                 "state": "2",
+	//                 "depId": "4703879"
+	//             },
+	//             {
+	//                 "amt": "491.6784211",
+	//                 "txId": "1744594_3_184_0_asset",
+	//                 "ccy": "OKB",
+	//                 "from": "",
+	//                 "to": "",
+	//                 "ts": "1597026383085",
+	//                 "state": "2",
+	//                 "depId": "4703809"
+	//             },
+	//             {
+	//                 "amt": "223.18782496",
+	//                 "txId": "6d892c669225b1092c780bf0da0c6f912fc7dc8f6b8cc53b003288624c",
+	//                 "ccy": "USDT",
+	//                 "from": "",
+	//                 "to": "39kK4XvgEuM7rX9frgyHoZkWqx4iKu1spD",
+	//                 "ts": "1597026383085",
+	//                 "state": "2",
+	//                 "depId": "4703779"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTransactions(data, currency, since, limit, params)
+	return nil
 }
 
 /**
@@ -6278,38 +7195,38 @@ func (this *OkxCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes566212 := (<-this.LoadMarkets())
-			PanicOnError(retRes566212)
-		}
-		var request any = map[string]any{
-			"depId": id,
-		}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-
-		response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeValue(response, "data")
-		var deposit any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseTransaction(deposit, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchDepositBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes568912 := (<-this.LoadMarkets())
+		PanicOnError(retRes568912)
+	}
+	var request map[string]any = map[string]any{
+		"depId": id,
+	}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+
+	response := (<-this.PrivateGetAssetDepositHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeValue(response, "data")
+	var deposit any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseTransaction(deposit, currency)
+	return nil
 }
 
 /**
@@ -6326,89 +7243,89 @@ func (this *OkxCore) FetchDeposit(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes569312 := (<-this.LoadMarkets())
-			PanicOnError(retRes569312)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes569819 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-			PanicOnError(retRes569819)
-			ch <- retRes569819
-			return nil
-		}
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 100, max 100
-		}
-		requestparamsVariable := this.HandleUntilOption("after", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-
-		response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "amt": "0.094",
-		//                 "wdId": "4703879",
-		//                 "fee": "0.01000000eth",
-		//                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
-		//                 "ccy": "ETH",
-		//                 "from": "13426335357",
-		//                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
-		//                 "ts": "1597026383085",
-		//                 "state": "2"
-		//             },
-		//             {
-		//                 "amt": "0.01",
-		//                 "wdId": "4703879",
-		//                 "fee": "0.00000000btc",
-		//                 "txId": "",
-		//                 "ccy": "BTC",
-		//                 "from": "13426335357",
-		//                 "to": "13426335357",
-		//                 "ts": "1597026383085",
-		//                 "state": "2"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTransactions(data, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes572012 := (<-this.LoadMarkets())
+		PanicOnError(retRes572012)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes572519 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+		PanicOnError(retRes572519)
+		ch <- retRes572519
+		return nil
+	}
+	var request any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", mathMax(Subtract(since, 1), 0))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 100, max 100
+	}
+	requestparamsVariable := this.HandleUntilOption("after", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+
+	response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "amt": "0.094",
+	//                 "wdId": "4703879",
+	//                 "fee": "0.01000000eth",
+	//                 "txId": "0x62477bac6509a04512819bb1455e923a60dea5966c7caeaa0b24eb8fb0432b85",
+	//                 "ccy": "ETH",
+	//                 "from": "13426335357",
+	//                 "to": "0xA41446125D0B5b6785f6898c9D67874D763A1519",
+	//                 "ts": "1597026383085",
+	//                 "state": "2"
+	//             },
+	//             {
+	//                 "amt": "0.01",
+	//                 "wdId": "4703879",
+	//                 "fee": "0.00000000btc",
+	//                 "txId": "",
+	//                 "ccy": "BTC",
+	//                 "from": "13426335357",
+	//                 "to": "13426335357",
+	//                 "ts": "1597026383085",
+	//                 "state": "2"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTransactions(data, currency, since, limit, params)
+	return nil
 }
 
 /**
@@ -6422,59 +7339,59 @@ func (this *OkxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *OkxCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes576612 := (<-this.LoadMarkets())
-			PanicOnError(retRes576612)
-		}
-		var request any = map[string]any{
-			"wdId": id,
-		}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-
-		response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "chain": "USDT-TRC20",
-		//                "clientId": '',
-		//                "fee": "0.8",
-		//                "ccy": "USDT",
-		//                "amt": "54.561",
-		//                "txId": "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
-		//                "from": "example@email.com",
-		//                "to": "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
-		//                "state": "2",
-		//                "ts": "1641376485000",
-		//                "wdId": "25147041"
-		//            }
-		//        ],
-		//        "msg": ''
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var withdrawal any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseTransaction(withdrawal)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes579312 := (<-this.LoadMarkets())
+		PanicOnError(retRes579312)
+	}
+	var request map[string]any = map[string]any{
+		"wdId": id,
+	}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+
+	response := (<-this.PrivateGetAssetWithdrawalHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "chain": "USDT-TRC20",
+	//                "clientId": '',
+	//                "fee": "0.8",
+	//                "ccy": "USDT",
+	//                "amt": "54.561",
+	//                "txId": "00cff6ec7fa7c7d7d184bd84e82b9ff36863f07c0421188607f87dfa94e06b70",
+	//                "from": "example@email.com",
+	//                "to": "TEY6qjnKDyyq5jDc3DJizWLCdUySrpQ4yp",
+	//                "state": "2",
+	//                "ts": "1641376485000",
+	//                "wdId": "25147041"
+	//            }
+	//        ],
+	//        "msg": ''
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var withdrawal any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseTransaction(withdrawal)
+	return nil
 }
 func (this *OkxCore) ParseTransactionStatus(status any) any {
 	//
@@ -6500,7 +7417,7 @@ func (this *OkxCore) ParseTransactionStatus(status any) any {
 	//         "5": "awaiting identity verification"
 	//     }
 	//
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"-3": "pending",
 		"-2": "canceled",
 		"-1": "failed",
@@ -6587,7 +7504,7 @@ func (this *OkxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 	var network any = nil
 	var chain any = this.SafeString(transaction, "chain")
 	if IsTrue(!IsEqual(chain, nil)) {
-		var chainParts any = Split(chain, "-")
+		var chainParts []string = Split(chain, "-")
 		var networkParts any = this.ArraySlice(chainParts, 1)
 		var networkId any = Join(networkParts, "-")
 		if IsTrue(!IsEqual(networkId, nil)) {
@@ -6643,56 +7560,56 @@ func (this *OkxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *OkxCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes597012 := (<-this.LoadMarkets())
-			PanicOnError(retRes597012)
-		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		if IsTrue(IsEqual(marginMode, nil)) {
-			marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
-		}
-		if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
-			panic(BadRequest(Add(this.Id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")))
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId":  GetValue(market, "id"),
-			"mgnMode": marginMode,
-		}
-
-		response := (<-this.PrivateGetAccountLeverageInfo(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "instId": "BTC-USDT-SWAP",
-		//                "lever": "5.00000000",
-		//                "mgnMode": "isolated",
-		//                "posSide": "net"
-		//            }
-		//        ],
-		//        "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseLeverage(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes599712 := (<-this.LoadMarkets())
+		PanicOnError(retRes599712)
+	}
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	if IsTrue(IsEqual(marginMode, nil)) {
+		marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
+	}
+	if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
+		panic(BadRequest(Add(this.Id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")))
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId":  GetValue(market, "id"),
+		"mgnMode": marginMode,
+	}
+
+	response := (<-this.PrivateGetAccountLeverageInfo(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "instId": "BTC-USDT-SWAP",
+	//                "lever": "5.00000000",
+	//                "mgnMode": "isolated",
+	//                "posSide": "net"
+	//            }
+	//        ],
+	//        "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseLeverage(data, market)
+	return nil
 }
 func (this *OkxCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -6735,88 +7652,87 @@ func (this *OkxCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes604412 := (<-this.LoadMarkets())
-			PanicOnError(retRes604412)
-		}
-		var market any = this.Market(symbol)
-		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
-		typeVar := GetValue(typeVarqueryVariable, 0)
-		query := GetValue(typeVarqueryVariable, 1)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(typeVar, nil)) {
-			AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-		}
-
-		response := (<-this.PrivateGetAccountPositions(this.Extend(request, query)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "adl": "1",
-		//                 "availPos": "1",
-		//                 "avgPx": "2566.31",
-		//                 "cTime": "1619507758793",
-		//                 "ccy": "ETH",
-		//                 "deltaBS": "",
-		//                 "deltaPA": "",
-		//                 "gammaBS": "",
-		//                 "gammaPA": "",
-		//                 "imr": "",
-		//                 "instId": "ETH-USD-210430",
-		//                 "instType": "FUTURES",
-		//                 "interest": "0",
-		//                 "last": "2566.22",
-		//                 "lever": "10",
-		//                 "liab": "",
-		//                 "liabCcy": "",
-		//                 "liqPx": "2352.8496681818233",
-		//                 "margin": "0.0003896645377994",
-		//                 "mgnMode": "isolated",
-		//                 "mgnRatio": "11.731726509588816",
-		//                 "mmr": "0.0000311811092368",
-		//                 "optVal": "",
-		//                 "pTime": "1619507761462",
-		//                 "pos": "1",
-		//                 "posCcy": "",
-		//                 "posId": "307173036051017730",
-		//                 "posSide": "long",
-		//                 "thetaBS": "",
-		//                 "thetaPA": "",
-		//                 "tradeId": "109844",
-		//                 "uTime": "1619507761462",
-		//                 "upl": "-0.0000009932766034",
-		//                 "uplRatio": "-0.0025490556801078",
-		//                 "vegaBS": "",
-		//                 "vegaPA": ""
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var position any = this.SafeDict(data, 0)
-		if IsTrue(IsEqual(position, nil)) {
-
-			return nil
-		}
-
-		ch <- this.ParsePosition(position, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes607112 := (<-this.LoadMarkets())
+		PanicOnError(retRes607112)
+	}
+	var market any = this.Market(symbol)
+	typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchPosition", market, params)
+	typeVar := GetValue(typeVarqueryVariable, 0)
+	query := GetValue(typeVarqueryVariable, 1)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(typeVar, nil)) {
+		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	}
+
+	response := (<-this.PrivateGetAccountPositions(this.Extend(request, query)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "adl": "1",
+	//                 "availPos": "1",
+	//                 "avgPx": "2566.31",
+	//                 "cTime": "1619507758793",
+	//                 "ccy": "ETH",
+	//                 "deltaBS": "",
+	//                 "deltaPA": "",
+	//                 "gammaBS": "",
+	//                 "gammaPA": "",
+	//                 "imr": "",
+	//                 "instId": "ETH-USD-210430",
+	//                 "instType": "FUTURES",
+	//                 "interest": "0",
+	//                 "last": "2566.22",
+	//                 "lever": "10",
+	//                 "liab": "",
+	//                 "liabCcy": "",
+	//                 "liqPx": "2352.8496681818233",
+	//                 "margin": "0.0003896645377994",
+	//                 "mgnMode": "isolated",
+	//                 "mgnRatio": "11.731726509588816",
+	//                 "mmr": "0.0000311811092368",
+	//                 "optVal": "",
+	//                 "pTime": "1619507761462",
+	//                 "pos": "1",
+	//                 "posCcy": "",
+	//                 "posId": "307173036051017730",
+	//                 "posSide": "long",
+	//                 "thetaBS": "",
+	//                 "thetaPA": "",
+	//                 "tradeId": "109844",
+	//                 "uTime": "1619507761462",
+	//                 "upl": "-0.0000009932766034",
+	//                 "uplRatio": "-0.0025490556801078",
+	//                 "vegaBS": "",
+	//                 "vegaPA": ""
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var position any = this.SafeDict(data, 0)
+	if IsTrue(IsEqual(position, nil)) {
+		panic(NullResponse(Add(Add(this.Id, " fetchPosition() could not find a position for "), symbol)))
+	}
+
+	ch <- this.ParsePosition(position, market)
+	return nil
 }
 
 /**
@@ -6831,101 +7747,101 @@ func (this *OkxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes612412 := (<-this.LoadMarkets())
-			PanicOnError(retRes612412)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbols, nil)) {
-			var marketIds any = []any{}
-			for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-				var entry any = GetValue(symbols, i)
-				var market any = this.Market(entry)
-				AppendToArray(&marketIds, GetValue(market, "id"))
-			}
-			var marketIdsLength any = GetArrayLength(marketIds)
-			if IsTrue(IsGreaterThan(marketIdsLength, 0)) {
-				AddElementToObject(request, "instId", Join(marketIds, ","))
-			}
-		}
-		var fetchPositionsOptions any = this.SafeDict(this.Options, "fetchPositions", map[string]any{})
-		var method any = this.SafeString(fetchPositionsOptions, "method", "privateGetAccountPositions")
-		var response any = nil
-		if IsTrue(IsEqual(method, "privateGetAccountPositionsHistory")) {
-
-			response = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.PrivateGetAccountPositions(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "adl": "1",
-		//                 "availPos": "1",
-		//                 "avgPx": "2566.31",
-		//                 "cTime": "1619507758793",
-		//                 "ccy": "ETH",
-		//                 "deltaBS": "",
-		//                 "deltaPA": "",
-		//                 "gammaBS": "",
-		//                 "gammaPA": "",
-		//                 "imr": "",
-		//                 "instId": "ETH-USD-210430",
-		//                 "instType": "FUTURES",
-		//                 "interest": "0",
-		//                 "last": "2566.22",
-		//                 "lever": "10",
-		//                 "liab": "",
-		//                 "liabCcy": "",
-		//                 "liqPx": "2352.8496681818233",
-		//                 "margin": "0.0003896645377994",
-		//                 "mgnMode": "isolated",
-		//                 "mgnRatio": "11.731726509588816",
-		//                 "mmr": "0.0000311811092368",
-		//                 "optVal": "",
-		//                 "pTime": "1619507761462",
-		//                 "pos": "1",
-		//                 "posCcy": "",
-		//                 "posId": "307173036051017730",
-		//                 "posSide": "long",
-		//                 "thetaBS": "",
-		//                 "thetaPA": "",
-		//                 "tradeId": "109844",
-		//                 "uTime": "1619507761462",
-		//                 "upl": "-0.0000009932766034",
-		//                 "uplRatio": "-0.0025490556801078",
-		//                 "vegaBS": "",
-		//                 "vegaPA": ""
-		//             }
-		//         ]
-		//     }
-		//
-		var positions any = this.SafeList(response, "data", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-			AppendToArray(&result, this.ParsePosition(GetValue(positions, i)))
-		}
-
-		ch <- this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols), false)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes615112 := (<-this.LoadMarkets())
+		PanicOnError(retRes615112)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbols, nil)) {
+		var marketIds any = []any{}
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var entry any = GetValue(symbols, i)
+			var market any = this.Market(entry)
+			AppendToArray(&marketIds, GetValue(market, "id"))
+		}
+		var marketIdsLength int = GetArrayLength(marketIds)
+		if IsTrue(IsGreaterThan(marketIdsLength, 0)) {
+			AddElementToObject(request, "instId", Join(marketIds, ","))
+		}
+	}
+	var fetchPositionsOptions any = this.SafeDict(this.Options, "fetchPositions", map[string]any{})
+	var method any = this.SafeString(fetchPositionsOptions, "method", "privateGetAccountPositions")
+	var response any = nil
+	if IsTrue(IsEqual(method, "privateGetAccountPositionsHistory")) {
+
+		response = (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.PrivateGetAccountPositions(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "adl": "1",
+	//                 "availPos": "1",
+	//                 "avgPx": "2566.31",
+	//                 "cTime": "1619507758793",
+	//                 "ccy": "ETH",
+	//                 "deltaBS": "",
+	//                 "deltaPA": "",
+	//                 "gammaBS": "",
+	//                 "gammaPA": "",
+	//                 "imr": "",
+	//                 "instId": "ETH-USD-210430",
+	//                 "instType": "FUTURES",
+	//                 "interest": "0",
+	//                 "last": "2566.22",
+	//                 "lever": "10",
+	//                 "liab": "",
+	//                 "liabCcy": "",
+	//                 "liqPx": "2352.8496681818233",
+	//                 "margin": "0.0003896645377994",
+	//                 "mgnMode": "isolated",
+	//                 "mgnRatio": "11.731726509588816",
+	//                 "mmr": "0.0000311811092368",
+	//                 "optVal": "",
+	//                 "pTime": "1619507761462",
+	//                 "pos": "1",
+	//                 "posCcy": "",
+	//                 "posId": "307173036051017730",
+	//                 "posSide": "long",
+	//                 "thetaBS": "",
+	//                 "thetaPA": "",
+	//                 "tradeId": "109844",
+	//                 "uTime": "1619507761462",
+	//                 "upl": "-0.0000009932766034",
+	//                 "uplRatio": "-0.0025490556801078",
+	//                 "vegaBS": "",
+	//                 "vegaPA": ""
+	//             }
+	//         ]
+	//     }
+	//
+	var positions any = this.SafeList(response, "data", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
+		AppendToArray(&result, this.ParsePosition(GetValue(positions, i)))
+	}
+
+	ch <- this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols), false)
+	return nil
 }
 
 /**
@@ -6939,20 +7855,20 @@ func (this *OkxCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes621615 := (<-this.FetchPositions([]any{symbol}, params))
-		PanicOnError(retRes621615)
-		ch <- retRes621615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsForSymbolBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchPositionsForSymbolBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes624315 := (<-this.FetchPositions([]any{symbol}, params))
+	PanicOnError(retRes624315)
+	ch <- retRes624315
+	return nil
 }
 func (this *OkxCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -7085,12 +8001,13 @@ func (this *OkxCore) ParsePosition(position any, optionalArgs ...any) any {
 		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
 	} else if IsTrue(IsEqual(initialMarginString, nil)) {
 		if IsTrue(GetValue(market, "linear")) {
-			initialMarginString = Precise.StringMul(initialMarginPercentage, notionalString)
+			var initialMarginPercentageString any = this.NumberToString(initialMarginPercentage)
+			initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 		} else {
 			initialMarginString = Precise.StringDiv(Precise.StringDiv(Precise.StringMul(contractsAbs, contractSizeString), entryPriceString), leverageString)
 		}
 	}
-	var rounder any = "0.00005" // round to closest 0.01%
+	var rounder string = "0.00005" // round to closest 0.01%
 	var maintenanceMarginPercentage any = this.ParseNumber(Precise.StringDiv(Precise.StringAdd(maintenanceMarginPercentageString, rounder), "1", 4))
 	var liquidationPrice any = this.SafeNumber(position, "liqPx")
 	var percentageString any = this.SafeString(position, "uplRatio")
@@ -7142,65 +8059,65 @@ func (this *OkxCore) ParsePosition(position any, optionalArgs ...any) any {
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *OkxCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes640612 := (<-this.LoadMarkets())
-			PanicOnError(retRes640612)
-		}
-		var currency any = this.Currency(code)
-		var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
-		var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
-		var toId any = this.SafeString(accountsByType, toAccount, toAccount)
-		var request any = map[string]any{
-			"ccy":  GetValue(currency, "id"),
-			"amt":  this.CurrencyToPrecision(code, amount),
-			"type": "0",
-			"from": fromId,
-			"to":   toId,
-		}
-		if IsTrue(IsEqual(fromId, "master")) {
-			AddElementToObject(request, "type", "1")
-			AddElementToObject(request, "subAcct", toId)
-			AddElementToObject(request, "from", this.SafeString(params, "from", "6"))
-			AddElementToObject(request, "to", this.SafeString(params, "to", "6"))
-		} else if IsTrue(IsEqual(toId, "master")) {
-			AddElementToObject(request, "type", "2")
-			AddElementToObject(request, "subAcct", fromId)
-			AddElementToObject(request, "from", this.SafeString(params, "from", "6"))
-			AddElementToObject(request, "to", this.SafeString(params, "to", "6"))
-		}
-
-		response := (<-this.PrivatePostAssetTransfer(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "transId": "754147",
-		//                 "ccy": "USDT",
-		//                 "from": "6",
-		//                 "amt": "0.1",
-		//                 "to": "18"
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var rawTransfer any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseTransfer(rawTransfer, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) transferBody(ch chan any, code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes643412 := (<-this.LoadMarkets())
+		PanicOnError(retRes643412)
+	}
+	var currency any = this.Currency(code)
+	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
+	var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
+	var toId any = this.SafeString(accountsByType, toAccount, toAccount)
+	var request map[string]any = map[string]any{
+		"ccy":  GetValue(currency, "id"),
+		"amt":  this.CurrencyToPrecision(code, amount),
+		"type": "0",
+		"from": fromId,
+		"to":   toId,
+	}
+	if IsTrue(IsEqual(fromId, "master")) {
+		AddElementToObject(request, "type", "1")
+		AddElementToObject(request, "subAcct", toId)
+		AddElementToObject(request, "from", this.SafeString(params, "from", "6"))
+		AddElementToObject(request, "to", this.SafeString(params, "to", "6"))
+	} else if IsTrue(IsEqual(toId, "master")) {
+		AddElementToObject(request, "type", "2")
+		AddElementToObject(request, "subAcct", fromId)
+		AddElementToObject(request, "from", this.SafeString(params, "from", "6"))
+		AddElementToObject(request, "to", this.SafeString(params, "to", "6"))
+	}
+
+	response := (<-this.PrivatePostAssetTransfer(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "transId": "754147",
+	//                 "ccy": "USDT",
+	//                 "from": "6",
+	//                 "amt": "0.1",
+	//                 "to": "18"
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var rawTransfer any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseTransfer(rawTransfer, currency)
+	return nil
 }
 func (this *OkxCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
@@ -7282,7 +8199,7 @@ func (this *OkxCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	}
 }
 func (this *OkxCore) ParseTransferStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"success": "ok",
 	}
 	if IsTrue(IsEqual(status, nil)) {
@@ -7302,53 +8219,53 @@ func (this *OkxCore) ParseTransferStatus(status any) any {
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *OkxCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes655512 := (<-this.LoadMarkets())
-			PanicOnError(retRes655512)
-		}
-		var request any = map[string]any{
-			"transId": id,
-		}
-
-		response := (<-this.PrivateGetAssetTransferState(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "amt": "5",
-		//                 "ccy": "USDT",
-		//                 "from": "18",
-		//                 "instId": "",
-		//                 "state": "success",
-		//                 "subAcct": "",
-		//                 "to": "6",
-		//                 "toInstId": "",
-		//                 "transId": "464424732",
-		//                 "type": "0"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var transfer any = this.SafeDict(data, 0)
-
-		ch <- this.ParseTransfer(transfer)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTransferBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTransferBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes658312 := (<-this.LoadMarkets())
+		PanicOnError(retRes658312)
+	}
+	var request map[string]any = map[string]any{
+		"transId": id,
+	}
+
+	response := (<-this.PrivateGetAssetTransferState(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "amt": "5",
+	//                 "ccy": "USDT",
+	//                 "from": "18",
+	//                 "instId": "",
+	//                 "state": "success",
+	//                 "subAcct": "",
+	//                 "to": "6",
+	//                 "toInstId": "",
+	//                 "transId": "464424732",
+	//                 "type": "0"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var transfer any = this.SafeDict(data, 0)
+
+	ch <- this.ParseTransfer(transfer)
+	return nil
 }
 
 /**
@@ -7363,79 +8280,79 @@ func (this *OkxCore) FetchTransfer(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *OkxCore) FetchTransfers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes660012 := (<-this.LoadMarkets())
-			PanicOnError(retRes660012)
-		}
-		var currency any = nil
-		var request any = map[string]any{
-			"type": "1",
-		}
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "begin", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "bal": "70.6874353780312913",
-		//                "balChg": "-4.0000000000000000",
-		//                "billId": "588900695232225299",
-		//                "ccy": "USDT",
-		//                "execType": "",
-		//                "fee": "",
-		//                "from": "18",
-		//                "instId": "",
-		//                "instType": "",
-		//                "mgnMode": "",
-		//                "notes": "To Funding Account",
-		//                "ordId": "",
-		//                "pnl": "",
-		//                "posBal": "",
-		//                "posBalChg": "",
-		//                "price": "0",
-		//                "subType": "12",
-		//                "sz": "-4",
-		//                "to": "6",
-		//                "ts": "1686676866989",
-		//                "type": "1"
-		//            },
-		//            ...
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var transfers any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTransfers(transfers, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTransfersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes662812 := (<-this.LoadMarkets())
+		PanicOnError(retRes662812)
+	}
+	var currency any = nil
+	var request map[string]any = map[string]any{
+		"type": "1",
+	}
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "begin", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "bal": "70.6874353780312913",
+	//                "balChg": "-4.0000000000000000",
+	//                "billId": "588900695232225299",
+	//                "ccy": "USDT",
+	//                "execType": "",
+	//                "fee": "",
+	//                "from": "18",
+	//                "instId": "",
+	//                "instType": "",
+	//                "mgnMode": "",
+	//                "notes": "To Funding Account",
+	//                "ordId": "",
+	//                "pnl": "",
+	//                "posBal": "",
+	//                "posBalChg": "",
+	//                "price": "0",
+	//                "subType": "12",
+	//                "sz": "-4",
+	//                "to": "6",
+	//                "ts": "1686676866989",
+	//                "type": "1"
+	//            },
+	//            ...
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var transfers any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTransfers(transfers, currency, since, limit, params)
+	return nil
 }
 func (this *OkxCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -7448,7 +8365,7 @@ func (this *OkxCore) Sign(path any, optionalArgs ...any) any {
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var isArray any = IsArray(params)
+	var isArray bool = IsArray(params)
 	var request any = Add(Add(Add("/api/", this.Version), "/"), this.ImplodeParams(path, params))
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "rest")), request)
@@ -7500,7 +8417,7 @@ func (this *OkxCore) Sign(path any, optionalArgs ...any) any {
 			}
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256, "base64")
 		AddElementToObject(headers, "OK-ACCESS-SIGN", signature)
 	}
 	return map[string]any{
@@ -7573,7 +8490,7 @@ func (this *OkxCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	}
 }
 func (this *OkxCore) ParseFundingInterval(interval any) any {
-	var intervals any = map[string]any{
+	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"7200000":  "2h",
 		"14400000": "4h",
@@ -7594,20 +8511,20 @@ func (this *OkxCore) ParseFundingInterval(interval any) any {
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *OkxCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes679815 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes679815)
-		ch <- retRes679815
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes682615 := (<-this.FetchFundingRate(symbol, params))
+	PanicOnError(retRes682615)
+	ch <- retRes682615
+	return nil
 }
 
 /**
@@ -7620,51 +8537,54 @@ func (this *OkxCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-cha
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *OkxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes681212 := (<-this.LoadMarkets())
-			PanicOnError(retRes681212)
-		}
-		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "swap")) {
-			panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets")))
-		}
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetPublicFundingRate(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "fundingRate": "0.00027815",
-		//                "fundingTime": "1634256000000",
-		//                "instId": "BTC-USD-SWAP",
-		//                "instType": "SWAP",
-		//                "nextFundingRate": "0.00017",
-		//                "nextFundingTime": "1634284800000"
-		//            }
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var entry any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseFundingRate(entry, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes684012 := (<-this.LoadMarkets())
+		PanicOnError(retRes684012)
+	}
+	var market any = this.Market(symbol)
+	var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+	var ruleType any = this.SafeString(marketInfo, "ruleType")
+	var isExtendedPerpetual bool = (IsEqual(ruleType, "xperp")) // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+	if IsTrue(!IsTrue(GetValue(market, "swap")) && !IsTrue(isExtendedPerpetual)) {
+		panic(ExchangeError(Add(this.Id, " fetchFundingRate() is only valid for swap markets or XPERP futures")))
+	}
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetPublicFundingRate(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "fundingRate": "0.00027815",
+	//                "fundingTime": "1634256000000",
+	//                "instId": "BTC-USD-SWAP",
+	//                "instType": "SWAP",
+	//                "nextFundingRate": "0.00017",
+	//                "nextFundingTime": "1634284800000"
+	//            }
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var entry any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseFundingRate(entry, market)
+	return nil
 }
 
 /**
@@ -7677,49 +8597,60 @@ func (this *OkxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
  * @returns {object} a dictionary of [funding rates structure]{@link https://docs.ccxt.com/?id=funding-rates-structure}
  */
 func (this *OkxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes685412 := (<-this.LoadMarkets())
-			PanicOnError(retRes685412)
-		}
-		symbols = this.MarketSymbols(symbols, "swap", true)
-		var request any = map[string]any{
-			"instId": "ANY",
-		}
-
-		response := (<-this.PublicGetPublicFundingRate(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "fundingRate": "0.00027815",
-		//                "fundingTime": "1634256000000",
-		//                "instId": "BTC-USD-SWAP",
-		//                "instType": "SWAP",
-		//                "nextFundingRate": "0.00017",
-		//                "nextFundingTime": "1634284800000"
-		//            }
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseFundingRates(data, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes688512 := (<-this.LoadMarkets())
+		PanicOnError(retRes688512)
+	}
+	symbols = this.MarketSymbols(symbols, nil, true)
+	if IsTrue(!IsEqual(symbols, nil)) {
+		for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+			var market any = this.Market(GetValue(symbols, i))
+			var marketInfo any = this.SafeDict(market, "info", map[string]any{})
+			var ruleType any = this.SafeString(marketInfo, "ruleType")
+			var isExtendedPerpetual bool = (IsEqual(ruleType, "xperp")) // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
+			if IsTrue(!IsTrue(GetValue(market, "swap")) && !IsTrue(isExtendedPerpetual)) {
+				panic(BadRequest(Add(Add(Add(this.Id, " fetchFundingRates() symbols must be swap markets or XPERP futures, "), GetValue(symbols, i)), " is not")))
+			}
+		}
+	}
+	var request map[string]any = map[string]any{
+		"instId": "ANY",
+	}
+
+	response := (<-this.PublicGetPublicFundingRate(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "fundingRate": "0.00027815",
+	//                "fundingTime": "1634256000000",
+	//                "instId": "BTC-USD-SWAP",
+	//                "instType": "SWAP",
+	//                "nextFundingRate": "0.00017",
+	//                "nextFundingTime": "1634284800000"
+	//            }
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseFundingRates(data, symbols)
+	return nil
 }
 
 /**
@@ -7734,111 +8665,111 @@ func (this *OkxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *OkxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes689212 := (<-this.LoadMarkets())
-			PanicOnError(retRes689212)
-		}
-		var request any = map[string]any{
-			"type": "8",
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", ToString(limit)) // default 100, max 100
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			symbol = GetValue(market, "symbol")
-			if IsTrue(GetValue(market, "contract")) {
-				if IsTrue(GetValue(market, "linear")) {
-					AddElementToObject(request, "ctType", "linear")
-					AddElementToObject(request, "ccy", GetValue(market, "quoteId"))
-				} else {
-					AddElementToObject(request, "ctType", "inverse")
-					AddElementToObject(request, "ccy", GetValue(market, "baseId"))
-				}
-			}
-		}
-		typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-		typeVar := GetValue(typeVarqueryVariable, 0)
-		query := GetValue(typeVarqueryVariable, 1)
-		if IsTrue(IsEqual(typeVar, "swap")) {
-			AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
-		}
-		// AccountBillsArchive has the same cost as AccountBills but supports three months of data
-
-		response := (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "bal": "0.0242946200998573",
-		//        "balChg": "0.0000148752712240",
-		//        "billId": "377970609204146187",
-		//        "ccy": "ETH",
-		//        "execType": "",
-		//        "fee": "0",
-		//        "from": "",
-		//        "instId": "ETH-USD-SWAP",
-		//        "instType": "SWAP",
-		//        "mgnMode": "isolated",
-		//        "notes": "",
-		//        "ordId": "",
-		//        "pnl": "0.000014875271224",
-		//        "posBal": "0",
-		//        "posBalChg": "0",
-		//        "subType": "174",
-		//        "sz": "9",
-		//        "to": "",
-		//        "ts": "1636387215588",
-		//        "type": "8"
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var timestamp any = this.SafeInteger(entry, "ts")
-			var instId any = this.SafeString(entry, "instId")
-			var marketInner any = this.SafeMarket(instId)
-			var currencyId any = this.SafeString(entry, "ccy")
-			var code any = this.SafeCurrencyCode(currencyId)
-			var balanceChange any = this.SafeString(entry, "balChg")
-			var positionBalanceChange any = this.SafeString(entry, "posBalChg")
-			var amount any = nil
-			if IsTrue(IsTrue((!IsEqual(balanceChange, nil))) && IsTrue((!IsTrue(Precise.StringEq(balanceChange, "0"))))) {
-				amount = balanceChange
-			} else {
-				amount = positionBalanceChange
-			}
-			AppendToArray(&result, map[string]any{
-				"info":      entry,
-				"symbol":    GetValue(marketInner, "symbol"),
-				"code":      code,
-				"timestamp": timestamp,
-				"datetime":  this.Iso8601(timestamp),
-				"id":        this.SafeString(entry, "billId"),
-				"amount":    this.ParseNumber(amount),
-			})
-		}
-		var sorted any = this.SortBy(result, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes693412 := (<-this.LoadMarkets())
+		PanicOnError(retRes693412)
+	}
+	var request map[string]any = map[string]any{
+		"type": "8",
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", ToString(limit)) // default 100, max 100
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		symbol = GetValue(market, "symbol")
+		if IsTrue(GetValue(market, "contract")) {
+			if IsTrue(GetValue(market, "linear")) {
+				AddElementToObject(request, "ctType", "linear")
+				AddElementToObject(request, "ccy", GetValue(market, "quoteId"))
+			} else {
+				AddElementToObject(request, "ctType", "inverse")
+				AddElementToObject(request, "ccy", GetValue(market, "baseId"))
+			}
+		}
+	}
+	typeVarqueryVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
+	typeVar := GetValue(typeVarqueryVariable, 0)
+	query := GetValue(typeVarqueryVariable, 1)
+	if IsTrue(IsEqual(typeVar, "swap")) {
+		AddElementToObject(request, "instType", this.ConvertToInstrumentType(typeVar))
+	}
+	// AccountBillsArchive has the same cost as AccountBills but supports three months of data
+
+	response := (<-this.PrivateGetAccountBillsArchive(this.Extend(request, query)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "bal": "0.0242946200998573",
+	//        "balChg": "0.0000148752712240",
+	//        "billId": "377970609204146187",
+	//        "ccy": "ETH",
+	//        "execType": "",
+	//        "fee": "0",
+	//        "from": "",
+	//        "instId": "ETH-USD-SWAP",
+	//        "instType": "SWAP",
+	//        "mgnMode": "isolated",
+	//        "notes": "",
+	//        "ordId": "",
+	//        "pnl": "0.000014875271224",
+	//        "posBal": "0",
+	//        "posBalChg": "0",
+	//        "subType": "174",
+	//        "sz": "9",
+	//        "to": "",
+	//        "ts": "1636387215588",
+	//        "type": "8"
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		var timestamp any = this.SafeInteger(entry, "ts")
+		var instId any = this.SafeString(entry, "instId")
+		var marketInner any = this.SafeMarket(instId)
+		var currencyId any = this.SafeString(entry, "ccy")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var balanceChange any = this.SafeString(entry, "balChg")
+		var positionBalanceChange any = this.SafeString(entry, "posBalChg")
+		var amount any = nil
+		if IsTrue(IsTrue((!IsEqual(balanceChange, nil))) && IsTrue((!IsTrue(Precise.StringEq(balanceChange, "0"))))) {
+			amount = balanceChange
+		} else {
+			amount = positionBalanceChange
+		}
+		AppendToArray(&result, map[string]any{
+			"info":      entry,
+			"symbol":    GetValue(marketInner, "symbol"),
+			"code":      code,
+			"timestamp": timestamp,
+			"datetime":  this.Iso8601(timestamp),
+			"id":        this.SafeString(entry, "billId"),
+			"amount":    this.ParseNumber(amount),
+		})
+	}
+	var sorted any = this.SortBy(result, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -7854,73 +8785,73 @@ func (this *OkxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
  * @returns {object} response from the exchange
  */
 func (this *OkxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
-		}
-		// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
-		// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-		if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 125)))) {
-			panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes707012 := (<-this.LoadMarkets())
-			PanicOnError(retRes707012)
-		}
-		var market any = this.Market(symbol)
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		if IsTrue(IsEqual(marginMode, nil)) {
-			marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
-		}
-		if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
-			panic(BadRequest(Add(this.Id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")))
-		}
-		var request any = map[string]any{
-			"lever":   leverage,
-			"mgnMode": marginMode,
-			"instId":  GetValue(market, "id"),
-		}
-		var posSide any = this.SafeString(params, "posSide", "net")
-		if IsTrue(IsEqual(marginMode, "isolated")) {
-			if IsTrue(IsTrue(IsTrue(!IsEqual(posSide, "long")) && IsTrue(!IsEqual(posSide, "short"))) && IsTrue(!IsEqual(posSide, "net"))) {
-				panic(BadRequest(Add(this.Id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")))
-			}
-			AddElementToObject(request, "posSide", posSide)
-		}
-
-		response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//       "code": "0",
-		//       "data": [
-		//         {
-		//           "instId": "BTC-USDT-SWAP",
-		//           "lever": "5",
-		//           "mgnMode": "isolated",
-		//           "posSide": "long"
-		//         }
-		//       ],
-		//       "msg": ""
-		//     }
-		//
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
+	}
+	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+	if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 125)))) {
+		panic(BadRequest(Add(this.Id, " setLeverage() leverage should be between 1 and 125")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes711212 := (<-this.LoadMarkets())
+		PanicOnError(retRes711212)
+	}
+	var market any = this.Market(symbol)
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	if IsTrue(IsEqual(marginMode, nil)) {
+		marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
+	}
+	if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
+		panic(BadRequest(Add(this.Id, " setLeverage() requires a marginMode parameter that must be either cross or isolated")))
+	}
+	var request map[string]any = map[string]any{
+		"lever":   leverage,
+		"mgnMode": marginMode,
+		"instId":  GetValue(market, "id"),
+	}
+	var posSide any = this.SafeString(params, "posSide", "net")
+	if IsTrue(IsEqual(marginMode, "isolated")) {
+		if IsTrue(IsTrue(IsTrue(!IsEqual(posSide, "long")) && IsTrue(!IsEqual(posSide, "short"))) && IsTrue(!IsEqual(posSide, "net"))) {
+			panic(BadRequest(Add(this.Id, " setLeverage() requires the posSide argument to be either \"long\", \"short\" or \"net\"")))
+		}
+		AddElementToObject(request, "posSide", posSide)
+	}
+
+	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//       "code": "0",
+	//       "data": [
+	//         {
+	//           "instId": "BTC-USDT-SWAP",
+	//           "lever": "5",
+	//           "mgnMode": "isolated",
+	//           "posSide": "long"
+	//         }
+	//       ],
+	//       "msg": ""
+	//     }
+	//
+	ch <- response
+	return nil
 }
 
 /**
@@ -7934,43 +8865,43 @@ func (this *OkxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
 func (this *OkxCore) FetchPositionMode(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		accounts := (<-this.FetchAccounts())
-		PanicOnError(accounts)
-		var length any = GetArrayLength(accounts)
-		var selectedAccount any = nil
-		if IsTrue(IsGreaterThan(length, 1)) {
-			var accountId any = this.SafeString(params, "accountId")
-			if IsTrue(IsEqual(accountId, nil)) {
-				var accountIds any = this.GetListFromObjectValues(accounts, "id")
-				panic(ExchangeError(Add(Add(this.Id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: "), Join(accountIds, ", "))))
-			} else {
-				var accountsById any = this.IndexBy(accounts, "id")
-				selectedAccount = this.SafeDict(accountsById, accountId)
-			}
-		} else {
-			selectedAccount = GetValue(accounts, 0)
-		}
-		var mainAccount any = GetValue(selectedAccount, "info")
-		var posMode any = this.SafeString(mainAccount, "posMode") // long_short_mode, net_mode
-		var isHedged any = IsEqual(posMode, "long_short_mode")
-
-		ch <- map[string]any{
-			"info":   mainAccount,
-			"hedged": isHedged,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionModeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	accounts := (<-this.FetchAccounts())
+	PanicOnError(accounts)
+	var length int = GetArrayLength(accounts)
+	var selectedAccount any = nil
+	if IsTrue(IsGreaterThan(length, 1)) {
+		var accountId any = this.SafeString(params, "accountId")
+		if IsTrue(IsEqual(accountId, nil)) {
+			var accountIds any = this.GetListFromObjectValues(accounts, "id")
+			panic(ExchangeError(Add(Add(this.Id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: "), Join(accountIds, ", "))))
+		} else {
+			var accountsById map[string]any = this.IndexBy(accounts, "id")
+			selectedAccount = this.SafeDict(accountsById, accountId)
+		}
+	} else {
+		selectedAccount = GetValue(accounts, 0)
+	}
+	var mainAccount any = GetValue(selectedAccount, "info")
+	var posMode any = this.SafeString(mainAccount, "posMode") // long_short_mode, net_mode
+	var isHedged bool = IsEqual(posMode, "long_short_mode")
+
+	ch <- map[string]any{
+		"info":   mainAccount,
+		"hedged": isHedged,
+	}
+	return nil
 }
 
 /**
@@ -7984,43 +8915,43 @@ func (this *OkxCore) FetchPositionMode(optionalArgs ...any) <-chan any {
  * @returns {object} response from the exchange
  */
 func (this *OkxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var hedgeMode any = nil
-		if IsTrue(hedged) {
-			hedgeMode = "long_short_mode"
-		} else {
-			hedgeMode = "net_mode"
-		}
-		var request any = map[string]any{
-			"posMode": hedgeMode,
-		}
-
-		response := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "posMode": "net_mode"
-		//            }
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setPositionModeBody(ch, hedged, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) setPositionModeBody(ch chan any, hedged any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var hedgeMode any = nil
+	if IsTrue(hedged) {
+		hedgeMode = "long_short_mode"
+	} else {
+		hedgeMode = "net_mode"
+	}
+	var request map[string]any = map[string]any{
+		"posMode": hedgeMode,
+	}
+
+	response := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "posMode": "net_mode"
+	//            }
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	ch <- response
+	return nil
 }
 
 /**
@@ -8035,62 +8966,62 @@ func (this *OkxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any
  * @returns {object} response from the exchange
  */
 func (this *OkxCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
-		}
-		// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
-		// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-		marginMode = ToLower(marginMode)
-		if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
-			panic(BadRequest(Add(this.Id, " setMarginMode() marginMode must be either cross or isolated")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes720312 := (<-this.LoadMarkets())
-			PanicOnError(retRes720312)
-		}
-		var market any = this.Market(symbol)
-		var lever any = this.SafeInteger2(params, "lever", "leverage")
-		if IsTrue(IsTrue(IsTrue((IsEqual(lever, nil))) || IsTrue((IsLessThan(lever, 1)))) || IsTrue((IsGreaterThan(lever, 125)))) {
-			panic(BadRequest(Add(this.Id, " setMarginMode() params[\"lever\"] should be between 1 and 125")))
-		}
-		params = this.Omit(params, []any{"leverage"})
-		var request any = map[string]any{
-			"lever":   lever,
-			"mgnMode": marginMode,
-			"instId":  GetValue(market, "id"),
-		}
-
-		response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//       "code": "0",
-		//       "data": [
-		//         {
-		//           "instId": "BTC-USDT-SWAP",
-		//           "lever": "5",
-		//           "mgnMode": "isolated",
-		//           "posSide": "long"
-		//         }
-		//       ],
-		//       "msg": ""
-		//     }
-		//
-		ch <- response
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
+	}
+	// WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+	// AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+	marginMode = ToLower(marginMode)
+	if IsTrue(IsTrue((!IsEqual(marginMode, "cross"))) && IsTrue((!IsEqual(marginMode, "isolated")))) {
+		panic(BadRequest(Add(this.Id, " setMarginMode() marginMode must be either cross or isolated")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes724512 := (<-this.LoadMarkets())
+		PanicOnError(retRes724512)
+	}
+	var market any = this.Market(symbol)
+	var lever any = this.SafeInteger2(params, "lever", "leverage")
+	if IsTrue(IsTrue(IsTrue((IsEqual(lever, nil))) || IsTrue((IsLessThan(lever, 1)))) || IsTrue((IsGreaterThan(lever, 125)))) {
+		panic(BadRequest(Add(this.Id, " setMarginMode() params[\"lever\"] should be between 1 and 125")))
+	}
+	params = this.Omit(params, []any{"leverage"})
+	var request map[string]any = map[string]any{
+		"lever":   lever,
+		"mgnMode": marginMode,
+		"instId":  GetValue(market, "id"),
+	}
+
+	response := (<-this.PrivatePostAccountSetLeverage(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//       "code": "0",
+	//       "data": [
+	//         {
+	//           "instId": "BTC-USDT-SWAP",
+	//           "lever": "5",
+	//           "mgnMode": "isolated",
+	//           "posSide": "long"
+	//         }
+	//       ],
+	//       "msg": ""
+	//     }
+	//
+	ch <- response
+	return nil
 }
 
 /**
@@ -8102,43 +9033,48 @@ func (this *OkxCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan a
  * @returns {object} a list of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes724412 := (<-this.LoadMarkets())
-			PanicOnError(retRes724412)
-		}
-
-		response := (<-this.PrivateGetAccountInterestRate(params))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "ccy": "BTC",
-		//                "interestRate": "0.00000833"
-		//            }
-		//            ...
-		//        ],
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var rates any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			AppendToArray(&rates, this.ParseBorrowRate(GetValue(data, i)))
-		}
-
-		ch <- rates
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCrossBorrowRatesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchCrossBorrowRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes728612 := (<-this.LoadMarkets())
+		PanicOnError(retRes728612)
+	}
+
+	response := (<-this.PrivateGetAccountInterestRate(params))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "ccy": "BTC",
+	//                "interestRate": "0.00000833"
+	//            }
+	//            ...
+	//        ],
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	// code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
+	var rates map[string]any = map[string]any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var rate any = this.ParseBorrowRate(GetValue(data, i))
+		var code any = this.SafeString(rate, "currency")
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(rates, code, rate)
+		}
+	}
+
+	ch <- rates
+	return nil
 }
 
 /**
@@ -8151,45 +9087,45 @@ func (this *OkxCore) FetchCrossBorrowRates(optionalArgs ...any) <-chan any {
  * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *OkxCore) FetchCrossBorrowRate(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes727812 := (<-this.LoadMarkets())
-			PanicOnError(retRes727812)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"ccy": GetValue(currency, "id"),
-		}
-
-		response := (<-this.PrivateGetAccountInterestRate(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//             {
-		//                "ccy": "USDT",
-		//                "interestRate": "0.00002065"
-		//             }
-		//             ...
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var rate any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseBorrowRate(rate)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCrossBorrowRateBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes732512 := (<-this.LoadMarkets())
+		PanicOnError(retRes732512)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"ccy": GetValue(currency, "id"),
+	}
+
+	response := (<-this.PrivateGetAccountInterestRate(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//             {
+	//                "ccy": "USDT",
+	//                "interestRate": "0.00002065"
+	//             }
+	//             ...
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var rate any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseBorrowRate(rate)
+	return nil
 }
 func (this *OkxCore) ParseBorrowRate(info any, optionalArgs ...any) any {
 	//
@@ -8207,7 +9143,7 @@ func (this *OkxCore) ParseBorrowRate(info any, optionalArgs ...any) any {
 	return map[string]any{
 		"currency":  this.SafeCurrencyCode(ccy),
 		"rate":      this.SafeNumber2(info, "interestRate", "rate"),
-		"period":    86400000,
+		"period":    3600000,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 		"info":      info,
@@ -8225,20 +9161,22 @@ func (this *OkxCore) ParseBorrowRateHistories(response any, codes any, since any
 	//        ...
 	//    ]
 	//
-	var borrowRateHistories any = map[string]any{}
+	var borrowRateHistories map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var item any = GetValue(response, i)
 		var code any = this.SafeCurrencyCode(this.SafeString(item, "ccy"))
-		if IsTrue(IsTrue(IsEqual(codes, nil)) || IsTrue(this.InArray(code, codes))) {
+		if IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((IsTrue(IsEqual(codes, nil)) || IsTrue(this.InArray(code, codes))))) {
 			if !IsTrue((InOp(borrowRateHistories, code))) {
 				AddElementToObject(borrowRateHistories, code, []any{})
 			}
 			var borrowRateStructure any = this.ParseBorrowRate(item)
+			// GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
+			AddElementToObject(borrowRateStructure, "period", 31536000000)
 			var borrrowRateCode any = GetValue(borrowRateHistories, code)
 			AppendToArray(&borrrowRateCode, borrowRateStructure)
 		}
 	}
-	var keys any = ObjectKeys(borrowRateHistories)
+	var keys []string = ObjectKeys(borrowRateHistories)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var code any = GetValue(keys, i)
 		AddElementToObject(borrowRateHistories, code, this.FilterByCurrencySinceLimit(GetValue(borrowRateHistories, code), code, since, limit))
@@ -8258,54 +9196,54 @@ func (this *OkxCore) ParseBorrowRateHistories(response any, codes any, since any
  * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
  */
 func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes737012 := (<-this.LoadMarkets())
-			PanicOnError(retRes737012)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetFinanceSavingsLendingRateHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "amt": "992.10341195",
-		//                 "ccy": "BTC",
-		//                 "rate": "0.01",
-		//                 "ts": "1643954400000"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseBorrowRateHistories(data, codes, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBorrowRateHistoriesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchBorrowRateHistoriesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes741912 := (<-this.LoadMarkets())
+		PanicOnError(retRes741912)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetFinanceSavingsLendingRateHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "amt": "992.10341195",
+	//                 "ccy": "BTC",
+	//                 "rate": "0.01",
+	//                 "ts": "1643954400000"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseBorrowRateHistories(data, codes, since, limit)
+	return nil
 }
 
 /**
@@ -8320,105 +9258,105 @@ func (this *OkxCore) FetchBorrowRateHistories(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
 func (this *OkxCore) FetchBorrowRateHistory(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes741612 := (<-this.LoadMarkets())
-			PanicOnError(retRes741612)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"ccy": GetValue(currency, "id"),
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetFinanceSavingsLendingRateHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "amt": "992.10341195",
-		//                 "ccy": "BTC",
-		//                 "rate": "0.01",
-		//                 "ts": "1643954400000"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseBorrowRateHistory(data, code, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBorrowRateHistoryBody(ch, code, optionalArgs...)
 	return ch
 }
+func (this *OkxCore) fetchBorrowRateHistoryBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes746512 := (<-this.LoadMarkets())
+		PanicOnError(retRes746512)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"ccy": GetValue(currency, "id"),
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetFinanceSavingsLendingRateHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "amt": "992.10341195",
+	//                 "ccy": "BTC",
+	//                 "rate": "0.01",
+	//                 "ts": "1643954400000"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseBorrowRateHistory(data, code, since, limit)
+	return nil
+}
 func (this *OkxCore) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes745212 := (<-this.LoadMarkets())
-			PanicOnError(retRes745212)
-		}
-		var market any = this.Market(symbol)
-		var posSide any = this.SafeString(params, "posSide", "net")
-		params = this.Omit(params, []any{"posSide"})
-		var request any = map[string]any{
-			"instId":  GetValue(market, "id"),
-			"amt":     amount,
-			"type":    typeVar,
-			"posSide": posSide,
-		}
-
-		response := (<-this.PrivatePostAccountPositionMarginBalance(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//       "code": "0",
-		//       "data": [
-		//         {
-		//           "amt": "0.01",
-		//           "instId": "ETH-USD-SWAP",
-		//           "posSide": "net",
-		//           "type": "reduce"
-		//         }
-		//       ],
-		//       "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var entry any = this.SafeDict(data, 0, map[string]any{})
-		var errorCode any = this.SafeString(response, "code")
-
-		ch <- this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-			"status": Ternary(IsTrue((IsEqual(errorCode, "0"))), "ok", "failed"),
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes750112 := (<-this.LoadMarkets())
+		PanicOnError(retRes750112)
+	}
+	var market any = this.Market(symbol)
+	var posSide any = this.SafeString(params, "posSide", "net")
+	params = this.Omit(params, []any{"posSide"})
+	var request map[string]any = map[string]any{
+		"instId":  GetValue(market, "id"),
+		"amt":     amount,
+		"type":    typeVar,
+		"posSide": posSide,
+	}
+
+	response := (<-this.PrivatePostAccountPositionMarginBalance(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//       "code": "0",
+	//       "data": [
+	//         {
+	//           "amt": "0.01",
+	//           "instId": "ETH-USD-SWAP",
+	//           "posSide": "net",
+	//           "type": "reduce"
+	//         }
+	//       ],
+	//       "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var entry any = this.SafeDict(data, 0, map[string]any{})
+	var errorCode any = this.SafeString(response, "code")
+
+	ch <- this.Extend(this.ParseMarginModification(entry, market), map[string]any{
+		"status": Ternary(IsTrue((IsEqual(errorCode, "0"))), "ok", "failed"),
+	})
+	return nil
 }
 func (this *OkxCore) ParseMarginModification(data any, optionalArgs ...any) any {
 	//
@@ -8472,6 +9410,7 @@ func (this *OkxCore) ParseMarginModification(data any, optionalArgs ...any) any 
 	_ = market
 	var amountRaw any = this.SafeString2(data, "amt", "posBalChg")
 	var typeRaw any = this.SafeString(data, "type")
+	// ledger uses numeric '6' (+/- amount); addMargin/reduceMargin already send 'add'/'reduce'
 	var typeVar any = nil
 	if IsTrue(IsEqual(typeRaw, "6")) {
 		typeVar = Ternary(IsTrue(Precise.StringGt(amountRaw, "0")), "add", "reduce")
@@ -8508,20 +9447,20 @@ func (this *OkxCore) ParseMarginModification(data any, optionalArgs ...any) any 
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *OkxCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes757215 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
-		PanicOnError(retRes757215)
-		ch <- retRes757215
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes762315 := (<-this.ModifyMarginHelper(symbol, amount, "reduce", params))
+	PanicOnError(retRes762315)
+	ch <- retRes762315
+	return nil
 }
 
 /**
@@ -8535,20 +9474,20 @@ func (this *OkxCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <
  * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
  */
 func (this *OkxCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes758615 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-		PanicOnError(retRes758615)
-		ch <- retRes758615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes763715 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+	PanicOnError(retRes763715)
+	ch <- retRes763715
+	return nil
 }
 
 /**
@@ -8562,71 +9501,71 @@ func (this *OkxCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-ch
  * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
  */
 func (this *OkxCore) FetchMarketLeverageTiers(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes760112 := (<-this.LoadMarkets())
-			PanicOnError(retRes760112)
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
-		var uly any = this.SafeString(GetValue(market, "info"), "uly")
-		if !IsTrue(uly) {
-			if IsTrue(!IsEqual(typeVar, "MARGIN")) {
-				panic(BadRequest(Add(Add(this.Id, " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)))
-			}
-		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		if IsTrue(IsEqual(marginMode, nil)) {
-			marginMode = this.SafeString(params, "tdMode", "cross") // cross as default marginMode
-		}
-		var request any = map[string]any{
-			"instType": typeVar,
-			"tdMode":   marginMode,
-			"uly":      uly,
-		}
-		if IsTrue(IsEqual(typeVar, "MARGIN")) {
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		}
-
-		response := (<-this.PublicGetPublicPositionTiers(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "baseMaxLoan": "500",
-		//                "imr": "0.1",
-		//                "instId": "ETH-USDT",
-		//                "maxLever": "10",
-		//                "maxSz": "500",
-		//                "minSz": "0",
-		//                "mmr": "0.03",
-		//                "optMgnFactor": "0",
-		//                "quoteMaxLoan": "200000",
-		//                "tier": "1",
-		//                "uly": ""
-		//            },
-		//            ...
-		//        ]
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseMarketLeverageTiers(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchMarketLeverageTiersBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes765212 := (<-this.LoadMarkets())
+		PanicOnError(retRes765212)
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = Ternary(IsTrue(GetValue(market, "spot")), "MARGIN", this.ConvertToInstrumentType(GetValue(market, "type")))
+	var uly any = this.SafeString(GetValue(market, "info"), "uly")
+	if !IsTrue(uly) {
+		if IsTrue(!IsEqual(typeVar, "MARGIN")) {
+			panic(BadRequest(Add(Add(this.Id, " fetchMarketLeverageTiers() cannot fetch leverage tiers for "), symbol)))
+		}
+	}
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params)
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	if IsTrue(IsEqual(marginMode, nil)) {
+		marginMode = this.SafeString(params, "tdMode", "cross") // cross as default marginMode
+	}
+	var request map[string]any = map[string]any{
+		"instType": typeVar,
+		"tdMode":   marginMode,
+		"uly":      uly,
+	}
+	if IsTrue(IsEqual(typeVar, "MARGIN")) {
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	}
+
+	response := (<-this.PublicGetPublicPositionTiers(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "baseMaxLoan": "500",
+	//                "imr": "0.1",
+	//                "instId": "ETH-USDT",
+	//                "maxLever": "10",
+	//                "maxSz": "500",
+	//                "minSz": "0",
+	//                "mmr": "0.03",
+	//                "optMgnFactor": "0",
+	//                "quoteMaxLoan": "200000",
+	//                "tier": "1",
+	//                "uly": ""
+	//            },
+	//            ...
+	//        ]
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseMarketLeverageTiers(data, market)
+	return nil
 }
 func (this *OkxCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any {
 	/**
@@ -8688,80 +9627,80 @@ func (this *OkxCore) ParseMarketLeverageTiers(info any, optionalArgs ...any) any
  * @returns {object[]} An list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
  */
 func (this *OkxCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		symbol := GetArg(optionalArgs, 1, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 2, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 3, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 4, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes770912 := (<-this.LoadMarkets())
-			PanicOnError(retRes770912)
-		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		if IsTrue(IsEqual(marginMode, nil)) {
-			marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
-		}
-		var request any = map[string]any{
-			"mgnMode": marginMode,
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			var currency any = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", Subtract(since, 1))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "instId", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivateGetAccountInterestAccrued(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "ccy": "USDT",
-		//                "instId": "",
-		//                "interest": "0.0003960833333334",
-		//                "interestRate": "0.0000040833333333",
-		//                "liab": "97",
-		//                "mgnMode": "",
-		//                "ts": "1637312400000",
-		//                "type": "1"
-		//            },
-		//            ...
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var interest any = this.ParseBorrowInterests(data)
-
-		ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBorrowInterestBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchBorrowInterestBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	symbol := GetArg(optionalArgs, 1, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 2, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 3, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 4, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes776012 := (<-this.LoadMarkets())
+		PanicOnError(retRes776012)
+	}
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	if IsTrue(IsEqual(marginMode, nil)) {
+		marginMode = this.SafeString(params, "mgnMode", "cross") // cross as default marginMode
+	}
+	var request map[string]any = map[string]any{
+		"mgnMode": marginMode,
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		var currency any = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", Subtract(since, 1))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "instId", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivateGetAccountInterestAccrued(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "ccy": "USDT",
+	//                "instId": "",
+	//                "interest": "0.0003960833333334",
+	//                "interestRate": "0.0000040833333333",
+	//                "liab": "97",
+	//                "mgnMode": "",
+	//                "ts": "1637312400000",
+	//                "type": "1"
+	//            },
+	//            ...
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var interest any = this.ParseBorrowInterests(data)
+
+	ch <- this.FilterByCurrencySinceLimit(interest, code, since, limit)
+	return nil
 }
 func (this *OkxCore) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -8795,49 +9734,49 @@ func (this *OkxCore) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *OkxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes779012 := (<-this.LoadMarkets())
-			PanicOnError(retRes779012)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"ccy":  GetValue(currency, "id"),
-			"amt":  this.CurrencyToPrecision(code, amount),
-			"side": "borrow",
-		}
-
-		response := (<-this.PrivatePostAccountBorrowRepay(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "amt": "102",
-		//                 "ccy": "USDT",
-		//                 "ordId": "544199684697214976",
-		//                 "side": "borrow",
-		//                 "state": "1"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var loan any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseMarginLoan(loan, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.borrowCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) borrowCrossMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes784112 := (<-this.LoadMarkets())
+		PanicOnError(retRes784112)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"ccy":  GetValue(currency, "id"),
+		"amt":  this.CurrencyToPrecision(code, amount),
+		"side": "borrow",
+	}
+
+	response := (<-this.PrivatePostAccountBorrowRepay(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "amt": "102",
+	//                 "ccy": "USDT",
+	//                 "ordId": "544199684697214976",
+	//                 "side": "borrow",
+	//                 "state": "1"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var loan any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseMarginLoan(loan, currency)
+	return nil
 }
 
 /**
@@ -8852,55 +9791,55 @@ func (this *OkxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any
  * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *OkxCore) RepayCrossMargin(code any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes783212 := (<-this.LoadMarkets())
-			PanicOnError(retRes783212)
-		}
-		var id any = this.SafeString2(params, "id", "ordId")
-		params = this.Omit(params, "id")
-		if IsTrue(IsEqual(id, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " repayCrossMargin() requires an id parameter")))
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"ccy":   GetValue(currency, "id"),
-			"amt":   this.CurrencyToPrecision(code, amount),
-			"side":  "repay",
-			"ordId": id,
-		}
-
-		response := (<-this.PrivatePostAccountBorrowRepay(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "amt": "102",
-		//                 "ccy": "USDT",
-		//                 "ordId": "544199684697214976",
-		//                 "side": "repay",
-		//                 "state": "1"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var loan any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseMarginLoan(loan, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.repayCrossMarginBody(ch, code, amount, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) repayCrossMarginBody(ch chan any, code any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes788312 := (<-this.LoadMarkets())
+		PanicOnError(retRes788312)
+	}
+	var id any = this.SafeString2(params, "id", "ordId")
+	params = this.Omit(params, "id")
+	if IsTrue(IsEqual(id, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " repayCrossMargin() requires an id parameter")))
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"ccy":   GetValue(currency, "id"),
+		"amt":   this.CurrencyToPrecision(code, amount),
+		"side":  "repay",
+		"ordId": id,
+	}
+
+	response := (<-this.PrivatePostAccountBorrowRepay(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "amt": "102",
+	//                 "ccy": "USDT",
+	//                 "ordId": "544199684697214976",
+	//                 "side": "repay",
+	//                 "state": "1"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var loan any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseMarginLoan(loan, currency)
+	return nil
 }
 func (this *OkxCore) ParseMarginLoan(info any, optionalArgs ...any) any {
 	//
@@ -8938,53 +9877,53 @@ func (this *OkxCore) ParseMarginLoan(info any, optionalArgs ...any) any {
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *OkxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes790212 := (<-this.LoadMarkets())
-			PanicOnError(retRes790212)
-		}
-		var market any = this.Market(symbol)
-		if !IsTrue(GetValue(market, "contract")) {
-			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
-		}
-		var typeVar any = this.ConvertToInstrumentType(GetValue(market, "type"))
-		var uly any = this.SafeString(GetValue(market, "info"), "uly")
-		var request any = map[string]any{
-			"instType": typeVar,
-			"uly":      uly,
-			"instId":   GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetPublicOpenInterest(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "instId": "BTC-USDT-SWAP",
-		//                 "instType": "SWAP",
-		//                 "oi": "2125419",
-		//                 "oiCcy": "21254.19",
-		//                 "ts": "1664005108969"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOpenInterest(GetValue(data, 0), market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes795312 := (<-this.LoadMarkets())
+		PanicOnError(retRes795312)
+	}
+	var market any = this.Market(symbol)
+	if !IsTrue(GetValue(market, "contract")) {
+		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
+	}
+	var typeVar any = this.ConvertToInstrumentType(GetValue(market, "type"))
+	var uly any = this.SafeString(GetValue(market, "info"), "uly")
+	var request map[string]any = map[string]any{
+		"instType": typeVar,
+		"uly":      uly,
+		"instId":   GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetPublicOpenInterest(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "instId": "BTC-USDT-SWAP",
+	//                 "instType": "SWAP",
+	//                 "oi": "2125419",
+	//                 "oiCcy": "21254.19",
+	//                 "ts": "1664005108969"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOpenInterest(GetValue(data, 0), market)
+	return nil
 }
 
 /**
@@ -9000,73 +9939,73 @@ func (this *OkxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
  * @returns {object} an dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *OkxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes794912 := (<-this.LoadMarkets())
-			PanicOnError(retRes794912)
-		}
-		symbols = this.MarketSymbols(symbols, nil, true, true)
-		var market any = nil
-		if IsTrue(!IsEqual(symbols, nil)) {
-			market = this.Market(GetValue(symbols, 0))
-		}
-		var marketType any = nil
-		marketTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "swap")
-		marketType = GetValue(marketTypeparamsVariable, 0)
-		params = GetValue(marketTypeparamsVariable, 1)
-		var instType any = "SWAP"
-		if IsTrue(IsEqual(marketType, "future")) {
-			instType = "FUTURES"
-		} else if IsTrue(IsEqual(instType, "option")) {
-			instType = "OPTION"
-		}
-		var request any = map[string]any{
-			"instType": instType,
-		}
-		var uly any = this.SafeString(params, "uly")
-		if IsTrue(!IsEqual(uly, nil)) {
-			AddElementToObject(request, "uly", uly)
-		}
-		var instFamily any = this.SafeString(params, "instFamily")
-		if IsTrue(!IsEqual(instFamily, nil)) {
-			AddElementToObject(request, "instFamily", instFamily)
-		}
-		if IsTrue(IsTrue(IsTrue(IsEqual(instType, "OPTION")) && IsTrue(IsEqual(uly, nil))) && IsTrue(IsEqual(instFamily, nil))) {
-			panic(BadRequest(Add(this.Id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")))
-		}
-
-		response := (<-this.PublicGetPublicOpenInterest(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "instId": "BTC-USDT-SWAP",
-		//                 "instType": "SWAP",
-		//                 "oi": "2125419",
-		//                 "oiCcy": "21254.19",
-		//                 "ts": "1664005108969"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOpenInterests(data, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes800012 := (<-this.LoadMarkets())
+		PanicOnError(retRes800012)
+	}
+	symbols = this.MarketSymbols(symbols, nil, true, true)
+	var market any = nil
+	if IsTrue(!IsEqual(symbols, nil)) {
+		market = this.Market(GetValue(symbols, 0))
+	}
+	var marketType any = nil
+	marketTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenInterests", market, params, "swap")
+	marketType = GetValue(marketTypeparamsVariable, 0)
+	params = GetValue(marketTypeparamsVariable, 1)
+	var instType string = "SWAP"
+	if IsTrue(IsEqual(marketType, "future")) {
+		instType = "FUTURES"
+	} else if IsTrue(IsEqual(instType, "option")) {
+		instType = "OPTION"
+	}
+	var request map[string]any = map[string]any{
+		"instType": instType,
+	}
+	var uly any = this.SafeString(params, "uly")
+	if IsTrue(!IsEqual(uly, nil)) {
+		AddElementToObject(request, "uly", uly)
+	}
+	var instFamily any = this.SafeString(params, "instFamily")
+	if IsTrue(!IsEqual(instFamily, nil)) {
+		AddElementToObject(request, "instFamily", instFamily)
+	}
+	if IsTrue(IsTrue(IsTrue(IsEqual(instType, "OPTION")) && IsTrue(IsEqual(uly, nil))) && IsTrue(IsEqual(instFamily, nil))) {
+		panic(BadRequest(Add(this.Id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")))
+	}
+
+	response := (<-this.PublicGetPublicOpenInterest(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "instId": "BTC-USDT-SWAP",
+	//                 "instType": "SWAP",
+	//                 "oi": "2125419",
+	//                 "oiCcy": "21254.19",
+	//                 "ts": "1664005108969"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOpenInterests(data, symbols)
+	return nil
 }
 
 /**
@@ -9084,86 +10023,86 @@ func (this *OkxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
  * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
  */
 func (this *OkxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1d")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var options any = this.SafeDict(this.Options, "fetchOpenInterestHistory", map[string]any{})
-		var timeframes any = this.SafeDict(options, "timeframes", map[string]any{})
-		timeframe = this.SafeString(timeframes, timeframe, timeframe)
-		if IsTrue(IsTrue(IsTrue(!IsEqual(timeframe, "5m")) && IsTrue(!IsEqual(timeframe, "1H"))) && IsTrue(!IsEqual(timeframe, "1D"))) {
-			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes801812 := (<-this.LoadMarkets())
-			PanicOnError(retRes801812)
-		}
-		// handle unified currency code or symbol
-		var currencyId any = nil
-		var market any = nil
-		if IsTrue(IsTrue((InOp(this.Markets, symbol))) || IsTrue((InOp(this.Markets_by_id, symbol)))) {
-			market = this.Market(symbol)
-			currencyId = GetValue(market, "baseId")
-		} else {
-			var currency any = this.Currency(symbol)
-			currencyId = GetValue(currency, "id")
-		}
-		var request any = map[string]any{
-			"ccy":    currencyId,
-			"period": timeframe,
-		}
-		var typeVar any = nil
-		var response any = nil
-		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
-		typeVar = GetValue(typeVarparamsVariable, 0)
-		params = GetValue(typeVarparamsVariable, 1)
-		if IsTrue(IsEqual(typeVar, "option")) {
-
-			response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "begin", since)
-			}
-			var until any = this.SafeInteger(params, "until")
-			if IsTrue(!IsEqual(until, nil)) {
-				AddElementToObject(request, "end", until)
-				params = this.Omit(params, []any{"until"})
-			}
-
-			response = (<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            [
-		//                "1648221300000",  // timestamp
-		//                "2183354317.945",  // open interest (USD)
-		//                "74285877.617",  // volume (USD)
-		//            ],
-		//            ...
-		//        ],
-		//        "msg": ''
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOpenInterestsHistory(data, nil, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestHistoryBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOpenInterestHistoryBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1d")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var options any = this.SafeDict(this.Options, "fetchOpenInterestHistory", map[string]any{})
+	var timeframes any = this.SafeDict(options, "timeframes", map[string]any{})
+	timeframe = this.SafeString(timeframes, timeframe, timeframe)
+	if IsTrue(IsTrue(IsTrue(!IsEqual(timeframe, "5m")) && IsTrue(!IsEqual(timeframe, "1H"))) && IsTrue(!IsEqual(timeframe, "1D"))) {
+		panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes806912 := (<-this.LoadMarkets())
+		PanicOnError(retRes806912)
+	}
+	// handle unified currency code or symbol
+	var currencyId any = nil
+	var market any = nil
+	if IsTrue(IsTrue((IsTrue((!IsEqual(this.Markets, nil))) && IsTrue((InOp(this.Markets, symbol))))) || IsTrue((IsTrue((!IsEqual(this.Markets_by_id, nil))) && IsTrue((InOp(this.Markets_by_id, symbol)))))) {
+		market = this.Market(symbol)
+		currencyId = GetValue(market, "baseId")
+	} else {
+		var currency any = this.Currency(symbol)
+		currencyId = GetValue(currency, "id")
+	}
+	var request map[string]any = map[string]any{
+		"ccy":    currencyId,
+		"period": timeframe,
+	}
+	var typeVar any = nil
+	var response any = nil
+	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchOpenInterestHistory", market, params)
+	typeVar = GetValue(typeVarparamsVariable, 0)
+	params = GetValue(typeVarparamsVariable, 1)
+	if IsTrue(IsEqual(typeVar, "option")) {
+
+		response = (<-this.PublicGetRubikStatOptionOpenInterestVolume(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "begin", since)
+		}
+		var until any = this.SafeInteger(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			AddElementToObject(request, "end", until)
+			params = this.Omit(params, []any{"until"})
+		}
+
+		response = (<-this.PublicGetRubikStatContractsOpenInterestVolume(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            [
+	//                "1648221300000",  // timestamp
+	//                "2183354317.945",  // open interest (USD)
+	//                "74285877.617",  // volume (USD)
+	//            ],
+	//            ...
+	//        ],
+	//        "msg": ''
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOpenInterestsHistory(data, nil, since, limit)
+	return nil
 }
 func (this *OkxCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	//
@@ -9241,77 +10180,77 @@ func (this *OkxCore) SetSandboxMode(enable any) {
  * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *OkxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes814412 := (<-this.LoadMarkets())
-			PanicOnError(retRes814412)
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(codes, nil)) {
-			var ids any = this.CurrencyIds(codes)
-			AddElementToObject(request, "ccy", Join(ids, ","))
-		}
-
-		response := (<-this.PrivateGetAssetCurrencies(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "0",
-		//        "data": [
-		//            {
-		//                "canDep": true,
-		//                "canInternal": false,
-		//                "canWd": true,
-		//                "ccy": "USDT",
-		//                "chain": "USDT-TRC20",
-		//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-		//                "mainNet": false,
-		//                "maxFee": "1.6",
-		//                "maxWd": "8852150",
-		//                "minFee": "0.8",
-		//                "minWd": "2",
-		//                "name": "Tether",
-		//                "usedWdQuota": "0",
-		//                "wdQuota": "500",
-		//                "wdTickSz": "3"
-		//            },
-		//            {
-		//                "canDep": true,
-		//                "canInternal": false,
-		//                "canWd": true,
-		//                "ccy": "USDT",
-		//                "chain": "USDT-ERC20",
-		//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
-		//                "mainNet": false,
-		//                "maxFee": "16",
-		//                "maxWd": "8852150",
-		//                "minFee": "8",
-		//                "minWd": "2",
-		//                "name": "Tether",
-		//                "usedWdQuota": "0",
-		//                "wdQuota": "500",
-		//                "wdTickSz": "3"
-		//            },
-		//            ...
-		//        ],
-		//        "msg": ""
-		//    }
-		//
-		var data any = this.SafeList(response, "data")
-
-		ch <- this.ParseDepositWithdrawFees(data, codes)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes819512 := (<-this.LoadMarkets())
+		PanicOnError(retRes819512)
+	}
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(codes, nil)) {
+		var ids any = this.CurrencyIds(codes)
+		AddElementToObject(request, "ccy", Join(ids, ","))
+	}
+
+	response := (<-this.PrivateGetAssetCurrencies(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "0",
+	//        "data": [
+	//            {
+	//                "canDep": true,
+	//                "canInternal": false,
+	//                "canWd": true,
+	//                "ccy": "USDT",
+	//                "chain": "USDT-TRC20",
+	//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+	//                "mainNet": false,
+	//                "maxFee": "1.6",
+	//                "maxWd": "8852150",
+	//                "minFee": "0.8",
+	//                "minWd": "2",
+	//                "name": "Tether",
+	//                "usedWdQuota": "0",
+	//                "wdQuota": "500",
+	//                "wdTickSz": "3"
+	//            },
+	//            {
+	//                "canDep": true,
+	//                "canInternal": false,
+	//                "canWd": true,
+	//                "ccy": "USDT",
+	//                "chain": "USDT-ERC20",
+	//                "logoLink": "https://static.coinall.ltd/cdn/assets/imgs/221/5F74EB20302D7761.png",
+	//                "mainNet": false,
+	//                "maxFee": "16",
+	//                "maxWd": "8852150",
+	//                "minFee": "8",
+	//                "minWd": "2",
+	//                "name": "Tether",
+	//                "usedWdQuota": "0",
+	//                "wdQuota": "500",
+	//                "wdTickSz": "3"
+	//            },
+	//            ...
+	//        ],
+	//        "msg": ""
+	//    }
+	//
+	var data any = this.SafeList(response, "data")
+
+	ch <- this.ParseDepositWithdrawFees(data, codes)
+	return nil
 }
 func (this *OkxCore) ParseDepositWithdrawFees(response any, optionalArgs ...any) any {
 	//
@@ -9339,13 +10278,13 @@ func (this *OkxCore) ParseDepositWithdrawFees(response any, optionalArgs ...any)
 	_ = codes
 	currencyIdKey := GetArg(optionalArgs, 1, nil)
 	_ = currencyIdKey
-	var depositWithdrawFees any = map[string]any{}
+	var depositWithdrawFees map[string]any = map[string]any{}
 	codes = this.MarketCodes(codes)
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 		var feeInfo any = GetValue(response, i)
 		var currencyId any = this.SafeString(feeInfo, "ccy")
 		var code any = this.SafeCurrencyCode(currencyId)
-		if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))) {
+		if IsTrue(IsTrue((!IsEqual(code, nil))) && IsTrue((IsTrue((IsEqual(codes, nil))) || IsTrue((this.InArray(code, codes)))))) {
 			var depositWithdrawFee any = this.SafeValue(depositWithdrawFees, code)
 			if IsTrue(IsEqual(depositWithdrawFee, nil)) {
 				AddElementToObject(depositWithdrawFees, code, this.DepositWithdrawFee(map[string]any{}))
@@ -9357,25 +10296,27 @@ func (this *OkxCore) ParseDepositWithdrawFees(response any, optionalArgs ...any)
 			if IsTrue(IsEqual(chain, nil)) {
 				continue
 			}
-			var chainSplit any = Split(chain, "-")
+			var chainSplit []string = Split(chain, "-")
 			var networkId any = this.SafeValue(chainSplit, 1)
 			var withdrawFee any = this.SafeNumber(feeInfo, "fee")
-			var withdrawResult any = map[string]any{
+			var withdrawResult map[string]any = map[string]any{
 				"fee":        withdrawFee,
 				"percentage": Ternary(IsTrue((!IsEqual(withdrawFee, nil))), false, nil),
 			}
-			var depositResult any = map[string]any{
+			var depositResult map[string]any = map[string]any{
 				"fee":        nil,
 				"percentage": nil,
 			}
 			var networkCode any = this.NetworkIdToCode(networkId, code)
-			AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
-				"withdraw": withdrawResult,
-				"deposit":  depositResult,
-			})
+			if IsTrue(!IsEqual(networkCode, nil)) {
+				AddElementToObject(GetValue(GetValue(depositWithdrawFees, code), "networks"), networkCode, map[string]any{
+					"withdraw": withdrawResult,
+					"deposit":  depositResult,
+				})
+			}
 		}
 	}
-	var depositWithdrawCodes any = ObjectKeys(depositWithdrawFees)
+	var depositWithdrawCodes []string = ObjectKeys(depositWithdrawFees)
 	for i := 0; IsLessThan(i, GetArrayLength(depositWithdrawCodes)); i++ {
 		var code any = GetValue(depositWithdrawCodes, i)
 		var currency any = this.Currency(code)
@@ -9396,74 +10337,74 @@ func (this *OkxCore) ParseDepositWithdrawFees(response any, optionalArgs ...any)
  * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
  */
 func (this *OkxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes828212 := (<-this.LoadMarkets())
-			PanicOnError(retRes828212)
-		}
-		var market any = this.Market(symbol)
-		var typeVar any = nil
-		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
-		typeVar = GetValue(typeVarparamsVariable, 0)
-		params = GetValue(typeVarparamsVariable, 1)
-		if IsTrue(IsTrue(!IsEqual(typeVar, "future")) && IsTrue(!IsEqual(typeVar, "option"))) {
-			panic(NotSupported(Add(this.Id, " fetchSettlementHistory() supports futures and options markets only")))
-		}
-		var request any = map[string]any{
-			"instType": this.ConvertToInstrumentType(typeVar),
-			"uly":      Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId")),
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", Subtract(since, 1))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetPublicDeliveryExerciseHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "details": [
-		//                     {
-		//                         "insId": "BTC-USD-230523-25750-C",
-		//                         "px": "27290.1486867000556483",
-		//                         "type": "exercised"
-		//                     },
-		//                 ],
-		//                 "ts":"1684656000000"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var settlements any = this.ParseSettlements(data, market)
-		var sorted any = this.SortBy(settlements, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchSettlementHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes833512 := (<-this.LoadMarkets())
+		PanicOnError(retRes833512)
+	}
+	var market any = this.Market(symbol)
+	var typeVar any = nil
+	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
+	typeVar = GetValue(typeVarparamsVariable, 0)
+	params = GetValue(typeVarparamsVariable, 1)
+	if IsTrue(IsTrue(!IsEqual(typeVar, "future")) && IsTrue(!IsEqual(typeVar, "option"))) {
+		panic(NotSupported(Add(this.Id, " fetchSettlementHistory() supports futures and options markets only")))
+	}
+	var request map[string]any = map[string]any{
+		"instType": this.ConvertToInstrumentType(typeVar),
+		"uly":      Add(Add(GetValue(market, "baseId"), "-"), GetValue(market, "quoteId")),
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", Subtract(since, 1))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetPublicDeliveryExerciseHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "details": [
+	//                     {
+	//                         "insId": "BTC-USD-230523-25750-C",
+	//                         "px": "27290.1486867000556483",
+	//                         "type": "exercised"
+	//                     },
+	//                 ],
+	//                 "ts":"1684656000000"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var settlements any = this.ParseSettlements(data, market)
+	var sorted any = this.SortBy(settlements, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
+	return nil
 }
 func (this *OkxCore) ParseSettlement(settlement any, market any) any {
 	//
@@ -9521,52 +10462,52 @@ func (this *OkxCore) ParseSettlements(settlements any, market any) any {
  * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
  */
 func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes838312 := (<-this.LoadMarkets())
-			PanicOnError(retRes838312)
-		}
-		var marketType any = nil
-		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
-		marketType = GetValue(marketTypeparamsVariable, 0)
-		params = GetValue(marketTypeparamsVariable, 1)
-		if IsTrue(IsTrue((IsEqual(marketType, nil))) || IsTrue((IsEqual(marketType, "spot")))) {
-			marketType = "option"
-		}
-		if IsTrue(IsTrue(IsTrue((!IsEqual(marketType, "option"))) && IsTrue((!IsEqual(marketType, "swap")))) && IsTrue((!IsEqual(marketType, "future")))) {
-			panic(NotSupported(Add(this.Id, " fetchUnderlyingAssets() supports contract markets only")))
-		}
-		var request any = map[string]any{
-			"instType": this.ConvertToInstrumentType(marketType),
-		}
-
-		response := (<-this.PublicGetPublicUnderlying(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             [
-		//                 "BTC-USD",
-		//                 "ETH-USD"
-		//             ]
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var underlyings any = this.SafeList(response, "data", []any{})
-
-		ch <- GetValue(underlyings, 0)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchUnderlyingAssetsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchUnderlyingAssetsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes843612 := (<-this.LoadMarkets())
+		PanicOnError(retRes843612)
+	}
+	var marketType any = nil
+	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchUnderlyingAssets", nil, params)
+	marketType = GetValue(marketTypeparamsVariable, 0)
+	params = GetValue(marketTypeparamsVariable, 1)
+	if IsTrue(IsTrue((IsEqual(marketType, nil))) || IsTrue((IsEqual(marketType, "spot")))) {
+		marketType = "option"
+	}
+	if IsTrue(IsTrue(IsTrue((!IsEqual(marketType, "option"))) && IsTrue((!IsEqual(marketType, "swap")))) && IsTrue((!IsEqual(marketType, "future")))) {
+		panic(NotSupported(Add(this.Id, " fetchUnderlyingAssets() supports contract markets only")))
+	}
+	var request map[string]any = map[string]any{
+		"instType": this.ConvertToInstrumentType(marketType),
+	}
+
+	response := (<-this.PublicGetPublicUnderlying(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             [
+	//                 "BTC-USD",
+	//                 "ETH-USD"
+	//             ]
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var underlyings any = this.SafeList(response, "data", []any{})
+
+	ch <- GetValue(underlyings, 0)
+	return nil
 }
 
 /**
@@ -9579,72 +10520,71 @@ func (this *OkxCore) FetchUnderlyingAssets(optionalArgs ...any) <-chan any {
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *OkxCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes842412 := (<-this.LoadMarkets())
-			PanicOnError(retRes842412)
-		}
-		var market any = this.Market(symbol)
-		var marketId any = this.SafeString(market, "id", "")
-		var optionParts any = Split(marketId, "-")
-		var request any = map[string]any{
-			"uly":        GetValue(GetValue(market, "info"), "uly"),
-			"instFamily": GetValue(GetValue(market, "info"), "instFamily"),
-			"expTime":    this.SafeString(optionParts, 2),
-		}
-
-		response := (<-this.PublicGetPublicOptSummary(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "askVol": "0",
-		//                 "bidVol": "0",
-		//                 "delta": "0.5105464486882039",
-		//                 "deltaBS": "0.7325502184143025",
-		//                 "fwdPx": "37675.80158694987186",
-		//                 "gamma": "-0.13183515090501083",
-		//                 "gammaBS": "0.000024139685826358558",
-		//                 "instId": "BTC-USD-240329-32000-C",
-		//                 "instType": "OPTION",
-		//                 "lever": "4.504428015946619",
-		//                 "markVol": "0.5916253554539876",
-		//                 "realVol": "0",
-		//                 "theta": "-0.0004202992014012855",
-		//                 "thetaBS": "-18.52354631567909",
-		//                 "ts": "1699586421976",
-		//                 "uly": "BTC-USD",
-		//                 "vega": "0.0020207455080045846",
-		//                 "vegaBS": "74.44022302387287",
-		//                 "volLv": "0.5948549730405797"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var entryMarketId any = this.SafeString(entry, "instId")
-			if IsTrue(IsEqual(entryMarketId, marketId)) {
-
-				ch <- this.ParseGreeks(entry, market)
-				return nil
-			}
-		}
-
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchGreeksBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchGreeksBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes847712 := (<-this.LoadMarkets())
+		PanicOnError(retRes847712)
+	}
+	var market any = this.Market(symbol)
+	var marketId any = this.SafeString(market, "id", "")
+	var optionParts []string = Split(marketId, "-")
+	var request map[string]any = map[string]any{
+		"uly":        GetValue(GetValue(market, "info"), "uly"),
+		"instFamily": GetValue(GetValue(market, "info"), "instFamily"),
+		"expTime":    this.SafeString(optionParts, 2),
+	}
+
+	response := (<-this.PublicGetPublicOptSummary(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "askVol": "0",
+	//                 "bidVol": "0",
+	//                 "delta": "0.5105464486882039",
+	//                 "deltaBS": "0.7325502184143025",
+	//                 "fwdPx": "37675.80158694987186",
+	//                 "gamma": "-0.13183515090501083",
+	//                 "gammaBS": "0.000024139685826358558",
+	//                 "instId": "BTC-USD-240329-32000-C",
+	//                 "instType": "OPTION",
+	//                 "lever": "4.504428015946619",
+	//                 "markVol": "0.5916253554539876",
+	//                 "realVol": "0",
+	//                 "theta": "-0.0004202992014012855",
+	//                 "thetaBS": "-18.52354631567909",
+	//                 "ts": "1699586421976",
+	//                 "uly": "BTC-USD",
+	//                 "vega": "0.0020207455080045846",
+	//                 "vegaBS": "74.44022302387287",
+	//                 "volLv": "0.5948549730405797"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		var entryMarketId any = this.SafeString(entry, "instId")
+		if IsTrue(IsEqual(entryMarketId, marketId)) {
+
+			ch <- this.ParseGreeks(entry, market)
+			return nil
+		}
+	}
+	panic(NullResponse(Add(Add(this.Id, " fetchGreeks() could not find greeks for "), symbol)))
 }
 
 /**
@@ -9659,89 +10599,89 @@ func (this *OkxCore) FetchGreeks(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
  */
 func (this *OkxCore) FetchAllGreeks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes848812 := (<-this.LoadMarkets())
-			PanicOnError(retRes848812)
-		}
-		var request any = map[string]any{}
-		symbols = this.MarketSymbols(symbols, nil, true, true, true)
-		var symbolsLength any = nil
-		if IsTrue(!IsEqual(symbols, nil)) {
-			symbolsLength = GetArrayLength(symbols)
-		}
-		if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue((!IsEqual(symbolsLength, 1)))) {
-			var uly any = this.SafeString(params, "uly")
-			if IsTrue(!IsEqual(uly, nil)) {
-				AddElementToObject(request, "uly", uly)
-			}
-			var instFamily any = this.SafeString(params, "instFamily")
-			if IsTrue(!IsEqual(instFamily, nil)) {
-				AddElementToObject(request, "instFamily", instFamily)
-			}
-			if IsTrue(IsTrue((IsEqual(uly, nil))) && IsTrue((IsEqual(instFamily, nil)))) {
-				panic(BadRequest(Add(this.Id, " fetchAllGreeks() requires either a uly or instFamily parameter")))
-			}
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbols, nil)) {
-			if IsTrue(IsEqual(symbolsLength, 1)) {
-				market = this.Market(GetValue(symbols, 0))
-				var marketId any = this.SafeString(market, "id", "")
-				var optionParts any = Split(marketId, "-")
-				AddElementToObject(request, "uly", GetValue(GetValue(market, "info"), "uly"))
-				AddElementToObject(request, "instFamily", GetValue(GetValue(market, "info"), "instFamily"))
-				AddElementToObject(request, "expTime", this.SafeString(optionParts, 2))
-			}
-		}
-		params = this.Omit(params, []any{"uly", "instFamily"})
-
-		response := (<-this.PublicGetPublicOptSummary(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "askVol": "0",
-		//                 "bidVol": "0",
-		//                 "delta": "0.5105464486882039",
-		//                 "deltaBS": "0.7325502184143025",
-		//                 "fwdPx": "37675.80158694987186",
-		//                 "gamma": "-0.13183515090501083",
-		//                 "gammaBS": "0.000024139685826358558",
-		//                 "instId": "BTC-USD-240329-32000-C",
-		//                 "instType": "OPTION",
-		//                 "lever": "4.504428015946619",
-		//                 "markVol": "0.5916253554539876",
-		//                 "realVol": "0",
-		//                 "theta": "-0.0004202992014012855",
-		//                 "thetaBS": "-18.52354631567909",
-		//                 "ts": "1699586421976",
-		//                 "uly": "BTC-USD",
-		//                 "vega": "0.0020207455080045846",
-		//                 "vegaBS": "74.44022302387287",
-		//                 "volLv": "0.5948549730405797"
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseAllGreeks(data, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchAllGreeksBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchAllGreeksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes854112 := (<-this.LoadMarkets())
+		PanicOnError(retRes854112)
+	}
+	var request map[string]any = map[string]any{}
+	symbols = this.MarketSymbols(symbols, nil, true, true, true)
+	var symbolsLength any = nil
+	if IsTrue(!IsEqual(symbols, nil)) {
+		symbolsLength = GetArrayLength(symbols)
+	}
+	if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue((!IsEqual(symbolsLength, 1)))) {
+		var uly any = this.SafeString(params, "uly")
+		if IsTrue(!IsEqual(uly, nil)) {
+			AddElementToObject(request, "uly", uly)
+		}
+		var instFamily any = this.SafeString(params, "instFamily")
+		if IsTrue(!IsEqual(instFamily, nil)) {
+			AddElementToObject(request, "instFamily", instFamily)
+		}
+		if IsTrue(IsTrue((IsEqual(uly, nil))) && IsTrue((IsEqual(instFamily, nil)))) {
+			panic(BadRequest(Add(this.Id, " fetchAllGreeks() requires either a uly or instFamily parameter")))
+		}
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbols, nil)) {
+		if IsTrue(IsEqual(symbolsLength, 1)) {
+			market = this.Market(GetValue(symbols, 0))
+			var marketId any = this.SafeString(market, "id", "")
+			var optionParts []string = Split(marketId, "-")
+			AddElementToObject(request, "uly", GetValue(GetValue(market, "info"), "uly"))
+			AddElementToObject(request, "instFamily", GetValue(GetValue(market, "info"), "instFamily"))
+			AddElementToObject(request, "expTime", this.SafeString(optionParts, 2))
+		}
+	}
+	params = this.Omit(params, []any{"uly", "instFamily"})
+
+	response := (<-this.PublicGetPublicOptSummary(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "askVol": "0",
+	//                 "bidVol": "0",
+	//                 "delta": "0.5105464486882039",
+	//                 "deltaBS": "0.7325502184143025",
+	//                 "fwdPx": "37675.80158694987186",
+	//                 "gamma": "-0.13183515090501083",
+	//                 "gammaBS": "0.000024139685826358558",
+	//                 "instId": "BTC-USD-240329-32000-C",
+	//                 "instType": "OPTION",
+	//                 "lever": "4.504428015946619",
+	//                 "markVol": "0.5916253554539876",
+	//                 "realVol": "0",
+	//                 "theta": "-0.0004202992014012855",
+	//                 "thetaBS": "-18.52354631567909",
+	//                 "ts": "1699586421976",
+	//                 "uly": "BTC-USD",
+	//                 "vega": "0.0020207455080045846",
+	//                 "vegaBS": "74.44022302387287",
+	//                 "volLv": "0.5948549730405797"
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseAllGreeks(data, symbols)
+	return nil
 }
 func (this *OkxCore) ParseGreeks(greeks any, optionalArgs ...any) any {
 	//
@@ -9802,7 +10742,7 @@ func (this *OkxCore) ParseGreeks(greeks any, optionalArgs ...any) any {
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
  * @param {string} symbol Unified CCXT market symbol
  * @param {string} [side] 'buy' or 'sell', leave as undefined in net mode
- * @param {object} [params] extra parameters specific to the okx api endpoint
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] a unique identifier for the order
  * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross;
  * @param {string} [params.code] *required in the case of closing cross MARGIN position for Single-currency margin* margin currency
@@ -9813,74 +10753,74 @@ func (this *OkxCore) ParseGreeks(greeks any, optionalArgs ...any) any {
  * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		side := GetArg(optionalArgs, 0, nil)
-		_ = side
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes862412 := (<-this.LoadMarkets())
-			PanicOnError(retRes862412)
-		}
-		var market any = this.Market(symbol)
-		var clientOrderId any = this.SafeString(params, "clientOrderId")
-		var code any = this.SafeString(params, "code")
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
-		var request any = map[string]any{
-			"instId":  GetValue(market, "id"),
-			"mgnMode": marginMode,
-		}
-		if IsTrue(!IsEqual(side, nil)) {
-			if IsTrue((IsEqual(side, "buy"))) {
-				AddElementToObject(request, "posSide", "long")
-			} else if IsTrue(IsEqual(side, "sell")) {
-				AddElementToObject(request, "posSide", "short")
-			} else {
-				AddElementToObject(request, "posSide", side)
-			}
-		}
-		if IsTrue(!IsEqual(clientOrderId, nil)) {
-			AddElementToObject(request, "clOrdId", clientOrderId)
-		}
-		if IsTrue(!IsEqual(code, nil)) {
-			var currency any = this.Currency(code)
-			AddElementToObject(request, "ccy", GetValue(currency, "id"))
-		}
-
-		response := (<-this.PrivatePostTradeClosePosition(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        "code": "1",
-		//        "data": [
-		//            {
-		//                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
-		//                "ordId":"",
-		//                "sCode":"51000",
-		//                "sMsg":"Parameter posSide error ",
-		//                "tag":"e847386590ce4dBC"
-		//            }
-		//        ],
-		//        "inTime": "1701877077101064",
-		//        "msg": "All operations failed",
-		//        "outTime": "1701877077102579"
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var order any = this.SafeDict(data, 0)
-
-		ch <- this.ParseOrder(order, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.closePositionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) closePositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	side := GetArg(optionalArgs, 0, nil)
+	_ = side
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes867712 := (<-this.LoadMarkets())
+		PanicOnError(retRes867712)
+	}
+	var market any = this.Market(symbol)
+	var clientOrderId any = this.SafeString(params, "clientOrderId")
+	var code any = this.SafeString(params, "code")
+	var marginMode any = nil
+	marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
+	marginMode = GetValue(marginModeparamsVariable, 0)
+	params = GetValue(marginModeparamsVariable, 1)
+	var request map[string]any = map[string]any{
+		"instId":  GetValue(market, "id"),
+		"mgnMode": marginMode,
+	}
+	if IsTrue(!IsEqual(side, nil)) {
+		if IsTrue((IsEqual(side, "buy"))) {
+			AddElementToObject(request, "posSide", "long")
+		} else if IsTrue(IsEqual(side, "sell")) {
+			AddElementToObject(request, "posSide", "short")
+		} else {
+			AddElementToObject(request, "posSide", side)
+		}
+	}
+	if IsTrue(!IsEqual(clientOrderId, nil)) {
+		AddElementToObject(request, "clOrdId", clientOrderId)
+	}
+	if IsTrue(!IsEqual(code, nil)) {
+		var currency any = this.Currency(code)
+		AddElementToObject(request, "ccy", GetValue(currency, "id"))
+	}
+
+	response := (<-this.PrivatePostTradeClosePosition(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        "code": "1",
+	//        "data": [
+	//            {
+	//                "clOrdId":"e847386590ce4dBCe903bbc394dc88bf",
+	//                "ordId":"",
+	//                "sCode":"51000",
+	//                "sMsg":"Parameter posSide error ",
+	//                "tag":"e847386590ce4dBC"
+	//            }
+	//        ],
+	//        "inTime": "1701877077101064",
+	//        "msg": "All operations failed",
+	//        "outTime": "1701877077102579"
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var order any = this.SafeDict(data, 0)
+
+	ch <- this.ParseOrder(order, market)
+	return nil
 }
 
 /**
@@ -9893,58 +10833,58 @@ func (this *OkxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *OkxCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes868512 := (<-this.LoadMarkets())
-			PanicOnError(retRes868512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetMarketTicker(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "instType": "OPTION",
-		//                 "instId": "BTC-USD-241227-60000-P",
-		//                 "last": "",
-		//                 "lastSz": "0",
-		//                 "askPx": "",
-		//                 "askSz": "0",
-		//                 "bidPx": "",
-		//                 "bidSz": "0",
-		//                 "open24h": "",
-		//                 "high24h": "",
-		//                 "low24h": "",
-		//                 "volCcy24h": "0",
-		//                 "vol24h": "0",
-		//                 "ts": "1711176035035",
-		//                 "sodUtc0": "",
-		//                 "sodUtc8": ""
-		//             }
-		//         ]
-		//     }
-		//
-		var result any = this.SafeList(response, "data", []any{})
-		var chain any = this.SafeDict(result, 0, map[string]any{})
-
-		ch <- this.ParseOption(chain, nil, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOptionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOptionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes873812 := (<-this.LoadMarkets())
+		PanicOnError(retRes873812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetMarketTicker(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "instType": "OPTION",
+	//                 "instId": "BTC-USD-241227-60000-P",
+	//                 "last": "",
+	//                 "lastSz": "0",
+	//                 "askPx": "",
+	//                 "askSz": "0",
+	//                 "bidPx": "",
+	//                 "bidSz": "0",
+	//                 "open24h": "",
+	//                 "high24h": "",
+	//                 "low24h": "",
+	//                 "volCcy24h": "0",
+	//                 "vol24h": "0",
+	//                 "ts": "1711176035035",
+	//                 "sodUtc0": "",
+	//                 "sodUtc8": ""
+	//             }
+	//         ]
+	//     }
+	//
+	var result any = this.SafeList(response, "data", []any{})
+	var chain any = this.SafeDict(result, 0, map[string]any{})
+
+	ch <- this.ParseOption(chain, nil, market)
+	return nil
 }
 
 /**
@@ -9958,58 +10898,58 @@ func (this *OkxCore) FetchOption(symbol any, optionalArgs ...any) <-chan any {
  * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
  */
 func (this *OkxCore) FetchOptionChain(code any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes873512 := (<-this.LoadMarkets())
-			PanicOnError(retRes873512)
-		}
-		var currency any = this.Currency(code)
-		var request any = map[string]any{
-			"uly":      Add(GetValue(currency, "code"), "-USD"),
-			"instType": "OPTION",
-		}
-
-		response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "msg": "",
-		//         "data": [
-		//             {
-		//                 "instType": "OPTION",
-		//                 "instId": "BTC-USD-240323-52000-C",
-		//                 "last": "",
-		//                 "lastSz": "0",
-		//                 "askPx": "",
-		//                 "askSz": "0",
-		//                 "bidPx": "",
-		//                 "bidSz": "0",
-		//                 "open24h": "",
-		//                 "high24h": "",
-		//                 "low24h": "",
-		//                 "volCcy24h": "0",
-		//                 "vol24h": "0",
-		//                 "ts": "1711176207008",
-		//                 "sodUtc0": "",
-		//                 "sodUtc8": ""
-		//             },
-		//         ]
-		//     }
-		//
-		var result any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOptionChain(result, nil, "instId")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOptionChainBody(ch, code, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchOptionChainBody(ch chan any, code any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes878812 := (<-this.LoadMarkets())
+		PanicOnError(retRes878812)
+	}
+	var currency any = this.Currency(code)
+	var request map[string]any = map[string]any{
+		"uly":      Add(GetValue(currency, "code"), "-USD"),
+		"instType": "OPTION",
+	}
+
+	response := (<-this.PublicGetMarketTickers(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "",
+	//         "data": [
+	//             {
+	//                 "instType": "OPTION",
+	//                 "instId": "BTC-USD-240323-52000-C",
+	//                 "last": "",
+	//                 "lastSz": "0",
+	//                 "askPx": "",
+	//                 "askSz": "0",
+	//                 "bidPx": "",
+	//                 "bidSz": "0",
+	//                 "open24h": "",
+	//                 "high24h": "",
+	//                 "low24h": "",
+	//                 "volCcy24h": "0",
+	//                 "vol24h": "0",
+	//                 "ts": "1711176207008",
+	//                 "sodUtc0": "",
+	//                 "sodUtc8": ""
+	//             },
+	//         ]
+	//     }
+	//
+	var result any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOptionChain(result, nil, "instId")
+	return nil
 }
 func (this *OkxCore) ParseOption(chain any, optionalArgs ...any) any {
 	//
@@ -10072,64 +11012,64 @@ func (this *OkxCore) ParseOption(chain any, optionalArgs ...any) any {
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes883112 := (<-this.LoadMarkets())
-			PanicOnError(retRes883112)
-		}
-		var request any = map[string]any{
-			"baseCcy":  ToUpper(fromCode),
-			"quoteCcy": ToUpper(toCode),
-			"rfqSzCcy": ToUpper(fromCode),
-			"rfqSz":    this.NumberToString(amount),
-			"side":     "sell",
-		}
-
-		response := (<-this.PrivatePostAssetConvertEstimateQuote(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "baseCcy": "ETH",
-		//                 "baseSz": "0.01023052",
-		//                 "clQReqId": "",
-		//                 "cnvtPx": "2932.40104429",
-		//                 "origRfqSz": "30",
-		//                 "quoteCcy": "USDT",
-		//                 "quoteId": "quoterETH-USDT16461885104612381",
-		//                 "quoteSz": "30",
-		//                 "quoteTime": "1646188510461",
-		//                 "rfqSz": "30",
-		//                 "rfqSzCcy": "USDT",
-		//                 "side": "buy",
-		//                 "ttlMs": "10000"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = this.SafeDict(data, 0, map[string]any{})
-		var fromCurrencyId any = this.SafeString(result, "baseCcy", fromCode)
-		var fromCurrency any = this.Currency(fromCurrencyId)
-		var toCurrencyId any = this.SafeString(result, "quoteCcy", toCode)
-		var toCurrency any = this.Currency(toCurrencyId)
-
-		ch <- this.ParseConversion(result, fromCurrency, toCurrency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchConvertQuoteBody(ch, fromCode, toCode, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchConvertQuoteBody(ch chan any, fromCode any, toCode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes888412 := (<-this.LoadMarkets())
+		PanicOnError(retRes888412)
+	}
+	var request map[string]any = map[string]any{
+		"baseCcy":  ToUpper(fromCode),
+		"quoteCcy": ToUpper(toCode),
+		"rfqSzCcy": ToUpper(fromCode),
+		"rfqSz":    this.NumberToString(amount),
+		"side":     "sell",
+	}
+
+	response := (<-this.PrivatePostAssetConvertEstimateQuote(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "baseCcy": "ETH",
+	//                 "baseSz": "0.01023052",
+	//                 "clQReqId": "",
+	//                 "cnvtPx": "2932.40104429",
+	//                 "origRfqSz": "30",
+	//                 "quoteCcy": "USDT",
+	//                 "quoteId": "quoterETH-USDT16461885104612381",
+	//                 "quoteSz": "30",
+	//                 "quoteTime": "1646188510461",
+	//                 "rfqSz": "30",
+	//                 "rfqSzCcy": "USDT",
+	//                 "side": "buy",
+	//                 "ttlMs": "10000"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = this.SafeDict(data, 0, map[string]any{})
+	var fromCurrencyId any = this.SafeString(result, "baseCcy", fromCode)
+	var fromCurrency any = this.Currency(fromCurrencyId)
+	var toCurrencyId any = this.SafeString(result, "quoteCcy", toCode)
+	var toCurrency any = this.Currency(toCurrencyId)
+
+	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
+	return nil
 }
 
 /**
@@ -10145,64 +11085,64 @@ func (this *OkxCore) FetchConvertQuote(fromCode any, toCode any, optionalArgs ..
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) CreateConvertTrade(id any, fromCode any, toCode any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes888712 := (<-this.LoadMarkets())
-			PanicOnError(retRes888712)
-		}
-		var request any = map[string]any{
-			"quoteId":  id,
-			"baseCcy":  fromCode,
-			"quoteCcy": toCode,
-			"szCcy":    fromCode,
-			"sz":       this.NumberToString(amount),
-			"side":     "sell",
-		}
-
-		response := (<-this.PrivatePostAssetConvertTrade(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "baseCcy": "ETH",
-		//                 "clTReqId": "",
-		//                 "fillBaseSz": "0.01023052",
-		//                 "fillPx": "2932.40104429",
-		//                 "fillQuoteSz": "30",
-		//                 "instId": "ETH-USDT",
-		//                 "quoteCcy": "USDT",
-		//                 "quoteId": "quoterETH-USDT16461885104612381",
-		//                 "side": "buy",
-		//                 "state": "fullyFilled",
-		//                 "tradeId": "trader16461885203381437",
-		//                 "ts": "1646188520338"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = this.SafeDict(data, 0, map[string]any{})
-		var fromCurrencyId any = this.SafeString(result, "baseCcy", fromCode)
-		var fromCurrency any = this.Currency(fromCurrencyId)
-		var toCurrencyId any = this.SafeString(result, "quoteCcy", toCode)
-		var toCurrency any = this.Currency(toCurrencyId)
-
-		ch <- this.ParseConversion(result, fromCurrency, toCurrency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createConvertTradeBody(ch, id, fromCode, toCode, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) createConvertTradeBody(ch chan any, id any, fromCode any, toCode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes894012 := (<-this.LoadMarkets())
+		PanicOnError(retRes894012)
+	}
+	var request map[string]any = map[string]any{
+		"quoteId":  id,
+		"baseCcy":  fromCode,
+		"quoteCcy": toCode,
+		"szCcy":    fromCode,
+		"sz":       this.NumberToString(amount),
+		"side":     "sell",
+	}
+
+	response := (<-this.PrivatePostAssetConvertTrade(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "baseCcy": "ETH",
+	//                 "clTReqId": "",
+	//                 "fillBaseSz": "0.01023052",
+	//                 "fillPx": "2932.40104429",
+	//                 "fillQuoteSz": "30",
+	//                 "instId": "ETH-USDT",
+	//                 "quoteCcy": "USDT",
+	//                 "quoteId": "quoterETH-USDT16461885104612381",
+	//                 "side": "buy",
+	//                 "state": "fullyFilled",
+	//                 "tradeId": "trader16461885203381437",
+	//                 "ts": "1646188520338"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = this.SafeDict(data, 0, map[string]any{})
+	var fromCurrencyId any = this.SafeString(result, "baseCcy", fromCode)
+	var fromCurrency any = this.Currency(fromCurrencyId)
+	var toCurrencyId any = this.SafeString(result, "quoteCcy", toCode)
+	var toCurrency any = this.Currency(toCurrencyId)
+
+	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
+	return nil
 }
 
 /**
@@ -10216,64 +11156,64 @@ func (this *OkxCore) CreateConvertTrade(id any, fromCode any, toCode any, option
  * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes894112 := (<-this.LoadMarkets())
-			PanicOnError(retRes894112)
-		}
-		var request any = map[string]any{
-			"clTReqId": id,
-		}
-
-		response := (<-this.PrivateGetAssetConvertHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "clTReqId": "",
-		//                 "instId": "ETH-USDT",
-		//                 "side": "buy",
-		//                 "fillPx": "2932.401044",
-		//                 "baseCcy": "ETH",
-		//                 "quoteCcy": "USDT",
-		//                 "fillBaseSz": "0.01023052",
-		//                 "state": "fullyFilled",
-		//                 "tradeId": "trader16461885203381437",
-		//                 "fillQuoteSz": "30",
-		//                 "ts": "1646188520000"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = this.SafeDict(data, 0, map[string]any{})
-		var fromCurrencyId any = this.SafeString(result, "baseCcy")
-		var toCurrencyId any = this.SafeString(result, "quoteCcy")
-		var fromCurrency any = nil
-		var toCurrency any = nil
-		if IsTrue(!IsEqual(fromCurrencyId, nil)) {
-			fromCurrency = this.Currency(fromCurrencyId)
-		}
-		if IsTrue(!IsEqual(toCurrencyId, nil)) {
-			toCurrency = this.Currency(toCurrencyId)
-		}
-
-		ch <- this.ParseConversion(result, fromCurrency, toCurrency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchConvertTradeBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchConvertTradeBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes899412 := (<-this.LoadMarkets())
+		PanicOnError(retRes899412)
+	}
+	var request map[string]any = map[string]any{
+		"clTReqId": id,
+	}
+
+	response := (<-this.PrivateGetAssetConvertHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "clTReqId": "",
+	//                 "instId": "ETH-USDT",
+	//                 "side": "buy",
+	//                 "fillPx": "2932.401044",
+	//                 "baseCcy": "ETH",
+	//                 "quoteCcy": "USDT",
+	//                 "fillBaseSz": "0.01023052",
+	//                 "state": "fullyFilled",
+	//                 "tradeId": "trader16461885203381437",
+	//                 "fillQuoteSz": "30",
+	//                 "ts": "1646188520000"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = this.SafeDict(data, 0, map[string]any{})
+	var fromCurrencyId any = this.SafeString(result, "baseCcy")
+	var toCurrencyId any = this.SafeString(result, "quoteCcy")
+	var fromCurrency any = nil
+	var toCurrency any = nil
+	if IsTrue(!IsEqual(fromCurrencyId, nil)) {
+		fromCurrency = this.Currency(fromCurrencyId)
+	}
+	if IsTrue(!IsEqual(toCurrencyId, nil)) {
+		toCurrency = this.Currency(toCurrencyId)
+	}
+
+	ch <- this.ParseConversion(result, fromCurrency, toCurrency)
+	return nil
 }
 
 /**
@@ -10289,64 +11229,64 @@ func (this *OkxCore) FetchConvertTrade(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [conversion structures]{@link https://docs.ccxt.com/?id=conversion-structure}
  */
 func (this *OkxCore) FetchConvertTradeHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes899712 := (<-this.LoadMarkets())
-			PanicOnError(retRes899712)
-		}
-		var request any = map[string]any{}
-		requestparamsVariable := this.HandleUntilOption("after", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "before", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PrivateGetAssetConvertHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "clTReqId": "",
-		//                 "instId": "ETH-USDT",
-		//                 "side": "buy",
-		//                 "fillPx": "2932.401044",
-		//                 "baseCcy": "ETH",
-		//                 "quoteCcy": "USDT",
-		//                 "fillBaseSz": "0.01023052",
-		//                 "state": "fullyFilled",
-		//                 "tradeId": "trader16461885203381437",
-		//                 "fillQuoteSz": "30",
-		//                 "ts": "1646188520000"
-		//             }
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var rows any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseConversions(rows, code, "baseCcy", "quoteCcy", since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchConvertTradeHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchConvertTradeHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes905012 := (<-this.LoadMarkets())
+		PanicOnError(retRes905012)
+	}
+	var request any = map[string]any{}
+	requestparamsVariable := this.HandleUntilOption("after", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "before", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PrivateGetAssetConvertHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "clTReqId": "",
+	//                 "instId": "ETH-USDT",
+	//                 "side": "buy",
+	//                 "fillPx": "2932.401044",
+	//                 "baseCcy": "ETH",
+	//                 "quoteCcy": "USDT",
+	//                 "fillBaseSz": "0.01023052",
+	//                 "state": "fullyFilled",
+	//                 "tradeId": "trader16461885203381437",
+	//                 "fillQuoteSz": "30",
+	//                 "ts": "1646188520000"
+	//             }
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var rows any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseConversions(rows, code, "baseCcy", "quoteCcy", since, limit)
+	return nil
 }
 func (this *OkxCore) ParseConversion(conversion any, optionalArgs ...any) any {
 	//
@@ -10433,39 +11373,43 @@ func (this *OkxCore) ParseConversion(conversion any, optionalArgs ...any) any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *OkxCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
+	ch := make(chan any, 1)
+	go this.fetchConvertCurrenciesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *OkxCore) fetchConvertCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes911512 := (<-this.LoadMarkets())
-			PanicOnError(retRes911512)
-		}
+		retRes916812 := (<-this.LoadMarkets())
+		PanicOnError(retRes916812)
+	}
 
-		response := (<-this.PrivateGetAssetConvertCurrencies(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             {
-		//                 "ccy": "BTC",
-		//                 "max": "",
-		//                 "min": ""
-		//             },
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var result any = map[string]any{}
-		var data any = this.SafeList(response, "data", []any{})
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var id any = this.SafeString(entry, "ccy")
-			var code any = this.SafeCurrencyCode(id)
+	response := (<-this.PrivateGetAssetConvertCurrencies(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             {
+	//                 "ccy": "BTC",
+	//                 "max": "",
+	//                 "min": ""
+	//             },
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var result map[string]any = map[string]any{}
+	var data any = this.SafeList(response, "data", []any{})
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		var id any = this.SafeString(entry, "ccy")
+		var code any = this.SafeCurrencyCode(id)
+		if IsTrue(!IsEqual(code, nil)) {
 			AddElementToObject(result, code, map[string]any{
 				"info":      entry,
 				"id":        id,
@@ -10495,12 +11439,10 @@ func (this *OkxCore) FetchConvertCurrencies(optionalArgs ...any) <-chan any {
 				"created": nil,
 			})
 		}
+	}
 
-		ch <- result
-		return nil
-
-	}()
-	return ch
+	ch <- result
+	return nil
 }
 func (this *OkxCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	if !IsTrue(response) {
@@ -10553,123 +11495,123 @@ func (this *OkxCore) HandleErrors(httpCode any, reason any, url any, method any,
  * @param {string} [type] "add" or "reduce"
  * @param {int} [since] the earliest time in ms to fetch margin adjustment history for
  * @param {int} [limit] the maximum number of entries to retrieve
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.auto] true if fetching auto margin increases
  * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}
  */
 func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		typeVar := GetArg(optionalArgs, 1, nil)
-		_ = typeVar
-		since := GetArg(optionalArgs, 2, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 3, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 4, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes922612 := (<-this.LoadMarkets())
-			PanicOnError(retRes922612)
-		}
-		var auto any = this.SafeBool(params, "auto")
-		if IsTrue(IsEqual(typeVar, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a type argument")))
-		}
-		var isAdd any = IsEqual(typeVar, "add")
-		var subType any = Ternary(IsTrue(isAdd), "160", "161")
-		if IsTrue(auto) {
-			if IsTrue(isAdd) {
-				subType = "162"
-			} else {
-				panic(BadRequest(Add(Add(this.Id, " cannot fetch margin adjustments for type "), typeVar)))
-			}
-		}
-		var request any = map[string]any{
-			"subType": subType,
-			"mgnMode": "isolated",
-		}
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, "until")
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "startTime", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "endTime", until)
-		}
-		var response any = nil
-		var now any = this.Milliseconds()
-		var oneWeekAgo any = Subtract(now, 604800000)
-		var threeMonthsAgo any = Subtract(now, 7776000000)
-		if IsTrue(IsTrue((IsEqual(since, nil))) || IsTrue((IsGreaterThan(since, oneWeekAgo)))) {
-
-			response = (<-this.PrivateGetAccountBills(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(IsGreaterThan(since, threeMonthsAgo)) {
-
-			response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			panic(BadRequest(Add(this.Id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")))
-		}
-		//
-		//    {
-		//        code: '0',
-		//        data: [
-		//            {
-		//                bal: '67621.4325135010619812',
-		//                balChg: '-10.0000000000000000',
-		//                billId: '691293628710342659',
-		//                ccy: 'USDT',
-		//                clOrdId: '',
-		//                execType: '',
-		//                fee: '0',
-		//                fillFwdPx: '',
-		//                fillIdxPx: '',
-		//                fillMarkPx: '',
-		//                fillMarkVol: '',
-		//                fillPxUsd: '',
-		//                fillPxVol: '',
-		//                fillTime: '1711089244850',
-		//                from: '',
-		//                instId: 'XRP-USDT-SWAP',
-		//                instType: 'SWAP',
-		//                interest: '0',
-		//                mgnMode: 'isolated',
-		//                notes: '',
-		//                ordId: '',
-		//                pnl: '0',
-		//                posBal: '73.12',
-		//                posBalChg: '10.00',
-		//                px: '',
-		//                subType: '160',
-		//                sz: '10',
-		//                tag: '',
-		//                to: '',
-		//                tradeId: '0',
-		//                ts: '1711089244699',
-		//                type: '6'
-		//            }
-		//        ],
-		//        msg: ''
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var modifications any = this.ParseMarginModifications(data)
-
-		ch <- this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarginAdjustmentHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchMarginAdjustmentHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	typeVar := GetArg(optionalArgs, 1, nil)
+	_ = typeVar
+	since := GetArg(optionalArgs, 2, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 3, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 4, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes928112 := (<-this.LoadMarkets())
+		PanicOnError(retRes928112)
+	}
+	var auto any = this.SafeBool(params, "auto")
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchMarginAdjustmentHistory () requires a type argument")))
+	}
+	var isAdd bool = IsEqual(typeVar, "add")
+	var subType any = Ternary(IsTrue(isAdd), "160", "161")
+	if IsTrue(auto) {
+		if IsTrue(isAdd) {
+			subType = "162"
+		} else {
+			panic(BadRequest(Add(Add(this.Id, " cannot fetch margin adjustments for type "), typeVar)))
+		}
+	}
+	var request map[string]any = map[string]any{
+		"subType": subType,
+		"mgnMode": "isolated",
+	}
+	var until any = this.SafeInteger(params, "until")
+	params = this.Omit(params, "until")
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "startTime", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "endTime", until)
+	}
+	var response any = nil
+	var now int64 = this.Milliseconds()
+	var oneWeekAgo any = Subtract(now, 604800000)
+	var threeMonthsAgo any = Subtract(now, 7776000000)
+	if IsTrue(IsTrue((IsEqual(since, nil))) || IsTrue((IsGreaterThan(since, oneWeekAgo)))) {
+
+		response = (<-this.PrivateGetAccountBills(this.Extend(request, params)))
+		PanicOnError(response)
+	} else if IsTrue(IsGreaterThan(since, threeMonthsAgo)) {
+
+		response = (<-this.PrivateGetAccountBillsArchive(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		panic(BadRequest(Add(this.Id, " fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months")))
+	}
+	//
+	//    {
+	//        code: '0',
+	//        data: [
+	//            {
+	//                bal: '67621.4325135010619812',
+	//                balChg: '-10.0000000000000000',
+	//                billId: '691293628710342659',
+	//                ccy: 'USDT',
+	//                clOrdId: '',
+	//                execType: '',
+	//                fee: '0',
+	//                fillFwdPx: '',
+	//                fillIdxPx: '',
+	//                fillMarkPx: '',
+	//                fillMarkVol: '',
+	//                fillPxUsd: '',
+	//                fillPxVol: '',
+	//                fillTime: '1711089244850',
+	//                from: '',
+	//                instId: 'XRP-USDT-SWAP',
+	//                instType: 'SWAP',
+	//                interest: '0',
+	//                mgnMode: 'isolated',
+	//                notes: '',
+	//                ordId: '',
+	//                pnl: '0',
+	//                posBal: '73.12',
+	//                posBalChg: '10.00',
+	//                px: '',
+	//                subType: '160',
+	//                sz: '10',
+	//                tag: '',
+	//                to: '',
+	//                tradeId: '0',
+	//                ts: '1711089244699',
+	//                type: '6'
+	//            }
+	//        ],
+	//        msg: ''
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var modifications any = this.ParseMarginModifications(data)
+
+	ch <- this.FilterBySymbolSinceLimit(modifications, symbol, since, limit)
+	return nil
 }
 
 /**
@@ -10680,7 +11622,7 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan an
  * @param {string} [symbols] unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch
  * @param {int} [limit] the maximum amount of records to fetch, default=100, max=100
- * @param {object} params extra parameters specific to the exchange api endpoint
+ * @param {object} params extra parameters specific to the exchange API endpoint
  * @param {string} [params.marginMode] "cross" or "isolated"
  *
  * EXCHANGE SPECIFIC PARAMETERS
@@ -10692,89 +11634,89 @@ func (this *OkxCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan an
  * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *OkxCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes933512 := (<-this.LoadMarkets())
-			PanicOnError(retRes933512)
-		}
-		var marginMode any = this.SafeString(params, "marginMode")
-		var instType any = this.SafeStringUpper(params, "instType")
-		params = this.Omit(params, []any{"until", "marginMode", "instType"})
-		if IsTrue(IsEqual(limit, nil)) {
-			limit = 100
-		}
-		var request any = map[string]any{
-			"limit": limit,
-		}
-		if IsTrue(!IsEqual(symbols, nil)) {
-			var symbolsLength any = GetArrayLength(symbols)
-			if IsTrue(IsEqual(symbolsLength, 1)) {
-				var market any = this.Market(GetValue(symbols, 0))
-				AddElementToObject(request, "instId", GetValue(market, "id"))
-			}
-		}
-		if IsTrue(!IsEqual(marginMode, nil)) {
-			AddElementToObject(request, "mgnMode", marginMode)
-		}
-		if IsTrue(!IsEqual(instType, nil)) {
-			AddElementToObject(request, "instType", instType)
-		}
-
-		response := (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//    {
-		//        code: '0',
-		//        data: [
-		//            {
-		//                cTime: '1708735940395',
-		//                ccy: 'USDT',
-		//                closeAvgPx: '0.6330444444444444',
-		//                closeTotalPos: '27',
-		//                direction: 'long',
-		//                fee: '-1.69566',
-		//                fundingFee: '-11.870404179341788',
-		//                instId: 'XRP-USDT-SWAP',
-		//                instType: 'SWAP',
-		//                lever: '3.0',
-		//                liqPenalty: '0',
-		//                mgnMode: 'cross',
-		//                openAvgPx: '0.623',
-		//                openMaxPos: '15',
-		//                pnl: '27.11999999999988',
-		//                pnlRatio: '0.0241732402722634',
-		//                posId: '681423155054862336',
-		//                realizedPnl: '13.553935820658092',
-		//                triggerPx: '',
-		//                type: '2',
-		//                uTime: '1711088748170',
-		//                uly: 'XRP-USDT'
-		//            },
-		//            ...
-		//        ],
-		//        msg: ''
-		//    }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var positions any = this.ParsePositions(data, symbols, params)
-
-		ch <- this.FilterBySinceLimit(positions, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes939012 := (<-this.LoadMarkets())
+		PanicOnError(retRes939012)
+	}
+	var marginMode any = this.SafeString(params, "marginMode")
+	var instType any = this.SafeStringUpper(params, "instType")
+	params = this.Omit(params, []any{"until", "marginMode", "instType"})
+	if IsTrue(IsEqual(limit, nil)) {
+		limit = 100
+	}
+	var request map[string]any = map[string]any{
+		"limit": limit,
+	}
+	if IsTrue(!IsEqual(symbols, nil)) {
+		var symbolsLength int = GetArrayLength(symbols)
+		if IsTrue(IsEqual(symbolsLength, 1)) {
+			var market any = this.Market(GetValue(symbols, 0))
+			AddElementToObject(request, "instId", GetValue(market, "id"))
+		}
+	}
+	if IsTrue(!IsEqual(marginMode, nil)) {
+		AddElementToObject(request, "mgnMode", marginMode)
+	}
+	if IsTrue(!IsEqual(instType, nil)) {
+		AddElementToObject(request, "instType", instType)
+	}
+
+	response := (<-this.PrivateGetAccountPositionsHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//    {
+	//        code: '0',
+	//        data: [
+	//            {
+	//                cTime: '1708735940395',
+	//                ccy: 'USDT',
+	//                closeAvgPx: '0.6330444444444444',
+	//                closeTotalPos: '27',
+	//                direction: 'long',
+	//                fee: '-1.69566',
+	//                fundingFee: '-11.870404179341788',
+	//                instId: 'XRP-USDT-SWAP',
+	//                instType: 'SWAP',
+	//                lever: '3.0',
+	//                liqPenalty: '0',
+	//                mgnMode: 'cross',
+	//                openAvgPx: '0.623',
+	//                openMaxPos: '15',
+	//                pnl: '27.11999999999988',
+	//                pnlRatio: '0.0241732402722634',
+	//                posId: '681423155054862336',
+	//                realizedPnl: '13.553935820658092',
+	//                triggerPx: '',
+	//                type: '2',
+	//                uTime: '1711088748170',
+	//                uly: 'XRP-USDT'
+	//            },
+	//            ...
+	//        ],
+	//        msg: ''
+	//    }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var positions any = this.ParsePositions(data, symbols, params)
+
+	ch <- this.FilterBySinceLimit(positions, since, limit)
+	return nil
 }
 
 /**
@@ -10791,75 +11733,75 @@ func (this *OkxCore) FetchPositionsHistory(optionalArgs ...any) <-chan any {
  * @returns {object[]} an array of [long short ratio structures]{@link https://docs.ccxt.com/?id=long-short-ratio-structure}
  */
 func (this *OkxCore) FetchLongShortRatioHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		timeframe := GetArg(optionalArgs, 1, nil)
-		_ = timeframe
-		since := GetArg(optionalArgs, 2, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 3, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 4, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes941312 := (<-this.LoadMarkets())
-			PanicOnError(retRes941312)
-		}
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " fetchLongShortRatioHistory() requires a symbol argument")))
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"instId": GetValue(market, "id"),
-		}
-		var until any = this.SafeString2(params, "until", "end")
-		params = this.Omit(params, "until")
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "end", until)
-		}
-		if IsTrue(!IsEqual(timeframe, nil)) {
-			AddElementToObject(request, "period", this.SafeString(this.Timeframes, timeframe, timeframe))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "begin", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "code": "0",
-		//         "data": [
-		//             ["1729323600000", "0.9398602814619824"],
-		//             ["1729323300000", "0.9398602814619824"],
-		//             ["1729323000000", "0.9398602814619824"],
-		//         ],
-		//         "msg": ""
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			AppendToArray(&result, map[string]any{
-				"timestamp":      this.SafeString(entry, 0),
-				"longShortRatio": this.SafeString(entry, 1),
-			})
-		}
-
-		ch <- this.ParseLongShortRatioHistory(result, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLongShortRatioHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *OkxCore) fetchLongShortRatioHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	timeframe := GetArg(optionalArgs, 1, nil)
+	_ = timeframe
+	since := GetArg(optionalArgs, 2, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 3, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 4, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes946812 := (<-this.LoadMarkets())
+		PanicOnError(retRes946812)
+	}
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " fetchLongShortRatioHistory() requires a symbol argument")))
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": GetValue(market, "id"),
+	}
+	var until any = this.SafeString2(params, "until", "end")
+	params = this.Omit(params, "until")
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "end", until)
+	}
+	if IsTrue(!IsEqual(timeframe, nil)) {
+		AddElementToObject(request, "period", this.SafeString(this.Timeframes, timeframe, timeframe))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "begin", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.PublicGetRubikStatContractsLongShortAccountRatioContract(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "code": "0",
+	//         "data": [
+	//             ["1729323600000", "0.9398602814619824"],
+	//             ["1729323300000", "0.9398602814619824"],
+	//             ["1729323000000", "0.9398602814619824"],
+	//         ],
+	//         "msg": ""
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var entry any = GetValue(data, i)
+		AppendToArray(&result, map[string]any{
+			"timestamp":      this.SafeString(entry, 0),
+			"longShortRatio": this.SafeString(entry, 1),
+		})
+	}
+
+	ch <- this.ParseLongShortRatioHistory(result, market)
+	return nil
 }
 func (this *OkxCore) ParseLongShortRatio(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)

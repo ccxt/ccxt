@@ -81,10 +81,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		bithumbItf := NewBithumbCore()
 		bithumbItf.Init(exchangeArgs)
 		return bithumbItf, true
-	case "bitmart":
-		bitmartItf := NewBitmartCore()
-		bitmartItf.Init(exchangeArgs)
-		return bitmartItf, true
 	case "bitmex":
 		bitmexItf := NewBitmexCore()
 		bitmexItf.Init(exchangeArgs)
@@ -137,6 +133,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		btcturkItf := NewBtcturkCore()
 		btcturkItf.Init(exchangeArgs)
 		return btcturkItf, true
+	case "btse":
+		btseItf := NewBtseCore()
+		btseItf.Init(exchangeArgs)
+		return btseItf, true
 	case "bullish":
 		bullishItf := NewBullishCore()
 		bullishItf.Init(exchangeArgs)
@@ -225,10 +225,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		dydxItf := NewDydxCore()
 		dydxItf.Init(exchangeArgs)
 		return dydxItf, true
-	case "exmo":
-		exmoItf := NewExmoCore()
-		exmoItf.Init(exchangeArgs)
-		return exmoItf, true
 	case "extended":
 		extendedItf := NewExtendedCore()
 		extendedItf.Init(exchangeArgs)
@@ -301,10 +297,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		kucoinItf := NewKucoinCore()
 		kucoinItf.Init(exchangeArgs)
 		return kucoinItf, true
-	case "kucoineu":
-		kucoineuItf := NewKucoineuCore()
-		kucoineuItf.Init(exchangeArgs)
-		return kucoineuItf, true
 	case "kucoinfutures":
 		kucoinfuturesItf := NewKucoinfuturesCore()
 		kucoinfuturesItf.Init(exchangeArgs)
@@ -345,6 +337,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
 		myokxItf := NewMyokxCore()
 		myokxItf.Init(exchangeArgs)
 		return myokxItf, true
+	case "nado":
+		nadoItf := NewNadoCore()
+		nadoItf.Init(exchangeArgs)
+		return nadoItf, true
 	case "ndax":
 		ndaxItf := NewNdaxCore()
 		ndaxItf.Init(exchangeArgs)

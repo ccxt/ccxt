@@ -3,15 +3,18 @@
 import asyncio
 
 
-from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, get_root_dir, is_sync, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, get_root_exception, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, setup_ws_mock_transport, inject_ws_message, reject_pending_ws_futures, ws_client_has_pending_futures, mark_ws_test_completed, is_ws_test_completed, get_ws_sent_messages, is_null_value, close, get_env_vars, get_lang, get_ext, is_windows, is_linux, is_amd64  # noqa: F401
 
 class testMainClass:
     id_tests = False
     request_tests_failed = False
     response_tests_failed = False
+    static_ws_tests_failed = False
     request_tests = False
     ws_tests = False
+    static_ws_tests = False
     response_tests = False
+    prediction_tests = False
     info = False
     verbose = False
     debug = False
@@ -41,6 +44,9 @@ class testMainClass:
         self.sandbox = get_cli_arg_value('--sandbox')
         self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
+        self.static_ws_tests = get_cli_arg_value('--wsTests')
+        # when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        self.prediction_tests = get_cli_arg_value('--prediction')
         self.lang = get_lang()
         self.ext = get_ext()
 
@@ -60,6 +66,9 @@ class testMainClass:
             return True
         if self.response_tests:
             await self.run_static_response_tests(exchange_id, symbol_argv)
+            return True
+        if self.static_ws_tests:
+            await self.run_static_ws_tests(exchange_id, symbol_argv)
             return True
         if self.request_tests:
             await self.run_static_request_tests(exchange_id, symbol_argv)  # symbol here is the testname
@@ -213,23 +222,26 @@ class testMainClass:
             skip_message = '[INFO] SKIPPED_TEST'
         elif not (method_name in self.test_files):
             skip_message = '[INFO] UNIMPLEMENTED_TEST'
+        name = exchange.id
+        # the TESTING / TESTING DONE / TESTING FAILED markers are dumped unconditionally
+        # (not gated on `--info`) because run-tests.js diffs them on RUNTEST_TIMED_OUT to
+        # report which method(s) were still running when the per-exchange timeout fired
         # exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if is_load_markets:
+            dump(self.add_padding('[INFO] TESTING', 25), name, method_name)
             await exchange.load_markets(True)
-        name = exchange.id
+            dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
         if skip_message:
             if self.info:
                 dump(self.add_padding(skip_message, 25), name, method_name)
             return True
-        if self.info:
-            args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(self.add_padding('[INFO] TESTING', 25), name, method_name, args_stringified)
+        args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        dump(self.add_padding('[INFO] TESTING', 25), name, method_name, args_stringified)
         if is_sync():
             call_method_sync(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         else:
             await call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
-        if self.info:
-            dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
+        dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
         # add to the list of successed tests
         if is_public:
             self.checked_public_tests[method_name] = True
@@ -291,6 +303,9 @@ class testMainClass:
                 await self.test_method(method_name, exchange, args, is_public)
                 return True
             except Exception as ex:
+                # close the TESTING marker (pairs with the dump in `testMethod`), so on a
+                # RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
+                dump(self.add_padding('[INFO] TESTING FAILED', 25), exchange.id, method_name)
                 e = get_root_exception(ex)
                 is_load_markets = (method_name == 'loadMarkets')
                 is_auth_error = (isinstance(e, AuthenticationError))
@@ -504,7 +519,92 @@ class testMainClass:
                     symbol = first['symbol']
         return symbol
 
+    def get_ticker_volume(self, exchange, ticker):
+        # all candidates compared with this helper share the same quote currency,
+        # so `quoteVolume` is directly comparable between them. fall back to the
+        # base volume converted with the last price, then to the raw base volume,
+        # because not every exchange populates `quoteVolume`.
+        quote_volume = exchange.safe_number(ticker, 'quoteVolume')
+        if quote_volume is not None:
+            return quote_volume
+        base_volume = exchange.safe_number(ticker, 'baseVolume')
+        if base_volume is None:
+            return 0
+        last = exchange.safe_number(ticker, 'last')
+        if last is not None:
+            return base_volume * last
+        return base_volume
+
+    async def get_most_active_symbols(self, exchange, default_symbols):
+        # `watch*` methods only resolve when the exchange pushes an update, so a
+        # thinly traded market makes the ws tests hang until the harness timeout
+        # kills them. the 24h volume is our proxy for "how often does this book
+        # change", so rank the markets by it and watch the busiest ones instead.
+        # the ranking is restricted to markets sharing the type/quote/settle of
+        # the statically chosen symbol, which keeps the volumes comparable (quote
+        # volumes denominated in different quote currencies are not) and keeps a
+        # per-exchange `preferredSpotSymbol`/`preferredSwapSymbol` meaningful.
+        default_symbol = default_symbols[0]
+        default_market = exchange.safe_dict(exchange.markets, default_symbol)
+        if default_market is None:
+            return default_symbols
+        # an explicit per-exchange pin is a deliberate maintainer choice (it usually
+        # works around a venue-specific quirk), so never rank around it
+        is_spot = exchange.safe_bool(default_market, 'spot', False)
+        preferred_key = 'preferredSpotSymbol' if (is_spot) else 'preferredSwapSymbol'
+        preferred_symbol = exchange.safe_string(self.skipped_settings_for_exchange, preferred_key)
+        if preferred_symbol is not None:
+            return default_symbols
+        if not exchange.safe_bool(exchange.has, 'fetchTickers', False):
+            return default_symbols
+        tickers = None
+        try:
+            # dynamic dispatch: `fetchTickers` is not on the base exchange type in
+            # the statically typed ports (c#/go/java), same as the other call sites
+            tickers = await call_exchange_method_dynamically(exchange, 'fetchTickers', [])
+        except Exception as e:
+            # choosing a symbol must never fail the run, keep the static choice
+            tickers = None
+        if tickers is None:
+            return default_symbols
+        market_type = exchange.safe_string(default_market, 'type')
+        quote = exchange.safe_string(default_market, 'quote')
+        settle = exchange.safe_string(default_market, 'settle')
+        candidates = []
+        ticker_symbols = list(tickers.keys())
+        for i in range(0, len(ticker_symbols)):
+            ticker_symbol = ticker_symbols[i]
+            market = exchange.safe_dict(exchange.markets, ticker_symbol)
+            if market is not None:
+                # exchanges keep returning tickers for delisted markets, and those
+                # never push a websocket update at all, so skip inactive markets
+                is_active = exchange.safe_bool(market, 'active', True)
+                same_type = exchange.safe_string(market, 'type') == market_type
+                same_quote = exchange.safe_string(market, 'quote') == quote
+                same_settle = exchange.safe_string(market, 'settle') == settle
+                if is_active and same_type and same_quote and same_settle:
+                    ticker = exchange.safe_dict(tickers, ticker_symbol, {})
+                    volume = self.get_ticker_volume(exchange, ticker)
+                    if volume > 0:
+                        entry = {}
+                        entry['symbol'] = ticker_symbol
+                        entry['volume'] = volume
+                        candidates.append(entry)
+        ranked = exchange.sort_by(candidates, 'volume', True)
+        ranked_length = len(ranked)
+        if ranked_length == 0:
+            return default_symbols
+        result = [exchange.safe_string(ranked[0], 'symbol')]
+        if ranked_length > 1:
+            result.append(exchange.safe_string(ranked[1], 'symbol'))
+        return result
+
     async def test_exchange(self, exchange, provided_symbol=None):
+        # prediction-market exchanges have no spot/swap markets and address methods by an
+        # outcome handle (not a market symbol), so they take a dedicated test flow
+        if exchange.safe_bool(exchange.has, 'prediction', False):
+            await self.run_prediction_tests(exchange)
+            return True
         spot_symbols = None
         swap_symbols = None
         if provided_symbol is not None:
@@ -529,6 +629,14 @@ class testMainClass:
                 if primary_symbol is not None:
                     secondary_symbol = primary_symbol.replace('BTC', 'ETH')  # this should work any exchange
                     swap_symbols = [primary_symbol, secondary_symbol]
+            # ws tests subscribe with `watch*`, which only resolves on an update,
+            # so re-target them at the most actively traded markets to avoid the
+            # harness timing out on a quiet book. rest tests keep the static choice.
+            if self.ws_tests:
+                if spot_symbols is not None:
+                    spot_symbols = await self.get_most_active_symbols(exchange, spot_symbols)
+                if swap_symbols is not None:
+                    swap_symbols = await self.get_most_active_symbols(exchange, swap_symbols)
         if spot_symbols is not None:
             dump('[INFO:MAIN] Selected SPOT SYMBOL:', exchange.json(spot_symbols))
         if swap_symbols is not None:
@@ -554,7 +662,292 @@ class testMainClass:
                 await self.run_private_tests(exchange, swap_symbols)
         return True
 
-    async def run_private_tests(self, exchange, symbol):
+    async def run_prediction_tests(self, exchange):
+        # loadMarkets (already called by loadExchange) populates the markets and their outcome
+        # tokens; resolve a tradeable outcome handle from them (works in every language since
+        # exchange.markets is typed on the base, unlike the prediction-only outcomes cache),
+        # then fetchEvents for an event id and run every method by that outcome handle
+        # a skip-tests.json preferredPredictionOutcome pins a tradeable outcome — some venues list
+        # many resolved/halted markets (e.g. hyperliquid testnet) whose first outcome can't be traded
+        outcome_symbol = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredPredictionOutcome')
+        if outcome_symbol is not None:
+            # validate the pin against the live listing - venues can rotate ids/handles
+            # (hyperliquid re-assigns outcome ids), which would strand a stale pin
+            pin_found = False
+            pinned_keys = list(exchange.markets.keys())
+            for i in range(0, len(pinned_keys)):
+                pinned_market = exchange.markets[pinned_keys[i]]
+                pinned_outcomes = exchange.safe_list(pinned_market, 'outcomes', [])
+                for j in range(0, len(pinned_outcomes)):
+                    if exchange.safe_string(pinned_outcomes[j], 'outcome') == outcome_symbol:
+                        pin_found = True
+                        break
+                if pin_found:
+                    break
+            if not pin_found:
+                dump('[INFO:MAIN] preferredPredictionOutcome', outcome_symbol, 'not in the live listing (stale pin?) - falling back to market scan')
+                outcome_symbol = None
+        if outcome_symbol is None:
+            market_keys = list(exchange.markets.keys())
+            for i in range(0, len(market_keys)):
+                market = exchange.markets[market_keys[i]]
+                outcomes_list = exchange.safe_list(market, 'outcomes', [])
+                outcomes_list_length = len(outcomes_list)
+                if outcomes_list_length > 0:
+                    outcome_symbol = exchange.safe_string(outcomes_list[0], 'outcome')
+                    if outcome_symbol is not None:
+                        break
+        if outcome_symbol is None:
+            dump('[TEST_FAILURE]', exchange.id, 'no tradeable outcome available in loaded markets')
+            return False
+        # fetchEvents/fetchEvent are prediction-only and not on every language's typed base
+        # (Go's ICoreExchange / C# Exchange), so invoke them dynamically by name and validate
+        # inline rather than through a per-method test file
+        event_id = None
+        if not self.ws_tests:
+            try:
+                # the scoping contract: an unscoped fetchEvents must throw ArgumentsRequired on
+                # every prediction venue — assert it so the contract can't silently regress.
+                # venues with bounded listings may opt out via options['allowUnscopedFetchEvents']
+                exchange_options = get_exchange_prop(exchange, 'options', {})
+                allow_unscoped_fetch_events = exchange.safe_bool(exchange_options, 'allowUnscopedFetchEvents', False)
+                if not allow_unscoped_fetch_events:
+                    unscoped_error = ''
+                    try:
+                        await call_exchange_method_dynamically(exchange, 'fetchEvents', [{}])
+                    except Exception as e:
+                        unscoped_error = exception_message(e)
+                # preferredEventQuery supplies a query known to match the venue's markets
+                event_query = exchange.safe_string(self.skipped_settings_for_exchange, 'preferredEventQuery')
+                if event_query is None:
+                    # derive one from the selected outcome handle (the market words with
+                    # separators as spaces) so the scoped contract holds even without a pin
+                    handle_parts = outcome_symbol.split(':')
+                    market_part = handle_parts[0]
+                    lower_part = market_part.lower()
+                    dedashed = lower_part.replace('-', ' ')
+                    event_query = dedashed.replace('_', ' ')
+                event_params = {}
+                if event_query is not None:
+                    event_params['query'] = event_query
+                events = await call_exchange_method_dynamically(exchange, 'fetchEvents', [event_params])
+                assert events is not None, exchange.id + ' fetchEvents returned undefined'
+                # coerce the dynamic (any) result to a typed list via safeList (on the core interface)
+                events_list = exchange.safe_list({
+                    'events': events,
+                }, 'events', [])
+                self.assert_prediction_events(exchange, events_list)
+                events_length = len(events_list)
+                if events_length > 0:
+                    event_id = exchange.safe_string(events_list[0], 'id')
+                if (event_id is not None) and exchange.safe_bool(exchange.has, 'fetchEvent', False):
+                    event = await call_exchange_method_dynamically(exchange, 'fetchEvent', [event_id])
+                    self.assert_prediction_event(exchange, event)
+                # exercise EACH scoping parameter path, not just the initial query. a scope that
+                # silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                # series filter) is a real bug that only surfaces if the path is actually asserted.
+                # build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                # calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                scopes_to_test = []
+                if event_id is not None:
+                    # copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    # since eventId is reassigned above. every venue must refetch an event by its own id
+                    event_id_scope = event_id
+                    scopes_to_test.append({
+                        'eventId': event_id_scope,
+                    })
+                # optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                # category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                extra_scopes = exchange.safe_list(self.skipped_settings_for_exchange, 'preferredEventScopes', [])
+                extra_scopes_length = len(extra_scopes)
+                for si in range(0, extra_scopes_length):
+                    scopes_to_test.append(extra_scopes[si])
+                scopes_to_test_length = len(scopes_to_test)
+                for sj in range(0, scopes_to_test_length):
+                    scope = scopes_to_test[sj]
+                    # fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    scoped_events = await call_exchange_method_dynamically(exchange, 'fetchEvents', [scope])
+                    scoped_list = exchange.safe_list({
+                        'events': scoped_events,
+                    }, 'events', [])
+                    scoped_list_length = len(scoped_list)
+                    assert scoped_list_length > 0, exchange.id + ' fetchEvents scoped by ' + exchange.json(scope) + ' returned no events - the parameter path may be broken'
+                    self.assert_prediction_events(exchange, scoped_list)
+                if event_query is not None:
+                    # limit must bound the number of events returned (applied by applyEventFetchParams)
+                    limited = await call_exchange_method_dynamically(exchange, 'fetchEvents', [{
+    'query': event_query,
+    'limit': 1,
+}])
+                    limited_list = exchange.safe_list({
+                        'events': limited,
+                    }, 'events', [])
+                    limited_list_length = len(limited_list)
+                    assert limited_list_length <= 1, exchange.id + ' fetchEvents did not honour limit=1'
+            except Exception as e:
+                dump('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exception_message(e))
+                return False
+            # no-arg fetchTickers honesty: a venue that cannot serve every ticker without an
+            # unbounded scan (options.loadAllOutcomes false) must throw ArgumentsRequired
+            # instead of silently returning a capped subset
+            can_serve_all_tickers = exchange.safe_bool(exchange.options, 'loadAllOutcomes', False)
+            if not can_serve_all_tickers and exchange.safe_bool(exchange.has, 'fetchTickers', False):
+                tickers_error = ''
+                try:
+                    await call_exchange_method_dynamically(exchange, 'fetchTickers', [])
+                except Exception as e:
+                    tickers_error = exception_message(e)
+        dump('[INFO:MAIN] Selected prediction OUTCOME:', outcome_symbol, '| EVENT:', exchange.json(event_id))
+        public_tests = {
+            'fetchStatus': [],
+            'fetchTime': [],
+            'fetchTradingFee': [outcome_symbol],
+            'fetchOpenInterest': [outcome_symbol],
+            'fetchTicker': [outcome_symbol],
+            'fetchTickers': [outcome_symbol],
+            'fetchOrderBook': [outcome_symbol],
+            'fetchOHLCV': [outcome_symbol],
+            'fetchTrades': [outcome_symbol],
+        }
+        if self.ws_tests:
+            public_tests = {
+                'watchTicker': [outcome_symbol],
+                'watchOrderBook': [outcome_symbol],
+                'watchTrades': [outcome_symbol],
+            }
+        if not self.private_test_only:
+            await self.run_tests(exchange, public_tests, True)
+        if (self.private_test or self.private_test_only) and not self.ws_tests:
+            private_tests = {
+                'fetchBalance': [],
+                'fetchPositions': [outcome_symbol],
+                'fetchMyTrades': [outcome_symbol],
+                'fetchOrders': [outcome_symbol],
+                'fetchOpenOrders': [outcome_symbol],
+                'fetchClosedOrders': [outcome_symbol],
+                'fetchOrder': [outcome_symbol],
+            }
+            await self.run_tests(exchange, private_tests, False)
+            # order placement is real money — gated behind --fundedTests, like crypto createOrder
+            if get_cli_arg_value('--fundedTests'):
+                await self.test_prediction_create_cancel_order(exchange, outcome_symbol)
+        return True
+
+    def assert_prediction_events(self, exchange, events):
+        assert isinstance(events, list), exchange.id + ' fetchEvents/fetchEvent should return a list'
+        events_length = len(events)
+        for i in range(0, events_length):
+            self.assert_prediction_event(exchange, events[i])
+        return True
+
+    def assert_prediction_event(self, exchange, event):
+        # validates one PredictionEvent structure (id, event handle, markets each carrying an
+        # outcomes list, and the optional typed fields when present)
+        log_text = ' event: ' + exchange.json(event)
+        assert exchange.is_dictionary(event), exchange.id + ' event should be a dict' + log_text
+        assert exchange.safe_string(event, 'id') is not None, exchange.id + ' event missing id' + log_text
+        assert exchange.safe_string(event, 'event') is not None, exchange.id + ' event missing the unified event handle' + log_text
+        markets = exchange.safe_list(event, 'markets')
+        assert markets is not None, exchange.id + ' event missing markets' + log_text
+        markets_length = len(markets)
+        assert exchange.safe_string(event, 'symbol') is None, exchange.id + ' event must not carry the deprecated symbol key' + log_text
+        for i in range(0, markets_length):
+            market = markets[i]
+            assert exchange.is_dictionary(market), exchange.id + ' event market should be a dict' + log_text
+            assert exchange.safe_string(market, 'market') is not None, exchange.id + ' event market missing the unified market handle' + log_text
+            # 'symbol' is deprecated on prediction structures — the unified 'market' handle is the identity
+            assert exchange.safe_string(market, 'symbol') is None, exchange.id + ' event market must not carry the deprecated symbol key' + log_text
+            outcomes = exchange.safe_list(market, 'outcomes')
+            assert outcomes is not None, exchange.id + ' event market missing outcomes' + log_text
+            outcomes_length = len(outcomes)
+            for j in range(0, outcomes_length):
+                assert exchange.safe_string(outcomes[j], 'symbol') is None, exchange.id + ' event outcome must not carry the deprecated symbol key' + log_text
+        # optional typed fields must have the right type when present
+        active = exchange.safe_value(event, 'active')
+        if active is not None:
+            # typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            # in Python, which ruff rejects (E712)
+            assert isinstance(active, bool), exchange.id + ' event active must be a bool' + log_text
+        tags = exchange.safe_value(event, 'tags')
+        if tags is not None:
+            assert isinstance(tags, list), exchange.id + ' event tags must be a list' + log_text
+        info = exchange.safe_value(event, 'info')
+        assert info is not None, exchange.id + ' event missing info' + log_text
+        return True
+
+    async def test_prediction_create_cancel_order(self, exchange, outcome):
+        # place a deliberately non-marketable limit BUY (low fixed price * tiny amount), assert
+        # it, then always cancel it. Safe by construction: 5 shares @ 0.02 = 0.10 USD notional,
+        # far under the 25 USD live-test cap, and a 0.02 bid won't fill for a normal outcome.
+        # createOrder/cancelOrder are invoked dynamically since they aren't on every language's
+        # typed core-exchange interface (e.g. Go's ICoreExchange).
+        if not exchange.safe_bool(exchange.has, 'createOrder', False):
+            return True
+        # honour a skip-tests.json createOrder skip — e.g. polymarket geo-blocks order placement
+        # and CI runs via an EU proxy, so live order placement is skipped and covered by fixtures
+        create_order_skip = self.get_skips(exchange, 'createOrder')
+        if isinstance(create_order_skip, str):
+            dump('[INFO] skipping prediction createOrder test', exchange.id, create_order_skip)
+            return True
+        can_cancel = exchange.safe_bool(exchange.has, 'cancelOrder', False) or exchange.safe_bool(exchange.has, 'cancelAllOrders', False)
+        if not can_cancel:
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'no cancelOrder/cancelAllOrders')
+            return True
+        if not exchange.check_required_credentials(False):
+            dump('[INFO] skipping prediction createOrder test', exchange.id, 'keys not found')
+            return True
+        # default 5 @ 0.02 = 0.10 USD notional. a venue with a higher minimum (e.g. hyperliquid
+        # testnet's 10 USD min) overrides amount/price via skip-tests.json fundedAmount/fundedPrice;
+        # any override's notional (amount * price) MUST stay well under the 25 USD live-test cap
+        price = exchange.parse_to_numeric('0.02')
+        amount = exchange.parse_to_numeric('5')
+        funded_price = exchange.safe_string(self.skipped_settings_for_exchange, 'fundedPrice')
+        if funded_price is not None:
+            price = exchange.parse_to_numeric(funded_price)
+        funded_amount = exchange.safe_string(self.skipped_settings_for_exchange, 'fundedAmount')
+        if funded_amount is not None:
+            amount = exchange.parse_to_numeric(funded_amount)
+        dump('[INFO:MAIN] prediction createOrder', exchange.id, outcome, 'buy', amount, '@', price)
+        # no try/finally and no re-throw from the catch (the typed-lang async lambdas can't do
+        # either): record any failure, ALWAYS attempt the cancel, then report the failure
+        order = None
+        placed_id = None
+        failure = None
+        try:
+            order = await call_exchange_method_dynamically(exchange, 'createOrder', [outcome, 'limit', 'buy', amount, price])
+            assert order is not None, 'createOrder returned undefined for ' + exchange.id
+            assert exchange.is_dictionary(order), 'createOrder did not return an order structure for ' + exchange.id
+            placed_id = exchange.safe_string(order, 'id')
+            assert placed_id is not None, 'createOrder returned no order id for ' + exchange.id
+            returned_outcome = exchange.safe_string(order, 'outcome')
+            assert (returned_outcome is None) or (returned_outcome == outcome), 'createOrder outcome "' + exchange.json(returned_outcome) + '" should match requested "' + outcome + '" for ' + exchange.id
+        except Exception as e:
+            failure = exception_message(e)
+        # always cancel any placed order (cancelPredictionOrder swallows its own errors)
+        await self.cancel_prediction_order(exchange, placed_id, outcome)
+        if failure is not None:
+            dump('[TEST_FAILURE]', exchange.id, 'prediction createOrder failed:', failure)
+            return False
+        return True
+
+    async def cancel_prediction_order(self, exchange, order_id, outcome):
+        if order_id is None:
+            return True
+        try:
+            if exchange.safe_bool(exchange.has, 'cancelOrder', False):
+                await call_exchange_method_dynamically(exchange, 'cancelOrder', [order_id, outcome])
+            else:
+                await call_exchange_method_dynamically(exchange, 'cancelAllOrders', [outcome])
+            dump('[INFO:MAIN] prediction order cancelled', exchange.id, order_id)
+        except Exception as e:
+            dump('[WARN] prediction order cancel failed', exchange.id, order_id, exception_message(e))
+        return True
+
+    async def run_private_tests(self, exchange, symbols):
+        # mirrors runPublicTests: the caller always passes the selected symbols as an array
+        # (even a CLI-provided symbol arrives as a one-element array), and private tests run
+        # on the primary symbol per market type
+        symbol = symbols[0]
         if not exchange.check_required_credentials(False):
             dump('[INFO] Skipping private tests', 'Keys not found')
             return True
@@ -729,6 +1122,14 @@ class testMainClass:
         content = io_file_read(filename)
         return content
 
+    def load_events_from_file(self, id):
+        # prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        # static/events/<id>.json; returns undefined when the exchange has no events fixture
+        filename = get_root_dir() + './ts/src/test/static/events/' + id + '.json'
+        if not io_file_exists(filename):
+            return None
+        return io_file_read(filename)
+
     def load_currencies_from_file(self, id):
         filename = get_root_dir() + './ts/src/test/static/currencies/' + id + '.json'
         content = io_file_read(filename)
@@ -747,6 +1148,12 @@ class testMainClass:
         files = io_dir_read(folder)
         for i in range(0, len(files)):
             file = files[i]
+            # the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            # fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            # check the AST transpiler renders correctly in every language (indexOf/slice on this
+            # entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if file == 'prediction':
+                continue
             exchange_name = file.replace('.json', '')
             content = io_file_read(folder + file)
             result[exchange_name] = content
@@ -1006,9 +1413,176 @@ class testMainClass:
         set_fetch_response(exchange, None)  # reset state
         return True
 
-    def init_offline_exchange(self, exchange_name):
-        markets = self.load_markets_from_file(exchange_name)
-        currencies = self.load_currencies_from_file(exchange_name)
+    async def inject_ws_messages(self, exchange, url, messages, sequential=False):
+        # before every frame, wait until the watch flow is actually awaiting
+        # something — a fixed head-start sleep is not enough on slow ci
+        # runners and the frame's resolution would be dropped
+        for i in range(0, len(messages)):
+            waited = 0
+            while not ws_client_has_pending_futures(exchange, url) and (waited < 5000):
+                await exchange.sleep(50)
+                waited = waited + 50
+            inject_ws_message(exchange, url, messages[i])
+            # threaded runtimes resolve futures on another thread — wait for
+            # the consumed frame to settle so the pending check above does not
+            # observe a stale future and burn the next frame early; frames
+            # that resolve nothing (e.g. subscribe acks) fall through on the
+            # timeout
+            settled = 0
+            while ws_client_has_pending_futures(exchange, url) and (settled < 500):
+                await exchange.sleep(20)
+                settled = settled + 20
+        await exchange.sleep(50)
+        if sequential:
+            # a watch call of a sequence can register its future after every
+            # frame was already consumed — keep rejecting until the watch side
+            # reports completion (the rejections force it to finish). the time
+            # bound is a backstop for threaded runtimes where this task can be
+            # executed inline on a stack that blocks the watch side (forkjoin
+            # work stealing): give up eventually so the stack unwinds instead
+            # of deadlocking
+            waited_done = 0
+            while not is_ws_test_completed(exchange, url) and (waited_done < 30000):
+                reject_pending_ws_futures(exchange, url)
+                await exchange.sleep(50)
+                waited_done = waited_done + 50
+        # reject anything still pending so a wrong fixture fails fast
+        # instead of hanging the test run forever
+        reject_pending_ws_futures(exchange, url)
+        return True   # c# methods used with promiseAll need to return something
+
+    async def watch_and_assert_sequence(self, exchange, url, method, input, skip_keys, expected_results):
+        try:
+            for i in range(0, len(expected_results)):
+                result = await call_exchange_method_dynamically(exchange, method, input)
+                # ws structures can be live typed objects (e.g. orderbooks) in some
+                # runtimes — roundtrip through json so the deep-compare sees plain
+                # dicts in every language
+                unified_result = json_parse(json_stringify(result))
+                self.assert_static_response_output(exchange, skip_keys, unified_result, expected_results[i])
+        except Exception as e:
+            # let the injector's rejection loop exit before the caller reports
+            # — the explicit try/catch also keeps the java transpilation
+            # compilable (checked exceptions)
+            mark_ws_test_completed(exchange, url)
+            raise e
+        mark_ws_test_completed(exchange, url)
+        return True   # c# methods used with promiseAll need to return something
+
+    def assert_ws_sent_messages(self, exchange, url, data):
+        # the ws analog of the static request tests: assert the frames the
+        # watch method sent over the mocked transport (subscribe requests etc)
+        expected_sent = exchange.safe_list(data, 'sentMessages')
+        if expected_sent is None:
+            return
+        # ids/signatures/timestamps inside outgoing frames can be volatile —
+        # exclude them per entry without touching the response skipKeys
+        sent_skip_keys = exchange.safe_list(data, 'sentSkipKeys', [])
+        sent_messages = get_ws_sent_messages(exchange, url)
+        sent_length = len(sent_messages)
+        expected_length = len(expected_sent)
+        assert sent_length == expected_length, 'sent ws messages count mismatch: sent ' + str(sent_length) + ', expected ' + str(expected_length) + ' ' + json_stringify(sent_messages)
+        for i in range(0, expected_length):
+            unified_sent = json_parse(json_stringify(sent_messages[i]))
+            self.assert_static_response_output(exchange, sent_skip_keys, unified_sent, expected_sent[i])
+
+    async def test_ws_statically(self, exchange, method, skip_keys, data):
+        url = exchange.safe_string(data, 'url')
+        setup_ws_mock_transport(exchange, url)
+        http_response = exchange.safe_value(data, 'httpResponse')
+        if http_response is not None:
+            # some watch methods fetch a rest snapshot (e.g. watchOrderBook)
+            set_fetch_response(exchange, http_response)
+        if self.info:
+            dump('[INFO] STATIC WS TEST:', method, ':', data['description'])
+        try:
+            messages = exchange.safe_list(data, 'messages', [])
+            input = self.sanitize_data_input(data['input'])
+            expected_results = exchange.safe_list(data, 'parsedResponses')
+            if expected_results is not None:
+                # 'parsedResponses' asserts one result per successive watch
+                # resolution (e.g. an order going from open to closed)
+                # start the injector before the watch side: it must never sit
+                # queued while the watch chain blocks on a join — a forkjoin
+                # worker could execute it inline on the blocked stack and the
+                # rejection loop would then wait on the very watch side it is
+                # buried on top of
+                promises = [self.inject_ws_messages(exchange, url, messages, True), self.watch_and_assert_sequence(exchange, url, method, input, skip_keys, expected_results)]
+                await asyncio.gather(*promises)
+                self.assert_ws_sent_messages(exchange, url, data)
+            else:
+                # 'parsedResponse' asserts the final state after every frame
+                # was replayed — live structures like orderbooks keep updating
+                # after the first resolution, so serialize only at the end
+                promises = [call_exchange_method_dynamically(exchange, method, input), self.inject_ws_messages(exchange, url, messages)]
+                results = await asyncio.gather(*promises)
+                unified_result = json_parse(json_stringify(results[0]))
+                self.assert_static_response_output(exchange, skip_keys, unified_result, data['parsedResponse'])
+                self.assert_ws_sent_messages(exchange, url, data)
+        except Exception as e:
+            self.static_ws_tests_failed = True
+            error_message = '[' + self.lang + '][STATIC_WS]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + exception_message(e)
+            dump('[TEST_FAILURE]' + error_message)
+        set_fetch_response(exchange, None)  # reset state
+        return True
+
+    async def test_exchange_ws_statically(self, exchange_name, exchange_data, test_name=None):
+        global_options = {} if exchange_data['options'] is None else exchange_data['options']
+        methods = {} if exchange_data['methods'] is None else exchange_data['methods']
+        methods_names = list(methods.keys())
+        for i in range(0, len(methods_names)):
+            method = methods_names[i]
+            results = methods[method]
+            for j in range(0, len(results)):
+                result = results[j]
+                description = result['description']
+                if (test_name is not None) and (test_name != description):
+                    continue
+                # a fresh exchange per entry: ws caches (trades, orderbooks,
+                # ohlcvs) and request-id counters survive between watch calls
+                # and would leak state across entries otherwise
+                exchange = self.init_offline_exchange(exchange_name, True)
+                is_disabled = exchange.safe_bool(result, 'disabled', False)
+                if is_disabled:
+                    continue
+                disabled_string = exchange.safe_string(result, 'disabled', '')
+                if disabled_string != '':
+                    continue
+                is_disabled_c_sharp = exchange.safe_string(result, 'disabledCS')
+                if (is_disabled_c_sharp is not None) and (self.lang == 'C#'):
+                    continue
+                is_disabled_go = exchange.safe_string(result, 'disabledGO')
+                if (is_disabled_go is not None) and (self.lang == 'GO'):
+                    continue
+                is_disabled_java = exchange.safe_string(result, 'disabledJava')
+                if (is_disabled_java is not None) and (self.lang == 'java'):
+                    continue
+                is_disabled_php = exchange.safe_string(result, 'disabledPHP')
+                if (is_disabled_php is not None) and (self.lang == 'PHP'):
+                    continue
+                exchange.extend_exchange_options(global_options)
+                test_exchange_options = exchange.safe_value(result, 'options', {})
+                exchange.extend_exchange_options(test_exchange_options)
+                skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
+                await self.test_ws_statically(exchange, method, skip_keys, result)
+                if not is_sync():
+                    await close(exchange)
+        return True   # in c# methods that will be used with promiseAll need to return something
+
+    def init_offline_exchange(self, exchange_name, is_ws=False):
+        # prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        # fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        # standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        # holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        # setMarkets rebuilds cleanly from the outcome markets
+        prediction_events = None
+        if self.prediction_tests:
+            prediction_events = self.load_events_from_file(exchange_name)
+        markets = None
+        currencies = None
+        if prediction_events is None:
+            markets = self.load_markets_from_file(exchange_name)
+            currencies = self.load_currencies_from_file(exchange_name)
         wasm_exec_path = None
         library_path = None
         # const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
@@ -1069,8 +1643,25 @@ class testMainClass:
         if exchange_name == 'grvt':
             options['apiKey'] = ''
             options['secret'] = ''
-        exchange = init_exchange(exchange_name, options)
-        exchange.currencies = currencies
+        exchange = init_exchange(exchange_name, options, is_ws)
+        if currencies is not None:
+            exchange.currencies = currencies
+        # rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        # outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if prediction_events is not None:
+            event_markets = []
+            for i in range(0, len(prediction_events)):
+                ev_markets = exchange.safe_list(prediction_events[i], 'markets', [])
+                for j in range(0, len(ev_markets)):
+                    ev_market = ev_markets[j]
+                    # every market row must carry the unified market handle (PredictionMarket
+                    # setting it fails offline, not just in live tests. 'symbol' is deprecated
+                    # on prediction structures and must be absent
+                    assert exchange.safe_string(ev_market, 'market') is not None, exchange_name + ' static events fixture: market row missing the unified market handle'
+                    assert exchange.safe_string(ev_market, 'symbol') is None, exchange_name + ' static events fixture: market row must not carry the deprecated symbol key'
+                    event_markets.append(ev_market)
+            if len(event_markets) > 0:
+                exchange.set_markets(event_markets)
         # not working in python if assigned  in the config dict
         return exchange
 
@@ -1205,6 +1796,12 @@ class testMainClass:
 
     def check_if_exchange_is_disabled(self, exchange_name, exchange_data):
         exchange = init_exchange('Exchange', {})
+        # prediction-market exchanges exist only in the async namespaces in python/php,
+        # so their fixtures declare asyncOnly and the sync harness skips them
+        is_async_only = exchange.safe_bool(exchange_data, 'asyncOnly', False)
+        if is_async_only and is_sync():
+            dump('[TEST_WARNING] Exchange ' + exchange_name + ' is async-only, skipped by the sync test harness')
+            return True
         is_disabled_py = exchange.safe_bool(exchange_data, 'disabledPy', False)
         if is_disabled_py and (self.lang == 'PY'):
             dump('[TEST_WARNING] Exchange ' + exchange_name + ' is disabled in python')
@@ -1232,7 +1829,11 @@ class testMainClass:
         return True
 
     async def run_static_tests(self, type, target_exchange=None, test_name=None):
+        # prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        # run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
         folder = get_root_dir() + './ts/src/test/static/' + type + '/'
+        if self.prediction_tests:
+            folder = folder + 'prediction/'
         static_data = self.load_static_data(folder, target_exchange)
         if static_data is None:
             return True
@@ -1254,6 +1855,8 @@ class testMainClass:
             sum = exchange.sum(sum, number_of_tests)
             if type == 'request':
                 promises.append(self.test_exchange_request_statically(exchange_name, exchange_data, test_name))
+            elif type == 'ws':
+                promises.append(self.test_exchange_ws_statically(exchange_name, exchange_data, test_name))
             else:
                 promises.append(self.test_exchange_response_statically(exchange_name, exchange_data, test_name))
         try:
@@ -1261,11 +1864,13 @@ class testMainClass:
         except Exception as e:
             if type == 'request':
                 self.request_tests_failed = True
+            elif type == 'ws':
+                self.static_ws_tests_failed = True
             else:
                 self.response_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_REQUEST]' + exception_message(e)
             dump('[TEST_FAILURE]' + error_message)
-        if self.request_tests_failed or self.response_tests_failed:
+        if self.request_tests_failed or self.response_tests_failed or self.static_ws_tests_failed:
             exit_script(1)
         else:
             prefix = '[SYNC]' if (is_sync()) else ''
@@ -1279,11 +1884,22 @@ class testMainClass:
         await self.run_static_tests('response', exchange_name, test)
         return True
 
+    async def run_static_ws_tests(self, exchange_name=None, test=None):
+        #  -----------------------------------------------------------------------------
+        #  --- static ws tests: replay canned frames into the ws message handlers ------
+        #  -----------------------------------------------------------------------------
+        if is_sync():
+            # watch methods are async-only, there is nothing to test in the
+            # synchronous python/php flavours
+            return True
+        await self.run_static_tests('ws', exchange_name, test)
+        return True
+
     async def run_broker_id_tests(self):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_xt(), self.test_paradex(), self.test_hashkey(), self.test_cryptomus(), self.test_derive(), self.test_mode_trade(), self.test_backpack(), self.test_toobit(), self.test_weex(), self.test_foxbit()]
         await asyncio.gather(*promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1410,7 +2026,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1432,7 +2048,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for spot orders.'
         try:
@@ -1440,20 +2056,20 @@ class testMainClass:
                 'uta': True,
             })
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for spot uta orders.'
         id = 'ccxtfutures'
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for swap orders.'
         try:
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, {
                 'uta': True,
             })
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers for swap uta orders.'
         if not is_sync():
             await close(exchange)
@@ -1471,13 +2087,13 @@ class testMainClass:
             exchange.options['uta'] = False
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
         try:
             exchange.options['uta'] = True
             await exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers for uta orders.'
         if not is_sync():
             await close(exchange)
@@ -1491,7 +2107,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'bitget - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1506,7 +2122,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1569,21 +2185,6 @@ class testMainClass:
             await close(exchange)
         return True
 
-    async def test_bitmart(self):
-        exchange = self.init_offline_exchange('bitmart')
-        req_headers = {}
-        id = 'CCXTxBitmart000'
-        assert exchange.options['brokerId'] == id, 'bitmart - id: ' + id + ' not in options'
-        await exchange.load_markets()
-        try:
-            await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
-        except Exception as e:
-            req_headers = exchange.last_request_headers
-        assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
-        if not is_sync():
-            await close(exchange)
-        return True
-
     async def test_coinex(self):
         exchange = self.init_offline_exchange('coinex')
         id = 'x-167673045'
@@ -1609,7 +2210,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1648,7 +2249,7 @@ class testMainClass:
     # async testHyperliquid () {
     #     const exchange = this.initOfflineExchange ('hyperliquid');
     #     const id = '1';
-    #     let request = undefined;
+    #     let request: NullableDict = undefined;
     #     try {
     #         await exchange.createOrder ('SOL/USDC:USDC', 'limit', 'buy', 1, 100);
     #     } catch (e) {
@@ -1769,7 +2370,7 @@ class testMainClass:
         try:
             await exchange.create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000)
         except Exception as e:
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
         if not is_sync():
             await close(exchange)
@@ -1783,7 +2384,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1853,7 +2454,7 @@ class testMainClass:
             await exchange.create_order('ETH/USDC', 'limit', 'buy', 1, 5000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-Broker-Id'] == id, 'backpack - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1867,7 +2468,7 @@ class testMainClass:
             await exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
         except Exception as e:
             # we expect an error here, we're only interested in the headers
-            req_headers = exchange.last_request_headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
         assert req_headers['X-BB-API-PLATFORM'] == id, 'toobit - id: ' + id + ' not in headers.'
         if not is_sync():
             await close(exchange)
@@ -1890,3 +2491,19 @@ class testMainClass:
             request = json_parse(exchange.last_request_body)
         client_order_id = request['newClientOrderId']
         assert client_order_id.startswith(id), 'weex - newClientOrderId: ' + client_order_id + ' for swap order does not start with id: ' + id
+
+    async def test_foxbit(self):
+        exchange = self.init_offline_exchange('foxbit')
+        req_headers = {}
+        id = 'ccxt'
+        try:
+            await exchange.create_order('BTC/BRL', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers if exchange.last_request_headers else {}
+        assert req_headers['X-FB-CLIENT'] == id, 'foxbit - id: ' + id + ' not in headers.'
+        version = exchange.get_ccxt_version()
+        assert req_headers['X-FB-CLIENT-VERSION'] == version, 'foxbit - version: ' + version + ' not in headers.'
+        if not is_sync():
+            await close(exchange)
+        return True

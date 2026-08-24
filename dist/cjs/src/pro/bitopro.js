@@ -59,7 +59,7 @@ class bitopro extends bitopro$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -364,9 +364,12 @@ class bitopro extends bitopro$1["default"] {
         //         "low24hr": "1179321"
         //     }
         //
-        const marketId = this.safeString(message, 'pair');
+        const marketId = this.safeStringLower(message, 'pair');
+        if (marketId === undefined) {
+            return; // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        const market = this.safeMarket(marketId !== undefined ? marketId.toLowerCase() : undefined, undefined, '_');
+        const market = this.safeMarket(marketId, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;
@@ -464,7 +467,9 @@ class bitopro extends bitopro$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(balance, 'available');
             account['total'] = this.safeString(balance, 'amount');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         client.resolve(this.balance, event);

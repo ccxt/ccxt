@@ -9,8 +9,7 @@ import asyncio
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, Any, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, DepositAddress, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -34,7 +33,7 @@ from ccxt.base.precise import Precise
 
 class kucoin(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(kucoin, self).describe(), {
             'id': 'kucoin',
             'name': 'KuCoin',
@@ -101,7 +100,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchL3OrderBook': True,
                 'fetchLedger': True,
                 'fetchLeverage': True,
-                'fetchLeverageTiers': False,
+                'fetchLeverageTiers': True,
                 'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': True,
                 'fetchMarketLeverageTiers': True,
@@ -181,440 +180,440 @@ class kucoin(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         # spot trading
-                        'currencies': 3,
-                        'currencies/{currency}': 3,
-                        'symbols': 4,
-                        'market/orderbook/level1': 2,
-                        'market/allTickers': 15,
-                        'market/stats': 15,
-                        'markets': 3,
-                        'market/orderbook/level{level}_{limit}': 4,
-                        'market/orderbook/level2_20': 2,
-                        'market/orderbook/level2_100': 4,
-                        'market/histories': 3,
-                        'market/candles': 3,
-                        'prices': 3,
-                        'timestamp': 3,
-                        'status': 3,
+                        'currencies': {'cost': 3},
+                        'currencies/{currency}': {'cost': 3},
+                        'symbols': {'cost': 4},
+                        'market/orderbook/level1': {'cost': 2},
+                        'market/allTickers': {'cost': 15},
+                        'market/stats': {'cost': 15},
+                        'markets': {'cost': 3},
+                        'market/orderbook/level{level}_{limit}': {'cost': 4},
+                        'market/orderbook/level2_20': {'cost': 2},
+                        'market/orderbook/level2_100': {'cost': 4},
+                        'market/histories': {'cost': 3},
+                        'market/candles': {'cost': 3},
+                        'prices': {'cost': 3},
+                        'timestamp': {'cost': 3},
+                        'status': {'cost': 3},
                         # margin trading
-                        'mark-price/{symbol}/current': 2,
-                        'mark-price/all-symbols': 10,
-                        'margin/config': 25,
-                        'announcements': 20,
-                        'margin/collateralRatio': 10,
+                        'mark-price/{symbol}/current': {'cost': 2},
+                        'mark-price/all-symbols': {'cost': 10},
+                        'margin/config': {'cost': 25},
+                        'announcements': {'cost': 20},
+                        'margin/collateralRatio': {'cost': 10},
                         # convert
-                        'convert/symbol': 5,
-                        'convert/currencies': 5,
+                        'convert/symbol': {'cost': 5},
+                        'convert/currencies': {'cost': 5},
                     },
                     'post': {
                         # ws
-                        'bullet-public': 10,
+                        'bullet-public': {'cost': 10},
                     },
                 },
                 'private': {
                     'get': {
                         # account
-                        'user-info': 20,
-                        'user/api-key': 20,
-                        'accounts': 5,
-                        'accounts/{accountId}': 5,
-                        'accounts/ledgers': 2,
-                        'hf/accounts/ledgers': 2,
-                        'hf/margin/account/ledgers': 2,
-                        'transaction-history': 2,
-                        'sub/user': 20,
-                        'sub-accounts/{subUserId}': 15,
-                        'sub-accounts': 20,
-                        'sub/api-key': 20,
+                        'user-info': {'cost': 20},
+                        'user/api-key': {'cost': 20},
+                        'accounts': {'cost': 5},
+                        'accounts/{accountId}': {'cost': 5},
+                        'accounts/ledgers': {'cost': 2},
+                        'hf/accounts/ledgers': {'cost': 2},
+                        'hf/margin/account/ledgers': {'cost': 2},
+                        'transaction-history': {'cost': 2},
+                        'sub/user': {'cost': 20},
+                        'sub-accounts/{subUserId}': {'cost': 15},
+                        'sub-accounts': {'cost': 20},
+                        'sub/api-key': {'cost': 20},
                         # funding
-                        'margin/account': 40,
-                        'margin/accounts': 15,
-                        'isolated/accounts': 15,
-                        'deposit-addresses': 5,
-                        'deposits': 5,
-                        'hist-deposits': 5,
-                        'withdrawals': 20,
-                        'hist-withdrawals': 20,
-                        'withdrawals/quotas': 20,
-                        'accounts/transferable': 20,
-                        'transfer-list': 20,
-                        'base-fee': 3,
-                        'trade-fees': 3,
+                        'margin/account': {'cost': 40},
+                        'margin/accounts': {'cost': 15},
+                        'isolated/accounts': {'cost': 15},
+                        'deposit-addresses': {'cost': 5},
+                        'deposits': {'cost': 5},
+                        'hist-deposits': {'cost': 5},
+                        'withdrawals': {'cost': 20},
+                        'hist-withdrawals': {'cost': 20},
+                        'withdrawals/quotas': {'cost': 20},
+                        'accounts/transferable': {'cost': 20},
+                        'transfer-list': {'cost': 20},
+                        'base-fee': {'cost': 3},
+                        'trade-fees': {'cost': 3},
                         # spot trading
-                        'market/orderbook/level{level}': 3,
-                        'market/orderbook/level2': 3,
-                        'market/orderbook/level3': 3,
-                        'hf/accounts/opened': 2,
-                        'hf/orders/active': 2,
-                        'hf/orders/active/symbols': 2,
-                        'hf/margin/order/active/symbols': 2,
-                        'hf/orders/done': 2,
-                        'hf/orders/{orderId}': 2,
-                        'hf/orders/client-order/{clientOid}': 2,
-                        'hf/orders/dead-cancel-all/query': 2,
-                        'hf/fills': 2,
-                        'orders': 2,
-                        'limit/orders': 3,
-                        'orders/{orderId}': 2,
-                        'order/client-order/{clientOid}': 2,
-                        'fills': 10,
-                        'limit/fills': 20,
-                        'stop-order': 8,
-                        'stop-order/{orderId}': 3,
-                        'stop-order/queryOrderByClientOid': 3,
-                        'oco/order/{orderId}': 2,
-                        'oco/order/details/{orderId}': 2,
-                        'oco/client-order/{clientOid}': 2,
-                        'oco/orders': 2,
+                        'market/orderbook/level{level}': {'cost': 3},
+                        'market/orderbook/level2': {'cost': 3},
+                        'market/orderbook/level3': {'cost': 3},
+                        'hf/accounts/opened': {'cost': 2},
+                        'hf/orders/active': {'cost': 2},
+                        'hf/orders/active/symbols': {'cost': 2},
+                        'hf/margin/order/active/symbols': {'cost': 2},
+                        'hf/orders/done': {'cost': 2},
+                        'hf/orders/{orderId}': {'cost': 2},
+                        'hf/orders/client-order/{clientOid}': {'cost': 2},
+                        'hf/orders/dead-cancel-all/query': {'cost': 2},
+                        'hf/fills': {'cost': 2},
+                        'orders': {'cost': 2},
+                        'limit/orders': {'cost': 3},
+                        'orders/{orderId}': {'cost': 2},
+                        'order/client-order/{clientOid}': {'cost': 2},
+                        'fills': {'cost': 10},
+                        'limit/fills': {'cost': 20},
+                        'stop-order': {'cost': 8},
+                        'stop-order/{orderId}': {'cost': 3},
+                        'stop-order/queryOrderByClientOid': {'cost': 3},
+                        'oco/order/{orderId}': {'cost': 2},
+                        'oco/order/details/{orderId}': {'cost': 2},
+                        'oco/client-order/{clientOid}': {'cost': 2},
+                        'oco/orders': {'cost': 2},
                         # margin trading
-                        'hf/margin/orders/active': 4,
-                        'hf/margin/orders/done': 10,
-                        'hf/margin/orders/{orderId}': 4,
-                        'hf/margin/orders/client-order/{clientOid}': 5,
-                        'hf/margin/fills': 5,
-                        'hf/margin/stop-orders': 8,
-                        'hf/margin/stop-order/orderId': 3,
-                        'hf/margin/stop-order/clientOid': 3,
-                        'hf/margin/oco-order/orderId': 2,
-                        'hf/margin/oco-order/clientOid': 2,
-                        'hf/margin/oco-order/detail/orderId': 2,
-                        'hf/margin/oco-orders': 2,
-                        'etf/info': 25,
-                        'margin/currencies': 20,
-                        'risk/limit/strategy': 20,  # Deprecate
-                        'isolated/symbols': 3,
-                        'margin/symbols': 3,
-                        'isolated/account/{symbol}': 50,
-                        'margin/borrow': 15,
-                        'margin/repay': 15,
-                        'margin/interest': 20,
-                        'project/list': 10,
-                        'project/marketInterestRate': 5,
-                        'redeem/orders': 10,
-                        'purchase/orders': 10,
+                        'hf/margin/orders/active': {'cost': 4},
+                        'hf/margin/orders/done': {'cost': 10},
+                        'hf/margin/orders/{orderId}': {'cost': 4},
+                        'hf/margin/orders/client-order/{clientOid}': {'cost': 5},
+                        'hf/margin/fills': {'cost': 5},
+                        'hf/margin/stop-orders': {'cost': 8},
+                        'hf/margin/stop-order/orderId': {'cost': 3},
+                        'hf/margin/stop-order/clientOid': {'cost': 3},
+                        'hf/margin/oco-order/orderId': {'cost': 2},
+                        'hf/margin/oco-order/clientOid': {'cost': 2},
+                        'hf/margin/oco-order/detail/orderId': {'cost': 2},
+                        'hf/margin/oco-orders': {'cost': 2},
+                        'etf/info': {'cost': 25},
+                        'margin/currencies': {'cost': 20},
+                        'risk/limit/strategy': {'cost': 20},  # Deprecate
+                        'isolated/symbols': {'cost': 3},
+                        'margin/symbols': {'cost': 3},
+                        'isolated/account/{symbol}': {'cost': 50},
+                        'margin/borrow': {'cost': 15},
+                        'margin/repay': {'cost': 15},
+                        'margin/interest': {'cost': 20},
+                        'project/list': {'cost': 10},
+                        'project/marketInterestRate': {'cost': 5},
+                        'redeem/orders': {'cost': 10},
+                        'purchase/orders': {'cost': 10},
                         # broker
-                        'broker/api/rebase/download': 3,
-                        'broker/queryMyCommission': 3,
-                        'broker/queryUser': 3,
-                        'broker/queryDetailByUid': 3,
-                        'migrate/user/account/status': 3,
+                        'broker/api/rebase/download': {'cost': 3},
+                        'broker/queryMyCommission': {'cost': 3},
+                        'broker/queryUser': {'cost': 3},
+                        'broker/queryDetailByUid': {'cost': 3},
+                        'migrate/user/account/status': {'cost': 3},
                         # convert
-                        'convert/quote': 20,
-                        'convert/order/detail': 5,
-                        'convert/order/history': 5,
-                        'convert/limit/quote': 20,
-                        'convert/limit/order/detail': 5,
-                        'convert/limit/orders': 5,
+                        'convert/quote': {'cost': 20},
+                        'convert/order/detail': {'cost': 5},
+                        'convert/order/history': {'cost': 5},
+                        'convert/limit/quote': {'cost': 20},
+                        'convert/limit/order/detail': {'cost': 5},
+                        'convert/limit/orders': {'cost': 5},
                         # affiliate
-                        'affiliate/inviter/statistics': 30,
+                        'affiliate/inviter/statistics': {'cost': 30},
                     },
                     'post': {
                         # account
-                        'sub/user/created': 15,
-                        'sub/api-key': 20,
-                        'sub/api-key/update': 30,
+                        'sub/user/created': {'cost': 15},
+                        'sub/api-key': {'cost': 20},
+                        'sub/api-key/update': {'cost': 30},
                         # funding
-                        'deposit-addresses': 20,
-                        'withdrawals': 5,
-                        'accounts/universal-transfer': 4,
-                        'accounts/sub-transfer': 30,
-                        'accounts/inner-transfer': 15,
-                        'transfer-out': 20,
-                        'transfer-in': 20,
+                        'deposit-addresses': {'cost': 20},
+                        'withdrawals': {'cost': 5},
+                        'accounts/universal-transfer': {'cost': 4},
+                        'accounts/sub-transfer': {'cost': 30},
+                        'accounts/inner-transfer': {'cost': 15},
+                        'transfer-out': {'cost': 20},
+                        'transfer-in': {'cost': 20},
                         # spot trading
-                        'hf/orders': 1,
-                        'hf/orders/test': 1,
-                        'hf/orders/sync': 1,
-                        'hf/orders/multi': 1,
-                        'hf/orders/multi/sync': 1,
-                        'hf/orders/alter': 1,
-                        'hf/orders/dead-cancel-all': 2,
-                        'orders': 2,
-                        'orders/test': 2,
-                        'orders/multi': 3,
-                        'stop-order': 2,
-                        'oco/order': 2,
+                        'hf/orders': {'cost': 1},
+                        'hf/orders/test': {'cost': 1},
+                        'hf/orders/sync': {'cost': 1},
+                        'hf/orders/multi': {'cost': 1},
+                        'hf/orders/multi/sync': {'cost': 1},
+                        'hf/orders/alter': {'cost': 1},
+                        'hf/orders/dead-cancel-all': {'cost': 2},
+                        'orders': {'cost': 2},
+                        'orders/test': {'cost': 2},
+                        'orders/multi': {'cost': 3},
+                        'stop-order': {'cost': 2},
+                        'oco/order': {'cost': 2},
                         # margin trading
-                        'hf/margin/order': 2,
-                        'hf/margin/order/test': 2,
-                        'hf/margin/stop-order': 3,
-                        'margin/order': 5,
-                        'margin/order/test': 5,
-                        'hf/margin/oco-order': 2,
-                        'margin/borrow': 15,
-                        'margin/repay': 10,
-                        'purchase': 15,
-                        'redeem': 15,
-                        'lend/purchase/update': 10,
+                        'hf/margin/order': {'cost': 2},
+                        'hf/margin/order/test': {'cost': 2},
+                        'hf/margin/stop-order': {'cost': 3},
+                        'margin/order': {'cost': 5},
+                        'margin/order/test': {'cost': 5},
+                        'hf/margin/oco-order': {'cost': 2},
+                        'margin/borrow': {'cost': 15},
+                        'margin/repay': {'cost': 10},
+                        'purchase': {'cost': 15},
+                        'redeem': {'cost': 15},
+                        'lend/purchase/update': {'cost': 10},
                         # convert
-                        'convert/order': 20,
-                        'convert/limit/order': 20,
+                        'convert/order': {'cost': 20},
+                        'convert/limit/order': {'cost': 20},
                         # ws
-                        'bullet-private': 10,
-                        'position/update-user-leverage': 5,
-                        'deposit-address/create': 20,
+                        'bullet-private': {'cost': 10},
+                        'position/update-user-leverage': {'cost': 5},
+                        'deposit-address/create': {'cost': 20},
                     },
                     'delete': {
                         # account
-                        'sub/api-key': 30,
+                        'sub/api-key': {'cost': 30},
                         # funding
-                        'withdrawals/{withdrawalId}': 20,
+                        'withdrawals/{withdrawalId}': {'cost': 20},
                         # spot trading
-                        'hf/orders/{orderId}': 1,
-                        'hf/orders/sync/{orderId}': 1,
-                        'hf/orders/client-order/{clientOid}': 1,
-                        'hf/orders/sync/client-order/{clientOid}': 1,
-                        'hf/orders/cancel/{orderId}': 1,
-                        'hf/orders': 2,
-                        'hf/orders/cancelAll': 30,
-                        'orders/{orderId}': 3,
-                        'order/client-order/{clientOid}': 5,
-                        'orders': 20,
-                        'stop-order/{orderId}': 3,
-                        'stop-order/cancelOrderByClientOid': 5,
-                        'stop-order/cancel': 3,
-                        'oco/order/{orderId}': 3,
-                        'oco/client-order/{clientOid}': 3,
-                        'oco/orders': 3,
+                        'hf/orders/{orderId}': {'cost': 1},
+                        'hf/orders/sync/{orderId}': {'cost': 1},
+                        'hf/orders/client-order/{clientOid}': {'cost': 1},
+                        'hf/orders/sync/client-order/{clientOid}': {'cost': 1},
+                        'hf/orders/cancel/{orderId}': {'cost': 1},
+                        'hf/orders': {'cost': 2},
+                        'hf/orders/cancelAll': {'cost': 30},
+                        'orders/{orderId}': {'cost': 3},
+                        'order/client-order/{clientOid}': {'cost': 5},
+                        'orders': {'cost': 20},
+                        'stop-order/{orderId}': {'cost': 3},
+                        'stop-order/cancelOrderByClientOid': {'cost': 5},
+                        'stop-order/cancel': {'cost': 3},
+                        'oco/order/{orderId}': {'cost': 3},
+                        'oco/client-order/{clientOid}': {'cost': 3},
+                        'oco/orders': {'cost': 3},
                         # margin trading
-                        'hf/margin/orders/{orderId}': 2,
-                        'hf/margin/orders/client-order/{clientOid}': 2,
-                        'hf/margin/orders': 5,
-                        'hf/margin/stop-order/cancel-by-id': 3,
-                        'hf/margin/stop-order/cancel-by-clientOid': 5,
-                        'hf/margin/stop-order/cancel': 3,
-                        'hf/margin/oco-order/cancel-by-id': 3,
-                        'hf/margin/oco-order/cancel-by-clientOid': 3,
-                        'hf/margin/oco-order/cancel': 3,
+                        'hf/margin/orders/{orderId}': {'cost': 2},
+                        'hf/margin/orders/client-order/{clientOid}': {'cost': 2},
+                        'hf/margin/orders': {'cost': 5},
+                        'hf/margin/stop-order/cancel-by-id': {'cost': 3},
+                        'hf/margin/stop-order/cancel-by-clientOid': {'cost': 5},
+                        'hf/margin/stop-order/cancel': {'cost': 3},
+                        'hf/margin/oco-order/cancel-by-id': {'cost': 3},
+                        'hf/margin/oco-order/cancel-by-clientOid': {'cost': 3},
+                        'hf/margin/oco-order/cancel': {'cost': 3},
                         # convert
-                        'convert/limit/order/cancel': 5,
+                        'convert/limit/order/cancel': {'cost': 5},
                     },
                 },
                 'futuresPublic': {
                     'get': {
-                        'contracts/active': 6,
-                        'contracts/{symbol}': 6,  # 3PW
-                        'ticker': 4,  # 2PW
-                        'allTickers': 10,  # 5PW
-                        'level2/snapshot': 6,  # 3PW
-                        'level2/depth20': 10,  # 5PW
-                        'level2/depth100': 20,  # 10PW
-                        'trade/history': 10,  # 5PW
-                        'kline/query': 6,  # 3PW
-                        'interest/query': 10,  # 5PW
-                        'index/query': 4,  # 2PW
-                        'mark-price/{symbol}/current': 6,  # 3PW
-                        'premium/query': 6,  # 3PW
-                        'trade-statistics': 6,  # 3PW
-                        'funding-rate/{symbol}/current': 4,  # 2PW
-                        'contract/funding-rates': 10,  # 5PW
-                        'timestamp': 4,  # 2PW
-                        'status': 8,  # 4PW
+                        'contracts/active': {'cost': 6},
+                        'contracts/{symbol}': {'cost': 6},  # 3PW
+                        'ticker': {'cost': 4},  # 2PW
+                        'allTickers': {'cost': 10},  # 5PW
+                        'level2/snapshot': {'cost': 6},  # 3PW
+                        'level2/depth20': {'cost': 10},  # 5PW
+                        'level2/depth100': {'cost': 20},  # 10PW
+                        'trade/history': {'cost': 10},  # 5PW
+                        'kline/query': {'cost': 6},  # 3PW
+                        'interest/query': {'cost': 10},  # 5PW
+                        'index/query': {'cost': 4},  # 2PW
+                        'mark-price/{symbol}/current': {'cost': 6},  # 3PW
+                        'premium/query': {'cost': 6},  # 3PW
+                        'trade-statistics': {'cost': 6},  # 3PW
+                        'funding-rate/{symbol}/current': {'cost': 4},  # 2PW
+                        'contract/funding-rates': {'cost': 10},  # 5PW
+                        'timestamp': {'cost': 4},  # 2PW
+                        'status': {'cost': 8},  # 4PW
                         # ?
-                        'level2/message/query': 1.3953,
-                        'contracts/risk-limit/{symbol}': 3,
-                        'level3/message/query': 3,  # deprecated，level3/snapshot is suggested
-                        'level3/snapshot': 3,  # v2
+                        'level2/message/query': {'cost': 1.3953},
+                        'contracts/risk-limit/{symbol}': {'cost': 3},
+                        'level3/message/query': {'cost': 3},  # deprecated，level3/snapshot is suggested
+                        'level3/snapshot': {'cost': 3},  # v2
                     },
                     'post': {
                         # ws
-                        'bullet-public': 20,  # 10PW
+                        'bullet-public': {'cost': 20},  # 10PW
                     },
                 },
                 'futuresPrivate': {
                     'get': {
                         # account
-                        'transaction-history': 4,  # 2MW
+                        'transaction-history': {'cost': 4},  # 2MW
                         # funding
-                        'account-overview': 10,  # 5FW
-                        'account-overview-all': 12,  # 6FW
-                        'transfer-list': 20,
+                        'account-overview': {'cost': 10},  # 5FW
+                        'account-overview-all': {'cost': 12},  # 6FW
+                        'transfer-list': {'cost': 20},
                         # futures
-                        'orders': 4,  # 2FW
-                        'stopOrders': 12,  # 6FW
-                        'recentDoneOrders': 10,  # 5FW
-                        'orders/{orderId}': 10,  # 5FW
-                        'orders/byClientOid': 10,  # 5FW
-                        'fills': 10,  # 5FW
-                        'recentFills': 6,  # 3FW
-                        'trade-fees': 6,
-                        'openOrderStatistics': 20,  # 10FW
-                        'position': 4,  # 2FW
-                        'positions': 4,  # 2FW
-                        'margin/maxWithdrawMargin': 20,  # 10FW
-                        'contracts/risk-limit/{symbol}': 10,  # 5FW
-                        'funding-history': 10,  # 5FW
-                        'copy-trade/futures/get-max-open-size': 8,  # 4FW
-                        'copy-trade/futures/position/margin/max-withdraw-margin': 20,  # 10FW
-                        'history-positions': 4,
-                        'position/getMarginMode': 4,
-                        'position/getPositionMode': 4,
-                        'deposit-address': 4,
-                        'deposit-list': 4,
-                        'withdrawals/quotas': 4,
-                        'withdrawal-list': 4,
-                        'sub/api-key': 4,
-                        'trade-statistics': 4,
-                        'getMaxOpenSize': 4,
-                        'getCrossUserLeverage': 4,
+                        'orders': {'cost': 4},  # 2FW
+                        'stopOrders': {'cost': 12},  # 6FW
+                        'recentDoneOrders': {'cost': 10},  # 5FW
+                        'orders/{orderId}': {'cost': 10},  # 5FW
+                        'orders/byClientOid': {'cost': 10},  # 5FW
+                        'fills': {'cost': 10},  # 5FW
+                        'recentFills': {'cost': 6},  # 3FW
+                        'trade-fees': {'cost': 6},
+                        'openOrderStatistics': {'cost': 20},  # 10FW
+                        'position': {'cost': 4},  # 2FW
+                        'positions': {'cost': 4},  # 2FW
+                        'margin/maxWithdrawMargin': {'cost': 20},  # 10FW
+                        'contracts/risk-limit/{symbol}': {'cost': 10},  # 5FW
+                        'funding-history': {'cost': 10},  # 5FW
+                        'copy-trade/futures/get-max-open-size': {'cost': 8},  # 4FW
+                        'copy-trade/futures/position/margin/max-withdraw-margin': {'cost': 20},  # 10FW
+                        'history-positions': {'cost': 4},
+                        'position/getMarginMode': {'cost': 4},
+                        'position/getPositionMode': {'cost': 4},
+                        'deposit-address': {'cost': 4},
+                        'deposit-list': {'cost': 4},
+                        'withdrawals/quotas': {'cost': 4},
+                        'withdrawal-list': {'cost': 4},
+                        'sub/api-key': {'cost': 4},
+                        'trade-statistics': {'cost': 4},
+                        'getMaxOpenSize': {'cost': 4},
+                        'getCrossUserLeverage': {'cost': 4},
                     },
                     'post': {
                         # funding
-                        'transfer-out': 20,
-                        'transfer-in': 20,
+                        'transfer-out': {'cost': 20},
+                        'transfer-in': {'cost': 20},
                         # futures
-                        'orders': 4,  # 2FW
-                        'st-orders': 4,
-                        'orders/test': 4,  # 2FW
-                        'orders/multi': 6,  # 3FW
-                        'position/margin/auto-deposit-status': 8,  # 4FW
-                        'margin/withdrawMargin': 10,  # 10FW
-                        'position/margin/deposit-margin': 8,  # 4FW
-                        'position/risk-limit-level/change': 8,  # 4FW
-                        'copy-trade/futures/orders': 4,  # 2FW
-                        'copy-trade/futures/orders/test': 4,  # 2FW
-                        'copy-trade/futures/st-orders': 4,  # 2FW
-                        'copy-trade/futures/position/margin/deposit-margin': 8,  # 4FW
-                        'copy-trade/futures/position/margin/withdraw-margin': 20,  # 10FW
-                        'copy-trade/futures/position/risk-limit-level/change': 4,  # 2FW
-                        'copy-trade/futures/position/margin/auto-deposit-status': 8,  # 4FW
-                        'copy-trade/futures/position/changeMarginMode': 4,  # 2FW
-                        'copy-trade/futures/position/changeCrossUserLeverage': 4,  # 2FW
-                        'copy-trade/getCrossModeMarginRequirement': 6,  # 3FW
-                        'copy-trade/position/switchPositionMode': 4,  # 2FW
-                        'changeCrossUserLeverage': 4,
-                        'withdrawals': 4,
-                        'sub/api-key': 4,
-                        'sub/api-key/update': 4,
-                        'position/changeMarginMode': 4,
-                        'position/switchPositionMode': 4,
+                        'orders': {'cost': 4},  # 2FW
+                        'st-orders': {'cost': 4},
+                        'orders/test': {'cost': 4},  # 2FW
+                        'orders/multi': {'cost': 6},  # 3FW
+                        'position/margin/auto-deposit-status': {'cost': 8},  # 4FW
+                        'margin/withdrawMargin': {'cost': 10},  # 10FW
+                        'position/margin/deposit-margin': {'cost': 8},  # 4FW
+                        'position/risk-limit-level/change': {'cost': 8},  # 4FW
+                        'copy-trade/futures/orders': {'cost': 4},  # 2FW
+                        'copy-trade/futures/orders/test': {'cost': 4},  # 2FW
+                        'copy-trade/futures/st-orders': {'cost': 4},  # 2FW
+                        'copy-trade/futures/position/margin/deposit-margin': {'cost': 8},  # 4FW
+                        'copy-trade/futures/position/margin/withdraw-margin': {'cost': 20},  # 10FW
+                        'copy-trade/futures/position/risk-limit-level/change': {'cost': 4},  # 2FW
+                        'copy-trade/futures/position/margin/auto-deposit-status': {'cost': 8},  # 4FW
+                        'copy-trade/futures/position/changeMarginMode': {'cost': 4},  # 2FW
+                        'copy-trade/futures/position/changeCrossUserLeverage': {'cost': 4},  # 2FW
+                        'copy-trade/getCrossModeMarginRequirement': {'cost': 6},  # 3FW
+                        'copy-trade/position/switchPositionMode': {'cost': 4},  # 2FW
+                        'changeCrossUserLeverage': {'cost': 4},
+                        'withdrawals': {'cost': 4},
+                        'sub/api-key': {'cost': 4},
+                        'sub/api-key/update': {'cost': 4},
+                        'position/changeMarginMode': {'cost': 4},
+                        'position/switchPositionMode': {'cost': 4},
                         # ws
-                        'bullet-private': 20,  # 10FW
+                        'bullet-private': {'cost': 20},  # 10FW
                     },
                     'delete': {
-                        'orders/{orderId}': 2,  # 1FW
-                        'orders/client-order/{clientOid}': 2,  # 1FW
-                        'orders': 20,  # 10FW
-                        'stopOrders': 30,  # 15FW
-                        'copy-trade/futures/orders': 1.5,  # 1FW
-                        'copy-trade/futures/orders/client-order': 1.5,  # 1FW
-                        'orders/multi-cancel': 40,  # 20FW
-                        'withdrawals/{withdrawalId}': 10,
-                        'cancel/transfer-out': 10,
-                        'sub/api-key': 10,
+                        'orders/{orderId}': {'cost': 2},  # 1FW
+                        'orders/client-order/{clientOid}': {'cost': 2},  # 1FW
+                        'orders': {'cost': 20},  # 10FW
+                        'stopOrders': {'cost': 30},  # 15FW
+                        'copy-trade/futures/orders': {'cost': 1.5},  # 1FW
+                        'copy-trade/futures/orders/client-order': {'cost': 1.5},  # 1FW
+                        'orders/multi-cancel': {'cost': 40},  # 20FW
+                        'withdrawals/{withdrawalId}': {'cost': 10},
+                        'cancel/transfer-out': {'cost': 10},
+                        'sub/api-key': {'cost': 10},
                     },
                 },
                 'webExchange': {
                     'get': {
-                        'currency/currency/chain-info': 1,  # self is temporary from webApi
-                        'contract/{symbol}/funding-rates': 2,
+                        'currency/currency/chain-info': {'cost': 1},  # self is temporary from webApi
+                        'contract/{symbol}/funding-rates': {'cost': 2},
                     },
                 },
                 'broker': {
                     'get': {
-                        'broker/nd/info': 4,
-                        'broker/nd/account': 4,
-                        'broker/nd/account/apikey': 4,
-                        'broker/nd/rebase/download': 4,
-                        'asset/ndbroker/deposit/list': 2,
-                        'broker/nd/transfer/detail': 2,
-                        'broker/nd/deposit/detail': 2,
-                        'broker/nd/withdraw/detail': 2,
+                        'broker/nd/info': {'cost': 4},
+                        'broker/nd/account': {'cost': 4},
+                        'broker/nd/account/apikey': {'cost': 4},
+                        'broker/nd/rebase/download': {'cost': 4},
+                        'asset/ndbroker/deposit/list': {'cost': 2},
+                        'broker/nd/transfer/detail': {'cost': 2},
+                        'broker/nd/deposit/detail': {'cost': 2},
+                        'broker/nd/withdraw/detail': {'cost': 2},
                     },
                     'post': {
-                        'broker/nd/transfer': 2,
-                        'broker/nd/account': 6,
-                        'broker/nd/account/apikey': 6,
-                        'broker/nd/account/update-apikey': 6,
+                        'broker/nd/transfer': {'cost': 2},
+                        'broker/nd/account': {'cost': 6},
+                        'broker/nd/account/apikey': {'cost': 6},
+                        'broker/nd/account/update-apikey': {'cost': 6},
                     },
                     'delete': {
-                        'broker/nd/account/apikey': 6,
+                        'broker/nd/account/apikey': {'cost': 6},
                     },
                 },
                 'earn': {
                     'get': {
-                        'otc-loan/discount-rate-configs': 20,
-                        'otc-loan/loan': 2,
-                        'otc-loan/accounts': 2,
-                        'earn/redeem-preview': 10,  # 5EW
-                        'earn/saving/products': 10,  # 5EW
-                        'earn/hold-assets': 10,  # 5EW
-                        'earn/promotion/products': 10,  # 5EW
-                        'earn/kcs-staking/products': 10,  # 5EW
-                        'earn/staking/products': 10,  # 5EW
-                        'earn/eth-staking/products': 10,  # 5EW
-                        'struct-earn/dual/products': 6,
-                        'struct-earn/orders': 10,
+                        'otc-loan/discount-rate-configs': {'cost': 20},
+                        'otc-loan/loan': {'cost': 2},
+                        'otc-loan/accounts': {'cost': 2},
+                        'earn/redeem-preview': {'cost': 10},  # 5EW
+                        'earn/saving/products': {'cost': 10},  # 5EW
+                        'earn/hold-assets': {'cost': 10},  # 5EW
+                        'earn/promotion/products': {'cost': 10},  # 5EW
+                        'earn/kcs-staking/products': {'cost': 10},  # 5EW
+                        'earn/staking/products': {'cost': 10},  # 5EW
+                        'earn/eth-staking/products': {'cost': 10},  # 5EW
+                        'struct-earn/dual/products': {'cost': 6},
+                        'struct-earn/orders': {'cost': 10},
                     },
                     'post': {
-                        'earn/orders': 10,  # 5EW
-                        'struct-earn/orders': 10,
+                        'earn/orders': {'cost': 10},  # 5EW
+                        'struct-earn/orders': {'cost': 10},
                     },
                     'delete': {
-                        'earn/orders': 10,  # 5EW
+                        'earn/orders': {'cost': 10},  # 5EW
                     },
                 },
                 'uta': {
                     'get': {
-                        'market/announcement': 40,
-                        'market/currency': 6,
-                        'asset/currencies': 6,
-                        'market/instrument': 8,
-                        'market/ticker': 30,
-                        'market/trade': 6,
-                        'market/kline': 6,
-                        'market/funding-rate': 4,
-                        'market/funding-rate-history': 10,
-                        'market/cross-config': 50,
-                        'market/collateral-discount-ratio': 20,
-                        'market/index-price': 20,
-                        'market/position-tiers': 40,
-                        'market/open-interest': 20,
-                        'server/status': 6,
-                        'market/borrowable-currency': 30,
-                        'user/my-ip': 20,
-                        'market/fiat-price': 6,
+                        'market/announcement': {'cost': 40},
+                        'market/currency': {'cost': 6},
+                        'asset/currencies': {'cost': 6},
+                        'market/instrument': {'cost': 8},
+                        'market/ticker': {'cost': 30},
+                        'market/trade': {'cost': 6},
+                        'market/kline': {'cost': 6},
+                        'market/funding-rate': {'cost': 4},
+                        'market/funding-rate-history': {'cost': 10},
+                        'market/cross-config': {'cost': 50},
+                        'market/collateral-discount-ratio': {'cost': 20},
+                        'market/index-price': {'cost': 20},
+                        'market/position-tiers': {'cost': 40},
+                        'market/open-interest': {'cost': 20},
+                        'server/status': {'cost': 6},
+                        'market/borrowable-currency': {'cost': 30},
+                        'user/my-ip': {'cost': 20},
+                        'market/fiat-price': {'cost': 6},
                     },
                 },
                 'utaPrivate': {
                     'get': {
-                        'market/orderbook': 6,
-                        'account/balance': 10,
-                        'account/transfer-quota': 40,
-                        'account/mode': 60,
-                        'account/ledger': 4,
-                        'account/interest-history': 30,
-                        'asset/deposit/address': 10,
-                        'account/deposit/address': 5,
-                        '{accountMode}/account/balance': 10,
-                        '{accountMode}/account/overview': 10,
-                        '{accountMode}/order/detail': 8,
-                        '{accountMode}/order/open-list': 8,
-                        '{accountMode}/order/history': 8,
-                        '{accountMode}/order/execution': 8,
-                        '{accountMode}/position/open-list': 6,
-                        '{accountMode}/position/history': 4,
-                        'position/history': 4,
-                        '{accountMode}/position/tiers': 40,
-                        'sub-account/balance': 10,
-                        'user/fee-rate': 6,
-                        'dcp/query': 4,
-                        'unified/account/leverage': 20,  # returns {"code":"404","msg":"Not Found","retry":false,"success":false}
-                        'position/funding-history': 30,
-                        'account/interest-limits': 20,
+                        'market/orderbook': {'cost': 6},
+                        'account/balance': {'cost': 10},
+                        'account/transfer-quota': {'cost': 40},
+                        'account/mode': {'cost': 60},
+                        'account/ledger': {'cost': 4},
+                        'account/interest-history': {'cost': 30},
+                        'asset/deposit/address': {'cost': 10},
+                        'account/deposit/address': {'cost': 5},
+                        '{accountMode}/account/balance': {'cost': 10},
+                        '{accountMode}/account/overview': {'cost': 10},
+                        '{accountMode}/order/detail': {'cost': 8},
+                        '{accountMode}/order/open-list': {'cost': 8},
+                        '{accountMode}/order/history': {'cost': 8},
+                        '{accountMode}/order/execution': {'cost': 8},
+                        '{accountMode}/position/open-list': {'cost': 6},
+                        '{accountMode}/position/history': {'cost': 4},
+                        'position/history': {'cost': 4},
+                        '{accountMode}/position/tiers': {'cost': 40},
+                        'sub-account/balance': {'cost': 10},
+                        'user/fee-rate': {'cost': 6},
+                        'dcp/query': {'cost': 4},
+                        'unified/account/leverage': {'cost': 20},  # returns {"code":"404","msg":"Not Found","retry":false,"success":false}
+                        'position/funding-history': {'cost': 30},
+                        'account/interest-limits': {'cost': 20},
                     },
                     'post': {
-                        'account/transfer': 8,
-                        'account/mode': 60,
-                        '{accountMode}/account/modify-leverage': 40,
-                        '{accountMode}/order/place': 2,
-                        '{accountMode}/order/place-batch': 8,
-                        '{accountMode}/order/cancel': 2,
-                        '{accountMode}/order/cancel-batch': 8,
-                        '{accountMode}/order/cancel-all': 40,
-                        'sub-account/canTransferOut': 10,
-                        'dcp/set': 4,
-                        '{accountMode}/account/modify-leverage-margin-cross': 40,
+                        'account/transfer': {'cost': 8},
+                        'account/mode': {'cost': 60},
+                        '{accountMode}/account/modify-leverage': {'cost': 40},
+                        '{accountMode}/order/place': {'cost': 2},
+                        '{accountMode}/order/place-batch': {'cost': 8},
+                        '{accountMode}/order/cancel': {'cost': 2},
+                        '{accountMode}/order/cancel-batch': {'cost': 8},
+                        '{accountMode}/order/cancel-all': {'cost': 40},
+                        'sub-account/canTransferOut': {'cost': 10},
+                        'dcp/set': {'cost': 4},
+                        '{accountMode}/account/modify-leverage-margin-cross': {'cost': 40},
                     },
                 },
             },
@@ -642,7 +641,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,  # duplicated error temporarily
                     'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': InvalidOrder,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}
+                    'order_not_exist_or_not_allow_to_cancel': OrderNotFound,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
                     'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
                     'Order size increment invalid.': InvalidOrder,  # {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
@@ -917,7 +916,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
-                'timeDifference': 0,  # the difference between system clock and Binance clock
+                'timeDifference': 0,  # the difference between system clock and exchange clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
                 'fetchCurrencies': {
                     'brokenCurrencies': ['00', 'OPEN_ERROR', 'HUF', 'BDT'],  # skip buggy entries: https://t.me/KuCoin_API/217798
@@ -1142,7 +1141,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'EOS': 'eos',
                     'BEP20': 'bsc',
                     'BEP2': 'bnb',
-                    'ARBONE': 'arbitrum',
+                    'ARBITRUM': 'arbitrum',
                     'AVAXX': 'avax',
                     'AVAXC': 'avaxc',
                     'TLOS': 'tlos',  # tlosevm is different
@@ -1544,7 +1543,7 @@ class kucoin(Exchange, ImplicitAPI):
             response = await self.publicGetTimestamp(params)
         return self.safe_integer(response, 'data')
 
-    async def fetch_status(self, params={}):
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1613,7 +1612,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for kucoin
 
@@ -1842,7 +1841,7 @@ class kucoin(Exchange, ImplicitAPI):
             await self.load_time_difference()
         return result
 
-    async def fetch_contract_markets(self, params={}) -> List[Market]:
+    async def fetch_contract_markets(self, params: object = {}) -> list[Market]:
         response = await self.futuresPublicGetContractsActive(params)
         #
         #    {
@@ -1994,7 +1993,7 @@ class kucoin(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_uta_markets(self, params={}) -> List[Market]:
+    async def fetch_uta_markets(self, params={}) -> list[Market]:
         promises = []
         promises.append(self.utaGetMarketInstrument(self.extend(params, {'tradeType': 'SPOT'})))
         #
@@ -2290,7 +2289,7 @@ class kucoin(Exchange, ImplicitAPI):
         filteredCurrencies = self.filter_out_by_array(currenciesData, 'currency', brokenCurrencies)  # remove broken entries
         return self.parse_currencies(filteredCurrencies)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         entry = currency
         id = self.safe_string(entry, 'currency')
         code = self.safe_currency_code(id)
@@ -2301,27 +2300,28 @@ class kucoin(Exchange, ImplicitAPI):
             chain = chains[j]
             chainId = self.safe_string(chain, 'chainId')
             networkCode = self.network_id_to_code(chainId, code)
-            networks[networkCode] = {
-                'info': chain,
-                'id': chainId,
-                'name': self.safe_string(chain, 'chainName'),
-                'code': networkCode,
-                'active': None,
-                'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
-                'deposit': self.safe_bool(chain, 'isDepositEnabled'),
-                'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
-                        'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': chainId,
+                    'name': self.safe_string(chain, 'chainName'),
+                    'code': networkCode,
+                    'active': None,
+                    'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'minWithdrawFee'),
+                    'deposit': self.safe_bool(chain, 'isDepositEnabled'),
+                    'withdraw': self.safe_bool(chain, 'isWithdrawEnabled'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number_2(chain, 'withdrawalMinSize', 'minWithdrawSize'),
+                            'max': self.safe_number_2(chain, 'maxWithdraw', 'maxWithdrawSize'),
+                        },
+                        'deposit': {
+                            'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
+                            'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number_2(chain, 'depositMinSize', 'minDepositSize'),
-                        'max': self.safe_number_2(chain, 'maxDeposit', 'maxDepositSize'),
-                    },
-                },
-            }
+                }
         # kucoin has determined 'fiat' currencies with below logic
         rawPrecision = self.safe_string(entry, 'precision')
         precision = self.parse_number(self.parse_precision(rawPrecision))
@@ -2341,7 +2341,7 @@ class kucoin(Exchange, ImplicitAPI):
             'limits': None,
         })
 
-    async def fetch_accounts(self, params={}) -> List[Account]:
+    async def fetch_accounts(self, params={}) -> list[Account]:
         """
         fetch all the accounts associated with a profile
 
@@ -2435,7 +2435,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
         withdrawFees = {}
@@ -2446,7 +2448,7 @@ class kucoin(Exchange, ImplicitAPI):
             'deposit': {},
         }
 
-    async def fetch_deposit_withdraw_fee(self, code: str, params={}):
+    async def fetch_deposit_withdraw_fee(self, code: str, params={}) -> DepositWithdrawFee:
         """
         fetch the fee for deposits and withdrawals
 
@@ -2466,7 +2468,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         #
         #    {
@@ -2489,7 +2493,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_deposit_withdraw_fee(data, currency)
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None):
         #
         #    {
         #        "currency": "USDT",
@@ -2524,16 +2528,17 @@ class kucoin(Exchange, ImplicitAPI):
                 chain = chains[i]
                 chainId = self.safe_string(chain, 'chainId')
                 networkCodeNew = self.network_id_to_code(chainId, self.safe_string(currency, 'code'))
-                resultNew['networks'][networkCodeNew] = {
-                    'withdraw': {
-                        'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
-                        'percentage': False,
-                    },
-                    'deposit': {
-                        'fee': None,
-                        'percentage': None,
-                    },
-                }
+                if networkCodeNew is not None:
+                    resultNew['networks'][networkCodeNew] = {
+                        'withdraw': {
+                            'fee': self.safe_number_2(chain, 'withdrawalMinFee', 'withdrawMinFee'),
+                            'percentage': False,
+                        },
+                        'deposit': {
+                            'fee': None,
+                            'percentage': None,
+                        },
+                    }
             return resultNew
         minWithdrawFee = self.safe_number(fee, 'withdrawMinFee')
         result = {
@@ -2552,16 +2557,17 @@ class kucoin(Exchange, ImplicitAPI):
         currencyId = self.safe_string(fee, 'currency')
         currency = self.safe_currency(currencyId, currency)
         networkCode = self.network_id_to_code(networkId, currency['code'])
-        result['networks'][networkCode] = {
-            'withdraw': minWithdrawFee,
-            'deposit': {
-                'fee': None,
-                'percentage': None,
-            },
-        }
+        if networkCode is not None:
+            result['networks'][networkCode] = {
+                'withdraw': minWithdrawFee,
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
         return result
 
-    def is_futures_method(self, methodName, params):
+    def is_futures_method(self, methodName: object, params: object):
         #
         # Helper
         # @methodName(string): The name of the method
@@ -2824,7 +2830,9 @@ class kucoin(Exchange, ImplicitAPI):
             'last': last,
             'previousClose': None,
             'change': self.safe_string(ticker, 'priceChg'),
-            'percentage': self.safe_string(ticker, 'priceChgPct'),
+            # priceChgPct is a ratio: the sample above reports 0.0447 beside a priceChg
+            # of 2878.7 on a price near 64000, which is a move of 4.47 per cent
+            'percentage': Precise.string_mul(self.safe_string(ticker, 'priceChgPct'), '100'),
             'average': None,
             'baseVolume': self.safe_string(ticker, 'volumeOf24h'),
             'quoteVolume': self.safe_string(ticker, 'turnoverOf24h'),
@@ -3175,7 +3183,7 @@ class kucoin(Exchange, ImplicitAPI):
             data = self.safe_dict(response, 'data', {})
             return self.parse_spot_or_uta_ticker(data, market)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         "1545904980",             # Start time of the candle cycle
@@ -3209,7 +3217,7 @@ class kucoin(Exchange, ImplicitAPI):
                 self.safe_number(ohlcv, 5),
             ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -3241,7 +3249,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return await self.fetch_spot_ohlcv(symbol, timeframe, since, limit, params)
 
-    async def fetch_utaohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_utaohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
  @ignore
         helper method for fetchOHLCV
@@ -3318,7 +3326,7 @@ class kucoin(Exchange, ImplicitAPI):
         result = self.safe_list(data, 'list', [])
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    async def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_spot_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
  @ignore
         helper method for fetchOHLCV
@@ -3372,7 +3380,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    async def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_contract_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
  @ignore
         helper method for fetchOHLCV
@@ -3507,7 +3515,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         version = self.options['versions']['private']['GET']['deposit-addresses']
         self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
         response = await self.privateGetDepositAddresses(self.extend(request, params))
@@ -3559,7 +3569,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tag': self.safe_string(data, 'memo'),
         }
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         address = self.safe_string(depositAddress, 'address')
         # BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if address is not None:
@@ -3579,7 +3589,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
 
         https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
@@ -3604,7 +3614,9 @@ class kucoin(Exchange, ImplicitAPI):
             networkCode = None
             networkCode, params = self.handle_network_code_and_params(params)
             if networkCode is not None:
-                request['chain'] = self.network_code_to_id(networkCode, code).lower()
+                _netIdTmp = self.network_code_to_id(networkCode, code)
+                if _netIdTmp is not None:
+                    request['chain'] = _netIdTmp.lower()
             #
             #     {
             #         "code": "200000",
@@ -3663,7 +3675,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -3710,7 +3722,12 @@ class kucoin(Exchange, ImplicitAPI):
         elif (type != 'spot') and (type != 'margin'):
             if level != 2 and level is not None:
                 raise BadRequest(self.id + ' fetchOrderBook() can only return level 2')
-            if (limit is None) or limit == 20:
+            if limit is None:
+                # full L2 snapshot - required for correct ws diff-sync: the futures delta
+                # stream covers the whole book while depth20/depth100 truncate the snapshot,
+                # see https://github.com/ccxt/ccxt/issues/22063
+                response = await self.futuresPublicGetLevel2Snapshot(self.extend(request, params))
+            elif limit == 20:
                 #
                 #     {
                 #         "code": "200000",
@@ -3787,7 +3804,7 @@ class kucoin(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(data, 'sequence')
         return orderbook
 
-    def handle_trigger_prices(self, params):
+    def handle_trigger_prices(self, params: object):
         triggerPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
@@ -3937,7 +3954,11 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -3994,7 +4015,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['postOnly'] = True
         return self.extend(request, params)
 
-    def market_order_amount_to_precision(self, symbol: str, amount):
+    def market_order_amount_to_precision(self, symbol: Str, amount: object):
         market = self.market(symbol)
         result = self.decimal_to_precision(amount, TRUNCATE, market['info']['quoteIncrement'], self.precisionMode, self.paddingMode)
         if result == '0':
@@ -4065,7 +4086,11 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_contract_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         # required param, cannot be used twice
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId', self.uuid())
@@ -4086,6 +4111,8 @@ class kucoin(Exchange, ImplicitAPI):
         if cost is not None:
             request['valueQty'] = self.cost_to_precision(symbol, cost)
         else:
+            if amount is None:
+                raise ArgumentsRequired(self.id + ' requires an amount argument')
             if amount < 1:
                 raise InvalidOrder(self.id + ' createOrder() minimum contract order amount is 1')
             sizeString = self.amount_to_precision(symbol, amount)
@@ -4223,7 +4250,9 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def create_uta_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_uta_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
         market = self.market(symbol)
         if side is None:
             raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
@@ -4310,7 +4339,7 @@ class kucoin(Exchange, ImplicitAPI):
                     if reduceOnly:
                         positionSide = 'SHORT' if (positionSide == 'LONG') else 'LONG'
                     request['positionSide'] = positionSide
-        # handling with coinditional orders
+        # handling with conditional orders
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
         stopLoss = self.safe_dict(params, 'stopLoss')
         takeProfit = self.safe_dict(params, 'takeProfit')
@@ -4408,7 +4437,7 @@ class kucoin(Exchange, ImplicitAPI):
             await self.load_markets()
         return await self.create_market_order_with_cost(symbol, 'sell', cost, params)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
+    async def create_orders(self, orders: list[OrderRequest], params={}):
         """
         create a list of trade orders
 
@@ -4443,7 +4472,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' createOrders() does not support the markets of the orders provided')
 
-    async def create_spot_orders(self, orders: List[OrderRequest], params={}):
+    async def create_spot_orders(self, orders: list[OrderRequest], params={}):
         """
         helper method for creating spot orders in batch
 
@@ -4532,7 +4561,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(data, 'data', [])
         return self.parse_orders(data)
 
-    async def create_contract_orders(self, orders: List[OrderRequest], params={}):
+    async def create_contract_orders(self, orders: list[OrderRequest], params={}):
         """
         helper method for creating contract orders in batch
 
@@ -4702,7 +4731,7 @@ class kucoin(Exchange, ImplicitAPI):
         useSync = False
         useSync, params = self.handle_option_and_params(params, 'cancelOrder', 'sync', False)
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('createOrder', params)
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         tradeType = self.safe_string(params, 'tradeType')  # keep it for backward compatibility
         isMarginOrder = tradeType == 'MARGIN_TRADE' or marginMode is not None
         if hf or useSync or isMarginOrder:
@@ -4883,10 +4912,10 @@ class kucoin(Exchange, ImplicitAPI):
         market = self.market(symbol)
         request['symbol'] = market['id']
         accountMode = 'unified'
-        accountMode, params = self.handle_option_and_params(params, 'fetchOrder', 'accountMode', accountMode)
+        accountMode, params = self.handle_option_and_params(params, 'cancelOrder', 'accountMode', accountMode)
         request['accountMode'] = accountMode
         marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+        marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
         isUnified = (accountMode == 'unified')
         tradeType = self.handle_trade_type(market['contract'], marginMode, isUnified, params)
         request['tradeType'] = tradeType
@@ -4918,7 +4947,7 @@ class kucoin(Exchange, ImplicitAPI):
         https://www.kucoin.com/docs-new/rest/futures-trading/orders/cancel-all-stop-orders
         https://www.kucoin.com/docs-new/rest/ua/batch-cancel-order-by-symbol
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap', used if symbol is not provided(default is 'spot')
         :param str [params.marginMode]: *spot only* 'cross' or 'isolated'
@@ -4936,7 +4965,7 @@ class kucoin(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if (marketType == 'spot') or (marketType == 'margin'):
             return await self.cancel_all_spot_orders(symbol, params)
         else:
@@ -5078,7 +5107,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, None, None, {'status': 'canceled'})
 
-    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches a list of orders placed on the exchange
 
@@ -5132,7 +5161,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return await self.fetch_contract_orders_by_status(status, symbol, since, limit, params)
 
-    async def fetch_spot_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_spot_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch a list of spot orders
 
@@ -5258,7 +5287,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_contract_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_contract_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetches a list of contract orders placed on the exchange
 
@@ -5363,7 +5392,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_uta_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_uta_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
         """
         helper method for fetching orders by status with uta endpoint
 
@@ -5478,7 +5507,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(data, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -5511,7 +5540,7 @@ class kucoin(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('done', symbol, since, limit, params)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -5547,7 +5576,7 @@ class kucoin(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
         return await self.fetch_orders_by_status('active', symbol, since, limit, params)
 
-    async def fetch_order(self, id: Str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -6448,12 +6477,17 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
+        # v1(historical) returns the trade list directly under 'data', v2 nests it under 'items'
         trades = None
         if parseResponseData:
             trades = data
         else:
             trades = self.safe_list(data, 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        # v1 may put a bare list or dict under data; normalize once for parseTrades
+        tradesList = []
+        if trades is not None:
+            tradesList = self.to_array(trades)
+        return self.parse_trades(tradesList, market, since, limit)
 
     async def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -6528,7 +6562,10 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         trades = self.safe_list(data, 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit)
 
     async def fetch_my_uta_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -6610,9 +6647,12 @@ class kucoin(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         trades = self.safe_list(data, 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -6709,7 +6749,10 @@ class kucoin(Exchange, ImplicitAPI):
             #      }
             #
             trades = self.safe_list(response, 'data', [])
-        return self.parse_trades(trades, market, since, limit)
+        tradesList = []
+        if trades is not None:
+            tradesList = trades
+        return self.parse_trades(tradesList, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         if 'liquidityRole' in trade:  # property specific to myTrades from uta endpoint
@@ -7147,7 +7190,9 @@ class kucoin(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.network_code_to_id(networkCode, currency['code']).lower()
+            _netIdTmp = self.network_code_to_id(networkCode, currency['code'])
+            if _netIdTmp is not None:
+                request['chain'] = _netIdTmp.lower()
         amountString = self.currency_to_precision(code, amount, networkCode)
         if amountString is not None:
             request['amount'] = float(amountString)
@@ -7285,7 +7330,7 @@ class kucoin(Exchange, ImplicitAPI):
             'updated': updated,
         }
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -7372,7 +7417,7 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         return self.parse_transactions(items, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_contract_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_contract_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         helper method for fetching deposits for futures accounts
         :param str code: unified currency code
@@ -7420,10 +7465,11 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = response['data']['items']
+        data = self.safe_dict(response, 'data', {})
+        responseData = self.safe_list(data, 'items', [])
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -7512,7 +7558,7 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         return self.parse_transactions(items, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_contract_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_contract_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         helper method for fetching withdrawals for futures accounts
         :param str code: unified currency code
@@ -7560,10 +7606,11 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = response['data']['items']
+        data = self.safe_dict(response, 'data', {})
+        responseData = self.safe_list(data, 'items', [])
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    def parse_balance_helper(self, entry):
+    def parse_balance_helper(self, entry: object):
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'holdBalance', 'hold')
         account['free'] = self.safe_string_2(entry, 'availableBalance', 'available')
@@ -7723,8 +7770,10 @@ class kucoin(Exchange, ImplicitAPI):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult = {}
-                subResult[baseCode] = self.parse_balance_helper(base)
-                subResult[quoteCode] = self.parse_balance_helper(quote)
+                if baseCode is not None:
+                    subResult[baseCode] = self.parse_balance_helper(base)
+                if quoteCode is not None:
+                    subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
         elif cross:
             data = self.safe_dict(response, 'data', {})
@@ -7733,7 +7782,8 @@ class kucoin(Exchange, ImplicitAPI):
                 balance = accounts[i]
                 currencyId = self.safe_string(balance, 'currency')
                 codeInner = self.safe_currency_code(currencyId)
-                result[codeInner] = self.parse_balance_helper(balance)
+                if codeInner is not None:
+                    result[codeInner] = self.parse_balance_helper(balance)
         else:
             data = self.safe_list(response, 'data', [])
             for i in range(0, len(data)):
@@ -7746,7 +7796,8 @@ class kucoin(Exchange, ImplicitAPI):
                     account['total'] = self.safe_string(balance, 'balance')
                     account['free'] = self.safe_string(balance, 'available')
                     account['used'] = self.safe_string(balance, 'holds')
-                    result[codeInner2] = account
+                    if codeInner2 is not None:
+                        result[codeInner2] = account
         returnType = result
         if not isolated:
             returnType = self.safe_balance(result)
@@ -7802,7 +7853,8 @@ class kucoin(Exchange, ImplicitAPI):
         account = self.account()
         account['free'] = self.safe_string(data, 'availableBalance')
         account['total'] = self.safe_string(data, 'accountEquity')
-        result[currencyCode] = account
+        if currencyCode is not None:
+            result[currencyCode] = account
         return self.safe_balance(result)
 
     async def fetch_uta_balance(self, params={}) -> Balances:
@@ -7920,7 +7972,8 @@ class kucoin(Exchange, ImplicitAPI):
                     currencyEntry = self.safe_dict(currencies, j, {})
                     currencyId = self.safe_string(currencyEntry, 'currency')
                     currencyCode = self.safe_currency_code(currencyId)
-                    subResult[currencyCode] = self.parse_balance_helper(currencyEntry)
+                    if currencyCode is not None:
+                        subResult[currencyCode] = self.parse_balance_helper(currencyEntry)
                 result[symbol] = self.safe_balance(subResult)
         else:
             firstAccount = self.safe_dict(accounts, 0, {})
@@ -7929,7 +7982,8 @@ class kucoin(Exchange, ImplicitAPI):
                 currencyEntry = self.safe_dict(currencies, i, {})
                 currencyId = self.safe_string(currencyEntry, 'currency')
                 currencyCode = self.safe_currency_code(currencyId)
-                result[currencyCode] = self.parse_balance_helper(currencyEntry)
+                if currencyCode is not None:
+                    result[currencyCode] = self.parse_balance_helper(currencyEntry)
         returnType = result
         if not isIsolated:
             returnType = self.safe_balance(result)
@@ -8223,7 +8277,7 @@ class kucoin(Exchange, ImplicitAPI):
             return None
         return self.safe_string(statuses, status, status)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'Assets Transferred in After Upgrading': 'transfer',  # Assets Transferred in After V1 to V2 Upgrading
             'Deposit': 'transaction',  # Deposit
@@ -8287,7 +8341,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(types, type, type)
 
-    def parse_ledger_direction(self, direction):
+    def parse_ledger_direction(self, direction: object):
         directions = {
             'in': 'in',
             'out': 'out',
@@ -8298,7 +8352,7 @@ class kucoin(Exchange, ImplicitAPI):
         }
         return self.safe_string(directions, direction, direction)
 
-    def parse_ledger_status(self, status):
+    def parse_ledger_status(self, status: object):
         statuses = {
             'Completed': 'ok',
             'Pending': 'pending',
@@ -8419,7 +8473,7 @@ class kucoin(Exchange, ImplicitAPI):
             'fee': fee,
         }, currency)
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -8575,7 +8629,7 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list_2(data, 'items', 'dataList', [])
         return self.parse_ledger(items, currency, since, limit)
 
-    def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
+    def calculate_rate_limiter_cost(self, api: object, method: object, path: object, params: object, config={}):
         versions = self.safe_dict(self.options, 'versions', {})
         apiVersions = self.safe_dict(versions, api, {})
         methodVersions = self.safe_dict(apiVersions, method, {})
@@ -8589,7 +8643,7 @@ class kucoin(Exchange, ImplicitAPI):
             return config['v1']
         return self.safe_value(config, 'cost', 1)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
         #     {
         #         "tradeId": "62db2dcaff219600012b56cd",
@@ -8631,7 +8685,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -8813,7 +8867,7 @@ class kucoin(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def fetch_borrow_rate_histories(self, codes=None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_histories(self, codes: Strings = None, since: Int = None, limit: Int = None, params={}):
         """
         retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is None
 
@@ -8919,7 +8973,7 @@ class kucoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_history(rows, code, since, limit)
 
-    def parse_borrow_rate_histories(self, response, codes, since, limit):
+    def parse_borrow_rate_histories(self, response: object, codes: object, since: object, limit: object):
         #
         #     [
         #         {
@@ -8934,7 +8988,7 @@ class kucoin(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             item = response[i]
             code = self.safe_currency_code(self.safe_string(item, 'currency'))
-            if codes is None or self.in_array(code, codes):
+            if (code is not None) and (codes is None or self.in_array(code, codes)):
                 if not (code in borrowRateHistories):
                     borrowRateHistories[code] = []
                 borrowRateStructure = self.parse_borrow_rate(item)
@@ -8979,7 +9033,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_borrow_rate(data, currency)
 
-    async def borrow_cross_margin(self, code: str, amount: float, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -9015,7 +9069,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}):
+    async def borrow_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -9055,7 +9109,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def repay_cross_margin(self, code: str, amount, params={}):
+    async def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -9089,7 +9143,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    async def repay_isolated_margin(self, symbol: str, code: str, amount, params={}):
+    async def repay_isolated_margin(self, symbol: str, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -9127,7 +9181,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_loan(data, currency)
 
-    def parse_margin_loan(self, info, currency: Currency = None):
+    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         #     {
         #         "orderNo": "5da6dba0f943c0c81f5d5db5",
@@ -9146,7 +9200,7 @@ class kucoin(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
 
@@ -9397,7 +9451,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_funding_rate(data, market)
 
-    def parse_funding_rate(self, data, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, data: object, market: Market = None) -> FundingRate:
         # uta
         #     {
         #         "symbol": ".ETHUSDTMFPI8H",
@@ -9449,7 +9503,7 @@ class kucoin(Exchange, ImplicitAPI):
             'interval': self.parse_funding_interval(granularity),
         }
 
-    def parse_funding_interval(self, interval):
+    def parse_funding_interval(self, interval: object):
         intervals = {
             '3600000': '1h',
             '14400000': '4h',
@@ -9533,7 +9587,7 @@ class kucoin(Exchange, ImplicitAPI):
         result = self.safe_list(response, resultKey, [])
         return self.parse_funding_rate_histories(result, market, since, limit)
 
-    def parse_funding_rate_history(self, info, market: Market = None):
+    def parse_funding_rate_history(self, info: object, market: Market = None):
         #
         # uta
         #     {
@@ -9707,6 +9761,7 @@ class kucoin(Exchange, ImplicitAPI):
             #                 "mmr": "0.007",
             #                 "maintenanceMargin": "0.128086",
             #                 "creationTime": 1774469753178000000
+            #                 "updateTime": 1774469753178000000
             #             }
             #         ]
             #     }
@@ -9762,7 +9817,7 @@ class kucoin(Exchange, ImplicitAPI):
             position = self.safe_dict(response, 'data', {})
         return self.parse_position(position, market)
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -10035,6 +10090,7 @@ class kucoin(Exchange, ImplicitAPI):
         #         "mmr": "0.007",
         #         "maintenanceMargin": "0.128086",
         #         "creationTime": 1774469753178000000
+        #         "updateTime": 1774469753178000000
         #     }
         #
         # uta fetchPositionsHistory
@@ -10087,7 +10143,10 @@ class kucoin(Exchange, ImplicitAPI):
             marginMode = 'cross' if crossMode else 'isolated'
         lastUpdateTimestamp = self.safe_integer(position, 'closeTime')
         if lastUpdateTimestamp is None:
-            lastUpdateTimestamp = self.safe_integer_product(position, 'closingTime', 0.000001)
+            if 'closingTime' in position:
+                lastUpdateTimestamp = self.safe_integer_product(position, 'closingTime', 0.000001)
+            elif 'updateTime' in position:
+                lastUpdateTimestamp = self.safe_integer_product(position, 'updateTime', 0.000001)
         return self.safe_position({
             'info': position,
             'id': self.safe_string_n(position, ['id', 'positionId', 'closeId']),
@@ -10118,7 +10177,7 @@ class kucoin(Exchange, ImplicitAPI):
             'takeProfitPrice': None,
         })
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}):
         """
         cancel multiple orders for contract markets
 
@@ -10176,7 +10235,7 @@ class kucoin(Exchange, ImplicitAPI):
             accountMode, params = self.handle_option_and_params(params, 'cancelOrders', 'accountMode', accountMode)
             request['accountMode'] = accountMode
             marginMode = None
-            marginMode, params = self.handle_margin_mode_and_params('fetchOrder', params)
+            marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
             isUnified = (accountMode == 'unified')
             tradeType = self.handle_trade_type(isContractMarket, marginMode, isUnified, params)
             request['tradeType'] = tradeType
@@ -10330,7 +10389,7 @@ class kucoin(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    def parse_margin_modification(self, info, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, info: object, market: Market = None) -> MarginModification:
         #
         #    {
         #        "id": "62311d26064e8f00013f2c6d",
@@ -10468,7 +10527,7 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_margin_mode(data, market)
+        return self.parse_margin_mode(data, market)  # widened to Dict to match the base setMarginMode return({}) — narrowing it to MarginMode breaks the Go IExchange interface
 
     async def set_position_mode(self, hedged: bool, symbol: Str = None, params={}):
         """
@@ -10477,7 +10536,7 @@ class kucoin(Exchange, ImplicitAPI):
         https://www.kucoin.com/docs-new/rest/futures-trading/positions/switch-position-mode
 
         :param bool hedged: set to True to use two way position
-        :param str [symbol]: not used by bybit setPositionMode()
+        :param str [symbol]: not used by setPositionMode()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a response from the exchange
         """
@@ -10498,7 +10557,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         return response
 
-    async def fetch_position_mode(self, symbol: Str = None, params={}):
+    async def fetch_position_mode(self, symbol: Str = None, params={}) -> PositionModeInfo:
         """
         fetchs the position mode, hedged or one way
 
@@ -10525,7 +10584,7 @@ class kucoin(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str side: not used by kucoin closePositions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id of the order
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -10550,7 +10609,7 @@ class kucoin(Exchange, ImplicitAPI):
             response = await self.futuresPrivatePostOrders(self.extend(request, params))
         return self.parse_order(response, market)
 
-    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
@@ -10595,7 +10654,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_market_leverage_tiers(data, market)
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         """
  @ignore
         :param dict info: Exchange market response for 1 market
@@ -10744,7 +10803,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_open_interests(data, symbols)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #     {
         #         "symbol": "ETHUSDTM",
@@ -10835,7 +10894,7 @@ class kucoin(Exchange, ImplicitAPI):
             self.options['uta'] = uta
         return uta
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
         #                                ↑                 ↑
@@ -10912,7 +10971,7 @@ class kucoin(Exchange, ImplicitAPI):
                     headers['KC-BROKER-NAME'] = brokerName
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None
@@ -10932,7 +10991,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)
         return None
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -11000,7 +11059,7 @@ class kucoin(Exchange, ImplicitAPI):
         items = self.safe_list(data, 'items', [])
         return self.parse_transfers(items, currency, since, limit)
 
-    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 

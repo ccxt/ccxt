@@ -50,6 +50,8 @@
 
 - [Phemex Create Order Position With Takeprofit Stoploss](examples/cs/phemex-create-order-position-with-takeprofit-stoploss.md)
 
+- [📂 Prediction](https://github.com/ccxt/ccxt/tree/master/examples/cs/prediction)
+
 - [Proxy Usage](examples/cs/proxy-usage.md)
 
 - [UnWatchOrders](examples/cs/unWatchOrders.md)

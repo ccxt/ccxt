@@ -621,7 +621,7 @@ class kraken extends kraken$1["default"] {
         const interval = this.safeInteger(first, 'interval');
         const timeframe = this.findTimeframe(interval);
         const messageHash = this.getMessageHash('ohlcv', undefined, symbol);
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -630,16 +630,16 @@ class kraken extends kraken$1["default"] {
         }
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
-            const candle = data[ohlcvsLength - i - 1];
+            const candle = data[i];
             const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
                 timestamp,
-                this.safeString(candle, 'open'),
-                this.safeString(candle, 'high'),
-                this.safeString(candle, 'low'),
-                this.safeString(candle, 'close'),
-                this.safeString(candle, 'volume'),
+                this.safeNumber(candle, 'open'),
+                this.safeNumber(candle, 'high'),
+                this.safeNumber(candle, 'low'),
+                this.safeNumber(candle, 'close'),
+                this.safeNumber(candle, 'volume'),
             ];
             stored.append(parsed);
         }
@@ -764,7 +764,7 @@ class kraken extends kraken$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const requiredParams = {};
@@ -824,7 +824,7 @@ class kraken extends kraken$1["default"] {
             if (symbols !== undefined) {
                 for (let i = 0; i < symbols.length; i++) {
                     const symbol = symbols[i];
-                    const market = this.markets[symbol];
+                    const market = this.market(symbol);
                     const info = this.safeValue(market, 'info', {});
                     const wsName = this.safeString(info, 'wsname');
                     marketsByWsName[wsName] = market;
@@ -954,7 +954,8 @@ class kraken extends kraken$1["default"] {
                 const key = keys[i];
                 const bookside = orderbook[key];
                 const deltas = this.safeValue(first, key, []);
-                if (deltas.length > 0) {
+                const deltasLength = deltas.length;
+                if (deltasLength > 0) {
                     this.customHandleDeltas(bookside, deltas);
                 }
             }
@@ -1062,20 +1063,59 @@ class kraken extends kraken$1["default"] {
         const start = this.safeInteger(subscription, 'start');
         const expires = this.safeInteger(subscription, 'expires');
         if ((subscription === undefined) || ((subscription !== undefined) && (start + expires) <= now)) {
-            // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
-            const response = await this.privatePostGetWebSocketsToken(params);
-            //
-            //     {
-            //         "error":[],
-            //         "result":{
-            //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
-            //             "expires":900
-            //         }
-            //     }
-            //
-            subscription = this.safeDict(response, 'result');
-            subscription['start'] = now;
-            client.subscriptions[authenticated] = subscription;
+            // single-flight leader election, see
+            // https://github.com/ccxt/ccxt/issues/29393: the staleness gate
+            // above is followed by an awaited privatePostGetWebSocketsToken (),
+            // so N concurrent watchPrivate () calls on a cold instance each
+            // pass the gate and each burn a rate-limited private REST call to
+            // mint a separate token. client.futures is the flight registry
+            // itself, namespaced away from the real subscription keys on the
+            // same client that already caches the token, and settlement goes
+            // through client.resolve () / client.reject () so every write to
+            // that map stays behind the client's own lock
+            const messageHash = 'authenticateFlight';
+            if (messageHash in client.futures) {
+                // a flight is already in progress - wake when the leader
+                // settles it: the token is then in the subscriptions bucket
+                await client.future(messageHash);
+                subscription = this.safeDict(client.subscriptions, authenticated);
+                return this.safeString(subscription, 'token');
+            }
+            const future = client.reusableFuture(messageHash);
+            try {
+                // https://docs.kraken.com/api/docs/rest-api/get-websockets-token
+                const response = await this.privatePostGetWebSocketsToken(params);
+                //
+                //     {
+                //         "error":[],
+                //         "result":{
+                //             "token":"xeAQ\/RCChBYNVh53sTv1yZ5H4wIbwDF20PiHtTF+4UI",
+                //             "expires":900
+                //         }
+                //     }
+                //
+                subscription = this.safeDict(response, 'result');
+                const token = this.safeString(subscription, 'token');
+                if (token === undefined) {
+                    // reject instead of caching an empty credential, so
+                    // waiters retry rather than proceed unauthenticated
+                    throw new errors.AuthenticationError(this.id + ' authenticate() received an empty token');
+                }
+                subscription['start'] = now;
+                client.subscriptions[authenticated] = subscription;
+                // settle the flight and wake every waiter - resolve () also
+                // clears the registry entry, so the next refresh re-leads
+                client.resolve(token, messageHash);
+            }
+            catch (e) {
+                // reject the flight - all waiters throw and the next caller
+                // re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash);
+            }
+            // rethrows the leader's own failure and attaches the handler that
+            // keeps an alone leader's rejection from killing the process
+            await future;
+            subscription = this.safeDict(client.subscriptions, authenticated);
         }
         return this.safeString(subscription, 'token');
     }
@@ -1105,7 +1145,7 @@ class kraken extends kraken$1["default"] {
         if (this.newUpdates) {
             limit = result.getLimit(symbol, limit);
         }
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(result, symbol, since, limit, true);
     }
     /**
      * @method

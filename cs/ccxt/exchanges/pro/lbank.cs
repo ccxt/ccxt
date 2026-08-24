@@ -62,6 +62,16 @@ public partial class lbank : ccxt.lbank
         return newValue;
     }
 
+    public virtual void checkContractMarket(object market, object methodName)
+    {
+        // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
+        // see https://github.com/ccxt/ccxt/issues/26864
+        if (isTrue(isTrue((!isEqual(market, null))) && isTrue(getValue(market, "contract"))))
+        {
+            throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() does not support "), getValue(market, "type")), " markets yet")) ;
+        }
+    }
+
     /**
      * @method
      * @name lbank#fetchOHLCVWs
@@ -83,6 +93,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchOHLCVWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
@@ -102,7 +113,7 @@ public partial class lbank : ccxt.lbank
         {
             ((IDictionary<string,object>)message)["size"] = limit;
         }
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
         return await this.watch(url, messageHash, request, requestId, request);
     }
@@ -128,6 +139,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchOHLCV");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
         object timeframeId = this.safeString(timeframes, timeframe, timeframe);
@@ -139,7 +151,7 @@ public partial class lbank : ccxt.lbank
             { "kbar", timeframeId },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object ohlcv = await this.watch(url, messageHash, request, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -213,7 +225,7 @@ public partial class lbank : ccxt.lbank
             object timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -231,7 +243,7 @@ public partial class lbank : ccxt.lbank
             object parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -250,7 +262,7 @@ public partial class lbank : ccxt.lbank
      * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} [params] extra parameters specific to the cex api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
@@ -261,6 +273,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchTickerWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTicker:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -268,7 +281,7 @@ public partial class lbank : ccxt.lbank
             { "request", "tick" },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
         return await this.watch(url, messageHash, request, requestId, request);
     }
@@ -279,7 +292,7 @@ public partial class lbank : ccxt.lbank
      * @see https://www.lbank.com/en-US/docs/index.html#market
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
@@ -290,6 +303,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchTicker");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("ticker:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -297,7 +311,7 @@ public partial class lbank : ccxt.lbank
             { "subscribe", "tick" },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return await this.watch(url, messageHash, request, messageHash, request);
     }
 
@@ -405,6 +419,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchTradesWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchTrades:", getValue(market, "symbol"));
         if (isTrue(isEqual(limit, null)))
@@ -417,7 +432,7 @@ public partial class lbank : ccxt.lbank
             { "pair", getValue(market, "id") },
             { "size", limit },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object requestId = this.requestId();
         return await this.watch(url, messageHash, request, requestId, request);
     }
@@ -441,6 +456,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchTrades");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("trades:", getValue(market, "symbol"));
         object message = new Dictionary<string, object>() {
@@ -448,7 +464,7 @@ public partial class lbank : ccxt.lbank
             { "subscribe", "trade" },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
         object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
@@ -528,7 +544,7 @@ public partial class lbank : ccxt.lbank
             timestamp = this.parse8601(datetime);
         }
         object rawSide = this.safeString2(trade, "direction", 3);
-        object parts = ((string)((string)rawSide)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)((string)rawSide)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object firstPart = this.safeString(parts, 0);
         object secondPart = this.safeString(parts, 1);
         object side = firstPart;
@@ -562,7 +578,7 @@ public partial class lbank : ccxt.lbank
      * @param {string} [symbol] unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -592,7 +608,7 @@ public partial class lbank : ccxt.lbank
             { "subscribeKey", key },
             { "pair", pair },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
@@ -626,6 +642,10 @@ public partial class lbank : ccxt.lbank
             myOrders = new ArrayCacheBySymbolById(limit);
         }
         object order = this.parseWsOrder(message);
+        if (isTrue(isEqual(myOrders, null)))
+        {
+            return;
+        }
         callDynamically(myOrders, "append", new object[] {order});
         this.orders = myOrders;
         callDynamically(client as WebSocketClient, "resolve", new object[] {myOrders, "orders"});
@@ -678,7 +698,7 @@ public partial class lbank : ccxt.lbank
         //
         object orderUpdate = this.safeValue(order, "orderUpdate", new Dictionary<string, object>() {});
         object rawType = this.safeString(orderUpdate, "type", "");
-        object typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        List<object> typeParts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object side = this.safeString(typeParts, 0);
         object exchangeType = this.safeString(typeParts, 1);
         object type = null;
@@ -749,13 +769,13 @@ public partial class lbank : ccxt.lbank
         }
         object key = await this.authenticate(parameters);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object messageHash = "balance";
+        string messageHash = "balance";
         object message = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "subscribe", "assetUpdate" },
             { "subscribeKey", key },
         };
-        object request = this.deepExtend(message, parameters);
+        Dictionary<string, object> request = this.deepExtend(message, parameters);
         return await this.watch(url, messageHash, request, messageHash, request);
     }
 
@@ -788,7 +808,10 @@ public partial class lbank : ccxt.lbank
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "freeze");
         ((IDictionary<string,object>)account)["total"] = this.safeString(data, "asset");
-        ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        if (isTrue(!isEqual(code, null)))
+        {
+            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+        }
         this.balance = this.safeBalance(this.balance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
@@ -800,7 +823,7 @@ public partial class lbank : ccxt.lbank
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
      */
     public async override Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
@@ -811,6 +834,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "fetchOrderBookWs");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("fetchOrderbook:", getValue(market, "symbol"));
         if (isTrue(isEqual(limit, null)))
@@ -823,7 +847,7 @@ public partial class lbank : ccxt.lbank
             { "depth", limit },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
         return (orderbook as IOrderBook).limit();
     }
@@ -835,8 +859,8 @@ public partial class lbank : ccxt.lbank
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int|undefined} limit the maximum amount of order book entries to return
-     * @param {object} params extra parameters specific to the lbank api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -846,6 +870,7 @@ public partial class lbank : ccxt.lbank
             await this.loadMarkets();
         }
         object market = this.market(symbol);
+        this.checkContractMarket(market, "watchOrderBook");
         object url = getValue(getValue(this.urls, "api"), "ws");
         object messageHash = add("orderbook:", getValue(market, "symbol"));
         parameters = this.omit(parameters, "aggregation");
@@ -859,7 +884,7 @@ public partial class lbank : ccxt.lbank
             { "depth", limit },
             { "pair", getValue(market, "id") },
         };
-        object request = this.deepExtend(subscribe, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object orderbook = await this.watch(url, messageHash, request, messageHash);
         return (orderbook as IOrderBook).limit();
     }
@@ -996,7 +1021,7 @@ public partial class lbank : ccxt.lbank
             { "orderUpdate", this.handleOrders },
             { "assetUpdate", this.handleBalance },
         };
-        object handler = this.safeValue(handlers, ((string)type));
+        object handler = this.safeValue(handlers, type);
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
@@ -1005,50 +1030,82 @@ public partial class lbank : ccxt.lbank
 
     public async virtual Task<object> authenticate(object parameters = null)
     {
-        // when we implement more private streams, we need to refactor the authentication
-        // to be concurent-safe and respect the same authentication token
+        // single-flight leader election, see
+        // https://github.com/ccxt/ccxt/issues/29393: both branches below read
+        // the cache, then fetch, then write it back, so concurrent
+        // watchOrders/watchBalance calls on a cold instance each POST
+        // subscribe/get_key, and concurrent callers past the expiry each POST
+        // subscribe/refresh_key - every loser burns rate limit on a
+        // subscribeKey that is immediately overwritten. the flight is parked
+        // on this exchange's own ws client - the same one that carries
+        // subscriptions['authenticated'] - under a key that is not one of its
+        // messageHashes, registered in client.futures before the first fetch
+        // and settled through client.resolve / ((WebSocketClient)client).reject so that every
+        // write to the futures map goes through the client itself
         parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        object now = this.milliseconds();
-        object messageHash = "authenticated";
-        object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
-        if (isTrue(isEqual(authenticated, null)))
+        Int64 now = this.milliseconds();
+        string messageHash = "authenticateFlight";
+        if (isTrue(inOp(client.futures, messageHash)))
         {
-            this.checkRequiredCredentials();
-            object response = await this.spotPrivatePostSubscribeGetKey(parameters);
-            //
-            // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
-            //
-            object result = this.safeValue(response, "result");
-            if (isTrue(!isEqual(result, true)))
-            {
-                throw new ExchangeError ((string)add(this.id, " failed to get subscribe key")) ;
-            }
-            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)["authenticated"] = new Dictionary<string, object>() {
-                { "key", this.safeString(response, "data") },
-                { "expires", this.sum(now, 3300000) },
-            };
-        } else
-        {
-            object expires = this.safeInteger(authenticated, "expires", 0);
-            if (isTrue(isLessThan(expires, now)))
-            {
-                object request = new Dictionary<string, object>() {
-                    { "subscribeKey", getValue(authenticated, "key") },
-                };
-                object response = await this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters));
-                //
-                //    {"result": "true"}
-                //
-                object result = this.safeString(response, "result");
-                if (isTrue(!isEqual(result, "true")))
-                {
-                    throw new ExchangeError ((string)add(this.id, " failed to refresh the SubscribeKey")) ;
-                }
-                ((IDictionary<string,object>)getValue(getValue(client as WebSocketClient, "subscriptions"), "authenticated"))["expires"] = this.sum(now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
-            }
+            // a flight is already in progress - wake when the leader settles
+            // it: the subscribeKey is then in the bucket
+            await client.future(messageHash);
+            return getValue(getValue(((WebSocketClient)client).subscriptions, "authenticated"), "key");
         }
+        var future = client.reusableFuture(messageHash);
+        try
+        {
+            object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, "authenticated");
+            if (isTrue(isEqual(authenticated, null)))
+            {
+                object response = await this.spotPrivatePostSubscribeGetKey(parameters);
+                //
+                // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
+                //
+                object result = this.safeValue(response, "result");
+                if (isTrue(!isEqual(result, true)))
+                {
+                    throw new ExchangeError ((string)add(this.id, " failed to get subscribe key")) ;
+                }
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)["authenticated"] = new Dictionary<string, object>() {
+                    { "key", this.safeString(response, "data") },
+                    { "expires", this.sum(now, 3300000) },
+                };
+            } else
+            {
+                object expires = this.safeInteger(authenticated, "expires", 0);
+                if (isTrue(isLessThan(expires, now)))
+                {
+                    object request = new Dictionary<string, object>() {
+                        { "subscribeKey", getValue(authenticated, "key") },
+                    };
+                    object response = await this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters));
+                    //
+                    //    {"result": "true"}
+                    //
+                    object result = this.safeString(response, "result");
+                    if (isTrue(!isEqual(result, "true")))
+                    {
+                        throw new ExchangeError ((string)add(this.id, " failed to refresh the SubscribeKey")) ;
+                    }
+                    ((IDictionary<string,object>)getValue(getValue(client as WebSocketClient, "subscriptions"), "authenticated"))["expires"] = this.sum(now, 3300000); // SubscribeKey lasts one hour, refresh it 5 minutes before it expires
+                }
+            }
+            // settle the flight through the client so that every write to the
+            // futures map happens inside the base class
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(getValue(((WebSocketClient)client).subscriptions, "authenticated"), "key"), messageHash});
+        } catch(Exception e)
+        {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            ((WebSocketClient)client).reject(e, messageHash);
+        }
+        // rethrows a rejected flight to the leader and attaches the handler
+        // that keeps an alone leader from crashing on an unhandled rejection
+        await future;
         return getValue(getValue(((WebSocketClient)client).subscriptions, "authenticated"), "key");
     }
 }

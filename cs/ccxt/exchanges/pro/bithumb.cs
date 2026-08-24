@@ -99,7 +99,7 @@ public partial class bithumb : ccxt.bithumb
             { "symbols", marketIds },
             { "tickTypes", new List<object> {this.safeString(parameters, "tickTypes", "24H")} },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object newTicker = await this.watchMultiple(url, messageHashes, message, messageHashes);
         if (isTrue(this.newUpdates))
         {
@@ -202,7 +202,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -450,7 +450,7 @@ public partial class bithumb : ccxt.bithumb
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
-        object messageHash = "myAsset";
+        string messageHash = "myAsset";
         object request = new List<object>() {new Dictionary<string, object>() {
     { "ticket", "ccxt" },
 }, new Dictionary<string, object>() {
@@ -477,7 +477,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        object messageHash = "myAsset";
+        string messageHash = "myAsset";
         object assets = this.safeList(message, "assets", new List<object>() {});
         if (isTrue(isEqual(this.balance, null)))
         {
@@ -491,7 +491,10 @@ public partial class bithumb : ccxt.bithumb
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(asset, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(asset, "locked");
-            ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)this.balance)[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)this.balance)["info"] = message;
         object timestamp = this.safeInteger(message, "timestamp");
@@ -597,7 +600,7 @@ public partial class bithumb : ccxt.bithumb
         //        "stream_type": "REALTIME"
         //    }
         //
-        object messageHash = "myOrder";
+        string messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
         object symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');

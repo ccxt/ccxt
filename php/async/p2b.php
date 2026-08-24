@@ -12,6 +12,8 @@ use ccxt\BadRequest;
 use React\Async;
 use React\Promise\PromiseInterface;
 
+use const ccxt\TICK_SIZE;
+
 class p2b extends Exchange {
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
@@ -157,28 +159,28 @@ class p2b extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'markets' => 1,
-                        'market' => 1,
-                        'tickers' => 1,
-                        'ticker' => 1,
-                        'book' => 1,
-                        'history' => 1,
-                        'depth/result' => 1,
-                        'market/kline' => 1,
+                        'markets' => array( 'cost' => 1 ),
+                        'market' => array( 'cost' => 1 ),
+                        'tickers' => array( 'cost' => 1 ),
+                        'ticker' => array( 'cost' => 1 ),
+                        'book' => array( 'cost' => 1 ),
+                        'history' => array( 'cost' => 1 ),
+                        'depth/result' => array( 'cost' => 1 ),
+                        'market/kline' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'account/balances' => 1,
-                        'account/balance' => 1,
-                        'order/new' => 1,
-                        'order/cancel' => 1,
-                        'orders' => 1,
-                        'account/market_order_history' => 1,
-                        'account/market_deal_history' => 1,
-                        'account/order' => 1,
-                        'account/order_history' => 1,
-                        'account/executed_history' => 1,
+                        'account/balances' => array( 'cost' => 1 ),
+                        'account/balance' => array( 'cost' => 1 ),
+                        'order/new' => array( 'cost' => 1 ),
+                        'order/cancel' => array( 'cost' => 1 ),
+                        'orders' => array( 'cost' => 1 ),
+                        'account/market_order_history' => array( 'cost' => 1 ),
+                        'account/market_deal_history' => array( 'cost' => 1 ),
+                        'account/order' => array( 'cost' => 1 ),
+                        'account/order_history' => array( 'cost' => 1 ),
+                        'account/executed_history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -331,48 +333,50 @@ class p2b extends Exchange {
     }
 
     public function fetch_markets($params = array()): PromiseInterface {
-        return Async\async(function () use ($params) {
-            /**
-             * retrieves data on all $markets for bigone
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} an array of objects representing market data
-             */
-            $response = Async\await($this->publicGetMarkets($params));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => array(
-            //            {
-            //                "name" => "ETH_BTC",
-            //                "stock" => "ETH",
-            //                "money" => "BTC",
-            //                "precision" => array(
-            //                    "money" => "6",
-            //                    "stock" => "4",
-            //                    "fee" => "4"
-            //                ),
-            //                "limits" => array(
-            //                    "min_amount" => "0.001",
-            //                    "max_amount" => "100000",
-            //                    "step_size" => "0.0001",
-            //                    "min_price" => "0.00001",
-            //                    "max_price" => "922327",
-            //                    "tick_size" => "0.00001",
-            //                    "min_total" => "0.0001"
-            //                }
-            //            ),
-            //            ...
-            //        )
-            //    }
-            //
-            $markets = $this->safe_value($response, 'result', array());
-            return $this->parse_markets($markets);
-        })();
+        return Async\async(self::do_fetch_markets(...))($params);
+    }
+
+    private function do_fetch_markets($params = array()) {
+        /**
+         * retrieves data on all $markets for bigone
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$markets
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} an array of objects representing market data
+         */
+        $response = Async\await($this->publicGetMarkets($params));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => array(
+        //            {
+        //                "name" => "ETH_BTC",
+        //                "stock" => "ETH",
+        //                "money" => "BTC",
+        //                "precision" => array(
+        //                    "money" => "6",
+        //                    "stock" => "4",
+        //                    "fee" => "4"
+        //                ),
+        //                "limits" => array(
+        //                    "min_amount" => "0.001",
+        //                    "max_amount" => "100000",
+        //                    "step_size" => "0.0001",
+        //                    "min_price" => "0.00001",
+        //                    "max_price" => "922327",
+        //                    "tick_size" => "0.00001",
+        //                    "min_total" => "0.0001"
+        //                }
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $markets = $this->safe_value($response, 'result', array());
+        return $this->parse_markets($markets);
     }
 
     public function parse_market(array $market): array {
@@ -436,99 +440,103 @@ class p2b extends Exchange {
     }
 
     public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbols, $params) {
-            /**
-             * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-             *
-             * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
-             *
-             * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->publicGetTickers($params));
-            //
-            //    {
-            //        success => true,
-            //        errorCode => '',
-            //        message => '',
-            //        $result => {
-            //            KNOLIX_BTC => array(
-            //                at => '1699252631',
-            //                ticker => array(
-            //                    bid => '0.0000332',
-            //                    ask => '0.0000333',
-            //                    low => '0.0000301',
-            //                    high => '0.0000338',
-            //                    last => '0.0000333',
-            //                    vol => '15.66',
-            //                    deal => '0.000501828',
-            //                    change => '10.63'
-            //                }
-            //            ),
-            //            ...
-            //        ),
-            //        cache_time => '1699252631.103631',
-            //        current_time => '1699252644.487566'
-            //    }
-            //
-            $result = $this->safe_value($response, 'result', array());
-            return $this->parse_tickers($result, $symbols);
-        })();
+        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    }
+
+    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-$symbols
+         *
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->publicGetTickers($params));
+        //
+        //    {
+        //        success => true,
+        //        errorCode => '',
+        //        message => '',
+        //        $result => {
+        //            KNOLIX_BTC => array(
+        //                at => '1699252631',
+        //                ticker => array(
+        //                    bid => '0.0000332',
+        //                    ask => '0.0000333',
+        //                    low => '0.0000301',
+        //                    high => '0.0000338',
+        //                    last => '0.0000333',
+        //                    vol => '15.66',
+        //                    deal => '0.000501828',
+        //                    change => '10.63'
+        //                }
+        //            ),
+        //            ...
+        //        ),
+        //        cache_time => '1699252631.103631',
+        //        current_time => '1699252644.487566'
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_tickers($result, $symbols);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $params) {
-            /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
-            //
-            //    {
-            //        success => true,
-            //        errorCode => '',
-            //        message => '',
-            //        $result => array(
-            //            bid => '0.342',
-            //            ask => '0.3421',
-            //            open => '0.3317',
-            //            high => '0.3499',
-            //            low => '0.3311',
-            //            last => '0.3421',
-            //            volume => '17855383.1',
-            //            deal => '6107478.3423',
-            //            change => '3.13'
-            //        ),
-            //        cache_time => '1699252953.832795',
-            //        current_time => '1699252958.859391'
-            //    }
-            //
-            $result = $this->safe_value($response, 'result', array());
-            $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
-            return $this->extend(
-                array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
-                $this->parse_ticker($result, $market)
-            );
-        })();
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
     }
 
-    public function parse_ticker($ticker, ?array $market = null) {
+    private function do_fetch_ticker(string $symbol, $params = array()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
+        //
+        //    {
+        //        success => true,
+        //        errorCode => '',
+        //        message => '',
+        //        $result => array(
+        //            bid => '0.342',
+        //            ask => '0.3421',
+        //            open => '0.3317',
+        //            high => '0.3499',
+        //            low => '0.3311',
+        //            last => '0.3421',
+        //            volume => '17855383.1',
+        //            deal => '6107478.3423',
+        //            change => '3.13'
+        //        ),
+        //        cache_time => '1699252953.832795',
+        //        current_time => '1699252958.859391'
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
+        return $this->extend(
+            array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
+            $this->parse_ticker($result, $market)
+        );
+    }
+
+    public function parse_ticker(mixed $ticker, ?array $market = null) {
         //
         // parseTickers
         //
@@ -561,7 +569,7 @@ class p2b extends Exchange {
         //    }
         //
         $timestamp = $this->safe_integer_product($ticker, 'at', 1000);
-        if (is_array($ticker) && array_key_exists('ticker', $ticker)) {
+        if (is_array($ticker) && array_key_exists('ticker' ?? '', $ticker)) {
             $ticker = $this->safe_value($ticker, 'ticker');
         }
         $last = $this->safe_string($ticker, 'last');
@@ -590,114 +598,118 @@ class p2b extends Exchange {
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-$result
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->publicGetDepthResult($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => array(
-            //            "asks" => array(
-            //                array(
-            //                    "4.53",     // Price
-            //                    "523.95"    // Amount
-            //                ),
-            //                ...
-            //            ),
-            //            "bids" => array(
-            //                array(
-            //                    "4.51",
-            //                    "244.75"
-            //                ),
-            //                ...
-            //            )
-            //        ),
-            //        "cache_time" => 1698733470.469175,
-            //        "current_time" => 1698733470.469274
-            //    }
-            //
-            $result = $this->safe_value($response, 'result', array());
-            $timestamp = $this->safe_integer_product($response, 'current_time', 1000);
-            return $this->parse_order_book($result, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
-        })();
+        return Async\async(self::do_fetch_order_book(...))($symbol, $limit, $params);
+    }
+
+    private function do_fetch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#depth-$result
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string} [$params->interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->publicGetDepthResult($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => array(
+        //            "asks" => array(
+        //                array(
+        //                    "4.53",     // Price
+        //                    "523.95"    // Amount
+        //                ),
+        //                ...
+        //            ),
+        //            "bids" => array(
+        //                array(
+        //                    "4.51",
+        //                    "244.75"
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        "cache_time" => 1698733470.469175,
+        //        "current_time" => 1698733470.469274
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $timestamp = $this->safe_integer_product($response, 'current_time', 1000);
+        return $this->parse_order_book($result, $market['symbol'], $timestamp, 'bids', 'asks', 0, 1);
     }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent trades for a particular $symbol
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] 1-100, default=50
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} $params->lastId order id
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $lastId = $this->safe_integer($params, 'lastId');
-            if ($lastId === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTrades () requires an extra parameter $params["lastId"]');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'lastId' => $lastId,
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->publicGetHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        success => true,
-            //        errorCode => '',
-            //        message => '',
-            //        $result => array(
-            //            array(
-            //                id => '7495738622',
-            //                type => 'sell',
-            //                time => '1699255565.445418',
-            //                amount => '252.6',
-            //                price => '0.3422'
-            //            ),
-            //            ...
-            //        ),
-            //        cache_time => '1699255571.413633',
-            //        current_time => '1699255571.413828'
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_trades($result, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#history
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] 1-100, default=50
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} $params->lastId order id
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $lastId = $this->safe_integer($params, 'lastId');
+        if ($lastId === null) {
+            throw new ArgumentsRequired($this->id . ' fetchTrades () requires an extra parameter $params["lastId"]');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'lastId' => $lastId,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->publicGetHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        success => true,
+        //        errorCode => '',
+        //        message => '',
+        //        $result => array(
+        //            array(
+        //                id => '7495738622',
+        //                type => 'sell',
+        //                time => '1699255565.445418',
+        //                amount => '252.6',
+        //                price => '0.3422'
+        //            ),
+        //            ...
+        //        ),
+        //        cache_time => '1699255571.413633',
+        //        current_time => '1699255571.413828'
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_trades($result, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null) {
@@ -769,60 +781,62 @@ class p2b extends Exchange {
     }
 
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
-            /**
-             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-             * @param {string} $timeframe 1m, 1h, or 1d
-             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-             * @param {int} [$limit] 1-500, default=50
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->offset] default=0, with this value the last candles are returned
-             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'interval' => $timeframe,
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->publicGetMarketKline($this->extend($request, $params)));
-            //
-            //    {
-            //        success => true,
-            //        errorCode => '',
-            //        message => '',
-            //        $result => array(
-            //            array(
-            //                1699253400,       // Kline open time
-            //                '0.3429',         // Open price
-            //                '0.3427',         // Close price
-            //                '0.3429',         // Highest price
-            //                '0.3427',         // Lowest price
-            //                '1900.4',         // Volume for stock currency
-            //                '651.46278',      // Volume for money currency
-            //                'ADA_USDT'        // Market name
-            //            ),
-            //            ...
-            //        ),
-            //        cache_time => '1699256375.030292',
-            //        current_time => '1699256375.030494'
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    private function do_fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#kline
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+         * @param {string} $timeframe 1m, 1h, or 1d
+         * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [$limit] 1-500, default=50
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->offset] default=0, with this value the last candles are returned
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'interval' => $timeframe,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->publicGetMarketKline($this->extend($request, $params)));
+        //
+        //    {
+        //        success => true,
+        //        errorCode => '',
+        //        message => '',
+        //        $result => array(
+        //            array(
+        //                1699253400,       // Kline open time
+        //                '0.3429',         // Open price
+        //                '0.3427',         // Close price
+        //                '0.3429',         // Highest price
+        //                '0.3427',         // Lowest price
+        //                '1900.4',         // Volume for stock currency
+        //                '651.46278',      // Volume for money currency
+        //                'ADA_USDT'        // Market name
+        //            ),
+        //            ...
+        //        ),
+        //        cache_time => '1699256375.030292',
+        //        current_time => '1699256375.030494'
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+    }
+
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //    array(
         //        1699253400,       // Kline open time
@@ -846,42 +860,44 @@ class p2b extends Exchange {
     }
 
     public function fetch_balance($params = array()) {
-        return Async\async(function () use ($params) {
-            /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
-             *
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $response = Async\await($this->privatePostAccountBalances($params));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => {
-            //            "USDT" => array(
-            //              "available" => "71.81328046",
-            //              "freeze" => "10.46103091"
-            //            ),
-            //            "BTC" => {
-            //              "available" => "0.00135674",
-            //              "freeze" => "0.00020003"
-            //            }
-            //        }
-            //    }
-            //
-            $result = $this->safe_value($response, 'result', array());
-            return $this->parse_balance($result);
-        })();
+        return Async\async(self::do_fetch_balance(...))($params);
     }
 
-    public function parse_balance($response) {
+    private function do_fetch_balance($params = array()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
+         *
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $response = Async\await($this->privatePostAccountBalances($params));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => {
+        //            "USDT" => array(
+        //              "available" => "71.81328046",
+        //              "freeze" => "10.46103091"
+        //            ),
+        //            "BTC" => {
+        //              "available" => "0.00135674",
+        //              "freeze" => "0.00020003"
+        //            }
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_balance($result);
+    }
+
+    public function parse_balance(mixed $response) {
         //
         //    {
         //        "USDT" => array(
@@ -914,400 +930,412 @@ class p2b extends Exchange {
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            /**
-             * create a trade order
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
-             *
-             * @param {string} $symbol unified $symbol of the $market to create an order in
-             * @param {string} $type must be 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            if ($type === 'market') {
-                throw new BadRequest($this->id . ' createOrder () can only accept orders with $type "limit"');
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'side' => $side,
-                'amount' => $this->amount_to_precision($symbol, $amount),
-                'price' => $this->price_to_precision($symbol, $price),
-            );
-            $response = Async\await($this->privatePostOrderNew($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => {
-            //            "orderId" => 171906478744,          // Order id
-            //            "market" => "ETH_BTC",              // Market name
-            //            "price" => "0.04348",               // Price
-            //            "side" => "buy",                    // Side
-            //            "type" => "limit",                  // Order $type
-            //            "timestamp" => 1698484861.746517,   // Order creation time
-            //            "dealMoney" => "0",                 // Filled total
-            //            "dealStock" => "0",                 // Filled $amount
-            //            "amount" => "0.0277",               // Original $amount
-            //            "takerFee" => "0.002",              // taker fee
-            //            "makerFee" => "0.002",              // maker fee
-            //            "left" => "0.0277",                 // Unfilled $amount
-            //            "dealFee" => "0"                    // Filled fee
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result');
-            return $this->parse_order($result, $market);
-        })();
+        return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade order
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#create-order
+         *
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type must be 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        if ($type === 'market') {
+            throw new BadRequest($this->id . ' createOrder () can only accept orders with $type "limit"');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'side' => $side,
+            'amount' => $this->amount_to_precision($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
+        );
+        $response = Async\await($this->privatePostOrderNew($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => {
+        //            "orderId" => 171906478744,          // Order id
+        //            "market" => "ETH_BTC",              // Market name
+        //            "price" => "0.04348",               // Price
+        //            "side" => "buy",                    // Side
+        //            "type" => "limit",                  // Order $type
+        //            "timestamp" => 1698484861.746517,   // Order creation time
+        //            "dealMoney" => "0",                 // Filled total
+        //            "dealStock" => "0",                 // Filled $amount
+        //            "amount" => "0.0277",               // Original $amount
+        //            "takerFee" => "0.002",              // taker fee
+        //            "makerFee" => "0.002",              // maker fee
+        //            "left" => "0.0277",                 // Unfilled $amount
+        //            "dealFee" => "0"                    // Filled fee
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result');
+        return $this->parse_order($result, $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $params) {
-            /**
-             * cancels an open order
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $symbol of the $market the order was made in
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-                'orderId' => $id,
-            );
-            $response = Async\await($this->privatePostOrderCancel($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => {
-            //            "orderId" => 171906478744,
-            //            "market" => "ETH_BTC",
-            //            "price" => "0.04348",
-            //            "side" => "buy",
-            //            "type" => "limit",
-            //            "timestamp" => 1698484861.746517,
-            //            "dealMoney" => "0",
-            //            "dealStock" => "0",
-            //            "amount" => "0.0277",
-            //            "takerFee" => "0.002",
-            //            "makerFee" => "0.002",
-            //            "left" => "0.0277",
-            //            "dealFee" => "0"
-            //        }
-            //    }
-            //
-            $result = $this->safe_dict($response, 'result');
-            return $this->parse_order($result);
-        })();
+        return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
+    }
+
+    private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#cancel-order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+            'orderId' => $id,
+        );
+        $response = Async\await($this->privatePostOrderCancel($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => {
+        //            "orderId" => 171906478744,
+        //            "market" => "ETH_BTC",
+        //            "price" => "0.04348",
+        //            "side" => "buy",
+        //            "type" => "limit",
+        //            "timestamp" => 1698484861.746517,
+        //            "dealMoney" => "0",
+        //            "dealStock" => "0",
+        //            "amount" => "0.0277",
+        //            "takerFee" => "0.002",
+        //            "makerFee" => "0.002",
+        //            "left" => "0.0277",
+        //            "dealFee" => "0"
+        //        }
+        //    }
+        //
+        $result = $this->safe_dict($response, 'result');
+        return $this->parse_order($result);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all unfilled currently open orders
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for
-             * @param {int} [$limit] the maximum number of order structures to retrieve
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {int} [$params->offset] 0-10000, default=0
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires the $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $request = array(
-                'market' => $market['id'],
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => array(
-            //            array(
-            //                "orderId" => 171913325964,
-            //                "market" => "ETH_BTC",
-            //                "price" => "0.06534",
-            //                "side" => "sell",
-            //                "type" => "limit",
-            //                "timestamp" => 1698487986.836821,
-            //                "dealMoney" => "0",
-            //                "dealStock" => "0",
-            //                "amount" => "0.0018",
-            //                "takerFee" => "0.0018",
-            //                "makerFee" => "0.0016",
-            //                "left" => "0.0018",
-            //                "dealFee" => "0"
-            //            ),
-            //            ...
-            //        )
-            //    }
-            //
-            $result = $this->safe_list($response, 'result', array());
-            return $this->parse_orders($result, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_open_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all unfilled currently open orders
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#open-orders
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for
+         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->offset] 0-10000, default=0
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchOpenOrders () requires the $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'market' => $market['id'],
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => array(
+        //            array(
+        //                "orderId" => 171913325964,
+        //                "market" => "ETH_BTC",
+        //                "price" => "0.06534",
+        //                "side" => "sell",
+        //                "type" => "limit",
+        //                "timestamp" => 1698487986.836821,
+        //                "dealMoney" => "0",
+        //                "dealStock" => "0",
+        //                "amount" => "0.0018",
+        //                "takerFee" => "0.0018",
+        //                "makerFee" => "0.0016",
+        //                "left" => "0.0018",
+        //                "dealFee" => "0"
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        $result = $this->safe_list($response, 'result', array());
+        return $this->parse_orders($result, $market, $since, $limit);
     }
 
     public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
-            /**
-             * fetch all the trades made from a single order
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-$id
-             *
-             * @param {string} $id order $id
-             * @param {string} $symbol unified $market $symbol
-             * @param {int} [$since] the earliest time in ms to fetch trades for
-             * @param {int} [$limit] 1-100, default=50
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {int} [$params->offset] 0-10000, default=0
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->safe_market($symbol);
-            $request = array(
-                'orderId' => $id,
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privatePostAccountOrder($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => {
-            //            "offset" => 0,
-            //            "limit" => 50,
-            //            "records" => array(
-            //                {
-            //                    "id" => 7429883128,             // Deal $id
-            //                    "time" => 1698237535.41196,     // Deal execution time
-            //                    "fee" => "0.01755848704",       // Deal fee
-            //                    "price" => "34293.92",          // Deal price
-            //                    "amount" => "0.00032",          // Deal amount
-            //                    "dealOrderId" => 171366551416,  // Deal order $id
-            //                    "role" => 1,                    // Deal role (1 - maker, 2 - taker)
-            //                    "deal" => "10.9740544"          // Total (price * amount)
-            //                }
-            //            )
-            //        }
-            //    }
-            //
-            $result = $this->safe_value($response, 'result', array());
-            $records = $this->safe_list($result, 'records', array());
-            return $this->parse_trades($records, $market, $since, $limit);
-        })();
+        return Async\async(self::do_fetch_order_trades(...))($id, $symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all the trades made from a single order
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#deals-by-order-$id
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch trades for
+         * @param {int} [$limit] 1-100, default=50
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->offset] 0-10000, default=0
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->safe_market($symbol);
+        $request = array(
+            'orderId' => $id,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privatePostAccountOrder($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => {
+        //            "offset" => 0,
+        //            "limit" => 50,
+        //            "records" => array(
+        //                {
+        //                    "id" => 7429883128,             // Deal $id
+        //                    "time" => 1698237535.41196,     // Deal execution time
+        //                    "fee" => "0.01755848704",       // Deal fee
+        //                    "price" => "34293.92",          // Deal price
+        //                    "amount" => "0.00032",          // Deal amount
+        //                    "dealOrderId" => 171366551416,  // Deal order $id
+        //                    "role" => 1,                    // Deal role (1 - maker, 2 - taker)
+        //                    "deal" => "10.9740544"          // Total (price * amount)
+        //                }
+        //            )
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $records = $this->safe_list($result, 'records', array());
+        return $this->parse_trades($records, $market, $since, $limit);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between $since and $params["until"] cannot be longer than 24 hours
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$deals-history-by-$market
-             *
-             * @param {string} $symbol unified $market $symbol of the $market orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch orders for, default = $params["until"] - 86400000
-             * @param {int} [$limit] 1-100, default=50
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch orders for, default = current timestamp or $since + 86400000
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {int} [$params->offset] 0-10000, default=0
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
-             */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-            }
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $until = $this->safe_integer($params, 'until');
-            $params = $this->omit($params, 'until');
-            if ($until === null) {
-                if ($since === null) {
-                    $until = $this->milliseconds();
-                } else {
-                    $until = $since + 86400000;
-                }
-            }
+        return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetch all trades made by the user, only the transaction records in the past 3 month can be queried, the time between $since and $params["until"] cannot be longer than 24 hours
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$deals-history-by-$market
+         *
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch orders for, default = $params["until"] - 86400000
+         * @param {int} [$limit] 1-100, default=50
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch orders for, default = current timestamp or $since + 86400000
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->offset] 0-10000, default=0
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        if ($until === null) {
             if ($since === null) {
-                $since = $until - 86400000;
+                $until = $this->milliseconds();
+            } else {
+                $until = $since + 86400000;
             }
-            if (($until - $since) > 86400000) {
-                throw new BadRequest($this->id . ' fetchMyTrades () the time between $since and $params["until"] cannot be greater than 24 hours');
-            }
-            $market = $this->market($symbol);
-            $sinceSec = $this->parse_to_int($since / 1000);
-            $untilSec = $this->parse_to_int($until / 1000);
-            $request = array(
-                'market' => $market['id'],
-                'startTime' => $sinceSec,
-                'endTime' => $untilSec,
-            );
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privatePostAccountMarketDealHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => {
-            //            "total" => 2,                                 // Total records in the queried range
-            //            "deals" => array(
-            //                array(
-            //                    "deal_id" => 7450617292,              // Deal id
-            //                    "deal_time" => 1698506956.66224,      // Deal execution time
-            //                    "deal_order_id" => 171955225751,      // Deal order id
-            //                    "opposite_order_id" => 171955110512,  // Opposite order id
-            //                    "side" => "sell",                     // Deal side
-            //                    "price" => "0.05231",                 // Deal price
-            //                    "amount" => "0.002",                  // Deal amount
-            //                    "deal" => "0.00010462",               // Total (price * amount)
-            //                    "deal_fee" => "0.000000188316",       // Deal fee
-            //                    "role" => "taker",                    // Role. Taker or maker
-            //                    "isSelfTrade" => false                // is self trade
-            //                ),
-            //                ...
-            //            )
-            //        }
-            //    }
-            //
-            $result = $this->safe_value($response, 'result', array());
-            $deals = $this->safe_list($result, 'deals', array());
-            return $this->parse_trades($deals, $market, $since, $limit);
-        })();
+        }
+        if ($since === null) {
+            $since = $until - 86400000;
+        }
+        if (($until - $since) > 86400000) {
+            throw new BadRequest($this->id . ' fetchMyTrades () the time between $since and $params["until"] cannot be greater than 24 hours');
+        }
+        $market = $this->market($symbol);
+        $sinceSec = $this->parse_to_int($since / 1000);
+        $untilSec = $this->parse_to_int($until / 1000);
+        $request = array(
+            'market' => $market['id'],
+            'startTime' => $sinceSec,
+            'endTime' => $untilSec,
+        );
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privatePostAccountMarketDealHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => {
+        //            "total" => 2,                                 // Total records in the queried range
+        //            "deals" => array(
+        //                array(
+        //                    "deal_id" => 7450617292,              // Deal id
+        //                    "deal_time" => 1698506956.66224,      // Deal execution time
+        //                    "deal_order_id" => 171955225751,      // Deal order id
+        //                    "opposite_order_id" => 171955110512,  // Opposite order id
+        //                    "side" => "sell",                     // Deal side
+        //                    "price" => "0.05231",                 // Deal price
+        //                    "amount" => "0.002",                  // Deal amount
+        //                    "deal" => "0.00010462",               // Total (price * amount)
+        //                    "deal_fee" => "0.000000188316",       // Deal fee
+        //                    "role" => "taker",                    // Role. Taker or maker
+        //                    "isSelfTrade" => false                // is self trade
+        //                ),
+        //                ...
+        //            )
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $deals = $this->safe_list($result, 'deals', array());
+        return $this->parse_trades($deals, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * fetches information on multiple closed $orders made by the user, the time between $since and $params["untnil"] cannot be longer than 24 hours
-             *
-             * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$orders-history-by-$market
-             *
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int} [$since] the earliest time in ms to fetch $orders for, default = $params["until"] - 86400000
-             * @param {int} [$limit] 1-100, default=50
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {int} [$params->until] the latest time in ms to fetch $orders for, default = current timestamp or $since + 86400000
-             *
-             * EXCHANGE SPECIFIC PARAMETERS
-             * @param {int} [$params->offset] 0-10000, default=0
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-             */
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $until = $this->safe_integer($params, 'until');
-            $params = $this->omit($params, 'until');
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-            }
-            if ($until === null) {
-                if ($since === null) {
-                    $until = $this->milliseconds();
-                } else {
-                    $until = $since + 86400000;
-                }
-            }
+        return Async\async(self::do_fetch_closed_orders(...))($symbol, $since, $limit, $params);
+    }
+
+    private function do_fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches information on multiple closed $orders made by the user, the time between $since and $params["untnil"] cannot be longer than 24 hours
+         *
+         * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#$orders-history-by-$market
+         *
+         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+         * @param {int} [$since] the earliest time in ms to fetch $orders for, default = $params["until"] - 86400000
+         * @param {int} [$limit] 1-100, default=50
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for, default = current timestamp or $since + 86400000
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [$params->offset] 0-10000, default=0
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($until === null) {
             if ($since === null) {
-                $since = $until - 86400000;
+                $until = $this->milliseconds();
+            } else {
+                $until = $since + 86400000;
             }
-            if (($until - $since) > 86400000) {
-                throw new BadRequest($this->id . ' fetchClosedOrders () the time between $since and $params["until"] cannot be greater than 24 hours');
-            }
-            $sinceSec = $this->parse_to_int($since / 1000);
-            $untilSec = $this->parse_to_int($until / 1000);
-            $request = array(
-                'startTime' => $sinceSec,
-                'endTime' => $untilSec,
-            );
-            if ($market !== null) {
-                $request['market'] = $market['id'];
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = Async\await($this->privatePostAccountOrderHistory($this->extend($request, $params)));
-            //
-            //    {
-            //        "success" => true,
-            //        "errorCode" => "",
-            //        "message" => "",
-            //        "result" => {
-            //            "LTC_USDT" => array(
-            //                {
-            //                    "id" => 173985944395,
-            //                    "amount" => "0.1",
-            //                    "price" => "73",
-            //                    "type" => "limit",
-            //                    "side" => "sell",
-            //                    "ctime" => 1699436194.390845,
-            //                    "ftime" => 1699436194.390847,
-            //                    "market" => "LTC_USDT",
-            //                    "takerFee" => "0.002",
-            //                    "makerFee" => "0.002",
-            //                    "dealFee" => "0.01474",
-            //                    "dealStock" => "0.1",
-            //                    "dealMoney" => "7.37"
-            //                }
-            //            )
-            //        }
-            //    }
-            //
-            $result = $this->safe_value($response, 'result');
-            $orders = array();
-            $keys = is_array($result) ? array_keys($result) : array();
-            for ($i = 0; $i < count($keys); $i++) {
-                $marketId = $keys[$i];
-                $marketOrders = $result[$marketId];
-                $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
-                $orders = $this->array_concat($orders, $parsedOrders);
-            }
-            return $orders;
-        })();
+        }
+        if ($since === null) {
+            $since = $until - 86400000;
+        }
+        if (($until - $since) > 86400000) {
+            throw new BadRequest($this->id . ' fetchClosedOrders () the time between $since and $params["until"] cannot be greater than 24 hours');
+        }
+        $sinceSec = $this->parse_to_int($since / 1000);
+        $untilSec = $this->parse_to_int($until / 1000);
+        $request = array(
+            'startTime' => $sinceSec,
+            'endTime' => $untilSec,
+        );
+        if ($market !== null) {
+            $request['market'] = $market['id'];
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = Async\await($this->privatePostAccountOrderHistory($this->extend($request, $params)));
+        //
+        //    {
+        //        "success" => true,
+        //        "errorCode" => "",
+        //        "message" => "",
+        //        "result" => {
+        //            "LTC_USDT" => array(
+        //                {
+        //                    "id" => 173985944395,
+        //                    "amount" => "0.1",
+        //                    "price" => "73",
+        //                    "type" => "limit",
+        //                    "side" => "sell",
+        //                    "ctime" => 1699436194.390845,
+        //                    "ftime" => 1699436194.390847,
+        //                    "market" => "LTC_USDT",
+        //                    "takerFee" => "0.002",
+        //                    "makerFee" => "0.002",
+        //                    "dealFee" => "0.01474",
+        //                    "dealStock" => "0.1",
+        //                    "dealMoney" => "7.37"
+        //                }
+        //            )
+        //        }
+        //    }
+        //
+        $result = $this->safe_value($response, 'result');
+        $orders = array();
+        $keys = is_array($result) ? array_keys($result) : array();
+        for ($i = 0; $i < count($keys); $i++) {
+            $marketId = $keys[$i];
+            $marketOrders = $result[$marketId];
+            $parsedOrders = $this->parse_orders($marketOrders, $market, $since, $limit);
+            $orders = $this->array_concat($orders, $parsedOrders);
+        }
+        return $orders;
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1379,7 +1407,7 @@ class p2b extends Exchange {
         ), $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/' . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         if ($method === 'GET') {
@@ -1402,7 +1430,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

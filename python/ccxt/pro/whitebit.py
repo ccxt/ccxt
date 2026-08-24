@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
@@ -16,7 +15,7 @@ from ccxt.base.precise import Precise
 
 class whitebit(ccxt.async_support.whitebit):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(whitebit, self).describe(), {
             'has': {
                 'ws': True,
@@ -66,7 +65,7 @@ class whitebit(ccxt.async_support.whitebit):
             },
         })
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -98,7 +97,7 @@ class whitebit(ccxt.async_support.whitebit):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         # {
         #     "method": "candles_update",
@@ -147,7 +146,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -169,7 +168,7 @@ class whitebit(ccxt.async_support.whitebit):
         orderbook = await self.watch_public(messageHash, method, reqParams, params)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: object):
         #
         # {
         #     "method":"depth_update",
@@ -231,12 +230,12 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'orderbook' + ':' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside, delta):
+    def handle_delta(self, bookside: object, delta: object):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside, deltas):
+    def handle_deltas(self, bookside: object, deltas: object):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
@@ -289,7 +288,7 @@ class whitebit(ccxt.async_support.whitebit):
         await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: object):
         #
         #   {
         #       "method": "market_update",
@@ -311,7 +310,7 @@ class whitebit(ccxt.async_support.whitebit):
         #
         tickers = self.safe_value(message, 'params', [])
         marketId = self.safe_string(tickers, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         rawTicker = self.safe_value(tickers, 1, {})
         messageHash = 'ticker' + ':' + symbol
@@ -336,7 +335,7 @@ class whitebit(ccxt.async_support.whitebit):
                 client.resolve(ticker, currentMessageHash)
         return message
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -360,7 +359,7 @@ class whitebit(ccxt.async_support.whitebit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: object):
         #
         #    {
         #        "method":"trades_update",
@@ -401,7 +400,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'trades:' + market['symbol']
         client.resolve(stored, messageHash)
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches trades made by the user
 
@@ -427,7 +426,7 @@ class whitebit(ccxt.async_support.whitebit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_my_trades(self, client: Client, message, subscription=None):
+    def handle_my_trades(self, client: Client, message: object, subscription: dict | None = None):
         #
         #   {
         #       "method": "deals_update",
@@ -439,7 +438,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         "56.78",
         #         "0.16717",
         #         "0.0094919126",
-        #         ''
+        #         '',
+        #         "2",
+        #         "2",
+        #         "LTC"
         #       ],
         #       "id": null
         #   }
@@ -455,7 +457,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'myTrades:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         #
         #   [
         #         1894994106,  # id
@@ -465,7 +467,10 @@ class whitebit(ccxt.async_support.whitebit):
         #         "56.78",  # price
         #         "0.16717",  # amount
         #         "0.0094919126",  # fee
-        #         ''  # client order id
+        #         '',  # client order id
+        #         "2",  # side, 1 = sell, 2 = buy
+        #         "2",  # role, 1 = maker, 2 = taker
+        #         "LTC"  # fee asset
         #    ]
         #
         orderId = self.safe_string(trade, 3)
@@ -478,10 +483,24 @@ class whitebit(ccxt.async_support.whitebit):
         fee = None
         feeCost = self.safe_string(trade, 6)
         if feeCost is not None:
+            feeCurrencyId = self.safe_string(trade, 10)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId) if (feeCurrencyId is not None) else market['quote']
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             }
+        rawSide = self.safe_integer(trade, 8)
+        side = None
+        if rawSide == 1:
+            side = 'sell'
+        elif rawSide == 2:
+            side = 'buy'
+        role = self.safe_integer(trade, 9)
+        takerOrMaker = None
+        if role == 1:
+            takerOrMaker = 'maker'
+        elif role == 2:
+            takerOrMaker = 'taker'
         return self.safe_trade({
             'id': id,
             'info': trade,
@@ -490,15 +509,15 @@ class whitebit(ccxt.async_support.whitebit):
             'symbol': market['symbol'],
             'order': orderId,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': None,
             'fee': fee,
         }, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -524,7 +543,7 @@ class whitebit(ccxt.async_support.whitebit):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message, subscription=None):
+    def handle_order(self, client: Client, message: object, subscription: dict | None = None):
         #
         # {
         #     "method": "ordersPending_update",
@@ -564,7 +583,7 @@ class whitebit(ccxt.async_support.whitebit):
         messageHash = 'orders:' + symbol
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market: Market = None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #   {
         #         "id": 96433622651,
@@ -651,7 +670,7 @@ class whitebit(ccxt.async_support.whitebit):
             'trades': None,
         }, market)
 
-    def parse_ws_order_type(self, status):
+    def parse_ws_order_type(self, status: object):
         statuses = {
             '1': 'limit',
             '2': 'market',
@@ -674,6 +693,8 @@ class whitebit(ccxt.async_support.whitebit):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot or contract if not provided self.options['defaultType'] is used
+        :param bool [params.fetchBalanceSnapshot]: whether to fetch the initial balance snapshot over REST, default is True
+        :param bool [params.awaitBalanceSnapshot]: whether to wait for the balance snapshot before providing updates, default is True
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         if self.markets is None:
@@ -688,10 +709,41 @@ class whitebit(ccxt.async_support.whitebit):
         else:
             method = 'balanceMargin_subscribe'
             messageHash += 'margin'
-        currencies = list(self.currencies.keys())
-        return await self.watch_private(messageHash, method, currencies, params)
+        url = self.urls['api']['ws']
+        client = self.client(url)
+        self.set_balance_cache(client, type, messageHash)
+        fetchBalanceSnapshot = None
+        awaitBalanceSnapshot = None
+        fetchBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'fetchBalanceSnapshot', True)
+        awaitBalanceSnapshot, params = self.handle_option_and_params(params, 'watchBalance', 'awaitBalanceSnapshot', True)
+        if fetchBalanceSnapshot and awaitBalanceSnapshot:
+            await client.future(type + ':fetchBalanceSnapshot')
+        # an empty params array subscribes to updates for all assets,
+        # listing all tickers explicitly is rejected with "invalid argument"
+        return await self.watch_private(messageHash, method, [], params)
 
-    def handle_balance(self, client: Client, message):
+    def set_balance_cache(self, client: Client, type: object, subscriptionHash: object):
+        if subscriptionHash in client.subscriptions:
+            return
+        fetchBalanceSnapshot = self.handle_option('watchBalance', 'fetchBalanceSnapshot', True)
+        if fetchBalanceSnapshot:
+            messageHash = type + ':fetchBalanceSnapshot'
+            if not (messageHash in client.futures):
+                client.future(messageHash)
+                self.spawn(self.load_balance_snapshot, client, messageHash, type, subscriptionHash)
+
+    async def load_balance_snapshot(self, client: object, messageHash: object, type: object, subscriptionHash: object):
+        response = await self.fetch_balance({'type': type})
+        self.balance = self.extend(response, self.balance)
+        # don't remove the future from the .futures cache
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance, subscriptionHash)
+
+    def handle_balance(self, client: Client, message: object):
+        #
+        # spot
         #
         #   {
         #       "method":"balanceSpot_update",
@@ -700,24 +752,60 @@ class whitebit(ccxt.async_support.whitebit):
         #             "LTC":{
         #                "available":"0.16587",
         #                "freeze":"0"
+        #             },
+        #             "BTC":{
+        #                "available":"0.005",
+        #                "freeze":"0.001"
         #             }
         #          }
         #       ],
         #       "id":null
         #   }
         #
+        # margin
+        #
+        #   {
+        #       "method":"balanceMargin_update",
+        #       "params":[
+        #          {
+        #             "a":"USDT",         # asset
+        #             "B":"0.00538073",   # total balance
+        #             "b":"0",            # borrowed
+        #             "av":"0.00538073",  # available without borrowing
+        #             "ab":"28.43739825"  # available with borrowing
+        #          }
+        #       ],
+        #       "id":null
+        #   }
+        #
         method = self.safe_string(message, 'method')
-        data = self.safe_value(message, 'params')
-        balanceDict = self.safe_value(data, 0)
-        self.balance['info'] = balanceDict
-        keys = list(balanceDict.keys())
-        currencyId = self.safe_value(keys, 0)
-        rawBalance = self.safe_value(balanceDict, currencyId)
-        code = self.safe_currency_code(currencyId)
-        account = self.account()
-        account['free'] = self.safe_string(rawBalance, 'available')
-        account['used'] = self.safe_string(rawBalance, 'freeze')
-        self.balance[code] = account
+        if method is None:
+            return
+        isMargin = (method.find('Margin') >= 0)
+        data = self.safe_list(message, 'params', [])
+        for i in range(0, len(data)):
+            balanceDict = self.safe_dict(data, i, {})
+            self.balance['info'] = balanceDict
+            if isMargin:
+                currencyId = self.safe_string(balanceDict, 'a')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balanceDict, 'av')
+                account['total'] = self.safe_string(balanceDict, 'B')
+                account['debt'] = self.safe_string(balanceDict, 'b')
+                if code is not None:
+                    self.balance[code] = account
+            else:
+                keys = list(balanceDict.keys())
+                for j in range(0, len(keys)):
+                    currencyId = keys[j]
+                    rawBalance = self.safe_dict(balanceDict, currencyId, {})
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['free'] = self.safe_string(rawBalance, 'available')
+                    account['used'] = self.safe_string(rawBalance, 'freeze')
+                    if code is not None:
+                        self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
         messageHash = 'wallet:'
         if method.find('Spot') >= 0:
@@ -726,7 +814,7 @@ class whitebit(ccxt.async_support.whitebit):
             messageHash += 'margin'
         client.resolve(self.balance, messageHash)
 
-    async def watch_public(self, messageHash, method, reqParams=[], params={}):
+    async def watch_public(self, messageHash: object, method: object, reqParams: list[object] = [], params={}):
         url = self.urls['api']['ws']
         id = self.nonce()
         request = {
@@ -737,7 +825,7 @@ class whitebit(ccxt.async_support.whitebit):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    async def watch_multiple_subscription(self, messageHash, method, symbol, isNested=False, params={}):
+    async def watch_multiple_subscription(self, messageHash: object, method: object, symbol: object, isNested=False, params={}):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']
@@ -749,7 +837,8 @@ class whitebit(ccxt.async_support.whitebit):
             subscription = {}
             market = self.market(symbol)
             marketId = market['id']
-            subscription[marketId] = True
+            if marketId is not None:
+                subscription[marketId] = True
             marketIds = [marketId]
             if isNested:
                 marketIds = [marketIds]
@@ -767,7 +856,8 @@ class whitebit(ccxt.async_support.whitebit):
             marketId = market['id']
             isSubscribed = self.safe_bool(subscription, marketId, False)
             if not isSubscribed:
-                subscription[marketId] = True
+                if marketId is not None:
+                    subscription[marketId] = True
                 hasSymbolSubscription = False
             if hasSymbolSubscription:
                 # already subscribed to self market(s)
@@ -787,7 +877,7 @@ class whitebit(ccxt.async_support.whitebit):
                     del client.subscriptions[method]
                 return await self.watch(url, messageHash, resubRequest, method, subscription)
 
-    async def watch_private(self, messageHash, method, reqParams=[], params={}):
+    async def watch_private(self, messageHash: object, method: object, reqParams: list[object] = [], params={}):
         self.check_required_credentials()
         await self.authenticate()
         url = self.urls['api']['ws']
@@ -803,11 +893,43 @@ class whitebit(ccxt.async_support.whitebit):
     async def authenticate(self, params={}):
         self.check_required_credentials()
         url = self.urls['api']['ws']
-        messageHash = 'authenticated'
         client = self.client(url)
-        future = client.reusableFuture('authenticated')
-        authenticated = self.safe_value(client.subscriptions, messageHash)
-        if authenticated is None:
+        subscribeHash = 'authenticated'
+        # handleAuthenticate() resolves the handshake future with 1, so 1 is
+        # the authorized sentinel authenticate() has always returned - every
+        # path below hands back that same value
+        authorized = 1
+        # single-flight leader election, see
+        # https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+        # subscriptions['authenticated'], which watch() only registers once
+        # the awaited v4PrivatePostProfileWebsocketToken() has resolved, so
+        # every concurrent cold caller used to pass that gate, burn a
+        # rate-limited private REST call for its own websocket_token and push
+        # its own authorize frame down the shared socket. the flight is
+        # registered in client.futures on the very client that carries the
+        # handshake, under a key that is not one of the exchange's own
+        # messageHashes, and is settled through client.resolve() /
+        # client.reject() so every write to that map goes through the
+        # client's own accessors
+        messageHash = 'authenticateFlight'
+        if messageHash in client.futures:
+            # a flight is already in progress - wake when the leader settles
+            # it, the socket is authorized by then. the flight gate is
+            # checked before the subscriptions one because watch() registers
+            # subscriptions['authenticated'] immediately, long before the
+            # venue acks the authorize frame
+            await client.future(messageHash)
+            return authorized
+        authenticated = self.safe_value(client.subscriptions, subscribeHash)
+        if authenticated is not None:
+            # a previous flight already completed the handshake on the client
+            return authorized
+        # register the flight BEFORE the first await, so a caller arriving
+        # during the fetch or the authorize round-trip finds it and waits
+        # instead of re-leading, and so client.reject() below always has a
+        # waiter and can never park the error in client.rejections
+        future = client.reusableFuture(messageHash)
+        try:
             authToken = await self.v4PrivatePostProfileWebsocketToken()
             #
             #   {
@@ -815,6 +937,10 @@ class whitebit(ccxt.async_support.whitebit):
             #   }
             #
             token = self.safe_string(authToken, 'websocket_token')
+            if token is None:
+                # reject instead of authorizing with an empty credential, the
+                # venue answers that with an opaque socket drop
+                raise AuthenticationError(self.id + ' authenticate() received an empty websocket_token')
             id = self.nonce()
             request = {
                 'id': id,
@@ -828,14 +954,31 @@ class whitebit(ccxt.async_support.whitebit):
                 'id': id,
                 'method': self.handle_authenticate,
             }
-            try:
-                await self.watch(url, messageHash, request, messageHash, subscription)
-            except Exception as e:
-                del client.subscriptions[messageHash]
-                future.reject(e)
-        return await future
+            await self.watch(url, subscribeHash, request, subscribeHash, subscription)
+            # settle the flight and wake every waiter - resolve() also drops
+            # the registry entry, so a later cold call can re-lead
+            client.resolve(authorized, messageHash)
+        except Exception as e:
+            # drop the handshake state so the next caller can retry: watch()
+            # registers subscriptions['authenticated'] before it connects and
+            # parks a rejected future under the same key when the dial fails,
+            # and either one left behind would make every later authenticate()
+            # replay that failure. the stale future is settled through
+            # client.reject() - guarded, so it always has a waiter and the
+            # error is never parked in client.rejections
+            if subscribeHash in client.subscriptions:
+                del client.subscriptions[subscribeHash]
+            if subscribeHash in client.futures:
+                client.reject(e, subscribeHash)
+            # reject the flight - the leader and every waiter raise and the
+            # next caller re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash)
+        # rethrows the failure to the leader and attaches the handler that
+        # keeps an alone-leader rejection from crashing the process
+        await future
+        return authorized
 
-    def handle_authenticate(self, client: Client, message):
+    def handle_authenticate(self, client: Client, message: object):
         #
         #     {error: null, result: {status: "success"}, id: 1656084550}
         #
@@ -843,7 +986,7 @@ class whitebit(ccxt.async_support.whitebit):
         future.resolve(1)
         return message
 
-    def handle_error_message(self, client: Client, message) -> Bool:
+    def handle_error_message(self, client: Client, message: object) -> Bool:
         #
         #     {
         #         "error": {code: 1, message: "invalid argument"},
@@ -865,7 +1008,7 @@ class whitebit(ccxt.async_support.whitebit):
                 return False
         return True
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: object):
         #
         # auth
         #    {error: null, result: {status: "success"}, id: 1656084550}
@@ -899,7 +1042,7 @@ class whitebit(ccxt.async_support.whitebit):
         if method is not None:
             method(client, message)
 
-    def handle_subscription_status(self, client: Client, message, id):
+    def handle_subscription_status(self, client: Client, message: object, id: object):
         # not every method stores its subscription
         # object so we can't do indeById here
         subs = client.subscriptions
@@ -914,7 +1057,7 @@ class whitebit(ccxt.async_support.whitebit):
                         method(client, message)
                         return
 
-    def handle_pong(self, client: Client, message):
+    def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
         return message
 

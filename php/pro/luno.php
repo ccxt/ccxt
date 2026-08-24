@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use React\Async;
 use React\Promise\PromiseInterface;
+use ccxt\pro\ArrayCache;
 
 class luno extends \ccxt\async\luno {
     public function describe(): mixed {
@@ -39,42 +40,44 @@ class luno extends \ccxt\async\luno {
     }
 
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            /**
-             * get the list of most recent $trades for a particular $symbol
-             *
-             * @see https://www.luno.com/en/developers/api#tag/Streaming-API
-             *
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of    $trades to fetch
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
-             */
-            $this->check_required_credentials();
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $subscriptionHash = '/stream/' . $market['id'];
-            $subscription = array( 'symbol' => $symbol );
-            $url = $this->urls['api']['ws'] . $subscriptionHash;
-            $messageHash = 'trades:' . $symbol;
-            $subscribe = array(
-                'api_key_id' => $this->apiKey,
-                'api_key_secret' => $this->secret,
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
-            if ($this->newUpdates) {
-                $limit = $trades->getLimit($symbol, $limit);
-            }
-            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        })();
+        return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    public function handle_trades(Client $client, $message, $subscription) {
+    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * get the list of most recent $trades for a particular $symbol
+         *
+         * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+         * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [$limit] the maximum amount of    $trades to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
+         */
+        $this->check_required_credentials();
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $subscriptionHash = '/stream/' . $market['id'];
+        $subscription = array( 'symbol' => $symbol );
+        $url = $this->urls['api']['ws'] . $subscriptionHash;
+        $messageHash = 'trades:' . $symbol;
+        $subscribe = array(
+            'api_key_id' => $this->apiKey,
+            'api_key_secret' => $this->secret,
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $trades = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        if ($this->newUpdates) {
+            $limit = $trades->getLimit($symbol, $limit);
+        }
+        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+    }
+
+    public function handle_trades(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
         //         "sequence" => "110980825",
@@ -113,7 +116,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($this->trades[$symbol], $messageHash);
     }
 
-    public function parse_trade($trade, $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         //
         // watchTrades (public)
         //
@@ -125,12 +128,13 @@ class luno extends \ccxt\async\luno {
         //       "order_id" => "BXEEU4S2BWF5WRB"
         //     }
         //
+        $symbol = ($market === null) ? null : $market['symbol'];
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => null,
             'timestamp' => null,
             'datetime' => null,
-            'symbol' => $market['symbol'],
+            'symbol' => $symbol,
             'order' => null,
             'type' => null,
             'side' => null,
@@ -144,36 +148,41 @@ class luno extends \ccxt\async\luno {
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
-        return Async\async(function () use ($symbol, $limit, $params) {
-            /**
-             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-             * @param {int} [$limit] the maximum amount of order book entries to return
-             * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
-             */
-            $this->check_required_credentials();
-            if ($this->markets === null) {
-                Async\await($this->load_markets());
-            }
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $subscriptionHash = '/stream/' . $market['id'];
-            $subscription = array( 'symbol' => $symbol );
-            $url = $this->urls['api']['ws'] . $subscriptionHash;
-            $messageHash = 'orderbook:' . $symbol;
-            $subscribe = array(
-                'api_key_id' => $this->apiKey,
-                'api_key_secret' => $this->secret,
-            );
-            $request = $this->deep_extend($subscribe, $params);
-            $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
-            return $orderbook->limit();
-        })();
+        return Async\async(self::do_watch_order_book(...))($symbol, $limit, $params);
     }
 
-    public function handle_order_book(Client $client, $message, $subscription) {
+    private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        /**
+         * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         *
+         * @see https://www.luno.com/en/developers/api#tag/Streaming-API
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {arrayConstructor} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] accepts l2 or l3 for level 2 or level 3 order book
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
+         */
+        $this->check_required_credentials();
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbol = $market['symbol'];
+        $subscriptionHash = '/stream/' . $market['id'];
+        $subscription = array( 'symbol' => $symbol );
+        $url = $this->urls['api']['ws'] . $subscriptionHash;
+        $messageHash = 'orderbook:' . $symbol;
+        $subscribe = array(
+            'api_key_id' => $this->apiKey,
+            'api_key_secret' => $this->secret,
+        );
+        $request = $this->deep_extend($subscribe, $params);
+        $orderbook = Async\await($this->watch($url, $messageHash, $request, $subscriptionHash, $subscription));
+        return $orderbook->limit();
+    }
+
+    public function handle_order_book(Client $client, mixed $message, mixed $subscription) {
         //
         //     {
         //         "sequence" => "24352",
@@ -209,7 +218,7 @@ class luno extends \ccxt\async\luno {
         $symbol = $subscription['symbol'];
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'timestamp');
-        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {
             $this->orderbooks[$symbol] = $this->indexed_order_book(array());
         }
         $asks = $this->safe_value($message, 'asks');
@@ -228,7 +237,7 @@ class luno extends \ccxt\async\luno {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function custom_parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
+    public function custom_parse_order_book(mixed $orderbook, mixed $symbol, ?int $timestamp = null, $bidsKey = 'bids', int|string $asksKey = 'asks', int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $countOrIdKey = 2) {
         $bids = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $bidsKey, array()), $priceKey, $amountKey, $countOrIdKey);
         $asks = $this->parse_order_book_bids_asks($this->safe_value($orderbook, $asksKey, array()), $priceKey, $amountKey, $countOrIdKey);
         return array(
@@ -241,7 +250,7 @@ class luno extends \ccxt\async\luno {
         );
     }
 
-    public function parse_order_book_bids_asks($bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
+    public function parse_order_book_bids_asks(mixed $bidasks, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
         for ($i = 0; $i < count($bidasks); $i++) {
@@ -250,7 +259,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function custom_parse_bid_ask($bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
+    public function custom_parse_bid_ask(mixed $bidask, int|string $priceKey = 'price', int|string $amountKey = 'volume', int|string $thirdKey = 2) {
         $price = $this->safe_number($bidask, $priceKey);
         $amount = $this->safe_number($bidask, $amountKey);
         $result = array( $price, $amount );
@@ -261,7 +270,7 @@ class luno extends \ccxt\async\luno {
         return $result;
     }
 
-    public function handle_delta($orderbook, $message) {
+    public function handle_delta(mixed $orderbook, mixed $message) {
         //
         //  create
         //     {
@@ -325,7 +334,7 @@ class luno extends \ccxt\async\luno {
         }
     }
 
-    public function handle_message(Client $client, $message) {
+    public function handle_message(Client $client, mixed $message) {
         if ($message === '') {
             return;
         }

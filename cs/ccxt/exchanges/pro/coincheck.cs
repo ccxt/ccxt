@@ -52,7 +52,7 @@ public partial class coincheck : ccxt.coincheck
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -68,7 +68,7 @@ public partial class coincheck : ccxt.coincheck
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-orderbook") },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orderbook = await this.watch(url, messageHash, message, messageHash);
         return (orderbook as IOrderBook).limit();
     }
@@ -95,7 +95,7 @@ public partial class coincheck : ccxt.coincheck
         //         }
         //     ]
         //
-        object symbol = this.symbol(((string)this.safeString(message, 0)));
+        object symbol = this.symbol(this.safeString(message, 0));
         object data = this.safeValue(message, 1, new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(data, "last_update_at");
         object snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -139,7 +139,7 @@ public partial class coincheck : ccxt.coincheck
             { "type", "subscribe" },
             { "channel", add(getValue(market, "id"), "-trades") },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watch(url, messageHash, message, messageHash);
         if (isTrue(this.newUpdates))
         {
@@ -165,7 +165,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         object first = this.safeValue(message, 0, new List<object>() {});
-        object symbol = this.symbol(((string)this.safeString(first, 2)));
+        object symbol = this.symbol(this.safeString(first, 2));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -197,7 +197,7 @@ public partial class coincheck : ccxt.coincheck
         //         "2078767" // ID of the Maker
         //     ]
         //
-        object symbol = this.symbol(((string)this.safeString(trade, 2)));
+        object symbol = this.symbol(this.safeString(trade, 2));
         object timestamp = this.safeTimestamp(trade, 0);
         object side = this.safeString(trade, 5);
         object priceString = this.safeString(trade, 3);

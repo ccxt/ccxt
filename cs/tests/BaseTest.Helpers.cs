@@ -35,15 +35,20 @@ public partial class testMainClass : BaseTest
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
-    public static Exchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
+    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, object isWs2 = null)
     {
-        if (isWs)
+        var isWs = (isWs2 == null) ? false : (bool)isWs2;
+        // the --prediction flag forces the prediction-markets namespace; prediction exchanges carry
+        // their watch* methods on the main prediction class (no ccxt.pro variant), so keep the bare id
+        var forcePrediction = getCliArgValue("--prediction");
+        if (isWs && !forcePrediction)
         {
-            // var binance = new ccxt.binance();
-            exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
+            exchangeId = "ccxt.pro." + (string)exchangeId;
         }
-        var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs);
-        return exchange;
+        // DynamicallyCreateInstance returns BaseExchange: a regular venue is an Exchange, a prediction
+        // venue a PredictionExchange. The shared static harness types the variable as BaseExchange and
+        // drives the tested method via reflection, so both run through the same path.
+        return Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
     }
 
     public static bool getCliArgValue(string option)
@@ -133,6 +138,13 @@ public partial class testMainClass : BaseTest
         var parsedValues = new List<string> { };
         foreach (var value in values)
         {
+            if (value == null)
+            {
+                // match the JS/Python/PHP dumps, which stringify a null/undefined arg instead of
+                // throwing — e.g. exchange.json(undefined) is null in C# (ws tests have no eventId)
+                parsedValues.Add("null");
+                continue;
+            }
             if (value is IList<object> || value is IDictionary<string, object>)
             {
                 parsedValues.Add(JsonConvert.SerializeObject(value));
@@ -218,6 +230,14 @@ public partial class testMainClass : BaseTest
             }
         }
         var res = method.Invoke(exchange, newArgs);
+        // Implicit API methods may return Task<Dictionary<…>> / Task<List<object>>
+        // rather than Task<object>; Task is invariant, so a hard cast throws.
+        // AsTaskOfObject awaits any Task<T> and re-boxes the result.
+        var asObject = ccxt.Exchange.AsTaskOfObject(res);
+        if (asObject != null)
+        {
+            return await asObject;
+        }
         var awaittedResult = await ((Task<object>)res);
         return awaittedResult;
     }
@@ -308,13 +328,92 @@ public partial class testMainClass : BaseTest
         return exc;
     }
 
-    public Exchange setFetchResponse(object exchange2, object response)
+    public BaseExchange setFetchResponse(object exchange2, object response)
     {
-        var exchange = exchange2 as Exchange;
+        var exchange = exchange2 as BaseExchange;
 
         exchange.fetchResponse = response;
         return exchange;
 
+    }
+
+    public object setupWsMockTransport(object exchange2, object url)
+    {
+        // put the ws client for the given url into an "already connected" state
+        // with a transport stub, so watch* methods never open a real socket;
+        // everything above the socket (subscriptions, futures, caches, message
+        // routing) runs unmodified
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        client.startedConnecting = true;
+        client.isConnected = true;
+        client.isMock = true;
+        client.connected.TrySetResult(true);
+        return exchange;
+    }
+
+    public void injectWsMessage(object exchange2, object url, object message)
+    {
+        // feed one already-json-parsed frame into the exchange's ws message
+        // handler - the same entry point the real transport invokes
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        client.handleMessage(client, message);
+    }
+
+    public object getWsSentMessages(object exchange2, object url)
+    {
+        // the frames the exchange sent over the mocked transport, already parsed
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.mockSentMessages;
+    }
+
+    public bool wsClientHasPendingFutures(object exchange2, object url)
+    {
+        // whether the watch flow is currently awaiting a message - the frame
+        // injector polls this instead of relying on a fixed head-start sleep
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        return client.futures.Count > 0;
+    }
+
+    private static readonly HashSet<object> wsCompletedClients = new HashSet<object>();
+
+    public void markWsTestCompleted(object exchange2, object url)
+    {
+        // the watch side of a static ws test flags completion here so the
+        // frame injector's rejection loop knows it can stop
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            wsCompletedClients.Add(client);
+        }
+    }
+
+    public bool isWsTestCompleted(object exchange2, object url)
+    {
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        lock (wsCompletedClients)
+        {
+            return wsCompletedClients.Contains(client);
+        }
+    }
+
+    public void rejectPendingWsFutures(object exchange2, object url)
+    {
+        // reject any futures the injected frames did not resolve, so a broken
+        // fixture fails the test instead of hanging it; resolved futures are
+        // already removed from the futures dict, so only pending ones remain
+        var exchange = exchange2 as BaseExchange;
+        var client = exchange.client((string)url);
+        var messageHashes = new List<string>(client.futures.Keys);
+        foreach (var messageHash in messageHashes)
+        {
+            client.reject(new ccxt.ExchangeError("static ws test: the injected messages did not resolve the watch future"), messageHash);
+        }
     }
 
     public bool isNullValue(object value)
@@ -388,7 +487,8 @@ public partial class testMainClass : BaseTest
     {
         // ast-transpiler uses "json()" method in transpiled C# content,
         // which should pre-exist in the language-specific helpers for project
-        public object json(object a)
+        // string (not object) so generated `string x = json(...)` locals compile
+        public string json(object a)
         {
             return Exchange.Json(a);
         }

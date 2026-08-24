@@ -52,6 +52,7 @@ func (this *HollaexCore) Describe() any {
 			"fetchDepositAddresses":          true,
 			"fetchDepositAddressesByNetwork": false,
 			"fetchDeposits":                  true,
+			"fetchDepositWithdrawFees":       true,
 			"fetchFundingHistory":            false,
 			"fetchFundingRate":               false,
 			"fetchFundingRateHistory":        false,
@@ -124,43 +125,101 @@ func (this *HollaexCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"health":        1,
-					"constants":     1,
-					"kit":           1,
-					"tiers":         1,
-					"ticker":        1,
-					"tickers":       1,
-					"orderbook":     1,
-					"orderbooks":    1,
-					"trades":        1,
-					"chart":         1,
-					"charts":        1,
-					"minicharts":    1,
-					"oracle/prices": 1,
-					"quick-trade":   1,
-					"udf/config":    1,
-					"udf/history":   1,
-					"udf/symbols":   1,
+					"health": map[string]any{
+						"cost": 1,
+					},
+					"constants": map[string]any{
+						"cost": 1,
+					},
+					"kit": map[string]any{
+						"cost": 1,
+					},
+					"tiers": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 1,
+					},
+					"tickers": map[string]any{
+						"cost": 1,
+					},
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"orderbooks": map[string]any{
+						"cost": 1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"chart": map[string]any{
+						"cost": 1,
+					},
+					"charts": map[string]any{
+						"cost": 1,
+					},
+					"minicharts": map[string]any{
+						"cost": 1,
+					},
+					"oracle/prices": map[string]any{
+						"cost": 1,
+					},
+					"quick-trade": map[string]any{
+						"cost": 1,
+					},
+					"udf/config": map[string]any{
+						"cost": 1,
+					},
+					"udf/history": map[string]any{
+						"cost": 1,
+					},
+					"udf/symbols": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"user":                1,
-					"user/balance":        1,
-					"user/deposits":       1,
-					"user/withdrawals":    1,
-					"user/withdrawal/fee": 1,
-					"user/trades":         1,
-					"orders":              1,
-					"order":               1,
+					"user": map[string]any{
+						"cost": 1,
+					},
+					"user/balance": map[string]any{
+						"cost": 1,
+					},
+					"user/deposits": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
+					"user/withdrawal/fee": map[string]any{
+						"cost": 1,
+					},
+					"user/trades": map[string]any{
+						"cost": 1,
+					},
+					"orders": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"user/withdrawal": 1,
-					"order":           1,
+					"user/withdrawal": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order/all": 1,
-					"order":     1,
+					"order/all": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -303,125 +362,125 @@ func (this *HollaexCore) Describe() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *HollaexCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetConstants(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "coins": {
-		//             "xmr": {
-		//                 "id": 7,
-		//                 "fullname": "Monero",
-		//                 "symbol": "xmr",
-		//                 "active": true,
-		//                 "allow_deposit": true,
-		//                 "allow_withdrawal": true,
-		//                 "withdrawal_fee": 0.02,
-		//                 "min": 0.001,
-		//                 "max": 100000,
-		//                 "increment_unit": 0.001,
-		//                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
-		//                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
-		//                 "created_at": "2019-12-09T07:14:02.720Z",
-		//                 "updated_at": "2020-01-16T12:12:53.162Z"
-		//             },
-		//             // ...
-		//         },
-		//         "pairs": {
-		//             "btc-usdt": {
-		//                 "id": 2,
-		//                 "name": "btc-usdt",
-		//                 "pair_base": "btc",
-		//                 "pair_2": "usdt",
-		//                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
-		//                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
-		//                 "min_size": 0.0001,
-		//                 "max_size": 1000,
-		//                 "min_price": 100,
-		//                 "max_price": 100000,
-		//                 "increment_size": 0.0001,
-		//                 "increment_price": 0.05,
-		//                 "active": true,
-		//                 "created_at": "2019-12-09T07:15:54.537Z",
-		//                 "updated_at": "2019-12-09T07:15:54.537Z"
-		//             },
-		//         },
-		//         "config": { tiers: 10 },
-		//         "status": true
-		//     }
-		//
-		var pairs any = this.SafeValue(response, "pairs", map[string]any{})
-		var keys any = ObjectKeys(pairs)
-		var result any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-			var key any = GetValue(keys, i)
-			var market any = GetValue(pairs, key)
-			var baseId any = this.SafeString(market, "pair_base")
-			var quoteId any = this.SafeString(market, "pair_2")
-			var base any = this.CommonCurrencyCode(ToUpper(baseId))
-			var quote any = this.CommonCurrencyCode(ToUpper(quoteId))
-			AppendToArray(&result, map[string]any{
-				"id":             this.SafeString(market, "name"),
-				"symbol":         Add(Add(base, "/"), quote),
-				"base":           base,
-				"quote":          quote,
-				"settle":         nil,
-				"baseId":         baseId,
-				"quoteId":        quoteId,
-				"settleId":       nil,
-				"type":           "spot",
-				"spot":           true,
-				"margin":         false,
-				"swap":           false,
-				"future":         false,
-				"option":         false,
-				"active":         this.SafeValue(market, "active"),
-				"contract":       false,
-				"linear":         nil,
-				"inverse":        nil,
-				"contractSize":   nil,
-				"expiry":         nil,
-				"expiryDatetime": nil,
-				"strike":         nil,
-				"optionType":     nil,
-				"precision": map[string]any{
-					"amount": this.SafeNumber(market, "increment_size"),
-					"price":  this.SafeNumber(market, "increment_price"),
-				},
-				"limits": map[string]any{
-					"leverage": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"amount": map[string]any{
-						"min": this.SafeNumber(market, "min_size"),
-						"max": this.SafeNumber(market, "max_size"),
-					},
-					"price": map[string]any{
-						"min": this.SafeNumber(market, "min_price"),
-						"max": this.SafeNumber(market, "max_price"),
-					},
-					"cost": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"created": this.Parse8601(this.SafeString(market, "created_at")),
-				"info":    market,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetConstants(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "coins": {
+	//             "xmr": {
+	//                 "id": 7,
+	//                 "fullname": "Monero",
+	//                 "symbol": "xmr",
+	//                 "active": true,
+	//                 "allow_deposit": true,
+	//                 "allow_withdrawal": true,
+	//                 "withdrawal_fee": 0.02,
+	//                 "min": 0.001,
+	//                 "max": 100000,
+	//                 "increment_unit": 0.001,
+	//                 "deposit_limits": { '1': 0, '2': 0, '3': 0, '4': 0, "5": 0, "6": 0 },
+	//                 "withdrawal_limits": { '1': 10, '2': 15, '3': 100, '4': 100, '5': 200, '6': 300, '7': 350, '8': 400, "9": 500, "10": -1 },
+	//                 "created_at": "2019-12-09T07:14:02.720Z",
+	//                 "updated_at": "2020-01-16T12:12:53.162Z"
+	//             },
+	//             // ...
+	//         },
+	//         "pairs": {
+	//             "btc-usdt": {
+	//                 "id": 2,
+	//                 "name": "btc-usdt",
+	//                 "pair_base": "btc",
+	//                 "pair_2": "usdt",
+	//                 "taker_fees": { '1': 0.3, '2': 0.25, '3': 0.2, '4': 0.18, '5': 0.1, '6': 0.09, '7': 0.08, '8': 0.06, "9": 0.04, "10": 0 },
+	//                 "maker_fees": { '1': 0.1, '2': 0.08, '3': 0.05, '4': 0.03, '5': 0, '6': 0, '7': 0, '8': 0, "9": 0, "10": 0 },
+	//                 "min_size": 0.0001,
+	//                 "max_size": 1000,
+	//                 "min_price": 100,
+	//                 "max_price": 100000,
+	//                 "increment_size": 0.0001,
+	//                 "increment_price": 0.05,
+	//                 "active": true,
+	//                 "created_at": "2019-12-09T07:15:54.537Z",
+	//                 "updated_at": "2019-12-09T07:15:54.537Z"
+	//             },
+	//         },
+	//         "config": { tiers: 10 },
+	//         "status": true
+	//     }
+	//
+	var pairs any = this.SafeValue(response, "pairs", map[string]any{})
+	var keys []string = ObjectKeys(pairs)
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
+		var key any = GetValue(keys, i)
+		var market any = GetValue(pairs, key)
+		var baseId any = this.SafeString(market, "pair_base")
+		var quoteId any = this.SafeString(market, "pair_2")
+		var base any = this.CommonCurrencyCode(ToUpper(baseId))
+		var quote any = this.CommonCurrencyCode(ToUpper(quoteId))
+		AppendToArray(&result, map[string]any{
+			"id":             this.SafeString(market, "name"),
+			"symbol":         Add(Add(base, "/"), quote),
+			"base":           base,
+			"quote":          quote,
+			"settle":         nil,
+			"baseId":         baseId,
+			"quoteId":        quoteId,
+			"settleId":       nil,
+			"type":           "spot",
+			"spot":           true,
+			"margin":         false,
+			"swap":           false,
+			"future":         false,
+			"option":         false,
+			"active":         this.SafeValue(market, "active"),
+			"contract":       false,
+			"linear":         nil,
+			"inverse":        nil,
+			"contractSize":   nil,
+			"expiry":         nil,
+			"expiryDatetime": nil,
+			"strike":         nil,
+			"optionType":     nil,
+			"precision": map[string]any{
+				"amount": this.SafeNumber(market, "increment_size"),
+				"price":  this.SafeNumber(market, "increment_price"),
+			},
+			"limits": map[string]any{
+				"leverage": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+				"amount": map[string]any{
+					"min": this.SafeNumber(market, "min_size"),
+					"max": this.SafeNumber(market, "max_size"),
+				},
+				"price": map[string]any{
+					"min": this.SafeNumber(market, "min_price"),
+					"max": this.SafeNumber(market, "max_price"),
+				},
+				"cost": map[string]any{
+					"min": nil,
+					"max": nil,
+				},
+			},
+			"created": this.Parse8601(this.SafeString(market, "created_at")),
+			"info":    market,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 
 /**
@@ -433,89 +492,89 @@ func (this *HollaexCore) FetchMarkets(optionalArgs ...any) <-chan any {
  * @returns {object} an associative dictionary of currencies
  */
 func (this *HollaexCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetConstants(params))
-		PanicOnError(response)
-		//
-		//    {
-		//        "coins": {
-		//            "usdt": {
-		//                "id": "6",
-		//                "fullname": "USD Tether",
-		//                "symbol": "usdt",
-		//                "active": true,
-		//                "verified": true,
-		//                "allow_deposit": true,
-		//                "allow_withdrawal": true,
-		//                "withdrawal_fee": "20",
-		//                "min": "1",
-		//                "max": "10000000",
-		//                "increment_unit": "0.0001",
-		//                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
-		//                "code": "usdt",
-		//                "is_public": true,
-		//                "meta": {
-		//                    "color": "#27a17a",
-		//                    "website": "https://tether.to",
-		//                    "explorer": "https://blockchair.com/tether",
-		//                    "decimal_points": "6"
-		//                },
-		//                "estimated_price": "1",
-		//                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
-		//                "type": "blockchain",
-		//                "network": "eth,trx,bnb,matic",
-		//                "standard": "",
-		//                "issuer": "HollaEx",
-		//                "withdrawal_fees": {
-		//                    "bnb": {
-		//                        "value": "0.8",
-		//                        "active": true,
-		//                        "symbol": "usdt"
-		//                    },
-		//                    "eth": {
-		//                        "value": "1.5",
-		//                        "active": true,
-		//                        "symbol": "usdt"
-		//                    },
-		//                    "trx": {
-		//                        "value": "4",
-		//                        "active": true,
-		//                        "symbol": "usdt"
-		//                    },
-		//                    "matic": {
-		//                        "value": "0.3",
-		//                        "active": true,
-		//                        "symbol": "usdt"
-		//                    }
-		//                },
-		//                "display_name": null,
-		//                "deposit_fees": null,
-		//                "is_risky": false,
-		//                "market_cap": "144568098696.29",
-		//                "category": "stable",
-		//                "created_at": "2019-08-09T10:45:43.367Z",
-		//                "updated_at": "2025-03-25T17:12:37.970Z",
-		//                "created_by": "168",
-		//                "owner_id": "1"
-		//            },
-		//         },
-		//         "network":"https://api.hollaex.network"
-		//     }
-		//
-		var coins any = this.SafeDict(response, "coins", map[string]any{})
-		var values any = ObjectValues(coins)
-
-		ch <- this.ParseCurrencies(values)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetConstants(params))
+	PanicOnError(response)
+	//
+	//    {
+	//        "coins": {
+	//            "usdt": {
+	//                "id": "6",
+	//                "fullname": "USD Tether",
+	//                "symbol": "usdt",
+	//                "active": true,
+	//                "verified": true,
+	//                "allow_deposit": true,
+	//                "allow_withdrawal": true,
+	//                "withdrawal_fee": "20",
+	//                "min": "1",
+	//                "max": "10000000",
+	//                "increment_unit": "0.0001",
+	//                "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+	//                "code": "usdt",
+	//                "is_public": true,
+	//                "meta": {
+	//                    "color": "#27a17a",
+	//                    "website": "https://tether.to",
+	//                    "explorer": "https://blockchair.com/tether",
+	//                    "decimal_points": "6"
+	//                },
+	//                "estimated_price": "1",
+	//                "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+	//                "type": "blockchain",
+	//                "network": "eth,trx,bnb,matic",
+	//                "standard": "",
+	//                "issuer": "HollaEx",
+	//                "withdrawal_fees": {
+	//                    "bnb": {
+	//                        "value": "0.8",
+	//                        "active": true,
+	//                        "symbol": "usdt"
+	//                    },
+	//                    "eth": {
+	//                        "value": "1.5",
+	//                        "active": true,
+	//                        "symbol": "usdt"
+	//                    },
+	//                    "trx": {
+	//                        "value": "4",
+	//                        "active": true,
+	//                        "symbol": "usdt"
+	//                    },
+	//                    "matic": {
+	//                        "value": "0.3",
+	//                        "active": true,
+	//                        "symbol": "usdt"
+	//                    }
+	//                },
+	//                "display_name": null,
+	//                "deposit_fees": null,
+	//                "is_risky": false,
+	//                "market_cap": "144568098696.29",
+	//                "category": "stable",
+	//                "created_at": "2019-08-09T10:45:43.367Z",
+	//                "updated_at": "2025-03-25T17:12:37.970Z",
+	//                "created_by": "168",
+	//                "owner_id": "1"
+	//            },
+	//         },
+	//         "network":"https://api.hollaex.network"
+	//     }
+	//
+	var coins any = this.SafeDict(response, "coins", map[string]any{})
+	var values any = ObjectValues(coins)
+
+	ch <- this.ParseCurrencies(values)
+	return nil
 }
 func (this *HollaexCore) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "symbol")
@@ -524,28 +583,30 @@ func (this *HollaexCore) ParseCurrency(rawCurrency any) any {
 	var rawType any = this.SafeString(rawCurrency, "type")
 	var typeVar any = Ternary(IsTrue((IsEqual(rawType, "blockchain"))), "crypto", "other")
 	var rawNetworks any = this.SafeDict(rawCurrency, "withdrawal_fees", map[string]any{})
-	var networks any = map[string]any{}
-	var networkIds any = ObjectKeys(rawNetworks)
+	var networks map[string]any = map[string]any{}
+	var networkIds []string = ObjectKeys(rawNetworks)
 	for j := 0; IsLessThan(j, GetArrayLength(networkIds)); j++ {
 		var networkId any = GetValue(networkIds, j)
 		var networkEntry any = this.SafeDict(rawNetworks, networkId)
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		AddElementToObject(networks, networkCode, map[string]any{
-			"id":        networkId,
-			"network":   networkCode,
-			"active":    this.SafeBool(networkEntry, "active"),
-			"deposit":   nil,
-			"withdraw":  nil,
-			"fee":       this.SafeNumber(networkEntry, "value"),
-			"precision": nil,
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": nil,
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(networks, networkCode, map[string]any{
+				"id":        networkId,
+				"network":   networkCode,
+				"active":    this.SafeBool(networkEntry, "active"),
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       this.SafeNumber(networkEntry, "value"),
+				"precision": nil,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-			},
-			"info": networkEntry,
-		})
+				"info": networkEntry,
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
@@ -578,45 +639,45 @@ func (this *HollaexCore) ParseCurrency(rawCurrency any) any {
  * @name hollaex#fetchOrderBooks
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
  * @see https://apidocs.hollaex.com/#orderbooks
- * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
- * @param {int} [limit] not used by hollaex fetchOrderBooks ()
+ * @param {string[]|undefined} symbols not used by fetchOrderBooks ()
+ * @param {int} [limit] not used by fetchOrderBooks ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
  */
 func (this *HollaexCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes56712 := (<-this.LoadMarkets())
-			PanicOnError(retRes56712)
-		}
-
-		response := (<-this.PublicGetOrderbooks(params))
-		PanicOnError(response)
-		var result any = map[string]any{}
-		var marketIds any = ObjectKeys(response)
-		for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-			var marketId any = GetValue(marketIds, i)
-			var orderbook any = GetValue(response, marketId)
-			var symbol any = this.SafeSymbol(marketId, nil, "-")
-			var timestamp any = this.Parse8601(this.SafeString(orderbook, "timestamp"))
-			AddElementToObject(result, symbol, this.ParseOrderBook(GetValue(response, marketId), symbol, timestamp))
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBooksBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes57012 := (<-this.LoadMarkets())
+		PanicOnError(retRes57012)
+	}
+
+	response := (<-this.PublicGetOrderbooks(params))
+	PanicOnError(response)
+	var result map[string]any = map[string]any{}
+	var marketIds []string = ObjectKeys(response)
+	for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
+		var marketId any = GetValue(marketIds, i)
+		var orderbook any = this.SafeDict(response, marketId, map[string]any{})
+		var symbol any = this.SafeSymbol(marketId, nil, "-")
+		var timestamp any = this.Parse8601(this.SafeString(orderbook, "timestamp"))
+		AddElementToObject(result, symbol, this.ParseOrderBook(orderbook, symbol, timestamp))
+	}
+
+	ch <- result
+	return nil
 }
 
 /**
@@ -627,56 +688,56 @@ func (this *HollaexCore) FetchOrderBooks(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HollaexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes59412 := (<-this.LoadMarkets())
-			PanicOnError(retRes59412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "btc-usdt": {
-		//             "bids": [
-		//                 [ 8836.4, 1.022 ],
-		//                 [ 8800, 0.0668 ],
-		//                 [ 8797.75, 0.2398 ],
-		//             ],
-		//             "asks": [
-		//                 [ 8839.35, 1.5334 ],
-		//                 [ 8852.6, 0.0579 ],
-		//                 [ 8860.45, 0.1815 ],
-		//             ],
-		//             "timestamp": "2020-03-03T02:27:25.147Z"
-		//         },
-		//         "eth-usdt": {},
-		//         // ...
-		//     }
-		//
-		var orderbook any = this.SafeValue(response, GetValue(market, "id"))
-		var timestamp any = this.Parse8601(this.SafeString(orderbook, "timestamp"))
-
-		ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes59712 := (<-this.LoadMarkets())
+		PanicOnError(retRes59712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "btc-usdt": {
+	//             "bids": [
+	//                 [ 8836.4, 1.022 ],
+	//                 [ 8800, 0.0668 ],
+	//                 [ 8797.75, 0.2398 ],
+	//             ],
+	//             "asks": [
+	//                 [ 8839.35, 1.5334 ],
+	//                 [ 8852.6, 0.0579 ],
+	//                 [ 8860.45, 0.1815 ],
+	//             ],
+	//             "timestamp": "2020-03-03T02:27:25.147Z"
+	//         },
+	//         "eth-usdt": {},
+	//         // ...
+	//     }
+	//
+	var orderbook any = this.SafeValue(response, GetValue(market, "id"))
+	var timestamp any = this.Parse8601(this.SafeString(orderbook, "timestamp"))
+
+	ch <- this.ParseOrderBook(orderbook, GetValue(market, "symbol"), timestamp)
+	return nil
 }
 
 /**
@@ -689,41 +750,41 @@ func (this *HollaexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *HollaexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes63612 := (<-this.LoadMarkets())
-			PanicOnError(retRes63612)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTicker(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "open": 8615.55,
-		//         "close": 8841.05,
-		//         "high": 8921.1,
-		//         "low": 8607,
-		//         "last": 8841.05,
-		//         "volume": 20.2802,
-		//         "timestamp": "2020-03-03T03:11:18.965Z"
-		//     }
-		//
-		ch <- this.ParseTicker(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes63912 := (<-this.LoadMarkets())
+		PanicOnError(retRes63912)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTicker(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "open": 8615.55,
+	//         "close": 8841.05,
+	//         "high": 8921.1,
+	//         "low": 8607,
+	//         "last": 8841.05,
+	//         "volume": 20.2802,
+	//         "timestamp": "2020-03-03T03:11:18.965Z"
+	//     }
+	//
+	ch <- this.ParseTicker(response, market)
+	return nil
 }
 
 /**
@@ -736,52 +797,52 @@ func (this *HollaexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *HollaexCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes66812 := (<-this.LoadMarkets())
-			PanicOnError(retRes66812)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.PublicGetTickers(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "bch-usdt": {
-		//             "time": "2020-03-02T04:29:45.011Z",
-		//             "open": 341.65,
-		//             "close":337.9,
-		//             "high":341.65,
-		//             "low":337.3,
-		//             "last":337.9,
-		//             "volume":0.054,
-		//             "symbol":"bch-usdt"
-		//         },
-		//         // ...
-		//     }
-		//
-		ch <- this.ParseTickers(response, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes67112 := (<-this.LoadMarkets())
+		PanicOnError(retRes67112)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.PublicGetTickers(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "bch-usdt": {
+	//             "time": "2020-03-02T04:29:45.011Z",
+	//             "open": 341.65,
+	//             "close":337.9,
+	//             "high":341.65,
+	//             "low":337.3,
+	//             "last":337.9,
+	//             "volume":0.054,
+	//             "symbol":"bch-usdt"
+	//         },
+	//         // ...
+	//     }
+	//
+	ch <- this.ParseTickers(response, symbols)
+	return nil
 }
 func (this *HollaexCore) ParseTickers(tickers any, optionalArgs ...any) any {
 	symbols := GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var result any = map[string]any{}
-	var keys any = ObjectKeys(tickers)
+	var result map[string]any = map[string]any{}
+	var keys []string = ObjectKeys(tickers)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var ticker any = GetValue(tickers, key)
@@ -862,48 +923,48 @@ func (this *HollaexCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *HollaexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes77312 := (<-this.LoadMarkets())
-			PanicOnError(retRes77312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "btc-usdt": [
-		//             {
-		//                 "size": 0.5,
-		//                 "price": 8830,
-		//                 "side": "buy",
-		//                 "timestamp": "2020-03-03T04:44:33.034Z"
-		//             },
-		//             // ...
-		//         ]
-		//     }
-		//
-		var trades any = this.SafeList(response, GetValue(market, "id"), []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes77612 := (<-this.LoadMarkets())
+		PanicOnError(retRes77612)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "btc-usdt": [
+	//             {
+	//                 "size": 0.5,
+	//                 "price": 8830,
+	//                 "side": "buy",
+	//                 "timestamp": "2020-03-03T04:44:33.034Z"
+	//             },
+	//             // ...
+	//         ]
+	//     }
+	//
+	var trades any = this.SafeList(response, GetValue(market, "id"), []any{})
+
+	ch <- this.ParseTrades(trades, market, since, limit)
+	return nil
 }
 func (this *HollaexCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -974,73 +1035,73 @@ func (this *HollaexCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *HollaexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes86512 := (<-this.LoadMarkets())
-			PanicOnError(retRes86512)
-		}
-
-		response := (<-this.PublicGetTiers(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "1": {
-		//             "id": "1",
-		//             "name": "Silver",
-		//             "icon": '',
-		//             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
-		//             "deposit_limit": "0",
-		//             "withdrawal_limit": "1000",
-		//             "fees": {
-		//                 "maker": {
-		//                     'eth-btc': "0.1",
-		//                     'ada-usdt': "0.1",
-		//                     ...
-		//                 },
-		//                 "taker": {
-		//                     'eth-btc': "0.1",
-		//                     'ada-usdt': "0.1",
-		//                     ...
-		//                 }
-		//             },
-		//             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
-		//             "created_at": "2021-03-22T03:51:39.129Z",
-		//             "updated_at": "2021-11-01T02:51:56.214Z"
-		//         },
-		//         ...
-		//     }
-		//
-		var firstTier any = this.SafeValue(response, "1", map[string]any{})
-		var fees any = this.SafeValue(firstTier, "fees", map[string]any{})
-		var makerFees any = this.SafeValue(fees, "maker", map[string]any{})
-		var takerFees any = this.SafeValue(fees, "taker", map[string]any{})
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
-			var market any = this.Market(symbol)
-			var makerString any = this.SafeString(makerFees, GetValue(market, "id"))
-			var takerString any = this.SafeString(takerFees, GetValue(market, "id"))
-			AddElementToObject(result, symbol, map[string]any{
-				"info":       fees,
-				"symbol":     symbol,
-				"maker":      this.ParseNumber(Precise.StringDiv(makerString, "100")),
-				"taker":      this.ParseNumber(Precise.StringDiv(takerString, "100")),
-				"percentage": true,
-				"tierBased":  true,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes86812 := (<-this.LoadMarkets())
+		PanicOnError(retRes86812)
+	}
+
+	response := (<-this.PublicGetTiers(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "1": {
+	//             "id": "1",
+	//             "name": "Silver",
+	//             "icon": '',
+	//             "description": "Your crypto journey starts here! Make your first deposit to start trading, and verify your account to level up!",
+	//             "deposit_limit": "0",
+	//             "withdrawal_limit": "1000",
+	//             "fees": {
+	//                 "maker": {
+	//                     'eth-btc': "0.1",
+	//                     'ada-usdt': "0.1",
+	//                     ...
+	//                 },
+	//                 "taker": {
+	//                     'eth-btc': "0.1",
+	//                     'ada-usdt': "0.1",
+	//                     ...
+	//                 }
+	//             },
+	//             "note": "<ul>\n<li>Login and verify email</li>\n</ul>\n",
+	//             "created_at": "2021-03-22T03:51:39.129Z",
+	//             "updated_at": "2021-11-01T02:51:56.214Z"
+	//         },
+	//         ...
+	//     }
+	//
+	var firstTier any = this.SafeValue(response, "1", map[string]any{})
+	var fees any = this.SafeValue(firstTier, "fees", map[string]any{})
+	var makerFees any = this.SafeValue(fees, "maker", map[string]any{})
+	var takerFees any = this.SafeValue(fees, "taker", map[string]any{})
+	var result map[string]any = map[string]any{}
+	for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
+		var symbol any = GetValue(this.Symbols, i)
+		var market any = this.Market(symbol)
+		var makerString any = this.SafeString(makerFees, GetValue(market, "id"))
+		var takerString any = this.SafeString(takerFees, GetValue(market, "id"))
+		AddElementToObject(result, symbol, map[string]any{
+			"info":       fees,
+			"symbol":     symbol,
+			"maker":      this.ParseNumber(Precise.StringDiv(makerString, "100")),
+			"taker":      this.ParseNumber(Precise.StringDiv(takerString, "100")),
+			"percentage": true,
+			"tierBased":  true,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 
 /**
@@ -1057,75 +1118,75 @@ func (this *HollaexCore) FetchTradingFees(optionalArgs ...any) <-chan any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *HollaexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes93312 := (<-this.LoadMarkets())
-			PanicOnError(retRes93312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol":     GetValue(market, "id"),
-			"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
-		}
-		var paginate any = false
-		var maxLimit any = 500
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate)
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes94419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
-			PanicOnError(retRes94419)
-			ch <- retRes94419
-			return nil
-		}
-		var until any = this.SafeInteger(params, "until")
-		var timeDelta any = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
-		var start any = since
-		var now any = this.Milliseconds()
-		if IsTrue(IsEqual(until, nil)) {
-			until = now // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
-		}
-		if IsTrue(IsEqual(start, nil)) {
-			start = Subtract(until, timeDelta)
-		}
-		AddElementToObject(request, "from", this.ParseToInt(Divide(start, 1000))) // convert to seconds
-		AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))   // convert to seconds
-		params = this.Omit(params, "until")
-
-		response := (<-this.PublicGetChart(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "time":"2020-03-02T20:00:00.000Z",
-		//             "close":8872.1,
-		//             "high":8872.1,
-		//             "low":8858.6,
-		//             "open":8858.6,
-		//             "symbol":"btc-usdt",
-		//             "volume":1.2922
-		//         },
-		//     ]
-		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes93612 := (<-this.LoadMarkets())
+		PanicOnError(retRes93612)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol":     GetValue(market, "id"),
+		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	var paginate any = false
+	var maxLimit any = 500
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", paginate)
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes94719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, maxLimit))
+		PanicOnError(retRes94719)
+		ch <- retRes94719
+		return nil
+	}
+	var until any = this.SafeInteger(params, "until")
+	var timeDelta any = Multiply(Multiply(this.ParseTimeframe(timeframe), maxLimit), 1000)
+	var start any = since
+	var now int64 = this.Milliseconds()
+	if IsTrue(IsEqual(until, nil)) {
+		until = now // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
+	}
+	if IsTrue(IsEqual(start, nil)) {
+		start = Subtract(until, timeDelta)
+	}
+	AddElementToObject(request, "from", this.ParseToInt(Divide(start, 1000))) // convert to seconds
+	AddElementToObject(request, "to", this.ParseToInt(Divide(until, 1000)))   // convert to seconds
+	params = this.Omit(params, "until")
+
+	response := (<-this.PublicGetChart(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "time":"2020-03-02T20:00:00.000Z",
+	//             "close":8872.1,
+	//             "high":8872.1,
+	//             "low":8858.6,
+	//             "open":8858.6,
+	//             "symbol":"btc-usdt",
+	//             "volume":1.2922
+	//         },
+	//     ]
+	//
+	ch <- this.ParseOHLCVs(this.ToArray(response), market, timeframe, since, limit)
+	return nil
 }
 func (this *HollaexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -1145,19 +1206,25 @@ func (this *HollaexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 }
 func (this *HollaexCore) ParseBalance(response any) any {
 	var timestamp any = this.Parse8601(this.SafeString(response, "updated_at"))
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": timestamp,
 		"datetime":  this.Iso8601(timestamp),
 	}
-	var currencyIds any = ObjectKeys(this.Currencies_by_id)
+	var currenciesById any = this.Currencies_by_id
+	if IsTrue(IsEqual(currenciesById, nil)) {
+		panic(ExchangeError(Add(this.Id, " currencies not loaded")))
+	}
+	var currencyIds []string = ObjectKeys(currenciesById)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", this.SafeString(response, Add(currencyId, "_available")))
 		AddElementToObject(account, "total", this.SafeString(response, Add(currencyId, "_balance")))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -1171,38 +1238,38 @@ func (this *HollaexCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *HollaexCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes102712 := (<-this.LoadMarkets())
-			PanicOnError(retRes102712)
-		}
-
-		response := (<-this.PrivateGetUserBalance(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "updated_at": "2020-03-02T22:27:38.428Z",
-		//         "btc_balance": 0,
-		//         "btc_pending": 0,
-		//         "btc_available": 0,
-		//         "eth_balance": 0,
-		//         "eth_pending": 0,
-		//         "eth_available": 0,
-		//         // ...
-		//     }
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes103612 := (<-this.LoadMarkets())
+		PanicOnError(retRes103612)
+	}
+
+	response := (<-this.PrivateGetUserBalance(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "updated_at": "2020-03-02T22:27:38.428Z",
+	//         "btc_balance": 0,
+	//         "btc_pending": 0,
+	//         "btc_available": 0,
+	//         "eth_balance": 0,
+	//         "eth_pending": 0,
+	//         "eth_available": 0,
+	//         // ...
+	//     }
+	//
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -1211,60 +1278,60 @@ func (this *HollaexCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @description fetch an open order by it's id
  * @see https://apidocs.hollaex.com/#get-order
  * @param {string} id order id
- * @param {string} symbol not used by hollaex fetchOpenOrder ()
+ * @param {string} symbol not used by fetchOpenOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes105712 := (<-this.LoadMarkets())
-			PanicOnError(retRes105712)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.PrivateGetOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "id": "string",
-		//         "side": "sell",
-		//         "symbol": "xht-usdt",
-		//         "size": 0.1,
-		//         "filled": 0,
-		//         "stop": null,
-		//         "fee": 0,
-		//         "fee_coin": "usdt",
-		//         "type": "limit",
-		//         "price": 1.09,
-		//         "status": "new",
-		//         "created_by": 116,
-		//         "created_at": "2021-02-17T02:32:38.910Z",
-		//         "updated_at": "2021-02-17T02:32:38.910Z",
-		//         "User": {
-		//             "id": 116,
-		//             "email": "fight@club.com",
-		//             "username": "narrator",
-		//             "exchange_id": 176
-		//         }
-		//     }
-		//
-		ch <- this.ParseOrder(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes106612 := (<-this.LoadMarkets())
+		PanicOnError(retRes106612)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.PrivateGetOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "id": "string",
+	//         "side": "sell",
+	//         "symbol": "xht-usdt",
+	//         "size": 0.1,
+	//         "filled": 0,
+	//         "stop": null,
+	//         "fee": 0,
+	//         "fee_coin": "usdt",
+	//         "type": "limit",
+	//         "price": 1.09,
+	//         "status": "new",
+	//         "created_by": 116,
+	//         "created_at": "2021-02-17T02:32:38.910Z",
+	//         "updated_at": "2021-02-17T02:32:38.910Z",
+	//         "User": {
+	//             "id": 116,
+	//             "email": "fight@club.com",
+	//             "username": "narrator",
+	//             "exchange_id": 176
+	//         }
+	//     }
+	//
+	ch <- this.ParseOrder(response)
+	return nil
 }
 
 /**
@@ -1279,29 +1346,29 @@ func (this *HollaexCore) FetchOpenOrder(id any, optionalArgs ...any) <-chan any 
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"open": true,
-		}
-
-		retRes110515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes110515)
-		ch <- retRes110515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"open": true,
+	}
+
+	retRes111415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes111415)
+	ch <- retRes111415
+	return nil
 }
 
 /**
@@ -1316,29 +1383,29 @@ func (this *HollaexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"open": false,
-		}
-
-		retRes112315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes112315)
-		ch <- retRes112315
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"open": false,
+	}
+
+	retRes113215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes113215)
+	ch <- retRes113215
+	return nil
 }
 
 /**
@@ -1352,57 +1419,57 @@ func (this *HollaexCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes113812 := (<-this.LoadMarkets())
-			PanicOnError(retRes113812)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.PrivateGetOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		//             {
-		//                 "id": "string",
-		//                 "side": "sell",
-		//                 "symbol": "xht-usdt",
-		//                 "size": 0.1,
-		//                 "filled": 0,
-		//                 "stop": null,
-		//                 "fee": 0,
-		//                 "fee_coin": "usdt",
-		//                 "type": "limit",
-		//                 "price": 1.09,
-		//                 "status": "new",
-		//                 "created_by": 116,
-		//                 "created_at": "2021-02-17T02:32:38.910Z",
-		//                 "updated_at": "2021-02-17T02:32:38.910Z",
-		//                 "User": {
-		//                     "id": 116,
-		//                     "email": "fight@club.com",
-		//                     "username": "narrator",
-		//                     "exchange_id": 176
-		//                 }
-		//             }
-		var order any = response
-		if IsTrue(IsEqual(order, nil)) {
-			panic(OrderNotFound(Add(Add(this.Id, " fetchOrder() could not find order id "), id)))
-		}
-
-		ch <- this.ParseOrder(order)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes114712 := (<-this.LoadMarkets())
+		PanicOnError(retRes114712)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.PrivateGetOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	//             {
+	//                 "id": "string",
+	//                 "side": "sell",
+	//                 "symbol": "xht-usdt",
+	//                 "size": 0.1,
+	//                 "filled": 0,
+	//                 "stop": null,
+	//                 "fee": 0,
+	//                 "fee_coin": "usdt",
+	//                 "type": "limit",
+	//                 "price": 1.09,
+	//                 "status": "new",
+	//                 "created_by": 116,
+	//                 "created_at": "2021-02-17T02:32:38.910Z",
+	//                 "updated_at": "2021-02-17T02:32:38.910Z",
+	//                 "User": {
+	//                     "id": 116,
+	//                     "email": "fight@club.com",
+	//                     "username": "narrator",
+	//                     "exchange_id": 176
+	//                 }
+	//             }
+	var order any = response
+	if IsTrue(IsEqual(order, nil)) {
+		panic(OrderNotFound(Add(Add(this.Id, " fetchOrder() could not find order id "), id)))
+	}
+
+	ch <- this.ParseOrder(order)
+	return nil
 }
 
 /**
@@ -1417,77 +1484,77 @@ func (this *HollaexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes118612 := (<-this.LoadMarkets())
-			PanicOnError(retRes118612)
-		}
-		var market any = nil
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_date", this.Iso8601(since))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 50, max 100
-		}
-
-		response := (<-this.PrivateGetOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "count": 1,
-		//         "data": [
-		//             {
-		//                 "id": "string",
-		//                 "side": "sell",
-		//                 "symbol": "xht-usdt",
-		//                 "size": 0.1,
-		//                 "filled": 0,
-		//                 "stop": null,
-		//                 "fee": 0,
-		//                 "fee_coin": "usdt",
-		//                 "type": "limit",
-		//                 "price": 1.09,
-		//                 "status": "new",
-		//                 "created_by": 116,
-		//                 "created_at": "2021-02-17T02:32:38.910Z",
-		//                 "updated_at": "2021-02-17T02:32:38.910Z",
-		//                 "User": {
-		//                     "id": 116,
-		//                     "email": "fight@club.com",
-		//                     "username": "narrator",
-		//                     "exchange_id": 176
-		//                 }
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
+func (this *HollaexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes119512 := (<-this.LoadMarkets())
+		PanicOnError(retRes119512)
+	}
+	var market any = nil
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
+	}
+
+	response := (<-this.PrivateGetOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "count": 1,
+	//         "data": [
+	//             {
+	//                 "id": "string",
+	//                 "side": "sell",
+	//                 "symbol": "xht-usdt",
+	//                 "size": 0.1,
+	//                 "filled": 0,
+	//                 "stop": null,
+	//                 "fee": 0,
+	//                 "fee_coin": "usdt",
+	//                 "type": "limit",
+	//                 "price": 1.09,
+	//                 "status": "new",
+	//                 "created_by": 116,
+	//                 "created_at": "2021-02-17T02:32:38.910Z",
+	//                 "updated_at": "2021-02-17T02:32:38.910Z",
+	//                 "User": {
+	//                     "id": 116,
+	//                     "email": "fight@club.com",
+	//                     "username": "narrator",
+	//                     "exchange_id": 176
+	//                 }
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
+}
 func (this *HollaexCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"new":      "open",
 		"pfilled":  "open",
 		"filled":   "closed",
@@ -1579,75 +1646,75 @@ func (this *HollaexCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes133812 := (<-this.LoadMarkets())
-			PanicOnError(retRes133812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-			"side":   side,
-			"size":   this.AmountToPrecision(symbol, amount),
-			"type":   typeVar,
-		}
-		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
-		var meta any = this.SafeValue(params, "meta", map[string]any{})
-		var exchangeSpecificParam any = this.SafeBool(meta, "post_only", false)
-		var isMarketOrder any = IsEqual(typeVar, "market")
-		var postOnly any = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
-		if !IsTrue(isMarketOrder) {
-			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-		}
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			AddElementToObject(request, "stop", this.PriceToPrecision(symbol, triggerPrice))
-		}
-		if IsTrue(postOnly) {
-			AddElementToObject(request, "meta", map[string]any{
-				"post_only": true,
-			})
-		}
-		params = this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"})
-
-		response := (<-this.PrivatePostOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "fee": 0,
-		//         "meta": {},
-		//         "symbol": "xht-usdt",
-		//         "side": "sell",
-		//         "size": 0.1,
-		//         "type": "limit",
-		//         "price": 1,
-		//         "fee_structure": {
-		//             "maker": 0.2,
-		//             "taker": 0.2
-		//         },
-		//         "fee_coin": "usdt",
-		//         "id": "string",
-		//         "created_by": 116,
-		//         "filled": 0,
-		//         "status": "new",
-		//         "updated_at": "2021-02-17T03:03:19.231Z",
-		//         "created_at": "2021-02-17T03:03:19.231Z",
-		//         "stop": null
-		//     }
-		//
-		ch <- this.ParseOrder(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes134712 := (<-this.LoadMarkets())
+		PanicOnError(retRes134712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+		"side":   side,
+		"size":   this.AmountToPrecision(symbol, amount),
+		"type":   typeVar,
+	}
+	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop"})
+	var meta any = this.SafeValue(params, "meta", map[string]any{})
+	var exchangeSpecificParam any = this.SafeBool(meta, "post_only", false)
+	var isMarketOrder bool = IsEqual(typeVar, "market")
+	var postOnly any = this.IsPostOnly(isMarketOrder, exchangeSpecificParam, params)
+	if !IsTrue(isMarketOrder) {
+		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+	}
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		AddElementToObject(request, "stop", this.PriceToPrecision(symbol, triggerPrice))
+	}
+	if IsTrue(postOnly) {
+		AddElementToObject(request, "meta", map[string]any{
+			"post_only": true,
+		})
+	}
+	params = this.Omit(params, []any{"postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop"})
+
+	response := (<-this.PrivatePostOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "fee": 0,
+	//         "meta": {},
+	//         "symbol": "xht-usdt",
+	//         "side": "sell",
+	//         "size": 0.1,
+	//         "type": "limit",
+	//         "price": 1,
+	//         "fee_structure": {
+	//             "maker": 0.2,
+	//             "taker": 0.2
+	//         },
+	//         "fee_coin": "usdt",
+	//         "id": "string",
+	//         "created_by": 116,
+	//         "filled": 0,
+	//         "status": "new",
+	//         "updated_at": "2021-02-17T03:03:19.231Z",
+	//         "created_at": "2021-02-17T03:03:19.231Z",
+	//         "stop": null
+	//     }
+	//
+	ch <- this.ParseOrder(response, market)
+	return nil
 }
 
 /**
@@ -1661,44 +1728,44 @@ func (this *HollaexCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes140312 := (<-this.LoadMarkets())
-			PanicOnError(retRes140312)
-		}
-		var request any = map[string]any{
-			"order_id": id,
-		}
-
-		response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "title": "string",
-		//         "symbol": "xht-usdt",
-		//         "side": "sell",
-		//         "size": 1,
-		//         "type": "limit",
-		//         "price": 0.1,
-		//         "id": "string",
-		//         "created_by": 34,
-		//         "filled": 0
-		//     }
-		//
-		ch <- this.ParseOrder(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes141212 := (<-this.LoadMarkets())
+		PanicOnError(retRes141212)
+	}
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+
+	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "title": "string",
+	//         "symbol": "xht-usdt",
+	//         "side": "sell",
+	//         "size": 1,
+	//         "type": "limit",
+	//         "price": 0.1,
+	//         "id": "string",
+	//         "created_by": 34,
+	//         "filled": 0
+	//     }
+	//
+	ch <- this.ParseOrder(response)
+	return nil
 }
 
 /**
@@ -1711,50 +1778,50 @@ func (this *HollaexCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HollaexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(symbol, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes143912 := (<-this.LoadMarkets())
-			PanicOnError(retRes143912)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		market = this.Market(symbol)
-		AddElementToObject(request, "symbol", GetValue(market, "id"))
-
-		response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     [
-		//         {
-		//             "title": "string",
-		//             "symbol": "xht-usdt",
-		//             "side": "sell",
-		//             "size": 1,
-		//             "type": "limit",
-		//             "price": 0.1,
-		//             "id": "string",
-		//             "created_by": 34,
-		//             "filled": 0
-		//         }
-		//     ]
-		//
-		ch <- this.ParseOrders(response, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes144812 := (<-this.LoadMarkets())
+		PanicOnError(retRes144812)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	market = this.Market(symbol)
+	AddElementToObject(request, "symbol", GetValue(market, "id"))
+
+	response := (<-this.PrivateDeleteOrderAll(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     [
+	//         {
+	//             "title": "string",
+	//             "symbol": "xht-usdt",
+	//             "side": "sell",
+	//             "size": 1,
+	//             "type": "limit",
+	//             "price": 0.1,
+	//             "id": "string",
+	//             "created_by": 34,
+	//             "filled": 0
+	//         }
+	//     ]
+	//
+	ch <- this.ParseOrders(response, market)
+	return nil
 }
 
 /**
@@ -1769,60 +1836,60 @@ func (this *HollaexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HollaexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes147712 := (<-this.LoadMarkets())
-			PanicOnError(retRes147712)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 50, max 100
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_date", this.Iso8601(since))
-		}
-
-		response := (<-this.PrivateGetUserTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "count": 1,
-		//         "data": [
-		//             {
-		//                 "side": "buy",
-		//                 "symbol": "eth-usdt",
-		//                 "size": 0.086,
-		//                 "price": 226.19,
-		//                 "timestamp": "2020-03-03T08:03:55.459Z",
-		//                 "fee": 0.1
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTrades(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes148612 := (<-this.LoadMarkets())
+		PanicOnError(retRes148612)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
+	}
+
+	response := (<-this.PrivateGetUserTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "count": 1,
+	//         "data": [
+	//             {
+	//                 "side": "buy",
+	//                 "symbol": "eth-usdt",
+	//                 "size": 0.086,
+	//                 "price": 226.19,
+	//                 "timestamp": "2020-03-03T08:03:55.459Z",
+	//                 "fee": 0.1
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTrades(data, market, since, limit)
+	return nil
 }
 func (this *HollaexCore) ParseDepositAddress(depositAddress any, optionalArgs ...any) any {
 	//
@@ -1840,7 +1907,7 @@ func (this *HollaexCore) ParseDepositAddress(depositAddress any, optionalArgs ..
 	var address any = this.SafeString(depositAddress, "address")
 	var tag any = nil
 	if IsTrue(!IsEqual(address, nil)) {
-		var parts any = Split(address, ":")
+		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 	}
@@ -1867,77 +1934,77 @@ func (this *HollaexCore) ParseDepositAddress(depositAddress any, optionalArgs ..
  * @returns {object} a list of [address structures]{@link https://docs.ccxt.com/?id=address-structure}
  */
 func (this *HollaexCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes156112 := (<-this.LoadMarkets())
-			PanicOnError(retRes156112)
-		}
-		var network any = this.SafeString(params, "network")
-		params = this.Omit(params, "network")
-
-		response := (<-this.PrivateGetUser(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "id":620,
-		//         "email":"igor.kroitor@gmail.com",
-		//         "full_name":"",
-		//         "gender":false,
-		//         "nationality":"",
-		//         "dob":null,
-		//         "phone_number":"",
-		//         "address":{"city":"","address":"","country":"","postal_code":""},
-		//         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
-		//         "bank_account":[],
-		//         "crypto_wallet":{},
-		//         "verification_level":1,
-		//         "email_verified":true,
-		//         "otp_enabled":true,
-		//         "activated":true,
-		//         "username":"igor.kroitor",
-		//         "affiliation_code":"QSWA6G",
-		//         "settings":{
-		//             "chat":{"set_username":false},
-		//             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
-		//             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
-		//             "language":"en",
-		//             "interface":{"theme":"white","order_book_levels":10},
-		//             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
-		//         },
-		//         "affiliation_rate":0,
-		//         "network_id":10620,
-		//         "discount":0,
-		//         "created_at":"2021-03-24T02:37:57.379Z",
-		//         "updated_at":"2021-03-24T02:37:57.379Z",
-		//         "balance":{
-		//             "btc_balance":0,
-		//             "btc_available":0,
-		//             "eth_balance":0.000914,
-		//             "eth_available":0.000914,
-		//             "updated_at":"2020-03-04T04:03:27.174Z
-		//         "},
-		//         "wallet":[
-		//             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
-		//             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
-		//         ]
-		//     }
-		//
-		var wallet any = this.SafeValue(response, "wallet", []any{})
-		var addresses any = Ternary(IsTrue((IsEqual(network, nil))), wallet, this.FilterBy(wallet, "network", network))
-
-		ch <- this.ParseDepositAddresses(addresses, codes)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositAddressesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes157012 := (<-this.LoadMarkets())
+		PanicOnError(retRes157012)
+	}
+	var network any = this.SafeString(params, "network")
+	params = this.Omit(params, "network")
+
+	response := (<-this.PrivateGetUser(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "id":620,
+	//         "email":"igor.kroitor@gmail.com",
+	//         "full_name":"",
+	//         "gender":false,
+	//         "nationality":"",
+	//         "dob":null,
+	//         "phone_number":"",
+	//         "address":{"city":"","address":"","country":"","postal_code":""},
+	//         "id_data":{"note":"","type":"","number":"","status":0,"issued_date":"","expiration_date":""},
+	//         "bank_account":[],
+	//         "crypto_wallet":{},
+	//         "verification_level":1,
+	//         "email_verified":true,
+	//         "otp_enabled":true,
+	//         "activated":true,
+	//         "username":"igor.kroitor",
+	//         "affiliation_code":"QSWA6G",
+	//         "settings":{
+	//             "chat":{"set_username":false},
+	//             "risk":{"popup_warning":false,"order_portfolio_percentage":20},
+	//             "audio":{"public_trade":false,"order_completed":true,"order_partially_completed":true},
+	//             "language":"en",
+	//             "interface":{"theme":"white","order_book_levels":10},
+	//             "notification":{"popup_order_completed":true,"popup_order_confirmation":true,"popup_order_partially_filled":true}
+	//         },
+	//         "affiliation_rate":0,
+	//         "network_id":10620,
+	//         "discount":0,
+	//         "created_at":"2021-03-24T02:37:57.379Z",
+	//         "updated_at":"2021-03-24T02:37:57.379Z",
+	//         "balance":{
+	//             "btc_balance":0,
+	//             "btc_available":0,
+	//             "eth_balance":0.000914,
+	//             "eth_available":0.000914,
+	//             "updated_at":"2020-03-04T04:03:27.174Z
+	//         "},
+	//         "wallet":[
+	//             {"currency":"usdt","address":"TECLD9XBH31XpyykdHU3uEAeUK7E6Lrmik","network":"trx","standard":null,"is_valid":true,"created_at":"2021-05-12T02:43:05.446Z"},
+	//             {"currency":"xrp","address":"rGcSzmuRx8qngPRnrvpCKkP9V4njeCPGCv:286741597","network":"xrp","standard":null,"is_valid":true,"created_at":"2021-05-12T02:49:01.273Z"}
+	//         ]
+	//     }
+	//
+	var wallet any = this.SafeValue(response, "wallet", []any{})
+	var addresses any = Ternary(IsTrue((IsEqual(network, nil))), wallet, this.FilterBy(wallet, "network", network))
+
+	ch <- this.ParseDepositAddresses(addresses, codes)
+	return nil
 }
 
 /**
@@ -1952,68 +2019,68 @@ func (this *HollaexCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HollaexCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes162912 := (<-this.LoadMarkets())
-			PanicOnError(retRes162912)
-		}
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "currency", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 50, max 100
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_date", this.Iso8601(since))
-		}
-
-		response := (<-this.PrivateGetUserDeposits(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "count": 1,
-		//         "data": [
-		//             {
-		//                 "id": 539,
-		//                 "amount": 20,
-		//                 "fee": 0,
-		//                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-		//                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-		//                 "status": true,
-		//                 "dismissed": false,
-		//                 "rejected": false,
-		//                 "description": "",
-		//                 "type": "deposit",
-		//                 "currency": "usdt",
-		//                 "created_at": "2020-03-03T07:56:36.198Z",
-		//                 "updated_at": "2020-03-03T08:00:05.674Z",
-		//                 "user_id": 620
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTransactions(data, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes163812 := (<-this.LoadMarkets())
+		PanicOnError(retRes163812)
+	}
+	var request map[string]any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
+	}
+
+	response := (<-this.PrivateGetUserDeposits(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "count": 1,
+	//         "data": [
+	//             {
+	//                 "id": 539,
+	//                 "amount": 20,
+	//                 "fee": 0,
+	//                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+	//                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+	//                 "status": true,
+	//                 "dismissed": false,
+	//                 "rejected": false,
+	//                 "description": "",
+	//                 "type": "deposit",
+	//                 "currency": "usdt",
+	//                 "created_at": "2020-03-03T07:56:36.198Z",
+	//                 "updated_at": "2020-03-03T08:00:05.674Z",
+	//                 "user_id": 620
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTransactions(data, currency, since, limit)
+	return nil
 }
 
 /**
@@ -2027,61 +2094,61 @@ func (this *HollaexCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HollaexCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes169112 := (<-this.LoadMarkets())
-			PanicOnError(retRes169112)
-		}
-		var request any = map[string]any{
-			"transaction_id": id,
-		}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "currency", GetValue(currency, "id"))
-		}
-
-		response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "count": 1,
-		//         "data": [
-		//             {
-		//                 "id": 539,
-		//                 "amount": 20,
-		//                 "fee": 0,
-		//                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-		//                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-		//                 "status": true,
-		//                 "dismissed": false,
-		//                 "rejected": false,
-		//                 "description": "",
-		//                 "type": "withdrawal",
-		//                 "currency": "usdt",
-		//                 "created_at": "2020-03-03T07:56:36.198Z",
-		//                 "updated_at": "2020-03-03T08:00:05.674Z",
-		//                 "user_id": 620
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeValue(response, "data", []any{})
-		var transaction any = this.SafeDict(data, 0, map[string]any{})
-
-		ch <- this.ParseTransaction(transaction, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes170012 := (<-this.LoadMarkets())
+		PanicOnError(retRes170012)
+	}
+	var request map[string]any = map[string]any{
+		"transaction_id": id,
+	}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
+	}
+
+	response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "count": 1,
+	//         "data": [
+	//             {
+	//                 "id": 539,
+	//                 "amount": 20,
+	//                 "fee": 0,
+	//                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+	//                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+	//                 "status": true,
+	//                 "dismissed": false,
+	//                 "rejected": false,
+	//                 "description": "",
+	//                 "type": "withdrawal",
+	//                 "currency": "usdt",
+	//                 "created_at": "2020-03-03T07:56:36.198Z",
+	//                 "updated_at": "2020-03-03T08:00:05.674Z",
+	//                 "user_id": 620
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeValue(response, "data", []any{})
+	var transaction any = this.SafeDict(data, 0, map[string]any{})
+
+	ch <- this.ParseTransaction(transaction, currency)
+	return nil
 }
 
 /**
@@ -2096,68 +2163,68 @@ func (this *HollaexCore) FetchWithdrawal(id any, optionalArgs ...any) <-chan any
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HollaexCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes174312 := (<-this.LoadMarkets())
-			PanicOnError(retRes174312)
-		}
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "currency", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit) // default 50, max 100
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_date", this.Iso8601(since))
-		}
-
-		response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "count": 1,
-		//         "data": [
-		//             {
-		//                 "id": 539,
-		//                 "amount": 20,
-		//                 "fee": 0,
-		//                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
-		//                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
-		//                 "status": true,
-		//                 "dismissed": false,
-		//                 "rejected": false,
-		//                 "description": "",
-		//                 "type": "withdrawal",
-		//                 "currency": "usdt",
-		//                 "created_at": "2020-03-03T07:56:36.198Z",
-		//                 "updated_at": "2020-03-03T08:00:05.674Z",
-		//                 "user_id": 620
-		//             }
-		//         ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data", []any{})
-
-		ch <- this.ParseTransactions(data, currency, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes175212 := (<-this.LoadMarkets())
+		PanicOnError(retRes175212)
+	}
+	var request map[string]any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "currency", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit) // default 50, max 100
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_date", this.Iso8601(since))
+	}
+
+	response := (<-this.PrivateGetUserWithdrawals(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "count": 1,
+	//         "data": [
+	//             {
+	//                 "id": 539,
+	//                 "amount": 20,
+	//                 "fee": 0,
+	//                 "address": "0x5c0cc98270d7089408fcbcc8e2131287f5be2306",
+	//                 "transaction_id": "0xd4006327a5ec2c41adbdcf566eaaba6597c3d45906abe78ea1a4a022647c2e28",
+	//                 "status": true,
+	//                 "dismissed": false,
+	//                 "rejected": false,
+	//                 "description": "",
+	//                 "type": "withdrawal",
+	//                 "currency": "usdt",
+	//                 "created_at": "2020-03-03T07:56:36.198Z",
+	//                 "updated_at": "2020-03-03T08:00:05.674Z",
+	//                 "user_id": 620
+	//             }
+	//         ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data", []any{})
+
+	ch <- this.ParseTransactions(data, currency, since, limit)
+	return nil
 }
 func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
@@ -2206,7 +2273,7 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var tagTo any = nil
 	var tagFrom any = nil
 	if IsTrue(!IsEqual(address, nil)) {
-		var parts any = Split(address, ":")
+		var parts []string = Split(address, ":")
 		address = this.SafeString(parts, 0)
 		tag = this.SafeString(parts, 1)
 		addressTo = address
@@ -2273,57 +2340,57 @@ func (this *HollaexCore) ParseTransaction(transaction any, optionalArgs ...any) 
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *HollaexCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
-		tag = GetValue(tagparamsVariable, 0)
-		params = GetValue(tagparamsVariable, 1)
-		this.CheckAddress(address)
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes190812 := (<-this.LoadMarkets())
-			PanicOnError(retRes190812)
-		}
-		var currency any = this.Currency(code)
-		if IsTrue(!IsEqual(tag, nil)) {
-			address = Add(address, Add(":", tag))
-		}
-		var network any = this.SafeString(params, "network")
-		if IsTrue(IsEqual(network, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a network parameter")))
-		}
-		params = this.Omit(params, "network")
-		var request any = map[string]any{
-			"currency": GetValue(currency, "id"),
-			"amount":   amount,
-			"address":  address,
-			"network":  this.NetworkCodeToId(network, code),
-		}
-
-		response := (<-this.PrivatePostUserWithdrawal(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "message": "Withdrawal request is in the queue and will be processed.",
-		//         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
-		//         "amount": 1,
-		//         "currency": "xht",
-		//         "fee": 0,
-		//         "fee_coin": "xht"
-		//     }
-		//
-		ch <- this.ParseTransaction(response, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
+	tag = GetValue(tagparamsVariable, 0)
+	params = GetValue(tagparamsVariable, 1)
+	this.CheckAddress(address)
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes191712 := (<-this.LoadMarkets())
+		PanicOnError(retRes191712)
+	}
+	var currency any = this.Currency(code)
+	if IsTrue(!IsEqual(tag, nil)) {
+		address = Add(address, Add(":", tag))
+	}
+	var network any = this.SafeString(params, "network")
+	if IsTrue(IsEqual(network, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " withdraw() requires a network parameter")))
+	}
+	params = this.Omit(params, "network")
+	var request map[string]any = map[string]any{
+		"currency": GetValue(currency, "id"),
+		"amount":   amount,
+		"address":  address,
+		"network":  this.NetworkCodeToId(network, code),
+	}
+
+	response := (<-this.PrivatePostUserWithdrawal(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "message": "Withdrawal request is in the queue and will be processed.",
+	//         "transaction_id": "1d1683c3-576a-4d53-8ff5-27c93fd9758a",
+	//         "amount": 1,
+	//         "currency": "xht",
+	//         "fee": 0,
+	//         "fee_coin": "xht"
+	//     }
+	//
+	ch <- this.ParseTransaction(response, currency)
+	return nil
 }
 func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
@@ -2358,7 +2425,7 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": fee,
 		"withdraw": map[string]any{
 			"fee":        nil,
@@ -2379,15 +2446,18 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
 	}
 	var withdrawalFees any = this.SafeValue(fee, "withdrawal_fees")
 	if IsTrue(!IsEqual(withdrawalFees, nil)) {
-		var keys any = ObjectKeys(withdrawalFees)
-		var keysLength any = GetArrayLength(keys)
+		var keys []string = ObjectKeys(withdrawalFees)
+		var keysLength int = GetArrayLength(keys)
 		for i := 0; IsLessThan(i, keysLength); i++ {
 			var key any = GetValue(keys, i)
 			var value any = GetValue(withdrawalFees, key)
 			var currencyId any = this.SafeString(value, "symbol")
 			var currencyCode any = this.SafeCurrencyCode(currencyId)
 			var networkCode any = this.NetworkIdToCode(key, currencyCode)
-			var networkCodeUpper any = ToUpper(networkCode) // default to the upper case network code
+			if IsTrue(IsEqual(networkCode, nil)) {
+				panic(ArgumentsRequired(Add(this.Id, " requires a networkCode argument")))
+			}
+			var networkCodeUpper string = ToUpper(networkCode) // default to the upper case network code
 			var withdrawalFee any = this.SafeNumber(value, "value")
 			AddElementToObject(GetValue(result, "networks"), networkCodeUpper, map[string]any{
 				"deposit":  nil,
@@ -2408,59 +2478,59 @@ func (this *HollaexCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) a
  * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
 func (this *HollaexCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		codes := GetArg(optionalArgs, 0, nil)
-		_ = codes
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetConstants(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "coins":{
-		//             "bch":{
-		//                 "id":4,
-		//                 "fullname":"Bitcoin Cash",
-		//                 "symbol":"bch",
-		//                 "active":true,
-		//                 "verified":true,
-		//                 "allow_deposit":true,
-		//                 "allow_withdrawal":true,
-		//                 "withdrawal_fee":0.0001,
-		//                 "min":0.001,
-		//                 "max":100000,
-		//                 "increment_unit":0.001,
-		//                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
-		//                 "code":"bch",
-		//                 "is_public":true,
-		//                 "meta":{},
-		//                 "estimated_price":null,
-		//                 "description":null,
-		//                 "type":"blockchain",
-		//                 "network":null,
-		//                 "standard":null,
-		//                 "issuer":"HollaEx",
-		//                 "withdrawal_fees":null,
-		//                 "created_at":"2019-08-09T10:45:43.367Z",
-		//                 "updated_at":"2021-12-13T03:08:32.372Z",
-		//                 "created_by":1,
-		//                 "owner_id":1
-		//             },
-		//         },
-		//         "network":"https://api.hollaex.network"
-		//     }
-		//
-		var coins any = this.SafeDict(response, "coins", map[string]any{})
-
-		ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositWithdrawFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *HollaexCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	codes := GetArg(optionalArgs, 0, nil)
+	_ = codes
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetConstants(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "coins":{
+	//             "bch":{
+	//                 "id":4,
+	//                 "fullname":"Bitcoin Cash",
+	//                 "symbol":"bch",
+	//                 "active":true,
+	//                 "verified":true,
+	//                 "allow_deposit":true,
+	//                 "allow_withdrawal":true,
+	//                 "withdrawal_fee":0.0001,
+	//                 "min":0.001,
+	//                 "max":100000,
+	//                 "increment_unit":0.001,
+	//                 "logo":"https://bitholla.s3.ap-northeast-2.amazonaws.com/icon/BCH-hollaex-asset-01.svg",
+	//                 "code":"bch",
+	//                 "is_public":true,
+	//                 "meta":{},
+	//                 "estimated_price":null,
+	//                 "description":null,
+	//                 "type":"blockchain",
+	//                 "network":null,
+	//                 "standard":null,
+	//                 "issuer":"HollaEx",
+	//                 "withdrawal_fees":null,
+	//                 "created_at":"2019-08-09T10:45:43.367Z",
+	//                 "updated_at":"2021-12-13T03:08:32.372Z",
+	//                 "created_by":1,
+	//                 "owner_id":1
+	//             },
+	//         },
+	//         "network":"https://api.hollaex.network"
+	//     }
+	//
+	var coins any = this.SafeDict(response, "coins", map[string]any{})
+
+	ch <- this.ParseDepositWithdrawFees(coins, codes, "symbol")
+	return nil
 }
 func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 	api := GetArg(optionalArgs, 0, "public")
@@ -2485,7 +2555,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		var defaultExpires any = this.SafeInteger2(this.Options, "api-expires", "expires", this.ParseToInt(Divide(this.Timeout, 1000)))
 		var expires any = this.Sum(this.Seconds(), defaultExpires)
-		var expiresString any = ToString(expires)
+		var expiresString string = ToString(expires)
 		var auth any = Add(Add(method, path), expiresString)
 		headers = map[string]any{
 			"api-key":     this.ApiKey,
@@ -2498,7 +2568,7 @@ func (this *HollaexCore) Sign(path any, optionalArgs ...any) any {
 				auth = Add(auth, body)
 			}
 		}
-		var signature any = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
+		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 		AddElementToObject(headers, "api-signature", signature)
 	}
 	return map[string]any{
@@ -2526,7 +2596,7 @@ func (this *HollaexCore) HandleErrors(code any, reason any, url any, method any,
 		var feedback any = Add(Add(this.Id, " "), body)
 		var message any = this.SafeString(response, "message")
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), message, feedback)
-		var status any = ToString(code)
+		var status string = ToString(code)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), status, feedback)
 	}
 	return nil

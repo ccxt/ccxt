@@ -53,7 +53,7 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
             {
                 if (!Helpers.isTrue((Helpers.isInstance(e, NetworkError.class))))
                 {
-                    throw new RuntimeException(e);
+                    throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
                 now = System.currentTimeMillis();
             }

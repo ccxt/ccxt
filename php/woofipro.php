@@ -26,7 +26,7 @@ class woofipro extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => false,
+                'addMargin' => true,
                 'borrowCrossMargin' => false,
                 'borrowIsolatedMargin' => false,
                 'borrowMargin' => false,
@@ -43,6 +43,7 @@ class woofipro extends Exchange {
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createOrderWithTakeProfitAndStopLoss' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
@@ -53,6 +54,7 @@ class woofipro extends Exchange {
                 'createTrailingAmountOrder' => false,
                 'createTrailingPercentOrder' => false,
                 'createTriggerOrder' => true,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchAllGreeks' => false,
                 'fetchBalance' => true,
@@ -86,12 +88,15 @@ class woofipro extends Exchange {
                 'fetchLedger' => true,
                 'fetchLeverage' => true,
                 'fetchMarginAdjustmentHistory' => false,
-                'fetchMarginMode' => false,
+                'fetchMarginMode' => true,
+                'fetchMarginModes' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => true,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => false,
@@ -105,8 +110,8 @@ class woofipro extends Exchange {
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
@@ -115,11 +120,12 @@ class woofipro extends Exchange {
                 'fetchTransfers' => false,
                 'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
-                'reduceMargin' => false,
+                'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
                 'setLeverage' => true,
                 'setMargin' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => true, // exchange have that endpoint disabled atm, but was once implemented in ccxt per old docs => https://kronosresearch.github.io/wootrade-documents/#token-withdraw
@@ -149,7 +155,7 @@ class woofipro extends Exchange {
                 ),
                 'www' => 'https://dex.woo.org',
                 'doc' => array(
-                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-omnichain',
                 ),
                 'fees' => array(
                     'https://dex.woo.org/en/orderly',
@@ -163,133 +169,136 @@ class woofipro extends Exchange {
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'public/volume/stats' => 1,
-                            'public/broker/name' => 1,
-                            'public/chain_info/{broker_id}' => 1,
-                            'public/system_info' => 1,
-                            'public/vault_balance' => 1,
-                            'public/insurancefund' => 1,
-                            'public/chain_info' => 1,
-                            'faucet/usdc' => 1,
-                            'public/account' => 1,
-                            'get_account' => 1,
-                            'registration_nonce' => 1,
-                            'get_orderly_key' => 1,
-                            'public/liquidation' => 1,
-                            'public/liquidated_positions' => 1,
-                            'public/config' => 1,
-                            'public/campaign/ranking' => 10,
-                            'public/campaign/stats' => 10,
-                            'public/campaign/user' => 10,
-                            'public/campaign/stats/details' => 10,
-                            'public/campaigns' => 10,
-                            'public/points/leaderboard' => 1,
-                            'client/points' => 1,
-                            'public/points/epoch' => 1,
-                            'public/points/epoch_dates' => 1,
-                            'public/referral/check_ref_code' => 1,
-                            'public/referral/verify_ref_code' => 1,
-                            'referral/admin_info' => 1,
-                            'referral/info' => 1,
-                            'referral/referee_info' => 1,
-                            'referral/referee_rebate_summary' => 1,
-                            'referral/referee_history' => 1,
-                            'referral/referral_history' => 1,
-                            'referral/rebate_summary' => 1,
-                            'client/distribution_history' => 1,
-                            'tv/config' => 1,
-                            'tv/history' => 1,
-                            'tv/symbol_info' => 1,
-                            'public/funding_rate_history' => 1,
-                            'public/funding_rate/{symbol}' => 0.33,
-                            'public/funding_rates' => 1,
-                            'public/info' => 1,
-                            'public/info/{symbol}' => 1,
-                            'public/market_trades' => 1,
-                            'public/token' => 1,
-                            'public/futures' => 1,
-                            'public/futures/{symbol}' => 1,
+                            'public/volume/stats' => array( 'cost' => 1 ),
+                            'public/broker/name' => array( 'cost' => 1 ),
+                            'public/chain_info/{broker_id}' => array( 'cost' => 1 ),
+                            'public/system_info' => array( 'cost' => 1 ),
+                            'public/vault_balance' => array( 'cost' => 1 ),
+                            'public/insurancefund' => array( 'cost' => 1 ),
+                            'public/chain_info' => array( 'cost' => 1 ),
+                            'faucet/usdc' => array( 'cost' => 1 ),
+                            'public/account' => array( 'cost' => 1 ),
+                            'get_account' => array( 'cost' => 1 ),
+                            'registration_nonce' => array( 'cost' => 1 ),
+                            'get_orderly_key' => array( 'cost' => 1 ),
+                            'public/liquidation' => array( 'cost' => 1 ),
+                            'public/liquidated_positions' => array( 'cost' => 1 ),
+                            'public/config' => array( 'cost' => 1 ),
+                            'public/campaign/ranking' => array( 'cost' => 10 ),
+                            'public/campaign/stats' => array( 'cost' => 10 ),
+                            'public/campaign/user' => array( 'cost' => 10 ),
+                            'public/campaign/stats/details' => array( 'cost' => 10 ),
+                            'public/campaigns' => array( 'cost' => 10 ),
+                            'public/points/leaderboard' => array( 'cost' => 1 ),
+                            'client/points' => array( 'cost' => 1 ),
+                            'public/points/epoch' => array( 'cost' => 1 ),
+                            'public/points/epoch_dates' => array( 'cost' => 1 ),
+                            'public/referral/check_ref_code' => array( 'cost' => 1 ),
+                            'public/referral/verify_ref_code' => array( 'cost' => 1 ),
+                            'referral/admin_info' => array( 'cost' => 1 ),
+                            'referral/info' => array( 'cost' => 1 ),
+                            'referral/referee_info' => array( 'cost' => 1 ),
+                            'referral/referee_rebate_summary' => array( 'cost' => 1 ),
+                            'referral/referee_history' => array( 'cost' => 1 ),
+                            'referral/referral_history' => array( 'cost' => 1 ),
+                            'referral/rebate_summary' => array( 'cost' => 1 ),
+                            'client/distribution_history' => array( 'cost' => 1 ),
+                            'tv/config' => array( 'cost' => 1 ),
+                            'tv/history' => array( 'cost' => 1 ),
+                            'tv/symbol_info' => array( 'cost' => 1 ),
+                            'public/funding_rate_history' => array( 'cost' => 1 ),
+                            'public/funding_rate/{symbol}' => array( 'cost' => 0.33 ),
+                            'public/funding_rates' => array( 'cost' => 1 ),
+                            'public/info' => array( 'cost' => 1 ),
+                            'public/info/{symbol}' => array( 'cost' => 1 ),
+                            'public/market_trades' => array( 'cost' => 1 ),
+                            'public/token' => array( 'cost' => 1 ),
+                            'public/futures' => array( 'cost' => 1 ),
+                            'public/futures/{symbol}' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'register_account' => 1,
+                            'register_account' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'client/key_info' => 6,
-                            'client/orderly_key_ip_restriction' => 6,
-                            'order/{oid}' => 1,
-                            'client/order/{client_order_id}' => 1,
-                            'algo/order/{oid}' => 1,
-                            'algo/client/order/{client_order_id}' => 1,
-                            'orders' => 1,
-                            'algo/orders' => 1,
-                            'trade/{tid}' => 1,
-                            'trades' => 1,
-                            'order/{oid}/trades' => 1,
-                            'client/liquidator_liquidations' => 1,
-                            'liquidations' => 1,
-                            'asset/history' => 60,
-                            'client/holding' => 1,
-                            'withdraw_nonce' => 1,
-                            'settle_nonce' => 1,
-                            'pnl_settlement/history' => 1,
-                            'volume/user/daily' => 60,
-                            'volume/user/stats' => 60,
-                            'client/statistics' => 60,
-                            'client/info' => 60,
-                            'client/statistics/daily' => 60,
-                            'positions' => 3.33,
-                            'position/{symbol}' => 3.33,
-                            'funding_fee/history' => 30,
-                            'notification/inbox/notifications' => 60,
-                            'notification/inbox/unread' => 60,
-                            'volume/broker/daily' => 60,
-                            'broker/fee_rate/default' => 10,
-                            'broker/user_info' => 10,
-                            'orderbook/{symbol}' => 1,
-                            'kline' => 1,
+                            'client/key_info' => array( 'cost' => 6 ),
+                            'client/orderly_key_ip_restriction' => array( 'cost' => 6 ),
+                            'order/{oid}' => array( 'cost' => 1 ),
+                            'client/order/{client_order_id}' => array( 'cost' => 1 ),
+                            'algo/order/{oid}' => array( 'cost' => 1 ),
+                            'algo/client/order/{client_order_id}' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'algo/orders' => array( 'cost' => 1 ),
+                            'trade/{tid}' => array( 'cost' => 1 ),
+                            'trades' => array( 'cost' => 1 ),
+                            'order/{oid}/trades' => array( 'cost' => 1 ),
+                            'client/liquidator_liquidations' => array( 'cost' => 1 ),
+                            'liquidations' => array( 'cost' => 1 ),
+                            'asset/history' => array( 'cost' => 60 ),
+                            'client/holding' => array( 'cost' => 1 ),
+                            'withdraw_nonce' => array( 'cost' => 1 ),
+                            'settle_nonce' => array( 'cost' => 1 ),
+                            'pnl_settlement/history' => array( 'cost' => 1 ),
+                            'volume/user/daily' => array( 'cost' => 60 ),
+                            'volume/user/stats' => array( 'cost' => 60 ),
+                            'client/statistics' => array( 'cost' => 60 ),
+                            'client/info' => array( 'cost' => 60 ),
+                            'client/statistics/daily' => array( 'cost' => 60 ),
+                            'positions' => array( 'cost' => 3.33 ),
+                            'position/{symbol}' => array( 'cost' => 3.33 ),
+                            'funding_fee/history' => array( 'cost' => 30 ),
+                            'notification/inbox/notifications' => array( 'cost' => 60 ),
+                            'notification/inbox/unread' => array( 'cost' => 60 ),
+                            'volume/broker/daily' => array( 'cost' => 60 ),
+                            'broker/fee_rate/default' => array( 'cost' => 10 ),
+                            'broker/user_info' => array( 'cost' => 10 ),
+                            'orderbook/{symbol}' => array( 'cost' => 1 ),
+                            'kline' => array( 'cost' => 1 ),
+                            'client/margin_modes' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'orderly_key' => 1,
-                            'client/set_orderly_key_ip_restriction' => 6,
-                            'client/reset_orderly_key_ip_restriction' => 6,
-                            'order' => 1,
-                            'batch-order' => 10,
-                            'algo/order' => 1,
-                            'liquidation' => 1,
-                            'claim_insurance_fund' => 1,
-                            'withdraw_request' => 1,
-                            'settle_pnl' => 1,
-                            'notification/inbox/mark_read' => 60,
-                            'notification/inbox/mark_read_all' => 60,
-                            'client/leverage' => 120,
-                            'client/maintenance_config' => 60,
-                            'delegate_signer' => 10,
-                            'delegate_orderly_key' => 10,
-                            'delegate_settle_pnl' => 10,
-                            'delegate_withdraw_request' => 10,
-                            'broker/fee_rate/set' => 10,
-                            'broker/fee_rate/set_default' => 10,
-                            'broker/fee_rate/default' => 10,
-                            'referral/create' => 10,
-                            'referral/update' => 10,
-                            'referral/bind' => 10,
-                            'referral/edit_split' => 10,
+                            'orderly_key' => array( 'cost' => 1 ),
+                            'client/set_orderly_key_ip_restriction' => array( 'cost' => 6 ),
+                            'client/reset_orderly_key_ip_restriction' => array( 'cost' => 6 ),
+                            'order' => array( 'cost' => 1 ),
+                            'batch-order' => array( 'cost' => 10 ),
+                            'algo/order' => array( 'cost' => 1 ),
+                            'liquidation' => array( 'cost' => 1 ),
+                            'claim_insurance_fund' => array( 'cost' => 1 ),
+                            'withdraw_request' => array( 'cost' => 1 ),
+                            'settle_pnl' => array( 'cost' => 1 ),
+                            'notification/inbox/mark_read' => array( 'cost' => 60 ),
+                            'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
+                            'client/leverage' => array( 'cost' => 120 ),
+                            'client/margin_mode' => array( 'cost' => 1 ),
+                            'position_margin' => array( 'cost' => 1 ),
+                            'client/maintenance_config' => array( 'cost' => 60 ),
+                            'delegate_signer' => array( 'cost' => 10 ),
+                            'delegate_orderly_key' => array( 'cost' => 10 ),
+                            'delegate_settle_pnl' => array( 'cost' => 10 ),
+                            'delegate_withdraw_request' => array( 'cost' => 10 ),
+                            'broker/fee_rate/set' => array( 'cost' => 10 ),
+                            'broker/fee_rate/set_default' => array( 'cost' => 10 ),
+                            'broker/fee_rate/default' => array( 'cost' => 10 ),
+                            'referral/create' => array( 'cost' => 10 ),
+                            'referral/update' => array( 'cost' => 10 ),
+                            'referral/bind' => array( 'cost' => 10 ),
+                            'referral/edit_split' => array( 'cost' => 10 ),
                         ),
                         'put' => array(
-                            'order' => 1,
-                            'algo/order' => 1,
+                            'order' => array( 'cost' => 1 ),
+                            'algo/order' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'order' => 1,
-                            'algo/order' => 1,
-                            'client/order' => 1,
-                            'algo/client/order' => 1,
-                            'algo/orders' => 1,
-                            'orders' => 1,
-                            'batch-order' => 1,
-                            'client/batch-order' => 1,
+                            'order' => array( 'cost' => 1 ),
+                            'algo/order' => array( 'cost' => 1 ),
+                            'client/order' => array( 'cost' => 1 ),
+                            'algo/client/order' => array( 'cost' => 1 ),
+                            'algo/orders' => array( 'cost' => 1 ),
+                            'orders' => array( 'cost' => 1 ),
+                            'batch-order' => array( 'cost' => 1 ),
+                            'client/batch-order' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -442,11 +451,11 @@ class woofipro extends Exchange {
         $this->options['sandboxMode'] = $enable;
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-$status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-$status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
@@ -484,7 +493,7 @@ class woofipro extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -532,6 +541,9 @@ class woofipro extends Exchange {
         //   }
         //
         $marketId = $this->safe_string($market, 'symbol');
+        if ($marketId === null) {
+            throw new ExchangeError($this->id . ' parseMarket() missing marketId');
+        }
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -541,7 +553,7 @@ class woofipro extends Exchange {
         $settleId = $this->safe_string($parts, 2);
         $settle = $this->safe_currency_code($settleId);
         $symbol = $base . '/' . $quote . ':' . $settle;
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $marketId,
             'symbol' => $symbol,
             'base' => $base,
@@ -589,14 +601,14 @@ class woofipro extends Exchange {
             ),
             'created' => $this->safe_integer($market, 'created_time'),
             'info' => $market,
-        );
+        ));
     }
 
     public function fetch_markets($params = array()): array {
         /**
          * retrieves $data on all markets for woofipro
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market $data
@@ -646,8 +658,8 @@ class woofipro extends Exchange {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
@@ -686,6 +698,9 @@ class woofipro extends Exchange {
         for ($i = 0; $i < count($tokenRows); $i++) {
             $token = $tokenRows[$i];
             $parsed = $this->parse_currency(array( '_token' => $token, '_indexedChains' => $indexedChains ));
+            if ($parsed === null) {
+                throw new ExchangeError($this->id . ' fetchCurrencies() could not resolve parsed');
+            }
             $result[$parsed['code']] = $parsed;
         }
         return $result;
@@ -702,28 +717,30 @@ class woofipro extends Exchange {
             $networkEntry = $networks[$j];
             $networkId = $this->safe_string($networkEntry, 'chain_id');
             $networkRow = $this->safe_dict($indexedChains, $networkId);
-            $networkName = $this->safe_string($networkRow, 'name');
+            $networkName = $this->safe_string($networkRow, 'name', $networkId);
             $networkCode = $this->network_id_to_code($networkName, $code);
-            $resultingNetworks[$networkCode] = array(
-                'id' => $networkId,
-                'network' => $networkCode,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => null,
-                        'max' => null,
+            if ($networkCode !== null) {
+                $resultingNetworks[$networkCode] = array(
+                    'id' => $networkId,
+                    'network' => $networkCode,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'deposit' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
-                'info' => array( 'network' => $networkEntry, 'networkRow' => $networkRow ),
-            );
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => $this->safe_number($networkEntry, 'withdrawal_fee'),
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($networkEntry, 'decimals'))),
+                    'info' => array( 'network' => $networkEntry, 'networkRow' => $networkRow ),
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -749,7 +766,7 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function parse_token_and_fee_temp($item, $feeTokenKey, $feeAmountKey) {
+    public function parse_token_and_fee_temp(mixed $item, mixed $feeTokenKey, mixed $feeAmountKey) {
         $feeCost = $this->safe_string($item, $feeAmountKey);
         $fee = null;
         if ($feeCost !== null) {
@@ -791,7 +808,7 @@ class woofipro extends Exchange {
         //         "is_maker" => "1"
         //     }
         //
-        $isFromFetchOrder = (is_array($trade) && array_key_exists('id', $trade));
+        $isFromFetchOrder = (is_array($trade) && array_key_exists('id' ?? '', $trade));
         $timestamp = $this->safe_integer($trade, 'executed_timestamp');
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
@@ -801,7 +818,7 @@ class woofipro extends Exchange {
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
         $feeCost = $this->safe_string($fee, 'cost');
-        if ($feeCost !== null) {
+        if (($fee !== null) && ($feeCost !== null)) {
             $fee['cost'] = $feeCost;
         }
         $cost = Precise::string_mul($price, $amount);
@@ -833,7 +850,7 @@ class woofipro extends Exchange {
         /**
          * get the list of most recent trades for a particular $symbol
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-$market-trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-trades
          *
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -872,7 +889,7 @@ class woofipro extends Exchange {
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
-    public function parse_funding_rate($fundingRate, ?array $market = null): array {
+    public function parse_funding_rate(mixed $fundingRate, ?array $market = null): array {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -914,7 +931,7 @@ class woofipro extends Exchange {
         );
     }
 
-    public function parse_funding_interval($interval) {
+    public function parse_funding_interval(mixed $interval) {
         $intervals = array(
             '3600000' => '1h',
             '14400000' => '4h',
@@ -929,7 +946,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate interval
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
          *
          * @param {string} $symbol unified market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -942,7 +959,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-$market
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -979,7 +996,7 @@ class woofipro extends Exchange {
         /**
          * fetch the current funding rate for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
          *
          * @param {string[]} $symbols unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1012,11 +1029,272 @@ class woofipro extends Exchange {
         return $this->parse_funding_rates($rows, $symbols);
     }
 
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "index_price" => 64185.4,
+        //         "mark_price" => 64171.0,
+        //         "sum_unitary_funding" => 26522.3,
+        //         "est_funding_rate" => 0.0001,
+        //         "last_funding_rate" => 0.00010041,
+        //         "next_funding_time" => 1786032000000,
+        //         "open_interest" => 110.64612,
+        //         "24h_open" => 64105.6,
+        //         "24h_close" => 64180.0,
+        //         "24h_high" => 64941.0,
+        //         "24h_low" => 63837.6,
+        //         "24h_volume" => 102.2817,
+        //         "24h_amount" => 6595662.199482
+        //     }
+        //
+        $marketId = $this->safe_string($ticker, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, '24h_high'),
+            'low' => $this->safe_string($ticker, '24h_low'),
+            'bid' => null,
+            'bidVolume' => null,
+            'ask' => null,
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, '24h_open'),
+            'close' => $this->safe_string($ticker, '24h_close'),
+            'last' => $this->safe_string($ticker, '24h_close'),
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, '24h_volume'),
+            'quoteVolume' => $this->safe_string($ticker, '24h_amount'),
+            'indexPrice' => $this->safe_string($ticker, 'index_price'),
+            'markPrice' => $this->safe_string($ticker, 'mark_price'),
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function fetch_ticker(string $symbol, $params = array()): array {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-info-for-one-$symbol
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1786022130191,
+        //     "data" => {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "index_price" => 64185.4,
+        //         "mark_price" => 64171.0,
+        //         "sum_unitary_funding" => 26522.3,
+        //         "est_funding_rate" => 0.0001,
+        //         "last_funding_rate" => 0.00010041,
+        //         "next_funding_time" => 1786032000000,
+        //         "open_interest" => 110.64612,
+        //         "24h_open" => 64105.6,
+        //         "24h_close" => 64180.0,
+        //         "24h_high" => 64941.0,
+        //         "24h_low" => 63837.6,
+        //         "24h_volume" => 102.2817,
+        //         "24h_amount" => 6595662.199482
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $data['timestamp'] = $this->safe_integer($response, 'timestamp');
+        return $this->parse_ticker($data, $market);
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-$symbols
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->v1PublicGetPublicFutures($params);
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1786022130191,
+        //     "data" => {
+        //         "rows" => [array(
+        //             "symbol" => "PERP_BTC_USDC",
+        //             "index_price" => 64185.4,
+        //             "mark_price" => 64171.0,
+        //             "sum_unitary_funding" => 26522.3,
+        //             "est_funding_rate" => 0.0001,
+        //             "last_funding_rate" => 0.00010041,
+        //             "next_funding_time" => 1786032000000,
+        //             "open_interest" => 110.64612,
+        //             "24h_open" => 64105.6,
+        //             "24h_close" => 64180.0,
+        //             "24h_high" => 64941.0,
+        //             "24h_low" => 63837.6,
+        //             "24h_volume" => 102.2817,
+        //             "24h_amount" => 6595662.199482
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $marketId = $this->safe_string($row, 'symbol', '');
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE $symbols
+            }
+            $ticker = $this->extend(array( 'timestamp' => $timestamp ), $row);
+            $result[] = $this->parse_ticker($ticker);
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+    }
+
+    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "index_price" => 64185.4,
+        //         "mark_price" => 64171.0,
+        //         "open_interest" => 110.64612,
+        //         "24h_open" => 64105.6,
+        //         "24h_close" => 64180.0,
+        //         "24h_high" => 64941.0,
+        //         "24h_low" => 63837.6,
+        //         "24h_volume" => 102.2817,
+        //         "24h_amount" => 6595662.199482
+        //     }
+        //
+        $marketId = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $amount = $this->safe_number_2($interest, 'open_interest', 'openInterest');
+        return $this->safe_open_interest(array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $amount,
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $market);
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array()): array {
+        /**
+         * retrieves the open interest of a contract trading pair
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-$market-info-for-one-$symbol
+         *
+         * @param {string} $symbol unified CCXT $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->v1PublicGetPublicFuturesSymbol($this->extend($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1786022130191,
+        //     "data" => {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "index_price" => 64185.4,
+        //         "mark_price" => 64171.0,
+        //         "open_interest" => 110.64612,
+        //         "24h_volume" => 102.2817,
+        //         "24h_amount" => 6595662.199482
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $data['timestamp'] = $this->safe_integer($response, 'timestamp');
+        return $this->parse_open_interest($data, $market);
+    }
+
+    public function fetch_open_interests(?array $symbols = null, $params = array()): array {
+        /**
+         * retrieves the open $interest for a list of contract trading pairs
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-$symbols
+         *
+         * @param {string[]} [$symbols] a list of unified CCXT market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=open-$interest-structure open $interest structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->v1PublicGetPublicFutures($params);
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1786022130191,
+        //     "data" => {
+        //         "rows" => [array(
+        //             "symbol" => "PERP_BTC_USDC",
+        //             "index_price" => 64185.4,
+        //             "mark_price" => 64171.0,
+        //             "open_interest" => 110.64612,
+        //             "24h_volume" => 102.2817,
+        //             "24h_amount" => 6595662.199482
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        $timestamp = $this->safe_integer($response, 'timestamp');
+        $result = array();
+        for ($i = 0; $i < count($rows); $i++) {
+            $row = $rows[$i];
+            $marketId = $this->safe_string($row, 'symbol', '');
+            if (($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($marketId ?? '', $this->markets_by_id))) {
+                continue; // the endpoint returns entries for markets missing from public/info, e.g. pre-TGE $symbols
+            }
+            $interest = $this->extend(array( 'timestamp' => $timestamp ), $row);
+            $result[] = $this->parse_open_interest($interest);
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
+    }
+
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-$market
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-$market
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -1083,7 +1361,7 @@ class woofipro extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_income($income, ?array $market = null) {
+    public function parse_income(mixed $income, ?array $market = null) {
         //
         // {
         //         "symbol" => "PERP_ETH_USDC",
@@ -1120,7 +1398,7 @@ class woofipro extends Exchange {
         /**
          * fetch the history of funding payments paid and received on this account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch funding history for
@@ -1187,10 +1465,10 @@ class woofipro extends Exchange {
         /**
          * fetch the trading fees for multiple markets
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1227,8 +1505,9 @@ class woofipro extends Exchange {
         $maker = $this->safe_string($data, 'futures_maker_fee_rate');
         $taker = $this->safe_string($data, 'futures_taker_fee_rate');
         $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1245,12 +1524,12 @@ class woofipro extends Exchange {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1286,7 +1565,7 @@ class woofipro extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 'start_timestamp'),
             $this->safe_number($ohlcv, 'open'),
@@ -1300,13 +1579,13 @@ class woofipro extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
          *
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe, ms))))
+         * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
@@ -1355,7 +1634,7 @@ class woofipro extends Exchange {
         // * cancelOrder
         // * fetchOrder
         // * fetchOrders
-        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag', $order)); TO_DO
+        // $isFromFetchOrder = (is_array($order) && array_key_exists('order_tag' ?? '', $order)); TO_DO
         //
         // stop $order after creating it:
         //   {
@@ -1409,9 +1688,9 @@ class woofipro extends Exchange {
             $status = ($success) ? 'NEW' : 'REJECTED';
         }
         $side = $this->safe_string_lower($order, 'side');
-        $filled = $this->omit_zero($this->safe_value_2($order, 'executed', 'totalExecutedQuantity'));
+        $filled = $this->safe_string_n($order, array( 'total_executed_quantity', 'totalExecutedQuantity', 'executed_quantity', 'executed' ));
         $average = $this->omit_zero($this->safe_string_2($order, 'average_executed_price', 'averageExecutedPrice'));
-        $remaining = Precise::string_sub($cost, $filled);
+        $remaining = Precise::string_sub($amount, $filled);
         $fee = $this->safe_value_2($order, 'total_fee', 'totalFee');
         $feeCurrency = $this->safe_string_2($order, 'fee_asset', 'feeAsset');
         $transactions = $this->safe_value($order, 'Transactions');
@@ -1499,7 +1778,13 @@ class woofipro extends Exchange {
         return $this->safe_string_lower($types, $type, $type);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()) {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -1513,6 +1798,9 @@ class woofipro extends Exchange {
          */
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrderRequest() requires a $side argument');
+        }
         $market = $this->market($symbol);
         $orderSide = strtoupper($side);
         $request = array(
@@ -1562,16 +1850,10 @@ class woofipro extends Exchange {
             $request['algo_type'] = 'STOP';
         } elseif ($hasStopLoss || $hasTakeProfit) {
             $request['algo_type'] = 'TP_SL';
-            $outterOrder = array(
-                'symbol' => $market['id'],
-                'reduce_only' => false,
-                'algo_type' => 'POSITIONAL_TP_SL',
-                'child_orders' => array(),
-            );
-            $childOrders = $outterOrder['child_orders'];
+            $childOrders = array();
             $closeSide = ($orderSide === 'BUY') ? 'SELL' : 'BUY';
             if ($hasStopLoss) {
-                $stopLossPrice = $this->safe_number_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
+                $stopLossPrice = $this->safe_value_2($stopLoss, 'triggerPrice', 'price', $stopLoss);
                 $stopLossOrder = array(
                     'side' => $closeSide,
                     'algo_type' => 'TP_SL',
@@ -1582,7 +1864,7 @@ class woofipro extends Exchange {
                 $childOrders[] = $stopLossOrder;
             }
             if ($hasTakeProfit) {
-                $takeProfitPrice = $this->safe_number_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
+                $takeProfitPrice = $this->safe_value_2($takeProfit, 'triggerPrice', 'price', $takeProfit);
                 $takeProfitOrder = array(
                     'side' => $closeSide,
                     'algo_type' => 'TP_SL',
@@ -1590,8 +1872,14 @@ class woofipro extends Exchange {
                     'type' => 'LIMIT',
                     'reduce_only' => true,
                 );
-                $outterOrder[] = $takeProfitOrder;
+                $childOrders[] = $takeProfitOrder;
             }
+            $outterOrder = array(
+                'symbol' => $market['id'],
+                'reduce_only' => false,
+                'algo_type' => 'POSITIONAL_TP_SL',
+                'child_orders' => $childOrders,
+            );
             $request['child_orders'] = array( $outterOrder );
         }
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLoss', 'takeProfit' ));
@@ -1602,8 +1890,8 @@ class woofipro extends Exchange {
         /**
          * create a trade $order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-$order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-$order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
@@ -1674,7 +1962,7 @@ class woofipro extends Exchange {
         /**
          * *contract only* create a list of trade $orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1732,8 +2020,8 @@ class woofipro extends Exchange {
         /**
          * edit a trade order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -1769,6 +2057,9 @@ class woofipro extends Exchange {
         }
         $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ));
         $response = null;
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' editOrder() requires a $side argument');
+        }
         if ($isConditional) {
             $response = $this->v1PrivatePutAlgoOrder($this->extend($request, $params));
         } else {
@@ -1813,10 +2104,10 @@ class woofipro extends Exchange {
     public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
          *
          * cancels an open order
          * @param {string} $id order $id
@@ -1886,7 +2177,8 @@ class woofipro extends Exchange {
             $extendParams['id'] = $id;
         }
         if ($trigger) {
-            return $this->extend($this->parse_order($response), $extendParams);
+            $parsedResponse = ($response === null) ? array() : $response;
+            return $this->extend($this->parse_order($parsedResponse), $extendParams);
         }
         $data = $this->safe_dict($response, 'data', array());
         return $this->extend($this->parse_order($data), $extendParams);
@@ -1896,8 +2188,8 @@ class woofipro extends Exchange {
         /**
          * cancel multiple orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
          *
          * @param {string[]} $ids order $ids
          * @param {string} [$symbol] unified market $symbol
@@ -1936,11 +2228,11 @@ class woofipro extends Exchange {
     public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
          *
          * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol
+         * @param {string} [$symbol] unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -1986,10 +2278,10 @@ class woofipro extends Exchange {
     public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
          *
          * fetches information on an order made by the user
          * @param {string} $id the order $id
@@ -2056,15 +2348,16 @@ class woofipro extends Exchange {
         // }
         //
         $orders = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($orders, $market);
+        $parsedOrders = ($orders === null) ? array() : $orders;
+        return $this->parse_order($parsedOrders, $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-$orders
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -2155,8 +2448,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2180,8 +2473,8 @@ class woofipro extends Exchange {
         /**
          * fetches information on multiple orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2205,7 +2498,7 @@ class woofipro extends Exchange {
         /**
          * fetch all the $trades made from a single order
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$trades-of-specific-order
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$trades-of-specific-order
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $market $symbol
@@ -2254,7 +2547,7 @@ class woofipro extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-$trades
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-$trades
          *
          * fetch all $trades made by the user
          * @param {string} $symbol unified $market $symbol
@@ -2320,7 +2613,7 @@ class woofipro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit, $params);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array(
             'info' => $response,
         );
@@ -2330,8 +2623,10 @@ class woofipro extends Exchange {
             $code = $this->safe_currency_code($this->safe_string($balance, 'token'));
             $account = $this->account();
             $account['total'] = $this->safe_string($balance, 'holding');
-            $account['frozen'] = $this->safe_string($balance, 'frozen');
-            $result[$code] = $account;
+            $account['used'] = $this->safe_string($balance, 'frozen');
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2340,7 +2635,7 @@ class woofipro extends Exchange {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
@@ -2447,7 +2742,7 @@ class woofipro extends Exchange {
         ), $currency);
     }
 
-    public function parse_ledger_entry_type($type) {
+    public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'BALANCE' => 'transaction', // Funds moved in/out wallet
             'COLLATERAL' => 'transfer', // Funds moved between portfolios
@@ -2459,7 +2754,7 @@ class woofipro extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
@@ -2523,7 +2818,7 @@ class woofipro extends Exchange {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
@@ -2541,7 +2836,7 @@ class woofipro extends Exchange {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} $code unified currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
@@ -2559,7 +2854,7 @@ class woofipro extends Exchange {
         /**
          * fetch history of deposits and withdrawals
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
          *
          * @param {string} [$code] unified $currency $code for the $currency of the deposit/withdrawals, default is null
          * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
@@ -2582,7 +2877,11 @@ class woofipro extends Exchange {
         //         "success":true
         //     }
         //
-        return $this->parse_transactions($rows, $currency, $since, $limit, $params);
+        $rowsList = array();
+        if ($rows !== null) {
+            $rowsList = $rows;
+        }
+        return $this->parse_transactions($rowsList, $currency, $since, $limit, $params);
     }
 
     public function get_withdraw_nonce($params = array()) {
@@ -2600,11 +2899,11 @@ class woofipro extends Exchange {
         return $this->safe_number($data, 'withdraw_nonce');
     }
 
-    public function hash_message($message) {
+    public function hash_message(mixed $message) {
         return '0x' . $this->hash($message, 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
         $s = $signature['s'];
@@ -2612,7 +2911,7 @@ class woofipro extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_message($message, $privateKey) {
+    public function sign_message(mixed $message, mixed $privateKey) {
         return $this->sign_hash($this->hash_message($message), mb_substr($privateKey, -64));
     }
 
@@ -2620,7 +2919,7 @@ class woofipro extends Exchange {
         /**
          * make a withdrawal
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-$request
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-$request
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
@@ -2699,7 +2998,198 @@ class woofipro extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "PERP_BTC_USDC",
+        //         "default_margin_mode" => "CROSS"
+        //     }
+        //
+        $marketId = $this->safe_string($marginMode, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $marginMode,
+            'symbol' => $market['symbol'],
+            'marginMode' => $this->safe_string_lower($marginMode, 'default_margin_mode'),
+        );
+    }
+
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the set margin mode of every contract market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+         *
+         * @param {string[]} [$symbols] a list of unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols);
+        $response = $this->v1PrivateGetClientMarginModes($params);
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989,
+        //     "data" => {
+        //         "rows" => [array(
+        //             "symbol" => "PERP_BTC_USDC",
+        //             "default_margin_mode" => "CROSS"
+        //         )]
+        //     }
+        // }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        $rows = $this->safe_list($data, 'rows', array());
+        return $this->parse_margin_modes($rows, $symbols, 'symbol');
+    }
+
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
+        /**
+         * fetches the set margin mode of a contract $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+         *
+         * @param {string} $symbol unified $symbol of the $market
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $marginModes = $this->fetch_margin_modes(array( $market['symbol'] ), $params);
+        $marginMode = $this->safe_dict($marginModes, $market['symbol']);
+        if ($marginMode === null) {
+            throw new BadSymbol($this->id . ' fetchMarginMode() did not return a margin mode for ' . $market['symbol']);
+        }
+        return $marginMode;
+    }
+
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        /**
+         * set margin mode to 'cross' or 'isolated' for a $market
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+         *
+         * @param {string} $marginMode 'cross' or 'isolated'
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} response from the exchange
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
+        }
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $marginMode = strtolower($marginMode);
+        if ($marginMode !== 'cross' && $marginMode !== 'isolated') {
+            throw new BadRequest($this->id . ' setMarginMode() $marginMode must be either cross or isolated');
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'default_margin_mode' => strtoupper($marginMode),
+        );
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989
+        // }
+        //
+        return $this->v1PrivatePostClientMarginMode($this->extend($request, $params));
+    }
+
+    public function parse_margin_modification(array $data, ?array $market = null): array {
+        //
+        //     {
+        //         "success" => true,
+        //         "timestamp" => 1702989203989
+        //     }
+        //
+        $timestamp = $this->safe_integer($data, 'timestamp');
+        $success = $this->safe_bool($data, 'success', false);
+        return array(
+            'info' => $data,
+            'symbol' => $this->safe_string($market, 'symbol'),
+            'type' => null,
+            'marginMode' => 'isolated',
+            'amount' => null,
+            'total' => null,
+            'code' => $this->safe_string($market, 'settle'),
+            'status' => ($success) ? 'ok' : 'failed',
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function modify_margin_helper(string $symbol, mixed $amount, string $type, $params = array()): array {
+        /**
+         * @ignore
+         * add or reduce isolated position margin
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {float} $amount amount of margin to add or reduce
+         * @param {string} $type 'ADD' or 'REDUCE'
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'amount' => $this->number_to_string($amount),
+            'type' => $type,
+        );
+        $response = $this->v1PrivatePostPositionMargin($this->extend($request, $params));
+        //
+        // {
+        //     "success" => true,
+        //     "timestamp" => 1702989203989
+        // }
+        //
+        $modification = $this->parse_margin_modification($response, $market);
+        $modification['type'] = ($type === 'ADD') ? 'add' : 'reduce';
+        $modification['amount'] = $this->parse_number($this->number_to_string($amount));
+        return $modification;
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
+        /**
+         * add margin to an isolated position
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
+        /**
+         * remove margin from an isolated position
+         *
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+         *
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=reduce-margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'REDUCE', $params);
+    }
+
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
@@ -2714,7 +3204,7 @@ class woofipro extends Exchange {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2760,7 +3250,7 @@ class woofipro extends Exchange {
         /**
          * set the level of $leverage for a market
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-$leverage-setting
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-$leverage-setting
          *
          * @param {int} [$leverage] the rate of $leverage
          * @param {string} [$symbol] unified market $symbol
@@ -2850,10 +3340,10 @@ class woofipro extends Exchange {
         ));
     }
 
-    public function fetch_position(?string $symbol, $params = array()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
          *
          * fetch $data on an open position
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
@@ -2894,7 +3384,7 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        $data = $this->safe_dict($response, 'data');
+        $data = $this->safe_dict($response, 'data', array());
         return $this->parse_position($data, $market);
     }
 
@@ -2902,7 +3392,7 @@ class woofipro extends Exchange {
         /**
          * fetch all open $positions
          *
-         * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-$positions-info
+         * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-$positions-info
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2959,7 +3449,7 @@ class woofipro extends Exchange {
         return $this->milliseconds();
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
@@ -3026,7 +3516,7 @@ class woofipro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

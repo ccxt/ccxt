@@ -105,8 +105,11 @@ public partial class alpaca : ccxt.alpaca
         object ticker = this.parseTicker(message);
         object symbol = getValue(ticker, "symbol");
         object messageHash = add("ticker:", symbol);
-        ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+        }
+        callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -224,7 +227,7 @@ public partial class alpaca : ccxt.alpaca
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -585,6 +588,10 @@ public partial class alpaca : ccxt.alpaca
             myTrades = new ArrayCacheBySymbolById(limit);
         }
         object trade = this.parseMyTrade(rawOrder);
+        if (isTrue(isEqual(trade, null)))
+        {
+            return;
+        }
         callDynamically(myTrades, "append", new object[] {trade});
         object messageHash = add("myTrades:", getValue(trade, "symbol"));
         callDynamically(client as WebSocketClient, "resolve", new object[] {myTrades, messageHash});
@@ -634,6 +641,10 @@ public partial class alpaca : ccxt.alpaca
         object marketId = this.safeString(trade, "symbol");
         object datetime = this.safeString(trade, "filled_at");
         object type = this.safeString(trade, "type");
+        if (isTrue(isEqual(type, null)))
+        {
+            return null;
+        }
         if (isTrue(isGreaterThanOrEqual(getIndexOf(type, "limit"), 0)))
         {
             // might be limit or stop-limit
@@ -660,7 +671,7 @@ public partial class alpaca : ccxt.alpaca
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);

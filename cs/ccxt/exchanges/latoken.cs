@@ -128,64 +128,168 @@ public partial class latoken : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "book/{currency}/{quote}", 1 },
-                        { "chart/week", 1 },
-                        { "chart/week/{currency}/{quote}", 1 },
-                        { "currency", 1 },
-                        { "currency/available", 1 },
-                        { "currency/quotes", 1 },
-                        { "currency/{currency}", 1 },
-                        { "pair", 1 },
-                        { "pair/available", 1 },
-                        { "ticker", 1 },
-                        { "ticker/{base}/{quote}", 1 },
-                        { "time", 1 },
-                        { "trade/history/{currency}/{quote}", 1 },
-                        { "trade/fee/{currency}/{quote}", 1 },
-                        { "trade/feeLevels", 1 },
-                        { "transaction/bindings", 1 },
+                        { "book/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart/week", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart/week/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/available", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/quotes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currency/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pair", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pair/available", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/{base}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/history/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/fee/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trade/feeLevels", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transaction/bindings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "auth/account", 1 },
-                        { "auth/account/currency/{currency}/{type}", 1 },
-                        { "auth/order", 1 },
-                        { "auth/order/getOrder/{id}", 1 },
-                        { "auth/order/pair/{currency}/{quote}", 1 },
-                        { "auth/order/pair/{currency}/{quote}/active", 1 },
-                        { "auth/stopOrder", 1 },
-                        { "auth/stopOrder/getOrder/{id}", 1 },
-                        { "auth/stopOrder/pair/{currency}/{quote}", 1 },
-                        { "auth/stopOrder/pair/{currency}/{quote}/active", 1 },
-                        { "auth/trade", 1 },
-                        { "auth/trade/pair/{currency}/{quote}", 1 },
-                        { "auth/trade/fee/{currency}/{quote}", 1 },
-                        { "auth/transaction", 1 },
-                        { "auth/transaction/bindings", 1 },
-                        { "auth/transaction/bindings/{currency}", 1 },
-                        { "auth/transaction/{id}", 1 },
-                        { "auth/transfer", 1 },
+                        { "auth/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/account/currency/{currency}/{type}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/getOrder/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/pair/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/pair/{currency}/{quote}/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/getOrder/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/pair/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/pair/{currency}/{quote}/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/trade/pair/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/trade/fee/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/bindings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/bindings/{currency}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "auth/order/cancel", 1 },
-                        { "auth/order/cancelAll", 1 },
-                        { "auth/order/cancelAll/{currency}/{quote}", 1 },
-                        { "auth/order/place", 1 },
-                        { "auth/spot/deposit", 1 },
-                        { "auth/spot/withdraw", 1 },
-                        { "auth/stopOrder/cancel", 1 },
-                        { "auth/stopOrder/cancelAll", 1 },
-                        { "auth/stopOrder/cancelAll/{currency}/{quote}", 1 },
-                        { "auth/stopOrder/place", 1 },
-                        { "auth/transaction/depositAddress", 1 },
-                        { "auth/transaction/withdraw", 1 },
-                        { "auth/transaction/withdraw/cancel", 1 },
-                        { "auth/transaction/withdraw/confirm", 1 },
-                        { "auth/transaction/withdraw/resendCode", 1 },
-                        { "auth/transfer/email", 1 },
-                        { "auth/transfer/id", 1 },
-                        { "auth/transfer/phone", 1 },
+                        { "auth/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/cancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/spot/deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/spot/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/cancelAll", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/stopOrder/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/depositAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw/confirm", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transaction/withdraw/resendCode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer/email", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer/id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/transfer/phone", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -403,11 +507,12 @@ public partial class latoken : Exchange
             await this.loadTimeDifference();
         }
         object currencies = this.safeDict(this.options, "cachedCurrencies", new Dictionary<string, object>() {});
-        object currenciesById = this.indexBy(currencies, "id");
+        Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawMarkets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(response, i);
+            object market = getValue(rawMarkets, i);
             object id = this.safeString(market, "id");
             // the exchange shows them inverted
             object baseId = this.safeString(market, "baseCurrency");
@@ -420,8 +525,12 @@ public partial class latoken : Exchange
             {
                 object bs = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
                 object quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
-                object lowercaseQuote = ((string)quote).ToLower();
-                object capitalizedQuote = this.capitalize(lowercaseQuote);
+                if (isTrue(isTrue((isEqual(bs, null))) || isTrue((isEqual(quote, null)))))
+                {
+                    continue;
+                }
+                string lowercaseQuote = ((string)quote).ToLower();
+                string capitalizedQuote = this.capitalize(lowercaseQuote);
                 object status = this.safeString(market, "status");
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
                     { "id", id },
@@ -529,7 +638,7 @@ public partial class latoken : Exchange
         object tag = this.safeString(currency, "tag");
         object code = this.safeCurrencyCode(tag);
         object currencyType = this.safeString(currency, "type");
-        object isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        bool isCrypto = (isTrue(isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || isTrue(isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "code", code },
@@ -603,7 +712,7 @@ public partial class latoken : Exchange
         object type = this.safeString(parameters, "type", defaultType);
         object types = this.safeValue(this.options, "types", new Dictionary<string, object>() {});
         object accountType = this.safeString(types, type, type);
-        object balancesByType = this.groupBy(response, "type");
+        Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         object balances = this.safeValue(balancesByType, accountType, new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
@@ -624,7 +733,10 @@ public partial class latoken : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "blocked");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         ((IDictionary<string,object>)result)["timestamp"] = maxTimestamp;
         ((IDictionary<string,object>)result)["datetime"] = this.iso8601(maxTimestamp);
@@ -639,7 +751,7 @@ public partial class latoken : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -674,7 +786,41 @@ public partial class latoken : Exchange
         //         "totalBid":"112216.9029791"
         //     }
         //
-        return this.parseOrderBook(response, symbol, null, "bid", "ask", "price", "quantity");
+        // latoken's rest book is an absolute snapshot - price, quantity, cost,
+        // accumulated - with no signed fields, unlike their websocket stream
+        // which carries signed quantityChange deltas. during venue incidents a
+        // signed internal aggregate leaks into the rest quantity and a deleted
+        // level shows up with a zero or negative quantity for long stretches,
+        // observed live on 2026-08-17 with bestAskQuantity -0.1791852 served
+        // for over half an hour - such a level is a deleted level their
+        // aggregation failed to drop, so it is removed here
+        object rawAsks = this.safeList(response, "ask", new List<object>() {});
+        object rawBids = this.safeList(response, "bid", new List<object>() {});
+        object asks = new List<object>() {};
+        object bids = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        {
+            object askEntry = getValue(rawAsks, i);
+            object askQuantity = this.safeString(askEntry, "quantity");
+            if (isTrue(Precise.stringGt(askQuantity, "0")))
+            {
+                ((IList<object>)asks).Add(askEntry);
+            }
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        {
+            object bidEntry = getValue(rawBids, i);
+            object bidQuantity = this.safeString(bidEntry, "quantity");
+            if (isTrue(Precise.stringGt(bidQuantity, "0")))
+            {
+                ((IList<object>)bids).Add(bidEntry);
+            }
+        }
+        object filtered = new Dictionary<string, object>() {
+            { "ask", asks },
+            { "bid", bids },
+        };
+        return this.parseOrderBook(filtered, symbol, null, "bid", "ask", "price", "quantity");
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -867,14 +1013,14 @@ public partial class latoken : Exchange
                 side = "sell";
             }
         }
-        object isBuy = (isEqual(side, "buy"));
+        bool isBuy = (isEqual(side, "buy"));
         object takerOrMaker = ((bool) isTrue((isTrue(makerBuyer) && isTrue(isBuy)))) ? "maker" : "taker";
         object baseId = this.safeString(trade, "baseCurrency");
         object quoteId = this.safeString(trade, "quoteCurrency");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        if (isTrue(inOp(this.markets, symbol)))
+        if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol)))))
         {
             market = this.market(symbol);
         }
@@ -1060,7 +1206,7 @@ public partial class latoken : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100
         }
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1176,7 +1322,7 @@ public partial class latoken : Exchange
         if (isTrue(isTrue((!isEqual(bs, null))) && isTrue((!isEqual(quote, null)))))
         {
             symbol = add(add(bs, "/"), quote);
-            if (isTrue(inOp(this.markets, symbol)))
+            if (isTrue(isTrue((!isEqual(this.markets, null))) && isTrue((inOp(this.markets, symbol)))))
             {
                 market = this.market(symbol);
             }
@@ -1185,8 +1331,8 @@ public partial class latoken : Exchange
         object side = null;
         if (isTrue(!isEqual(orderSide, null)))
         {
-            object parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object partsLength = getArrayLength(parts);
+            List<object> parts = ((string)orderSide).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            int partsLength = getArrayLength(parts);
             side = this.safeStringLower(parts, subtract(partsLength, 1));
         }
         object type = this.parseOrderType(this.safeString(order, "type"));
@@ -1458,7 +1604,11 @@ public partial class latoken : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "baseCurrency", getValue(market, "baseId") },
             { "quoteCurrency", getValue(market, "quoteId") },
@@ -1506,7 +1656,7 @@ public partial class latoken : Exchange
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelOrder
      * @see https://api.latoken.com/doc/v2/#tag/StopOrder/operation/cancelStopOrder  // stop
      * @param {string} id order id
-     * @param {string} symbol not used by latoken cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1549,7 +1699,7 @@ public partial class latoken : Exchange
      * @description cancel all open orders in a market
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrders
      * @see https://api.latoken.com/doc/v2/#tag/Order/operation/cancelAllOrdersByPair
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if cancelling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1740,7 +1890,7 @@ public partial class latoken : Exchange
             { "TRANSACTION_TYPE_DEPOSIT", "deposit" },
             { "TRANSACTION_TYPE_WITHDRAWAL", "withdrawal" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -1933,7 +2083,7 @@ public partial class latoken : Exchange
         {
             this.checkRequiredCredentials();
             object auth = add(add(method, request), urlencodedQuery);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512);
             headers = new Dictionary<string, object>() {
                 { "X-LA-APIKEY", this.apiKey },
                 { "X-LA-SIGNATURE", signature },

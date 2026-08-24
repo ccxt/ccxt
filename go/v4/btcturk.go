@@ -135,34 +135,66 @@ func (this *BtcturkCore) Describe() any {
 		"api": map[string]any{
 			"public": map[string]any{
 				"get": map[string]any{
-					"orderbook":           1,
-					"ticker":              0.1,
-					"trades":              1,
-					"ohlc":                1,
-					"server/exchangeinfo": 1,
+					"orderbook": map[string]any{
+						"cost": 1,
+					},
+					"ticker": map[string]any{
+						"cost": 0.1,
+					},
+					"trades": map[string]any{
+						"cost": 1,
+					},
+					"ohlc": map[string]any{
+						"cost": 1,
+					},
+					"server/exchangeinfo": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
-					"users/balances":           1,
-					"openOrders":               1,
-					"allOrders":                1,
-					"users/transactions/trade": 1,
+					"users/balances": map[string]any{
+						"cost": 1,
+					},
+					"openOrders": map[string]any{
+						"cost": 1,
+					},
+					"allOrders": map[string]any{
+						"cost": 1,
+					},
+					"users/transactions/trade": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
-					"users/transactions/crypto": 1,
-					"users/transactions/fiat":   1,
-					"order":                     1,
-					"cancelOrder":               1,
+					"users/transactions/crypto": map[string]any{
+						"cost": 1,
+					},
+					"users/transactions/fiat": map[string]any{
+						"cost": 1,
+					},
+					"order": map[string]any{
+						"cost": 1,
+					},
+					"cancelOrder": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
-					"order": 1,
+					"order": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"graph": map[string]any{
 				"get": map[string]any{
-					"ohlcs":          1,
-					"klines/history": 1,
+					"ohlcs": map[string]any{
+						"cost": 1,
+					},
+					"klines/history": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -256,66 +288,66 @@ func (this *BtcturkCore) Describe() any {
  * @returns {object[]} an array of objects representing market data
  */
 func (this *BtcturkCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.PublicGetServerExchangeinfo(params))
-		PanicOnError(response)
-		//
-		//    {
-		//        "data": {
-		//            "timeZone": "UTC",
-		//            "serverTime": "1618826678404",
-		//            "symbols": [
-		//                {
-		//                    "id": "1",
-		//                    "name": "BTCTRY",
-		//                    "nameNormalized": "BTC_TRY",
-		//                    "status": "TRADING",
-		//                    "numerator": "BTC",
-		//                    "denominator": "TRY",
-		//                    "numeratorScale": "8",
-		//                    "denominatorScale": "2",
-		//                    "hasFraction": false,
-		//                    "filters": [
-		//                        {
-		//                            "filterType": "PRICE_FILTER",
-		//                            "minPrice": "0.0000000000001",
-		//                            "maxPrice": "10000000",
-		//                            "tickSize": "10",
-		//                            "minExchangeValue": "99.92",
-		//                            "minAmount": null,
-		//                            "maxAmount": null
-		//                        }
-		//                    ],
-		//                    "orderMethods": [
-		//                        "MARKET",
-		//                        "LIMIT",
-		//                        "STOP_MARKET",
-		//                        "STOP_LIMIT"
-		//                    ],
-		//                    "displayFormat": "#,###",
-		//                    "commissionFromNumerator": false,
-		//                    "order": "1000",
-		//                    "priceRounding": false
-		//                },
-		//                ...
-		//            },
-		//        ],
-		//    }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var markets any = this.SafeList(data, "symbols", []any{})
-
-		ch <- this.ParseMarkets(markets)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.PublicGetServerExchangeinfo(params))
+	PanicOnError(response)
+	//
+	//    {
+	//        "data": {
+	//            "timeZone": "UTC",
+	//            "serverTime": "1618826678404",
+	//            "symbols": [
+	//                {
+	//                    "id": "1",
+	//                    "name": "BTCTRY",
+	//                    "nameNormalized": "BTC_TRY",
+	//                    "status": "TRADING",
+	//                    "numerator": "BTC",
+	//                    "denominator": "TRY",
+	//                    "numeratorScale": "8",
+	//                    "denominatorScale": "2",
+	//                    "hasFraction": false,
+	//                    "filters": [
+	//                        {
+	//                            "filterType": "PRICE_FILTER",
+	//                            "minPrice": "0.0000000000001",
+	//                            "maxPrice": "10000000",
+	//                            "tickSize": "10",
+	//                            "minExchangeValue": "99.92",
+	//                            "minAmount": null,
+	//                            "maxAmount": null
+	//                        }
+	//                    ],
+	//                    "orderMethods": [
+	//                        "MARKET",
+	//                        "LIMIT",
+	//                        "STOP_MARKET",
+	//                        "STOP_LIMIT"
+	//                    ],
+	//                    "displayFormat": "#,###",
+	//                    "commissionFromNumerator": false,
+	//                    "order": "1000",
+	//                    "priceRounding": false
+	//                },
+	//                ...
+	//            },
+	//        ],
+	//    }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var markets any = this.SafeList(data, "symbols", []any{})
+
+	ch <- this.ParseMarkets(markets)
+	return nil
 }
 func (this *BtcturkCore) ParseMarket(entry any) any {
 	var id any = this.SafeString(entry, "name")
@@ -341,7 +373,7 @@ func (this *BtcturkCore) ParseMarket(entry any) any {
 		}
 	}
 	var status any = this.SafeString(entry, "status")
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             id,
 		"symbol":         Add(Add(base, "/"), quote),
 		"base":           base,
@@ -389,11 +421,11 @@ func (this *BtcturkCore) ParseMarket(entry any) any {
 		},
 		"created": nil,
 		"info":    entry,
-	}
+	})
 }
 func (this *BtcturkCore) ParseBalance(response any) any {
 	var data any = this.SafeList(response, "data", []any{})
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
 		"datetime":  nil,
@@ -406,7 +438,9 @@ func (this *BtcturkCore) ParseBalance(response any) any {
 		AddElementToObject(account, "total", this.SafeString(entry, "balance"))
 		AddElementToObject(account, "free", this.SafeString(entry, "free"))
 		AddElementToObject(account, "used", this.SafeString(entry, "locked"))
-		AddElementToObject(result, code, account)
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -420,42 +454,42 @@ func (this *BtcturkCore) ParseBalance(response any) any {
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *BtcturkCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes41412 := (<-this.LoadMarkets())
-			PanicOnError(retRes41412)
-		}
-
-		response := (<-this.PrivateGetUsersBalances(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//       "data": [
-		//         {
-		//           "asset": "TRY",
-		//           "assetname": "Türk Lirası",
-		//           "balance": "0",
-		//           "locked": "0",
-		//           "free": "0",
-		//           "orderFund": "0",
-		//           "requestFund": "0",
-		//           "precision": 2
-		//         }
-		//       ]
-		//     }
-		//
-		ch <- this.ParseBalance(response)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes41812 := (<-this.LoadMarkets())
+		PanicOnError(retRes41812)
+	}
+
+	response := (<-this.PrivateGetUsersBalances(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//       "data": [
+	//         {
+	//           "asset": "TRY",
+	//           "assetname": "Türk Lirası",
+	//           "balance": "0",
+	//           "locked": "0",
+	//           "free": "0",
+	//           "orderFund": "0",
+	//           "requestFund": "0",
+	//           "precision": 2
+	//         }
+	//       ]
+	//     }
+	//
+	ch <- this.ParseBalance(response)
+	return nil
 }
 
 /**
@@ -466,48 +500,48 @@ func (this *BtcturkCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *BtcturkCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes44812 := (<-this.LoadMarkets())
-			PanicOnError(retRes44812)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pairSymbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
-		PanicOnError(response)
-		//     {
-		//       "data": {
-		//         "timestamp": 1618827901241,
-		//         "bids": [
-		//           [
-		//             "460263.00",
-		//             "0.04244000"
-		//           ]
-		//         ]
-		//       }
-		//     }
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var timestamp any = this.SafeInteger(data, "timestamp")
-
-		ch <- this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes45212 := (<-this.LoadMarkets())
+		PanicOnError(retRes45212)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pairSymbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.PublicGetOrderbook(this.Extend(request, params)))
+	PanicOnError(response)
+	//     {
+	//       "data": {
+	//         "timestamp": 1618827901241,
+	//         "bids": [
+	//           [
+	//             "460263.00",
+	//             "0.04244000"
+	//           ]
+	//         ]
+	//       }
+	//     }
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var timestamp any = this.SafeInteger(data, "timestamp")
+
+	ch <- this.ParseOrderBook(data, GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1)
+	return nil
 }
 func (this *BtcturkCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
@@ -571,29 +605,29 @@ func (this *BtcturkCore) ParseTicker(ticker any, optionalArgs ...any) any {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcturkCore) FetchTickers(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes53212 := (<-this.LoadMarkets())
-			PanicOnError(retRes53212)
-		}
-
-		response := (<-this.PublicGetTicker(params))
-		PanicOnError(response)
-		var tickers any = this.SafeList(response, "data")
-
-		ch <- this.ParseTickers(tickers, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes53612 := (<-this.LoadMarkets())
+		PanicOnError(retRes53612)
+	}
+
+	response := (<-this.PublicGetTicker(params))
+	PanicOnError(response)
+	var tickers any = this.SafeList(response, "data")
+
+	ch <- this.ParseTickers(tickers, symbols)
+	return nil
 }
 
 /**
@@ -606,26 +640,26 @@ func (this *BtcturkCore) FetchTickers(optionalArgs ...any) <-chan any {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *BtcturkCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes55012 := (<-this.LoadMarkets())
-			PanicOnError(retRes55012)
-		}
-
-		tickers := (<-this.FetchTickers([]any{symbol}, params))
-		PanicOnError(tickers)
-
-		ch <- this.SafeValue(tickers, symbol)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes55412 := (<-this.LoadMarkets())
+		PanicOnError(retRes55412)
+	}
+
+	tickers := (<-this.FetchTickers([]any{symbol}, params))
+	PanicOnError(tickers)
+
+	ch <- this.SafeValue(tickers, symbol)
+	return nil
 }
 func (this *BtcturkCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
@@ -704,56 +738,60 @@ func (this *BtcturkCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *BtcturkCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes63212 := (<-this.LoadMarkets())
-			PanicOnError(retRes63212)
-		}
-		var market any = this.Market(symbol)
-		// let maxCount = 50;
-		var request any = map[string]any{
-			"pairSymbol": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "last", limit)
-		}
-
-		response := (<-this.PublicGetTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//       "data": [
-		//         {
-		//           "pair": "BTCTRY",
-		//           "pairNormalized": "BTC_TRY",
-		//           "numerator": "BTC",
-		//           "denominator": "TRY",
-		//           "date": 1618828421497,
-		//           "tid": "637544252214980918",
-		//           "price": "462585.00",
-		//           "amount": "0.01618411",
-		//           "side": "sell"
-		//         }
-		//       ]
-		//     }
-		//
-		var data any = this.SafeList(response, "data")
-
-		ch <- this.ParseTrades(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes63612 := (<-this.LoadMarkets())
+		PanicOnError(retRes63612)
+	}
+	var market any = this.Market(symbol)
+	// let maxCount = 50;
+	var request map[string]any = map[string]any{
+		"pairSymbol": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "last", limit)
+	}
+
+	response := (<-this.PublicGetTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//       "data": [
+	//         {
+	//           "pair": "BTCTRY",
+	//           "pairNormalized": "BTC_TRY",
+	//           "numerator": "BTC",
+	//           "denominator": "TRY",
+	//           "date": 1618828421497,
+	//           "tid": "637544252214980918",
+	//           "price": "462585.00",
+	//           "amount": "0.01618411",
+	//           "side": "sell"
+	//         }
+	//       ]
+	//     }
+	//
+	var data any = this.SafeList(response, "data")
+	var dataList any = []any{}
+	if IsTrue(!IsEqual(data, nil)) {
+		dataList = data
+	}
+
+	ch <- this.ParseTrades(dataList, market, since, limit)
+	return nil
 }
 func (this *BtcturkCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
@@ -785,93 +823,93 @@ func (this *BtcturkCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *BtcturkCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1h")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes70012 := (<-this.LoadMarkets())
-			PanicOnError(retRes70012)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol":     GetValue(market, "id"),
-			"resolution": this.SafeValue(this.Timeframes, timeframe, timeframe),
-		}
-		var until any = this.SafeInteger(params, "until", this.Milliseconds())
-		AddElementToObject(request, "to", this.ParseToInt((Divide(until, 1000))))
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
-		} else if IsTrue(IsEqual(limit, nil)) {
-			limit = 100 // default value
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			limit = mathMin(limit, 11000) // max 11000 candles diapason can be covered
-			if IsTrue(IsEqual(timeframe, "1y")) {
-				panic(BadRequest(Add(this.Id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")))
-			}
-			var seconds any = this.ParseTimeframe(timeframe)
-			var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
-			if IsTrue(!IsEqual(since, nil)) {
-				var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
-				AddElementToObject(request, "to", mathMin(GetValue(request, "to"), to))
-			} else {
-				AddElementToObject(request, "from", Subtract(this.ParseToInt(Divide(0, 1000)), limitSeconds))
-			}
-		}
-
-		response := (<-this.GraphGetKlinesHistory(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//    {
-		//        "s": "ok",
-		//        "t": [
-		//          1661990400,
-		//          1661990520,
-		//          ...
-		//        ],
-		//        "h": [
-		//          368388.0,
-		//          369090.0,
-		//          ...
-		//        ],
-		//        "o": [
-		//          368388.0,
-		//          368467.0,
-		//          ...
-		//        ],
-		//        "l": [
-		//          368388.0,
-		//          368467.0,
-		//          ...
-		//        ],
-		//        "c": [
-		//          368388.0,
-		//          369090.0,
-		//          ...
-		//        ],
-		//        "v": [
-		//          0.00035208,
-		//          0.2972395,
-		//          ...
-		//        ]
-		//    }
-		//
-		ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1h")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes70812 := (<-this.LoadMarkets())
+		PanicOnError(retRes70812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol":     GetValue(market, "id"),
+		"resolution": this.SafeValue(this.Timeframes, timeframe, timeframe),
+	}
+	var until any = this.SafeInteger(params, "until", this.Milliseconds())
+	AddElementToObject(request, "to", this.ParseToInt((Divide(until, 1000))))
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "from", this.ParseToInt(Divide(since, 1000)))
+	} else if IsTrue(IsEqual(limit, nil)) {
+		limit = 100 // default value
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		limit = mathMin(limit, 11000) // max 11000 candles diapason can be covered
+		if IsTrue(IsEqual(timeframe, "1y")) {
+			panic(BadRequest(Add(this.Id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")))
+		}
+		var seconds any = this.ParseTimeframe(timeframe)
+		var limitSeconds any = Multiply(seconds, (Subtract(limit, 1)))
+		if IsTrue(!IsEqual(since, nil)) {
+			var to any = Add(this.ParseToInt(Divide(since, 1000)), limitSeconds)
+			AddElementToObject(request, "to", mathMin(GetValue(request, "to"), to))
+		} else {
+			AddElementToObject(request, "from", Subtract(this.ParseToInt(Divide(0, 1000)), limitSeconds))
+		}
+	}
+
+	response := (<-this.GraphGetKlinesHistory(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//    {
+	//        "s": "ok",
+	//        "t": [
+	//          1661990400,
+	//          1661990520,
+	//          ...
+	//        ],
+	//        "h": [
+	//          368388.0,
+	//          369090.0,
+	//          ...
+	//        ],
+	//        "o": [
+	//          368388.0,
+	//          368467.0,
+	//          ...
+	//        ],
+	//        "l": [
+	//          368388.0,
+	//          368467.0,
+	//          ...
+	//        ],
+	//        "c": [
+	//          368388.0,
+	//          369090.0,
+	//          ...
+	//        ],
+	//        "v": [
+	//          0.00035208,
+	//          0.2972395,
+	//          ...
+	//        ]
+	//    }
+	//
+	ch <- this.ParseOHLCVs(response, market, timeframe, since, limit)
+	return nil
 }
 func (this *BtcturkCore) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -892,7 +930,7 @@ func (this *BtcturkCore) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 	var close any = this.SafeList(ohlcvs, "c", []any{})
 	var volume any = this.SafeList(ohlcvs, "v", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(timestamp)); i++ {
-		var ohlcv any = map[string]any{
+		var ohlcv map[string]any = map[string]any{
 			"timestamp": this.SafeInteger(timestamp, i),
 			"high":      this.SafeNumber(high, i),
 			"open":      this.SafeNumber(open, i),
@@ -920,44 +958,44 @@ func (this *BtcturkCore) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes80512 := (<-this.LoadMarkets())
-			PanicOnError(retRes80512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"orderType":   side,
-			"orderMethod": typeVar,
-			"pairSymbol":  GetValue(market, "id"),
-			"quantity":    this.AmountToPrecision(symbol, amount),
-		}
-		if IsTrue(!IsEqual(typeVar, "market")) {
-			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
-		}
-		if IsTrue(InOp(params, "clientOrderId")) {
-			AddElementToObject(request, "newClientOrderId", GetValue(params, "clientOrderId"))
-		} else if !IsTrue((InOp(params, "newClientOrderId"))) {
-			AddElementToObject(request, "newClientOrderId", this.Uuid())
-		}
-
-		response := (<-this.PrivatePostOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeDict(response, "data")
-
-		ch <- this.ParseOrder(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes81312 := (<-this.LoadMarkets())
+		PanicOnError(retRes81312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"orderType":   side,
+		"orderMethod": typeVar,
+		"pairSymbol":  GetValue(market, "id"),
+		"quantity":    this.AmountToPrecision(symbol, amount),
+	}
+	if IsTrue(!IsEqual(typeVar, "market")) {
+		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+	}
+	if IsTrue(InOp(params, "clientOrderId")) {
+		AddElementToObject(request, "newClientOrderId", GetValue(params, "clientOrderId"))
+	} else if !IsTrue((InOp(params, "newClientOrderId"))) {
+		AddElementToObject(request, "newClientOrderId", this.Uuid())
+	}
+
+	response := (<-this.PrivatePostOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParseOrder(data, market)
+	return nil
 }
 
 /**
@@ -966,40 +1004,40 @@ func (this *BtcturkCore) CreateOrder(symbol any, typeVar any, side any, amount a
  * @description cancels an open order
  * @see https://docs.btcturk.com/private-endpoints/cancel-order
  * @param {string} id order id
- * @param {string} symbol not used by btcturk cancelOrder ()
+ * @param {string} symbol not used by cancelOrder ()
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"id": id,
-		}
-
-		response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
-		PanicOnError(response)
-
-		//
-		//    {
-		//        "success": true,
-		//        "message": "SUCCESS",
-		//        "code": 0
-		//    }
-		//
-		ch <- this.SafeOrder(map[string]any{
-			"info": response,
-		})
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"id": id,
+	}
+
+	response := (<-this.PrivateDeleteOrder(this.Extend(request, params)))
+	PanicOnError(response)
+
+	//
+	//    {
+	//        "success": true,
+	//        "message": "SUCCESS",
+	//        "code": 0
+	//    }
+	//
+	ch <- this.SafeOrder(map[string]any{
+		"info": response,
+	})
+	return nil
 }
 
 /**
@@ -1014,41 +1052,41 @@ func (this *BtcturkCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes86712 := (<-this.LoadMarkets())
-			PanicOnError(retRes86712)
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "pairSymbol", GetValue(market, "id"))
-		}
-
-		response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var bids any = this.SafeList(data, "bids", []any{})
-		var asks any = this.SafeList(data, "asks", []any{})
-
-		ch <- this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes87512 := (<-this.LoadMarkets())
+		PanicOnError(retRes87512)
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "pairSymbol", GetValue(market, "id"))
+	}
+
+	response := (<-this.PrivateGetOpenOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var bids any = this.SafeList(data, "bids", []any{})
+	var asks any = this.SafeList(data, "asks", []any{})
+
+	ch <- this.ParseOrders(this.ArrayConcat(bids, asks), market, since, limit)
+	return nil
 }
 
 /**
@@ -1063,67 +1101,67 @@ func (this *BtcturkCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *BtcturkCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes89512 := (<-this.LoadMarkets())
-			PanicOnError(retRes89512)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"pairSymbol": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			// default 100 max 1000
-			AddElementToObject(request, "last", limit)
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "startTime", MathFloor(Divide(since, 1000)))
-		}
-
-		response := (<-this.PrivateGetAllOrders(this.Extend(request, params)))
-		PanicOnError(response)
-		// {
-		//   "data": [
-		//     {
-		//       "id": "2606012912",
-		//       "price": "55000",
-		//       "amount": "0.0003",
-		//       "quantity": "0.0003",
-		//       "stopPrice": "0",
-		//       "pairSymbol": "BTCUSDT",
-		//       "pairSymbolNormalized": "BTC_USDT",
-		//       "type": "buy",
-		//       "method": "limit",
-		//       "orderClientId": "2ed187bd-59a8-4875-a212-1b793963b85c",
-		//       "time": "1618913189253",
-		//       "updateTime": "1618913189253",
-		//       "status": "Untouched",
-		//       "leftAmount": "0.0003000000000000"
-		//     }
-		//   ]
-		// }
-		var data any = this.SafeList(response, "data")
-
-		ch <- this.ParseOrders(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
 }
+func (this *BtcturkCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes90312 := (<-this.LoadMarkets())
+		PanicOnError(retRes90312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"pairSymbol": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		// default 100 max 1000
+		AddElementToObject(request, "last", limit)
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "startTime", MathFloor(Divide(since, 1000)))
+	}
+
+	response := (<-this.PrivateGetAllOrders(this.Extend(request, params)))
+	PanicOnError(response)
+	// {
+	//   "data": [
+	//     {
+	//       "id": "2606012912",
+	//       "price": "55000",
+	//       "amount": "0.0003",
+	//       "quantity": "0.0003",
+	//       "stopPrice": "0",
+	//       "pairSymbol": "BTCUSDT",
+	//       "pairSymbolNormalized": "BTC_USDT",
+	//       "type": "buy",
+	//       "method": "limit",
+	//       "orderClientId": "2ed187bd-59a8-4875-a212-1b793963b85c",
+	//       "time": "1618913189253",
+	//       "updateTime": "1618913189253",
+	//       "status": "Untouched",
+	//       "leftAmount": "0.0003000000000000"
+	//     }
+	//   ]
+	// }
+	var data any = this.SafeList(response, "data")
+
+	ch <- this.ParseOrders(data, market, since, limit)
+	return nil
+}
 func (this *BtcturkCore) ParseOrderStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"Untouched": "open",
 		"Partial":   "open",
 		"Canceled":  "canceled",
@@ -1212,58 +1250,62 @@ func (this *BtcturkCore) ParseOrder(order any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *BtcturkCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes102312 := (<-this.LoadMarkets())
-			PanicOnError(retRes102312)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-
-		response := (<-this.PrivateGetUsersTransactionsTrade())
-		PanicOnError(response)
-		//
-		//     {
-		//       "data": [
-		//         {
-		//           "price": "56000",
-		//           "numeratorSymbol": "BTC",
-		//           "denominatorSymbol": "USDT",
-		//           "orderType": "buy",
-		//           "orderId": "2606935102",
-		//           "id": "320874372",
-		//           "timestamp": "1618916479593",
-		//           "amount": "0.00020000",
-		//           "fee": "0",
-		//           "tax": "0"
-		//         }
-		//       ],
-		//       "success": true,
-		//       "message": "SUCCESS",
-		//       "code": "0"
-		//     }
-		//
-		var data any = this.SafeList(response, "data")
-
-		ch <- this.ParseTrades(data, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *BtcturkCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes103112 := (<-this.LoadMarkets())
+		PanicOnError(retRes103112)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+
+	response := (<-this.PrivateGetUsersTransactionsTrade())
+	PanicOnError(response)
+	//
+	//     {
+	//       "data": [
+	//         {
+	//           "price": "56000",
+	//           "numeratorSymbol": "BTC",
+	//           "denominatorSymbol": "USDT",
+	//           "orderType": "buy",
+	//           "orderId": "2606935102",
+	//           "id": "320874372",
+	//           "timestamp": "1618916479593",
+	//           "amount": "0.00020000",
+	//           "fee": "0",
+	//           "tax": "0"
+	//         }
+	//       ],
+	//       "success": true,
+	//       "message": "SUCCESS",
+	//       "code": "0"
+	//     }
+	//
+	var data any = this.SafeList(response, "data")
+	var dataList any = []any{}
+	if IsTrue(!IsEqual(data, nil)) {
+		dataList = data
+	}
+
+	ch <- this.ParseTrades(dataList, market, since, limit)
+	return nil
 }
 func (this *BtcturkCore) Nonce() any {
 	return this.Milliseconds()
@@ -1292,7 +1334,7 @@ func (this *BtcturkCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
-		var nonce any = ToString(this.Nonce())
+		var nonce string = ToString(this.Nonce())
 		var secret any = this.Base64ToBinary(this.Secret)
 		var auth any = Add(this.ApiKey, nonce)
 		headers = map[string]any{

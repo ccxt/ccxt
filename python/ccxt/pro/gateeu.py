@@ -4,19 +4,21 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.pro.gate import gate
-from ccxt.base.types import Any
 
 import ccxt.async_support.gateeu as gateeuRest
 
 
 class gateeu(gate):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         # eslint-disable-next-line new-cap
         restInstance = gateeuRest()
         restDescribe = restInstance.describe()
         parentWsDescribe = super(gateeu, self).describe_data()
-        extended = self.deep_extend(parentWsDescribe, restDescribe)
+        # the ws describe-data must be applied on top of the rest describe,
+        # otherwise the explicit-None watch* defaults of the rest 'has'
+        # block wipe the parent's ws capability flags in the deep self.extend
+        extended = self.deep_extend(restDescribe, parentWsDescribe)
         return self.deep_extend(extended, {
             'id': 'gateeu',
             'name': 'Gate EU',

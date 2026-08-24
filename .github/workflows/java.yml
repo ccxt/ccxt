@@ -1,4 +1,8 @@
 name: Java
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
 on:
   workflow_dispatch:
@@ -8,47 +12,55 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, java ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
+    - name: Generate App token
       if: github.ref == 'refs/heads/master'
+      id: app-token
+      uses: actions/create-github-app-token@v3
       with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+        client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+        private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+        permission-contents: write
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 2
+        clean: false
+        token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-node@v4
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Set up JDK
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         distribution: temurin
         java-version: '21'   # or '20' – but match what :lib is targeting
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-java
     - name: Transpile to Java
       if: env.important_modified == 'true'
-      run: npm run transpileJava
+      run: npm run force-transpileJava
     - name: Transpile to Java (specific)
       if: env.important_modified == 'false'
       run: |
@@ -60,6 +72,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileJavaSingle -- --ws $exchange
         done
+    - name: Transpile prediction to Java
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-java
     - name: Build Project
       run: npm run buildJava
     - name: Run Base Tests
@@ -88,32 +103,82 @@ jobs:
         for exchange in $cleaned_rest_files; do
           ./java/gradlew -p java :tests:run --args="--responseTests $exchange"
         done
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-java
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
+      run: |
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          ./java/gradlew -p java :tests:run --args="--wsTests $exchange"
+        done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-java-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-java-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
           name: shared_env
           path: shared_env.txt
-
     - name: Upload Java Files
       uses: actions/upload-artifact@v4
       with:
         name: java-files
-        path: java/
-    - name: Push Java changes to master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        path: | 
+          java/
+          !java/**/build/**
+          !java/.gradle/**
+        retention-days: 1
+
+    - name: Get App bot user ID
       if: github.ref == 'refs/heads/master'
+      id: app-user
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout HEAD README.md wiki  # only JS does wiki pushback
-          git pull origin master
-          git add java/
-          git commit -m "[Automated changes] Java files" || echo "No changes to commit."
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git config --global pull.rebase false
-          git pull --rebase --autostash origin master
-          git push
+        id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+          "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+          | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+        echo "id=${id}" >> "$GITHUB_OUTPUT"
+
+    - name: Push Java changes to master
+      if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
+      env:
+        APP_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+        git config user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+        git remote set-url origin \
+          "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        git checkout HEAD README.md wiki  # only JS does wiki pushback
+
+        git add java/
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          exit 0
+        fi
+
+        git commit -m "[Automated changes] Java files"
+
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
 
   live-tests:
     needs: build
@@ -124,13 +189,15 @@ jobs:
     # enough. 60 min gives margin without burning runner time on a runaway hang.
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          clean: false
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
           name: shared_env
       - name: Set up JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '21'   # or '20' – but match what :lib is targeting
@@ -140,10 +207,10 @@ jobs:
           name: java-files
           path: java/
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+        run: ./build/utils/restore_shared_env.sh
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

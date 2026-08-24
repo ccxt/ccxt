@@ -7,12 +7,12 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task<object> testFeatures(Exchange exchange, object skippedProperties)
+    async static public Task<object> testFeatures(BaseExchange exchange, object skippedProperties)
     {
         object marketTypes = new List<object>() {"spot", "swap", "future", "option"};
         object subTypes = new List<object>() {"linear", "inverse"};
         object features = exchange.features;
-        object keys = new List<object>(((IDictionary<string,object>)features).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)features).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             testSharedMethods.assertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
                 testFeaturesInner(exchange, skippedProperties, value);
             } else
             {
-                object subKeys = new List<object>(((IDictionary<string,object>)value).Keys);
+                List<object> subKeys = new List<object>(((IDictionary<string,object>)value).Keys);
                 for (object j = 0; isLessThan(j, getArrayLength(subKeys)); postFixIncrement(ref j))
                 {
                     object subKey = getValue(subKeys, j);
@@ -44,7 +44,7 @@ public partial class testMainClass : BaseTest
         }
         return true;
     }
-    public static void testFeaturesInner(Exchange exchange, object skippedProperties, object featureObj)
+    public static void testFeaturesInner(BaseExchange exchange, object skippedProperties, object featureObj)
     {
         object format = new Dictionary<string, object>() {
             { "sandbox", false },
@@ -122,8 +122,8 @@ public partial class testMainClass : BaseTest
                 { "limit", 0 },
             } },
         };
-        object featureKeys = new List<object>(((IDictionary<string,object>)featureObj).Keys);
-        object allMethods = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
+        List<object> featureKeys = new List<object>(((IDictionary<string,object>)featureObj).Keys);
+        List<object> allMethods = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(featureKeys)); postFixIncrement(ref i))
         {
             testSharedMethods.assertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);

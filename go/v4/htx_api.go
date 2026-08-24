@@ -7,1862 +7,2302 @@
 
 package ccxt
 
+// V2PublicGetReferenceCurrencies returns a channel that yields a JSON object.
 func (this *HtxCore) V2PublicGetReferenceCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PublicGetReferenceCurrencies", args...)
 }
 
+// V2PublicGetMarketStatus returns a channel that yields a JSON object.
 func (this *HtxCore) V2PublicGetMarketStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PublicGetMarketStatus", args...)
 }
 
+// V2PrivateGetAccountLedger returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAccountLedger(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountLedger", args...)
 }
 
+// V2PrivateGetAccountWithdrawQuota returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAccountWithdrawQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountWithdrawQuota", args...)
 }
 
+// V2PrivateGetAccountWithdrawAddress returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAccountWithdrawAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountWithdrawAddress", args...)
 }
 
+// V2PrivateGetAccountDepositAddress returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountDepositAddress", args...)
 }
 
+// V2PrivateGetAccountRepayment returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAccountRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountRepayment", args...)
 }
 
+// V2PrivateGetReferenceTransactFeeRate returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetReferenceTransactFeeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetReferenceTransactFeeRate", args...)
 }
 
+// V2PrivateGetAccountAssetValuation returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAccountAssetValuation(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountAssetValuation", args...)
 }
 
+// V2PrivateGetPointAccount returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetPointAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetPointAccount", args...)
 }
 
+// V2PrivateGetSubUserUserList returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetSubUserUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetSubUserUserList", args...)
 }
 
+// V2PrivateGetSubUserUserState returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetSubUserUserState(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetSubUserUserState", args...)
 }
 
+// V2PrivateGetSubUserAccountList returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetSubUserAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetSubUserAccountList", args...)
 }
 
+// V2PrivateGetSubUserDepositAddress returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetSubUserDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetSubUserDepositAddress", args...)
 }
 
+// V2PrivateGetSubUserQueryDeposit returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetSubUserQueryDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetSubUserQueryDeposit", args...)
 }
 
+// V2PrivateGetUserApiKey returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetUserApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetUserApiKey", args...)
 }
 
+// V2PrivateGetUserUid returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetUserUid(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetUserUid", args...)
 }
 
+// V2PrivateGetAlgoOrdersOpening returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAlgoOrdersOpening(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAlgoOrdersOpening", args...)
 }
 
+// V2PrivateGetAlgoOrdersHistory returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAlgoOrdersHistory", args...)
 }
 
+// V2PrivateGetAlgoOrdersSpecific returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetAlgoOrdersSpecific(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAlgoOrdersSpecific", args...)
 }
 
+// V2PrivateGetC2cOffers returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetC2cOffers(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetC2cOffers", args...)
 }
 
+// V2PrivateGetC2cOffer returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetC2cOffer(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetC2cOffer", args...)
 }
 
+// V2PrivateGetC2cTransactions returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetC2cTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetC2cTransactions", args...)
 }
 
+// V2PrivateGetC2cRepayment returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetC2cRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetC2cRepayment", args...)
 }
 
+// V2PrivateGetC2cAccount returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetC2cAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetC2cAccount", args...)
 }
 
+// V2PrivateGetEtpReference returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetEtpReference(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetEtpReference", args...)
 }
 
+// V2PrivateGetEtpTransactions returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetEtpTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetEtpTransactions", args...)
 }
 
+// V2PrivateGetEtpTransaction returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetEtpTransaction(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetEtpTransaction", args...)
 }
 
+// V2PrivateGetEtpRebalance returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetEtpRebalance(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetEtpRebalance", args...)
 }
 
+// V2PrivateGetEtpLimit returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivateGetEtpLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetEtpLimit", args...)
 }
 
+// V2PrivatePostAccountTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostAccountTransfer", args...)
 }
 
+// V2PrivatePostAccountRepayment returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostAccountRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostAccountRepayment", args...)
 }
 
+// V2PrivatePostPointTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostPointTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostPointTransfer", args...)
 }
 
+// V2PrivatePostSubUserManagement returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserManagement(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserManagement", args...)
 }
 
+// V2PrivatePostSubUserCreation returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserCreation(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserCreation", args...)
 }
 
+// V2PrivatePostSubUserTradableMarket returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserTradableMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserTradableMarket", args...)
 }
 
+// V2PrivatePostSubUserTransferability returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserTransferability(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserTransferability", args...)
 }
 
+// V2PrivatePostSubUserApiKeyGeneration returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserApiKeyGeneration(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyGeneration", args...)
 }
 
+// V2PrivatePostSubUserApiKeyModification returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserApiKeyModification(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyModification", args...)
 }
 
+// V2PrivatePostSubUserApiKeyDeletion returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserApiKeyDeletion(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserApiKeyDeletion", args...)
 }
 
+// V2PrivatePostSubUserDeductMode returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostSubUserDeductMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostSubUserDeductMode", args...)
 }
 
+// V2PrivatePostAlgoOrders returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostAlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostAlgoOrders", args...)
 }
 
+// V2PrivatePostAlgoOrdersCancelAllAfter returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostAlgoOrdersCancelAllAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancelAllAfter", args...)
 }
 
+// V2PrivatePostAlgoOrdersCancellation returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostAlgoOrdersCancellation(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostAlgoOrdersCancellation", args...)
 }
 
+// V2PrivatePostC2cOffer returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostC2cOffer(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostC2cOffer", args...)
 }
 
+// V2PrivatePostC2cCancellation returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostC2cCancellation(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostC2cCancellation", args...)
 }
 
+// V2PrivatePostC2cCancelAll returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostC2cCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostC2cCancelAll", args...)
 }
 
+// V2PrivatePostC2cRepayment returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostC2cRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostC2cRepayment", args...)
 }
 
+// V2PrivatePostC2cTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostC2cTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostC2cTransfer", args...)
 }
 
+// V2PrivatePostEtpCreation returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostEtpCreation(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostEtpCreation", args...)
 }
 
+// V2PrivatePostEtpRedemption returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostEtpRedemption(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostEtpRedemption", args...)
 }
 
+// V2PrivatePostEtpTransactIdCancel returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostEtpTransactIdCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostEtpTransactIdCancel", args...)
 }
 
+// V2PrivatePostEtpBatchCancel returns a channel that yields a JSON object.
 func (this *HtxCore) V2PrivatePostEtpBatchCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostEtpBatchCancel", args...)
 }
 
+// PublicGetCommonSymbols returns a channel that yields a JSON object.
 func (this *HtxCore) PublicGetCommonSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCommonSymbols", args...)
 }
 
+// PublicGetCommonCurrencys returns a channel that yields a JSON object.
 func (this *HtxCore) PublicGetCommonCurrencys(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCommonCurrencys", args...)
 }
 
+// PublicGetCommonTimestamp returns a channel that yields a JSON object.
 func (this *HtxCore) PublicGetCommonTimestamp(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCommonTimestamp", args...)
 }
 
+// PublicGetCommonExchange returns a channel that yields a JSON object.
 func (this *HtxCore) PublicGetCommonExchange(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCommonExchange", args...)
 }
 
+// PublicGetSettingsCurrencys returns a channel that yields a JSON object.
 func (this *HtxCore) PublicGetSettingsCurrencys(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSettingsCurrencys", args...)
 }
 
+// PrivateGetAccountAccounts returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetAccountAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountAccounts", args...)
 }
 
+// PrivateGetAccountAccountsIdBalance returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetAccountAccountsIdBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountAccountsIdBalance", args...)
 }
 
+// PrivateGetAccountAccountsSubUid returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetAccountAccountsSubUid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountAccountsSubUid", args...)
 }
 
+// PrivateGetAccountHistory returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetAccountHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountHistory", args...)
 }
 
+// PrivateGetCrossMarginLoanInfo returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetCrossMarginLoanInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCrossMarginLoanInfo", args...)
 }
 
+// PrivateGetMarginLoanInfo returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetMarginLoanInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginLoanInfo", args...)
 }
 
+// PrivateGetFeeFeeRateGet returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetFeeFeeRateGet(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFeeFeeRateGet", args...)
 }
 
+// PrivateGetOrderOpenOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOpenOrders", args...)
 }
 
+// PrivateGetOrderOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrders", args...)
 }
 
+// PrivateGetOrderOrdersId returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrdersId", args...)
 }
 
+// PrivateGetOrderOrdersIdMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderOrdersIdMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrdersIdMatchresults", args...)
 }
 
+// PrivateGetOrderOrdersGetClientOrder returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderOrdersGetClientOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrdersGetClientOrder", args...)
 }
 
+// PrivateGetOrderHistory returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderHistory", args...)
 }
 
+// PrivateGetOrderMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetOrderMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderMatchresults", args...)
 }
 
+// PrivateGetQueryDepositWithdraw returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetQueryDepositWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetQueryDepositWithdraw", args...)
 }
 
+// PrivateGetMarginLoanOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetMarginLoanOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginLoanOrders", args...)
 }
 
+// PrivateGetMarginAccountsBalance returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetMarginAccountsBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginAccountsBalance", args...)
 }
 
+// PrivateGetCrossMarginLoanOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetCrossMarginLoanOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCrossMarginLoanOrders", args...)
 }
 
+// PrivateGetCrossMarginAccountsBalance returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetCrossMarginAccountsBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCrossMarginAccountsBalance", args...)
 }
 
+// PrivateGetPointsActions returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetPointsActions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPointsActions", args...)
 }
 
+// PrivateGetPointsOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetPointsOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPointsOrders", args...)
 }
 
+// PrivateGetSubuserAggregateBalance returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetSubuserAggregateBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetSubuserAggregateBalance", args...)
 }
 
+// PrivateGetStableCoinExchangeRate returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetStableCoinExchangeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetStableCoinExchangeRate", args...)
 }
 
+// PrivateGetStableCoinQuote returns a channel that yields a JSON object.
 func (this *HtxCore) PrivateGetStableCoinQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetStableCoinQuote", args...)
 }
 
+// PrivatePostAccountTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountTransfer", args...)
 }
 
+// PrivatePostFuturesTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostFuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFuturesTransfer", args...)
 }
 
+// PrivatePostOrderBatchOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostOrderBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderBatchOrders", args...)
 }
 
+// PrivatePostOrderOrdersPlace returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostOrderOrdersPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOrdersPlace", args...)
 }
 
+// PrivatePostOrderOrdersSubmitCancelClientOrder returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostOrderOrdersSubmitCancelClientOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOrdersSubmitCancelClientOrder", args...)
 }
 
+// PrivatePostOrderOrdersBatchCancelOpenOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostOrderOrdersBatchCancelOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOrdersBatchCancelOpenOrders", args...)
 }
 
+// PrivatePostOrderOrdersIdSubmitcancel returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostOrderOrdersIdSubmitcancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOrdersIdSubmitcancel", args...)
 }
 
+// PrivatePostOrderOrdersBatchcancel returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostOrderOrdersBatchcancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderOrdersBatchcancel", args...)
 }
 
+// PrivatePostDwWithdrawApiCreate returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostDwWithdrawApiCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDwWithdrawApiCreate", args...)
 }
 
+// PrivatePostDwWithdrawVirtualIdCancel returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostDwWithdrawVirtualIdCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDwWithdrawVirtualIdCancel", args...)
 }
 
+// PrivatePostDwTransferInMargin returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostDwTransferInMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDwTransferInMargin", args...)
 }
 
+// PrivatePostDwTransferOutMargin returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostDwTransferOutMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDwTransferOutMargin", args...)
 }
 
+// PrivatePostMarginOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostMarginOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginOrders", args...)
 }
 
+// PrivatePostMarginOrdersIdRepay returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostMarginOrdersIdRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostMarginOrdersIdRepay", args...)
 }
 
+// PrivatePostCrossMarginTransferIn returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostCrossMarginTransferIn(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCrossMarginTransferIn", args...)
 }
 
+// PrivatePostCrossMarginTransferOut returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostCrossMarginTransferOut(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCrossMarginTransferOut", args...)
 }
 
+// PrivatePostCrossMarginOrders returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostCrossMarginOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCrossMarginOrders", args...)
 }
 
+// PrivatePostCrossMarginOrdersIdRepay returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostCrossMarginOrdersIdRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCrossMarginOrdersIdRepay", args...)
 }
 
+// PrivatePostStableCoinExchange returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostStableCoinExchange(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostStableCoinExchange", args...)
 }
 
+// PrivatePostSubuserTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) PrivatePostSubuserTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubuserTransfer", args...)
 }
 
-func (this *HtxCore) StatusPublicSpotGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicSpotGetApiV2SummaryJson", args...)
-}
-
-func (this *HtxCore) StatusPublicFutureInverseGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicFutureInverseGetApiV2SummaryJson", args...)
-}
-
-func (this *HtxCore) StatusPublicFutureLinearGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicFutureLinearGetApiV2SummaryJson", args...)
-}
-
-func (this *HtxCore) StatusPublicSwapInverseGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicSwapInverseGetApiV2SummaryJson", args...)
-}
-
-func (this *HtxCore) StatusPublicSwapLinearGetApiV2SummaryJson(args ...any) <-chan any {
-	return this.callEndpointAsync("statusPublicSwapLinearGetApiV2SummaryJson", args...)
-}
-
+// SpotPublicGetV2MarketStatus returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2MarketStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2MarketStatus", args...)
 }
 
+// SpotPublicGetV1CommonSymbols returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1CommonSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1CommonSymbols", args...)
 }
 
+// SpotPublicGetV1CommonCurrencys returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1CommonCurrencys(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1CommonCurrencys", args...)
 }
 
+// SpotPublicGetV2SettingsCommonCurrencies returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2SettingsCommonCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2SettingsCommonCurrencies", args...)
 }
 
+// SpotPublicGetV2ReferenceCurrencies returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2ReferenceCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2ReferenceCurrencies", args...)
 }
 
+// SpotPublicGetV1CommonTimestamp returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1CommonTimestamp(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1CommonTimestamp", args...)
 }
 
+// SpotPublicGetV1CommonExchange returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1CommonExchange(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1CommonExchange", args...)
 }
 
+// SpotPublicGetV1SettingsCommonChains returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1SettingsCommonChains(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1SettingsCommonChains", args...)
 }
 
+// SpotPublicGetV1SettingsCommonCurrencys returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1SettingsCommonCurrencys(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1SettingsCommonCurrencys", args...)
 }
 
+// SpotPublicGetV1SettingsCommonSymbols returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1SettingsCommonSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1SettingsCommonSymbols", args...)
 }
 
+// SpotPublicGetV2SettingsCommonSymbols returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2SettingsCommonSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2SettingsCommonSymbols", args...)
 }
 
+// SpotPublicGetV1SettingsCommonMarketSymbols returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV1SettingsCommonMarketSymbols(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV1SettingsCommonMarketSymbols", args...)
 }
 
+// SpotPublicGetMarketHistoryCandles returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketHistoryCandles", args...)
 }
 
+// SpotPublicGetMarketHistoryKline returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketHistoryKline(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketHistoryKline", args...)
 }
 
+// SpotPublicGetMarketDetailMerged returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketDetailMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketDetailMerged", args...)
 }
 
+// SpotPublicGetMarketTickers returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketTickers", args...)
 }
 
+// SpotPublicGetMarketDetail returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketDetail", args...)
 }
 
+// SpotPublicGetMarketDepth returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketDepth", args...)
 }
 
+// SpotPublicGetMarketTrade returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketTrade", args...)
 }
 
+// SpotPublicGetMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketHistoryTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketHistoryTrade", args...)
 }
 
+// SpotPublicGetMarketEtp returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetMarketEtp(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetMarketEtp", args...)
 }
 
+// SpotPublicGetV2EtpReference returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2EtpReference(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2EtpReference", args...)
 }
 
+// SpotPublicGetV2EtpRebalance returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPublicGetV2EtpRebalance(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPublicGetV2EtpRebalance", args...)
 }
 
+// SpotPrivateGetV1AccountAccounts returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1AccountAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1AccountAccounts", args...)
 }
 
+// SpotPrivateGetV1AccountAccountsAccountIdBalance returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1AccountAccountsAccountIdBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1AccountAccountsAccountIdBalance", args...)
 }
 
+// SpotPrivateGetV2AccountValuation returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountValuation(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountValuation", args...)
 }
 
+// SpotPrivateGetV2AccountAssetValuation returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountAssetValuation(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountAssetValuation", args...)
 }
 
+// SpotPrivateGetV1AccountHistory returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1AccountHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1AccountHistory", args...)
 }
 
+// SpotPrivateGetV2AccountLedger returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountLedger(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountLedger", args...)
 }
 
+// SpotPrivateGetV2PointAccount returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2PointAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2PointAccount", args...)
 }
 
+// SpotPrivateGetV2AccountDepositAddress returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountDepositAddress", args...)
 }
 
+// SpotPrivateGetV2AccountWithdrawQuota returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountWithdrawQuota(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawQuota", args...)
 }
 
+// SpotPrivateGetV2AccountWithdrawAddress returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountWithdrawAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountWithdrawAddress", args...)
 }
 
+// SpotPrivateGetV2ReferenceCurrencies returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2ReferenceCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2ReferenceCurrencies", args...)
 }
 
+// SpotPrivateGetV1QueryDepositWithdraw returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1QueryDepositWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1QueryDepositWithdraw", args...)
 }
 
+// SpotPrivateGetV1QueryWithdrawClientOrderId returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1QueryWithdrawClientOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1QueryWithdrawClientOrderId", args...)
 }
 
+// SpotPrivateGetV2UserApiKey returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2UserApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2UserApiKey", args...)
 }
 
+// SpotPrivateGetV2UserUid returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2UserUid(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2UserUid", args...)
 }
 
+// SpotPrivateGetV2SubUserUserList returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2SubUserUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2SubUserUserList", args...)
 }
 
+// SpotPrivateGetV2SubUserUserState returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2SubUserUserState(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2SubUserUserState", args...)
 }
 
+// SpotPrivateGetV2SubUserAccountList returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2SubUserAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2SubUserAccountList", args...)
 }
 
+// SpotPrivateGetV2SubUserDepositAddress returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2SubUserDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2SubUserDepositAddress", args...)
 }
 
+// SpotPrivateGetV2SubUserQueryDeposit returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2SubUserQueryDeposit(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2SubUserQueryDeposit", args...)
 }
 
+// SpotPrivateGetV1SubuserAggregateBalance returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1SubuserAggregateBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1SubuserAggregateBalance", args...)
 }
 
+// SpotPrivateGetV1AccountAccountsSubUid returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1AccountAccountsSubUid(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1AccountAccountsSubUid", args...)
 }
 
+// SpotPrivateGetV1OrderOpenOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderOpenOrders", args...)
 }
 
+// SpotPrivateGetV1OrderOrdersOrderId returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderId", args...)
 }
 
+// SpotPrivateGetV1OrderOrdersGetClientOrder returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderOrdersGetClientOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersGetClientOrder", args...)
 }
 
+// SpotPrivateGetV1OrderOrdersOrderIdMatchresult returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderOrdersOrderIdMatchresult(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresult", args...)
 }
 
+// SpotPrivateGetV1OrderOrdersOrderIdMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderOrdersOrderIdMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderOrdersOrderIdMatchresults", args...)
 }
 
+// SpotPrivateGetV1OrderOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderOrders", args...)
 }
 
+// SpotPrivateGetV1OrderHistory returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderHistory", args...)
 }
 
+// SpotPrivateGetV1OrderMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1OrderMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1OrderMatchresults", args...)
 }
 
+// SpotPrivateGetV2ReferenceTransactFeeRate returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2ReferenceTransactFeeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2ReferenceTransactFeeRate", args...)
 }
 
+// SpotPrivateGetV2AlgoOrdersOpening returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AlgoOrdersOpening(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersOpening", args...)
 }
 
+// SpotPrivateGetV2AlgoOrdersHistory returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AlgoOrdersHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersHistory", args...)
 }
 
+// SpotPrivateGetV2AlgoOrdersSpecific returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AlgoOrdersSpecific(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AlgoOrdersSpecific", args...)
 }
 
+// SpotPrivateGetV1MarginLoanInfo returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1MarginLoanInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1MarginLoanInfo", args...)
 }
 
+// SpotPrivateGetV1MarginLoanOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1MarginLoanOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1MarginLoanOrders", args...)
 }
 
+// SpotPrivateGetV1MarginAccountsBalance returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1MarginAccountsBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1MarginAccountsBalance", args...)
 }
 
+// SpotPrivateGetV1CrossMarginLoanInfo returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1CrossMarginLoanInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanInfo", args...)
 }
 
+// SpotPrivateGetV1CrossMarginLoanOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1CrossMarginLoanOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1CrossMarginLoanOrders", args...)
 }
 
+// SpotPrivateGetV1CrossMarginAccountsBalance returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1CrossMarginAccountsBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1CrossMarginAccountsBalance", args...)
 }
 
+// SpotPrivateGetV2AccountRepayment returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2AccountRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2AccountRepayment", args...)
 }
 
+// SpotPrivateGetV5AccountUniversalTransferRecords returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV5AccountUniversalTransferRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV5AccountUniversalTransferRecords", args...)
 }
 
+// SpotPrivateGetV1StableCoinQuote returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1StableCoinQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1StableCoinQuote", args...)
 }
 
+// SpotPrivateGetV1StableCoinExchangeRate returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV1StableCoinExchangeRate(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV1StableCoinExchangeRate", args...)
 }
 
+// SpotPrivateGetV2EtpTransactions returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2EtpTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2EtpTransactions", args...)
 }
 
+// SpotPrivateGetV2EtpTransaction returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2EtpTransaction(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2EtpTransaction", args...)
 }
 
+// SpotPrivateGetV2EtpLimit returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivateGetV2EtpLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2EtpLimit", args...)
 }
 
+// SpotPrivatePostV1AccountTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1AccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1AccountTransfer", args...)
 }
 
+// SpotPrivatePostV1FuturesTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1FuturesTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1FuturesTransfer", args...)
 }
 
+// SpotPrivatePostV2PointTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2PointTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2PointTransfer", args...)
 }
 
+// SpotPrivatePostV2AccountTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2AccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2AccountTransfer", args...)
 }
 
+// SpotPrivatePostV1DwWithdrawApiCreate returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1DwWithdrawApiCreate(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1DwWithdrawApiCreate", args...)
 }
 
+// SpotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1DwWithdrawVirtualWithdrawIdCancel", args...)
 }
 
+// SpotPrivatePostV2SubUserDeductMode returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserDeductMode(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserDeductMode", args...)
 }
 
+// SpotPrivatePostV2SubUserCreation returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserCreation(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserCreation", args...)
 }
 
+// SpotPrivatePostV2SubUserManagement returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserManagement(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserManagement", args...)
 }
 
+// SpotPrivatePostV2SubUserTradableMarket returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserTradableMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserTradableMarket", args...)
 }
 
+// SpotPrivatePostV2SubUserTransferability returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserTransferability(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserTransferability", args...)
 }
 
+// SpotPrivatePostV2SubUserApiKeyGeneration returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserApiKeyGeneration(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyGeneration", args...)
 }
 
+// SpotPrivatePostV2SubUserApiKeyModification returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserApiKeyModification(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyModification", args...)
 }
 
+// SpotPrivatePostV2SubUserApiKeyDeletion returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2SubUserApiKeyDeletion(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2SubUserApiKeyDeletion", args...)
 }
 
+// SpotPrivatePostV1SubuserTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1SubuserTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1SubuserTransfer", args...)
 }
 
+// SpotPrivatePostV1TrustUserActiveCredit returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1TrustUserActiveCredit(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1TrustUserActiveCredit", args...)
 }
 
+// SpotPrivatePostV1OrderOrdersPlace returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderOrdersPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersPlace", args...)
 }
 
+// SpotPrivatePostV1OrderBatchOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderBatchOrders", args...)
 }
 
+// SpotPrivatePostV1OrderAutoPlace returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderAutoPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderAutoPlace", args...)
 }
 
+// SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderOrdersOrderIdSubmitcancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersOrderIdSubmitcancel", args...)
 }
 
+// SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersSubmitCancelClientOrder", args...)
 }
 
+// SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchCancelOpenOrders", args...)
 }
 
+// SpotPrivatePostV1OrderOrdersBatchcancel returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1OrderOrdersBatchcancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1OrderOrdersBatchcancel", args...)
 }
 
+// SpotPrivatePostV2AlgoOrdersCancelAllAfter returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2AlgoOrdersCancelAllAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancelAllAfter", args...)
 }
 
+// SpotPrivatePostV2AlgoOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2AlgoOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2AlgoOrders", args...)
 }
 
+// SpotPrivatePostV2AlgoOrdersCancellation returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2AlgoOrdersCancellation(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2AlgoOrdersCancellation", args...)
 }
 
+// SpotPrivatePostV2AccountRepayment returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2AccountRepayment(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2AccountRepayment", args...)
 }
 
+// SpotPrivatePostV1DwTransferInMargin returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1DwTransferInMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1DwTransferInMargin", args...)
 }
 
+// SpotPrivatePostV1DwTransferOutMargin returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1DwTransferOutMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1DwTransferOutMargin", args...)
 }
 
+// SpotPrivatePostV1MarginOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1MarginOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1MarginOrders", args...)
 }
 
+// SpotPrivatePostV1MarginOrdersOrderIdRepay returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1MarginOrdersOrderIdRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1MarginOrdersOrderIdRepay", args...)
 }
 
+// SpotPrivatePostV1CrossMarginTransferIn returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1CrossMarginTransferIn(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferIn", args...)
 }
 
+// SpotPrivatePostV1CrossMarginTransferOut returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1CrossMarginTransferOut(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1CrossMarginTransferOut", args...)
 }
 
+// SpotPrivatePostV1CrossMarginOrders returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1CrossMarginOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrders", args...)
 }
 
+// SpotPrivatePostV1CrossMarginOrdersOrderIdRepay returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1CrossMarginOrdersOrderIdRepay(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1CrossMarginOrdersOrderIdRepay", args...)
 }
 
+// SpotPrivatePostV1StableCoinExchange returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1StableCoinExchange(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1StableCoinExchange", args...)
 }
 
+// SpotPrivatePostV2EtpCreation returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2EtpCreation(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2EtpCreation", args...)
 }
 
+// SpotPrivatePostV2EtpRedemption returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2EtpRedemption(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2EtpRedemption", args...)
 }
 
+// SpotPrivatePostV2EtpTransactIdCancel returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2EtpTransactIdCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2EtpTransactIdCancel", args...)
 }
 
+// SpotPrivatePostV2EtpBatchCancel returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2EtpBatchCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2EtpBatchCancel", args...)
 }
 
+// ContractPublicGetApiV1Timestamp returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1Timestamp(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1Timestamp", args...)
 }
 
+// ContractPublicGetHeartbeat returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetHeartbeat(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetHeartbeat", args...)
 }
 
+// ContractPublicGetApiV1ContractContractInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractContractInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractContractInfo", args...)
 }
 
+// ContractPublicGetApiV1ContractIndex returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractIndex", args...)
 }
 
+// ContractPublicGetApiV1ContractQueryElements returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractQueryElements(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractQueryElements", args...)
 }
 
+// ContractPublicGetApiV1ContractPriceLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractPriceLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractPriceLimit", args...)
 }
 
+// ContractPublicGetApiV1ContractOpenInterest returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractOpenInterest", args...)
 }
 
+// ContractPublicGetApiV1ContractDeliveryPrice returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractDeliveryPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractDeliveryPrice", args...)
 }
 
+// ContractPublicGetMarketDepth returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketDepth", args...)
 }
 
+// ContractPublicGetMarketBbo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketBbo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketBbo", args...)
 }
 
+// ContractPublicGetMarketHistoryKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketHistoryKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketHistoryKline", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryMarkPriceKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryMarkPriceKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryMarkPriceKline", args...)
 }
 
+// ContractPublicGetMarketDetailMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketDetailMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketDetailMerged", args...)
 }
 
+// ContractPublicGetMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketDetailBatchMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketDetailBatchMerged", args...)
 }
 
+// ContractPublicGetV2MarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV2MarketDetailBatchMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV2MarketDetailBatchMerged", args...)
 }
 
+// ContractPublicGetMarketTrade returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketTrade", args...)
 }
 
+// ContractPublicGetMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetMarketHistoryTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetMarketHistoryTrade", args...)
 }
 
+// ContractPublicGetApiV1ContractRiskInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractRiskInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractRiskInfo", args...)
 }
 
+// ContractPublicGetApiV1ContractInsuranceFund returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractInsuranceFund(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractInsuranceFund", args...)
 }
 
+// ContractPublicGetApiV1ContractAdjustfactor returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractAdjustfactor(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractAdjustfactor", args...)
 }
 
+// ContractPublicGetApiV1ContractHisOpenInterest returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractHisOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractHisOpenInterest", args...)
 }
 
+// ContractPublicGetApiV1ContractLadderMargin returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractLadderMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractLadderMargin", args...)
 }
 
+// ContractPublicGetApiV1ContractApiState returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractApiState(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractApiState", args...)
 }
 
+// ContractPublicGetApiV1ContractEliteAccountRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractEliteAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractEliteAccountRatio", args...)
 }
 
+// ContractPublicGetApiV1ContractElitePositionRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractElitePositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractElitePositionRatio", args...)
 }
 
+// ContractPublicGetApiV1ContractLiquidationOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractLiquidationOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractLiquidationOrders", args...)
 }
 
+// ContractPublicGetApiV1ContractSettlementRecords returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractSettlementRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractSettlementRecords", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryIndex returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryIndex", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryBasis returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryBasis(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryBasis", args...)
 }
 
+// ContractPublicGetApiV1ContractEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV1ContractEstimatedSettlementPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV1ContractEstimatedSettlementPrice", args...)
 }
 
+// ContractPublicGetApiV3ContractLiquidationOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetApiV3ContractLiquidationOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetApiV3ContractLiquidationOrders", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapContractInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapContractInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapContractInfo", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapIndex returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapIndex", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapQueryElements returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapQueryElements(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapQueryElements", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapPriceLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapPriceLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapPriceLimit", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapOpenInterest returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapOpenInterest", args...)
 }
 
+// ContractPublicGetSwapExMarketDepth returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketDepth", args...)
 }
 
+// ContractPublicGetSwapExMarketBbo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketBbo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketBbo", args...)
 }
 
+// ContractPublicGetSwapExMarketHistoryKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketHistoryKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryKline", args...)
 }
 
+// ContractPublicGetIndexMarketHistorySwapMarkPriceKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistorySwapMarkPriceKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapMarkPriceKline", args...)
 }
 
+// ContractPublicGetSwapExMarketDetailMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketDetailMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketDetailMerged", args...)
 }
 
+// ContractPublicGetV2SwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV2SwapExMarketDetailBatchMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV2SwapExMarketDetailBatchMerged", args...)
 }
 
+// ContractPublicGetIndexMarketHistorySwapPremiumIndexKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistorySwapPremiumIndexKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapPremiumIndexKline", args...)
 }
 
+// ContractPublicGetSwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketDetailBatchMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketDetailBatchMerged", args...)
 }
 
+// ContractPublicGetSwapExMarketTrade returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketTrade", args...)
 }
 
+// ContractPublicGetSwapExMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapExMarketHistoryTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapExMarketHistoryTrade", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapRiskInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapRiskInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapRiskInfo", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapInsuranceFund returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapInsuranceFund(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapInsuranceFund", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapAdjustfactor returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapAdjustfactor(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapAdjustfactor", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapHisOpenInterest returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapHisOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHisOpenInterest", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapLadderMargin returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapLadderMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLadderMargin", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapApiState returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapApiState(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapApiState", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapEliteAccountRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapEliteAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEliteAccountRatio", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapElitePositionRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapElitePositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapElitePositionRatio", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapEstimatedSettlementPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapEstimatedSettlementPrice", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapLiquidationOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapLiquidationOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapLiquidationOrders", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapSettlementRecords returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapSettlementRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapSettlementRecords", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapFundingRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapFundingRate", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapBatchFundingRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapBatchFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapBatchFundingRate", args...)
 }
 
+// ContractPublicGetSwapApiV1SwapHistoricalFundingRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1SwapHistoricalFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1SwapHistoricalFundingRate", args...)
 }
 
+// ContractPublicGetSwapApiV3SwapLiquidationOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV3SwapLiquidationOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV3SwapLiquidationOrders", args...)
 }
 
+// ContractPublicGetIndexMarketHistorySwapEstimatedRateKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistorySwapEstimatedRateKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapEstimatedRateKline", args...)
 }
 
+// ContractPublicGetIndexMarketHistorySwapBasis returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistorySwapBasis(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistorySwapBasis", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapContractInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapContractInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapContractInfo", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapIndex returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapIndex(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapIndex", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapQueryElements returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapQueryElements(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapQueryElements", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapPriceLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapPriceLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapPriceLimit", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketDepth returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketDepth(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDepth", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketBbo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketBbo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketBbo", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketHistoryKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketHistoryKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryKline", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapMarkPriceKline", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketDetailMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketDetailMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailMerged", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketDetailBatchMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketDetailBatchMerged", args...)
 }
 
+// ContractPublicGetV2LinearSwapExMarketDetailBatchMerged returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV2LinearSwapExMarketDetailBatchMerged(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV2LinearSwapExMarketDetailBatchMerged", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketTrade returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketTrade", args...)
 }
 
+// ContractPublicGetLinearSwapExMarketHistoryTrade returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapExMarketHistoryTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapExMarketHistoryTrade", args...)
 }
 
+// ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetSwapApiV1LinearSwapApiV1SwapInsuranceFund", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapAdjustfactor returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapAdjustfactor(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapAdjustfactor", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapCrossAdjustfactor returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapCrossAdjustfactor(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossAdjustfactor", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapHisOpenInterest returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapHisOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapHisOpenInterest", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapLadderMargin returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapLadderMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapLadderMargin", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapCrossLadderMargin returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapCrossLadderMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapCrossLadderMargin", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapApiState returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapApiState(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapApiState", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapEliteAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEliteAccountRatio", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapElitePositionRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapElitePositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapElitePositionRatio", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapSettlementRecords returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapSettlementRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapSettlementRecords", args...)
 }
 
+// ContractPublicGetLinearSwapApiV3SwapLiquidationOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV3SwapLiquidationOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV3SwapLiquidationOrders", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapPremiumIndexKline", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapEstimatedRateKline", args...)
 }
 
+// ContractPublicGetIndexMarketHistoryLinearSwapBasis returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetIndexMarketHistoryLinearSwapBasis(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetIndexMarketHistoryLinearSwapBasis", args...)
 }
 
+// ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetLinearSwapApiV1SwapEstimatedSettlementPrice", args...)
 }
 
+// ContractPublicGetV5MarketFundingRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketFundingRate", args...)
 }
 
+// ContractPublicGetV5MarketFundingRateHistory returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketFundingRateHistory", args...)
 }
 
+// ContractPublicGetV5MarketOpenInterest returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketOpenInterest", args...)
 }
 
+// ContractPublicGetV5MarketLiquidationOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketLiquidationOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketLiquidationOrders", args...)
 }
 
+// ContractPublicGetV5MarketSettlementHistory returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketSettlementHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketSettlementHistory", args...)
 }
 
+// ContractPublicGetV5MarketEliteAccountRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketEliteAccountRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketEliteAccountRatio", args...)
 }
 
+// ContractPublicGetV5MarketElitePositionRatio returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketElitePositionRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketElitePositionRatio", args...)
 }
 
+// ContractPublicGetV5MarketEstimatedSettlementPrice returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketEstimatedSettlementPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketEstimatedSettlementPrice", args...)
 }
 
+// ContractPublicGetV5MarketPriceLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPublicGetV5MarketPriceLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPublicGetV5MarketPriceLimit", args...)
 }
 
+// ContractPrivateGetApiV1ContractSubAuthList returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetApiV1ContractSubAuthList(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetApiV1ContractSubAuthList", args...)
 }
 
+// ContractPrivateGetApiV1ContractApiTradingStatus returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetApiV1ContractApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetApiV1ContractApiTradingStatus", args...)
 }
 
+// ContractPrivateGetSwapApiV1SwapSubAuthList returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetSwapApiV1SwapSubAuthList(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapSubAuthList", args...)
 }
 
+// ContractPrivateGetSwapApiV1SwapApiTradingStatus returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetSwapApiV1SwapApiTradingStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetSwapApiV1SwapApiTradingStatus", args...)
 }
 
+// ContractPrivateGetV5AccountAssetMode returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AccountAssetMode(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AccountAssetMode", args...)
 }
 
+// ContractPrivateGetV5AccountBalance returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AccountBalance", args...)
 }
 
+// ContractPrivateGetV5AccountBills returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AccountBills", args...)
 }
 
+// ContractPrivateGetV5AccountFeeDeductionCurrency returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AccountFeeDeductionCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AccountFeeDeductionCurrency", args...)
 }
 
+// ContractPrivateGetV5TradePositionOpens returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5TradePositionOpens(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5TradePositionOpens", args...)
 }
 
+// ContractPrivateGetV5TradeOrderOpens returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5TradeOrderOpens(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5TradeOrderOpens", args...)
 }
 
+// ContractPrivateGetV5TradeOrderDetails returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5TradeOrderDetails(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5TradeOrderDetails", args...)
 }
 
+// ContractPrivateGetV5TradeOrderHistory returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5TradeOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5TradeOrderHistory", args...)
 }
 
+// ContractPrivateGetV5TradeOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5TradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5TradeOrder", args...)
 }
 
+// ContractPrivateGetV5PositionLever returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5PositionLever(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5PositionLever", args...)
 }
 
+// ContractPrivateGetV5PositionMode returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5PositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5PositionMode", args...)
 }
 
+// ContractPrivateGetV5PositionRiskLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5PositionRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5PositionRiskLimit", args...)
 }
 
+// ContractPrivateGetV5PositionRiskLimitTier returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5PositionRiskLimitTier(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5PositionRiskLimitTier", args...)
 }
 
+// ContractPrivateGetV5MarketRiskLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5MarketRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5MarketRiskLimit", args...)
 }
 
+// ContractPrivateGetV5MarketAssetsDeductionCurrency returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5MarketAssetsDeductionCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5MarketAssetsDeductionCurrency", args...)
 }
 
+// ContractPrivateGetV5MarketMultiAssetsMargin returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5MarketMultiAssetsMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5MarketMultiAssetsMargin", args...)
 }
 
+// ContractPrivateGetV5AlgoOrderOpens returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AlgoOrderOpens(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AlgoOrderOpens", args...)
 }
 
+// ContractPrivateGetV5AlgoOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AlgoOrder", args...)
 }
 
+// ContractPrivateGetV5AlgoOrderHistory returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AlgoOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AlgoOrderHistory", args...)
 }
 
+// ContractPrivatePostApiV1ContractBalanceValuation returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractBalanceValuation(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractBalanceValuation", args...)
 }
 
+// ContractPrivatePostApiV1ContractAccountInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountInfo", args...)
 }
 
+// ContractPrivatePostApiV1ContractPositionInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractPositionInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionInfo", args...)
 }
 
+// ContractPrivatePostApiV1ContractSubAuth returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractSubAuth(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAuth", args...)
 }
 
+// ContractPrivatePostApiV1ContractSubAccountList returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractSubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountList", args...)
 }
 
+// ContractPrivatePostApiV1ContractSubAccountInfoList returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractSubAccountInfoList(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfoList", args...)
 }
 
+// ContractPrivatePostApiV1ContractSubAccountInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractSubAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubAccountInfo", args...)
 }
 
+// ContractPrivatePostApiV1ContractSubPositionInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractSubPositionInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractSubPositionInfo", args...)
 }
 
+// ContractPrivatePostApiV1ContractFinancialRecord returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractFinancialRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecord", args...)
 }
 
+// ContractPrivatePostApiV1ContractFinancialRecordExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractFinancialRecordExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractFinancialRecordExact", args...)
 }
 
+// ContractPrivatePostApiV1ContractUserSettlementRecords returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractUserSettlementRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractUserSettlementRecords", args...)
 }
 
+// ContractPrivatePostApiV1ContractOrderLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractOrderLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderLimit", args...)
 }
 
+// ContractPrivatePostApiV1ContractFee returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractFee(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractFee", args...)
 }
 
+// ContractPrivatePostApiV1ContractTransferLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTransferLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTransferLimit", args...)
 }
 
+// ContractPrivatePostApiV1ContractPositionLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractPositionLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractPositionLimit", args...)
 }
 
+// ContractPrivatePostApiV1ContractAccountPositionInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractAccountPositionInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractAccountPositionInfo", args...)
 }
 
+// ContractPrivatePostApiV1ContractMasterSubTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractMasterSubTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransfer", args...)
 }
 
+// ContractPrivatePostApiV1ContractMasterSubTransferRecord returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractMasterSubTransferRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractMasterSubTransferRecord", args...)
 }
 
+// ContractPrivatePostApiV1ContractAvailableLevelRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractAvailableLevelRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractAvailableLevelRate", args...)
 }
 
+// ContractPrivatePostApiV3ContractFinancialRecord returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV3ContractFinancialRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecord", args...)
 }
 
+// ContractPrivatePostApiV3ContractFinancialRecordExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV3ContractFinancialRecordExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV3ContractFinancialRecordExact", args...)
 }
 
+// ContractPrivatePostApiV1ContractCancelAfter returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractCancelAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelAfter", args...)
 }
 
+// ContractPrivatePostApiV1ContractOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrder", args...)
 }
 
+// ContractPrivatePostApiV1ContractBatchorder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractBatchorder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractBatchorder", args...)
 }
 
+// ContractPrivatePostApiV1ContractCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancel", args...)
 }
 
+// ContractPrivatePostApiV1ContractCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractCancelall", args...)
 }
 
+// ContractPrivatePostApiV1ContractSwitchLeverRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractSwitchLeverRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractSwitchLeverRate", args...)
 }
 
+// ContractPrivatePostApiV1LightningClosePosition returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1LightningClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1LightningClosePosition", args...)
 }
 
+// ContractPrivatePostApiV1ContractOrderInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractOrderInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderInfo", args...)
 }
 
+// ContractPrivatePostApiV1ContractOrderDetail returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractOrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractOrderDetail", args...)
 }
 
+// ContractPrivatePostApiV1ContractOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractOpenorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractHisorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractHisordersExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractHisordersExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractHisordersExact", args...)
 }
 
+// ContractPrivatePostApiV1ContractMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresults", args...)
 }
 
+// ContractPrivatePostApiV1ContractMatchresultsExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractMatchresultsExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractMatchresultsExact", args...)
 }
 
+// ContractPrivatePostApiV3ContractHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV3ContractHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV3ContractHisorders", args...)
 }
 
+// ContractPrivatePostApiV3ContractHisordersExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV3ContractHisordersExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV3ContractHisordersExact", args...)
 }
 
+// ContractPrivatePostApiV3ContractMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV3ContractMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresults", args...)
 }
 
+// ContractPrivatePostApiV3ContractMatchresultsExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV3ContractMatchresultsExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV3ContractMatchresultsExact", args...)
 }
 
+// ContractPrivatePostApiV1ContractTriggerOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTriggerOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOrder", args...)
 }
 
+// ContractPrivatePostApiV1ContractTriggerCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTriggerCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancel", args...)
 }
 
+// ContractPrivatePostApiV1ContractTriggerCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTriggerCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerCancelall", args...)
 }
 
+// ContractPrivatePostApiV1ContractTriggerOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTriggerOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerOpenorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractTriggerHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTriggerHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTriggerHisorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractTpslOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTpslOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOrder", args...)
 }
 
+// ContractPrivatePostApiV1ContractTpslCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTpslCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancel", args...)
 }
 
+// ContractPrivatePostApiV1ContractTpslCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTpslCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslCancelall", args...)
 }
 
+// ContractPrivatePostApiV1ContractTpslOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTpslOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslOpenorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractTpslHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTpslHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTpslHisorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractRelationTpslOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractRelationTpslOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractRelationTpslOrder", args...)
 }
 
+// ContractPrivatePostApiV1ContractTrackOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTrackOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOrder", args...)
 }
 
+// ContractPrivatePostApiV1ContractTrackCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTrackCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancel", args...)
 }
 
+// ContractPrivatePostApiV1ContractTrackCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTrackCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackCancelall", args...)
 }
 
+// ContractPrivatePostApiV1ContractTrackOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTrackOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackOpenorders", args...)
 }
 
+// ContractPrivatePostApiV1ContractTrackHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostApiV1ContractTrackHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostApiV1ContractTrackHisorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapBalanceValuation returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapBalanceValuation(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBalanceValuation", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapAccountInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountInfo", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapPositionInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapPositionInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionInfo", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapAccountPositionInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapAccountPositionInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAccountPositionInfo", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapSubAuth returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapSubAuth(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAuth", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapSubAccountList returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapSubAccountList(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountList", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapSubAccountInfoList returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapSubAccountInfoList(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfoList", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapSubAccountInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapSubAccountInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubAccountInfo", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapSubPositionInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapSubPositionInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSubPositionInfo", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapFinancialRecord returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapFinancialRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecord", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapFinancialRecordExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapFinancialRecordExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFinancialRecordExact", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapUserSettlementRecords returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapUserSettlementRecords(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapUserSettlementRecords", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapAvailableLevelRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapAvailableLevelRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapAvailableLevelRate", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapOrderLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapOrderLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderLimit", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapFee returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapFee(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapFee", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTransferLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTransferLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTransferLimit", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapPositionLimit returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapPositionLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapPositionLimit", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapMasterSubTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapMasterSubTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransfer", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapMasterSubTransferRecord returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapMasterSubTransferRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMasterSubTransferRecord", args...)
 }
 
+// ContractPrivatePostSwapApiV3SwapFinancialRecord returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV3SwapFinancialRecord(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecord", args...)
 }
 
+// ContractPrivatePostSwapApiV3SwapFinancialRecordExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV3SwapFinancialRecordExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapFinancialRecordExact", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapCancelAfter returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapCancelAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelAfter", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrder", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapBatchorder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapBatchorder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapBatchorder", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancel", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapCancelall", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapLightningClosePosition returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapLightningClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapLightningClosePosition", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapSwitchLeverRate returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapSwitchLeverRate(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapSwitchLeverRate", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapOrderInfo returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapOrderInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderInfo", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapOrderDetail returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapOrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOrderDetail", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapOpenorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapHisordersExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapHisordersExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapHisordersExact", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresults", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapMatchresultsExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapMatchresultsExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapMatchresultsExact", args...)
 }
 
+// ContractPrivatePostSwapApiV3SwapMatchresults returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV3SwapMatchresults(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresults", args...)
 }
 
+// ContractPrivatePostSwapApiV3SwapMatchresultsExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV3SwapMatchresultsExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapMatchresultsExact", args...)
 }
 
+// ContractPrivatePostSwapApiV3SwapHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV3SwapHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisorders", args...)
 }
 
+// ContractPrivatePostSwapApiV3SwapHisordersExact returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV3SwapHisordersExact(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV3SwapHisordersExact", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTriggerOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTriggerOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOrder", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTriggerCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTriggerCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancel", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTriggerCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTriggerCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerCancelall", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTriggerOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTriggerOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerOpenorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTriggerHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTriggerHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTriggerHisorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTpslOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTpslOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOrder", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTpslCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTpslCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancel", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTpslCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTpslCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslCancelall", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTpslOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTpslOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslOpenorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTpslHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTpslHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTpslHisorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapRelationTpslOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapRelationTpslOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapRelationTpslOrder", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTrackOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOrder", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTrackCancel returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancel", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTrackCancelall returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackCancelall(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackCancelall", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTrackOpenorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackOpenorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackOpenorders", args...)
 }
 
+// ContractPrivatePostSwapApiV1SwapTrackHisorders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostSwapApiV1SwapTrackHisorders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostSwapApiV1SwapTrackHisorders", args...)
 }
 
+// ContractPrivatePostV5AccountAssetMode returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5AccountAssetMode(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5AccountAssetMode", args...)
 }
 
+// ContractPrivatePostV5TradeOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradeOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradeOrder", args...)
 }
 
+// ContractPrivatePostV5TradeBatchOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradeBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradeBatchOrders", args...)
 }
 
+// ContractPrivatePostV5TradeCancelOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradeCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradeCancelOrder", args...)
 }
 
+// ContractPrivatePostV5TradeCancelBatchOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradeCancelBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradeCancelBatchOrders", args...)
 }
 
+// ContractPrivatePostV5TradeCancelAllOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradeCancelAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradeCancelAllOrders", args...)
 }
 
+// ContractPrivatePostV5TradeCancelAfter returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradeCancelAfter(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradeCancelAfter", args...)
 }
 
+// ContractPrivatePostV5TradePosition returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradePosition", args...)
 }
 
+// ContractPrivatePostV5TradePositionAll returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5TradePositionAll(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5TradePositionAll", args...)
 }
 
+// ContractPrivatePostV5PositionLever returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5PositionLever(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5PositionLever", args...)
 }
 
+// ContractPrivatePostV5PositionMode returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5PositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5PositionMode", args...)
 }
 
+// ContractPrivatePostV5PositionMargin returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5PositionMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5PositionMargin", args...)
 }
 
+// ContractPrivatePostV5AccountFeeDeductionCurrency returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5AccountFeeDeductionCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5AccountFeeDeductionCurrency", args...)
 }
 
+// ContractPrivatePostV5AlgoOrder returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5AlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5AlgoOrder", args...)
 }
 
+// ContractPrivatePostV5AlgoCancelOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5AlgoCancelOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5AlgoCancelOrders", args...)
 }

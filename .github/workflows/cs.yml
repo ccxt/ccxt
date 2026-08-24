@@ -1,4 +1,8 @@
 name: C#
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
 
 on:
   workflow_dispatch:
@@ -8,46 +12,53 @@ on:
     branches: [ main, master ]
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, csharp ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    timeout-minutes: 30
     steps:
-    - uses: actions/checkout@v4
+    - name: Generate App token
       if: github.ref == 'refs/heads/master'
+      id: app-token
+      uses: actions/create-github-app-token@v3
       with:
-        token: ${{ secrets.GH_TOKEN }}
-        fetch-depth: 2
-    - uses: actions/checkout@v4
-      if: github.ref != 'refs/heads/master'
+        client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+        private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+        permission-contents: write
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 2
+        clean: false
+        token: ${{ github.ref == 'refs/heads/master' && steps.app-token.outputs.token || github.token }}
     - name: Skip Automated Push Commits
       id: check_commit
       run: |
-        if [[ "${{ github.event.head_commit.message }}" == *"[Automated changes]"* ]]; then
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
           echo "This commit was made by the action. Skipping."
           exit 0
         fi
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9.0.x'
-        dotnet-quality: 'preview'
-    - uses: actions/setup-node@v4
+        dotnet-version: '10.0.302'
+    - uses: actions/setup-node@v5
       with:
-        node-version: '20'
-        cache: 'npm'
+        node-version: '22'
     - name: Install npm dependencies
       run: npm ci --include=dev
     - name: Determine modified files
-      run: ./utils/init_actions.sh
+      run: ./build/utils/init_actions.sh
     - name: Pre-transpile (export exchanges and emit API)
       run: npm run pre-transpile-cs
     - name: Transpile to C#
       if: env.important_modified == 'true'
-      run: npm run transpileCS && npm run transpileCSWs
+      run: npm run force-transpileCS
     - name: Transpile to C# (specific)
       if: env.important_modified == 'false'
       run: |
@@ -59,6 +70,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileCsSingle -- --ws $exchange
         done
+    - name: Transpile prediction to C#
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-cs
     - name: Build Project
       run: npm run buildCS
     # - name: Run request lighter tests multiple times
@@ -96,16 +110,22 @@ jobs:
         for exchange in $cleaned_rest_files; do
           npm run response-cs -- $exchange
         done
-    - name: Diagnostics (always) response tests
-      if: always()
-      shell: bash
+    - name: Ws Static tests
+      if: env.important_modified == 'true'
+      run: npm run ws-tests-cs
+    - name: Ws Static tests (specific)
+      if: env.important_modified == 'false'
       run: |
-        set +e
-        echo "=== free -h ==="; free -h
-        echo "=== df -h ==="; df -h
-        echo "=== ulimit -a ==="; ulimit -a
-        echo "=== dmesg OOM/killed ==="
-        sudo dmesg -T | tail -n 300 | grep -i -E "oom|killed process|out of memory" || true
+        cleaned_rest_files=$(echo ${{ env.rest_files }} | tr -s ' ')
+        for exchange in $cleaned_rest_files; do
+          npm run ws-tests-cs -- $exchange
+        done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-cs-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-cs-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
@@ -116,46 +136,88 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: cs-files
-        path: cs/
-    - name: Push C# changes to master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        path: |
+          cs/
+          !cs/**/bin
+          !cs/**/bin/**
+          !cs/**/obj
+          !cs/**/obj/**
+    - name: Get App bot user ID
       if: github.ref == 'refs/heads/master'
+      id: app-user
+      env:
+        GH_TOKEN: ${{ steps.app-token.outputs.token }}
       run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout HEAD README.md wiki  # only JS does wiki pushback
-          git pull origin master
-          git add cs/
-          git commit -m "[Automated changes] C# files" || echo "No changes to commit."
-          git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git config --global pull.rebase false
-          git pull --rebase --autostash origin master
-          git push
+        id=$(curl -fsSL -H "Authorization: Bearer ${GH_TOKEN}" \
+          "https://api.github.com/users/${{ steps.app-token.outputs.app-slug }}%5Bbot%5D" \
+          | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).id")
+        echo "id=${id}" >> "$GITHUB_OUTPUT"
+
+    - name: Push C# changes to master
+      if: github.ref == 'refs/heads/master' && github.actor != 'ccxt-release[bot]'
+      env:
+        APP_TOKEN: ${{ steps.app-token.outputs.token }}
+      run: |
+        git config user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
+        git config user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
+
+        git remote set-url origin \
+          "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+
+        git checkout HEAD README.md wiki  # only JS does wiki pushback
+
+        git add cs/
+
+        if git diff --cached --quiet; then
+          echo "No changes to commit."
+          exit 0
+        fi
+
+        git commit -m "[Automated changes] C# files"
+
+        for attempt in 1 2 3 4 5; do
+          git fetch origin master
+          git rebase --autostash origin/master
+          if git push origin HEAD:master; then
+            echo "pushed on attempt ${attempt}"
+            exit 0
+          fi
+          echo "master moved, retrying (${attempt})..."
+          sleep $(( (RANDOM % 5) + 2 ))
+        done
+        echo "push failed after 5 attempts"
+        exit 1
 
   live-tests:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+        with:
+          clean: false
       - name: Download shared_env
         uses: actions/download-artifact@v4
         with:
           name: shared_env
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9.0.x'
-          dotnet-quality: 'preview'
+          dotnet-version: '10.0.x'
       - name: Download CS Files
         uses: actions/download-artifact@v4
         with:
           name: cs-files
           path: cs/
+      - name: Clean cs intermediates
+        # the artifact must never carry compiled state from the self-hosted build runner:
+        # a foreign obj/ makes msbuild on this runner skip rebuilding the ccxt project
+        # reference and the tests compile dies with CS0006 (missing ccxt.dll), which has
+        # been failing every exchange in this lane
+        run: rm -rf cs/**/bin cs/**/obj cs/tests/bin cs/tests/obj cs/ccxt/bin cs/ccxt/obj
       - name: Restore shared_env
-        run: ./utils/restore_shared_env.sh
-      - uses: actions/setup-node@v4
+        run: ./build/utils/restore_shared_env.sh
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
       - name: Install npm dependencies
         run: npm ci --include=dev

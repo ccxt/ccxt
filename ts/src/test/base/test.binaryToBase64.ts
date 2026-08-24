@@ -2,7 +2,7 @@
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
-function helperStrToBinary (exchange, str: string) {
+function helperStrToBinary (exchange: any, str: string) {
     return exchange.base64ToBinary (exchange.stringToBase64 (str));
 }
 

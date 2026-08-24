@@ -44,3 +44,5 @@
 
 - [WatchTrades](examples/java/WatchTrades.md)
 
+- [PolymarketEndToEnd](examples/java/PolymarketEndToEnd.md)
+

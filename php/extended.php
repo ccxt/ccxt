@@ -174,69 +174,69 @@ class extended extends Exchange {
                 'v1' => array(
                     'public' => array(
                         'get' => array(
-                            'info/markets',
-                            'info/assets',
-                            'info/assets/{asset}/price',
-                            'info/markets/{market}/stats',
-                            'info/markets/{market}/orderbook',
-                            'info/markets/{market}/trades',
-                            'info/candles/{market}/{candleType}',
-                            'info/{market}/funding',
-                            'info/{market}/open-interests',
-                            'info/builder/dashboard',
+                            'info/markets' => array( 'cost' => 1 ),
+                            'info/assets' => array( 'cost' => 1 ),
+                            'info/assets/{asset}/price' => array( 'cost' => 1 ),
+                            'info/markets/{market}/stats' => array( 'cost' => 1 ),
+                            'info/markets/{market}/orderbook' => array( 'cost' => 1 ),
+                            'info/markets/{market}/trades' => array( 'cost' => 1 ),
+                            'info/candles/{market}/{candleType}' => array( 'cost' => 1 ),
+                            'info/{market}/funding' => array( 'cost' => 1 ),
+                            'info/{market}/open-interests' => array( 'cost' => 1 ),
+                            'info/builder/dashboard' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
                         'get' => array(
-                            'user/accounts',
-                            'user/account/info',
-                            'user/balance',
-                            'user/spot/balances',
-                            'user/assetOperations',
-                            'user/positions',
-                            'user/positions/history',
-                            'user/orders',
-                            'user/orders/history',
-                            'user/orders/{id}',
-                            'user/orders/external/{externalId}',
-                            'user/trades',
-                            'user/funding/history',
-                            'user/rebates/stats',
-                            'user/leverage',
-                            'user/fees',
-                            'user/bridge/config',
-                            'user/bridge/quote',
-                            'user/affiliate',
-                            'user/referrals/status',
-                            'user/referrals/links',
-                            'user/referrals/dashboard',
-                            'user/rewards/earned',
-                            'user/rewards/leaderboard/stats',
-                            'portfolio/charts/equities',
-                            'portfolio/charts/pnl',
-                            'vault/public/performance',
-                            'vault/public/summary',
-                            'builder/trades',
+                            'user/accounts' => array( 'cost' => 1 ),
+                            'user/account/info' => array( 'cost' => 1 ),
+                            'user/balance' => array( 'cost' => 1 ),
+                            'user/spot/balances' => array( 'cost' => 1 ),
+                            'user/assetOperations' => array( 'cost' => 1 ),
+                            'user/positions' => array( 'cost' => 1 ),
+                            'user/positions/history' => array( 'cost' => 1 ),
+                            'user/orders' => array( 'cost' => 1 ),
+                            'user/orders/history' => array( 'cost' => 1 ),
+                            'user/orders/{id}' => array( 'cost' => 1 ),
+                            'user/orders/external/{externalId}' => array( 'cost' => 1 ),
+                            'user/trades' => array( 'cost' => 1 ),
+                            'user/funding/history' => array( 'cost' => 1 ),
+                            'user/rebates/stats' => array( 'cost' => 1 ),
+                            'user/leverage' => array( 'cost' => 1 ),
+                            'user/fees' => array( 'cost' => 1 ),
+                            'user/bridge/config' => array( 'cost' => 1 ),
+                            'user/bridge/quote' => array( 'cost' => 1 ),
+                            'user/affiliate' => array( 'cost' => 1 ),
+                            'user/referrals/status' => array( 'cost' => 1 ),
+                            'user/referrals/links' => array( 'cost' => 1 ),
+                            'user/referrals/dashboard' => array( 'cost' => 1 ),
+                            'user/rewards/earned' => array( 'cost' => 1 ),
+                            'user/rewards/leaderboard/stats' => array( 'cost' => 1 ),
+                            'portfolio/charts/equities' => array( 'cost' => 1 ),
+                            'portfolio/charts/pnl' => array( 'cost' => 1 ),
+                            'vault/public/performance' => array( 'cost' => 1 ),
+                            'vault/public/summary' => array( 'cost' => 1 ),
+                            'builder/trades' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'user/order',
-                            'user/order/massCancel',
-                            'user/deadmanswitch',
-                            'user/bridge/quote',
-                            'user/withdrawal',
-                            'user/transfer',
-                            'user/referrals/use',
-                            'user/referrals',
+                            'user/order' => array( 'cost' => 1 ),
+                            'user/order/massCancel' => array( 'cost' => 1 ),
+                            'user/deadmanswitch' => array( 'cost' => 1 ),
+                            'user/bridge/quote' => array( 'cost' => 1 ),
+                            'user/withdrawal' => array( 'cost' => 1 ),
+                            'user/transfer' => array( 'cost' => 1 ),
+                            'user/referrals/use' => array( 'cost' => 1 ),
+                            'user/referrals' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
-                            'user/referrals',
+                            'user/referrals' => array( 'cost' => 1 ),
                         ),
                         'patch' => array(
-                            'user/leverage',
+                            'user/leverage' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
-                            'user/order/{id}',
-                            'user/order',
+                            'user/order/{id}' => array( 'cost' => 1 ),
+                            'user/order' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -337,7 +337,7 @@ class extended extends Exchange {
         return $markets;
     }
 
-    public function index_by_stringified_numeric_id($input) {
+    public function index_by_stringified_numeric_id(mixed $input) {
         $result = array();
         if ($input === null) {
             return null;
@@ -804,7 +804,7 @@ class extended extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(mixed $ticker, ?array $market = null): array {
         //
         //     {
         //       "dailyVolume" => "231216165.666600",
@@ -877,7 +877,7 @@ class extended extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1094,7 +1094,7 @@ class extended extends Exchange {
         return $this->parse_funding_histories($result, $market, $since, $limit);
     }
 
-    public function parse_funding_history($history, ?array $market = null) {
+    public function parse_funding_history(mixed $history, ?array $market = null) {
         //
         //     {
         //         "id" => 8341,
@@ -1125,7 +1125,7 @@ class extended extends Exchange {
         );
     }
 
-    public function parse_funding_histories($histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories(mixed $histories, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($histories); $i++) {
             $result[] = $this->parse_funding_history($histories[$i], $market);
@@ -1134,7 +1134,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(mixed $trade, ?array $market = null): array {
         //
         // fetchTrades
         //
@@ -1260,7 +1260,7 @@ class extended extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         //     {
         //       "o" => "75657.5",
@@ -1356,7 +1356,7 @@ class extended extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
-    public function parse_funding_rate_history($info, ?array $market = null) {
+    public function parse_funding_rate_history(mixed $info, ?array $market = null) {
         //
         //     {
         //       "m" => "BTC-USD",
@@ -1429,7 +1429,7 @@ class extended extends Exchange {
         return $this->parse_open_interests_history($data, $market, $since, $limit);
     }
 
-    public function parse_open_interest($interest, ?array $market = null) {
+    public function parse_open_interest(mixed $interest, ?array $market = null) {
         //
         //     {
         //       "i" => "112620590.6060360000000000",
@@ -1494,7 +1494,7 @@ class extended extends Exchange {
         return $this->parse_balance($data);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $this->safe_dict($response, $i, array());
@@ -1503,7 +1503,9 @@ class extended extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string($balance, 'availableToWithdraw');
             $account['total'] = $this->safe_string($balance, 'balance');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         return $this->safe_balance($result);
     }
@@ -2167,7 +2169,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2216,7 +2218,7 @@ class extended extends Exchange {
         //     }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_leverage($this->safe_dict($data, 0), $market);
+        return $this->parse_leverage($this->safe_dict($data, 0, array()), $market);
     }
 
     public function set_leverage(int $leverage, ?string $symbol = null, $params = array()): array {
@@ -2250,7 +2252,7 @@ class extended extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, ?array $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         //
         //     {
         //         "market" => "BTC-USD",
@@ -2404,7 +2406,7 @@ class extended extends Exchange {
         return $this->filter_by_since_limit($positions, $since, $limit, 'timestamp');
     }
 
-    public function parse_position($position, ?array $market = null): array {
+    public function parse_position(mixed $position, ?array $market = null): array {
         //
         //     {
         //         "id" => 1,
@@ -2469,7 +2471,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function get_extended_stark_amount(string $amount, $resolution, $roundUp = false): string {
+    public function get_extended_stark_amount(string $amount, mixed $resolution, $roundUp = false): string {
         $resolutionString = $this->number_to_string($resolution);
         $precise = Precise::string_mul($amount, $resolutionString);
         $result = $this->decimal_to_precision($precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
@@ -2597,7 +2599,13 @@ class extended extends Exchange {
         return $settlement;
     }
 
-    public function create_extended_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
+    public function create_extended_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         $this->load_markets();
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
@@ -3049,7 +3057,7 @@ class extended extends Exchange {
         return array();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()): array {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
@@ -3063,7 +3071,11 @@ class extended extends Exchange {
         $request = array(
             'countdownTime' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
-        return $this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params));
+        $response = $this->v1PrivatePostUserDeadmanswitch($this->extend($request, $params));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return array( 'info' => $response );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3286,7 +3298,7 @@ class extended extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "id" => 1784963886257016832,
@@ -3377,7 +3389,7 @@ class extended extends Exchange {
         return $this->convert_to_big_int($this->string_to_base16($value));
     }
 
-    public function get_extended_encode_i64($value) {
+    public function get_extended_encode_i64(mixed $value) {
         // Cairo $prime offset for i64 negative encoding.
         $prime = '3618502788666131213697322783095070105623107215331596699973092056135872020481';
         $valueString = $this->number_to_string($value);
@@ -3387,7 +3399,7 @@ class extended extends Exchange {
         return $value;
     }
 
-    public function get_extended_decimal_to_base16($value) {
+    public function get_extended_decimal_to_base16(mixed $value) {
         $decimalString = '';
         if (gettype($value) === 'string') {
             $decimalString = $value;
@@ -3407,7 +3419,7 @@ class extended extends Exchange {
         return $result;
     }
 
-    public function get_extended_signature_hex($signature) {
+    public function get_extended_signature_hex(mixed $signature) {
         if (gettype($signature) === 'string') {
             if (mb_strpos($signature, '0x') === 0) {
                 return $signature;
@@ -3521,7 +3533,7 @@ class extended extends Exchange {
         ));
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }
@@ -3540,7 +3552,7 @@ class extended extends Exchange {
         return null;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $version = $this->safe_string($api, 0);
         $accessibility = $this->safe_string($api, 1);
         $endpoint = '/' . $this->implode_params($path, $params);

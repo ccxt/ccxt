@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <LangVersion>10.0</LangVersion>
     <OutputType>Library</OutputType>
     <RootNamespace>ccxt</RootNamespace>
@@ -10,9 +11,9 @@
   <PropertyGroup>
     <PackageId>ccxt</PackageId>
     <Authors>Carlos, Kroitor, Carlo</Authors>
-    <PackageVersion>4.5.65</PackageVersion>
-    <AssemblyVersion>4.5.65</AssemblyVersion>
-    <FileVersion>4.5.65</FileVersion>
+    <PackageVersion>4.5.75</PackageVersion>
+    <AssemblyVersion>4.5.75</AssemblyVersion>
+    <FileVersion>4.5.75</FileVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <Description>Cryptocurrency trading API with support for more than 100 bitcoin/altcoin exchanges</Description>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
@@ -20,7 +21,7 @@
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/ccxt/ccxt</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ccxt/ccxt</PackageProjectUrl>
-    <PackageIcon>ccxt4.png</PackageIcon>
+    <PackageIcon>ccxt5.png</PackageIcon>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <NeutralLanguage>en</NeutralLanguage>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -32,7 +33,15 @@
     <PackageReference Include="Newtonsoft.Json" Version="*" />
           </ItemGroup>
   <ItemGroup>
-    <None Include="img/ccxt4.png" Pack="true" PackagePath="" />
+    <!-- the vendored projects under static/ ship their own csproj; when an IDE restore or a
+         direct build populates their obj/ dirs, the SDK default glob would pick up the
+         generated AssemblyInfo.cs files and fail the build with duplicate-attribute CS0579
+         errors — exclude their build output from this project's compilation explicitly -->
+    <Compile Remove="static/**/obj/**;static/**/bin/**" />
+    <None Remove="static/**/obj/**;static/**/bin/**" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img/ccxt5.png" Pack="true" PackagePath="" />
     <None Include="../../README.md" Pack="true" PackagePath="" />
 </ItemGroup>
 <ItemGroup>

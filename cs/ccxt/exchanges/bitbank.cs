@@ -66,6 +66,7 @@ public partial class bitbank : Exchange
                 { "fetchMarginMode", false },
                 { "fetchMarginModes", false },
                 { "fetchMarketLeverageTiers", false },
+                { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMarkPrices", false },
                 { "fetchMyLiquidations", false },
@@ -133,44 +134,100 @@ public partial class bitbank : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "{pair}/ticker", 1 },
-                        { "tickers", 1 },
-                        { "tickers_jpy", 1 },
-                        { "{pair}/depth", 1 },
-                        { "{pair}/transactions", 1 },
-                        { "{pair}/transactions/{yyyymmdd}", 1 },
-                        { "{pair}/candlestick/{candletype}/{yyyymmdd}", 1 },
-                        { "{pair}/circuit_break_info", 1 },
+                        { "{pair}/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers_jpy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/transactions/{yyyymmdd}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/candlestick/{candletype}/{yyyymmdd}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{pair}/circuit_break_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "user/assets", 1 },
-                        { "user/spot/order", 1 },
-                        { "user/spot/active_orders", 1 },
-                        { "user/margin/positions", 1 },
-                        { "user/spot/trade_history", 1 },
-                        { "user/deposit_history", 1 },
-                        { "user/unconfirmed_deposits", 1 },
-                        { "user/deposit_originators", 1 },
-                        { "user/withdrawal_account", 1 },
-                        { "user/withdrawal_history", 1 },
-                        { "spot/status", 1 },
-                        { "spot/pairs", 1 },
+                        { "user/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/spot/active_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/margin/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/spot/trade_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/deposit_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/unconfirmed_deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/deposit_originators", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawal_account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawal_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "user/spot/order", 1.66 },
-                        { "user/spot/cancel_order", 1.66 },
-                        { "user/spot/cancel_orders", 1.66 },
-                        { "user/spot/orders_info", 1.66 },
-                        { "user/confirm_deposits", 1.66 },
-                        { "user/confirm_deposits_all", 1.66 },
-                        { "user/request_withdrawal", 1.66 },
+                        { "user/spot/order", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/spot/cancel_order", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/spot/cancel_orders", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/spot/orders_info", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/confirm_deposits", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/confirm_deposits_all", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
+                        { "user/request_withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1.66 },
+                        } },
                     } },
                 } },
                 { "markets", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "spot/pairs", 1 },
+                        { "spot/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -309,7 +366,7 @@ public partial class bitbank : Exchange
         object quoteId = this.safeString(entry, "quote_asset");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        return new Dictionary<string, object>() {
+        return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
             { "base", bs },
@@ -359,7 +416,7 @@ public partial class bitbank : Exchange
             } },
             { "created", null },
             { "info", entry },
-        };
+        });
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -424,7 +481,7 @@ public partial class bitbank : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -678,7 +735,10 @@ public partial class bitbank : Exchange
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free_amount");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked_amount");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "onhand_amount");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -839,7 +899,7 @@ public partial class bitbank : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
             { "pair", getValue(market, "id") },
@@ -889,7 +949,7 @@ public partial class bitbank : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "order_id", id },
             { "pair", getValue(market, "id") },
@@ -939,7 +999,7 @@ public partial class bitbank : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
@@ -1150,8 +1210,23 @@ public partial class bitbank : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
-            object auth = nonce;
+            // bitbank supports two auth methods, see https://github.com/bitbankinc/bitbank-api-docs/blob/master/rest-api.md#authorization
+            // 'timeWindow' (default): request time + validity window, stateless and safe for concurrent use of one key
+            // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
+            // since bitbank offers no server time endpoint to compensate against
+            object authMethod = this.safeString(this.options, "authMethod", "timeWindow");
+            bool isTimeWindow = (isEqual(authMethod, "timeWindow"));
+            string requestTime = ((object)this.milliseconds()).ToString();
+            object timeWindow = this.safeString(this.options, "timeWindow", "5000");
+            string nonce = ((object)this.nonce()).ToString();
+            object auth = null;
+            if (isTrue(isTimeWindow))
+            {
+                auth = add(requestTime, timeWindow);
+            } else
+            {
+                auth = nonce;
+            }
             url = add(url, add(add(this.version, "/"), this.implodeParams(path, parameters)));
             if (isTrue(isEqual(method, "POST")))
             {
@@ -1170,9 +1245,16 @@ public partial class bitbank : Exchange
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "ACCESS-KEY", this.apiKey },
-                { "ACCESS-NONCE", nonce },
                 { "ACCESS-SIGNATURE", this.hmac(this.encode(auth), this.encode(this.secret), sha256) },
             };
+            if (isTrue(isTimeWindow))
+            {
+                ((IDictionary<string,object>)headers)["ACCESS-REQUEST-TIME"] = requestTime;
+                ((IDictionary<string,object>)headers)["ACCESS-TIME-WINDOW"] = timeWindow;
+            } else
+            {
+                ((IDictionary<string,object>)headers)["ACCESS-NONCE"] = nonce;
+            }
         }
         return new Dictionary<string, object>() {
             { "url", url },
@@ -1255,7 +1337,7 @@ public partial class bitbank : Exchange
                 { "70010", "We are temporarily raising the minimum order quantity as the system load is now rising." },
             };
             object code = this.safeString(data, "code");
-            object message = this.safeString(errorMessages, ((string)code), "Error");
+            object message = this.safeString(errorMessages, code, "Error");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, message);
             throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
         }

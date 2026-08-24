@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class cryptocom extends cryptocomRest {
@@ -109,7 +109,7 @@ export default class cryptocom extends cryptocomRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
      * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -408,6 +408,9 @@ export default class cryptocom extends cryptocomRest {
         // }
         //
         const channel = this.safeString(message, 'channel');
+        if (channel === undefined) {
+            return;
+        }
         const marketId = this.safeString(message, 'instrument_name');
         const symbolSpecificMessageHash = this.safeString(message, 'subscription');
         const market = this.safeMarket(marketId);
@@ -590,7 +593,9 @@ export default class cryptocom extends cryptocomRest {
             const ticker = data[i];
             const parsed = this.parseWsTicker(ticker, market);
             const symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
+            if (symbol !== undefined) {
+                this.tickers[symbol] = parsed;
+            }
             client.resolve(parsed, messageHash);
         }
     }
@@ -684,7 +689,9 @@ export default class cryptocom extends cryptocomRest {
         const ticker = this.safeDict(data, 0, {});
         const parsedTicker = this.parseWsBidAsk(ticker);
         const symbol = parsedTicker['symbol'];
-        this.bidsasks[symbol] = parsedTicker;
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = parsedTicker;
+        }
         const messageHash = 'bidask.' + symbol;
         client.resolve(parsedTicker, messageHash);
     }
@@ -772,11 +779,13 @@ export default class cryptocom extends cryptocomRest {
         const interval = this.safeString(message, 'interval');
         const timeframe = this.findTimeframe(interval);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            if (symbol !== undefined && timeframe !== undefined) {
+                this.ohlcvs[symbol][timeframe] = stored;
+            }
         }
         const data = this.safeValue(message, 'data');
         for (let i = 0; i < data.length; i++) {
@@ -893,7 +902,10 @@ export default class cryptocom extends cryptocomRest {
         let messageHash = 'positions';
         symbols = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
-            messageHash = '::' + symbols.join(',');
+            if (symbols === undefined) {
+                throw new ArgumentsRequired(this.id + ' watchPositions() symbols is required');
+            }
+            messageHash = 'positions::' + symbols.join(',');
         }
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
@@ -929,7 +941,7 @@ export default class cryptocom extends cryptocomRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeNumber(position, 'contracts', 0);
-            if (contracts > 0) {
+            if ((contracts !== undefined) && (contracts > 0)) {
                 cache.append(position);
             }
         }
@@ -1063,7 +1075,9 @@ export default class cryptocom extends cryptocomRest {
             const account = this.account();
             account['total'] = this.safeString(balance, 'quantity');
             account['used'] = this.safeString(balance, 'reserved_qty');
-            this.balance[code] = account;
+            if (code !== undefined) {
+                this.balance[code] = account;
+            }
             this.balance = this.safeBalance(this.balance);
         }
         client.resolve(this.balance, messageHash);

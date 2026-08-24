@@ -878,6 +878,13 @@ private static Object[] adaptForVarArgs(Method m, Object[] args) {
         return Long.parseLong(String.valueOf(o));
     }
 
+    // Public primitive coercion used by the Java transpiler to make `for`-loop
+    // indices that start from an Object-typed local (e.g. a running offset
+    // reassigned from this.sum(...)) usable with `++`. Returns a primitive long.
+    public static long toInt64(Object o) {
+        return toLong(o);
+    }
+
     private static int toInt(Object o) {
         if (o instanceof Integer) return (Integer) o;
         if (o instanceof Long) return ((Long) o).intValue();

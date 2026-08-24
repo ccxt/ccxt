@@ -170,14 +170,173 @@ public partial class extended : Exchange
             { "api", new Dictionary<string, object>() {
                 { "v1", new Dictionary<string, object>() {
                     { "public", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"info/markets", "info/assets", "info/assets/{asset}/price", "info/markets/{market}/stats", "info/markets/{market}/orderbook", "info/markets/{market}/trades", "info/candles/{market}/{candleType}", "info/{market}/funding", "info/{market}/open-interests", "info/builder/dashboard"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "info/markets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/assets/{asset}/price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/markets/{market}/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/markets/{market}/orderbook", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/markets/{market}/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/candles/{market}/{candleType}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/{market}/funding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/{market}/open-interests", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "info/builder/dashboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
-                        { "get", new List<object>() {"user/accounts", "user/account/info", "user/balance", "user/spot/balances", "user/assetOperations", "user/positions", "user/positions/history", "user/orders", "user/orders/history", "user/orders/{id}", "user/orders/external/{externalId}", "user/trades", "user/funding/history", "user/rebates/stats", "user/leverage", "user/fees", "user/bridge/config", "user/bridge/quote", "user/affiliate", "user/referrals/status", "user/referrals/links", "user/referrals/dashboard", "user/rewards/earned", "user/rewards/leaderboard/stats", "portfolio/charts/equities", "portfolio/charts/pnl", "vault/public/performance", "vault/public/summary", "builder/trades"} },
-                        { "post", new List<object>() {"user/order", "user/order/massCancel", "user/deadmanswitch", "user/bridge/quote", "user/withdrawal", "user/transfer", "user/referrals/use", "user/referrals"} },
-                        { "put", new List<object>() {"user/referrals"} },
-                        { "patch", new List<object>() {"user/leverage"} },
-                        { "delete", new List<object>() {"user/order/{id}", "user/order"} },
+                        { "get", new Dictionary<string, object>() {
+                            { "user/accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/account/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/balance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/spot/balances", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/assetOperations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/positions/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/orders/external/{externalId}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/funding/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/rebates/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/leverage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/fees", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/bridge/config", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/bridge/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/affiliate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/links", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/dashboard", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/rewards/earned", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/rewards/leaderboard/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/equities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "vault/public/performance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "vault/public/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "builder/trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "user/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/order/massCancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/deadmanswitch", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/bridge/quote", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/withdrawal", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals/use", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/referrals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "put", new Dictionary<string, object>() {
+                            { "user/referrals", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
+                            { "user/leverage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "delete", new Dictionary<string, object>() {
+                            { "user/order/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
                     } },
                 } },
             } },
@@ -287,7 +446,7 @@ public partial class extended : Exchange
         {
             return null;
         }
-        object keys = new List<object>(((IDictionary<string,object>)input).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -478,7 +637,7 @@ public partial class extended : Exchange
             quote = "USDC";
         }
         object status = this.safeString(market, "status");
-        object active = (isEqual(status, "ACTIVE"));
+        bool active = (isEqual(status, "ACTIVE"));
         object amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange");
         object pricePrecision = this.safeNumber(tradingConfig, "minPriceChange");
         object maxLeverage = this.safeNumber(tradingConfig, "maxLeverage");
@@ -488,7 +647,7 @@ public partial class extended : Exchange
         object settleId = null;
         object settle = null;
         object symbol = add(add(bs, "/"), quote);
-        object isSpot = false;
+        bool isSpot = false;
         object type = this.safeStringLower(market, "type");
         object contractSize = null;
         object linear = null;
@@ -844,7 +1003,7 @@ public partial class extended : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -876,7 +1035,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object timestamp = this.milliseconds();
+        Int64 timestamp = this.milliseconds();
         object orderbook = this.parseOrderBook(data, getValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty");
         if (isTrue(!isEqual(limit, null)))
         {
@@ -992,7 +1151,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1075,7 +1234,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1355,7 +1514,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1532,7 +1691,10 @@ public partial class extended : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "availableToWithdraw");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1666,7 +1828,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1795,7 +1957,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -1898,7 +2060,7 @@ public partial class extended : Exchange
         //         "data": 1820796462590083072
         //     }
         //
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         return new Dictionary<string, object>() {
             { "info", response },
             { "id", this.safeString(response, "data") },
@@ -1964,7 +2126,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -2037,7 +2199,7 @@ public partial class extended : Exchange
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object validSignature = this.safeBool(data, "validSignature");
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object status = "pending";
         if (isTrue(!isEqual(validSignature, null)))
         {
@@ -2327,7 +2489,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        return this.parseLeverage(this.safeDict(data, 0), market);
+        return this.parseLeverage(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
     /**
@@ -2480,7 +2642,7 @@ public partial class extended : Exchange
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return await this.fetchPaginatedCallCursor("fetchPositionsHistory", ((object)symbols), since, limit, parameters, "cursor", "cursor", null, 10000);
+            return await this.fetchPaginatedCallCursor("fetchPositionsHistory", symbols, since, limit, parameters, "cursor", "cursor", null, 10000);
         }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -2519,7 +2681,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -2606,7 +2768,7 @@ public partial class extended : Exchange
         roundUp ??= false;
         object resolutionString = this.numberToString(resolution);
         object precise = Precise.stringMul(amount, resolutionString);
-        object result = this.decimalToPrecision(((string)precise), TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
+        object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (isTrue(isTrue(roundUp) && isTrue(Precise.stringGt(precise, result))))
         {
             result = ((string)Precise.stringAdd(result, "1"));
@@ -2677,7 +2839,7 @@ public partial class extended : Exchange
     public virtual object createWithdrawalSettlementData(object address, object amountString, object currency, object account, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(add(this.parseToInt(divide((add(now, 999)), 1000)), 1209600), 60));
         object nonce = this.safeInteger(parameters, "nonce", this.nonce());
         object positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
@@ -2713,7 +2875,7 @@ public partial class extended : Exchange
     public virtual object createTransferSettlementData(object amountString, object currency, object account, object toVault, object toL2Key, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(this.parseToInt(divide((add(now, 999)), 1000)), 1814400));
         object nonce = this.safeInteger(parameters, "nonce", this.nonce());
         object fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
@@ -2748,10 +2910,18 @@ public partial class extended : Exchange
     public async virtual Task<object> createExtendedOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object uppercaseType = ((string)type).ToUpper();
-        object uppercaseSide = ((string)((string)side)).ToUpper();
+        string uppercaseType = ((string)type).ToUpper();
+        string uppercaseSide = ((string)((string)side)).ToUpper();
         if (isTrue(isTrue(getValue(market, "spot")) && isTrue(!isEqual(uppercaseType, "LIMIT"))))
         {
             throw new BadRequest ((string)add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -2795,7 +2965,7 @@ public partial class extended : Exchange
         {
             totalFee = ((string)Precise.stringAdd(fee, builderFeeRate));
         }
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", add(now, 3600000));
         object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", add(this.parseToInt(divide((add(expiryEpochMillis, 999)), 1000)), 1209600));
         object nonce = this.numberToString(this.nonce());
@@ -2823,7 +2993,7 @@ public partial class extended : Exchange
             { "nonce", nonce },
             { "collateralPosition", collateralPosition },
         };
-        object isBuy = (isEqual(uppercaseSide, "BUY"));
+        bool isBuy = (isEqual(uppercaseSide, "BUY"));
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id", this.uuid());
         object request = new Dictionary<string, object>() {
             { "id", clientOrderId },
@@ -2865,12 +3035,12 @@ public partial class extended : Exchange
         object triggerPriceStr = this.safeString2(parameters, "triggerPrice", "stopPrice");
         object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
-        object isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
-        object isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
+        bool isStopLossOrder = !isEqual(stopLossTriggerPrice, null);
+        bool isTakeProfitOrder = !isEqual(takeProfitTriggerPrice, null);
         object stopLoss = this.safeDict(parameters, "stopLoss");
         object takeProfit = this.safeDict(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
         if (isTrue(isTrue(hasStopLoss) || isTrue(hasTakeProfit)))
         {
             ((IDictionary<string,object>)request)["tpSlType"] = "ORDER";
@@ -3098,7 +3268,7 @@ public partial class extended : Exchange
             { "postOnly", postOnly },
             { "reduceOnly", reduceOnly },
         }, parameters);
-        object requestParams = this.extend(parameters, new Dictionary<string, object>() {
+        Dictionary<string, object> requestParams = this.extend(parameters, new Dictionary<string, object>() {
             { "cancelId", cancelId },
             { "expiryEpochMillis", expiryEpochMillis },
         });
@@ -3201,10 +3371,10 @@ public partial class extended : Exchange
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "client_order_ids", "clientOrderId", "client_id", "externalOrderIds", "external_order_ids", "orderIds", "order_ids", "markets", "cancelAll", "cancel_all"});
         object request = new Dictionary<string, object>() {};
-        object hasOrderIds = !isEqual(ids, null);
+        bool hasOrderIds = !isEqual(ids, null);
         if (isTrue(hasOrderIds))
         {
-            object idsLength = getArrayLength(ids);
+            int idsLength = getArrayLength(ids);
             if (isTrue(isGreaterThan(idsLength, 0)))
             {
                 ((IDictionary<string,object>)request)["orderIds"] = ids;
@@ -3214,10 +3384,10 @@ public partial class extended : Exchange
         {
             clientOrderIds = new List<object>() {clientOrderId};
         }
-        object hasClientOrderIds = !isEqual(clientOrderIds, null);
+        bool hasClientOrderIds = !isEqual(clientOrderIds, null);
         if (isTrue(!isEqual(clientOrderIds, null)))
         {
-            object clientOrderIdsLength = getArrayLength(clientOrderIds);
+            int clientOrderIdsLength = getArrayLength(clientOrderIds);
             if (isTrue(isGreaterThan(clientOrderIdsLength, 0)))
             {
                 ((IDictionary<string,object>)request)["externalOrderIds"] = clientOrderIds;
@@ -3285,7 +3455,13 @@ public partial class extended : Exchange
         object request = new Dictionary<string, object>() {
             { "countdownTime", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
-        return await this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters));
+        object response = await this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters));
+        //
+        // the endpoint answers with an empty string body
+        //
+        return new Dictionary<string, object>() {
+            { "info", response },
+        };
     }
 
     /**
@@ -3462,7 +3638,7 @@ public partial class extended : Exchange
         object pagination = this.safeDict(response, "pagination", new Dictionary<string, object>() {});
         object cursor = this.safeString(pagination, "cursor");
         object result = new List<object>() {};
-        object dataLength = getArrayLength(data);
+        int dataLength = getArrayLength(data);
         for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -3629,7 +3805,7 @@ public partial class extended : Exchange
     public virtual object getExtendedEncodeI64(object value)
     {
         // Cairo prime offset for i64 negative encoding.
-        object prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
+        string prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
         object valueString = this.numberToString(value);
         if (isTrue(Precise.stringLt(valueString, "0")))
         {
@@ -3684,7 +3860,7 @@ public partial class extended : Exchange
     public virtual object getExtendedDomainHash()
     {
         object domainTypeHash = this.convertToBigInt(this.extendedStarknetGetSelectorFromName("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")"));
-        object isTestnet = isGreaterThanOrEqual(getIndexOf(getValue(getValue(this.urls, "api"), "rest"), "sepolia"), 0);
+        bool isTestnet = isGreaterThanOrEqual(getIndexOf(getValue(getValue(this.urls, "api"), "rest"), "sepolia"), 0);
         object defaultChainId = ((bool) isTrue(isTestnet)) ? "SN_SEPOLIA" : "SN_MAIN";
         object chainId = this.safeString(this.options, "chainId", defaultChainId);
         return this.convertToBigInt(this.extendedStarknetComputePoseidonHashOnElements(new List<object>() {domainTypeHash, this.getExtendedStringToFelt("Perpetuals"), this.getExtendedStringToFelt("v0"), this.getExtendedStringToFelt(chainId), this.convertToBigInt("1")}));
@@ -3760,7 +3936,7 @@ public partial class extended : Exchange
         object accessibility = this.safeString(api, 1);
         object endpoint = add("/", this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object queryPost = (isEqual(path, "user/deadmanswitch"));
+        bool queryPost = (isEqual(path, "user/deadmanswitch"));
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), "rest"));
         if (isTrue(isEqual(accessibility, "private")))
         {

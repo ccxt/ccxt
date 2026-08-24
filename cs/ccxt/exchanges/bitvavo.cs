@@ -157,68 +157,140 @@ public partial class bitvavo : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "{market}/book", 1 },
-                        { "report/{market}/book", 1 },
-                        { "{market}/trades", 5 },
-                        { "report/{market}/trades", 5 },
-                        { "ticker/price", 1 },
-                        { "ticker/book", 1 },
-                        { "{market}/candles", 1 },
+                        { "{market}/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "report/{market}/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{market}/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "report/{market}/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "ticker/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker/book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "{market}/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ticker/24h", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noMarket", 25 },
                         } },
-                        { "time", 1 },
-                        { "markets", 1 },
-                        { "assets", 1 },
+                        { "time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "ordersOpen", new Dictionary<string, object>() {
                             { "cost", 5 },
                             { "noMarket", 100 },
                         } },
-                        { "trades", 5 },
-                        { "orders", 5 },
-                        { "deposit", 1 },
-                        { "depositHistory", 5 },
-                        { "withdrawalHistory", 5 },
-                        { "account", 1 },
-                        { "balance", 5 },
-                        { "stakingBalance", 1 },
-                        { "account/fees", 1 },
-                        { "account/history", 1 },
-                        { "subaccounts", 5 },
-                        { "subaccounts/transfers", 5 },
-                        { "subaccounts/transfers/{transferId}", 5 },
-                        { "institutional/subaccounts/balance", 5 },
-                        { "institutional/subaccounts/history", 5 },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depositHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "withdrawalHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "balance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "stakingBalance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/fees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "subaccounts/transfers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "subaccounts/transfers/{transferId}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "institutional/subaccounts/balance", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "institutional/subaccounts/history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "institutional/subaccounts/orders/open", new Dictionary<string, object>() {
                             { "cost", 5 },
                             { "noMarket", 100 },
                         } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "order", 1 },
-                        { "cancelOrdersAfter", 5 },
-                        { "withdrawal", 1 },
-                        { "crypto/withdrawal", 25 },
-                        { "subaccounts", 5 },
-                        { "subaccounts/transfers", 5 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrdersAfter", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 25 },
+                        } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "subaccounts/transfers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order", 1 },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "orders", new Dictionary<string, object>() {
                             { "cost", 25 },
                             { "noMarket", 100 },
                         } },
-                        { "atomic/orders", 100 },
-                        { "institutional/subaccounts/order", 1 },
+                        { "atomic/orders", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "institutional/subaccounts/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "institutional/subaccounts/orders", new Dictionary<string, object>() {
                             { "cost", 25 },
                             { "noMarket", 100 },
@@ -345,7 +417,7 @@ public partial class bitvavo : Exchange
                     { "230", typeof(ExchangeError) },
                     { "231", typeof(ExchangeError) },
                     { "232", typeof(BadRequest) },
-                    { "233", typeof(InvalidOrder) },
+                    { "233", typeof(OrderNotFound) },
                     { "234", typeof(InvalidOrder) },
                     { "235", typeof(ExchangeError) },
                     { "236", typeof(BadRequest) },
@@ -616,12 +688,12 @@ public partial class bitvavo : Exchange
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
-        object isFiat = this.inArray(code, fiatCurrencies);
+        bool isFiat = this.inArray(code, fiatCurrencies);
         object networks = new Dictionary<string, object>() {};
         object networksArray = this.safeList(rawCurrency, "networks", new List<object>() {});
-        object deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
-        object withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
-        object active = isTrue(deposit) && isTrue(withdrawal);
+        bool deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
+        bool withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
+        bool active = isTrue(deposit) && isTrue(withdrawal);
         object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         object precision = this.safeString(rawCurrency, "decimals", "8");
         object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
@@ -630,22 +702,25 @@ public partial class bitvavo : Exchange
         {
             object networkId = getValue(networksArray, j);
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "info", rawCurrency },
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdrawal },
-                { "fee", withdrawFee },
-                { "precision", this.parseNumber(this.parsePrecision(precision)) },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdraw },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "info", rawCurrency },
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", active },
+                    { "deposit", deposit },
+                    { "withdraw", withdrawal },
+                    { "fee", withdrawFee },
+                    { "precision", this.parseNumber(this.parsePrecision(precision)) },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", minWithdraw },
+                            { "max", null },
+                        } },
                     } },
-                } },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "info", rawCurrency },
@@ -1006,9 +1081,9 @@ public partial class bitvavo : Exchange
         object maker = this.safeNumber(feesValue, "maker");
         object taker = this.safeNumber(feesValue, "taker");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },
@@ -1073,7 +1148,7 @@ public partial class bitvavo : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1131,7 +1206,7 @@ public partial class bitvavo : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "interval", this.safeString(this.timeframes, timeframe, timeframe) },
@@ -1182,7 +1257,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1200,7 +1275,7 @@ public partial class bitvavo : Exchange
         //         [1590383520000,"8090.3","8092.7","8090.3","8092.5","0.04001286"],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseBalance(object response)
@@ -1218,7 +1293,10 @@ public partial class bitvavo : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "inOrder");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1256,7 +1334,7 @@ public partial class bitvavo : Exchange
      * @name bitvavo#fetchAccounts
      * @see https://docs.bitvavo.com/docs/institutional-api/get-subaccounts/
      * @description fetch all the accounts associated with a profile
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [account structures]{@link https://docs.ccxt.com/?id=account-structure}
      */
     public async override Task<object> fetchAccounts(object parameters = null)
@@ -1305,7 +1383,7 @@ public partial class bitvavo : Exchange
      * @param {float} amount amount to transfer
      * @param {string} fromAccount account to transfer from, either 'master' or the subaccount id
      * @param {string} toAccount account to transfer to, either 'master' or the subaccount id
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {string} [params.clientRequestId] client defined unique id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1376,7 +1454,7 @@ public partial class bitvavo : Exchange
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccountId] the unique identifier for the subaccount
      * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
@@ -1442,7 +1520,7 @@ public partial class bitvavo : Exchange
      * @description fetches a transfer
      * @param {string} id transfer id
      * @param {string} [code] unified currency code of the currency transferred
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
@@ -1563,14 +1641,22 @@ public partial class bitvavo : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", side },
             { "orderType", type },
         };
-        object isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
-        object isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        bool isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
+        bool isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
         object timeInForce = this.safeString(parameters, "timeInForce");
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
@@ -1596,16 +1682,16 @@ public partial class bitvavo : Exchange
                 ((IDictionary<string,object>)request)["amountQuote"] = this.decimalToPrecision(cost, TRUNCATE, precision, this.precisionMode);
             } else
             {
-                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(((string)symbol), amount);
+                ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
             }
             parameters = this.omit(parameters, new List<object>() {"cost"});
         } else if (isTrue(isLimitOrder))
         {
-            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(((string)symbol), price);
-            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(((string)symbol), amount);
+            ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
+            ((IDictionary<string,object>)request)["amount"] = this.amountToPrecision(symbol, amount);
         }
-        object isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
-        object isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
+        bool isTakeProfit = isTrue(isTrue((!isEqual(takeProfitPrice, null))) || isTrue((isEqual(type, "takeProfit")))) || isTrue((isEqual(type, "takeProfitLimit")));
+        bool isStopLoss = isTrue(isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue(isTrue((!isEqual(triggerPrice, null))) && isTrue((!isTrue(isTakeProfit))))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "stopLossLimit")));
         if (isTrue(isStopLoss))
         {
             if (isTrue(!isEqual(stopLossPrice, null)))
@@ -1623,7 +1709,7 @@ public partial class bitvavo : Exchange
         }
         if (isTrue(!isEqual(triggerPrice, null)))
         {
-            ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(((string)symbol), triggerPrice);
+            ((IDictionary<string,object>)request)["triggerAmount"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["triggerType"] = "price";
             ((IDictionary<string,object>)request)["triggerReference"] = "lastTrade"; // 'bestBid', 'bestAsk', 'midPrice'
         }
@@ -1673,7 +1759,7 @@ public partial class bitvavo : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
      * @param {float} [params.stopPrice] Alias for triggerPrice
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -1694,7 +1780,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostOrder(request);
         //
@@ -1800,7 +1886,7 @@ public partial class bitvavo : Exchange
      * @param {string} side 'buy' or 'sell'
      * @param {float} [amount] how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
@@ -1863,7 +1949,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = this.cancelOrderRequest(id, symbol, parameters);
         object response = await this.privateDeleteOrder(request);
         //
@@ -1879,7 +1965,7 @@ public partial class bitvavo : Exchange
      * @name bitvavo#cancelAllOrders
      * @see https://docs.bitvavo.com/docs/rest-api/cancel-orders/
      * @description cancel all open orders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2033,7 +2119,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchOrdersRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2319,7 +2405,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchMyTradesRequest(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
@@ -2400,7 +2486,7 @@ public partial class bitvavo : Exchange
      * @param {string} [code] unified currency code
      * @param {int} [since] timestamp in ms of the earliest ledger entry
      * @param {int} [limit] max number of ledger entries to return
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
      * @param {int} [params.page] the page number for the transaction history
      * @returns {object[]} a list of [ledger structures]{@link https://docs.ccxt.com/?id=ledger}
@@ -2477,7 +2563,7 @@ public partial class bitvavo : Exchange
         object type = this.parseLedgerEntryType(rawType);
         object currencyId = this.safeString(item, "receivedCurrency");
         object amount = this.safeString(item, "receivedAmount");
-        object direction = "in";
+        string direction = "in";
         if (isTrue(isEqual(amount, null)))
         {
             currencyId = this.safeString(item, "sentCurrency");
@@ -2520,10 +2606,10 @@ public partial class bitvavo : Exchange
     public virtual object withdrawRequest(object code, object amount, object address, object tag = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object currency = this.currency(((string)code));
+        object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
-            { "amount", this.currencyToPrecision(((string)code), amount) },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "address", address },
         };
         if (isTrue(!isEqual(tag, null)))
@@ -2598,7 +2684,7 @@ public partial class bitvavo : Exchange
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2663,7 +2749,7 @@ public partial class bitvavo : Exchange
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
-     * @param {object} [params] extra parameters specific to the bitvavo api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
@@ -2837,10 +2923,13 @@ public partial class bitvavo : Exchange
             networkId = currencyCode;
         }
         object networkCode = this.networkIdToCode(networkId, currencyCode);
-        ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-            { "deposit", getValue(result, "deposit") },
-            { "withdraw", getValue(result, "withdraw") },
-        };
+        if (isTrue(!isEqual(networkCode, null)))
+        {
+            ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
+                { "deposit", getValue(result, "deposit") },
+                { "withdraw", getValue(result, "withdraw") },
+            };
+        }
         return result;
     }
 
@@ -2890,7 +2979,7 @@ public partial class bitvavo : Exchange
         parameters ??= new Dictionary<string, object>();
         object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
-        object getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
+        bool getOrDelete = isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")));
         if (isTrue(getOrDelete))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
@@ -2910,9 +2999,9 @@ public partial class bitvavo : Exchange
                     payload = body;
                 }
             }
-            object timestamp = ((object)this.milliseconds()).ToString();
+            string timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },

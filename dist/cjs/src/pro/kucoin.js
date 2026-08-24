@@ -1379,7 +1379,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         //
@@ -1480,7 +1480,7 @@ class kucoin extends kucoin$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const symbolsLength = symbols.length;
@@ -1503,7 +1503,7 @@ class kucoin extends kucoin$1["default"] {
         let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
         [method, params] = this.handleOptionAndParams2(params, 'watchOrderBook', optionName, 'method', method);
-        if (method.indexOf('Depth') === -1) {
+        if (method.indexOf('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
                 if (!isFuturesMethod) {
                     method = '/spotMarket/level2';
@@ -1560,7 +1560,7 @@ class kucoin extends kucoin$1["default"] {
         let method = isFuturesMethod ? '/contractMarket/level2' : '/market/level2';
         const optionName = isFuturesMethod ? 'contractMethod' : 'spotMethod';
         [method, params] = this.handleOptionAndParams2(params, 'watchOrderBook', optionName, 'method', method);
-        if (method.indexOf('Depth') === -1) {
+        if (method.indexOf('Depth') < 0) {
             if ((limit === 5) || (limit === 50)) {
                 if (!isFuturesMethod) {
                     method = '/spotMarket/level2';
@@ -2218,9 +2218,36 @@ class kucoin extends kucoin$1["default"] {
         const orders = this.safeValue(cachedOrders.hashmap, symbol, {});
         const order = this.safeValue(orders, orderId);
         if (order !== undefined) {
-            // todo add others to calculate average etc
             if (order['status'] === 'closed') {
                 parsed['status'] = 'closed';
+            }
+            // carry the accumulated fill state forward, the raw feed only
+            // carries the match prices on the match messages, and safeOrder
+            // derives cost from the order price otherwise, which is wrong for
+            // orders filled at better prices, so the accumulated values win on
+            // the non match messages, see https://github.com/ccxt/ccxt/issues/19083
+            if (order['average'] !== undefined) {
+                parsed['average'] = order['average'];
+                parsed['cost'] = order['cost'];
+            }
+            if (parsed['filled'] === undefined) {
+                parsed['filled'] = order['filled'];
+            }
+        }
+        // accumulate the average fill price and cost from the match messages,
+        // which carry matchPrice and matchSize, the terminal filled message
+        // does not repeat them, see https://github.com/ccxt/ccxt/issues/19083
+        const rawType = this.safeString(data, 'type');
+        const matchPrice = this.safeString(data, 'matchPrice');
+        const matchSize = this.safeString(data, 'matchSize');
+        if ((rawType === 'match') && (matchPrice !== undefined) && (matchSize !== undefined)) {
+            const matchCost = Precise["default"].stringMul(matchPrice, matchSize);
+            const previousCost = (order === undefined) ? '0' : this.numberToString(this.safeNumber(order, 'cost', 0));
+            const costString = Precise["default"].stringAdd(previousCost, matchCost);
+            parsed['cost'] = this.parseNumber(costString);
+            const filledString = this.numberToString(parsed['filled']);
+            if ((filledString !== undefined) && (Precise["default"].stringGt(filledString, '0'))) {
+                parsed['average'] = this.parseNumber(Precise["default"].stringDiv(costString, filledString));
             }
         }
         cachedOrders.append(parsed);
@@ -2717,7 +2744,9 @@ class kucoin extends kucoin$1["default"] {
         account['free'] = this.safeString2(data, 'available', 'availableBalance');
         account['used'] = used;
         account['total'] = this.safeString(data, 'total');
-        this.balance[uniformType][code] = account;
+        if ((uniformType !== undefined) && (code !== undefined)) {
+            this.balance[uniformType][code] = account;
+        }
         this.balance[uniformType] = this.safeBalance(this.balance[uniformType]);
         const messageHash = uniformType + ':balance';
         client.resolve(this.balance[uniformType], messageHash);
@@ -2753,7 +2782,9 @@ class kucoin extends kucoin$1["default"] {
         account['free'] = this.safeString(data, 'a');
         account['used'] = this.safeString(data, 'h');
         account['total'] = this.safeString(data, 'b');
-        this.balance[type][code] = account;
+        if ((code !== undefined)) {
+            this.balance[type][code] = account;
+        }
         this.balance[type] = this.safeBalance(this.balance[type]);
         const messageHash = type + ':balance';
         client.resolve(this.balance[type], messageHash);
@@ -3192,7 +3223,9 @@ class kucoin extends kucoin$1["default"] {
         const data = this.safeDict(message, 'd', {});
         const fundingRate = this.parseWsFundingRate(data);
         const symbol = fundingRate['symbol'];
-        this.fundingRates[symbol] = fundingRate;
+        if (symbol !== undefined) {
+            this.fundingRates[symbol] = fundingRate;
+        }
         const messageHash = 'fundingRate:' + symbol;
         client.resolve(fundingRate, messageHash);
     }

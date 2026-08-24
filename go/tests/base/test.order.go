@@ -6,7 +6,13 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, symbol any, now any) {
-	var format any = map[string]any{
+	// prediction-market orders are keyed by an outcome handle, not a `symbol`
+	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+		skippedProperties = exchange.Extend(map[string]any{
+			"symbol": true,
+		}, skippedProperties)
+	}
+	var format map[string]any = map[string]any{
 		"info":               map[string]any{},
 		"id":                 "123",
 		"clientOrderId":      "1234",
@@ -29,7 +35,7 @@ func TestOrder(exchange ccxt.ICoreExchange, skippedProperties any, method any, e
 		"fee":                map[string]any{},
 		"trades":             []any{},
 	}
-	var emptyAllowedFor any = []any{"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"} // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+	var emptyAllowedFor []any = []any{"clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee"} // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	//

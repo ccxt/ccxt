@@ -59,7 +59,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -404,9 +404,13 @@ public partial class bitopro : ccxt.bitopro
         //         "low24hr": "1179321"
         //     }
         //
-        object marketId = this.safeString(message, "pair");
+        object marketId = this.safeStringLower(message, "pair");
+        if (isTrue(isEqual(marketId, null)))
+        {
+            return;  // some TICKER frames arrive without a pair - nothing to resolve them against
+        }
         // market-ids are lowercase in REST API and uppercase in WS API
-        object market = this.safeMarket(((bool) isTrue(!isEqual(marketId, null))) ? ((string)marketId).ToLower() : null, null, "_");
+        object market = this.safeMarket(marketId, null, "_");
         object symbol = getValue(market, "symbol");
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);
@@ -426,13 +430,13 @@ public partial class bitopro : ccxt.bitopro
             return;
         }
         this.checkRequiredCredentials();
-        object nonce = this.milliseconds();
-        object rawData = this.json(new Dictionary<string, object>() {
+        Int64 nonce = this.milliseconds();
+        string rawData = this.json(new Dictionary<string, object>() {
             { "nonce", nonce },
             { "identity", this.login },
         });
         object payload = this.stringToBase64(rawData);
-        object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
+        string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
         object defaultOptions = new Dictionary<string, object>() {
             { "ws", new Dictionary<string, object>() {
                 { "options", new Dictionary<string, object>() {
@@ -471,7 +475,7 @@ public partial class bitopro : ccxt.bitopro
         {
             await this.loadMarkets();
         }
-        object messageHash = "ACCOUNT_BALANCE";
+        string messageHash = "ACCOUNT_BALANCE";
         object url = add(add(getValue(getValue(this.urls, "ws"), "private"), "/"), "account-balance");
         this.authenticate(url);
         return await this.watch(url, messageHash, null, messageHash);
@@ -499,7 +503,7 @@ public partial class bitopro : ccxt.bitopro
         object data = this.safeValue(message, "data");
         object timestamp = this.safeInteger(message, "timestamp");
         object datetime = this.safeString(message, "datetime");
-        object currencies = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> currencies = new List<object>(((IDictionary<string,object>)data).Keys);
         object result = new Dictionary<string, object>() {
             { "info", data },
             { "timestamp", timestamp },
@@ -514,7 +518,10 @@ public partial class bitopro : ccxt.bitopro
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         this.balance = this.safeBalance(result);
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, eventVar});

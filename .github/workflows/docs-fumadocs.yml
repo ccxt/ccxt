@@ -1,11 +1,15 @@
 name: Deploy Fumadocs
 
-# Builds the Fumadocs site as a container (arm64, matching the docs box) and deploys it
+# Builds the Fumadocs site as a container (amd64, matching the docs box) and deploys it
 # as a long-running Next.js server behind nginx at / (root). Automates the manual flow:
 # build image -> push to GHCR -> box pulls + restarts the container.
 #
 # Consumes the committed wiki/*.md (kept current by js.yml's build-docs).
 # The image is a root build (no NEXT_BASE_PATH); nginx proxies `location /` to it.
+#
+# Also mirrors that same wiki/*.md to the ccxt/ccxt.wiki repo (github.com/ccxt/ccxt/wiki)
+# in the mirror-wiki job, so the legacy GitHub wiki and the docs site are always rendered
+# from the same commit. See the NB below for why that happens here and not per wiki commit.
 
 on:
   release:
@@ -18,7 +22,11 @@ on:
       # "Failed to find Server Action" after each new build) and adds deploy-window blips. Docs
       # now redeploy on release (which bakes in the wiki as of that release) + docs-app changes
       # + manual dispatch — not on every wiki commit.
-      - 'website/**'
+      # This also sets the mirror-wiki cadence: github.com/ccxt/ccxt/wiki tracks releases, not
+      # every master push. Adding 'wiki/**' here to tighten that would re-arm the redeploy churn
+      # above, since path filters are workflow-level and would fire `deploy` too. Use the manual
+      # dispatch to force an out-of-band wiki refresh.
+      - 'docs/website/**'
       - 'build/wiki-to-fumadocs.ts'
       - '.github/workflows/docs-fumadocs.yml'
   workflow_dispatch:
@@ -32,21 +40,70 @@ permissions:
   packages: write
 
 jobs:
+  # Mirrors wiki/*.md into the ccxt/ccxt.wiki repo. Checks out the same ref as `deploy`
+  # (no `ref: master`) so the GitHub wiki matches whatever commit the docs site serves.
+  # Independent of `deploy` on purpose — a failed container swap shouldn't block the
+  # mirror, and vice versa.
+  mirror-wiki:
+    if: github.repository == 'ccxt/ccxt'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ccxt
+        uses: actions/checkout@v6
+        with:
+          sparse-checkout: wiki
+      - name: Generate App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.CCXT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.CCXT_APP_PRIVATE_KEY }}
+          owner: ccxt
+          # the GitHub wiki is NOT a repository — it is the wiki backing store of
+          # ccxt/ccxt, reachable only as the git remote ccxt/ccxt.wiki.git. Tokens
+          # cannot be scoped to it by name (that 404s); wiki pushes are authorized
+          # by the parent repo's contents permission instead.
+          repositories: ccxt
+          permission-contents: write
+      - name: Clone ccxt.wiki
+        # plain git clone: actions/checkout resolves repos through the API, which
+        # has no entry for a wiki backing store, so it cannot fetch this remote
+        run: git clone --depth 1 "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/ccxt/ccxt.wiki.git" build/ccxt.wiki
+      - name: Copy and push
+        run: |
+          cp -R wiki/* build/ccxt.wiki/
+          cd build/ccxt.wiki
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "[Automated changes] wiki @ ${GITHUB_SHA:0:7}" || {
+            echo "Wiki already up to date."
+            exit 0
+          }
+          git push origin HEAD:master
+
   deploy:
     if: github.repository == 'ccxt/ccxt'
-    runs-on: ubuntu-24.04-arm        # arm64 — native build matching the docs server
+    runs-on: ${{ github.ref == 'refs/heads/master' && fromJSON('["self-hosted", "linux", "x64", "deploy"]') || 'ubuntu-latest' }}   # amd64 — native build matching the docs server
     env:
       IMAGE: ghcr.io/ccxt/ccxt-fumadocs
       CONTAINER: ccxt-docs
       PORT: '3005'
     steps:
+      # wiki-to-fumadocs.ts reads wiki/ and writes docs/website/content/docs; the docker
+      # build context is docs/website/. Nothing else in the repo is touched.
       - uses: actions/checkout@v6
+        with:
+          sparse-checkout: |
+            wiki
+            docs/website
+            build
 
       - uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
 
-      # committed wiki/*.md -> website/content/docs (baked into the image at build)
+      # committed wiki/*.md -> docs/website/content/docs (baked into the image at build)
       - name: Convert wiki to Fumadocs content
         run: npx -y tsx build/wiki-to-fumadocs.ts
 
@@ -60,8 +117,8 @@ jobs:
       - name: Build & push image
         uses: docker/build-push-action@v7
         with:
-          context: website
-          platforms: linux/arm64
+          context: docs/website
+          platforms: linux/amd64
           push: true
           # Consistent Server Actions encryption key across builds, so a client served by an
           # earlier deploy doesn't hit "Failed to find Server Action" after a redeploy. If the
@@ -130,10 +187,32 @@ jobs:
           NEW_PORT=$([ "$CUR_PORT" = 3005 ] && echo 3006 || echo 3005)
           NEW_NAME="${CONTAINER}-${NEW_PORT}"
 
+          # Cap this container's Docker json stdout log, as deploy-playground.yml already
+          # does for its own. Uncapped, a chatty container can fill the box's disk — which
+          # deadlocks every future deploy, since the image prune that reclaims space only
+          # runs in this script's success path.
+          LOGOPTS="--log-opt max-size=10m --log-opt max-file=3"
+
           docker rm -f "$NEW_NAME" 2>/dev/null || true
-          docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG --name "$NEW_NAME" "$IMAGE:$SHA"
+          docker run -d --restart=always -p 127.0.0.1:${NEW_PORT}:${PORT} $ENVFILE_ARG $LOGOPTS --name "$NEW_NAME" "$IMAGE:$SHA"
           if smoke "$NEW_PORT"; then
             sed -i "s/127\.0\.0\.1:${CUR_PORT}/127.0.0.1:${NEW_PORT}/g" "$NGINX_CONF"
+            # Allow https://ccxt.com to iframe docs. Drop legacy X-Frame-Options
+            # (SAMEORIGIN blocks cross-origin embeds) and ensure CSP frame-ancestors.
+            # Idempotent across redeploys. Mirrors docs/website/next.config.mjs headers.
+            FRAME_CSP="add_header Content-Security-Policy \"frame-ancestors 'self' https://ccxt.com\" always;"
+            if [ -f "$NGINX_CONF" ]; then
+              # strip any existing X-Frame-Options / frame-ancestors CSP lines
+              sed -i -E '/^[[:space:]]*add_header[[:space:]]+X-Frame-Options\b/d' "$NGINX_CONF"
+              sed -i -E '/^[[:space:]]*add_header[[:space:]]+Content-Security-Policy\b.*frame-ancestors/d' "$NGINX_CONF"
+              # insert CSP after X-Content-Type-Options when present; else after server {
+              if grep -qE '^[[:space:]]*add_header[[:space:]]+X-Content-Type-Options\b' "$NGINX_CONF"; then
+                sed -i -E "/^[[:space:]]*add_header[[:space:]]+X-Content-Type-Options\\b/a\\    ${FRAME_CSP}" "$NGINX_CONF"
+              else
+                sed -i -E "/server[[:space:]]*\\{/a\\    ${FRAME_CSP}" "$NGINX_CONF"
+              fi
+              echo "nginx: framing headers set (no XFO; frame-ancestors self + https://ccxt.com)"
+            fi
             if nginx -t 2>/dev/null; then
               nginx -s reload
               sleep 3                                              # let in-flight requests on the old container finish

@@ -52,7 +52,7 @@ class extended extends extended$1["default"] {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -855,17 +855,24 @@ class extended extends extended$1["default"] {
             }
         }
         else if (data !== undefined) {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            let isAccountUpdate = false;
             if ((type === 'ORDER') || ('orders' in data)) {
                 this.handleOrders(client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'TRADE') || ('trades' in data)) {
                 this.handleMyTrades(client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'POSITION') || ('positions' in data)) {
                 this.handlePositions(client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
                 this.handleBalance(client, message);
+                isAccountUpdate = true;
             }
             if (type === 'MP') {
                 this.handleMarkPrice(client, message);
@@ -873,7 +880,7 @@ class extended extends extended$1["default"] {
             else if ('f' in data) {
                 this.handleFundingRate(client, message);
             }
-            else {
+            else if (!isAccountUpdate) {
                 this.handleOrderBook(client, message);
             }
         }

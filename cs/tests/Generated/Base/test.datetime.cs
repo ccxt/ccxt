@@ -60,7 +60,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object value = exchange.microseconds();
-            object valueString = ((object)value).ToString();
+            string valueString = ((object)value).ToString();
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 16));
         }
@@ -70,7 +70,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object value = exchange.milliseconds();
-            object valueString = ((object)value).ToString();
+            string valueString = ((object)value).ToString();
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 13));
         }
@@ -80,7 +80,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             object value = exchange.seconds();
-            object valueString = ((object)value).ToString();
+            string valueString = ((object)value).ToString();
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 10));
         }

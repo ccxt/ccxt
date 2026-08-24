@@ -10,6 +10,7 @@ import Exchange from './abstract/bit2c.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+;
 //  ---------------------------------------------------------------------------
 /**
  * @class bit2c
@@ -130,37 +131,37 @@ export default class bit2c extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'Exchanges/{pair}/Ticker',
-                        'Exchanges/{pair}/orderbook',
-                        'Exchanges/{pair}/trades',
-                        'Exchanges/{pair}/lasttrades',
-                    ],
+                    'get': {
+                        'Exchanges/{pair}/Ticker': { 'cost': 1 },
+                        'Exchanges/{pair}/orderbook': { 'cost': 1 },
+                        'Exchanges/{pair}/trades': { 'cost': 1 },
+                        'Exchanges/{pair}/lasttrades': { 'cost': 1 },
+                    },
                 },
                 'private': {
-                    'post': [
-                        'Merchant/CreateCheckout',
-                        'Funds/AddCoinFundsRequest',
-                        'Order/AddFund',
-                        'Order/AddOrder',
-                        'Order/GetById',
-                        'Order/AddOrderMarketPriceBuy',
-                        'Order/AddOrderMarketPriceSell',
-                        'Order/CancelOrder',
-                        'Order/AddCoinFundsRequest',
-                        'Order/AddStopOrder',
-                        'Payment/GetMyId',
-                        'Payment/Send',
-                        'Payment/Pay',
-                    ],
-                    'get': [
-                        'Account/Balance',
-                        'Account/Balance/v2',
-                        'Order/MyOrders',
-                        'Order/GetById',
-                        'Order/AccountHistory',
-                        'Order/OrderHistory',
-                    ],
+                    'post': {
+                        'Merchant/CreateCheckout': { 'cost': 1 },
+                        'Funds/AddCoinFundsRequest': { 'cost': 1 },
+                        'Order/AddFund': { 'cost': 1 },
+                        'Order/AddOrder': { 'cost': 1 },
+                        'Order/GetById': { 'cost': 1 },
+                        'Order/AddOrderMarketPriceBuy': { 'cost': 1 },
+                        'Order/AddOrderMarketPriceSell': { 'cost': 1 },
+                        'Order/CancelOrder': { 'cost': 1 },
+                        'Order/AddCoinFundsRequest': { 'cost': 1 },
+                        'Order/AddStopOrder': { 'cost': 1 },
+                        'Payment/GetMyId': { 'cost': 1 },
+                        'Payment/Send': { 'cost': 1 },
+                        'Payment/Pay': { 'cost': 1 },
+                    },
+                    'get': {
+                        'Account/Balance': { 'cost': 1 },
+                        'Account/Balance/v2': { 'cost': 1 },
+                        'Order/MyOrders': { 'cost': 1 },
+                        'Order/GetById': { 'cost': 1 },
+                        'Order/AccountHistory': { 'cost': 1 },
+                        'Order/OrderHistory': { 'cost': 1 },
+                    },
                 },
             },
             'markets': {
@@ -371,7 +372,7 @@ export default class bit2c extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -382,7 +383,33 @@ export default class bit2c extends Exchange {
             'pair': market['id'],
         };
         const orderbook = await this.publicGetExchangesPairOrderbook(this.extend(request, params));
-        return this.parseOrderBook(orderbook, symbol);
+        // the full orderbook.json snapshot can contain dead orders - rows
+        // published with a zero amount at their limit price, hours-stable and
+        // sometimes crossing the real market. per the api docs the endpoint
+        // contains open orders only, and the venue's own orderbook-top.json ui
+        // feed filters these rows out, so a non-positive amount is a dead order
+        // their full snapshot failed to purge - it is removed here, which also
+        // uncrosses the book. rows are positional price and amount pairs
+        const rawBids = this.safeList(orderbook, 'bids', []);
+        const rawAsks = this.safeList(orderbook, 'asks', []);
+        const bids = [];
+        const asks = [];
+        for (let i = 0; i < rawBids.length; i++) {
+            const bidRow = rawBids[i];
+            const bidAmount = this.safeString(bidRow, 1);
+            if (Precise.stringGt(bidAmount, '0')) {
+                bids.push(bidRow);
+            }
+        }
+        for (let i = 0; i < rawAsks.length; i++) {
+            const askRow = rawAsks[i];
+            const askAmount = this.safeString(askRow, 1);
+            if (Precise.stringGt(askAmount, '0')) {
+                asks.push(askRow);
+            }
+        }
+        const filtered = { 'bids': bids, 'asks': asks };
+        return this.parseOrderBook(filtered, symbol);
     }
     parseTicker(ticker, market = undefined) {
         const symbol = this.safeSymbol(undefined, market);
@@ -460,24 +487,29 @@ export default class bit2c extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // max 100000
         }
-        let response = undefined;
+        let responseList = [];
         if (method === 'public_get_exchanges_pair_trades') {
-            response = await this.publicGetExchangesPairTrades(this.extend(request, params));
+            const response = await this.publicGetExchangesPairTrades(this.extend(request, params));
+            //
+            //     [
+            //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
+            //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
+            //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
+            //     ]
+            //
+            if (typeof response === 'string') {
+                throw new ExchangeError(response);
+            }
+            responseList = this.toArray(response);
         }
         else {
-            response = await this.publicGetExchangesPairLasttrades(this.extend(request, params));
+            const response = await this.publicGetExchangesPairLasttrades(this.extend(request, params));
+            if (typeof response === 'string') {
+                throw new ExchangeError(response);
+            }
+            responseList = this.toArray(response);
         }
-        //
-        //     [
-        //         {"date":1651785980,"price":127975.68,"amount":0.3750321,"isBid":true,"tid":1261018},
-        //         {"date":1651785980,"price":127987.70,"amount":0.0389527820303982335802581029,"isBid":true,"tid":1261020},
-        //         {"date":1651786701,"price":128084.03,"amount":0.0015614749161156156626239821,"isBid":true,"tid":1261022},
-        //     ]
-        //
-        if (typeof response === 'string') {
-            throw new ExchangeError(response);
-        }
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades(responseList, market, since, limit);
     }
     /**
      * @method
@@ -547,14 +579,19 @@ export default class bit2c extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let method = 'privatePostOrderAddOrder';
         const market = this.market(symbol);
         const request = {
             'Amount': amount,
             'Pair': market['id'],
         };
+        let response = undefined;
         if (type === 'market') {
-            method += 'MarketPrice' + this.capitalize(side);
+            if (side === 'buy') {
+                response = await this.privatePostOrderAddOrderMarketPriceBuy(this.extend(request, params));
+            }
+            else {
+                response = await this.privatePostOrderAddOrderMarketPriceSell(this.extend(request, params));
+            }
         }
         else {
             request['Price'] = price;
@@ -562,8 +599,8 @@ export default class bit2c extends Exchange {
             const priceString = this.numberToString(price);
             request['Total'] = this.parseToNumeric(Precise.stringMul(amountString, priceString));
             request['IsBid'] = (side === 'buy');
+            response = await this.privatePostOrderAddOrder(this.extend(request, params));
         }
-        const response = await this[method](this.extend(request, params));
         return this.parseOrder(response, market);
     }
     /**
@@ -834,7 +871,11 @@ export default class bit2c extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        let responseList = [];
+        if (response !== undefined) {
+            responseList = this.toArray(response);
+        }
+        return this.parseTrades(responseList, market, since, limit);
     }
     removeCommaFromValue(str) {
         let newString = '';

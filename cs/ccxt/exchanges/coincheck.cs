@@ -111,12 +111,112 @@ public partial class coincheck : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"exchange/orders/rate", "exchange_status", "order_books", "rate/{pair}", "ticker", "trades"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "exchange/orders/rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange_status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_books", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rate/{pair}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"accounts", "accounts/balance", "accounts/leverage_balance", "bank_accounts", "deposit_money", "exchange/orders/{id}", "exchange/orders/opens", "exchange/orders/cancel_status", "exchange/orders/transactions", "exchange/orders/transactions_pagination", "exchange/leverage/positions", "lending/borrows/matches", "send_money", "withdraws"} },
-                    { "post", new List<object>() {"bank_accounts", "deposit_money/{id}/fast", "exchange/orders", "exchange/transfers/to_leverage", "exchange/transfers/from_leverage", "lending/borrows", "lending/borrows/{id}/repay", "send_money", "withdraws"} },
-                    { "delete", new List<object>() {"bank_accounts/{id}", "exchange/orders/{id}", "withdraws/{id}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/leverage_balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "bank_accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit_money", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders/opens", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders/cancel_status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders/transactions_pagination", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/leverage/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lending/borrows/matches", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_money", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "bank_accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit_money/{id}/fast", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/transfers/to_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/transfers/from_leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lending/borrows", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lending/borrows/{id}/repay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "send_money", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraws", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "bank_accounts/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchange/orders/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraws/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "markets", new Dictionary<string, object>() {
@@ -249,7 +349,7 @@ public partial class coincheck : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
+        List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
@@ -296,7 +396,7 @@ public partial class coincheck : Exchange
         //     }
         //
         object exchangeStatuses = this.safeList(response, "exchange_status", new List<object>() {});
-        object status = "ok";
+        string status = "ok";
         object updated = null;
         for (object i = 0; isLessThan(i, getArrayLength(exchangeStatuses)); postFixIncrement(ref i))
         {
@@ -434,7 +534,7 @@ public partial class coincheck : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -586,8 +686,8 @@ public partial class coincheck : Exchange
                 takerOrMaker = "maker";
             }
             object funds = this.safeValue(trade, "funds", new Dictionary<string, object>() {});
-            amountString = this.safeString(funds, ((string)baseId));
-            costString = this.safeString(funds, ((string)quoteId));
+            amountString = this.safeString(funds, baseId);
+            costString = this.safeString(funds, quoteId);
             fee = new Dictionary<string, object>() {
                 { "currency", this.safeString(trade, "fee_currency") },
                 { "cost", this.safeString(trade, "fee") },
@@ -634,7 +734,7 @@ public partial class coincheck : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(((string)symbol));
+        object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -754,7 +854,7 @@ public partial class coincheck : Exchange
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object fee = this.safeValue(fees, ((string)getValue(market, "id")), new Dictionary<string, object>() {});
+            object fee = this.safeValue(fees, getValue(market, "id"), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
@@ -827,7 +927,7 @@ public partial class coincheck : Exchange
      * @description cancels an open order
      * @see https://coincheck.com/documents/exchange/api#order-cancel
      * @param {string} id order id
-     * @param {string} symbol not used by coincheck cancelOrder ()
+     * @param {string} symbol not used by cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1065,7 +1165,7 @@ public partial class coincheck : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = ((object)this.nonce()).ToString();
+            string nonce = ((object)this.nonce()).ToString();
             object queryString = "";
             if (isTrue(isEqual(method, "GET")))
             {

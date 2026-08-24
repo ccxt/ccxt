@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testCurrency(Exchange exchange, object skippedProperties, object method, object entry)
+    public static void testCurrency(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
         if (isTrue(isEqual(entry, null)))
         {
@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
         // todo: remove fee from empty
         object emptyAllowedFor = new List<object>() {"name", "fee"};
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-        object isNative = isTrue(getValue(exchange.has, "fetchCurrencies")) && isTrue(!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated"));
+        bool isNative = isTrue(getValue(exchange.has, "fetchCurrencies")) && isTrue(!isEqual(getValue(exchange.has, "fetchCurrencies"), "emulated"));
         object currencyType = exchange.safeString(entry, "type");
         if (isTrue(isNative))
         {
@@ -61,8 +61,8 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
         // check if empty networks should be skipped
         object networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
-        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object networkKeysLength = getArrayLength(networkKeys);
+        List<object> networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        int networkKeysLength = getArrayLength(networkKeys);
         if (isTrue(isTrue(isEqual(networkKeysLength, 0)) && isTrue((inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
         {
             return;

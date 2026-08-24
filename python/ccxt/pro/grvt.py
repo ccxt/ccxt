@@ -5,9 +5,8 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -15,7 +14,7 @@ from ccxt.base.errors import ArgumentsRequired
 
 class grvt(ccxt.async_support.grvt):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(grvt, self).describe(), {
             'has': {
                 'ws': True,
@@ -55,7 +54,7 @@ class grvt(ccxt.async_support.grvt):
             },
         })
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: object):
         #
         # confirmation
         #
@@ -111,7 +110,7 @@ class grvt(ccxt.async_support.grvt):
         if method is not None:
             method(client, message)
 
-    async def subscribe_multiple(self, messageHashes: List[str], request: dict, rawHashes: List[str], publicOrPrivate=True) -> Any:
+    async def subscribe_multiple(self, messageHashes: list[str], request: dict, rawHashes: list[str], publicOrPrivate=True) -> object:
         payload = {
             'jsonrpc': '2.0',
             'method': 'subscribe',
@@ -158,8 +157,8 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchTickers requires a symbols argument')
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'v1.ticker.s')
-        interval = None
-        interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', 500)
+        interval = 500
+        interval, params = self.handle_option_and_params(params, 'watchTickers', 'interval', interval)
         if self.markets is None:
             await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -182,7 +181,7 @@ class grvt(ccxt.async_support.grvt):
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: object):
         #
         # v1.ticker.s
         #
@@ -263,17 +262,17 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         ticker = self.parse_ws_ticker(data, market)
         self.tickers[symbol] = ticker
         client.resolve(ticker, 'ticker::' + symbol)
 
-    def parse_ws_ticker(self, message, market: Market = None):
+    def parse_ws_ticker(self, message: object, market: Market = None):
         # same dict api
         return self.parse_ticker(message, market)
 
-    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -287,7 +286,7 @@ class grvt(ccxt.async_support.grvt):
         """
         return self.watch_trades_for_symbols([symbol], since, limit, params)
 
-    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a list of symbols
 
@@ -323,7 +322,7 @@ class grvt(ccxt.async_support.grvt):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: object):
         #
         #    {
         #        "stream": "v1.trade",
@@ -350,7 +349,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         if not (symbol in self.trades):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -360,11 +359,11 @@ class grvt(ccxt.async_support.grvt):
         stored.append(parsed)
         client.resolve(stored, 'trade::' + symbol)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         # same api
         return self.parse_trade(trade, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -384,7 +383,7 @@ class grvt(ccxt.async_support.grvt):
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
 
-    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: list[list[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -419,7 +418,7 @@ class grvt(ccxt.async_support.grvt):
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #    {
         #        "stream": "v1.candle",
@@ -444,7 +443,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         secondPart = self.safe_string(parts, 1, '')
         timeframeId = secondPart.replace('-TRADE', '')
@@ -460,7 +459,7 @@ class grvt(ccxt.async_support.grvt):
         resolveData = [symbol, timeframe, stored]
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         # same api
         return self.parse_ohlcv(ohlcv, market)
 
@@ -474,14 +473,14 @@ class grvt(ccxt.async_support.grvt):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         symbol = self.symbol(symbol)
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
-    async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book_for_symbols(self, symbols: list[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -491,7 +490,7 @@ class grvt(ccxt.async_support.grvt):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             await self.load_markets()
@@ -503,8 +502,8 @@ class grvt(ccxt.async_support.grvt):
             raise ArgumentsRequired(self.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols')
         if limit is None:
             limit, params = self.handle_option_and_params(params, 'watchOrderBook', 'limit', 100)
-        interval = None
-        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', 500)
+        interval = 500
+        interval, params = self.handle_option_and_params(params, 'watchOrderBook', 'interval', interval)
         symbols = self.market_symbols(symbols)
         extraPart = str((interval) + '-' + str(limit)) if isSnapshot else str(interval)
         rawHashes = []
@@ -522,7 +521,7 @@ class grvt(ccxt.async_support.grvt):
         orderbook = await self.subscribe_multiple(messageHashes, self.extend(request, params), rawHashes)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: object):
         #
         #    {
         #        "stream": "v1.book.s",
@@ -553,7 +552,7 @@ class grvt(ccxt.async_support.grvt):
         selector = self.safe_string(message, 'selector', '')
         parts = selector.split('@')
         marketId = self.safe_string(parts, 0)
-        market = self.safe_market(marketId, None)
+        market = self.safe_market(marketId)
         symbol = market['symbol']
         timestamp = self.safe_integer_product(data, 'event_time', 0.000001)
         if not (symbol in self.orderbooks):
@@ -609,7 +608,7 @@ class grvt(ccxt.async_support.grvt):
             self.extend_exchange_options(defaultOptions)
             self.client(self.urls['api']['ws']['privateTrading'])
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -644,7 +643,7 @@ class grvt(ccxt.async_support.grvt):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_my_trade(self, client: Client, message):
+    def handle_my_trade(self, client: Client, message: object):
         #
         #    {
         #        "stream": "v1.fill",
@@ -689,10 +688,10 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.myTrades, 'myTrades::' + trade['symbol'])
         client.resolve(self.myTrades, 'myTrades')
 
-    def parse_ws_my_trade(self, trade, market: Market = None):
+    def parse_ws_my_trade(self, trade: object, market: Market = None):
         return self.parse_trade(trade, market)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
 
         https://api-docs.grvt.io/trading_streams/#positions
@@ -729,7 +728,7 @@ class grvt(ccxt.async_support.grvt):
             return newPositions
         return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
 
-    def handle_position(self, client, message):
+    def handle_position(self, client: object, message: object):
         #
         #    {
         #        "stream": "v1.position",
@@ -769,11 +768,11 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(newPositions, 'positions::' + symbol)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market: Market = None):
+    def parse_ws_position(self, position: object, market: Market = None):
         # same api
         return self.parse_position(position, market)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -807,7 +806,7 @@ class grvt(ccxt.async_support.grvt):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: object):
         #
         #    {
         #        "stream": "v1.order",
@@ -881,11 +880,11 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.orders, 'orders')
         client.resolve(self.orders, 'order::' + order['symbol'])
 
-    def parse_ws_order(self, order, market: Market = None) -> Order:
+    def parse_ws_order(self, order: object, market: Market = None) -> Order:
         # same api
         return self.parse_order(order, market)
 
-    def handle_error_message(self, client: Client, response) -> Bool:
+    def handle_error_message(self, client: Client, response: object) -> Bool:
         #
         #    {
         #        "jsonrpc": "2.0",

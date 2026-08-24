@@ -97,6 +97,7 @@ class coinex extends coinex$1["default"] {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPosition': true,
                 'fetchPositionHistory': true,
                 'fetchPositions': true,
@@ -154,289 +155,289 @@ class coinex extends coinex$1["default"] {
                 'v1': {
                     'public': {
                         'get': {
-                            'amm/market': 1,
-                            'common/currency/rate': 1,
-                            'common/asset/config': 1,
-                            'common/maintain/info': 1,
-                            'common/temp-maintain/info': 1,
-                            'margin/market': 1,
-                            'market/info': 1,
-                            'market/list': 1,
-                            'market/ticker': 1,
-                            'market/ticker/all': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/kline': 1,
-                            'market/detail': 1,
+                            'amm/market': { 'cost': 1 },
+                            'common/currency/rate': { 'cost': 1 },
+                            'common/asset/config': { 'cost': 1 },
+                            'common/maintain/info': { 'cost': 1 },
+                            'common/temp-maintain/info': { 'cost': 1 },
+                            'margin/market': { 'cost': 1 },
+                            'market/info': { 'cost': 1 },
+                            'market/list': { 'cost': 1 },
+                            'market/ticker': { 'cost': 1 },
+                            'market/ticker/all': { 'cost': 1 },
+                            'market/depth': { 'cost': 1 },
+                            'market/deals': { 'cost': 1 },
+                            'market/kline': { 'cost': 1 },
+                            'market/detail': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'account/amm/balance': 40,
-                            'account/investment/balance': 40,
-                            'account/balance/history': 40,
-                            'account/market/fee': 40,
-                            'balance/coin/deposit': 40,
-                            'balance/coin/withdraw': 40,
-                            'balance/info': 40,
-                            'balance/deposit/address/{coin_type}': 40,
-                            'contract/transfer/history': 40,
-                            'credit/info': 40,
-                            'credit/balance': 40,
-                            'investment/transfer/history': 40,
-                            'margin/account': 1,
-                            'margin/config': 1,
-                            'margin/loan/history': 40,
-                            'margin/transfer/history': 40,
-                            'order/deals': 40,
-                            'order/finished': 40,
-                            'order/pending': 8,
-                            'order/status': 8,
-                            'order/status/batch': 8,
-                            'order/user/deals': 40,
-                            'order/stop/finished': 40,
-                            'order/stop/pending': 8,
-                            'order/user/trade/fee': 1,
-                            'order/market/trade/info': 1,
-                            'sub_account/balance': 1,
-                            'sub_account/transfer/history': 40,
-                            'sub_account/auth/api': 40,
-                            'sub_account/auth/api/{user_auth_id}': 40,
+                            'account/amm/balance': { 'cost': 40 },
+                            'account/investment/balance': { 'cost': 40 },
+                            'account/balance/history': { 'cost': 40 },
+                            'account/market/fee': { 'cost': 40 },
+                            'balance/coin/deposit': { 'cost': 40 },
+                            'balance/coin/withdraw': { 'cost': 40 },
+                            'balance/info': { 'cost': 40 },
+                            'balance/deposit/address/{coin_type}': { 'cost': 40 },
+                            'contract/transfer/history': { 'cost': 40 },
+                            'credit/info': { 'cost': 40 },
+                            'credit/balance': { 'cost': 40 },
+                            'investment/transfer/history': { 'cost': 40 },
+                            'margin/account': { 'cost': 1 },
+                            'margin/config': { 'cost': 1 },
+                            'margin/loan/history': { 'cost': 40 },
+                            'margin/transfer/history': { 'cost': 40 },
+                            'order/deals': { 'cost': 40 },
+                            'order/finished': { 'cost': 40 },
+                            'order/pending': { 'cost': 8 },
+                            'order/status': { 'cost': 8 },
+                            'order/status/batch': { 'cost': 8 },
+                            'order/user/deals': { 'cost': 40 },
+                            'order/stop/finished': { 'cost': 40 },
+                            'order/stop/pending': { 'cost': 8 },
+                            'order/user/trade/fee': { 'cost': 1 },
+                            'order/market/trade/info': { 'cost': 1 },
+                            'sub_account/balance': { 'cost': 1 },
+                            'sub_account/transfer/history': { 'cost': 40 },
+                            'sub_account/auth/api': { 'cost': 40 },
+                            'sub_account/auth/api/{user_auth_id}': { 'cost': 40 },
                         },
                         'post': {
-                            'balance/coin/withdraw': 40,
-                            'contract/balance/transfer': 40,
-                            'margin/flat': 40,
-                            'margin/loan': 40,
-                            'margin/transfer': 40,
-                            'order/limit/batch': 40,
-                            'order/ioc': 13.334,
-                            'order/limit': 13.334,
-                            'order/market': 13.334,
-                            'order/modify': 13.334,
-                            'order/stop/limit': 13.334,
-                            'order/stop/market': 13.334,
-                            'order/stop/modify': 13.334,
-                            'sub_account/transfer': 40,
-                            'sub_account/register': 1,
-                            'sub_account/unfrozen': 40,
-                            'sub_account/frozen': 40,
-                            'sub_account/auth/api': 40,
+                            'balance/coin/withdraw': { 'cost': 40 },
+                            'contract/balance/transfer': { 'cost': 40 },
+                            'margin/flat': { 'cost': 40 },
+                            'margin/loan': { 'cost': 40 },
+                            'margin/transfer': { 'cost': 40 },
+                            'order/limit/batch': { 'cost': 40 },
+                            'order/ioc': { 'cost': 13.334 },
+                            'order/limit': { 'cost': 13.334 },
+                            'order/market': { 'cost': 13.334 },
+                            'order/modify': { 'cost': 13.334 },
+                            'order/stop/limit': { 'cost': 13.334 },
+                            'order/stop/market': { 'cost': 13.334 },
+                            'order/stop/modify': { 'cost': 13.334 },
+                            'sub_account/transfer': { 'cost': 40 },
+                            'sub_account/register': { 'cost': 1 },
+                            'sub_account/unfrozen': { 'cost': 40 },
+                            'sub_account/frozen': { 'cost': 40 },
+                            'sub_account/auth/api': { 'cost': 40 },
                         },
                         'put': {
-                            'balance/deposit/address/{coin_type}': 40,
-                            'sub_account/unfrozen': 40,
-                            'sub_account/frozen': 40,
-                            'sub_account/auth/api/{user_auth_id}': 40,
-                            'v1/account/settings': 40,
+                            'balance/deposit/address/{coin_type}': { 'cost': 40 },
+                            'sub_account/unfrozen': { 'cost': 40 },
+                            'sub_account/frozen': { 'cost': 40 },
+                            'sub_account/auth/api/{user_auth_id}': { 'cost': 40 },
+                            'v1/account/settings': { 'cost': 40 },
                         },
                         'delete': {
-                            'balance/coin/withdraw': 40,
-                            'order/pending/batch': 40,
-                            'order/pending': 13.334,
-                            'order/stop/pending': 40,
-                            'order/stop/pending/{id}': 13.334,
-                            'order/pending/by_client_id': 40,
-                            'order/stop/pending/by_client_id': 40,
-                            'sub_account/auth/api/{user_auth_id}': 40,
-                            'sub_account/authorize/{id}': 40,
+                            'balance/coin/withdraw': { 'cost': 40 },
+                            'order/pending/batch': { 'cost': 40 },
+                            'order/pending': { 'cost': 13.334 },
+                            'order/stop/pending': { 'cost': 40 },
+                            'order/stop/pending/{id}': { 'cost': 13.334 },
+                            'order/pending/by_client_id': { 'cost': 40 },
+                            'order/stop/pending/by_client_id': { 'cost': 40 },
+                            'sub_account/auth/api/{user_auth_id}': { 'cost': 40 },
+                            'sub_account/authorize/{id}': { 'cost': 40 },
                         },
                     },
                     'perpetualPublic': {
                         'get': {
-                            'ping': 1,
-                            'time': 1,
-                            'market/list': 1,
-                            'market/limit_config': 1,
-                            'market/ticker': 1,
-                            'market/ticker/all': 1,
-                            'market/depth': 1,
-                            'market/deals': 1,
-                            'market/funding_history': 1,
-                            'market/kline': 1,
+                            'ping': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'market/list': { 'cost': 1 },
+                            'market/limit_config': { 'cost': 1 },
+                            'market/ticker': { 'cost': 1 },
+                            'market/ticker/all': { 'cost': 1 },
+                            'market/depth': { 'cost': 1 },
+                            'market/deals': { 'cost': 1 },
+                            'market/funding_history': { 'cost': 1 },
+                            'market/kline': { 'cost': 1 },
                         },
                     },
                     'perpetualPrivate': {
                         'get': {
-                            'market/user_deals': 1,
-                            'asset/query': 40,
-                            'order/pending': 8,
-                            'order/finished': 40,
-                            'order/stop_finished': 40,
-                            'order/stop_pending': 8,
-                            'order/status': 8,
-                            'order/stop_status': 8,
-                            'position/finished': 40,
-                            'position/pending': 40,
-                            'position/funding': 40,
-                            'position/adl_history': 40,
-                            'market/preference': 40,
-                            'position/margin_history': 40,
-                            'position/settle_history': 40,
+                            'market/user_deals': { 'cost': 1 },
+                            'asset/query': { 'cost': 40 },
+                            'order/pending': { 'cost': 8 },
+                            'order/finished': { 'cost': 40 },
+                            'order/stop_finished': { 'cost': 40 },
+                            'order/stop_pending': { 'cost': 8 },
+                            'order/status': { 'cost': 8 },
+                            'order/stop_status': { 'cost': 8 },
+                            'position/finished': { 'cost': 40 },
+                            'position/pending': { 'cost': 40 },
+                            'position/funding': { 'cost': 40 },
+                            'position/adl_history': { 'cost': 40 },
+                            'market/preference': { 'cost': 40 },
+                            'position/margin_history': { 'cost': 40 },
+                            'position/settle_history': { 'cost': 40 },
                         },
                         'post': {
-                            'market/adjust_leverage': 1,
-                            'market/position_expect': 1,
-                            'order/put_limit': 20,
-                            'order/put_market': 20,
-                            'order/put_stop_limit': 20,
-                            'order/put_stop_market': 20,
-                            'order/modify': 20,
-                            'order/modify_stop': 20,
-                            'order/cancel': 20,
-                            'order/cancel_all': 40,
-                            'order/cancel_batch': 40,
-                            'order/cancel_stop': 20,
-                            'order/cancel_stop_all': 40,
-                            'order/close_limit': 20,
-                            'order/close_market': 20,
-                            'position/adjust_margin': 20,
-                            'position/stop_loss': 20,
-                            'position/take_profit': 20,
-                            'position/market_close': 20,
-                            'order/cancel/by_client_id': 20,
-                            'order/cancel_stop/by_client_id': 20,
-                            'market/preference': 20,
+                            'market/adjust_leverage': { 'cost': 1 },
+                            'market/position_expect': { 'cost': 1 },
+                            'order/put_limit': { 'cost': 20 },
+                            'order/put_market': { 'cost': 20 },
+                            'order/put_stop_limit': { 'cost': 20 },
+                            'order/put_stop_market': { 'cost': 20 },
+                            'order/modify': { 'cost': 20 },
+                            'order/modify_stop': { 'cost': 20 },
+                            'order/cancel': { 'cost': 20 },
+                            'order/cancel_all': { 'cost': 40 },
+                            'order/cancel_batch': { 'cost': 40 },
+                            'order/cancel_stop': { 'cost': 20 },
+                            'order/cancel_stop_all': { 'cost': 40 },
+                            'order/close_limit': { 'cost': 20 },
+                            'order/close_market': { 'cost': 20 },
+                            'position/adjust_margin': { 'cost': 20 },
+                            'position/stop_loss': { 'cost': 20 },
+                            'position/take_profit': { 'cost': 20 },
+                            'position/market_close': { 'cost': 20 },
+                            'order/cancel/by_client_id': { 'cost': 20 },
+                            'order/cancel_stop/by_client_id': { 'cost': 20 },
+                            'market/preference': { 'cost': 20 },
                         },
                     },
                 },
                 'v2': {
                     'public': {
                         'get': {
-                            'maintain/info': 1,
-                            'ping': 1,
-                            'time': 1,
-                            'spot/market': 1,
-                            'spot/ticker': 1,
-                            'spot/depth': 1,
-                            'spot/deals': 1,
-                            'spot/kline': 1,
-                            'spot/index': 1,
-                            'futures/market': 1,
-                            'futures/ticker': 1,
-                            'futures/depth': 1,
-                            'futures/deals': 1,
-                            'futures/kline': 1,
-                            'futures/index': 1,
-                            'futures/funding-rate': 1,
-                            'futures/funding-rate-history': 1,
-                            'futures/premium-index-history': 1,
-                            'futures/position-level': 1,
-                            'futures/liquidation-history': 1,
-                            'futures/basis-history': 1,
-                            'assets/deposit-withdraw-config': 1,
-                            'assets/all-deposit-withdraw-config': 1,
+                            'maintain/info': { 'cost': 1 },
+                            'ping': { 'cost': 1 },
+                            'time': { 'cost': 1 },
+                            'spot/market': { 'cost': 1 },
+                            'spot/ticker': { 'cost': 1 },
+                            'spot/depth': { 'cost': 1 },
+                            'spot/deals': { 'cost': 1 },
+                            'spot/kline': { 'cost': 1 },
+                            'spot/index': { 'cost': 1 },
+                            'futures/market': { 'cost': 1 },
+                            'futures/ticker': { 'cost': 1 },
+                            'futures/depth': { 'cost': 1 },
+                            'futures/deals': { 'cost': 1 },
+                            'futures/kline': { 'cost': 1 },
+                            'futures/index': { 'cost': 1 },
+                            'futures/funding-rate': { 'cost': 1 },
+                            'futures/funding-rate-history': { 'cost': 1 },
+                            'futures/premium-index-history': { 'cost': 1 },
+                            'futures/position-level': { 'cost': 1 },
+                            'futures/liquidation-history': { 'cost': 1 },
+                            'futures/basis-history': { 'cost': 1 },
+                            'assets/deposit-withdraw-config': { 'cost': 1 },
+                            'assets/all-deposit-withdraw-config': { 'cost': 1 },
                         },
                     },
                     'private': {
                         'get': {
-                            'account/subs': 1,
-                            'account/subs/api-detail': 40,
-                            'account/subs/info': 1,
-                            'account/subs/api': 40,
-                            'account/subs/transfer-history': 40,
-                            'account/subs/balance': 1,
-                            'account/subs/spot-balance': 1,
-                            'account/trade-fee-rate': 40,
-                            'account/futures-market-settings': 1,
-                            'account/info': 1,
-                            'assets/spot/balance': 40,
-                            'assets/futures/balance': 40,
-                            'assets/margin/balance': 1,
-                            'assets/financial/balance': 40,
-                            'assets/amm/liquidity': 40,
-                            'assets/credit/info': 40,
-                            'assets/spot/transcation-history': 1,
-                            'assets/margin/borrow-history': 40,
-                            'assets/margin/interest-limit': 1,
-                            'assets/deposit-address': 40,
-                            'assets/deposit-history': 40,
-                            'assets/withdraw': 40,
-                            'assets/transfer-history': 40,
-                            'assets/amm/liquidity-pool': 40,
-                            'assets/amm/income-history': 40,
-                            'spot/order-status': 8,
-                            'spot/batch-order-status': 8,
-                            'spot/pending-order': 8,
-                            'spot/finished-order': 40,
-                            'spot/pending-stop-order': 8,
-                            'spot/finished-stop-order': 40,
-                            'spot/user-deals': 40,
-                            'spot/order-deals': 40,
-                            'futures/order-status': 8,
-                            'futures/batch-order-status': 1,
-                            'futures/pending-order': 8,
-                            'futures/finished-order': 40,
-                            'futures/pending-stop-order': 8,
-                            'futures/finished-stop-order': 40,
-                            'futures/user-deals': 1,
-                            'futures/order-deals': 1,
-                            'futures/pending-position': 40,
-                            'futures/finished-position': 1,
-                            'futures/position-margin-history': 1,
-                            'futures/position-funding-history': 40,
-                            'futures/position-adl-history': 1,
-                            'futures/position-settle-history': 1,
-                            'refer/referee': 1,
-                            'refer/referee-rebate/record': 1,
-                            'refer/referee-rebate/detail': 1,
-                            'refer/agent-referee': 1,
-                            'refer/agent-rebate/record': 1,
-                            'refer/agent-rebate/detail': 1,
+                            'account/subs': { 'cost': 1 },
+                            'account/subs/api-detail': { 'cost': 40 },
+                            'account/subs/info': { 'cost': 1 },
+                            'account/subs/api': { 'cost': 40 },
+                            'account/subs/transfer-history': { 'cost': 40 },
+                            'account/subs/balance': { 'cost': 1 },
+                            'account/subs/spot-balance': { 'cost': 1 },
+                            'account/trade-fee-rate': { 'cost': 40 },
+                            'account/futures-market-settings': { 'cost': 1 },
+                            'account/info': { 'cost': 1 },
+                            'assets/spot/balance': { 'cost': 40 },
+                            'assets/futures/balance': { 'cost': 40 },
+                            'assets/margin/balance': { 'cost': 1 },
+                            'assets/financial/balance': { 'cost': 40 },
+                            'assets/amm/liquidity': { 'cost': 40 },
+                            'assets/credit/info': { 'cost': 40 },
+                            'assets/spot/transcation-history': { 'cost': 1 },
+                            'assets/margin/borrow-history': { 'cost': 40 },
+                            'assets/margin/interest-limit': { 'cost': 1 },
+                            'assets/deposit-address': { 'cost': 40 },
+                            'assets/deposit-history': { 'cost': 40 },
+                            'assets/withdraw': { 'cost': 40 },
+                            'assets/transfer-history': { 'cost': 40 },
+                            'assets/amm/liquidity-pool': { 'cost': 40 },
+                            'assets/amm/income-history': { 'cost': 40 },
+                            'spot/order-status': { 'cost': 8 },
+                            'spot/batch-order-status': { 'cost': 8 },
+                            'spot/pending-order': { 'cost': 8 },
+                            'spot/finished-order': { 'cost': 40 },
+                            'spot/pending-stop-order': { 'cost': 8 },
+                            'spot/finished-stop-order': { 'cost': 40 },
+                            'spot/user-deals': { 'cost': 40 },
+                            'spot/order-deals': { 'cost': 40 },
+                            'futures/order-status': { 'cost': 8 },
+                            'futures/batch-order-status': { 'cost': 1 },
+                            'futures/pending-order': { 'cost': 8 },
+                            'futures/finished-order': { 'cost': 40 },
+                            'futures/pending-stop-order': { 'cost': 8 },
+                            'futures/finished-stop-order': { 'cost': 40 },
+                            'futures/user-deals': { 'cost': 1 },
+                            'futures/order-deals': { 'cost': 1 },
+                            'futures/pending-position': { 'cost': 40 },
+                            'futures/finished-position': { 'cost': 1 },
+                            'futures/position-margin-history': { 'cost': 1 },
+                            'futures/position-funding-history': { 'cost': 40 },
+                            'futures/position-adl-history': { 'cost': 1 },
+                            'futures/position-settle-history': { 'cost': 1 },
+                            'refer/referee': { 'cost': 1 },
+                            'refer/referee-rebate/record': { 'cost': 1 },
+                            'refer/referee-rebate/detail': { 'cost': 1 },
+                            'refer/agent-referee': { 'cost': 1 },
+                            'refer/agent-rebate/record': { 'cost': 1 },
+                            'refer/agent-rebate/detail': { 'cost': 1 },
                         },
                         'post': {
-                            'account/subs': 40,
-                            'account/subs/frozen': 40,
-                            'account/subs/unfrozen': 40,
-                            'account/subs/api': 40,
-                            'account/subs/edit-api': 40,
-                            'account/subs/delete-api': 40,
-                            'account/subs/transfer': 40,
-                            'account/settings': 40,
-                            'account/futures-market-settings': 40,
-                            'assets/margin/borrow': 40,
-                            'assets/margin/repay': 40,
-                            'assets/renewal-deposit-address': 40,
-                            'assets/withdraw': 40,
-                            'assets/cancel-withdraw': 40,
-                            'assets/transfer': 40,
-                            'assets/amm/add-liquidity': 1,
-                            'assets/amm/remove-liquidity': 1,
-                            'spot/order': 13.334,
-                            'spot/stop-order': 13.334,
-                            'spot/batch-order': 40,
-                            'spot/batch-stop-order': 1,
-                            'spot/modify-order': 13.334,
-                            'spot/modify-stop-order': 13.334,
-                            'spot/batch-modify-order': 13.334,
-                            'spot/cancel-all-order': 1,
-                            'spot/cancel-order': 6.667,
-                            'spot/cancel-stop-order': 6.667,
-                            'spot/cancel-batch-order': 10,
-                            'spot/cancel-batch-stop-order': 10,
-                            'spot/cancel-order-by-client-id': 1,
-                            'spot/cancel-stop-order-by-client-id': 1,
-                            'futures/order': 20,
-                            'futures/stop-order': 20,
-                            'futures/batch-order': 1,
-                            'futures/batch-stop-order': 1,
-                            'futures/cancel-position-stop-loss': 20,
-                            'futures/cancel-position-take-profit': 20,
-                            'futures/modify-order': 20,
-                            'futures/modify-stop-order': 20,
-                            'futures/batch-modify-order': 20,
-                            'futures/cancel-all-order': 1,
-                            'futures/cancel-order': 10,
-                            'futures/cancel-stop-order': 10,
-                            'futures/cancel-batch-order': 20,
-                            'futures/cancel-batch-stop-order': 20,
-                            'futures/cancel-order-by-client-id': 1,
-                            'futures/cancel-stop-order-by-client-id': 1,
-                            'futures/close-position': 20,
-                            'futures/adjust-position-margin': 20,
-                            'futures/adjust-position-leverage': 20,
-                            'futures/set-position-stop-loss': 20,
-                            'futures/set-position-take-profit': 20,
+                            'account/subs': { 'cost': 40 },
+                            'account/subs/frozen': { 'cost': 40 },
+                            'account/subs/unfrozen': { 'cost': 40 },
+                            'account/subs/api': { 'cost': 40 },
+                            'account/subs/edit-api': { 'cost': 40 },
+                            'account/subs/delete-api': { 'cost': 40 },
+                            'account/subs/transfer': { 'cost': 40 },
+                            'account/settings': { 'cost': 40 },
+                            'account/futures-market-settings': { 'cost': 40 },
+                            'assets/margin/borrow': { 'cost': 40 },
+                            'assets/margin/repay': { 'cost': 40 },
+                            'assets/renewal-deposit-address': { 'cost': 40 },
+                            'assets/withdraw': { 'cost': 40 },
+                            'assets/cancel-withdraw': { 'cost': 40 },
+                            'assets/transfer': { 'cost': 40 },
+                            'assets/amm/add-liquidity': { 'cost': 1 },
+                            'assets/amm/remove-liquidity': { 'cost': 1 },
+                            'spot/order': { 'cost': 13.334 },
+                            'spot/stop-order': { 'cost': 13.334 },
+                            'spot/batch-order': { 'cost': 40 },
+                            'spot/batch-stop-order': { 'cost': 1 },
+                            'spot/modify-order': { 'cost': 13.334 },
+                            'spot/modify-stop-order': { 'cost': 13.334 },
+                            'spot/batch-modify-order': { 'cost': 13.334 },
+                            'spot/cancel-all-order': { 'cost': 1 },
+                            'spot/cancel-order': { 'cost': 6.667 },
+                            'spot/cancel-stop-order': { 'cost': 6.667 },
+                            'spot/cancel-batch-order': { 'cost': 10 },
+                            'spot/cancel-batch-stop-order': { 'cost': 10 },
+                            'spot/cancel-order-by-client-id': { 'cost': 1 },
+                            'spot/cancel-stop-order-by-client-id': { 'cost': 1 },
+                            'futures/order': { 'cost': 20 },
+                            'futures/stop-order': { 'cost': 20 },
+                            'futures/batch-order': { 'cost': 1 },
+                            'futures/batch-stop-order': { 'cost': 1 },
+                            'futures/cancel-position-stop-loss': { 'cost': 20 },
+                            'futures/cancel-position-take-profit': { 'cost': 20 },
+                            'futures/modify-order': { 'cost': 20 },
+                            'futures/modify-stop-order': { 'cost': 20 },
+                            'futures/batch-modify-order': { 'cost': 20 },
+                            'futures/cancel-all-order': { 'cost': 1 },
+                            'futures/cancel-order': { 'cost': 10 },
+                            'futures/cancel-stop-order': { 'cost': 10 },
+                            'futures/cancel-batch-order': { 'cost': 20 },
+                            'futures/cancel-batch-stop-order': { 'cost': 20 },
+                            'futures/cancel-order-by-client-id': { 'cost': 1 },
+                            'futures/cancel-stop-order-by-client-id': { 'cost': 1 },
+                            'futures/close-position': { 'cost': 20 },
+                            'futures/adjust-position-margin': { 'cost': 20 },
+                            'futures/adjust-position-leverage': { 'cost': 20 },
+                            'futures/set-position-stop-loss': { 'cost': 20 },
+                            'futures/set-position-take-profit': { 'cost': 20 },
                         },
                     },
                 },
@@ -496,8 +497,8 @@ class coinex extends coinex$1["default"] {
                     'ACA': 'ACA',
                     'CHZ': 'CHILIZ',
                     'ADA': 'ADA',
-                    'ARB': 'ARBITRUM',
-                    'ARBNOVA': 'ARBITRUM_NOVA',
+                    'ARBITRUM': 'ARBITRUM',
+                    'ARBITRUM_NOVA': 'ARBITRUM_NOVA',
                     'OP': 'OPTIMISM',
                     'APT': 'APTOS',
                     'ATOM': 'ATOM',
@@ -634,6 +635,7 @@ class coinex extends coinex$1["default"] {
                     '3008': errors.RequestTimeout, // Service busy, please try again later.
                     '3109': errors.InsufficientFunds, // {"code":3109,"data":{},"message":"balance not enough"}
                     '3127': errors.InvalidOrder, // The order quantity is below the minimum requirement. Please adjust the order quantity.
+                    '3157': errors.BadSymbol, // {"code":3157,"data":{},"message":"Service has been stopped in this market"}
                     '3600': errors.OrderNotFound, // {"code":3600,"data":{},"message":"Order not found"}
                     '3606': errors.InvalidOrder, // The price difference between the order price and the latest price is too large. Please adjust the order amount accordingly.
                     '3610': errors.ExchangeError, // Order cancellation prohibited during the Call Auction period.
@@ -770,7 +772,9 @@ class coinex extends coinex$1["default"] {
                 },
                 'info': chain,
             };
-            networks[networkCode] = network;
+            if (networkCode !== undefined) {
+                networks[networkCode] = network;
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -1040,7 +1044,11 @@ class coinex extends coinex$1["default"] {
         //
         const marketType = ('mark_price' in ticker) ? 'swap' : 'spot';
         const marketId = this.safeString(ticker, 'market');
-        const symbol = this.safeSymbol(marketId, market, undefined, marketType);
+        market = this.safeMarket(marketId, market, undefined, marketType);
+        const symbol = market['symbol'];
+        // on inverse contracts 'value' is denominated in the settle currency, not
+        // the quote, so it is the quote volume only for spot and linear markets
+        const quoteVolume = market['inverse'] ? undefined : this.safeString(ticker, 'value');
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
@@ -1060,7 +1068,7 @@ class coinex extends coinex$1["default"] {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString(ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': quoteVolume,
             'markPrice': this.safeString(ticker, 'mark_price'),
             'indexPrice': this.safeString(ticker, 'index_price'),
             'info': ticker,
@@ -1251,7 +1259,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = 20, params = {}) {
         if (this.markets === undefined) {
@@ -1736,7 +1744,9 @@ class coinex extends coinex$1["default"] {
             const baseDebt = this.safeString(loan, 'base_ccy');
             const baseInterest = this.safeString(interest, 'base_ccy');
             baseAccount['debt'] = Precise["default"].stringAdd(baseDebt, baseInterest);
-            result[baseCurrencyCode] = baseAccount;
+            if (baseCurrencyCode !== undefined) {
+                result[baseCurrencyCode] = baseAccount;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1767,7 +1777,9 @@ class coinex extends coinex$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1801,7 +1813,9 @@ class coinex extends coinex$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1832,7 +1846,9 @@ class coinex extends coinex$1["default"] {
             const account = this.account();
             account['free'] = this.safeString(entry, 'available');
             account['used'] = this.safeString(entry, 'frozen');
-            result[code] = account;
+            if (code !== undefined) {
+                result[code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -2169,6 +2185,12 @@ class coinex extends coinex$1["default"] {
         return await this.createOrder(symbol, 'market', 'buy', cost, undefined, params);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+        if (type === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
+        }
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
+        }
         const market = this.market(symbol);
         const swap = market['swap'];
         const clientOrderId = this.safeString2(params, 'client_id', 'clientOrderId');
@@ -3096,7 +3118,9 @@ class coinex extends coinex$1["default"] {
             const rawOrder = orders[i];
             const marketId = this.safeString(rawOrder, 'symbol');
             const market = this.market(marketId);
-            orderSymbols.push(marketId);
+            if (marketId !== undefined) {
+                orderSymbols.push(marketId);
+            }
             const id = this.safeString(rawOrder, 'id');
             const amount = this.safeValue(rawOrder, 'amount');
             const price = this.safeValue(rawOrder, 'price');
@@ -4616,7 +4640,7 @@ class coinex extends coinex$1["default"] {
         //         "message": "OK"
         //     }
         //
-        const data = this.safeDict(response, 'data');
+        const data = this.safeDict(response, 'data', {});
         const status = this.safeStringLower(response, 'message');
         const type = (addOrReduce === 'reduce') ? 'reduce' : 'add';
         return this.extend(this.parseMarginModification(data, market), {
@@ -5175,7 +5199,7 @@ class coinex extends coinex$1["default"] {
         if (type === 'deposit') {
             feeCost = '0';
         }
-        const feeCurrencyId = this.safeString(transaction, 'fee_asset');
+        const feeCurrencyId = this.safeString2(transaction, 'fee_asset', 'fee_ccy'); // https://github.com/ccxt/ccxt/issues/25153
         const fee = {
             'cost': this.parseNumber(feeCost),
             'currency': this.safeCurrencyCode(feeCurrencyId),
@@ -5729,9 +5753,9 @@ class coinex extends coinex$1["default"] {
         const marketId = this.safeString(info, 'market');
         const timestamp = this.safeInteger(info, 'expired_at');
         return {
-            'id': this.safeInteger(info, 'borrow_id'),
+            'id': this.safeString(info, 'borrow_id'),
             'currency': this.safeCurrencyCode(currencyId, currency),
-            'amount': this.safeString(info, 'borrow_amount'),
+            'amount': this.safeNumber(info, 'borrow_amount'),
             'symbol': this.safeSymbol(marketId, undefined, undefined, 'spot'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -5852,7 +5876,9 @@ class coinex extends coinex$1["default"] {
             }
             const code = this.safeCurrencyCode(currencyId);
             if (codes === undefined || this.inArray(code, codes)) {
-                result[code] = this.parseDepositWithdrawFee(item);
+                if (code !== undefined) {
+                    result[code] = this.parseDepositWithdrawFee(item);
+                }
             }
         }
         return result;
@@ -5912,16 +5938,18 @@ class coinex extends coinex$1["default"] {
                     const currencyId = this.safeString(asset, 'ccy');
                     const feeCode = this.safeCurrencyCode(currencyId, currency);
                     const networkCode = this.networkIdToCode(networkId, feeCode);
-                    result['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': this.safeNumber(entry, 'withdrawal_fee'),
-                            'percentage': false,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    if (networkCode !== undefined) {
+                        result['networks'][networkCode] = {
+                            'withdraw': {
+                                'fee': this.safeNumber(entry, 'withdrawal_fee'),
+                                'percentage': false,
+                            },
+                            'deposit': {
+                                'fee': undefined,
+                                'percentage': undefined,
+                            },
+                        };
+                    }
                 }
             }
         }
@@ -5999,7 +6027,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} symbol unified contract symbol
      * @param {int} [since] the earliest time in ms to fetch positions for
      * @param {int} [limit] the maximum amount of records to fetch, default is 10
-     * @param {object} [params] extra parameters specific to the exchange api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch positions for
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
@@ -6134,7 +6162,7 @@ class coinex extends coinex$1["default"] {
          * @ignore
          * @method
          * @description marginMode specified by params["marginMode"], this.options["marginMode"], this.options["defaultMarginMode"], params["margin"] = true or this.options["defaultType"] = 'margin'
-         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @param {object} params extra parameters specific to the exchange API endpoint
          * @returns {Array} the marginMode in lowercase
          */
         const defaultType = this.safeString(this.options, 'defaultType');
@@ -6285,7 +6313,7 @@ class coinex extends coinex$1["default"] {
      * @param {string} [type] not used by coinex fetchMarginAdjustmentHistory
      * @param {int} [since] timestamp in ms of the earliest change to fetch
      * @param {int} [limit] the maximum amount of changes to fetch, default is 10
-     * @param {object} params extra parameters specific to the exchange api endpoint
+     * @param {object} params extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest change to fetch
      * @param {int} [params.positionId] the id of the position that you want to retrieve margin adjustment history for
      * @returns {object[]} a list of [margin structures]{@link https://docs.ccxt.com/?id=margin-loan-structure}

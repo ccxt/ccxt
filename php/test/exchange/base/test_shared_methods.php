@@ -47,7 +47,14 @@ function assert_type($exchange, $skipped_properties, $entry, $key, $format) {
     $same_numeric = ((is_int($entry_key_val) || is_float($entry_key_val))) && ((is_int($format_key_val) || is_float($format_key_val)));
     $same_boolean = (($entry_key_val === true) || ($entry_key_val === false)) && (($format_key_val === true) || ($format_key_val === false));
     $same_array = gettype($entry_key_val) === 'array' && array_is_list($entry_key_val) && gettype($format_key_val) === 'array' && array_is_list($format_key_val);
-    $same_object = $exchange->is_dictionary($entry_key_val) && $exchange->is_dictionary($format_key_val);
+    // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
+    // returns false for an empty {} format marker — accept a dict entry against an empty-array format
+    $format_is_empty_array = false;
+    if (gettype($format_key_val) === 'array' && array_is_list($format_key_val)) {
+        $format_len = count($format_key_val);
+        $format_is_empty_array = ($format_len === 0);
+    }
+    $same_object = $exchange->is_dictionary($entry_key_val) && ($exchange->is_dictionary($format_key_val) || $format_is_empty_array);
     $result = ($entry_key_val === null) || $same_string || $same_numeric || $same_boolean || $same_array || $same_object;
     return $result;
 }
@@ -69,18 +76,15 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
         for ($i = 0; $i < count($format); $i++) {
             $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($i, $empty_allowed_for);
             $value = $entry[$i];
-            if (is_array($skipped_properties) && array_key_exists($i, $skipped_properties)) {
-                continue;
-            }
             // check when:
             // - it's not inside "allowe empty values" list
             // - it's not undefined
-            if ($empty_allowed_for_this_key && ($value === null)) {
+            if (($empty_allowed_for_this_key && ($value === null)) || (is_array($skipped_properties) && array_key_exists($i, $skipped_properties))) {
                 continue;
             }
             assert($value !== null, ((string) $i) . ' index is expected to have a value' . $log_text);
             // because of other langs, this is needed for arrays
-            $type_assertion = assert_type($exchange, $skipped_properties, $entry, $i, $format);
+            $type_assertion = assert_type($exchange, array(), $entry, $i, $format);
             assert($type_assertion, ((string) $i) . ' index does not have an expected type ' . $log_text);
         }
     } else {
@@ -92,13 +96,10 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
                 continue;
             }
             assert(is_array($entry) && array_key_exists($key, $entry), '"' . string_value($key) . '" key is missing from structure' . $log_text);
-            if (is_array($skipped_properties) && array_key_exists($key, $skipped_properties)) {
-                continue;
-            }
             $empty_allowed_for_this_key = ($empty_allowed_for === null) || $exchange->in_array($key, $empty_allowed_for);
             $value = $entry[$key];
             // check when:
-            // - it's not inside "allowe empty values" list
+            // - it's not inside "allowed empty values" list
             // - it's not undefined
             if ($empty_allowed_for_this_key && ($value === null)) {
                 continue;
@@ -107,7 +108,7 @@ function assert_structure($exchange, $skipped_properties, $method, $entry, $form
             assert($value !== null, '"' . string_value($key) . '" key is expected to have a value' . $log_text);
             // add exclusion for info key, as it can be any type
             if ($key !== 'info') {
-                $type_assertion = assert_type($exchange, $skipped_properties, $entry, $key, $format);
+                $type_assertion = assert_type($exchange, array(), $entry, $key, $format);
                 assert($type_assertion, '"' . string_value($key) . '" key is neither undefined, neither of expected type' . $log_text);
                 if ($deep) {
                     if ($exchange->is_dictionary($value) || gettype($value) === 'array' && array_is_list($value)) {
@@ -171,6 +172,9 @@ function assert_timestamp_and_datetime($exchange, $skipped_properties, $method, 
             // so, we have to compare with millisecond accururacy
             $dt_parsed = $exchange->parse8601($dt);
             $ts_ms = $entry['timestamp'];
+            if ($dt_parsed === null) {
+                assert(false, 'datetime is not parseable: ' . $dt . $log_text);
+            }
             $diff = abs($dt_parsed - $ts_ms);
             if ($diff >= 500) {
                 $dt_parsed_string = $exchange->iso8601($dt_parsed);
@@ -238,7 +242,7 @@ function assert_symbol($exchange, $skipped_properties, $method, $entry, $key, $e
 
 function assert_symbol_in_markets($exchange, $skipped_properties, $method, $symbol) {
     $log_text = log_template($exchange, $method, array());
-    assert((is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
+    assert(($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets)), 'symbol should be present in exchange.symbols' . $log_text);
 }
 
 
@@ -619,6 +623,23 @@ function concat($a = null, $b = null) {
 }
 
 
+function assert_dictionary_response($exchange, $method, $response, $hint = null) {
+    // php cannot distinguish an empty dict from an empty list, both are a plain array
+    // there, so an empty array response is shape indeterminate and accepted, observed
+    // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
+    $is_empty_array_response = false;
+    if (gettype($response) === 'array' && array_is_list($response)) {
+        $response_length = count($response);
+        $is_empty_array_response = ($response_length === 0);
+    }
+    $hint_text = '';
+    if ($hint !== null) {
+        $hint_text = ' ' . $hint;
+    }
+    assert($exchange->is_dictionary($response) || $is_empty_array_response, $exchange->id . ' ' . $method . $hint_text . ' must return a dict. ' . $exchange->json($response));
+}
+
+
 function assert_non_emtpy_array($exchange, $skipped_properties, $method, $entry, $hint = null) {
     $log_text = log_template($exchange, $method, $entry);
     if ($hint !== null) {
@@ -664,21 +685,41 @@ function exchange_prop($exchange, $key, $default_value = null) {
 }
 
 
-function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
+function ticker_exception_needs_ohlcv($ex, $exchange, $ticker) {
+    // pure helper (no awaits): files under test/Exchange/base transpile into a single
+    // sync-flavored php shared by both lanes, so the actual fetchOHLCV await must live
+    // in the per-lane callers - this tells them whether the probe is needed
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
+        $symbol = $ticker['symbol'];
+        if ($symbol !== null) {
+            if (($exchange->markets !== null) && (is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+                if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+
+function validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv = null) {
     // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
-    $e_message = $exchange->exception_message($ex, false);
-    if (in_array('percentage should be above', $e_message) || in_array('percentage should be below', $e_message)) {
+    // pure (no awaits) for the sync-shared php transpile - the ohlcv candles, when needed
+    // per tickerExceptionNeedsOhlcv, are fetched by the per-lane caller and passed in
+    $e_message = $exchange->exception_message($ex, false); // typed string so the php transpile uses mb_strpos, not in_array
+    if (mb_strpos($e_message, 'percentage should be above') !== false || mb_strpos($e_message, 'percentage should be below') !== false) {
         $symbol = $ticker['symbol'];
         if ($symbol !== null) {
             // if it's not in markets, then maybe newly added symbol, so can can compromise there
-            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+            if (($exchange->markets === null) || !(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
                 return;
             }
-            // if OHLCV supported
-            if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
-                $ohlcv = $exchange->fetch_ohlcv($symbol, '1d', null, 5);
-                if (count($ohlcv) <= 1) {
-                    // if only 1 day, then allow it
+            if ($ohlcv !== null) {
+                $ohlcv_length = count($ohlcv);
+                if ($ohlcv_length <= 1) {
+                    // if only 1 day of listing, then allow it
                     return;
                 }
             }

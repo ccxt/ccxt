@@ -61,7 +61,7 @@ public partial class derive : ccxt.derive
     {
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId(url);
-        object request = this.extend(message, new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
         subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -79,7 +79,7 @@ public partial class derive : ccxt.derive
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -164,7 +164,7 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object topic = add(add("ticker.", getValue(market, "id")), ".100");
+        object topic = add(add("ticker_slim.", getValue(market, "id")), ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
         object request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -248,8 +248,37 @@ public partial class derive : ccxt.derive
         object parameters = this.safeDict(message, "params");
         object rawData = this.safeDict(parameters, "data");
         object data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
-        object topic = this.safeValue(parameters, "channel");
-        object ticker = this.parseTicker(data);
+        object topic = this.safeString(parameters, "channel");
+        object ticker = null;
+        if (isTrue(isTrue(!isEqual(topic, null)) && isTrue(((string)topic).StartsWith(((string)"ticker_slim")))))
+        {
+            // the slim payload uses short keys and does not carry the instrument name,
+            // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
+            List<object> parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+            object marketId = this.safeString(parts, 1);
+            object market = this.safeMarket(marketId);
+            object stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
+            ticker = this.safeTicker(new Dictionary<string, object>() {
+                { "symbol", getValue(market, "symbol") },
+                { "timestamp", this.safeInteger(data, "t") },
+                { "datetime", this.iso8601(this.safeInteger(data, "t")) },
+                { "bid", this.safeString(data, "b") },
+                { "bidVolume", this.safeString(data, "B") },
+                { "ask", this.safeString(data, "a") },
+                { "askVolume", this.safeString(data, "A") },
+                { "high", this.safeString(stats, "h") },
+                { "low", this.safeString(stats, "l") },
+                { "baseVolume", this.safeString(stats, "c") },
+                { "quoteVolume", this.safeString(stats, "v") },
+                { "percentage", this.safeString(stats, "p") },
+                { "markPrice", this.safeString(data, "M") },
+                { "indexPrice", this.safeString(data, "I") },
+                { "info", rawData },
+            }, market);
+        } else
+        {
+            ticker = this.parseTicker(data);
+        }
         object tickerSymbol = getValue(ticker, "symbol");
         if (isTrue(!isEqual(tickerSymbol, null)))
         {
@@ -329,7 +358,7 @@ public partial class derive : ccxt.derive
     {
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId(url);
-        object request = this.extend(message, new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
         subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -341,7 +370,7 @@ public partial class derive : ccxt.derive
 
     public virtual void handleOrderBookUnSubscription(WebSocketClient client, object topic)
     {
-        object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -360,7 +389,7 @@ public partial class derive : ccxt.derive
 
     public virtual void handleTradesUnSubscription(WebSocketClient client, object topic)
     {
-        object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -392,7 +421,7 @@ public partial class derive : ccxt.derive
         object status = this.safeDict(result, "status");
         if (isTrue(!isEqual(status, null)))
         {
-            object topics = new List<object>(((IDictionary<string,object>)status).Keys);
+            List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
             {
                 object topic = getValue(topics, i);
@@ -454,7 +483,7 @@ public partial class derive : ccxt.derive
         object parameters = this.safeDict(message, "params");
         object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object topic = this.safeValue(parameters, "channel");
-        object parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+        List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parsedTopic, 1);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -479,13 +508,13 @@ public partial class derive : ccxt.derive
         this.checkRequiredCredentials();
         object url = getValue(getValue(this.urls, "api"), "ws");
         var client = this.client(url);
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
             object requestId = this.requestId(url);
-            object now = ((object)this.milliseconds()).ToString();
+            string now = ((object)this.milliseconds()).ToString();
             object signature = this.signMessage(now, this.privateKey);
             object deriveWalletAddress = this.safeString(this.options, "deriveWalletAddress");
             object request = new Dictionary<string, object>() {
@@ -502,7 +531,7 @@ public partial class derive : ccxt.derive
             //     'symbol': symbol,
             //     'params': params,
             // };
-            object message = this.extend(request, parameters);
+            Dictionary<string, object> message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash, message);
         }
         return await (future as Exchange.Future);
@@ -513,7 +542,7 @@ public partial class derive : ccxt.derive
         await this.authenticate();
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.requestId(url);
-        object request = this.extend(message, new Dictionary<string, object>() {
+        Dictionary<string, object> request = this.extend(message, new Dictionary<string, object>() {
             { "id", requestId },
         });
         subscription = this.extend(subscription, new Dictionary<string, object>() {
@@ -564,7 +593,7 @@ public partial class derive : ccxt.derive
             { "name", topic },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object orders = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
@@ -700,7 +729,7 @@ public partial class derive : ccxt.derive
             { "name", topic },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
+        Dictionary<string, object> message = this.extend(request, parameters);
         object trades = await this.watchPrivate(messageHash, message, subscription);
         if (isTrue(this.newUpdates))
         {
@@ -759,7 +788,7 @@ public partial class derive : ccxt.derive
         {
             if (isTrue(error is AuthenticationError))
             {
-                object messageHash = "authenticated";
+                string messageHash = "authenticated";
                 ((WebSocketClient)client).reject(error, messageHash);
                 if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                 {
@@ -782,6 +811,7 @@ public partial class derive : ccxt.derive
         object methods = new Dictionary<string, object>() {
             { "orderbook", this.handleOrderBook },
             { "ticker", this.handleTicker },
+            { "ticker_slim", this.handleTicker },
             { "trades", this.handleTrade },
             { "orders", this.handleOrder },
             { "mytrades", this.handleMyTrade },
@@ -793,7 +823,7 @@ public partial class derive : ccxt.derive
             object channel = this.safeString(parameters, "channel");
             if (isTrue(!isEqual(channel, null)))
             {
-                object parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
+                List<object> parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                 if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(channel, "orders"), 0))) || isTrue(isGreaterThan(getIndexOf(channel, "trades"), 0))))
                 {
                     eventVar = this.safeString(parsedChannel, 1);
@@ -817,7 +847,7 @@ public partial class derive : ccxt.derive
         if (isTrue(inOp(message, "id")))
         {
             object id = this.safeString(message, "id");
-            object subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
+            Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = ((bool) isTrue((isEqual(id, null)))) ? new Dictionary<string, object>() {} : this.safeValue(subscriptionsById, id, new Dictionary<string, object>() {});
             if (isTrue(inOp(subscription, "method")))
             {
@@ -840,7 +870,7 @@ public partial class derive : ccxt.derive
         //     result: [ 130837 ]
         // }
         //
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         object ids = this.safeList(message, "result", new List<object>() {});
         if (isTrue(isGreaterThan(getArrayLength(ids), 0)))
         {

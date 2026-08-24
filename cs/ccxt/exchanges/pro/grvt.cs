@@ -106,7 +106,7 @@ public partial class grvt : ccxt.grvt
             return;
         }
         object channel = this.safeString(message, "stream");
-        object method = this.safeValue(methods, ((string)channel));
+        object method = this.safeValue(methods, channel);
         if (isTrue(!isEqual(method, null)))
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message});
@@ -178,8 +178,8 @@ public partial class grvt : ccxt.grvt
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
-        object interval = null;
-        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", 500);
+        object interval = 500;
+        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         if (isTrue(isEqual(this.markets, null)))
@@ -194,7 +194,7 @@ public partial class grvt : ccxt.grvt
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)((string)interval)).ToString()));
+            ((IList<object>)rawHashes).Add(add(add(marketId, "@"), ((object)interval).ToString()));
             ((IList<object>)messageHashes).Add(add("ticker::", getValue(market, "symbol")));
         }
         object request = new Dictionary<string, object>() {
@@ -291,9 +291,9 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object ticker = this.parseWsTicker(data, market);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -394,9 +394,9 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         if (!isTrue((inOp(this.trades, symbol))))
         {
@@ -465,7 +465,7 @@ public partial class grvt : ccxt.grvt
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(((string)symbolString));
+            object market = this.market(symbolString);
             object marketId = getValue(market, "id");
             object unfiedTimeframe = this.safeString(data, 1, "1");
             object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -512,12 +512,12 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object secondPart = this.safeString(parts, 1, "");
-        object timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
+        string timeframeId = ((string)secondPart).Replace((string)"-TRADE", (string)"");
         object timeframe = this.findTimeframe(timeframeId);
         object messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -548,7 +548,7 @@ public partial class grvt : ccxt.grvt
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -570,7 +570,7 @@ public partial class grvt : ccxt.grvt
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -583,8 +583,8 @@ public partial class grvt : ccxt.grvt
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
-        object isSnapshot = isEqual(channel, "v1.book.s");
-        object symbolsLength = getArrayLength(symbols);
+        bool isSnapshot = isEqual(channel, "v1.book.s");
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -595,12 +595,12 @@ public partial class grvt : ccxt.grvt
             limit = ((IList<object>)limitparametersVariable)[0];
             parameters = ((IList<object>)limitparametersVariable)[1];
         }
-        object interval = null;
-        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", 500);
+        object interval = 500;
+        var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
-        object extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(((object)((string)interval)).ToString(), "-"), ((object)limit).ToString())) : ((object)((string)interval)).ToString();
+        object extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(((object)interval).ToString(), "-"), ((object)limit).ToString())) : ((object)interval).ToString();
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -649,9 +649,9 @@ public partial class grvt : ccxt.grvt
         //
         object data = this.safeDict(message, "feed", new Dictionary<string, object>() {});
         object selector = this.safeString(message, "selector", "");
-        object parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
+        List<object> parts = ((string)selector).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 0);
-        object market = this.safeMarket(marketId, null);
+        object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!isTrue((inOp(this.orderbooks, symbol))))
@@ -661,8 +661,8 @@ public partial class grvt : ccxt.grvt
         object orderbook = getValue(this.orderbooks, symbol);
         object sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         object stream = this.safeString(message, "stream");
-        object isSnapshotChannel = isEqual(stream, "v1.book.s");
-        object isSnapshotMessage = isLessThanOrEqual(sequenceNumber, 0);
+        bool isSnapshotChannel = isEqual(stream, "v1.book.s");
+        bool isSnapshotMessage = isLessThanOrEqual(sequenceNumber, 0);
         if (isTrue(isTrue(isSnapshotChannel) || isTrue(isSnapshotMessage)))
         {
             object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -1063,7 +1063,7 @@ public partial class grvt : ccxt.grvt
         object errorCode = this.safeString(error, "code");
         if (isTrue(!isEqual(errorCode, null)))
         {
-            object body = this.json(response);
+            string body = this.json(response);
             object feedback = add(add(this.id, " "), body);
             object message = this.safeString(error, "message");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);

@@ -42,7 +42,8 @@ export default class foxbit extends Exchange {
                 'createMarketBuyOrder': true,
                 'createMarketSellOrder': true,
                 'createOrder': true,
-                'fecthOrderBook': true,
+                'createOrders': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
@@ -56,7 +57,10 @@ export default class foxbit extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
+                'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchOrdersByStatus': true,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -141,42 +145,42 @@ export default class foxbit extends Exchange {
                 'v3': {
                     'public': {
                         'get': {
-                            'currencies': 5, // 6 requests per second
-                            'markets': 5, // 6 requests per second
-                            'markets/ticker/24hr': 60, // 1 request per 2 seconds
-                            'markets/{market}/orderbook': 6, // 10 requests per 2 seconds
-                            'markets/{market}/candlesticks': 12, // 5 requests per 2 seconds
-                            'markets/{market}/trades/history': 12, // 5 requests per 2 seconds
-                            'markets/{market}/ticker/24hr': 15, // 4 requests per 2 seconds
+                            'currencies': { 'cost': 5 }, // 6 requests per second
+                            'markets': { 'cost': 5 }, // 6 requests per second
+                            'markets/ticker/24hr': { 'cost': 60 }, // 1 request per 2 seconds
+                            'markets/{market}/orderbook': { 'cost': 6 }, // 10 requests per 2 seconds
+                            'markets/{market}/candlesticks': { 'cost': 12 }, // 5 requests per 2 seconds
+                            'markets/{market}/trades/history': { 'cost': 12 }, // 5 requests per 2 seconds
+                            'markets/{market}/ticker/24hr': { 'cost': 15 }, // 4 requests per 2 seconds
                         },
                     },
                     'private': {
                         'get': {
-                            'accounts': 2, // 15 requests per second
-                            'accounts/{symbol}/transactions': 60, // 1 requests per 2 seconds
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/by-order-id/{id}': 2, // 30 requests per 2 seconds
-                            'trades': 6, // 5 orders per second
-                            'deposits/address': 10, // 3 requests per second
-                            'deposits': 10, // 3 requests per second
-                            'withdrawals': 10, // 3 requests per second
-                            'me/fees/trading': 60, // 1 requests per 2 seconds
+                            'accounts': { 'cost': 2 }, // 15 requests per second
+                            'accounts/{symbol}/transactions': { 'cost': 60 }, // 1 requests per 2 seconds
+                            'orders': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'orders/by-order-id/{id}': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'trades': { 'cost': 6 }, // 5 orders per second
+                            'deposits/address': { 'cost': 10 }, // 3 requests per second
+                            'deposits': { 'cost': 10 }, // 3 requests per second
+                            'withdrawals': { 'cost': 10 }, // 3 requests per second
+                            'me/fees/trading': { 'cost': 60 }, // 1 requests per 2 seconds
                         },
                         'post': {
-                            'orders': 2, // 30 requests per 2 seconds
-                            'orders/batch': 7.5, // 8 requests per 2 seconds
-                            'orders/cancel-replace': 3, // 20 requests per 2 seconds
-                            'withdrawals': 10, // 3 requests per second
+                            'orders': { 'cost': 2 }, // 30 requests per 2 seconds
+                            'orders/batch': { 'cost': 7.5 }, // 8 requests per 2 seconds
+                            'orders/cancel-replace': { 'cost': 3 }, // 20 requests per 2 seconds
+                            'withdrawals': { 'cost': 10 }, // 3 requests per second
                         },
                         'put': {
-                            'orders/cancel': 2, // 30 requests per 2 seconds
+                            'orders/cancel': { 'cost': 2 }, // 30 requests per 2 seconds
                         },
                     },
                 },
                 'status': {
                     'public': {
                         'get': {
-                            'status': 30, // 1 request per second
+                            'status': { 'cost': 30 }, // 1 request per second
                         },
                     },
                 },
@@ -388,31 +392,33 @@ export default class foxbit extends Exchange {
             const networkDepositInfo = this.safeDict(network, 'deposit_info');
             const isWithdrawEnabled = this.safeString(networkWithdrawInfo, 'status') === 'ENABLED';
             const isDepositEnabled = this.safeString(networkDepositInfo, 'status') === 'ENABLED';
-            parsedNetworks[networkCode] = {
-                'info': rawCurrency,
-                'id': networkId,
-                'network': networkCode,
-                'name': this.safeString(network, 'name'),
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'active': true,
-                'precision': precision,
-                'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
-                'limits': {
-                    'amount': {
-                        'min': undefined,
-                        'max': undefined,
+            if (networkCode !== undefined) {
+                parsedNetworks[networkCode] = {
+                    'info': rawCurrency,
+                    'id': networkId,
+                    'network': networkCode,
+                    'name': this.safeString(network, 'name'),
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'active': true,
+                    'precision': precision,
+                    'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.safeNumber(depositInfo, 'min_amount'),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.safeNumber(withdrawInfo, 'min_amount'),
+                            'max': undefined,
+                        },
                     },
-                    'deposit': {
-                        'min': this.safeNumber(depositInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber(withdrawInfo, 'min_amount'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return this.safeCurrencyStructure({
             'id': currencyId,
@@ -680,7 +686,7 @@ export default class foxbit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -805,7 +811,7 @@ export default class foxbit extends Exchange {
         //         "15466.34096391" // taker buy quote volume
         //     ]
         // ]
-        return this.parseOHLCVs(response, market, interval, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, interval, since, limit);
     }
     /**
      * @method
@@ -846,7 +852,9 @@ export default class foxbit extends Exchange {
                 'used': used,
                 'total': total,
             };
-            result[currencyCode] = balanceObj;
+            if (currencyCode !== undefined) {
+                result[currencyCode] = balanceObj;
+            }
         }
         return this.safeBalance(result);
     }
@@ -935,6 +943,9 @@ export default class foxbit extends Exchange {
         const timeInForce = this.safeStringUpper(params, 'timeInForce');
         const postOnly = this.safeBool(params, 'postOnly', false);
         const triggerPrice = this.safeNumber(params, 'triggerPrice');
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const request = {
             'market_symbol': market['id'],
             'side': side.toUpperCase(),
@@ -1101,7 +1112,7 @@ export default class foxbit extends Exchange {
      * @name foxbit#cancelAllOrders
      * @description Cancel all open orders or all open orders for a specific market.
      * @see https://docs.foxbit.com.br/rest/v3/#tag/Trading/operation/OrdersController_cancel
-     * @param {string} symbol unified market symbol of the market to cancel orders in
+     * @param {string} [symbol] unified market symbol of the market to cancel orders in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1477,7 +1488,7 @@ export default class foxbit extends Exchange {
         };
         return {
             'status': this.safeString(statusMap, statusRaw, statusRaw),
-            'updated': this.safeString(attributes, 'updatedAt'),
+            'updated': this.parse8601(this.safeString(attributes, 'updatedAt')),
             'eta': undefined,
             'url': undefined,
             'info': response,
@@ -1509,6 +1520,9 @@ export default class foxbit extends Exchange {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' editOrder() requires a side argument');
+        }
         const request = {
             'mode': 'ALLOW_FAILURE',
             'cancel': {
@@ -1544,7 +1558,8 @@ export default class foxbit extends Exchange {
         //         "client_order_id": "451637946501"
         //     }
         // }
-        return this.parseOrder(response['create'], market);
+        const created = this.safeDict(response, 'create', {});
+        return this.parseOrder(created, market);
     }
     /**
      * @method
@@ -1955,9 +1970,21 @@ export default class foxbit extends Exchange {
             'cost': this.safeNumber(item, 'fee'),
             'currency': currencySymbol,
         };
+        if (amount === undefined) {
+            throw new ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+        }
         if (amount < 0) {
             direction = 'out';
+            if (amount === undefined) {
+                throw new ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
+            }
             realAmount = amount * -1;
+        }
+        if (balance === undefined) {
+            throw new ExchangeError(this.id + ' parseLedgerEntry() missing balance');
+        }
+        if (amount === undefined) {
+            throw new ArgumentsRequired(this.id + ' parseLedgerEntry() requires a amount argument');
         }
         return {
             'id': id,
@@ -2017,6 +2044,8 @@ export default class foxbit extends Exchange {
         }
         headers = {
             'Content-Type': 'application/json',
+            'X-FB-CLIENT': 'ccxt',
+            'X-FB-CLIENT-VERSION': this.getCcxtVersion(),
         };
         if (urlPath === 'private') {
             this.checkRequiredCredentials();

@@ -5,12 +5,11 @@
 
 from ccxt.hitbtc import hitbtc
 from ccxt.abstract.bequant import ImplicitAPI
-from ccxt.base.types import Any
 
 
 class bequant(hitbtc, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bequant, self).describe(), {
             'id': 'bequant',
             'name': 'Bequant',

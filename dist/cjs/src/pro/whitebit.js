@@ -145,7 +145,7 @@ class whitebit extends whitebit$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -319,7 +319,7 @@ class whitebit extends whitebit$1["default"] {
         //
         const tickers = this.safeValue(message, 'params', []);
         const marketId = this.safeString(tickers, 0);
-        const market = this.safeMarket(marketId, undefined);
+        const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const rawTicker = this.safeValue(tickers, 1, {});
         const messageHash = 'ticker' + ':' + symbol;
@@ -456,7 +456,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78",
         //         "0.16717",
         //         "0.0094919126",
-        //         ''
+        //         '',
+        //         "2",
+        //         "2",
+        //         "LTC"
         //       ],
         //       "id": null
         //   }
@@ -483,7 +486,10 @@ class whitebit extends whitebit$1["default"] {
         //         "56.78", // price
         //         "0.16717", // amount
         //         "0.0094919126", // fee
-        //         '' // client order id
+        //         '', // client order id
+        //         "2", // side, 1 = sell, 2 = buy
+        //         "2", // role, 1 = maker, 2 = taker
+        //         "LTC" // fee asset
         //    ]
         //
         const orderId = this.safeString(trade, 3);
@@ -496,10 +502,28 @@ class whitebit extends whitebit$1["default"] {
         let fee = undefined;
         const feeCost = this.safeString(trade, 6);
         if (feeCost !== undefined) {
+            const feeCurrencyId = this.safeString(trade, 10);
+            const feeCurrencyCode = (feeCurrencyId !== undefined) ? this.safeCurrencyCode(feeCurrencyId) : market['quote'];
             fee = {
                 'cost': feeCost,
-                'currency': market['quote'],
+                'currency': feeCurrencyCode,
             };
+        }
+        const rawSide = this.safeInteger(trade, 8);
+        let side = undefined;
+        if (rawSide === 1) {
+            side = 'sell';
+        }
+        else if (rawSide === 2) {
+            side = 'buy';
+        }
+        const role = this.safeInteger(trade, 9);
+        let takerOrMaker = undefined;
+        if (role === 1) {
+            takerOrMaker = 'maker';
+        }
+        else if (role === 2) {
+            takerOrMaker = 'taker';
         }
         return this.safeTrade({
             'id': id,
@@ -509,8 +533,8 @@ class whitebit extends whitebit$1["default"] {
             'symbol': market['symbol'],
             'order': orderId,
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -703,6 +727,8 @@ class whitebit extends whitebit$1["default"] {
      * @see https://docs.whitebit.com/private/websocket/#balance-margin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {str} [params.type] spot or contract if not provided this.options['defaultType'] is used
+     * @param {bool} [params.fetchBalanceSnapshot] whether to fetch the initial balance snapshot over REST, default is true
+     * @param {bool} [params.awaitBalanceSnapshot] whether to wait for the balance snapshot before providing updates, default is true
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
@@ -721,10 +747,46 @@ class whitebit extends whitebit$1["default"] {
             method = 'balanceMargin_subscribe';
             messageHash += 'margin';
         }
-        const currencies = Object.keys(this.currencies);
-        return await this.watchPrivate(messageHash, method, currencies, params);
+        const url = this.urls['api']['ws'];
+        const client = this.client(url);
+        this.setBalanceCache(client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(params, 'watchBalance', 'awaitBalanceSnapshot', true);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future(type + ':fetchBalanceSnapshot');
+        }
+        // an empty params array subscribes to updates for all assets,
+        // listing all tickers explicitly is rejected with "invalid argument"
+        return await this.watchPrivate(messageHash, method, [], params);
+    }
+    setBalanceCache(client, type, subscriptionHash) {
+        if (subscriptionHash in client.subscriptions) {
+            return;
+        }
+        const fetchBalanceSnapshot = this.handleOption('watchBalance', 'fetchBalanceSnapshot', true);
+        if (fetchBalanceSnapshot) {
+            const messageHash = type + ':fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future(messageHash);
+                this.spawn(this.loadBalanceSnapshot, client, messageHash, type, subscriptionHash);
+            }
+        }
+    }
+    async loadBalanceSnapshot(client, messageHash, type, subscriptionHash) {
+        const response = await this.fetchBalance({ 'type': type });
+        this.balance = this.extend(response, this.balance);
+        // don't remove the future from the .futures cache
+        if (messageHash in client.futures) {
+            const future = client.futures[messageHash];
+            future.resolve();
+            client.resolve(this.balance, subscriptionHash);
+        }
     }
     handleBalance(client, message) {
+        //
+        // spot
         //
         //   {
         //       "method":"balanceSpot_update",
@@ -733,24 +795,67 @@ class whitebit extends whitebit$1["default"] {
         //             "LTC":{
         //                "available":"0.16587",
         //                "freeze":"0"
+        //             },
+        //             "BTC":{
+        //                "available":"0.005",
+        //                "freeze":"0.001"
         //             }
         //          }
         //       ],
         //       "id":null
         //   }
         //
+        // margin
+        //
+        //   {
+        //       "method":"balanceMargin_update",
+        //       "params":[
+        //          {
+        //             "a":"USDT",         // asset
+        //             "B":"0.00538073",   // total balance
+        //             "b":"0",            // borrowed
+        //             "av":"0.00538073",  // available without borrowing
+        //             "ab":"28.43739825"  // available with borrowing
+        //          }
+        //       ],
+        //       "id":null
+        //   }
+        //
         const method = this.safeString(message, 'method');
-        const data = this.safeValue(message, 'params');
-        const balanceDict = this.safeValue(data, 0);
-        this.balance['info'] = balanceDict;
-        const keys = Object.keys(balanceDict);
-        const currencyId = this.safeValue(keys, 0);
-        const rawBalance = this.safeValue(balanceDict, currencyId);
-        const code = this.safeCurrencyCode(currencyId);
-        const account = this.account();
-        account['free'] = this.safeString(rawBalance, 'available');
-        account['used'] = this.safeString(rawBalance, 'freeze');
-        this.balance[code] = account;
+        if (method === undefined) {
+            return;
+        }
+        const isMargin = (method.indexOf('Margin') >= 0);
+        const data = this.safeList(message, 'params', []);
+        for (let i = 0; i < data.length; i++) {
+            const balanceDict = this.safeDict(data, i, {});
+            this.balance['info'] = balanceDict;
+            if (isMargin) {
+                const currencyId = this.safeString(balanceDict, 'a');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balanceDict, 'av');
+                account['total'] = this.safeString(balanceDict, 'B');
+                account['debt'] = this.safeString(balanceDict, 'b');
+                if (code !== undefined) {
+                    this.balance[code] = account;
+                }
+            }
+            else {
+                const keys = Object.keys(balanceDict);
+                for (let j = 0; j < keys.length; j++) {
+                    const currencyId = keys[j];
+                    const rawBalance = this.safeDict(balanceDict, currencyId, {});
+                    const code = this.safeCurrencyCode(currencyId);
+                    const account = this.account();
+                    account['free'] = this.safeString(rawBalance, 'available');
+                    account['used'] = this.safeString(rawBalance, 'freeze');
+                    if (code !== undefined) {
+                        this.balance[code] = account;
+                    }
+                }
+            }
+        }
         this.balance = this.safeBalance(this.balance);
         let messageHash = 'wallet:';
         if (method.indexOf('Spot') >= 0) {
@@ -785,7 +890,9 @@ class whitebit extends whitebit$1["default"] {
             const subscription = {};
             const market = this.market(symbol);
             const marketId = market['id'];
-            subscription[marketId] = true;
+            if (marketId !== undefined) {
+                subscription[marketId] = true;
+            }
             marketIds = [marketId];
             if (isNested) {
                 marketIds = [marketIds];
@@ -805,7 +912,9 @@ class whitebit extends whitebit$1["default"] {
             const marketId = market['id'];
             const isSubscribed = this.safeBool(subscription, marketId, false);
             if (!isSubscribed) {
-                subscription[marketId] = true;
+                if (marketId !== undefined) {
+                    subscription[marketId] = true;
+                }
                 hasSymbolSubscription = false;
             }
             if (hasSymbolSubscription) {
@@ -847,11 +956,45 @@ class whitebit extends whitebit$1["default"] {
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
         const url = this.urls['api']['ws'];
-        const messageHash = 'authenticated';
         const client = this.client(url);
-        const future = client.reusableFuture('authenticated');
-        const authenticated = this.safeValue(client.subscriptions, messageHash);
-        if (authenticated === undefined) {
+        const subscribeHash = 'authenticated';
+        // handleAuthenticate () resolves the handshake future with 1, so 1 is
+        // the authorized sentinel authenticate () has always returned - every
+        // path below hands back that same value
+        const authorized = 1;
+        // single-flight leader election, see
+        // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
+        // subscriptions['authenticated'], which watch () only registers once
+        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
+        // every concurrent cold caller used to pass that gate, burn a
+        // rate-limited private REST call for its own websocket_token and push
+        // its own authorize frame down the shared socket. the flight is
+        // registered in client.futures on the very client that carries the
+        // handshake, under a key that is not one of the exchange's own
+        // messageHashes, and is settled through client.resolve () /
+        // client.reject () so every write to that map goes through the
+        // client's own accessors
+        const messageHash = 'authenticateFlight';
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader settles
+            // it, the socket is authorized by then. the flight gate is
+            // checked before the subscriptions one because watch () registers
+            // subscriptions['authenticated'] immediately, long before the
+            // venue acks the authorize frame
+            await client.future(messageHash);
+            return authorized;
+        }
+        const authenticated = this.safeValue(client.subscriptions, subscribeHash);
+        if (authenticated !== undefined) {
+            // a previous flight already completed the handshake on the client
+            return authorized;
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch or the authorize round-trip finds it and waits
+        // instead of re-leading, and so client.reject () below always has a
+        // waiter and can never park the error in client.rejections
+        const future = client.reusableFuture(messageHash);
+        try {
             const authToken = await this.v4PrivatePostProfileWebsocketToken();
             //
             //   {
@@ -859,6 +1002,11 @@ class whitebit extends whitebit$1["default"] {
             //   }
             //
             const token = this.safeString(authToken, 'websocket_token');
+            if (token === undefined) {
+                // reject instead of authorizing with an empty credential, the
+                // venue answers that with an opaque socket drop
+                throw new errors.AuthenticationError(this.id + ' authenticate() received an empty websocket_token');
+            }
             const id = this.nonce();
             const request = {
                 'id': id,
@@ -872,15 +1020,33 @@ class whitebit extends whitebit$1["default"] {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            try {
-                await this.watch(url, messageHash, request, messageHash, subscription);
-            }
-            catch (e) {
-                delete client.subscriptions[messageHash];
-                future.reject(e);
-            }
+            await this.watch(url, subscribeHash, request, subscribeHash, subscription);
+            // settle the flight and wake every waiter - resolve () also drops
+            // the registry entry, so a later cold call can re-lead
+            client.resolve(authorized, messageHash);
         }
-        return await future;
+        catch (e) {
+            // drop the handshake state so the next caller can retry: watch ()
+            // registers subscriptions['authenticated'] before it connects and
+            // parks a rejected future under the same key when the dial fails,
+            // and either one left behind would make every later authenticate ()
+            // replay that failure. the stale future is settled through
+            // client.reject () - guarded, so it always has a waiter and the
+            // error is never parked in client.rejections
+            if (subscribeHash in client.subscriptions) {
+                delete client.subscriptions[subscribeHash];
+            }
+            if (subscribeHash in client.futures) {
+                client.reject(e, subscribeHash);
+            }
+            // reject the flight - the leader and every waiter throw and the
+            // next caller re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
+        return authorized;
     }
     handleAuthenticate(client, message) {
         //

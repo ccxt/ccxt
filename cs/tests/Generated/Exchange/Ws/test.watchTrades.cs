@@ -8,15 +8,18 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchTrades(Exchange exchange, object skippedProperties, object symbol)
+    async static public Task<object> testWatchTrades(Exchange exchange, object skippedProperties, object symbol)
     {
-        object method = "watchTrades";
+        string method = "watchTrades";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object maxIdleTime = 5000;
+        bool idle = false;
+        while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = new List<object>() {};
-            object success = true;
+            bool success = true;
+            object startTime = exchange.milliseconds();
             try
             {
                 response = await exchange.watchTrades(symbol);
@@ -26,20 +29,23 @@ public partial class testMainClass : BaseTest
                 {
                     throw e;
                 }
-                now = exchange.milliseconds();
-                // continue;
                 success = false;
             }
+            now = exchange.milliseconds();
             if (isTrue(isEqual(success, true)))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
-                now = exchange.milliseconds();
                 for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }
+                if (isTrue(isGreaterThan((subtract(now, startTime)), maxIdleTime)))
+                {
+                    idle = true;
+                }
             }
         }
+        return true;
     }
 
 }

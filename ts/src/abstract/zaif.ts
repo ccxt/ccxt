@@ -5,44 +5,44 @@
 
 // -------------------------------------------------------------------------------
 
-import { implicitReturnType } from '../base/types.js';
+import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
 interface Exchange {
-    publicGetDepthPair (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrenciesPair (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrenciesAll (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyPairsPair (params?: {}): Promise<implicitReturnType>;
-    publicGetCurrencyPairsAll (params?: {}): Promise<implicitReturnType>;
-    publicGetLastPricePair (params?: {}): Promise<implicitReturnType>;
-    publicGetTickerPair (params?: {}): Promise<implicitReturnType>;
-    publicGetTradesPair (params?: {}): Promise<implicitReturnType>;
-    privatePostActiveOrders (params?: {}): Promise<implicitReturnType>;
-    privatePostCancelOrder (params?: {}): Promise<implicitReturnType>;
-    privatePostDepositHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostGetIdInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostGetInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostGetInfo2 (params?: {}): Promise<implicitReturnType>;
-    privatePostGetPersonalInfo (params?: {}): Promise<implicitReturnType>;
-    privatePostTrade (params?: {}): Promise<implicitReturnType>;
-    privatePostTradeHistory (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdraw (params?: {}): Promise<implicitReturnType>;
-    privatePostWithdrawHistory (params?: {}): Promise<implicitReturnType>;
-    ecapiPostCreateInvoice (params?: {}): Promise<implicitReturnType>;
-    ecapiPostGetInvoice (params?: {}): Promise<implicitReturnType>;
-    ecapiPostGetInvoiceIdsByOrderNumber (params?: {}): Promise<implicitReturnType>;
-    ecapiPostCancelInvoice (params?: {}): Promise<implicitReturnType>;
-    tlapiPostGetPositions (params?: {}): Promise<implicitReturnType>;
-    tlapiPostPositionHistory (params?: {}): Promise<implicitReturnType>;
-    tlapiPostActivePositions (params?: {}): Promise<implicitReturnType>;
-    tlapiPostCreatePosition (params?: {}): Promise<implicitReturnType>;
-    tlapiPostChangePosition (params?: {}): Promise<implicitReturnType>;
-    tlapiPostCancelPosition (params?: {}): Promise<implicitReturnType>;
-    fapiGetGroupsGroupId (params?: {}): Promise<implicitReturnType>;
-    fapiGetLastPriceGroupIdPair (params?: {}): Promise<implicitReturnType>;
-    fapiGetTickerGroupIdPair (params?: {}): Promise<implicitReturnType>;
-    fapiGetTradesGroupIdPair (params?: {}): Promise<implicitReturnType>;
-    fapiGetDepthGroupIdPair (params?: {}): Promise<implicitReturnType>;
+    publicGetDepthPair (params?: {}): Promise<Dict>;
+    publicGetCurrenciesPair (params?: {}): Promise<List>;
+    publicGetCurrenciesAll (params?: {}): Promise<List>;
+    publicGetCurrencyPairsPair (params?: {}): Promise<List>;
+    publicGetCurrencyPairsAll (params?: {}): Promise<List>;
+    publicGetLastPricePair (params?: {}): Promise<Dict>;
+    publicGetTickerPair (params?: {}): Promise<Dict>;
+    publicGetTradesPair (params?: {}): Promise<List>;
+    privatePostActiveOrders (params?: {}): Promise<Dict>;
+    privatePostCancelOrder (params?: {}): Promise<Dict>;
+    privatePostDepositHistory (params?: {}): Promise<Dict>;
+    privatePostGetIdInfo (params?: {}): Promise<Dict>;
+    privatePostGetInfo (params?: {}): Promise<Dict>;
+    privatePostGetInfo2 (params?: {}): Promise<Dict>;
+    privatePostGetPersonalInfo (params?: {}): Promise<Dict>;
+    privatePostTrade (params?: {}): Promise<Dict>;
+    privatePostTradeHistory (params?: {}): Promise<Dict>;
+    privatePostWithdraw (params?: {}): Promise<Dict>;
+    privatePostWithdrawHistory (params?: {}): Promise<Dict>;
+    ecapiPostCreateInvoice (params?: {}): Promise<Dict>;
+    ecapiPostGetInvoice (params?: {}): Promise<Dict>;
+    ecapiPostGetInvoiceIdsByOrderNumber (params?: {}): Promise<Dict>;
+    ecapiPostCancelInvoice (params?: {}): Promise<Dict>;
+    tlapiPostGetPositions (params?: {}): Promise<Dict>;
+    tlapiPostPositionHistory (params?: {}): Promise<Dict>;
+    tlapiPostActivePositions (params?: {}): Promise<Dict>;
+    tlapiPostCreatePosition (params?: {}): Promise<Dict>;
+    tlapiPostChangePosition (params?: {}): Promise<Dict>;
+    tlapiPostCancelPosition (params?: {}): Promise<Dict>;
+    fapiGetGroupsGroupId (params?: {}): Promise<List>;
+    fapiGetLastPriceGroupIdPair (params?: {}): Promise<Dict>;
+    fapiGetTickerGroupIdPair (params?: {}): Promise<Dict>;
+    fapiGetTradesGroupIdPair (params?: {}): Promise<List>;
+    fapiGetDepthGroupIdPair (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

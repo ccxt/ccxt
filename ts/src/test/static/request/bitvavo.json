@@ -97,7 +97,7 @@
                         "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6"
                     }
                 ],
-                "output": "{\"subaccountId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"direction\":\"masterToSub\",\"symbol\":\"BTC\",\"amount\":\"0.1\",\"clientRequestId\":\"5fa85f64-5717-4562-b3fc-2c963f66afa6\"}"
+                "output": { "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "direction": "masterToSub", "symbol": "BTC", "amount": "0.1", "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6" }
             },
             {
                 "description": "transfer subaccount to master",
@@ -112,7 +112,7 @@
                         "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
                     }
                 ],
-                "output": "{\"subaccountId\":\"3fa85f64-5717-4562-b3fc-2c963f66afa6\",\"direction\":\"subToMaster\",\"symbol\":\"BTC\",\"amount\":\"0.2\"}"
+                "output": { "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6", "direction": "subToMaster", "symbol": "BTC", "amount": "0.2" }
             }
         ],
         "fetchTradingFee": [
@@ -139,7 +139,7 @@
                     "buy",
                     0.0002
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.0002\", \"operatorId\":123456}"
+                "output": { "market": "BTC-EUR", "side": "buy", "orderType": "market", "amount": "0.0002", "operatorId": 123456 }
             },
             {
                 "description": "Limit Buy Order",
@@ -155,7 +155,7 @@
                     0.0002,
                     33123
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"limit\",\"price\":\"33123\",\"amount\":\"0.0002\", \"operatorId\":123456}"
+                "output": { "market": "BTC-EUR", "side": "buy", "orderType": "limit", "price": "33123", "amount": "0.0002", "operatorId": 123456 }
             },
             {
                 "description": "Spot Market Buy with Trigger Price",
@@ -174,7 +174,7 @@
                         "triggerPrice": 30000
                     }
                 ],
-                "output": "{\"market\":\"BTC-EUR\",\"side\":\"buy\",\"orderType\":\"stopLoss\",\"amount\":\"0.0002\",\"triggerAmount\":\"30000\",\"triggerType\":\"price\",\"triggerReference\":\"lastTrade\", \"operatorId\":123456}"
+                "output": { "market": "BTC-EUR", "side": "buy", "orderType": "stopLoss", "amount": "0.0002", "triggerAmount": "30000", "triggerType": "price", "triggerReference": "lastTrade", "operatorId": 123456 }
             },
             {
                 "description": "Create order with clientOrderId",
@@ -193,7 +193,7 @@
                         "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9"
                     }
                 ],
-                "output": "{\"market\":\"LTC-EUR\",\"side\":\"buy\",\"orderType\":\"market\",\"amount\":\"0.05\",\"clientOrderId\":\"2be7d0df-d8dc-7b93-a550-8876f3b393e9\", \"operatorId\":123456}"
+                "output": { "market": "LTC-EUR", "side": "buy", "orderType": "market", "amount": "0.05", "clientOrderId": "2be7d0df-d8dc-7b93-a550-8876f3b393e9", "operatorId": 123456 }
             }
         ],
         "cancelOrder": [
@@ -241,7 +241,7 @@
                     null,
                     32000
                 ],
-                "output": "{\"price\":\"32000\",\"orderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\", \"operatorId\":123456}"
+                "output": { "price": "32000", "orderId": "24bcd0e3-43f7-43f3-97f0-04df043e2d45", "market": "BTC-EUR", "operatorId": 123456 }
             },
             {
                 "description": "Edit Order, edit price with clientOrderId",
@@ -261,7 +261,7 @@
                         "clientOrderId": "24bcd0e3-43f7-43f3-97f0-04df043e2d45"
                     }
                 ],
-                "output": "{\"price\":\"32000\",\"clientOrderId\":\"24bcd0e3-43f7-43f3-97f0-04df043e2d45\",\"market\":\"BTC-EUR\", \"operatorId\":123456}"
+                "output": { "price": "32000", "clientOrderId": "24bcd0e3-43f7-43f3-97f0-04df043e2d45", "market": "BTC-EUR", "operatorId": 123456 }
             }
         ],
         "fetchOrder": [
@@ -313,7 +313,7 @@
                 "input": [
                     30000
                 ],
-                "output": "{\"codGroupId\":1,\"expiryAfterSeconds\":30}"
+                "output": { "codGroupId": 1, "expiryAfterSeconds": 30 }
             },
             {
                 "description": "Cancel all orders after with group id",
@@ -325,7 +325,7 @@
                         "codGroupId": 2
                     }
                 ],
-                "output": "{\"codGroupId\":2,\"expiryAfterSeconds\":0}"
+                "output": { "codGroupId": 2, "expiryAfterSeconds": 0 }
             }
         ],
         "fetchMyTrades": [

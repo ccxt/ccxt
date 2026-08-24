@@ -7,8 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.zebpay import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Any, Balances, Currencies, Currency, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
-from typing import List
+from ccxt.base.types import Balances, Currencies, CurrencyInterface, Int, Leverage, Leverages, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -25,7 +24,7 @@ from ccxt.base.precise import Precise
 
 class zebpay(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(zebpay, self).describe(), {
             'id': 'zebpay',
             'name': 'Zebpay',
@@ -72,10 +71,13 @@ class zebpay(Exchange, ImplicitAPI):
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
                 'fetchPositions': True,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': True,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -111,72 +113,72 @@ class zebpay(Exchange, ImplicitAPI):
                 'public': {
                     'spot': {
                         'get': {
-                            'v2/system/time': 10,
-                            'v2/system/status': 10,
-                            'v2/market/orderbook': 10,
-                            'v2/market/trades': 10,
-                            'v2/market/ticker': 10,
-                            'v2/market/allTickers': 10,
-                            'v2/ex/exchangeInfo': 10,
-                            'v2/ex/currencies': 10,
-                            'v2/market/klines': 10,
-                            'v2/ex/tradefees': 10,
+                            'v2/system/time': {'cost': 10},
+                            'v2/system/status': {'cost': 10},
+                            'v2/market/orderbook': {'cost': 10},
+                            'v2/market/trades': {'cost': 10},
+                            'v2/market/ticker': {'cost': 10},
+                            'v2/market/allTickers': {'cost': 10},
+                            'v2/ex/exchangeInfo': {'cost': 10},
+                            'v2/ex/currencies': {'cost': 10},
+                            'v2/market/klines': {'cost': 10},
+                            'v2/ex/tradefees': {'cost': 10},
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/system/time': 10,
-                            'v1/system/status': 10,
-                            'v1/exchange/tradefee': 10,
-                            'v1/exchange/tradefees': 10,
-                            'v1/market/orderBook': 10,
-                            'v1/market/ticker24Hr': 10,
-                            'v1/market/markets': 10,
-                            'v1/market/aggTrade': 10,
+                            'v1/system/time': {'cost': 10},
+                            'v1/system/status': {'cost': 10},
+                            'v1/exchange/tradefee': {'cost': 10},
+                            'v1/exchange/tradefees': {'cost': 10},
+                            'v1/market/orderBook': {'cost': 10},
+                            'v1/market/ticker24Hr': {'cost': 10},
+                            'v1/market/markets': {'cost': 10},
+                            'v1/market/aggTrade': {'cost': 10},
                         },
                         'post': {
-                            'v1/market/klines': 10,
+                            'v1/market/klines': {'cost': 10},
                         },
                     },
                 },
                 'private': {
                     'spot': {
                         'post': {
-                            'v2/ex/orders': 10,
+                            'v2/ex/orders': {'cost': 10},
                         },
                         'get': {
-                            'v2/ex/orders': 10,
-                            'v2/account/balance': 10,
-                            'v2/ex/tradefee': 10,
-                            'v2/ex/order': 10,
-                            'v2/ex/order/fills': 10,
+                            'v2/ex/orders': {'cost': 10},
+                            'v2/account/balance': {'cost': 10},
+                            'v2/ex/tradefee': {'cost': 10},
+                            'v2/ex/order': {'cost': 10},
+                            'v2/ex/order/fills': {'cost': 10},
                         },
                         'delete': {
-                            'v2/ex/order': 10,
-                            'v2/ex/orders': 10,
-                            'v2/ex/orders/cancelAll': 10,
+                            'v2/ex/order': {'cost': 10},
+                            'v2/ex/orders': {'cost': 10},
+                            'v2/ex/orders/cancelAll': {'cost': 10},
                         },
                     },
                     'swap': {
                         'get': {
-                            'v1/wallet/balance': 10,
-                            'v1/trade/order': 10,
-                            'v1/trade/order/open-orders': 10,
-                            'v1/trade/userLeverages': 10,
-                            'v1/trade/userLeverage': 10,
-                            'v1/trade/positions': 10,
-                            'v1/trade/history': 10,
+                            'v1/wallet/balance': {'cost': 10},
+                            'v1/trade/order': {'cost': 10},
+                            'v1/trade/order/open-orders': {'cost': 10},
+                            'v1/trade/userLeverages': {'cost': 10},
+                            'v1/trade/userLeverage': {'cost': 10},
+                            'v1/trade/positions': {'cost': 10},
+                            'v1/trade/history': {'cost': 10},
                         },
                         'post': {
-                            'v1/trade/order': 10,
-                            'v1/trade/order/addTPSL': 10,
-                            'v1/trade/addMargin': 10,
-                            'v1/trade/reduceMargin': 10,
-                            'v1/trade/position/close': 10,
-                            'v1/trade/update/userLeverage': 10,
+                            'v1/trade/order': {'cost': 10},
+                            'v1/trade/order/addTPSL': {'cost': 10},
+                            'v1/trade/addMargin': {'cost': 10},
+                            'v1/trade/reduceMargin': {'cost': 10},
+                            'v1/trade/position/close': {'cost': 10},
+                            'v1/trade/update/userLeverage': {'cost': 10},
                         },
                         'delete': {
-                            'v1/trade/order': 10,
+                            'v1/trade/order': {'cost': 10},
                         },
                     },
                 },
@@ -226,7 +228,7 @@ class zebpay(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_status(self, params={}):
+    def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -302,14 +304,14 @@ class zebpay(Exchange, ImplicitAPI):
         time = self.safe_integer(data, 'timestamp')
         return time
 
-    def fetch_markets(self, params={}) -> List[Market]:
+    def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for zebpay
 
         [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/public-endpoints.md#get-trading-pairs
         [Swap] https://github.com/zebpay/zebpay-api-references/blob/main/futures/api-reference/public-endpoints/market.md#fetch-markets
 
-        :param dict [params]: extra parameters specific to the exchange api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
         promisesUnresolved = []
@@ -373,7 +375,7 @@ class zebpay(Exchange, ImplicitAPI):
         rows = self.safe_list(response, 'data', [])
         return self.parse_currencies(rows)
 
-    def parse_currency(self, rawCurrency: dict) -> Currency:
+    def parse_currency(self, rawCurrency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(rawCurrency, 'name')
@@ -402,26 +404,27 @@ class zebpay(Exchange, ImplicitAPI):
             minNetworkDepositString = self.safe_string(chain, 'depositMinSize')
             if minNetworkDepositString is not None:
                 minDepositString = minNetworkDepositString if (minDepositString is None) else Precise.string_min(minNetworkDepositString, minDepositString)
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': depositAllowed and withdrawAllowed,
-                'deposit': depositAllowed,
-                'withdraw': withdrawAllowed,
-                'fee': self.parse_number(withdrawFeeString),
-                'precision': precision,
-                'limits': {
-                    'withdraw': {
-                        'min': self.parse_number(minNetworkWithdrawString),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': depositAllowed and withdrawAllowed,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': self.parse_number(withdrawFeeString),
+                    'precision': precision,
+                    'limits': {
+                        'withdraw': {
+                            'min': self.parse_number(minNetworkWithdrawString),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.parse_number(minNetworkDepositString),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.parse_number(minNetworkDepositString),
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': rawCurrency,
             'code': code,
@@ -502,7 +505,7 @@ class zebpay(Exchange, ImplicitAPI):
             # }
             #
             responseData = self.safe_list(response, 'data', [])
-            data = self.safe_dict(responseData, 0)
+            data = self.safe_dict(responseData, 0, {})
         return self.parse_trading_fee(data, market)
 
     def fetch_trading_fees(self, params={}) -> TradingFees:
@@ -540,7 +543,8 @@ class zebpay(Exchange, ImplicitAPI):
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            if symbol is not None:
+                result[symbol] = fee
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -553,7 +557,7 @@ class zebpay(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
             self.load_markets()
@@ -667,7 +671,7 @@ class zebpay(Exchange, ImplicitAPI):
         tickerList = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickerList, symbols)
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -746,7 +750,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -787,7 +791,7 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -984,6 +988,8 @@ class zebpay(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
         params = self.omit(params, ['marginAsset', 'takeProfitPrice', 'takeProfitPrice'])
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         request = {
             'symbol': market['id'],
             'side': side.upper(),
@@ -1023,9 +1029,9 @@ class zebpay(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
-    def order_request(self, symbol, type, amount, request, price=None, params={}):
+    def order_request(self, symbol: object, type: object, amount: object, request: object, price: Num = None, params={}):
         upperCaseType = type.upper()
-        triggerPrice = self.safe_string(params, 'stopLossPrice', None)
+        triggerPrice = self.safe_string(params, 'stopLossPrice')
         quoteOrderQty = self.safe_string_2(params, 'quoteOrderQty', 'cost', None)
         timeInForce = self.safe_string(params, 'timeInForce', 'GTC')
         clientOrderId = self.safe_string(params, 'clientOrderId', self.uuid())
@@ -1080,7 +1086,7 @@ class zebpay(Exchange, ImplicitAPI):
         #        },
         #    }
         #
-        return self.parse_order(self.safe_dict(response, 'data'))
+        return self.parse_order(self.safe_dict(response, 'data', {}))
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1088,10 +1094,10 @@ class zebpay(Exchange, ImplicitAPI):
 
         [Spot] https://github.com/zebpay/zebpay-api-references/blob/main/spot/api-reference/private-endpoints.md#cancel-all-orders
 
-        :param str symbol: unified symbol of the market the order was made in
+        :param str [symbol]: unified symbol of the market the orders were made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.timestamp]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
+        :param int [params.timestamp]: the timestamp of the request in ms
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         type = None
         type, params = self.handle_market_type_and_params('cancelAllOrders', None, params)
@@ -1112,7 +1118,7 @@ class zebpay(Exchange, ImplicitAPI):
         parsedOrder = self.parse_order(data)
         return [parsedOrder]
 
-    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple open orders made by the user
 
@@ -1175,7 +1181,7 @@ class zebpay(Exchange, ImplicitAPI):
         #
         return self.parse_orders(orders, market, None, limit)
 
-    def fetch_order(self, id: Str, symbol: Str = None, params={}):
+    def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
 
@@ -1258,7 +1264,7 @@ class zebpay(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(order, 'clientOrderId')
         timeInForce = self.safe_string(order, 'timeInForce')
         status = self.safe_string_lower(order, 'status')
-        orderId = self.safe_string(order, 'orderId', None)
+        orderId = self.safe_string(order, 'orderId')
         parsedOrder = self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1294,7 +1300,7 @@ class zebpay(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str side: not used by kucoinfutures closePositions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.positionId]: client order id of the order
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
@@ -1504,7 +1510,7 @@ class zebpay(Exchange, ImplicitAPI):
             'direction': 'out',
         })
 
-    def fetch_spot_markets(self, params={}) -> List[Market]:
+    def fetch_spot_markets(self, params: object = {}) -> list[Market]:
         response = self.publicSpotGetV2ExExchangeInfo(params)
         #
         #    {
@@ -1576,7 +1582,7 @@ class zebpay(Exchange, ImplicitAPI):
             })
         return result
 
-    def fetch_swap_markets(self, params={}) -> List[Market]:
+    def fetch_swap_markets(self, params: object = {}) -> list[Market]:
         response = self.publicSwapGetV1MarketMarkets(params)
         #
         #    {
@@ -1647,7 +1653,7 @@ class zebpay(Exchange, ImplicitAPI):
             }))
         return result
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         result = {
             'info': response,
             'timestamp': None,
@@ -1662,7 +1668,8 @@ class zebpay(Exchange, ImplicitAPI):
             account['used'] = self.safe_string(entry, 'used')
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            result[code] = account
+            if code is not None:
+                result[code] = account
         return self.safe_balance(result)
 
     def parse_position(self, position: dict, market: Market = None):
@@ -1783,7 +1790,7 @@ class zebpay(Exchange, ImplicitAPI):
             'info': ticker,
         }, market)
 
-    def parse_margin_modification(self, info, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, info: object, market: Market = None) -> MarginModification:
         #
         #    {
         #         "symbol": "BTCINR",
@@ -1807,7 +1814,7 @@ class zebpay(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params: dict = {}, headers: dict = None, body: Str = None):
         params = self.omit(params, 'defaultType')
         isV1 = path.find('v1/') > -1
         marketType = 'swap' if isV1 else 'spot'
@@ -1850,7 +1857,7 @@ class zebpay(Exchange, ImplicitAPI):
             headers['Content-Type'] = 'application/json'
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, body)
             return None

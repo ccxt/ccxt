@@ -25,6 +25,17 @@ import (
 // messageHash used in the JS/C# layers).  Each Subscribe call returns a
 // receive-only channel that the caller reads updates from.
 
+// newWSDialer returns a websocket.Dialer with an explicit dual-stack
+// NetDialContext (network "tcp", Happy Eyeballs). Never use tcp4.
+func newWSDialer(proxyFunc func(*http.Request) (*url.URL, error)) websocket.Dialer {
+	return websocket.Dialer{
+		Proxy:             proxyFunc,
+		HandshakeTimeout:  10 * time.Second,
+		EnableCompression: false,
+		NetDialContext:    newDualStackDialer().DialContext,
+	}
+}
+
 type WSClient struct {
 	*Client
 
@@ -77,12 +88,9 @@ func (this *WSClient) CreateConnection() error {
 	} else {
 		proxy = http.ProxyFromEnvironment
 	}
-	// Create WebSocket dialer
-	dialer := websocket.Dialer{
-		Proxy:             proxy,
-		HandshakeTimeout:  10 * time.Second,
-		EnableCompression: false,
-	}
+	// Create WebSocket dialer (dual-stack: NetDialContext dials network "tcp"
+	// via Happy Eyeballs, so IPv4 and IPv6 are both attempted)
+	dialer := newWSDialer(proxy)
 
 	// Set up headers for protocols
 	headers := http.Header{}
@@ -150,20 +158,15 @@ func (this *WSClient) handleMessages() {
 			return
 		}
 
+		// gorilla routes control frames to the Ping/Pong/Close handlers during
+		// the read, ReadMessage only ever returns Text or Binary, so the former
+		// Ping, Pong and Close arms here were unreachable dead code; the Ping
+		// arm also replied with an unsynchronized WriteMessage that would have
+		// raced Send's writes had it ever run, gorilla's default ping handler
+		// already answers with a concurrency safe WriteControl pong
 		switch messageType {
 		case websocket.TextMessage, websocket.BinaryMessage:
 			this.OnMessage(data)
-		case websocket.PingMessage:
-			this.OnPing()
-			// Respond with pong
-			if this.Verbose {
-				this.Log(time.Now(), "sending connection ping")
-			}
-			this.Connection.WriteMessage(websocket.PongMessage, nil)
-		case websocket.PongMessage:
-			this.OnPong()
-		case websocket.CloseMessage:
-			return
 		}
 	}
 }
@@ -274,13 +277,21 @@ func (this *WSClient) OnPingInterval() {
 						}
 					}()
 				} else {
-					// In Go, we can ping directly on websocket connection
+					// WriteControl is safe to call concurrently with WriteMessage,
+					// so the keepalive ping needs no ConnectionMu
 					if this.Connection != nil {
-						// this.Connection.WriteMessage(websocket.PingMessage, []byte{})
 						if this.Verbose {
 							this.Log(time.Now(), "sending connection ping")
 						}
-						this.Connection.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second))
+						err := this.Connection.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second))
+						if err != nil {
+							// a swallowed ping failure only surfaced two keepAlive
+							// periods later as a misattributed pong-miss timeout,
+							// route the transport death promptly instead, see
+							// https://github.com/ccxt/ccxt/issues/22075 for the
+							// python cousin of this pattern
+							this.OnError(NetworkError(err))
+						}
 					}
 				}
 			}
@@ -368,4 +379,18 @@ func (this *WSClient) SetKeepAlive(keepAlive any) {
 }
 func (this *WSClient) GetFutures() map[string]any {
 	return this.Client.GetFutures()
+}
+
+// AsClient normalizes the two client implementations to the embedded *Client —
+// generated code passes whichever the transport produced (*Client offline mocks,
+// *WSClient live/ws) into base helpers typed against *Client, and a hard type
+// assertion on the wrong one panics at runtime
+func AsClient(client any) *Client {
+	if typed, ok := client.(*Client); ok {
+		return typed
+	}
+	if typed, ok := client.(*WSClient); ok {
+		return typed.Client
+	}
+	panic("AsClient: unsupported client implementation")
 }

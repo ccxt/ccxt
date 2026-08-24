@@ -627,7 +627,7 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -670,7 +670,7 @@ class bitfinex extends bitfinex$1["default"] {
         //         358169, // channel id
         //         [
         //            1807.1, // price
-        //            0, // cound
+        //            0, // count
         //            1 // size
         //         ]
         //     ]
@@ -894,7 +894,9 @@ class bitfinex extends bitfinex$1["default"] {
             const balance = this.parseWsBalance(rawBalance);
             const balanceType = this.safeString(rawBalance, 0);
             const oldBalance = this.safeValue(this.balance, balanceType, {});
-            oldBalance[code] = balance;
+            if (code !== undefined) {
+                oldBalance[code] = balance;
+            }
             oldBalance['info'] = message;
             this.balance[balanceType] = this.safeBalance(oldBalance);
             updatedTypes[balanceType] = true;
@@ -1097,7 +1099,7 @@ class bitfinex extends bitfinex$1["default"] {
         //           null,
         //           30, // price
         //           0, // price average
-        //           0, // price_trailling
+        //           0, // price_trailing
         //           0, // price_aux_limit
         //           null,
         //           null,
@@ -1180,7 +1182,7 @@ class bitfinex extends bitfinex$1["default"] {
         //       null,
         //       42.799, // price
         //       42.821, // price average
-        //       0, // price trailling
+        //       0, // price trailing
         //       0, // price_aux_limit
         //       null,
         //       null,

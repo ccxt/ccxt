@@ -1,7 +1,6 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 import {  ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
 
 

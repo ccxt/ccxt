@@ -11,9 +11,12 @@ async function testWatchTicker(exchange, skippedProperties, symbol) {
     const method = 'watchTicker';
     let now = exchange.milliseconds();
     const ends = now + 15000;
-    while (now < ends) {
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
         let response = undefined;
         let success = true;
+        const startTime = exchange.milliseconds();
         try {
             response = await exchange.watchTicker(symbol);
         }
@@ -21,14 +24,15 @@ async function testWatchTicker(exchange, skippedProperties, symbol) {
             if (!testSharedMethods.isTemporaryFailure(e)) {
                 throw e;
             }
-            now = exchange.milliseconds();
-            // continue;
             success = false;
         }
-        if (success === true) {
-            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response));
-            now = exchange.milliseconds();
+        now = exchange.milliseconds();
+        if ((success === true) && (response !== undefined)) {
+            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return a dictionary. ' + exchange.json(response));
             testTicker(exchange, skippedProperties, method, response, symbol);
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

@@ -157,64 +157,156 @@ public partial class lighter : Exchange
             { "api", new Dictionary<string, object>() {
                 { "root", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "", 1 },
-                        { "info", 1 },
+                        { "", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "account", 1 },
-                        { "accountsByL1Address", 1 },
-                        { "apikeys", 1 },
-                        { "exchangeStats", 1 },
-                        { "assetDetails", 1 },
-                        { "orderBookDetails", 1 },
-                        { "orderBookOrders", 1 },
-                        { "orderBooks", 1 },
-                        { "recentTrades", 1 },
-                        { "blockTxs", 1 },
-                        { "nextNonce", 1 },
-                        { "tx", 1 },
-                        { "txFromL1TxHash", 1 },
-                        { "txs", 1 },
-                        { "announcement", 1 },
-                        { "block", 1 },
-                        { "blocks", 1 },
-                        { "currentHeight", 1 },
-                        { "candles", 1 },
-                        { "fundings", 1 },
-                        { "fastbridge/info", 1 },
-                        { "funding-rates", 1 },
-                        { "withdrawalDelay", 1 },
+                        { "account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountsByL1Address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "apikeys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeStats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "assetDetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderBookDetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderBookOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderBooks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "recentTrades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blockTxs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "nextNonce", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "txFromL1TxHash", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "txs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "announcement", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "block", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "blocks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currentHeight", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fundings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "fastbridge/info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding-rates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawalDelay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "sendTx", 1 },
-                        { "sendTxBatch", 1 },
+                        { "sendTx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sendTxBatch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "accountLimits", 1 },
-                        { "accountMetadata", 1 },
-                        { "pnl", 1 },
-                        { "l1Metadata", 1 },
-                        { "liquidations", 1 },
-                        { "positionFunding", 1 },
-                        { "publicPoolsMetadata", 1 },
-                        { "accountActiveOrders", 1 },
-                        { "accountInactiveOrders", 1 },
-                        { "export", 1 },
-                        { "trades", 1 },
-                        { "accountTxs", 1 },
-                        { "deposit/history", 1 },
-                        { "transfer/history", 1 },
-                        { "withdraw/history", 1 },
-                        { "referral/points", 1 },
-                        { "transferFeeInfo", 1 },
+                        { "accountLimits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountMetadata", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "l1Metadata", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "liquidations", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positionFunding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "publicPoolsMetadata", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountActiveOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountInactiveOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "export", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accountTxs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deposit/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdraw/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referral/points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transferFeeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "changeAccountTier", 1 },
-                        { "notification/ack", 1 },
+                        { "changeAccountTier", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "notification/ack", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -364,7 +456,7 @@ public partial class lighter : Exchange
         var libraryPathparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "libraryPath");
         libraryPath = ((IList<object>)libraryPathparametersVariable)[0];
         parameters = ((IList<object>)libraryPathparametersVariable)[1];
-        object lighterPrivateKeyIsSet = isTrue((!isEqual(privateKey, null))) && isTrue((!isEqual(privateKey, "")));
+        bool lighterPrivateKeyIsSet = isTrue((!isEqual(privateKey, null))) && isTrue((!isEqual(privateKey, "")));
         if (isTrue(isTrue(isTrue(isTrue(lighterPrivateKeyIsSet) && isTrue((!isEqual(libraryPath, null)))) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
         {
             // load lighter library, and create lighter client
@@ -372,7 +464,7 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)getValue(getValue(getValue(this.options, "auths"), accountIndex), apiKeyIndex))["signer"] = signer;
             return signer;
         }
-        object privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
+        bool privateKeyIsSet = isTrue((!isEqual(this.privateKey, null))) && isTrue((!isEqual(this.privateKey, "")));
         if (isTrue(isTrue(isTrue(privateKeyIsSet) && isTrue((!isEqual(apiKeyIndex, null)))) && isTrue((!isEqual(accountIndex, null)))))
         {
             if (isTrue(isGreaterThan(((string)this.privateKey).Length, 66)))
@@ -453,7 +545,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires accountIndex or account_index")) ;
         }
-        object strAccountIndex = ((string)this.numberToString(accountIndex));
+        object strAccountIndex = this.numberToString(accountIndex);
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         this.initAuthObject(strAccountIndex, strApiKeyIndex);
         object signer = this.safeDict(getValue(getValue(getValue(this.options, "auths"), strAccountIndex), strApiKeyIndex), "signer");
@@ -590,8 +682,8 @@ public partial class lighter : Exchange
             accountIndex = this.safeString(res, 0);
         }
         object auths = this.safeDict(this.options, "auths");
-        object accountAuths = this.safeDict(auths, ((string)accountIndex));
-        object cachedAuth = this.safeDict(accountAuths, ((string)apiKeyIndex));
+        object accountAuths = this.safeDict(auths, accountIndex);
+        object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (isTrue(!isEqual(cachedDeadline, null)))
         {
@@ -642,7 +734,7 @@ public partial class lighter : Exchange
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
-        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(((string)this.numberToString(binaryMessageLength))));
+        object prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
         return add("0x", this.hash(this.binaryConcat(prefix, binaryMessage), keccak, "hex"));
     }
 
@@ -694,8 +786,8 @@ public partial class lighter : Exchange
     public async virtual Task<object> approveBuilderFee(object builder, object takerFeeRate, object makerFeeRate, object accountIndex, object apiKeyIndex, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object strAccountIndex = ((string)this.numberToString(accountIndex));
-        object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
+        object strAccountIndex = this.numberToString(accountIndex);
+        object strApiKeyIndex = this.numberToString(apiKeyIndex);
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
         object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new Dictionary<string, object>() {
             { "skipNonce", false },
@@ -776,32 +868,40 @@ public partial class lighter : Exchange
 
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @ignore
-        * @name lighter#createOrderRequest
-        * @description helper function to build the request
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {int} [params.nonce] nonce for the account
-        * @param {int} [params.apiKeyIndex] apiKeyIndex
-        * @param {int} [params.accountIndex] accountIndex
-        * @param {int} [params.orderExpiry] orderExpiry
-        * @returns {any[]} request to be sent to the exchange
-        */
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
+        /**
+         * @method
+         * @ignore
+         * @name lighter#createOrderRequest
+         * @description helper function to build the request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.nonce] nonce for the account
+         * @param {int} [params.apiKeyIndex] apiKeyIndex
+         * @param {int} [params.accountIndex] accountIndex
+         * @param {int} [params.orderExpiry] orderExpiry
+         * @returns {any[]} request to be sent to the exchange
+         */
         if (isTrue(isEqual(price, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument")) ;
         }
         object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        object orderType = ((string)type).ToUpper();
+        string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
-        object orderSide = ((string)((string)side)).ToUpper();
+        string orderSide = ((string)((string)side)).ToUpper();
         object request = new Dictionary<string, object>() {
             { "market_index", this.parseToInt(getValue(market, "id")) },
         };
@@ -832,10 +932,10 @@ public partial class lighter : Exchange
         object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
         object stopLoss = this.safeValue(parameters, "stopLoss");
         object takeProfit = this.safeValue(parameters, "takeProfit");
-        object hasStopLoss = (!isEqual(stopLoss, null));
-        object hasTakeProfit = (!isEqual(takeProfit, null));
-        object isConditional = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
-        object isMarketOrder = (isEqual(orderType, "MARKET"));
+        bool hasStopLoss = (!isEqual(stopLoss, null));
+        bool hasTakeProfit = (!isEqual(takeProfit, null));
+        bool isConditional = (isTrue(stopLossPrice) || isTrue(takeProfitPrice));
+        bool isMarketOrder = (isEqual(orderType, "MARKET"));
         object timeInForce = this.safeStringLower(parameters, "timeInForce", "gtt");
         object postOnly = this.isPostOnly(isMarketOrder, null, parameters);
         parameters = this.omit(parameters, new List<object>() {"stopLoss", "takeProfit", "timeInForce"});
@@ -859,6 +959,7 @@ public partial class lighter : Exchange
         if (isTrue(postOnly))
         {
             timeInForceNum = 2;
+            orderExpiry = -1;
         } else
         {
             if (!isTrue(isMarketOrder))
@@ -931,7 +1032,7 @@ public partial class lighter : Exchange
         {
             // group order
             ((IDictionary<string,object>)getValue(orders, 0))["client_order_index"] = 0; // client order index should be 0
-            object triggerOrderSide = "";
+            string triggerOrderSide = "";
             if (isTrue(isEqual(side, "BUY")))
             {
                 triggerOrderSide = "sell";
@@ -1000,27 +1101,7 @@ public partial class lighter : Exchange
         return this.safeInteger(response, "nonce");
     }
 
-    /**
-     * @method
-     * @name lighter#createOrder
-     * @description create a trade order
-     * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
-     * @param {string} side 'buy' or 'sell'
-     * @param {float} amount how much of currency you want to trade in units of base currency
-     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
-     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
-     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
-     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
-     * @param {int} [params.nonce] nonce for the account
-     * @param {int} [params.apiKeyIndex] apiKeyIndex
-     * @param {int} [params.accountIndex] accountIndex
-     * @param {int} [params.orderExpiry] orderExpiry
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<object> signAndCreateOrder(object method, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -1028,18 +1109,17 @@ public partial class lighter : Exchange
             await this.loadMarkets();
         }
         object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "createOrder", "accountIndex", "account_index");
+        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
         accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
         parameters = ((IList<object>)accountIndexparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["accountIndex"] = accountIndex;
         object market = this.market(symbol);
         object groupingType = null;
-        var groupingTypeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "groupingType", 3);
+        var groupingTypeparametersVariable = this.handleOptionAndParams(parameters, method, "groupingType", 3);
         groupingType = ((IList<object>)groupingTypeparametersVariable)[0];
         parameters = ((IList<object>)groupingTypeparametersVariable)[1]; // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-        // for php
-        object totalOrderRequests = getArrayLength(orderRequests);
+        int totalOrderRequests = getArrayLength(orderRequests);
         object apiKeyIndex = null;
         object order = null;
         if (isTrue(isGreaterThan(totalOrderRequests, 0)))
@@ -1081,6 +1161,37 @@ public partial class lighter : Exchange
             txType = ((IList<object>)txTypetxInfoVariable)[0];
             txInfo = ((IList<object>)txTypetxInfoVariable)[1];
         }
+        return new List<object>() {txType, txInfo, order, market};
+    }
+
+    /**
+     * @method
+     * @name lighter#createOrder
+     * @description create a trade order
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.timeInForce] 'GTT' or 'IOC', default is 'GTT'
+     * @param {int} [params.clientOrderId] client order id, should be unique for each order, default is a random number
+     * @param {string} [params.triggerPrice] trigger price for stop loss or take profit orders, in units of the quote currency
+     * @param {boolean} [params.reduceOnly] whether the order is reduce only, default false
+     * @param {int} [params.nonce] nonce for the account
+     * @param {int} [params.apiKeyIndex] apiKeyIndex
+     * @param {int} [params.accountIndex] accountIndex
+     * @param {int} [params.orderExpiry] orderExpiry
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        var txTypetxInfoordermarketVariable = await this.signAndCreateOrder("createOrder", symbol, type, side, amount, price, parameters);
+        var txType = ((IList<object>) txTypetxInfoordermarketVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoordermarketVariable)[1];
+        var order = ((IList<object>) txTypetxInfoordermarketVariable)[2];
+        var market = ((IList<object>) txTypetxInfoordermarketVariable)[3];
         object request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", txInfo },
@@ -1333,7 +1444,7 @@ public partial class lighter : Exchange
             {
                 baseId = getValue(((string)baseId).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>(), 0);
             }
-            object quoteId = "USDC";
+            string quoteId = "USDC";
             object settleId = ((bool) isTrue((isEqual(type, "swap")))) ? "USDC" : null;
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
@@ -1446,7 +1557,7 @@ public partial class lighter : Exchange
         object id = this.safeString(rawCurrency, "asset_id");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
         object decimals = this.safeString(rawCurrency, "decimals");
-        object isUSDC = (isEqual(code, "USDC"));
+        bool isUSDC = (isEqual(code, "USDC"));
         object depositMin = null;
         object withdrawMin = null;
         if (isTrue(isUSDC))
@@ -1487,7 +1598,7 @@ public partial class lighter : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1791,7 +1902,7 @@ public partial class lighter : Exchange
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"until"});
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         object startTs = null;
         object endTs = null;
         if (isTrue(!isEqual(since, null)))
@@ -2021,7 +2132,10 @@ public partial class lighter : Exchange
                     object balance = this.safeDict(result, code, this.account());
                     ((IDictionary<string,object>)balance)["total"] = Precise.stringAdd(getValue(balance, "total"), this.safeString(asset, "balance"));
                     ((IDictionary<string,object>)balance)["used"] = Precise.stringAdd(getValue(balance, "used"), this.safeString(asset, "locked_balance"));
-                    ((IDictionary<string,object>)result)[(string)code] = balance;
+                    if (isTrue(!isEqual(code, null)))
+                    {
+                        ((IDictionary<string,object>)result)[(string)code] = balance;
+                    }
                 }
             } else
             {
@@ -2554,7 +2668,7 @@ public partial class lighter : Exchange
             object typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
-        object triggerPrice = this.parseNumber(this.omitZero(((string)this.safeString(order, "trigger_price"))));
+        object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
         object stopLossPrice = null;
         object takeProfitPrice = null;
         if (isTrue(!isEqual(type, null)))
@@ -2653,7 +2767,7 @@ public partial class lighter : Exchange
             { "twap-sub", "twap" },
             { "liquidation", "market" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     public virtual object parseOrderTypeInteger(object typeInteger)
@@ -3416,7 +3530,7 @@ public partial class lighter : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires an marginMode parameter")) ;
         }
         object leverage = null;
-        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", "leverage");
+        var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage");
         leverage = ((IList<object>)leverageparametersVariable)[0];
         parameters = ((IList<object>)leverageparametersVariable)[1];
         if (isTrue(isEqual(leverage, null)))
@@ -3472,39 +3586,28 @@ public partial class lighter : Exchange
         return await this.publicPostSendTx(request);
     }
 
-    /**
-     * @method
-     * @name lighter#cancelOrder
-     * @description cancels an open order
-     * @param {string} id order id
-     * @param {string} symbol unified symbol of the market the order was made in
-     * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.accountIndex] account index
-     * @param {string} [params.apiKeyIndex] api key index
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
-     */
-    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    public async virtual Task<object> signAndCancelOrder(object method, object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object apiKeyIndex = null;
-        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelOrder", "apiKeyIndex", "api_key_index");
-        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
-        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
         if (isTrue(isEqual(symbol, null)))
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), method), " requires a symbol argument")) ;
         }
+        object apiKeyIndex = null;
+        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
+        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
+        object accountIndex = null;
+        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
+        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object market = this.market(symbol);
         object clientOrderId = this.safeString2(parameters, "client_order_index", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"client_order_index", "clientOrderId"});
-        object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "cancelOrder", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
         object strAccountIndex = ((string)this.numberToString(accountIndex));
         object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
         object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
@@ -3523,17 +3626,70 @@ public partial class lighter : Exchange
             ((IDictionary<string,object>)signRaw)["order_index"] = this.parseToInt(id);
         } else
         {
-            throw new ArgumentsRequired ((string)add(this.id, " cancelOrder requires order id or client order id")) ;
+            throw new ArgumentsRequired ((string)add(add(add(this.id, " "), method), " requires order id or client order id")) ;
         }
         var txTypetxInfoVariable = this.lighterSignCancelOrder(signer, this.extend(signRaw, parameters));
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
+        return new List<object>() {txType, txInfo, market};
+    }
+
+    /**
+     * @method
+     * @name lighter#cancelOrder
+     * @description cancels an open order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.accountIndex] account index
+     * @param {string} [params.apiKeyIndex] api key index
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        var txTypetxInfomarketVariable = await this.signAndCancelOrder("cancelOrder", id, symbol, parameters);
+        var txType = ((IList<object>) txTypetxInfomarketVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfomarketVariable)[1];
+        var market = ((IList<object>) txTypetxInfomarketVariable)[2];
         object request = new Dictionary<string, object>() {
             { "tx_type", txType },
             { "tx_info", txInfo },
         };
         object response = await this.publicPostSendTx(request);
         return this.parseOrder(response, market);
+    }
+
+    public async virtual Task<object> signAndCancelAllOrders(object method, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object apiKeyIndex = null;
+        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, method, "apiKeyIndex", "api_key_index");
+        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
+        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
+        object accountIndex = null;
+        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, method, "accountIndex", "account_index");
+        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
+        parameters = ((IList<object>)accountIndexparametersVariable)[1];
+        object strAccountIndex = ((string)this.numberToString(accountIndex));
+        object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
+        object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
+        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
+        object signRaw = new Dictionary<string, object>() {
+            { "time_in_force", 0 },
+            { "time", 0 },
+            { "nonce", nonce },
+            { "api_key_index", apiKeyIndex },
+            { "account_index", accountIndex },
+        };
+        var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, parameters));
+        var txType = ((IList<object>) txTypetxInfoVariable)[0];
+        var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
+        return new List<object>() {txType, txInfo};
     }
 
     /**
@@ -3549,30 +3705,7 @@ public partial class lighter : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
-        object apiKeyIndex = null;
-        var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "cancelAllOrders", "apiKeyIndex", "api_key_index");
-        apiKeyIndex = ((IList<object>)apiKeyIndexparametersVariable)[0];
-        parameters = ((IList<object>)apiKeyIndexparametersVariable)[1];
-        object accountIndex = null;
-        var accountIndexparametersVariable = await this.handleAccountIndex(parameters, "cancelAllOrders", "accountIndex", "account_index");
-        accountIndex = ((IList<object>)accountIndexparametersVariable)[0];
-        parameters = ((IList<object>)accountIndexparametersVariable)[1];
-        object strAccountIndex = ((string)this.numberToString(accountIndex));
-        object strApiKeyIndex = ((string)this.numberToString(apiKeyIndex));
-        object signer = await this.loadAccount(getValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters);
-        object nonce = await this.fetchNonce(accountIndex, apiKeyIndex, parameters);
-        object signRaw = new Dictionary<string, object>() {
-            { "time_in_force", 0 },
-            { "time", 0 },
-            { "nonce", nonce },
-            { "api_key_index", apiKeyIndex },
-            { "account_index", accountIndex },
-        };
-        var txTypetxInfoVariable = this.lighterSignCancelAllOrders(signer, this.extend(signRaw, parameters));
+        var txTypetxInfoVariable = await this.signAndCancelAllOrders("cancelAllOrdersWs", symbol, parameters);
         var txType = ((IList<object>) txTypetxInfoVariable)[0];
         var txInfo = ((IList<object>) txTypetxInfoVariable)[1];
         object request = new Dictionary<string, object>() {
@@ -3674,7 +3807,7 @@ public partial class lighter : Exchange
      * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
      * @param {string} symbol unified market symbol of the market to set margin in
      * @param {float} amount the amount to set the margin to
-     * @param {object} [params] parameters specific to the bingx api endpoint
+     * @param {object} [params] parameters specific to the exchange API endpoint
      * @param {string} [params.accountIndex] account index
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}

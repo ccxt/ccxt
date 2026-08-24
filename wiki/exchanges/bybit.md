@@ -34,7 +34,6 @@
 * [cancelAllOrders](#cancelallorders)
 * [fetchOrderClassic](#fetchorderclassic)
 * [fetchOrder](#fetchorder)
-* [fetchOrders](#fetchorders)
 * [fetchOrdersClassic](#fetchordersclassic)
 * [fetchClosedOrder](#fetchclosedorder)
 * [fetchOpenOrder](#fetchopenorder)
@@ -436,7 +435,7 @@ bybit.fetchTrades (symbol, since?, limit?, params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/market/orderbook  
 
@@ -759,7 +758,7 @@ cancel all open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
+| symbol | <code>string</code> | No | unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | true if trigger order |
 | params.stop | <code>boolean</code> | No | alias for trigger |
@@ -770,7 +769,7 @@ cancel all open orders
 
 
 ```javascript
-bybit.cancelAllOrders (symbol, params?)
+bybit.cancelAllOrders (symbol?, params?)
 ```
 
 
@@ -816,36 +815,6 @@ bybit.fetchOrderClassic (id, symbol, params?)
 
 ```javascript
 bybit.fetchOrder (id, symbol, params?)
-```
-
-
-<a name="fetchOrders" id="fetchorders"></a>
-
-### fetchOrders{docsify-ignore}
-*classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-
-**Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
-
-**See**: https://bybit-exchange.github.io/docs/v5/order/order-list  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | true if trigger order |
-| params.stop | <code>boolean</code> | No | alias for trigger |
-| params.type | <code>string</code> | No | market type, ['swap', 'option'] |
-| params.subType | <code>string</code> | No | market subType, ['linear', 'inverse'] |
-| params.orderFilter | <code>string</code> | No | 'Order' or 'StopOrder' or 'tpslOrder' |
-| params.until | <code>int</code> | No | the latest time in ms to fetch entries for |
-| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
-
-
-```javascript
-bybit.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1431,9 +1400,10 @@ Gets the total amount of unsettled contracts. In other words, the total number o
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified market symbol |
 | timeframe | <code>string</code> | Yes | "5m", 15m, 30m, 1h, 4h, 1d |
-| since | <code>int</code> | No | Not used by Bybit |
+| since | <code>int</code> | No | Timestamp in ms of the earliest open interest to fetch |
 | limit | <code>int</code> | No | The number of open interest structures to return. Max 200, default 50 |
 | params | <code>object</code> | No | Exchange specific parameters |
+| params.until | <code>int</code> | No | Timestamp in ms of the latest open interest to fetch |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
@@ -1450,12 +1420,13 @@ fetch the rate of interest to borrow a currency for margin trading
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
 **Returns**: <code>object</code> - a [borrow rate structure](https://docs.ccxt.com/?id=borrow-rate-structure)
 
-**See**: https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota  
+**See**: https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | Yes | unified currency code |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.vipLevel | <code>string</code> | No | the vip level to fetch the borrow rate for, defaults to 'No VIP' |
 
 
 ```javascript
@@ -1934,7 +1905,7 @@ fetches historical positions
 | symbols | <code>Array&lt;string&gt;</code> | Yes | a list of unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=50, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days |
 | params.subType | <code>string</code> | No | 'linear' or 'inverse' |
 
@@ -2495,7 +2466,7 @@ bybit.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bybit</code>](#bybit)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook  
 

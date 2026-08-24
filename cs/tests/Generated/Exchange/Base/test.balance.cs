@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    public static void testBalance(Exchange exchange, object skippedProperties, object method, object entry)
+    public static void testBalance(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
         object format = new Dictionary<string, object>() {
             { "free", new Dictionary<string, object>() {} },
@@ -18,17 +18,17 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format);
         object logText = testSharedMethods.logTemplate(exchange, method, entry);
         //
-        object codesTotal = new List<object>(((IDictionary<string,object>)getValue(entry, "total")).Keys);
-        object codesFree = new List<object>(((IDictionary<string,object>)getValue(entry, "free")).Keys);
-        object codesUsed = new List<object>(((IDictionary<string,object>)getValue(entry, "used")).Keys);
+        List<object> codesTotal = new List<object>(((IDictionary<string,object>)getValue(entry, "total")).Keys);
+        List<object> codesFree = new List<object>(((IDictionary<string,object>)getValue(entry, "free")).Keys);
+        List<object> codesUsed = new List<object>(((IDictionary<string,object>)getValue(entry, "used")).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
         object allCodes = exchange.arrayConcat(codesTotal, codesFree);
         allCodes = exchange.arrayConcat(allCodes, codesUsed);
-        object codesLength = getArrayLength(codesTotal);
-        object freeLength = getArrayLength(codesFree);
-        object usedLength = getArrayLength(codesUsed);
+        int codesLength = getArrayLength(codesTotal);
+        int freeLength = getArrayLength(codesFree);
+        int usedLength = getArrayLength(codesUsed);
         assert(isTrue((isEqual(codesLength, freeLength))) || isTrue((isEqual(codesLength, usedLength))), add("free and total and used codes have different lengths", logText));
         for (object i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
         {

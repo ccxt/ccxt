@@ -45,6 +45,7 @@ public partial class hollaex : Exchange
                 { "fetchDepositAddresses", true },
                 { "fetchDepositAddressesByNetwork", false },
                 { "fetchDeposits", true },
+                { "fetchDepositWithdrawFees", true },
                 { "fetchFundingHistory", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
@@ -117,43 +118,101 @@ public partial class hollaex : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "health", 1 },
-                        { "constants", 1 },
-                        { "kit", 1 },
-                        { "tiers", 1 },
-                        { "ticker", 1 },
-                        { "tickers", 1 },
-                        { "orderbook", 1 },
-                        { "orderbooks", 1 },
-                        { "trades", 1 },
-                        { "chart", 1 },
-                        { "charts", 1 },
-                        { "minicharts", 1 },
-                        { "oracle/prices", 1 },
-                        { "quick-trade", 1 },
-                        { "udf/config", 1 },
-                        { "udf/history", 1 },
-                        { "udf/symbols", 1 },
+                        { "health", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "constants", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "kit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tiers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbooks", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "chart", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "charts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "minicharts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oracle/prices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "quick-trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "udf/config", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "udf/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "udf/symbols", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "user", 1 },
-                        { "user/balance", 1 },
-                        { "user/deposits", 1 },
-                        { "user/withdrawals", 1 },
-                        { "user/withdrawal/fee", 1 },
-                        { "user/trades", 1 },
-                        { "orders", 1 },
-                        { "order", 1 },
+                        { "user", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/balance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/withdrawal/fee", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "user/withdrawal", 1 },
-                        { "order", 1 },
+                        { "user/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "order/all", 1 },
-                        { "order", 1 },
+                        { "order/all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -344,7 +403,7 @@ public partial class hollaex : Exchange
         //     }
         //
         object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
@@ -486,7 +545,7 @@ public partial class hollaex : Exchange
         //     }
         //
         object coins = this.safeDict(response, "coins", new Dictionary<string, object>() {});
-        object values = new List<object>(((IDictionary<string,object>)coins).Values);
+        List<object> values = new List<object>(((IDictionary<string,object>)coins).Values);
         return this.parseCurrencies(values);
     }
 
@@ -499,28 +558,31 @@ public partial class hollaex : Exchange
         object type = ((bool) isTrue((isEqual(rawType, "blockchain")))) ? "crypto" : "other";
         object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         object networks = new Dictionary<string, object>() {};
-        object networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
+        List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
         {
             object networkId = getValue(networkIds, j);
             object networkEntry = this.safeDict(rawNetworks, networkId);
             object networkCode = this.networkIdToCode(networkId, code);
-            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "active", this.safeBool(networkEntry, "active") },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", this.safeNumber(networkEntry, "value") },
-                { "precision", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "active", this.safeBool(networkEntry, "active") },
+                    { "deposit", null },
+                    { "withdraw", null },
+                    { "fee", this.safeNumber(networkEntry, "value") },
+                    { "precision", null },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", null },
+                            { "max", null },
+                        } },
                     } },
-                } },
-                { "info", networkEntry },
-            };
+                    { "info", networkEntry },
+                };
+            }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -553,8 +615,8 @@ public partial class hollaex : Exchange
      * @name hollaex#fetchOrderBooks
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
      * @see https://apidocs.hollaex.com/#orderbooks
-     * @param {string[]|undefined} symbols not used by hollaex fetchOrderBooks ()
-     * @param {int} [limit] not used by hollaex fetchOrderBooks ()
+     * @param {string[]|undefined} symbols not used by fetchOrderBooks ()
+     * @param {int} [limit] not used by fetchOrderBooks ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbol
      */
@@ -567,14 +629,14 @@ public partial class hollaex : Exchange
         }
         object response = await this.publicGetOrderbooks(parameters);
         object result = new Dictionary<string, object>() {};
-        object marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
-            object orderbook = getValue(response, marketId);
+            object orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             object symbol = this.safeSymbol(marketId, null, "-");
             object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
-            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(getValue(response, marketId), symbol, timestamp);
+            ((IDictionary<string,object>)result)[(string)symbol] = this.parseOrderBook(orderbook, symbol, timestamp);
         }
         return result;
     }
@@ -587,7 +649,7 @@ public partial class hollaex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -620,7 +682,7 @@ public partial class hollaex : Exchange
         //         // ...
         //     }
         //
-        object orderbook = this.safeValue(response, ((string)getValue(market, "id")));
+        object orderbook = this.safeValue(response, getValue(market, "id"));
         object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp);
     }
@@ -700,7 +762,7 @@ public partial class hollaex : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
-        object keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
@@ -806,7 +868,7 @@ public partial class hollaex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeList(response, ((string)getValue(market, "id")), new List<object>() {});
+        object trades = this.safeList(response, getValue(market, "id"), new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -919,12 +981,12 @@ public partial class hollaex : Exchange
         object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
         object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(((object)this.symbols), i);
+            object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
-            object makerString = this.safeString(makerFees, ((string)getValue(market, "id")));
-            object takerString = this.safeString(takerFees, ((string)getValue(market, "id")));
+            object makerString = this.safeString(makerFees, getValue(market, "id"));
+            object takerString = this.safeString(takerFees, getValue(market, "id"));
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fees },
                 { "symbol", symbol },
@@ -975,7 +1037,7 @@ public partial class hollaex : Exchange
         object until = this.safeInteger(parameters, "until");
         object timeDelta = multiply(multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
         object start = since;
-        object now = this.milliseconds();
+        Int64 now = this.milliseconds();
         if (isTrue(isEqual(until, null)))
         {
             until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
@@ -1001,7 +1063,7 @@ public partial class hollaex : Exchange
         //         },
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1028,7 +1090,12 @@ public partial class hollaex : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        object currencyIds = new List<object>(((IDictionary<string,object>)this.currencies_by_id).Keys);
+        object currenciesById = this.currencies_by_id;
+        if (isTrue(isEqual(currenciesById, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
+        }
+        List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
@@ -1036,7 +1103,10 @@ public partial class hollaex : Exchange
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(response, add(currencyId, "_available"));
             ((IDictionary<string,object>)account)["total"] = this.safeString(response, add(currencyId, "_balance"));
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1078,7 +1148,7 @@ public partial class hollaex : Exchange
      * @description fetch an open order by it's id
      * @see https://apidocs.hollaex.com/#get-order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -1388,7 +1458,7 @@ public partial class hollaex : Exchange
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
         object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
         object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
-        object isMarketOrder = isEqual(type, "market");
+        bool isMarketOrder = isEqual(type, "market");
         object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))
         {
@@ -1581,7 +1651,7 @@ public partial class hollaex : Exchange
         object tag = null;
         if (isTrue(!isEqual(address, null)))
         {
-            object parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -1891,7 +1961,7 @@ public partial class hollaex : Exchange
         object tagFrom = null;
         if (isTrue(!isEqual(address, null)))
         {
-            object parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
+            List<object> parts = ((string)address).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;
@@ -2059,8 +2129,8 @@ public partial class hollaex : Exchange
         object withdrawalFees = this.safeValue(fee, "withdrawal_fees");
         if (isTrue(!isEqual(withdrawalFees, null)))
         {
-            object keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
-            object keysLength = getArrayLength(keys);
+            List<object> keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
+            int keysLength = getArrayLength(keys);
             for (object i = 0; isLessThan(i, keysLength); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
@@ -2068,7 +2138,11 @@ public partial class hollaex : Exchange
                 object currencyId = this.safeString(value, "symbol");
                 object currencyCode = this.safeCurrencyCode(currencyId);
                 object networkCode = this.networkIdToCode(key, currencyCode);
-                object networkCodeUpper = ((string)networkCode).ToUpper(); // default to the upper case network code
+                if (isTrue(isEqual(networkCode, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " requires a networkCode argument")) ;
+                }
+                string networkCodeUpper = ((string)networkCode).ToUpper(); // default to the upper case network code
                 object withdrawalFee = this.safeNumber(value, "value");
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCodeUpper] = new Dictionary<string, object>() {
                     { "deposit", null },
@@ -2151,7 +2225,7 @@ public partial class hollaex : Exchange
             this.checkRequiredCredentials();
             object defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
             object expires = this.sum(this.seconds(), defaultExpires);
-            object expiresString = ((object)expires).ToString();
+            string expiresString = ((object)expires).ToString();
             object auth = add(add(method, path), expiresString);
             headers = new Dictionary<string, object>() {
                 { "api-key", this.apiKey },
@@ -2166,7 +2240,7 @@ public partial class hollaex : Exchange
                     auth = add(auth, body);
                 }
             }
-            object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
+            string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
             ((IDictionary<string,object>)headers)["api-signature"] = signature;
         }
         return new Dictionary<string, object>() {
@@ -2198,7 +2272,7 @@ public partial class hollaex : Exchange
             object feedback = add(add(this.id, " "), body);
             object message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-            object status = ((object)code).ToString();
+            string status = ((object)code).ToString();
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), status, feedback);
         }
         return null;

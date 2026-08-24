@@ -30,7 +30,7 @@ func (this *WoofiproCore) Describe() any {
 			"swap":                                 true,
 			"future":                               false,
 			"option":                               false,
-			"addMargin":                            false,
+			"addMargin":                            true,
 			"borrowCrossMargin":                    false,
 			"borrowIsolatedMargin":                 false,
 			"borrowMargin":                         false,
@@ -47,6 +47,7 @@ func (this *WoofiproCore) Describe() any {
 			"createMarketOrderWithCost":            false,
 			"createMarketSellOrderWithCost":        false,
 			"createOrder":                          true,
+			"createOrders":                         true,
 			"createOrderWithTakeProfitAndStopLoss": true,
 			"createReduceOnlyOrder":                true,
 			"createStopLimitOrder":                 false,
@@ -57,6 +58,7 @@ func (this *WoofiproCore) Describe() any {
 			"createTrailingAmountOrder":            false,
 			"createTrailingPercentOrder":           false,
 			"createTriggerOrder":                   true,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchAllGreeks":                       false,
 			"fetchBalance":                         true,
@@ -90,12 +92,15 @@ func (this *WoofiproCore) Describe() any {
 			"fetchLedger":                          true,
 			"fetchLeverage":                        true,
 			"fetchMarginAdjustmentHistory":         false,
-			"fetchMarginMode":                      false,
+			"fetchMarginMode":                      true,
+			"fetchMarginModes":                     true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       false,
 			"fetchMyTrades":                        true,
 			"fetchOHLCV":                           true,
+			"fetchOpenInterest":                    true,
 			"fetchOpenInterestHistory":             false,
+			"fetchOpenInterests":                   true,
 			"fetchOpenOrder":                       false,
 			"fetchOpenOrders":                      true,
 			"fetchOption":                          false,
@@ -109,8 +114,8 @@ func (this *WoofiproCore) Describe() any {
 			"fetchPositions":                       true,
 			"fetchPremiumIndexOHLCV":               false,
 			"fetchStatus":                          true,
-			"fetchTicker":                          false,
-			"fetchTickers":                         false,
+			"fetchTicker":                          true,
+			"fetchTickers":                         true,
 			"fetchTime":                            true,
 			"fetchTrades":                          true,
 			"fetchTradingFee":                      false,
@@ -119,11 +124,12 @@ func (this *WoofiproCore) Describe() any {
 			"fetchTransfers":                       false,
 			"fetchVolatilityHistory":               false,
 			"fetchWithdrawals":                     true,
-			"reduceMargin":                         false,
+			"reduceMargin":                         true,
 			"repayCrossMargin":                     false,
 			"repayIsolatedMargin":                  false,
 			"setLeverage":                          true,
 			"setMargin":                            false,
+			"setMarginMode":                        true,
 			"setPositionMode":                      false,
 			"transfer":                             false,
 			"withdraw":                             true,
@@ -152,7 +158,7 @@ func (this *WoofiproCore) Describe() any {
 				"private": "https://testnet-api-evm.orderly.org",
 			},
 			"www":  "https://dex.woo.org",
-			"doc":  []any{"https://orderly.network/docs/build-on-omnichain/building-on-evm"},
+			"doc":  []any{"https://orderly.network/docs/build-on-omnichain/building-on-omnichain"},
 			"fees": []any{"https://dex.woo.org/en/orderly"},
 			"referral": map[string]any{
 				"url":      "https://dex.woo.org/en/trade?ref=CCXT",
@@ -163,133 +169,372 @@ func (this *WoofiproCore) Describe() any {
 			"v1": map[string]any{
 				"public": map[string]any{
 					"get": map[string]any{
-						"public/volume/stats":             1,
-						"public/broker/name":              1,
-						"public/chain_info/{broker_id}":   1,
-						"public/system_info":              1,
-						"public/vault_balance":            1,
-						"public/insurancefund":            1,
-						"public/chain_info":               1,
-						"faucet/usdc":                     1,
-						"public/account":                  1,
-						"get_account":                     1,
-						"registration_nonce":              1,
-						"get_orderly_key":                 1,
-						"public/liquidation":              1,
-						"public/liquidated_positions":     1,
-						"public/config":                   1,
-						"public/campaign/ranking":         10,
-						"public/campaign/stats":           10,
-						"public/campaign/user":            10,
-						"public/campaign/stats/details":   10,
-						"public/campaigns":                10,
-						"public/points/leaderboard":       1,
-						"client/points":                   1,
-						"public/points/epoch":             1,
-						"public/points/epoch_dates":       1,
-						"public/referral/check_ref_code":  1,
-						"public/referral/verify_ref_code": 1,
-						"referral/admin_info":             1,
-						"referral/info":                   1,
-						"referral/referee_info":           1,
-						"referral/referee_rebate_summary": 1,
-						"referral/referee_history":        1,
-						"referral/referral_history":       1,
-						"referral/rebate_summary":         1,
-						"client/distribution_history":     1,
-						"tv/config":                       1,
-						"tv/history":                      1,
-						"tv/symbol_info":                  1,
-						"public/funding_rate_history":     1,
-						"public/funding_rate/{symbol}":    0.33,
-						"public/funding_rates":            1,
-						"public/info":                     1,
-						"public/info/{symbol}":            1,
-						"public/market_trades":            1,
-						"public/token":                    1,
-						"public/futures":                  1,
-						"public/futures/{symbol}":         1,
+						"public/volume/stats": map[string]any{
+							"cost": 1,
+						},
+						"public/broker/name": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info/{broker_id}": map[string]any{
+							"cost": 1,
+						},
+						"public/system_info": map[string]any{
+							"cost": 1,
+						},
+						"public/vault_balance": map[string]any{
+							"cost": 1,
+						},
+						"public/insurancefund": map[string]any{
+							"cost": 1,
+						},
+						"public/chain_info": map[string]any{
+							"cost": 1,
+						},
+						"faucet/usdc": map[string]any{
+							"cost": 1,
+						},
+						"public/account": map[string]any{
+							"cost": 1,
+						},
+						"get_account": map[string]any{
+							"cost": 1,
+						},
+						"registration_nonce": map[string]any{
+							"cost": 1,
+						},
+						"get_orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidation": map[string]any{
+							"cost": 1,
+						},
+						"public/liquidated_positions": map[string]any{
+							"cost": 1,
+						},
+						"public/config": map[string]any{
+							"cost": 1,
+						},
+						"public/campaign/ranking": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/user": map[string]any{
+							"cost": 10,
+						},
+						"public/campaign/stats/details": map[string]any{
+							"cost": 10,
+						},
+						"public/campaigns": map[string]any{
+							"cost": 10,
+						},
+						"public/points/leaderboard": map[string]any{
+							"cost": 1,
+						},
+						"client/points": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch": map[string]any{
+							"cost": 1,
+						},
+						"public/points/epoch_dates": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/check_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"public/referral/verify_ref_code": map[string]any{
+							"cost": 1,
+						},
+						"referral/admin_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_info": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/referee_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/referral_history": map[string]any{
+							"cost": 1,
+						},
+						"referral/rebate_summary": map[string]any{
+							"cost": 1,
+						},
+						"client/distribution_history": map[string]any{
+							"cost": 1,
+						},
+						"tv/config": map[string]any{
+							"cost": 1,
+						},
+						"tv/history": map[string]any{
+							"cost": 1,
+						},
+						"tv/symbol_info": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate_history": map[string]any{
+							"cost": 1,
+						},
+						"public/funding_rate/{symbol}": map[string]any{
+							"cost": 0.33,
+						},
+						"public/funding_rates": map[string]any{
+							"cost": 1,
+						},
+						"public/info": map[string]any{
+							"cost": 1,
+						},
+						"public/info/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"public/market_trades": map[string]any{
+							"cost": 1,
+						},
+						"public/token": map[string]any{
+							"cost": 1,
+						},
+						"public/futures": map[string]any{
+							"cost": 1,
+						},
+						"public/futures/{symbol}": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"register_account": 1,
+						"register_account": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"client/key_info":                     6,
-						"client/orderly_key_ip_restriction":   6,
-						"order/{oid}":                         1,
-						"client/order/{client_order_id}":      1,
-						"algo/order/{oid}":                    1,
-						"algo/client/order/{client_order_id}": 1,
-						"orders":                              1,
-						"algo/orders":                         1,
-						"trade/{tid}":                         1,
-						"trades":                              1,
-						"order/{oid}/trades":                  1,
-						"client/liquidator_liquidations":      1,
-						"liquidations":                        1,
-						"asset/history":                       60,
-						"client/holding":                      1,
-						"withdraw_nonce":                      1,
-						"settle_nonce":                        1,
-						"pnl_settlement/history":              1,
-						"volume/user/daily":                   60,
-						"volume/user/stats":                   60,
-						"client/statistics":                   60,
-						"client/info":                         60,
-						"client/statistics/daily":             60,
-						"positions":                           3.33,
-						"position/{symbol}":                   3.33,
-						"funding_fee/history":                 30,
-						"notification/inbox/notifications":    60,
-						"notification/inbox/unread":           60,
-						"volume/broker/daily":                 60,
-						"broker/fee_rate/default":             10,
-						"broker/user_info":                    10,
-						"orderbook/{symbol}":                  1,
-						"kline":                               1,
+						"client/key_info": map[string]any{
+							"cost": 6,
+						},
+						"client/orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"algo/order/{oid}": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order/{client_order_id}": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"trade/{tid}": map[string]any{
+							"cost": 1,
+						},
+						"trades": map[string]any{
+							"cost": 1,
+						},
+						"order/{oid}/trades": map[string]any{
+							"cost": 1,
+						},
+						"client/liquidator_liquidations": map[string]any{
+							"cost": 1,
+						},
+						"liquidations": map[string]any{
+							"cost": 1,
+						},
+						"asset/history": map[string]any{
+							"cost": 60,
+						},
+						"client/holding": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_nonce": map[string]any{
+							"cost": 1,
+						},
+						"settle_nonce": map[string]any{
+							"cost": 1,
+						},
+						"pnl_settlement/history": map[string]any{
+							"cost": 1,
+						},
+						"volume/user/daily": map[string]any{
+							"cost": 60,
+						},
+						"volume/user/stats": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics": map[string]any{
+							"cost": 60,
+						},
+						"client/info": map[string]any{
+							"cost": 60,
+						},
+						"client/statistics/daily": map[string]any{
+							"cost": 60,
+						},
+						"positions": map[string]any{
+							"cost": 3.33,
+						},
+						"position/{symbol}": map[string]any{
+							"cost": 3.33,
+						},
+						"funding_fee/history": map[string]any{
+							"cost": 30,
+						},
+						"notification/inbox/notifications": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/unread": map[string]any{
+							"cost": 60,
+						},
+						"volume/broker/daily": map[string]any{
+							"cost": 60,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"broker/user_info": map[string]any{
+							"cost": 10,
+						},
+						"orderbook/{symbol}": map[string]any{
+							"cost": 1,
+						},
+						"kline": map[string]any{
+							"cost": 1,
+						},
+						"client/margin_modes": map[string]any{
+							"cost": 1,
+						},
 					},
 					"post": map[string]any{
-						"orderly_key":                             1,
-						"client/set_orderly_key_ip_restriction":   6,
-						"client/reset_orderly_key_ip_restriction": 6,
-						"order":                            1,
-						"batch-order":                      10,
-						"algo/order":                       1,
-						"liquidation":                      1,
-						"claim_insurance_fund":             1,
-						"withdraw_request":                 1,
-						"settle_pnl":                       1,
-						"notification/inbox/mark_read":     60,
-						"notification/inbox/mark_read_all": 60,
-						"client/leverage":                  120,
-						"client/maintenance_config":        60,
-						"delegate_signer":                  10,
-						"delegate_orderly_key":             10,
-						"delegate_settle_pnl":              10,
-						"delegate_withdraw_request":        10,
-						"broker/fee_rate/set":              10,
-						"broker/fee_rate/set_default":      10,
-						"broker/fee_rate/default":          10,
-						"referral/create":                  10,
-						"referral/update":                  10,
-						"referral/bind":                    10,
-						"referral/edit_split":              10,
+						"orderly_key": map[string]any{
+							"cost": 1,
+						},
+						"client/set_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"client/reset_orderly_key_ip_restriction": map[string]any{
+							"cost": 6,
+						},
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 10,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"liquidation": map[string]any{
+							"cost": 1,
+						},
+						"claim_insurance_fund": map[string]any{
+							"cost": 1,
+						},
+						"withdraw_request": map[string]any{
+							"cost": 1,
+						},
+						"settle_pnl": map[string]any{
+							"cost": 1,
+						},
+						"notification/inbox/mark_read": map[string]any{
+							"cost": 60,
+						},
+						"notification/inbox/mark_read_all": map[string]any{
+							"cost": 60,
+						},
+						"client/leverage": map[string]any{
+							"cost": 120,
+						},
+						"client/margin_mode": map[string]any{
+							"cost": 1,
+						},
+						"position_margin": map[string]any{
+							"cost": 1,
+						},
+						"client/maintenance_config": map[string]any{
+							"cost": 60,
+						},
+						"delegate_signer": map[string]any{
+							"cost": 10,
+						},
+						"delegate_orderly_key": map[string]any{
+							"cost": 10,
+						},
+						"delegate_settle_pnl": map[string]any{
+							"cost": 10,
+						},
+						"delegate_withdraw_request": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"broker/fee_rate/default": map[string]any{
+							"cost": 10,
+						},
+						"referral/create": map[string]any{
+							"cost": 10,
+						},
+						"referral/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/bind": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
 					},
 					"put": map[string]any{
-						"order":      1,
-						"algo/order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
 					},
 					"delete": map[string]any{
-						"order":              1,
-						"algo/order":         1,
-						"client/order":       1,
-						"algo/client/order":  1,
-						"algo/orders":        1,
-						"orders":             1,
-						"batch-order":        1,
-						"client/batch-order": 1,
+						"order": map[string]any{
+							"cost": 1,
+						},
+						"algo/order": map[string]any{
+							"cost": 1,
+						},
+						"client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/client/order": map[string]any{
+							"cost": 1,
+						},
+						"algo/orders": map[string]any{
+							"cost": 1,
+						},
+						"orders": map[string]any{
+							"cost": 1,
+						},
+						"batch-order": map[string]any{
+							"cost": 1,
+						},
+						"client/batch-order": map[string]any{
+							"cost": 1,
+						},
 					},
 				},
 			},
@@ -442,87 +687,87 @@ func (this *WoofiproCore) SetSandboxMode(enable any) {
  * @method
  * @name woofipro#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
 func (this *WoofiproCore) FetchStatus(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.V1PublicGetPublicSystemInfo(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success": true,
-		//         "data": {
-		//             "status": 0,
-		//             "msg": "System is functioning properly."
-		//         },
-		//         "timestamp": "1709274106602"
-		//     }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var status any = this.SafeString(data, "status")
-		if IsTrue(IsEqual(status, nil)) {
-			status = "error"
-		} else if IsTrue(IsEqual(status, "0")) {
-			status = "ok"
-		} else {
-			status = "maintenance"
-		}
-
-		ch <- map[string]any{
-			"status":  status,
-			"updated": nil,
-			"eta":     nil,
-			"url":     nil,
-			"info":    response,
-		}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchStatusBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.V1PublicGetPublicSystemInfo(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "data": {
+	//             "status": 0,
+	//             "msg": "System is functioning properly."
+	//         },
+	//         "timestamp": "1709274106602"
+	//     }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var status any = this.SafeString(data, "status")
+	if IsTrue(IsEqual(status, nil)) {
+		status = "error"
+	} else if IsTrue(IsEqual(status, "0")) {
+		status = "ok"
+	} else {
+		status = "maintenance"
+	}
+
+	ch <- map[string]any{
+		"status":  status,
+		"updated": nil,
+		"eta":     nil,
+		"url":     nil,
+		"info":    response,
+	}
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
 func (this *WoofiproCore) FetchTime(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.V1PublicGetPublicSystemInfo(params))
-		PanicOnError(response)
-
-		//
-		//     {
-		//         "success": true,
-		//         "data": {
-		//             "status": 0,
-		//             "msg": "System is functioning properly."
-		//         },
-		//         "timestamp": "1709274106602"
-		//     }
-		//
-		ch <- this.SafeInteger(response, "timestamp")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTimeBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.V1PublicGetPublicSystemInfo(params))
+	PanicOnError(response)
+
+	//
+	//     {
+	//         "success": true,
+	//         "data": {
+	//             "status": 0,
+	//             "msg": "System is functioning properly."
+	//         },
+	//         "timestamp": "1709274106602"
+	//     }
+	//
+	ch <- this.SafeInteger(response, "timestamp")
+	return nil
 }
 func (this *WoofiproCore) ParseMarket(market any) any {
 	//
@@ -553,8 +798,11 @@ func (this *WoofiproCore) ParseMarket(market any) any {
 	//   }
 	//
 	var marketId any = this.SafeString(market, "symbol")
-	var parts any = Split(marketId, "_")
-	var marketType any = "swap"
+	if IsTrue(IsEqual(marketId, nil)) {
+		panic(ExchangeError(Add(this.Id, " parseMarket() missing marketId")))
+	}
+	var parts []string = Split(marketId, "_")
+	var marketType string = "swap"
 	var baseId any = this.SafeString(parts, 1)
 	var quoteId any = this.SafeString(parts, 2)
 	var base any = this.SafeCurrencyCode(baseId)
@@ -562,7 +810,7 @@ func (this *WoofiproCore) ParseMarket(market any) any {
 	var settleId any = this.SafeString(parts, 2)
 	var settle any = this.SafeCurrencyCode(settleId)
 	var symbol any = Add(Add(Add(Add(base, "/"), quote), ":"), settle)
-	return map[string]any{
+	return this.SafeMarketStructure(map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -610,135 +858,138 @@ func (this *WoofiproCore) ParseMarket(market any) any {
 		},
 		"created": this.SafeInteger(market, "created_time"),
 		"info":    market,
-	}
+	})
 }
 
 /**
  * @method
  * @name woofipro#fetchMarkets
  * @description retrieves data on all markets for woofipro
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
 func (this *WoofiproCore) FetchMarkets(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.V1PublicGetPublicInfo(params))
-		PanicOnError(response)
-		//
-		//   {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [
-		//         {
-		//           "symbol": "PERP_BTC_USDC",
-		//           "quote_min": 123,
-		//           "quote_max": 100000,
-		//           "quote_tick": 0.1,
-		//           "base_min": 0.00001,
-		//           "base_max": 20,
-		//           "base_tick": 0.00001,
-		//           "min_notional": 1,
-		//           "price_range": 0.02,
-		//           "price_scope": 0.4,
-		//           "std_liquidation_fee": 0.03,
-		//           "liquidator_fee": 0.015,
-		//           "claim_insurance_fund_discount": 0.0075,
-		//           "funding_period": 8,
-		//           "cap_funding": 0.000375,
-		//           "floor_funding": -0.000375,
-		//           "interest_rate": 0.0001,
-		//           "created_time": 1684140107326,
-		//           "updated_time": 1685345968053,
-		//           "base_mmr": 0.05,
-		//           "base_imr": 0.1,
-		//           "imr_factor": 0.0002512,
-		//           "liquidation_tier": "1"
-		//         }
-		//       ]
-		//     }
-		//   }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var rows any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseMarkets(rows)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMarketsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.V1PublicGetPublicInfo(params))
+	PanicOnError(response)
+	//
+	//   {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [
+	//         {
+	//           "symbol": "PERP_BTC_USDC",
+	//           "quote_min": 123,
+	//           "quote_max": 100000,
+	//           "quote_tick": 0.1,
+	//           "base_min": 0.00001,
+	//           "base_max": 20,
+	//           "base_tick": 0.00001,
+	//           "min_notional": 1,
+	//           "price_range": 0.02,
+	//           "price_scope": 0.4,
+	//           "std_liquidation_fee": 0.03,
+	//           "liquidator_fee": 0.015,
+	//           "claim_insurance_fund_discount": 0.0075,
+	//           "funding_period": 8,
+	//           "cap_funding": 0.000375,
+	//           "floor_funding": -0.000375,
+	//           "interest_rate": 0.0001,
+	//           "created_time": 1684140107326,
+	//           "updated_time": 1685345968053,
+	//           "base_mmr": 0.05,
+	//           "base_imr": 0.1,
+	//           "imr_factor": 0.0002512,
+	//           "liquidation_tier": "1"
+	//         }
+	//       ]
+	//     }
+	//   }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseMarkets(rows)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
 func (this *WoofiproCore) FetchCurrencies(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		var result any = map[string]any{}
-		var tokenPromise any = this.V1PublicGetPublicToken(params)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [{
-		//         "token": "USDC",
-		//         "decimals": 6,
-		//         "minimum_withdraw_amount": 0.000001,
-		//         "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
-		//         "chain_details": [{
-		//             "chain_id": 43113,
-		//             "contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
-		//             "cross_chain_withdrawal_fee": 123,
-		//             "decimals": 6,
-		//             "withdraw_fee": 2
-		//             }]
-		//         }
-		//       ]
-		//     }
-		// }
-		//
-		var chainPromise any = this.V1PublicGetPublicChainInfo(params)
-		tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
-		tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
-		chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
-		var tokenData any = this.SafeDict(tokenResponse, "data", map[string]any{})
-		var tokenRows any = this.SafeList(tokenData, "rows", []any{})
-		var chainData any = this.SafeDict(chainResponse, "data", map[string]any{})
-		var chainRows any = this.SafeList(chainData, "rows", []any{})
-		var indexedChains any = this.IndexBy(chainRows, "chain_id")
-		for i := 0; IsLessThan(i, GetArrayLength(tokenRows)); i++ {
-			var token any = GetValue(tokenRows, i)
-			var parsed any = this.ParseCurrency(map[string]any{
-				"_token":         token,
-				"_indexedChains": indexedChains,
-			})
-			AddElementToObject(result, GetValue(parsed, "code"), parsed)
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchCurrenciesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	var result map[string]any = map[string]any{}
+	var tokenPromise any = this.V1PublicGetPublicToken(params)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [{
+	//         "token": "USDC",
+	//         "decimals": 6,
+	//         "minimum_withdraw_amount": 0.000001,
+	//         "token_hash": "0xd6aca1be9729c13d677335161321649cccae6a591554772516700f986f942eaa",
+	//         "chain_details": [{
+	//             "chain_id": 43113,
+	//             "contract_address": "0x5d64c9cfb0197775b4b3ad9be4d3c7976e0d8dc3",
+	//             "cross_chain_withdrawal_fee": 123,
+	//             "decimals": 6,
+	//             "withdraw_fee": 2
+	//             }]
+	//         }
+	//       ]
+	//     }
+	// }
+	//
+	var chainPromise any = this.V1PublicGetPublicChainInfo(params)
+	tokenResponsechainResponseVariable := (<-promiseAll([]any{tokenPromise, chainPromise}))
+	tokenResponse := GetValue(tokenResponsechainResponseVariable, 0)
+	chainResponse := GetValue(tokenResponsechainResponseVariable, 1)
+	var tokenData any = this.SafeDict(tokenResponse, "data", map[string]any{})
+	var tokenRows any = this.SafeList(tokenData, "rows", []any{})
+	var chainData any = this.SafeDict(chainResponse, "data", map[string]any{})
+	var chainRows any = this.SafeList(chainData, "rows", []any{})
+	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
+	for i := 0; IsLessThan(i, GetArrayLength(tokenRows)); i++ {
+		var token any = GetValue(tokenRows, i)
+		var parsed any = this.ParseCurrency(map[string]any{
+			"_token":         token,
+			"_indexedChains": indexedChains,
+		})
+		if IsTrue(IsEqual(parsed, nil)) {
+			panic(ExchangeError(Add(this.Id, " fetchCurrencies() could not resolve parsed")))
+		}
+		AddElementToObject(result, GetValue(parsed, "code"), parsed)
+	}
+
+	ch <- result
+	return nil
 }
 func (this *WoofiproCore) ParseCurrency(rawCurrency any) any {
 	var token any = this.SafeDict(rawCurrency, "_token", map[string]any{})
@@ -746,36 +997,38 @@ func (this *WoofiproCore) ParseCurrency(rawCurrency any) any {
 	var networks any = this.SafeList(token, "chain_details", []any{})
 	var code any = this.SafeCurrencyCode(currencyId)
 	var indexedChains any = this.SafeDict(rawCurrency, "_indexedChains", map[string]any{})
-	var resultingNetworks any = map[string]any{}
+	var resultingNetworks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 		var networkEntry any = GetValue(networks, j)
 		var networkId any = this.SafeString(networkEntry, "chain_id")
 		var networkRow any = this.SafeDict(indexedChains, networkId)
-		var networkName any = this.SafeString(networkRow, "name")
+		var networkName any = this.SafeString(networkRow, "name", networkId)
 		var networkCode any = this.NetworkIdToCode(networkName, code)
-		AddElementToObject(resultingNetworks, networkCode, map[string]any{
-			"id":      networkId,
-			"network": networkCode,
-			"limits": map[string]any{
-				"withdraw": map[string]any{
-					"min": nil,
-					"max": nil,
+		if IsTrue(!IsEqual(networkCode, nil)) {
+			AddElementToObject(resultingNetworks, networkCode, map[string]any{
+				"id":      networkId,
+				"network": networkCode,
+				"limits": map[string]any{
+					"withdraw": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
+					"deposit": map[string]any{
+						"min": nil,
+						"max": nil,
+					},
 				},
-				"deposit": map[string]any{
-					"min": nil,
-					"max": nil,
+				"active":    nil,
+				"deposit":   nil,
+				"withdraw":  nil,
+				"fee":       this.SafeNumber(networkEntry, "withdrawal_fee"),
+				"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "decimals"))),
+				"info": map[string]any{
+					"network":    networkEntry,
+					"networkRow": networkRow,
 				},
-			},
-			"active":    nil,
-			"deposit":   nil,
-			"withdraw":  nil,
-			"fee":       this.SafeNumber(networkEntry, "withdrawal_fee"),
-			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(networkEntry, "decimals"))),
-			"info": map[string]any{
-				"network":    networkEntry,
-				"networkRow": networkRow,
-			},
-		})
+			})
+		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
@@ -843,7 +1096,7 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var isFromFetchOrder any = (InOp(trade, "id"))
+	var isFromFetchOrder bool = (InOp(trade, "id"))
 	var timestamp any = this.SafeInteger(trade, "executed_timestamp")
 	var marketId any = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(marketId, market)
@@ -853,7 +1106,7 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var order_id any = this.SafeString(trade, "order_id")
 	var fee any = this.ParseTokenAndFeeTemp(trade, "fee_asset", "fee")
 	var feeCost any = this.SafeString(fee, "cost")
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	if IsTrue(IsTrue((!IsEqual(fee, nil))) && IsTrue((!IsEqual(feeCost, nil)))) {
 		AddElementToObject(fee, "cost", feeCost)
 	}
 	var cost any = Precise.StringMul(price, amount)
@@ -861,7 +1114,7 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
 	var id any = this.SafeString(trade, "id")
 	var takerOrMaker any = nil
 	if IsTrue(isFromFetchOrder) {
-		var isMaker any = IsEqual(this.SafeString(trade, "is_maker"), "1")
+		var isMaker bool = IsEqual(this.SafeString(trade, "is_maker"), "1")
 		takerOrMaker = Ternary(IsTrue(isMaker), "maker", "taker")
 	}
 	return this.SafeTrade(map[string]any{
@@ -885,7 +1138,7 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name woofipro#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -893,54 +1146,54 @@ func (this *WoofiproCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *WoofiproCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		since := GetArg(optionalArgs, 0, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 1, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes85312 := (<-this.LoadMarkets())
-			PanicOnError(retRes85312)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", limit)
-		}
-
-		response := (<-this.V1PublicGetPublicMarketTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [{
-		//         "symbol": "PERP_ETH_USDC",
-		//         "side": "BUY",
-		//         "executed_price": 2050,
-		//         "executed_quantity": 1,
-		//         "executed_timestamp": 1683878609166
-		//       }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var rows any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseTrades(rows, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradesBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	since := GetArg(optionalArgs, 0, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 1, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes87012 := (<-this.LoadMarkets())
+		PanicOnError(retRes87012)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", limit)
+	}
+
+	response := (<-this.V1PublicGetPublicMarketTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [{
+	//         "symbol": "PERP_ETH_USDC",
+	//         "side": "BUY",
+	//         "executed_price": 2050,
+	//         "executed_quantity": 1,
+	//         "executed_timestamp": 1683878609166
+	//       }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseTrades(rows, market, since, limit)
+	return nil
 }
 func (this *WoofiproCore) ParseFundingRate(fundingRate any, optionalArgs ...any) any {
 	//
@@ -986,7 +1239,7 @@ func (this *WoofiproCore) ParseFundingRate(fundingRate any, optionalArgs ...any)
 	}
 }
 func (this *WoofiproCore) ParseFundingInterval(interval any) any {
-	var intervals any = map[string]any{
+	var intervals map[string]any = map[string]any{
 		"3600000":  "1h",
 		"14400000": "4h",
 		"28800000": "8h",
@@ -1000,139 +1253,470 @@ func (this *WoofiproCore) ParseFundingInterval(interval any) any {
  * @method
  * @name woofipro#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *WoofiproCore) FetchFundingInterval(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		retRes94615 := (<-this.FetchFundingRate(symbol, params))
-		PanicOnError(retRes94615)
-		ch <- retRes94615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingIntervalBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchFundingIntervalBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes96315 := (<-this.FetchFundingRate(symbol, params))
+	PanicOnError(retRes96315)
+	ch <- retRes96315
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *WoofiproCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes96012 := (<-this.LoadMarkets())
-			PanicOnError(retRes96012)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.V1PublicGetPublicFundingRateSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "symbol": "PERP_ETH_USDC",
-		//         "est_funding_rate": 123,
-		//         "est_funding_rate_timestamp": 1683880020000,
-		//         "last_funding_rate": 0.0001,
-		//         "last_funding_rate_timestamp": 1683878400000,
-		//         "next_funding_time": 1683907200000,
-		//         "sum_unitary_funding": 521.367
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.ParseFundingRate(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes97712 := (<-this.LoadMarkets())
+		PanicOnError(retRes97712)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.V1PublicGetPublicFundingRateSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "symbol": "PERP_ETH_USDC",
+	//         "est_funding_rate": 123,
+	//         "est_funding_rate_timestamp": 1683880020000,
+	//         "last_funding_rate": 0.0001,
+	//         "last_funding_rate_timestamp": 1683878400000,
+	//         "next_funding_time": 1683907200000,
+	//         "sum_unitary_funding": 521.367
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParseFundingRate(data, market)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
  */
 func (this *WoofiproCore) FetchFundingRates(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes99712 := (<-this.LoadMarkets())
-			PanicOnError(retRes99712)
-		}
-		symbols = this.MarketSymbols(symbols)
-
-		response := (<-this.V1PublicGetPublicFundingRates(params))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [{
-		//         "symbol": "PERP_ETH_USDC",
-		//         "est_funding_rate": 123,
-		//         "est_funding_rate_timestamp": 1683880020000,
-		//         "last_funding_rate": 0.0001,
-		//         "last_funding_rate_timestamp": 1683878400000,
-		//         "next_funding_time": 1683907200000,
-		//         "sum_unitary_funding": 521.367
-		//       }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var rows any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseFundingRates(rows, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes101412 := (<-this.LoadMarkets())
+		PanicOnError(retRes101412)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.V1PublicGetPublicFundingRates(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [{
+	//         "symbol": "PERP_ETH_USDC",
+	//         "est_funding_rate": 123,
+	//         "est_funding_rate_timestamp": 1683880020000,
+	//         "last_funding_rate": 0.0001,
+	//         "last_funding_rate_timestamp": 1683878400000,
+	//         "next_funding_time": 1683907200000,
+	//         "sum_unitary_funding": 521.367
+	//       }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseFundingRates(rows, symbols)
+	return nil
+}
+func (this *WoofiproCore) ParseTicker(ticker any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 64185.4,
+	//         "mark_price": 64171.0,
+	//         "sum_unitary_funding": 26522.3,
+	//         "est_funding_rate": 0.0001,
+	//         "last_funding_rate": 0.00010041,
+	//         "next_funding_time": 1786032000000,
+	//         "open_interest": 110.64612,
+	//         "24h_open": 64105.6,
+	//         "24h_close": 64180.0,
+	//         "24h_high": 64941.0,
+	//         "24h_low": 63837.6,
+	//         "24h_volume": 102.2817,
+	//         "24h_amount": 6595662.199482
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(ticker, "symbol")
+	market = this.SafeMarket(marketId, market)
+	var timestamp any = this.SafeInteger(ticker, "timestamp")
+	return this.SafeTicker(map[string]any{
+		"symbol":        GetValue(market, "symbol"),
+		"timestamp":     timestamp,
+		"datetime":      this.Iso8601(timestamp),
+		"high":          this.SafeString(ticker, "24h_high"),
+		"low":           this.SafeString(ticker, "24h_low"),
+		"bid":           nil,
+		"bidVolume":     nil,
+		"ask":           nil,
+		"askVolume":     nil,
+		"vwap":          nil,
+		"open":          this.SafeString(ticker, "24h_open"),
+		"close":         this.SafeString(ticker, "24h_close"),
+		"last":          this.SafeString(ticker, "24h_close"),
+		"previousClose": nil,
+		"change":        nil,
+		"percentage":    nil,
+		"average":       nil,
+		"baseVolume":    this.SafeString(ticker, "24h_volume"),
+		"quoteVolume":   this.SafeString(ticker, "24h_amount"),
+		"indexPrice":    this.SafeString(ticker, "index_price"),
+		"markPrice":     this.SafeString(ticker, "mark_price"),
+		"info":          ticker,
+	}, market)
+}
+
+/**
+ * @method
+ * @name woofipro#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *WoofiproCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTickerBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes109912 := (<-this.LoadMarkets())
+		PanicOnError(retRes109912)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1786022130191,
+	//     "data": {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 64185.4,
+	//         "mark_price": 64171.0,
+	//         "sum_unitary_funding": 26522.3,
+	//         "est_funding_rate": 0.0001,
+	//         "last_funding_rate": 0.00010041,
+	//         "next_funding_time": 1786032000000,
+	//         "open_interest": 110.64612,
+	//         "24h_open": 64105.6,
+	//         "24h_close": 64180.0,
+	//         "24h_high": 64941.0,
+	//         "24h_low": 63837.6,
+	//         "24h_volume": 102.2817,
+	//         "24h_amount": 6595662.199482
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+
+	ch <- this.ParseTicker(data, market)
+	return nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchTickers
+ * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ */
+func (this *WoofiproCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchTickersBody(ch, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes114412 := (<-this.LoadMarkets())
+		PanicOnError(retRes114412)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.V1PublicGetPublicFutures(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1786022130191,
+	//     "data": {
+	//         "rows": [{
+	//             "symbol": "PERP_BTC_USDC",
+	//             "index_price": 64185.4,
+	//             "mark_price": 64171.0,
+	//             "sum_unitary_funding": 26522.3,
+	//             "est_funding_rate": 0.0001,
+	//             "last_funding_rate": 0.00010041,
+	//             "next_funding_time": 1786032000000,
+	//             "open_interest": 110.64612,
+	//             "24h_open": 64105.6,
+	//             "24h_close": 64180.0,
+	//             "24h_high": 64941.0,
+	//             "24h_low": 63837.6,
+	//             "24h_volume": 102.2817,
+	//             "24h_amount": 6595662.199482
+	//         }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+	var timestamp any = this.SafeInteger(response, "timestamp")
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+		var row any = GetValue(rows, i)
+		var marketId any = this.SafeString(row, "symbol", "")
+		if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
+			continue
+		}
+		var ticker map[string]any = this.Extend(map[string]any{
+			"timestamp": timestamp,
+		}, row)
+		AppendToArray(&result, this.ParseTicker(ticker))
+	}
+
+	ch <- this.FilterByArrayTickers(result, "symbol", symbols)
+	return nil
+}
+func (this *WoofiproCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 64185.4,
+	//         "mark_price": 64171.0,
+	//         "open_interest": 110.64612,
+	//         "24h_open": 64105.6,
+	//         "24h_close": 64180.0,
+	//         "24h_high": 64941.0,
+	//         "24h_low": 63837.6,
+	//         "24h_volume": 102.2817,
+	//         "24h_amount": 6595662.199482
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(interest, "symbol")
+	market = this.SafeMarket(marketId, market)
+	var timestamp any = this.SafeInteger(interest, "timestamp")
+	var amount any = this.SafeNumber2(interest, "open_interest", "openInterest")
+	return this.SafeOpenInterest(map[string]any{
+		"symbol":             GetValue(market, "symbol"),
+		"openInterestAmount": amount,
+		"openInterestValue":  nil,
+		"timestamp":          timestamp,
+		"datetime":           this.Iso8601(timestamp),
+		"info":               interest,
+	}, market)
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterest
+ * @description retrieves the open interest of a contract trading pair
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-one-symbol
+ * @param {string} symbol unified CCXT market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *WoofiproCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes122812 := (<-this.LoadMarkets())
+		PanicOnError(retRes122812)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.V1PublicGetPublicFuturesSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1786022130191,
+	//     "data": {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "index_price": 64185.4,
+	//         "mark_price": 64171.0,
+	//         "open_interest": 110.64612,
+	//         "24h_volume": 102.2817,
+	//         "24h_amount": 6595662.199482
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+
+	ch <- this.ParseOpenInterest(data, market)
+	return nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchOpenInterests
+ * @description retrieves the open interest for a list of contract trading pairs
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-info-for-all-symbols
+ * @param {string[]} [symbols] a list of unified CCXT market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a dictionary of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+ */
+func (this *WoofiproCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchOpenInterestsBody(ch, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes126512 := (<-this.LoadMarkets())
+		PanicOnError(retRes126512)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.V1PublicGetPublicFutures(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1786022130191,
+	//     "data": {
+	//         "rows": [{
+	//             "symbol": "PERP_BTC_USDC",
+	//             "index_price": 64185.4,
+	//             "mark_price": 64171.0,
+	//             "open_interest": 110.64612,
+	//             "24h_volume": 102.2817,
+	//             "24h_amount": 6595662.199482
+	//         }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+	var timestamp any = this.SafeInteger(response, "timestamp")
+	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
+		var row any = GetValue(rows, i)
+		var marketId any = this.SafeString(row, "symbol", "")
+		if IsTrue(IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))) {
+			continue
+		}
+		var interest map[string]any = this.Extend(map[string]any{
+			"timestamp": timestamp,
+		}, row)
+		AppendToArray(&result, this.ParseOpenInterest(interest))
+	}
+
+	ch <- this.FilterByArray(result, "symbol", symbols)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1142,90 +1726,90 @@ func (this *WoofiproCore) FetchFundingRates(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *WoofiproCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes103812 := (<-this.LoadMarkets())
-			PanicOnError(retRes103812)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes104319 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-			PanicOnError(retRes104319)
-			ch <- retRes104319
-			return nil
-		}
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			symbol = GetValue(market, "symbol")
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_t", since)
-		}
-		requestparamsVariable := this.HandleUntilOption("end_t", request, params, 0.001)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-
-		response := (<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [{
-		//         "symbol": "PERP_ETH_USDC",
-		//         "funding_rate": 0.0001,
-		//         "funding_rate_timestamp": 1684224000000,
-		//         "next_funding_time": 1684252800000
-		//       }],
-		//       "meta": {
-		//         "total": 9,
-		//         "records_per_page": 25,
-		//         "current_page": 1
-		//       }
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var result any = this.SafeList(data, "rows", []any{})
-		var rates any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
-			var entry any = GetValue(result, i)
-			var marketId any = this.SafeString(entry, "symbol")
-			var timestamp any = this.SafeInteger(entry, "funding_rate_timestamp")
-			AppendToArray(&rates, map[string]any{
-				"info":        entry,
-				"symbol":      this.SafeSymbol(marketId),
-				"fundingRate": this.SafeNumber(entry, "funding_rate"),
-				"timestamp":   timestamp,
-				"datetime":    this.Iso8601(timestamp),
-			})
-		}
-		var sorted any = this.SortBy(rates, "timestamp")
-
-		ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingRateHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes131612 := (<-this.LoadMarkets())
+		PanicOnError(retRes131612)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes132119 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+		PanicOnError(retRes132119)
+		ch <- retRes132119
+		return nil
+	}
+	var request any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		symbol = GetValue(market, "symbol")
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_t", since)
+	}
+	requestparamsVariable := this.HandleUntilOption("end_t", request, params, 0.001)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+
+	response := (<-this.V1PublicGetPublicFundingRateHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [{
+	//         "symbol": "PERP_ETH_USDC",
+	//         "funding_rate": 0.0001,
+	//         "funding_rate_timestamp": 1684224000000,
+	//         "next_funding_time": 1684252800000
+	//       }],
+	//       "meta": {
+	//         "total": 9,
+	//         "records_per_page": 25,
+	//         "current_page": 1
+	//       }
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var result any = this.SafeList(data, "rows", []any{})
+	var rates any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
+		var entry any = GetValue(result, i)
+		var marketId any = this.SafeString(entry, "symbol")
+		var timestamp any = this.SafeInteger(entry, "funding_rate_timestamp")
+		AppendToArray(&rates, map[string]any{
+			"info":        entry,
+			"symbol":      this.SafeSymbol(marketId),
+			"fundingRate": this.SafeNumber(entry, "funding_rate"),
+			"timestamp":   timestamp,
+			"datetime":    this.Iso8601(timestamp),
+		})
+	}
+	var sorted any = this.SortBy(rates, "timestamp")
+
+	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
+	return nil
 }
 func (this *WoofiproCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
@@ -1266,7 +1850,7 @@ func (this *WoofiproCore) ParseIncome(income any, optionalArgs ...any) any {
  * @method
  * @name woofipro#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1275,220 +1859,221 @@ func (this *WoofiproCore) ParseIncome(income any, optionalArgs ...any) any {
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *WoofiproCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes114112 := (<-this.LoadMarkets())
-			PanicOnError(retRes114112)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes114619 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes114619)
-			ch <- retRes114619
-			return nil
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_t", since)
-		}
-		var until any = this.SafeInteger(params, "until") // unified in milliseconds
-		params = this.Omit(params, []any{"until"})
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "end_t", until)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "size", mathMin(limit, 500))
-		}
-
-		response := (<-this.V1PrivateGetFundingFeeHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "meta": {
-		//             "total": 9,
-		//             "records_per_page": 25,
-		//             "current_page": 1
-		//         },
-		//         "rows": [{
-		//                 "symbol": "PERP_ETH_USDC",
-		//                 "funding_rate": 0.00046875,
-		//                 "mark_price": 2100,
-		//                 "funding_fee": 0.000016,
-		//                 "payment_type": "Pay",
-		//                 "status": "Accrued",
-		//                 "created_time": 1682235722003,
-		//                 "updated_time": 1682235722003
-		//         }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var rows any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseIncomes(rows, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchFundingHistoryBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes141912 := (<-this.LoadMarkets())
+		PanicOnError(retRes141912)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes142419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes142419)
+		ch <- retRes142419
+		return nil
+	}
+	var request map[string]any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_t", since)
+	}
+	var until any = this.SafeInteger(params, "until") // unified in milliseconds
+	params = this.Omit(params, []any{"until"})
+	if IsTrue(!IsEqual(until, nil)) {
+		AddElementToObject(request, "end_t", until)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "size", mathMin(limit, 500))
+	}
+
+	response := (<-this.V1PrivateGetFundingFeeHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "meta": {
+	//             "total": 9,
+	//             "records_per_page": 25,
+	//             "current_page": 1
+	//         },
+	//         "rows": [{
+	//                 "symbol": "PERP_ETH_USDC",
+	//                 "funding_rate": 0.00046875,
+	//                 "mark_price": 2100,
+	//                 "funding_fee": 0.000016,
+	//                 "payment_type": "Pay",
+	//                 "status": "Accrued",
+	//                 "created_time": 1682235722003,
+	//                 "updated_time": 1682235722003
+	//         }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseIncomes(rows, market, since, limit)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
 func (this *WoofiproCore) FetchTradingFees(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes120412 := (<-this.LoadMarkets())
-			PanicOnError(retRes120412)
-		}
-
-		response := (<-this.V1PrivateGetClientInfo(params))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "account_id": "<string>",
-		//         "email": "test@test.com",
-		//         "account_mode": "FUTURES",
-		//         "max_leverage": 20,
-		//         "taker_fee_rate": 123,
-		//         "maker_fee_rate": 123,
-		//         "futures_taker_fee_rate": 123,
-		//         "futures_maker_fee_rate": 123,
-		//         "maintenance_cancel_orders": true,
-		//         "imr_factor": {
-		//             "PERP_BTC_USDC": 123,
-		//             "PERP_ETH_USDC": 123,
-		//             "PERP_NEAR_USDC": 123
-		//         },
-		//         "max_notional": {
-		//             "PERP_BTC_USDC": 123,
-		//             "PERP_ETH_USDC": 123,
-		//             "PERP_NEAR_USDC": 123
-		//         }
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var maker any = this.SafeString(data, "futures_maker_fee_rate")
-		var taker any = this.SafeString(data, "futures_taker_fee_rate")
-		var result any = map[string]any{}
-		for i := 0; IsLessThan(i, GetArrayLength(this.Symbols)); i++ {
-			var symbol any = GetValue(this.Symbols, i)
-			AddElementToObject(result, symbol, map[string]any{
-				"info":       response,
-				"symbol":     symbol,
-				"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
-				"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
-				"percentage": true,
-				"tierBased":  true,
-			})
-		}
-
-		ch <- result
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchTradingFeesBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes148212 := (<-this.LoadMarkets())
+		PanicOnError(retRes148212)
+	}
+
+	response := (<-this.V1PrivateGetClientInfo(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "account_id": "<string>",
+	//         "email": "test@test.com",
+	//         "account_mode": "FUTURES",
+	//         "max_leverage": 20,
+	//         "taker_fee_rate": 123,
+	//         "maker_fee_rate": 123,
+	//         "futures_taker_fee_rate": 123,
+	//         "futures_maker_fee_rate": 123,
+	//         "maintenance_cancel_orders": true,
+	//         "imr_factor": {
+	//             "PERP_BTC_USDC": 123,
+	//             "PERP_ETH_USDC": 123,
+	//             "PERP_NEAR_USDC": 123
+	//         },
+	//         "max_notional": {
+	//             "PERP_BTC_USDC": 123,
+	//             "PERP_ETH_USDC": 123,
+	//             "PERP_NEAR_USDC": 123
+	//         }
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var maker any = this.SafeString(data, "futures_maker_fee_rate")
+	var taker any = this.SafeString(data, "futures_taker_fee_rate")
+	var result map[string]any = map[string]any{}
+	var symbols any = this.Symbols
+	for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
+		var symbol any = GetValue(symbols, i)
+		AddElementToObject(result, symbol, map[string]any{
+			"info":       response,
+			"symbol":     symbol,
+			"maker":      this.ParseNumber(Precise.StringDiv(maker, "10000")),
+			"taker":      this.ParseNumber(Precise.StringDiv(taker, "10000")),
+			"percentage": true,
+			"tierBased":  true,
+		})
+	}
+
+	ch <- result
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+ * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *WoofiproCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		limit := GetArg(optionalArgs, 0, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes126412 := (<-this.LoadMarkets())
-			PanicOnError(retRes126412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			limit = mathMin(limit, 1000)
-			AddElementToObject(request, "max_level", limit)
-		}
-
-		response := (<-this.V1PrivateGetOrderbookSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "asks": [{
-		//         "price": 10669.4,
-		//         "quantity": 1.56263218
-		//       }],
-		//       "bids": [{
-		//         "price": 10669.4,
-		//         "quantity": 1.56263218
-		//       }],
-		//       "timestamp": 123
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var timestamp any = this.SafeInteger(data, "timestamp")
-
-		ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBookBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	limit := GetArg(optionalArgs, 0, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes154312 := (<-this.LoadMarkets())
+		PanicOnError(retRes154312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		limit = mathMin(limit, 1000)
+		AddElementToObject(request, "max_level", limit)
+	}
+
+	response := (<-this.V1PrivateGetOrderbookSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "asks": [{
+	//         "price": 10669.4,
+	//         "quantity": 1.56263218
+	//       }],
+	//       "bids": [{
+	//         "price": 10669.4,
+	//         "quantity": 1.56263218
+	//       }],
+	//       "timestamp": 123
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var timestamp any = this.SafeInteger(data, "timestamp")
+
+	ch <- this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity")
+	return nil
 }
 func (this *WoofiproCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -1499,7 +2084,7 @@ func (this *WoofiproCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 /**
  * @method
  * @name woofipro#fetchOHLCV
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1509,62 +2094,62 @@ func (this *WoofiproCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
 func (this *WoofiproCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		timeframe := GetArg(optionalArgs, 0, "1m")
-		_ = timeframe
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes132212 := (<-this.LoadMarkets())
-			PanicOnError(retRes132212)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-			"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "limit", mathMin(limit, 1000))
-		}
-
-		response := (<-this.V1PrivateGetKline(this.Extend(request, params)))
-		PanicOnError(response)
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [{
-		//         "open": 66166.23,
-		//         "close": 66124.56,
-		//         "low": 66038.06,
-		//         "high": 66176.97,
-		//         "volume": 23.45528526,
-		//         "amount": 1550436.21725288,
-		//         "symbol": "PERP_BTC_USDC",
-		//         "type": "1m",
-		//         "start_timestamp": 1636388220000,
-		//         "end_timestamp": 1636388280000
-		//       }]
-		//     }
-		// }
-		//
-		var rows any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOHLCVBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	timeframe := GetArg(optionalArgs, 0, "1m")
+	_ = timeframe
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes160112 := (<-this.LoadMarkets())
+		PanicOnError(retRes160112)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+		"type":   this.SafeString(this.Timeframes, timeframe, timeframe),
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "limit", mathMin(limit, 1000))
+	}
+
+	response := (<-this.V1PrivateGetKline(this.Extend(request, params)))
+	PanicOnError(response)
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [{
+	//         "open": 66166.23,
+	//         "close": 66124.56,
+	//         "low": 66038.06,
+	//         "high": 66176.97,
+	//         "volume": 23.45528526,
+	//         "amount": 1550436.21725288,
+	//         "symbol": "PERP_BTC_USDC",
+	//         "type": "1m",
+	//         "start_timestamp": 1636388220000,
+	//         "end_timestamp": 1636388280000
+	//       }]
+	//     }
+	// }
+	//
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseOHLCVs(rows, market, timeframe, since, limit)
+	return nil
 }
 func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
@@ -1630,9 +2215,9 @@ func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 		status = Ternary(IsTrue((success)), "NEW", "REJECTED")
 	}
 	var side any = this.SafeStringLower(order, "side")
-	var filled any = this.OmitZero(this.SafeValue2(order, "executed", "totalExecutedQuantity"))
+	var filled any = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
 	var average any = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
-	var remaining any = Precise.StringSub(cost, filled)
+	var remaining any = Precise.StringSub(amount, filled)
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency any = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions any = this.SafeValue(order, "Transactions")
@@ -1643,7 +2228,7 @@ func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(childOrders, nil)) {
 		var first any = this.SafeValue(childOrders, 0)
 		var innerChildOrders any = this.SafeValue(first, "childOrders", []any{})
-		var innerChildOrdersLength any = GetArrayLength(innerChildOrders)
+		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
 		if IsTrue(IsGreaterThan(innerChildOrdersLength, 0)) {
 			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)
 			var stopLossOrder any = this.SafeValue(innerChildOrders, 1)
@@ -1684,7 +2269,7 @@ func (this *WoofiproCore) ParseOrder(order any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *WoofiproCore) ParseTimeInForce(timeInForce any) any {
-	var timeInForces any = map[string]any{
+	var timeInForces map[string]any = map[string]any{
 		"ioc":       "IOC",
 		"fok":       "FOK",
 		"post_only": "PO",
@@ -1693,7 +2278,7 @@ func (this *WoofiproCore) ParseTimeInForce(timeInForce any) any {
 }
 func (this *WoofiproCore) ParseOrderStatus(status any) any {
 	if IsTrue(!IsEqual(status, nil)) {
-		var statuses any = map[string]any{
+		var statuses map[string]any = map[string]any{
 			"NEW":             "open",
 			"FILLED":          "closed",
 			"CANCEL_SENT":     "canceled",
@@ -1709,7 +2294,7 @@ func (this *WoofiproCore) ParseOrderStatus(status any) any {
 	return status
 }
 func (this *WoofiproCore) ParseOrderType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"LIMIT":     "limit",
 		"MARKET":    "market",
 		"POST_ONLY": "limit",
@@ -1717,6 +2302,16 @@ func (this *WoofiproCore) ParseOrderType(typeVar any) any {
 	return this.SafeStringLower(types, typeVar, typeVar)
 }
 func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(typeVar, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a type argument")))
+	}
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " requires a side argument")))
+	}
 	/**
 	 * @method
 	 * @ignore
@@ -1730,15 +2325,14 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	 * @param {object} [params] extra parameters specific to the exchange API endpoint
 	 * @returns {object} request to be sent to the exchange
 	 */
-	price := GetArg(optionalArgs, 0, nil)
-	_ = price
-	params := GetArg(optionalArgs, 1, map[string]any{})
-	_ = params
 	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only")
-	var orderType any = ToUpper(typeVar)
+	var orderType string = ToUpper(typeVar)
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " createOrderRequest() requires a side argument")))
+	}
 	var market any = this.Market(symbol)
-	var orderSide any = ToUpper(side)
-	var request any = map[string]any{
+	var orderSide string = ToUpper(side)
+	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 		"side":   orderSide,
 	}
@@ -1748,8 +2342,8 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 	var hasStopLoss any = (!IsEqual(stopLoss, nil))
 	var hasTakeProfit any = (!IsEqual(takeProfit, nil))
 	var algoType any = this.SafeString(params, "algoType")
-	var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-	var isMarket any = IsEqual(orderType, "MARKET")
+	var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(hasStopLoss)) || IsTrue(hasTakeProfit)) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var isMarket bool = IsEqual(orderType, "MARKET")
 	var timeInForce any = this.SafeStringLower(params, "timeInForce")
 	var postOnly any = this.IsPostOnly(isMarket, nil, params)
 	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
@@ -1785,17 +2379,11 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 		AddElementToObject(request, "algo_type", "STOP")
 	} else if IsTrue(IsTrue(hasStopLoss) || IsTrue(hasTakeProfit)) {
 		AddElementToObject(request, "algo_type", "TP_SL")
-		var outterOrder any = map[string]any{
-			"symbol":       GetValue(market, "id"),
-			"reduce_only":  false,
-			"algo_type":    "POSITIONAL_TP_SL",
-			"child_orders": []any{},
-		}
-		var childOrders any = GetValue(outterOrder, "child_orders")
+		var childOrders any = []any{}
 		var closeSide any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), "SELL", "BUY")
 		if IsTrue(hasStopLoss) {
-			var stopLossPrice any = this.SafeNumber2(stopLoss, "triggerPrice", "price", stopLoss)
-			var stopLossOrder any = map[string]any{
+			var stopLossPrice any = this.SafeValue2(stopLoss, "triggerPrice", "price", stopLoss)
+			var stopLossOrder map[string]any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
 				"trigger_price": this.PriceToPrecision(symbol, stopLossPrice),
@@ -1805,15 +2393,21 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
 			AppendToArray(&childOrders, stopLossOrder)
 		}
 		if IsTrue(hasTakeProfit) {
-			var takeProfitPrice any = this.SafeNumber2(takeProfit, "triggerPrice", "price", takeProfit)
-			var takeProfitOrder any = map[string]any{
+			var takeProfitPrice any = this.SafeValue2(takeProfit, "triggerPrice", "price", takeProfit)
+			var takeProfitOrder map[string]any = map[string]any{
 				"side":          closeSide,
 				"algo_type":     "TP_SL",
 				"trigger_price": this.PriceToPrecision(symbol, takeProfitPrice),
 				"type":          "LIMIT",
 				"reduce_only":   true,
 			}
-			AppendToArray(&outterOrder, takeProfitOrder)
+			AppendToArray(&childOrders, takeProfitOrder)
+		}
+		var outterOrder map[string]any = map[string]any{
+			"symbol":       GetValue(market, "id"),
+			"reduce_only":  false,
+			"algo_type":    "POSITIONAL_TP_SL",
+			"child_orders": childOrders,
 		}
 		AddElementToObject(request, "child_orders", []any{outterOrder})
 	}
@@ -1825,8 +2419,8 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
  * @method
  * @name woofipro#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -1844,126 +2438,126 @@ func (this *WoofiproCore) CreateOrderRequest(symbol any, typeVar any, side any, 
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		price := GetArg(optionalArgs, 0, nil)
-		_ = price
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes163512 := (<-this.LoadMarkets())
-			PanicOnError(retRes163512)
-		}
-		var market any = this.Market(symbol)
-		var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
-		var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
-		var stopLoss any = this.SafeValue(params, "stopLoss")
-		var takeProfit any = this.SafeValue(params, "takeProfit")
-		var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-		var response any = nil
-		if IsTrue(isConditional) {
-
-			response = (<-this.V1PrivatePostAlgoOrder(request))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.V1PrivatePostOrder(request))
-			PanicOnError(response)
-		}
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-		var order any = this.ParseOrder(data, market)
-		AddElementToObject(order, "type", typeVar)
-
-		ch <- order
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrderBody(ch, symbol, typeVar, side, amount, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) createOrderBody(ch chan any, symbol any, typeVar any, side any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	price := GetArg(optionalArgs, 0, nil)
+	_ = price
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes192312 := (<-this.LoadMarkets())
+		PanicOnError(retRes192312)
+	}
+	var market any = this.Market(symbol)
+	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
+	var triggerPrice any = this.SafeString2(params, "triggerPrice", "stopPrice")
+	var stopLoss any = this.SafeValue(params, "stopLoss")
+	var takeProfit any = this.SafeValue(params, "takeProfit")
+	var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var response any = nil
+	if IsTrue(isConditional) {
+
+		response = (<-this.V1PrivatePostAlgoOrder(request))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.V1PrivatePostOrder(request))
+		PanicOnError(response)
+	}
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+	var order any = this.ParseOrder(data, market)
+	AddElementToObject(order, "type", typeVar)
+
+	ch <- order
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes169412 := (<-this.LoadMarkets())
-			PanicOnError(retRes169412)
-		}
-		var ordersRequests any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-			var rawOrder any = GetValue(orders, i)
-			var marketId any = this.SafeString(rawOrder, "symbol")
-			var typeVar any = this.SafeString(rawOrder, "type")
-			var side any = this.SafeString(rawOrder, "side")
-			var amount any = this.SafeValue(rawOrder, "amount")
-			var price any = this.SafeValue(rawOrder, "price")
-			var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
-			var triggerPrice any = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
-			var stopLoss any = this.SafeValue(orderParams, "stopLoss")
-			var takeProfit any = this.SafeValue(orderParams, "takeProfit")
-			var isConditional any = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
-			if IsTrue(isConditional) {
-				panic(NotSupported(Add(this.Id, " createOrders() only support non-stop order")))
-			}
-			var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-			AppendToArray(&ordersRequests, orderRequest)
-		}
-		var request any = map[string]any{
-			"orders": ordersRequests,
-		}
-
-		response := (<-this.V1PrivatePostBatchOrder(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success": true,
-		//         "timestamp": 1702989203989,
-		//         "data": {
-		//             "rows": [{
-		//                 "order_id": 13,
-		//                 "client_order_id": "testclientid",
-		//                 "order_type": "LIMIT",
-		//                 "order_price": 100.12,
-		//                 "order_quantity": 0.987654,
-		//                 "order_amount": 0.8,
-		//                 "error_message": "none"
-		//             }]
-		//         }
-		//     }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var rows any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseOrders(rows)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.createOrdersBody(ch, orders, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) createOrdersBody(ch chan any, orders any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes198212 := (<-this.LoadMarkets())
+		PanicOnError(retRes198212)
+	}
+	var ordersRequests any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
+		var rawOrder any = GetValue(orders, i)
+		var marketId any = this.SafeString(rawOrder, "symbol")
+		var typeVar any = this.SafeString(rawOrder, "type")
+		var side any = this.SafeString(rawOrder, "side")
+		var amount any = this.SafeValue(rawOrder, "amount")
+		var price any = this.SafeValue(rawOrder, "price")
+		var orderParams any = this.SafeDict(rawOrder, "params", map[string]any{})
+		var triggerPrice any = this.SafeString2(orderParams, "triggerPrice", "stopPrice")
+		var stopLoss any = this.SafeValue(orderParams, "stopLoss")
+		var takeProfit any = this.SafeValue(orderParams, "takeProfit")
+		var isConditional bool = IsTrue(IsTrue(IsTrue(!IsEqual(triggerPrice, nil)) || IsTrue(!IsEqual(stopLoss, nil))) || IsTrue(!IsEqual(takeProfit, nil))) || IsTrue((!IsEqual(this.SafeValue(orderParams, "childOrders"), nil)))
+		if IsTrue(isConditional) {
+			panic(NotSupported(Add(this.Id, " createOrders() only support non-stop order")))
+		}
+		var orderRequest any = this.CreateOrderRequest(marketId, typeVar, side, amount, price, orderParams)
+		AppendToArray(&ordersRequests, orderRequest)
+	}
+	var request map[string]any = map[string]any{
+		"orders": ordersRequests,
+	}
+
+	response := (<-this.V1PrivatePostBatchOrder(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "timestamp": 1702989203989,
+	//         "data": {
+	//             "rows": [{
+	//                 "order_id": 13,
+	//                 "client_order_id": "testclientid",
+	//                 "order_type": "LIMIT",
+	//                 "order_price": 100.12,
+	//                 "order_quantity": 0.987654,
+	//                 "order_amount": 0.8,
+	//                 "error_message": "none"
+	//             }]
+	//         }
+	//     }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseOrders(rows)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -1977,97 +2571,100 @@ func (this *WoofiproCore) CreateOrders(orders any, optionalArgs ...any) <-chan a
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		amount := GetArg(optionalArgs, 0, nil)
-		_ = amount
-		price := GetArg(optionalArgs, 1, nil)
-		_ = price
-		params := GetArg(optionalArgs, 2, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes176112 := (<-this.LoadMarkets())
-			PanicOnError(retRes176112)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"order_id": id,
-		}
-		var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
-		if IsTrue(!IsEqual(triggerPrice, nil)) {
-			AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
-		}
-		var isConditional any = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
-		var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
-		var priceKey any = Ternary(IsTrue(isConditional), "price", "order_price")
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
-		}
-		if IsTrue(!IsEqual(amount, nil)) {
-			AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
-		}
-		params = this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
-		var response any = nil
-		if IsTrue(isConditional) {
-
-			response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-			AddElementToObject(request, "side", ToUpper(side))
-			var orderType any = ToUpper(typeVar)
-			var timeInForce any = this.SafeStringLower(params, "timeInForce")
-			var isMarket any = IsEqual(orderType, "MARKET")
-			var postOnly any = this.IsPostOnly(isMarket, nil, params)
-			if IsTrue(postOnly) {
-				AddElementToObject(request, "order_type", "POST_ONLY")
-			} else if IsTrue(IsEqual(timeInForce, "fok")) {
-				AddElementToObject(request, "order_type", "FOK")
-			} else if IsTrue(IsEqual(timeInForce, "ioc")) {
-				AddElementToObject(request, "order_type", "IOC")
-			} else {
-				AddElementToObject(request, "order_type", orderType)
-			}
-			var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-			params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"})
-			if IsTrue(!IsEqual(clientOrderId, nil)) {
-				AddElementToObject(request, "client_order_id", clientOrderId)
-			}
-			// request['side'] = side.toUpperCase ();
-			// request['symbol'] = market['id'];
-
-			response = (<-this.V1PrivatePutOrder(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "status": "EDIT_SENT"
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
-
-		ch <- this.ParseOrder(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) editOrderBody(ch chan any, id any, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	amount := GetArg(optionalArgs, 0, nil)
+	_ = amount
+	price := GetArg(optionalArgs, 1, nil)
+	_ = price
+	params := GetArg(optionalArgs, 2, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes204912 := (<-this.LoadMarkets())
+		PanicOnError(retRes204912)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"order_id": id,
+	}
+	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice"})
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		AddElementToObject(request, "triggerPrice", this.PriceToPrecision(symbol, triggerPrice))
+	}
+	var isConditional bool = IsTrue((!IsEqual(triggerPrice, nil))) || IsTrue((!IsEqual(this.SafeValue(params, "childOrders"), nil)))
+	var orderQtyKey any = Ternary(IsTrue(isConditional), "quantity", "order_quantity")
+	var priceKey any = Ternary(IsTrue(isConditional), "price", "order_price")
+	if IsTrue(!IsEqual(price, nil)) {
+		AddElementToObject(request, priceKey, this.PriceToPrecision(symbol, price))
+	}
+	if IsTrue(!IsEqual(amount, nil)) {
+		AddElementToObject(request, orderQtyKey, this.AmountToPrecision(symbol, amount))
+	}
+	params = this.Omit(params, []any{"stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent"})
+	var response any = nil
+	if IsTrue(IsEqual(side, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires a side argument")))
+	}
+	if IsTrue(isConditional) {
+
+		response = (<-this.V1PrivatePutAlgoOrder(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+		AddElementToObject(request, "side", ToUpper(side))
+		var orderType string = ToUpper(typeVar)
+		var timeInForce any = this.SafeStringLower(params, "timeInForce")
+		var isMarket bool = IsEqual(orderType, "MARKET")
+		var postOnly any = this.IsPostOnly(isMarket, nil, params)
+		if IsTrue(postOnly) {
+			AddElementToObject(request, "order_type", "POST_ONLY")
+		} else if IsTrue(IsEqual(timeInForce, "fok")) {
+			AddElementToObject(request, "order_type", "FOK")
+		} else if IsTrue(IsEqual(timeInForce, "ioc")) {
+			AddElementToObject(request, "order_type", "IOC")
+		} else {
+			AddElementToObject(request, "order_type", orderType)
+		}
+		var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+		params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce"})
+		if IsTrue(!IsEqual(clientOrderId, nil)) {
+			AddElementToObject(request, "client_order_id", clientOrderId)
+		}
+		// request['side'] = side.toUpperCase ();
+		// request['symbol'] = market['id'];
+
+		response = (<-this.V1PrivatePutOrder(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "status": "EDIT_SENT"
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	AddElementToObject(data, "timestamp", this.SafeInteger(response, "timestamp"))
+
+	ch <- this.ParseOrder(data, market)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#cancelOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2077,105 +2674,106 @@ func (this *WoofiproCore) EditOrder(id any, symbol any, typeVar any, side any, o
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-		params = this.Omit(params, []any{"stop", "trigger"})
-		if IsTrue(!IsTrue(trigger) && IsTrue((IsEqual(symbol, nil)))) {
-			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
-		}
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes184512 := (<-this.LoadMarkets())
-			PanicOnError(retRes184512)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"symbol": this.SafeString(market, "id"),
-		}
-		var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
-		var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
-		var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
-		var response any = nil
-		if IsTrue(trigger) {
-			if IsTrue(isByClientOrder) {
-				AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
-				params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-
-				response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-				AddElementToObject(request, "order_id", id)
-
-				response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		} else {
-			if IsTrue(isByClientOrder) {
-				AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
-				params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-
-				response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-				AddElementToObject(request, "order_id", id)
-
-				response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		}
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "status": "CANCEL_SENT"
-		//     }
-		// }
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "status": "CANCEL_SENT"
-		// }
-		//
-		var extendParams any = map[string]any{
-			"symbol": symbol,
-		}
-		if IsTrue(isByClientOrder) {
-			AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
-		} else {
-			AddElementToObject(extendParams, "id", id)
-		}
-		if IsTrue(trigger) {
-
-			ch <- this.Extend(this.ParseOrder(response), extendParams)
-			return nil
-		}
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.Extend(this.ParseOrder(data), extendParams)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	params = this.Omit(params, []any{"stop", "trigger"})
+	if IsTrue(!IsTrue(trigger) && IsTrue((IsEqual(symbol, nil)))) {
+		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes213612 := (<-this.LoadMarkets())
+		PanicOnError(retRes213612)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"symbol": this.SafeString(market, "id"),
+	}
+	var clientOrderIdUnified any = this.SafeString2(params, "clOrdID", "clientOrderId")
+	var clientOrderIdExchangeSpecific any = this.SafeString(params, "client_order_id", clientOrderIdUnified)
+	var isByClientOrder any = !IsEqual(clientOrderIdExchangeSpecific, nil)
+	var response any = nil
+	if IsTrue(trigger) {
+		if IsTrue(isByClientOrder) {
+			AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
+			params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+
+			response = (<-this.V1PrivateDeleteAlgoClientOrder(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			AddElementToObject(request, "order_id", id)
+
+			response = (<-this.V1PrivateDeleteAlgoOrder(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	} else {
+		if IsTrue(isByClientOrder) {
+			AddElementToObject(request, "client_order_id", clientOrderIdExchangeSpecific)
+			params = this.Omit(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+
+			response = (<-this.V1PrivateDeleteClientOrder(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			AddElementToObject(request, "order_id", id)
+
+			response = (<-this.V1PrivateDeleteOrder(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	}
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "status": "CANCEL_SENT"
+	//     }
+	// }
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "status": "CANCEL_SENT"
+	// }
+	//
+	var extendParams map[string]any = map[string]any{
+		"symbol": symbol,
+	}
+	if IsTrue(isByClientOrder) {
+		AddElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific)
+	} else {
+		AddElementToObject(extendParams, "id", id)
+	}
+	if IsTrue(trigger) {
+		var parsedResponse any = Ternary(IsTrue((IsEqual(response, nil))), map[string]any{}, response)
+
+		ch <- this.Extend(this.ParseOrder(parsedResponse), extendParams)
+		return nil
+	}
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.Extend(this.ParseOrder(data), extendParams)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2183,127 +2781,127 @@ func (this *WoofiproCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes191912 := (<-this.LoadMarkets())
-			PanicOnError(retRes191912)
-		}
-		var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-		params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
-		var request any = map[string]any{}
-		var response any = nil
-		if IsTrue(clientOrderIds) {
-			AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
-
-			response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			AddElementToObject(request, "order_ids", Join(ids, ","))
-
-			response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "status": "CANCEL_ALL_SENT"
-		//     }
-		// }
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes221112 := (<-this.LoadMarkets())
+		PanicOnError(retRes221112)
+	}
+	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
+	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
+	var request map[string]any = map[string]any{}
+	var response any = nil
+	if IsTrue(clientOrderIds) {
+		AddElementToObject(request, "client_order_ids", Join(clientOrderIds, ","))
+
+		response = (<-this.V1PrivateDeleteClientBatchOrder(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+		AddElementToObject(request, "order_ids", Join(ids, ","))
+
+		response = (<-this.V1PrivateDeleteBatchOrder(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "status": "CANCEL_ALL_SENT"
+	//     }
+	// }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#cancelAllOrders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
- * @param {string} symbol unified market symbol
+ * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) CancelAllOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes195912 := (<-this.LoadMarkets())
-			PanicOnError(retRes195912)
-		}
-		var trigger any = this.SafeBool2(params, "stop", "trigger")
-		params = this.Omit(params, []any{"stop", "trigger"})
-		var request any = map[string]any{}
-		if IsTrue(!IsEqual(symbol, nil)) {
-			var market any = this.Market(symbol)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		var response any = nil
-		if IsTrue(trigger) {
-
-			response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.V1PrivateDeleteOrders(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-
-		// trigger
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//      "status": "CANCEL_ALL_SENT"
-		// }
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "status": "CANCEL_ALL_SENT"
-		//     }
-		// }
-		//
-		ch <- []any{this.SafeOrder(map[string]any{
-			"info": response,
-		})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.cancelAllOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes225112 := (<-this.LoadMarkets())
+		PanicOnError(retRes225112)
+	}
+	var trigger any = this.SafeBool2(params, "stop", "trigger")
+	params = this.Omit(params, []any{"stop", "trigger"})
+	var request map[string]any = map[string]any{}
+	if IsTrue(!IsEqual(symbol, nil)) {
+		var market any = this.Market(symbol)
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	var response any = nil
+	if IsTrue(trigger) {
+
+		response = (<-this.V1PrivateDeleteAlgoOrders(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.V1PrivateDeleteOrders(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+
+	// trigger
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//      "status": "CANCEL_ALL_SENT"
+	// }
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "status": "CANCEL_ALL_SENT"
+	//     }
+	// }
+	//
+	ch <- []any{this.SafeOrder(map[string]any{
+		"info": response,
+	})}
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchOrder
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2313,95 +2911,96 @@ func (this *WoofiproCore) CancelAllOrders(optionalArgs ...any) <-chan any {
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes201312 := (<-this.LoadMarkets())
-			PanicOnError(retRes201312)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var trigger any = this.SafeBool2(params, "stop", "trigger", false)
-		var request any = map[string]any{}
-		var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
-		params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
-		var response any = nil
-		if IsTrue(trigger) {
-			if IsTrue(clientOrderId) {
-				AddElementToObject(request, "client_order_id", clientOrderId)
-
-				response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-				AddElementToObject(request, "oid", id)
-
-				response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		} else {
-			if IsTrue(clientOrderId) {
-				AddElementToObject(request, "client_order_id", clientOrderId)
-
-				response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-				AddElementToObject(request, "oid", id)
-
-				response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		}
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "order_id": 78151,
-		//         "user_id": 12345,
-		//         "price": 0.67772,
-		//         "type": "LIMIT",
-		//         "quantity": 20,
-		//         "amount": 10,
-		//         "executed_quantity": 20,
-		//         "total_executed_quantity": 20,
-		//         "visible_quantity": 1,
-		//         "symbol": "PERP_WOO_USDC",
-		//         "side": "BUY",
-		//         "status": "FILLED",
-		//         "total_fee": 0.5,
-		//         "fee_asset": "WOO",
-		//         "client_order_id": 1,
-		//         "average_executed_price": 0.67772,
-		//         "created_time": 1653563963000,
-		//         "updated_time": 1653564213000,
-		//         "realized_pnl": 123
-		//     }
-		// }
-		//
-		var orders any = this.SafeDict(response, "data", response)
-
-		ch <- this.ParseOrder(orders, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes230512 := (<-this.LoadMarkets())
+		PanicOnError(retRes230512)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var trigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var request map[string]any = map[string]any{}
+	var clientOrderId any = this.SafeStringN(params, []any{"clOrdID", "clientOrderId", "client_order_id"})
+	params = this.Omit(params, []any{"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"})
+	var response any = nil
+	if IsTrue(trigger) {
+		if IsTrue(clientOrderId) {
+			AddElementToObject(request, "client_order_id", clientOrderId)
+
+			response = (<-this.V1PrivateGetAlgoClientOrderClientOrderId(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			AddElementToObject(request, "oid", id)
+
+			response = (<-this.V1PrivateGetAlgoOrderOid(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	} else {
+		if IsTrue(clientOrderId) {
+			AddElementToObject(request, "client_order_id", clientOrderId)
+
+			response = (<-this.V1PrivateGetClientOrderClientOrderId(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			AddElementToObject(request, "oid", id)
+
+			response = (<-this.V1PrivateGetOrderOid(this.Extend(request, params)))
+			PanicOnError(response)
+		}
+	}
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "order_id": 78151,
+	//         "user_id": 12345,
+	//         "price": 0.67772,
+	//         "type": "LIMIT",
+	//         "quantity": 20,
+	//         "amount": 10,
+	//         "executed_quantity": 20,
+	//         "total_executed_quantity": 20,
+	//         "visible_quantity": 1,
+	//         "symbol": "PERP_WOO_USDC",
+	//         "side": "BUY",
+	//         "status": "FILLED",
+	//         "total_fee": 0.5,
+	//         "fee_asset": "WOO",
+	//         "client_order_id": 1,
+	//         "average_executed_price": 0.67772,
+	//         "created_time": 1653563963000,
+	//         "updated_time": 1653564213000,
+	//         "realized_pnl": 123
+	//     }
+	// }
+	//
+	var orders any = this.SafeDict(response, "data", response)
+	var parsedOrders any = Ternary(IsTrue((IsEqual(orders, nil))), map[string]any{}, orders)
+
+	ch <- this.ParseOrder(parsedOrders, market)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2414,117 +3013,117 @@ func (this *WoofiproCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes209112 := (<-this.LoadMarkets())
-			PanicOnError(retRes209112)
-		}
-		var paginate any = false
-		var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
-		var maxLimit any = Ternary(IsTrue((isTrigger)), 100, 500)
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes209819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-			PanicOnError(retRes209819)
-			ch <- retRes209819
-			return nil
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		params = this.Omit(params, []any{"stop", "trigger"})
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_t", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "size", limit)
-		} else {
-			AddElementToObject(request, "size", maxLimit)
-		}
-		if IsTrue(isTrigger) {
-			AddElementToObject(request, "algo_type", "STOP")
-		}
-		requestparamsVariable := this.HandleUntilOption("end_t", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-		var response any = nil
-		if IsTrue(isTrigger) {
-
-			response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-
-			response = (<-this.V1PrivateGetOrders(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-		//
-		//     {
-		//         "success": true,
-		//         "timestamp": 1702989203988,
-		//         "data": {
-		//             "meta": {
-		//                 "total": 9,
-		//                 "records_per_page": 25,
-		//                 "current_page": 1
-		//             },
-		//             "rows": [{
-		//                 "order_id": 78151,
-		//                 "user_id": 12345,
-		//                 "price": 0.67772,
-		//                 "type": "LIMIT",
-		//                 "quantity": 20,
-		//                 "amount": 10,
-		//                 "executed_quantity": 20,
-		//                 "total_executed_quantity": 20,
-		//                 "visible_quantity": 1,
-		//                 "symbol": "PERP_WOO_USDC",
-		//                 "side": "BUY",
-		//                 "status": "FILLED",
-		//                 "total_fee": 0.5,
-		//                 "fee_asset": "WOO",
-		//                 "client_order_id": 1,
-		//                 "average_executed_price": 0.67772,
-		//                 "created_time": 1653563963000,
-		//                 "updated_time": 1653564213000,
-		//                 "realized_pnl": 123
-		//             }]
-		//         }
-		//     }
-		//
-		var data any = this.SafeValue(response, "data", response)
-		var orders any = this.SafeList(data, "rows")
-
-		ch <- this.ParseOrders(orders, market, since, limit)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes238412 := (<-this.LoadMarkets())
+		PanicOnError(retRes238412)
+	}
+	var paginate any = false
+	var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
+	var maxLimit any = Ternary(IsTrue((isTrigger)), 100, 500)
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes239119 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+		PanicOnError(retRes239119)
+		ch <- retRes239119
+		return nil
+	}
+	var request any = map[string]any{}
+	var market any = nil
+	params = this.Omit(params, []any{"stop", "trigger"})
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_t", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "size", limit)
+	} else {
+		AddElementToObject(request, "size", maxLimit)
+	}
+	if IsTrue(isTrigger) {
+		AddElementToObject(request, "algo_type", "STOP")
+	}
+	requestparamsVariable := this.HandleUntilOption("end_t", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+	var response any = nil
+	if IsTrue(isTrigger) {
+
+		response = (<-this.V1PrivateGetAlgoOrders(this.Extend(request, params)))
+		PanicOnError(response)
+	} else {
+
+		response = (<-this.V1PrivateGetOrders(this.Extend(request, params)))
+		PanicOnError(response)
+	}
+	//
+	//     {
+	//         "success": true,
+	//         "timestamp": 1702989203988,
+	//         "data": {
+	//             "meta": {
+	//                 "total": 9,
+	//                 "records_per_page": 25,
+	//                 "current_page": 1
+	//             },
+	//             "rows": [{
+	//                 "order_id": 78151,
+	//                 "user_id": 12345,
+	//                 "price": 0.67772,
+	//                 "type": "LIMIT",
+	//                 "quantity": 20,
+	//                 "amount": 10,
+	//                 "executed_quantity": 20,
+	//                 "total_executed_quantity": 20,
+	//                 "visible_quantity": 1,
+	//                 "symbol": "PERP_WOO_USDC",
+	//                 "side": "BUY",
+	//                 "status": "FILLED",
+	//                 "total_fee": 0.5,
+	//                 "fee_asset": "WOO",
+	//                 "client_order_id": 1,
+	//                 "average_executed_price": 0.67772,
+	//                 "created_time": 1653563963000,
+	//                 "updated_time": 1653564213000,
+	//                 "realized_pnl": 123
+	//             }]
+	//         }
+	//     }
+	//
+	var data any = this.SafeValue(response, "data", response)
+	var orders any = this.SafeList(data, "rows")
+
+	ch <- this.ParseOrders(orders, market, since, limit)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2537,42 +3136,42 @@ func (this *WoofiproCore) FetchOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes218312 := (<-this.LoadMarkets())
-			PanicOnError(retRes218312)
-		}
-		var extendedParams any = this.Extend(params, map[string]any{
-			"status": "INCOMPLETE",
-		})
-
-		retRes218615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes218615)
-		ch <- retRes218615
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOpenOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes247612 := (<-this.LoadMarkets())
+		PanicOnError(retRes247612)
+	}
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
+		"status": "INCOMPLETE",
+	})
+
+	retRes247915 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes247915)
+	ch <- retRes247915
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2585,41 +3184,41 @@ func (this *WoofiproCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes220812 := (<-this.LoadMarkets())
-			PanicOnError(retRes220812)
-		}
-		var extendedParams any = this.Extend(params, map[string]any{
-			"status": "COMPLETED",
-		})
-
-		retRes221115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-		PanicOnError(retRes221115)
-		ch <- retRes221115
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchClosedOrdersBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes250112 := (<-this.LoadMarkets())
+		PanicOnError(retRes250112)
+	}
+	var extendedParams map[string]any = this.Extend(params, map[string]any{
+		"status": "COMPLETED",
+	})
+
+	retRes250415 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes250415)
+	ch <- retRes250415
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2628,68 +3227,68 @@ func (this *WoofiproCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *WoofiproCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes222812 := (<-this.LoadMarkets())
-			PanicOnError(retRes222812)
-		}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-		}
-		var request any = map[string]any{
-			"oid": id,
-		}
-
-		response := (<-this.V1PrivateGetOrderOidTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "rows": [{
-		//         "id": 2,
-		//         "symbol": "PERP_BTC_USDC",
-		//         "fee": 0.0001,
-		//         "fee_asset": "USDC",
-		//         "side": "BUY",
-		//         "order_id": 1,
-		//         "executed_price": 123,
-		//         "executed_quantity": 0.05,
-		//         "executed_timestamp": 1567382401000,
-		//         "is_maker": 1,
-		//         "realized_pnl": 123
-		//       }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var trades any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchOrderTradesBody(ch, id, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes252112 := (<-this.LoadMarkets())
+		PanicOnError(retRes252112)
+	}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+	}
+	var request map[string]any = map[string]any{
+		"oid": id,
+	}
+
+	response := (<-this.V1PrivateGetOrderOidTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "rows": [{
+	//         "id": 2,
+	//         "symbol": "PERP_BTC_USDC",
+	//         "fee": 0.0001,
+	//         "fee_asset": "USDC",
+	//         "side": "BUY",
+	//         "order_id": 1,
+	//         "executed_price": 123,
+	//         "executed_quantity": 0.05,
+	//         "executed_timestamp": 1567382401000,
+	//         "is_maker": 1,
+	//         "realized_pnl": 123
+	//       }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var trades any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseTrades(trades, market, since, limit, params)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchMyTrades
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2700,91 +3299,91 @@ func (this *WoofiproCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan a
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *WoofiproCore) FetchMyTrades(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes227912 := (<-this.LoadMarkets())
-			PanicOnError(retRes227912)
-		}
-		var paginate any = false
-		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
-		paginate = GetValue(paginateparamsVariable, 0)
-		params = GetValue(paginateparamsVariable, 1)
-		if IsTrue(paginate) {
-
-			retRes228419 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-			PanicOnError(retRes228419)
-			ch <- retRes228419
-			return nil
-		}
-		var request any = map[string]any{}
-		var market any = nil
-		if IsTrue(!IsEqual(symbol, nil)) {
-			market = this.Market(symbol)
-			AddElementToObject(request, "symbol", GetValue(market, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_t", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "size", limit)
-		} else {
-			AddElementToObject(request, "size", 500)
-		}
-		requestparamsVariable := this.HandleUntilOption("end_t", request, params)
-		request = GetValue(requestparamsVariable, 0)
-		params = GetValue(requestparamsVariable, 1)
-
-		response := (<-this.V1PrivateGetTrades(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "meta": {
-		//         "total": 9,
-		//         "records_per_page": 25,
-		//         "current_page": 1
-		//       },
-		//       "rows": [{
-		//         "id": 2,
-		//         "symbol": "PERP_BTC_USDC",
-		//         "fee": 0.0001,
-		//         "fee_asset": "USDC",
-		//         "side": "BUY",
-		//         "order_id": 1,
-		//         "executed_price": 123,
-		//         "executed_quantity": 0.05,
-		//         "executed_timestamp": 1567382401000,
-		//         "is_maker": 1,
-		//         "realized_pnl": 123
-		//       }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-		var trades any = this.SafeList(data, "rows", []any{})
-
-		ch <- this.ParseTrades(trades, market, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchMyTradesBody(ch, optionalArgs...)
 	return ch
 }
+func (this *WoofiproCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes257212 := (<-this.LoadMarkets())
+		PanicOnError(retRes257212)
+	}
+	var paginate any = false
+	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
+	paginate = GetValue(paginateparamsVariable, 0)
+	params = GetValue(paginateparamsVariable, 1)
+	if IsTrue(paginate) {
+
+		retRes257719 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes257719)
+		ch <- retRes257719
+		return nil
+	}
+	var request any = map[string]any{}
+	var market any = nil
+	if IsTrue(!IsEqual(symbol, nil)) {
+		market = this.Market(symbol)
+		AddElementToObject(request, "symbol", GetValue(market, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_t", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "size", limit)
+	} else {
+		AddElementToObject(request, "size", 500)
+	}
+	requestparamsVariable := this.HandleUntilOption("end_t", request, params)
+	request = GetValue(requestparamsVariable, 0)
+	params = GetValue(requestparamsVariable, 1)
+
+	response := (<-this.V1PrivateGetTrades(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "meta": {
+	//         "total": 9,
+	//         "records_per_page": 25,
+	//         "current_page": 1
+	//       },
+	//       "rows": [{
+	//         "id": 2,
+	//         "symbol": "PERP_BTC_USDC",
+	//         "fee": 0.0001,
+	//         "fee_asset": "USDC",
+	//         "side": "BUY",
+	//         "order_id": 1,
+	//         "executed_price": 123,
+	//         "executed_quantity": 0.05,
+	//         "executed_timestamp": 1567382401000,
+	//         "is_maker": 1,
+	//         "realized_pnl": 123
+	//       }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var trades any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseTrades(trades, market, since, limit, params)
+	return nil
+}
 func (this *WoofiproCore) ParseBalance(response any) any {
-	var result any = map[string]any{
+	var result map[string]any = map[string]any{
 		"info": response,
 	}
 	var balances any = this.SafeList(response, "holding", []any{})
@@ -2793,8 +3392,10 @@ func (this *WoofiproCore) ParseBalance(response any) any {
 		var code any = this.SafeCurrencyCode(this.SafeString(balance, "token"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "holding"))
-		AddElementToObject(account, "frozen", this.SafeString(balance, "frozen"))
-		AddElementToObject(result, code, account)
+		AddElementToObject(account, "used", this.SafeString(balance, "frozen"))
+		if IsTrue(!IsEqual(code, nil)) {
+			AddElementToObject(result, code, account)
+		}
 	}
 	return this.SafeBalance(result)
 }
@@ -2803,118 +3404,118 @@ func (this *WoofiproCore) ParseBalance(response any) any {
  * @method
  * @name woofipro#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *WoofiproCore) FetchBalance(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes235912 := (<-this.LoadMarkets())
-			PanicOnError(retRes235912)
-		}
-
-		response := (<-this.V1PrivateGetClientHolding(params))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "holding": [{
-		//         "updated_time": 1580794149000,
-		//         "token": "BTC",
-		//         "holding": -28.000752,
-		//         "frozen": 123,
-		//         "pending_short": -2000
-		//       }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data")
-
-		ch <- this.ParseBalance(data)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchBalanceBody(ch, optionalArgs...)
 	return ch
 }
+func (this *WoofiproCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes265412 := (<-this.LoadMarkets())
+		PanicOnError(retRes265412)
+	}
+
+	response := (<-this.V1PrivateGetClientHolding(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "holding": [{
+	//         "updated_time": 1580794149000,
+	//         "token": "BTC",
+	//         "holding": -28.000752,
+	//         "frozen": 123,
+	//         "pending_short": -2000
+	//       }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data")
+
+	ch <- this.ParseBalance(data)
+	return nil
+}
 func (this *WoofiproCore) GetAssetHistoryRows(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes238312 := (<-this.LoadMarkets())
-			PanicOnError(retRes238312)
-		}
-		var request any = map[string]any{}
-		var currency any = nil
-		if IsTrue(!IsEqual(code, nil)) {
-			currency = this.Currency(code)
-			AddElementToObject(request, "balance_token", GetValue(currency, "id"))
-		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_t", since)
-		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "pageSize", limit)
-		}
-		var transactionType any = this.SafeString(params, "type")
-		params = this.Omit(params, "type")
-		if IsTrue(!IsEqual(transactionType, nil)) {
-			AddElementToObject(request, "type", transactionType)
-		}
-
-		response := (<-this.V1PrivateGetAssetHistory(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//       "meta": {
-		//         "total": 9,
-		//         "records_per_page": 25,
-		//         "current_page": 1
-		//       },
-		//       "rows": [{
-		//         "id": "230707030600002",
-		//         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
-		//         "side": "WITHDRAW",
-		//         "token": "USDC",
-		//         "amount": 555,
-		//         "fee": 123,
-		//         "trans_status": "FAILED",
-		//         "created_time": 1688699193034,
-		//         "updated_time": 1688699193096,
-		//         "chain_id": "986532"
-		//       }]
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- []any{currency, this.SafeList(data, "rows", []any{})}
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.getAssetHistoryRowsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) getAssetHistoryRowsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes267812 := (<-this.LoadMarkets())
+		PanicOnError(retRes267812)
+	}
+	var request map[string]any = map[string]any{}
+	var currency any = nil
+	if IsTrue(!IsEqual(code, nil)) {
+		currency = this.Currency(code)
+		AddElementToObject(request, "balance_token", GetValue(currency, "id"))
+	}
+	if IsTrue(!IsEqual(since, nil)) {
+		AddElementToObject(request, "start_t", since)
+	}
+	if IsTrue(!IsEqual(limit, nil)) {
+		AddElementToObject(request, "pageSize", limit)
+	}
+	var transactionType any = this.SafeString(params, "type")
+	params = this.Omit(params, "type")
+	if IsTrue(!IsEqual(transactionType, nil)) {
+		AddElementToObject(request, "type", transactionType)
+	}
+
+	response := (<-this.V1PrivateGetAssetHistory(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//       "meta": {
+	//         "total": 9,
+	//         "records_per_page": 25,
+	//         "current_page": 1
+	//       },
+	//       "rows": [{
+	//         "id": "230707030600002",
+	//         "tx_id": "0x4b0714c63cc7abae72bf68e84e25860b88ca651b7d27dad1e32bf4c027fa5326",
+	//         "side": "WITHDRAW",
+	//         "token": "USDC",
+	//         "amount": 555,
+	//         "fee": 123,
+	//         "trans_status": "FAILED",
+	//         "created_time": 1688699193034,
+	//         "updated_time": 1688699193096,
+	//         "chain_id": "986532"
+	//       }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- []any{currency, this.SafeList(data, "rows", []any{})}
+	return nil
 }
 func (this *WoofiproCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
@@ -2946,7 +3547,7 @@ func (this *WoofiproCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	}, currency)
 }
 func (this *WoofiproCore) ParseLedgerEntryType(typeVar any) any {
-	var types any = map[string]any{
+	var types map[string]any = map[string]any{
 		"BALANCE":    "transaction",
 		"COLLATERAL": "transfer",
 	}
@@ -2957,7 +3558,7 @@ func (this *WoofiproCore) ParseLedgerEntryType(typeVar any) any {
  * @method
  * @name woofipro#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -2965,29 +3566,29 @@ func (this *WoofiproCore) ParseLedgerEntryType(typeVar any) any {
  * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
  */
 func (this *WoofiproCore) FetchLedger(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-
-		currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, params))
-		PanicOnError(currencyRows)
-		var currency any = this.SafeValue(currencyRows, 0)
-		var rows any = this.SafeList(currencyRows, 1)
-
-		ch <- this.ParseLedger(rows, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLedgerBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+
+	currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, params))
+	PanicOnError(currencyRows)
+	var currency any = this.SafeValue(currencyRows, 0)
+	var rows any = this.SafeList(currencyRows, 1)
+
+	ch <- this.ParseLedger(rows, currency, since, limit, params)
+	return nil
 }
 func (this *WoofiproCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	// example in fetchLedger
@@ -3026,7 +3627,7 @@ func (this *WoofiproCore) ParseTransaction(transaction any, optionalArgs ...any)
 	}
 }
 func (this *WoofiproCore) ParseTransactionStatus(status any) any {
-	var statuses any = map[string]any{
+	var statuses map[string]any = map[string]any{
 		"NEW":        "pending",
 		"CONFIRMING": "pending",
 		"PROCESSING": "pending",
@@ -3040,7 +3641,7 @@ func (this *WoofiproCore) ParseTransactionStatus(status any) any {
  * @method
  * @name woofipro#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3048,36 +3649,36 @@ func (this *WoofiproCore) ParseTransactionStatus(status any) any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) FetchDeposits(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"side": "DEPOSIT",
-		}
-
-		retRes254715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes254715)
-		ch <- retRes254715
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"side": "DEPOSIT",
+	}
+
+	retRes284215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes284215)
+	ch <- retRes284215
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3085,36 +3686,36 @@ func (this *WoofiproCore) FetchDeposits(optionalArgs ...any) <-chan any {
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{
-			"side": "WITHDRAW",
-		}
-
-		retRes256515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes256515)
-		ch <- retRes256515
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchWithdrawalsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{
+		"side": "WITHDRAW",
+	}
+
+	retRes286015 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes286015)
+	ch <- retRes286015
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -3122,68 +3723,72 @@ func (this *WoofiproCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
  * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		code := GetArg(optionalArgs, 0, nil)
-		_ = code
-		since := GetArg(optionalArgs, 1, nil)
-		_ = since
-		limit := GetArg(optionalArgs, 2, nil)
-		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]any{})
-		_ = params
-		var request any = map[string]any{}
-
-		currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, this.Extend(request, params)))
-		PanicOnError(currencyRows)
-		var currency any = this.SafeValue(currencyRows, 0)
-		var rows any = this.SafeList(currencyRows, 1)
-
-		//
-		//     {
-		//         "rows":[],
-		//         "meta":{
-		//             "total":0,
-		//             "records_per_page":25,
-		//             "current_page":1
-		//         },
-		//         "success":true
-		//     }
-		//
-		ch <- this.ParseTransactions(rows, currency, since, limit, params)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchDepositsWithdrawalsBody(ch, optionalArgs...)
 	return ch
 }
+func (this *WoofiproCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	code := GetArg(optionalArgs, 0, nil)
+	_ = code
+	since := GetArg(optionalArgs, 1, nil)
+	_ = since
+	limit := GetArg(optionalArgs, 2, nil)
+	_ = limit
+	params := GetArg(optionalArgs, 3, map[string]any{})
+	_ = params
+	var request map[string]any = map[string]any{}
+
+	currencyRows := (<-this.GetAssetHistoryRows(code, since, limit, this.Extend(request, params)))
+	PanicOnError(currencyRows)
+	var currency any = this.SafeValue(currencyRows, 0)
+	var rows any = this.SafeList(currencyRows, 1)
+	//
+	//     {
+	//         "rows":[],
+	//         "meta":{
+	//             "total":0,
+	//             "records_per_page":25,
+	//             "current_page":1
+	//         },
+	//         "success":true
+	//     }
+	//
+	var rowsList any = []any{}
+	if IsTrue(!IsEqual(rows, nil)) {
+		rowsList = rows
+	}
+
+	ch <- this.ParseTransactions(rowsList, currency, since, limit, params)
+	return nil
+}
 func (this *WoofiproCore) GetWithdrawNonce(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-
-		response := (<-this.V1PrivateGetWithdrawNonce(params))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success": true,
-		//         "timestamp": 1702989203989,
-		//         "data": {
-		//             "withdraw_nonce": 1
-		//         }
-		//     }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.SafeNumber(data, "withdraw_nonce")
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.getWithdrawNonceBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) getWithdrawNonceBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	response := (<-this.V1PrivateGetWithdrawNonce(params))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "timestamp": 1702989203989,
+	//         "data": {
+	//             "withdraw_nonce": 1
+	//         }
+	//     }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.SafeNumber(data, "withdraw_nonce")
+	return nil
 }
 func (this *WoofiproCore) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
@@ -3203,7 +3808,7 @@ func (this *WoofiproCore) SignMessage(message any, privateKey any) any {
  * @method
  * @name woofipro#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -3212,106 +3817,389 @@ func (this *WoofiproCore) SignMessage(message any, privateKey any) any {
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *WoofiproCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		tag := GetArg(optionalArgs, 0, nil)
-		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes264312 := (<-this.LoadMarkets())
-			PanicOnError(retRes264312)
-		}
-		this.CheckAddress(address)
-		if IsTrue(!IsEqual(code, nil)) {
-			code = ToUpper(code)
-			if IsTrue(!IsEqual(code, "USDC")) {
-				panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
-			}
-		}
-		var currency any = this.Currency(code)
-		var verifyingContractAddress any = this.SafeString(this.Options, "verifyingContractAddress")
-		var chainId any = this.SafeString(params, "chainId")
-		var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
-		var coinNetwork any = this.SafeDict(currencyNetworks, chainId, map[string]any{})
-		var coinNetworkId any = this.SafeNumber(coinNetwork, "id")
-		if IsTrue(IsEqual(coinNetworkId, nil)) {
-			panic(BadRequest(Add(this.Id, " withdraw() require chainId parameter")))
-		}
-
-		withdrawNonce := (<-this.GetWithdrawNonce(params))
-		PanicOnError(withdrawNonce)
-		var nonce any = this.Nonce()
-		var domain any = map[string]any{
-			"chainId":           chainId,
-			"name":              "Orderly",
-			"verifyingContract": verifyingContractAddress,
-			"version":           "1",
-		}
-		var messageTypes any = map[string]any{
-			"Withdraw": []any{map[string]any{
-				"name": "brokerId",
-				"type": "string",
-			}, map[string]any{
-				"name": "chainId",
-				"type": "uint256",
-			}, map[string]any{
-				"name": "receiver",
-				"type": "address",
-			}, map[string]any{
-				"name": "token",
-				"type": "string",
-			}, map[string]any{
-				"name": "amount",
-				"type": "uint256",
-			}, map[string]any{
-				"name": "withdrawNonce",
-				"type": "uint64",
-			}, map[string]any{
-				"name": "timestamp",
-				"type": "uint64",
-			}},
-		}
-		var withdrawRequest any = map[string]any{
-			"brokerId":      this.SafeString(this.Options, "keyBrokerId", "woofi_pro"),
-			"chainId":       this.ParseToInt(chainId),
-			"receiver":      address,
-			"token":         code,
-			"amount":        ToString(amount),
-			"withdrawNonce": withdrawNonce,
-			"timestamp":     nonce,
-		}
-		var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
-		var signature any = this.SignMessage(msg, this.PrivateKey)
-		var request any = map[string]any{
-			"signature":         signature,
-			"userAddress":       address,
-			"verifyingContract": verifyingContractAddress,
-			"message":           withdrawRequest,
-		}
-		params = this.Omit(params, "chainId")
-
-		response := (<-this.V1PrivatePostWithdrawRequest(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		//     {
-		//         "success": true,
-		//         "timestamp": 1702989203989,
-		//         "data": {
-		//             "withdraw_id": 123
-		//         }
-		//     }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.ParseTransaction(data, currency)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) withdrawBody(ch chan any, code any, amount any, address any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	tag := GetArg(optionalArgs, 0, nil)
+	_ = tag
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes294212 := (<-this.LoadMarkets())
+		PanicOnError(retRes294212)
+	}
+	this.CheckAddress(address)
+	if IsTrue(!IsEqual(code, nil)) {
+		code = ToUpper(code)
+		if IsTrue(!IsEqual(code, "USDC")) {
+			panic(NotSupported(Add(this.Id, " withdraw() only support USDC")))
+		}
+	}
+	var currency any = this.Currency(code)
+	var verifyingContractAddress any = this.SafeString(this.Options, "verifyingContractAddress")
+	var chainId any = this.SafeString(params, "chainId")
+	var currencyNetworks any = this.SafeDict(currency, "networks", map[string]any{})
+	var coinNetwork any = this.SafeDict(currencyNetworks, chainId, map[string]any{})
+	var coinNetworkId any = this.SafeNumber(coinNetwork, "id")
+	if IsTrue(IsEqual(coinNetworkId, nil)) {
+		panic(BadRequest(Add(this.Id, " withdraw() require chainId parameter")))
+	}
+
+	withdrawNonce := (<-this.GetWithdrawNonce(params))
+	PanicOnError(withdrawNonce)
+	var nonce any = this.Nonce()
+	var domain map[string]any = map[string]any{
+		"chainId":           chainId,
+		"name":              "Orderly",
+		"verifyingContract": verifyingContractAddress,
+		"version":           "1",
+	}
+	var messageTypes map[string]any = map[string]any{
+		"Withdraw": []any{map[string]any{
+			"name": "brokerId",
+			"type": "string",
+		}, map[string]any{
+			"name": "chainId",
+			"type": "uint256",
+		}, map[string]any{
+			"name": "receiver",
+			"type": "address",
+		}, map[string]any{
+			"name": "token",
+			"type": "string",
+		}, map[string]any{
+			"name": "amount",
+			"type": "uint256",
+		}, map[string]any{
+			"name": "withdrawNonce",
+			"type": "uint64",
+		}, map[string]any{
+			"name": "timestamp",
+			"type": "uint64",
+		}},
+	}
+	var withdrawRequest map[string]any = map[string]any{
+		"brokerId":      this.SafeString(this.Options, "keyBrokerId", "woofi_pro"),
+		"chainId":       this.ParseToInt(chainId),
+		"receiver":      address,
+		"token":         code,
+		"amount":        ToString(amount),
+		"withdrawNonce": withdrawNonce,
+		"timestamp":     nonce,
+	}
+	var msg any = this.EthEncodeStructuredData(domain, messageTypes, withdrawRequest)
+	var signature any = this.SignMessage(msg, this.PrivateKey)
+	var request map[string]any = map[string]any{
+		"signature":         signature,
+		"userAddress":       address,
+		"verifyingContract": verifyingContractAddress,
+		"message":           withdrawRequest,
+	}
+	params = this.Omit(params, "chainId")
+
+	response := (<-this.V1PrivatePostWithdrawRequest(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	//     {
+	//         "success": true,
+	//         "timestamp": 1702989203989,
+	//         "data": {
+	//             "withdraw_id": 123
+	//         }
+	//     }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParseTransaction(data, currency)
+	return nil
+}
+func (this *WoofiproCore) ParseMarginMode(marginMode any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "symbol": "PERP_BTC_USDC",
+	//         "default_margin_mode": "CROSS"
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var marketId any = this.SafeString(marginMode, "symbol")
+	market = this.SafeMarket(marketId, market)
+	return map[string]any{
+		"info":       marginMode,
+		"symbol":     GetValue(market, "symbol"),
+		"marginMode": this.SafeStringLower(marginMode, "default_margin_mode"),
+	}
+}
+
+/**
+ * @method
+ * @name woofipro#fetchMarginModes
+ * @description fetches the set margin mode of every contract market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+ * @param {string[]} [symbols] a list of unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+func (this *WoofiproCore) FetchMarginModes(optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchMarginModesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) fetchMarginModesBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes303812 := (<-this.LoadMarkets())
+		PanicOnError(retRes303812)
+	}
+	symbols = this.MarketSymbols(symbols)
+
+	response := (<-this.V1PrivateGetClientMarginModes(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "rows": [{
+	//             "symbol": "PERP_BTC_USDC",
+	//             "default_margin_mode": "CROSS"
+	//         }]
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+	var rows any = this.SafeList(data, "rows", []any{})
+
+	ch <- this.ParseMarginModes(rows, symbols, "symbol")
+	return nil
+}
+
+/**
+ * @method
+ * @name woofipro#fetchMarginMode
+ * @description fetches the set margin mode of a contract market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-margin-modes
+ * @param {string} symbol unified symbol of the market
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
+ */
+func (this *WoofiproCore) FetchMarginMode(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.fetchMarginModeBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes307012 := (<-this.LoadMarkets())
+		PanicOnError(retRes307012)
+	}
+	var market any = this.Market(symbol)
+
+	marginModes := (<-this.FetchMarginModes([]any{GetValue(market, "symbol")}, params))
+	PanicOnError(marginModes)
+	var marginMode any = this.SafeDict(marginModes, GetValue(market, "symbol"))
+	if IsTrue(IsEqual(marginMode, nil)) {
+		panic(BadSymbol(Add(Add(this.Id, " fetchMarginMode() did not return a margin mode for "), GetValue(market, "symbol"))))
+	}
+
+	ch <- marginMode
+	return nil
+}
+
+/**
+ * @method
+ * @name woofipro#setMarginMode
+ * @description set margin mode to 'cross' or 'isolated' for a market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-margin-mode
+ * @param {string} marginMode 'cross' or 'isolated'
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} response from the exchange
+ */
+func (this *WoofiproCore) SetMarginMode(marginMode any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.setMarginModeBody(ch, marginMode, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) setMarginModeBody(ch chan any, marginMode any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(symbol, nil)) {
+		panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
+	}
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes309612 := (<-this.LoadMarkets())
+		PanicOnError(retRes309612)
+	}
+	marginMode = ToLower(marginMode)
+	if IsTrue(IsTrue(!IsEqual(marginMode, "cross")) && IsTrue(!IsEqual(marginMode, "isolated"))) {
+		panic(BadRequest(Add(this.Id, " setMarginMode() marginMode must be either cross or isolated")))
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol":              GetValue(market, "id"),
+		"default_margin_mode": ToUpper(marginMode),
+	}
+
+	retRes311315 := (<-this.V1PrivatePostClientMarginMode(this.Extend(request, params)))
+	PanicOnError(retRes311315)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989
+	// }
+	//
+	ch <- retRes311315
+	return nil
+}
+func (this *WoofiproCore) ParseMarginModification(data any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "success": true,
+	//         "timestamp": 1702989203989
+	//     }
+	//
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	var timestamp any = this.SafeInteger(data, "timestamp")
+	var success any = this.SafeBool(data, "success", false)
+	return map[string]any{
+		"info":       data,
+		"symbol":     this.SafeString(market, "symbol"),
+		"type":       nil,
+		"marginMode": "isolated",
+		"amount":     nil,
+		"total":      nil,
+		"code":       this.SafeString(market, "settle"),
+		"status":     Ternary(IsTrue((success)), "ok", "failed"),
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
+	}
+}
+
+/**
+ * @method
+ * @ignore
+ * @name woofipro#modifyMarginHelper
+ * @description add or reduce isolated position margin
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to add or reduce
+ * @param {string} type 'ADD' or 'REDUCE'
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ */
+func (this *WoofiproCore) ModifyMarginHelper(symbol any, amount any, typeVar any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.modifyMarginHelperBody(ch, symbol, amount, typeVar, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) modifyMarginHelperBody(ch chan any, symbol any, amount any, typeVar any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes315312 := (<-this.LoadMarkets())
+		PanicOnError(retRes315312)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+		"amount": this.NumberToString(amount),
+		"type":   typeVar,
+	}
+
+	response := (<-this.V1PrivatePostPositionMargin(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989
+	// }
+	//
+	var modification any = this.ParseMarginModification(response, market)
+	AddElementToObject(modification, "type", Ternary(IsTrue((IsEqual(typeVar, "ADD"))), "add", "reduce"))
+	AddElementToObject(modification, "amount", this.ParseNumber(this.NumberToString(amount)))
+
+	ch <- modification
+	return nil
+}
+
+/**
+ * @method
+ * @name woofipro#addMargin
+ * @description add margin to an isolated position
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to add
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
+ */
+func (this *WoofiproCore) AddMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.addMarginBody(ch, symbol, amount, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) addMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes318515 := (<-this.ModifyMarginHelper(symbol, amount, "ADD", params))
+	PanicOnError(retRes318515)
+	ch <- retRes318515
+	return nil
+}
+
+/**
+ * @method
+ * @name woofipro#reduceMargin
+ * @description remove margin from an isolated position
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/add-or-reduce-position-margin
+ * @param {string} symbol unified market symbol
+ * @param {float} amount amount of margin to remove
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
+ */
+func (this *WoofiproCore) ReduceMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any, 1)
+	go this.reduceMarginBody(ch, symbol, amount, optionalArgs...)
+	return ch
+}
+func (this *WoofiproCore) reduceMarginBody(ch chan any, symbol any, amount any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	retRes319915 := (<-this.ModifyMarginHelper(symbol, amount, "REDUCE", params))
+	PanicOnError(retRes319915)
+	ch <- retRes319915
+	return nil
 }
 func (this *WoofiproCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
@@ -3330,101 +4218,101 @@ func (this *WoofiproCore) ParseLeverage(leverage any, optionalArgs ...any) any {
  * @method
  * @name woofipro#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
  */
 func (this *WoofiproCore) FetchLeverage(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes273412 := (<-this.LoadMarkets())
-			PanicOnError(retRes273412)
-		}
-		var market any = this.Market(symbol)
-
-		response := (<-this.V1PrivateGetClientInfo(params))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "account_id": "<string>",
-		//         "email": "test@test.com",
-		//         "account_mode": "FUTURES",
-		//         "max_leverage": 20,
-		//         "taker_fee_rate": 123,
-		//         "maker_fee_rate": 123,
-		//         "futures_taker_fee_rate": 123,
-		//         "futures_maker_fee_rate": 123,
-		//         "maintenance_cancel_orders": true,
-		//         "imr_factor": {
-		//             "PERP_BTC_USDC": 123,
-		//             "PERP_ETH_USDC": 123,
-		//             "PERP_NEAR_USDC": 123
-		//         },
-		//         "max_notional": {
-		//             "PERP_BTC_USDC": 123,
-		//             "PERP_ETH_USDC": 123,
-		//             "PERP_NEAR_USDC": 123
-		//         }
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data", map[string]any{})
-
-		ch <- this.ParseLeverage(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchLeverageBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes322412 := (<-this.LoadMarkets())
+		PanicOnError(retRes322412)
+	}
+	var market any = this.Market(symbol)
+
+	response := (<-this.V1PrivateGetClientInfo(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "account_id": "<string>",
+	//         "email": "test@test.com",
+	//         "account_mode": "FUTURES",
+	//         "max_leverage": 20,
+	//         "taker_fee_rate": 123,
+	//         "maker_fee_rate": 123,
+	//         "futures_taker_fee_rate": 123,
+	//         "futures_maker_fee_rate": 123,
+	//         "maintenance_cancel_orders": true,
+	//         "imr_factor": {
+	//             "PERP_BTC_USDC": 123,
+	//             "PERP_ETH_USDC": 123,
+	//             "PERP_NEAR_USDC": 123
+	//         },
+	//         "max_notional": {
+	//             "PERP_BTC_USDC": 123,
+	//             "PERP_ETH_USDC": 123,
+	//             "PERP_NEAR_USDC": 123
+	//         }
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParseLeverage(data, market)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
 func (this *WoofiproCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbol := GetArg(optionalArgs, 0, nil)
-		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes278112 := (<-this.LoadMarkets())
-			PanicOnError(retRes278112)
-		}
-		if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 50)))) {
-			panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
-		}
-		var request any = map[string]any{
-			"leverage": leverage,
-		}
-
-		retRes278915 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-		PanicOnError(retRes278915)
-		ch <- retRes278915
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.setLeverageBody(ch, leverage, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) setLeverageBody(ch chan any, leverage any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbol := GetArg(optionalArgs, 0, nil)
+	_ = symbol
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes327112 := (<-this.LoadMarkets())
+		PanicOnError(retRes327112)
+	}
+	if IsTrue(IsTrue((IsLessThan(leverage, 1))) || IsTrue((IsGreaterThan(leverage, 50)))) {
+		panic(BadRequest(Add(this.Id, " leverage should be between 1 and 50")))
+	}
+	var request map[string]any = map[string]any{
+		"leverage": leverage,
+	}
+
+	retRes327915 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+	PanicOnError(retRes327915)
+	ch <- retRes327915
+	return nil
 }
 func (this *WoofiproCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
@@ -3502,138 +4390,138 @@ func (this *WoofiproCore) ParsePosition(position any, optionalArgs ...any) any {
 /**
  * @method
  * @name woofipro#fetchPosition
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *WoofiproCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes287412 := (<-this.LoadMarkets())
-			PanicOnError(retRes287412)
-		}
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"symbol": GetValue(market, "id"),
-		}
-
-		response := (<-this.V1PrivateGetPositionSymbol(this.Extend(request, params)))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "IMR_withdraw_orders": 0.1,
-		//         "MMR_with_orders": 0.05,
-		//         "average_open_price": 27908.14386047,
-		//         "cost_position": -139329.358492,
-		//         "est_liq_price": 117335.92899428,
-		//         "fee_24_h": 123,
-		//         "imr": 0.1,
-		//         "last_sum_unitary_funding": 70.38,
-		//         "mark_price": 27794.9,
-		//         "mmr": 0.05,
-		//         "pending_long_qty": 123,
-		//         "pending_short_qty": 123,
-		//         "pnl_24_h": 123,
-		//         "position_qty": -5,
-		//         "settle_price": 27865.8716984,
-		//         "symbol": "PERP_BTC_USDC",
-		//         "timestamp": 1685429350571,
-		//         "unsettled_pnl": 354.858492
-		//     }
-		// }
-		//
-		var data any = this.SafeDict(response, "data")
-
-		ch <- this.ParsePosition(data, market)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionBody(ch, symbol, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchPositionBody(ch chan any, symbol any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	params := GetArg(optionalArgs, 0, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes336412 := (<-this.LoadMarkets())
+		PanicOnError(retRes336412)
+	}
+	var market any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": GetValue(market, "id"),
+	}
+
+	response := (<-this.V1PrivateGetPositionSymbol(this.Extend(request, params)))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "IMR_withdraw_orders": 0.1,
+	//         "MMR_with_orders": 0.05,
+	//         "average_open_price": 27908.14386047,
+	//         "cost_position": -139329.358492,
+	//         "est_liq_price": 117335.92899428,
+	//         "fee_24_h": 123,
+	//         "imr": 0.1,
+	//         "last_sum_unitary_funding": 70.38,
+	//         "mark_price": 27794.9,
+	//         "mmr": 0.05,
+	//         "pending_long_qty": 123,
+	//         "pending_short_qty": 123,
+	//         "pnl_24_h": 123,
+	//         "position_qty": -5,
+	//         "settle_price": 27865.8716984,
+	//         "symbol": "PERP_BTC_USDC",
+	//         "timestamp": 1685429350571,
+	//         "unsettled_pnl": 354.858492
+	//     }
+	// }
+	//
+	var data any = this.SafeDict(response, "data", map[string]any{})
+
+	ch <- this.ParsePosition(data, market)
+	return nil
 }
 
 /**
  * @method
  * @name woofipro#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *WoofiproCore) FetchPositions(optionalArgs ...any) <-chan any {
-	ch := make(chan any)
-	go func() any {
-		defer close(ch)
-		defer ReturnPanicError(ch)
-		symbols := GetArg(optionalArgs, 0, nil)
-		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]any{})
-		_ = params
-		if IsTrue(IsEqual(this.Markets, nil)) {
-
-			retRes292212 := (<-this.LoadMarkets())
-			PanicOnError(retRes292212)
-		}
-
-		response := (<-this.V1PrivateGetPositions(params))
-		PanicOnError(response)
-		//
-		// {
-		//     "success": true,
-		//     "timestamp": 1702989203989,
-		//     "data": {
-		//         "current_margin_ratio_with_orders": 1.2385,
-		//         "free_collateral": 450315.09115,
-		//         "initial_margin_ratio": 0.1,
-		//         "initial_margin_ratio_with_orders": 0.1,
-		//         "maintenance_margin_ratio": 0.05,
-		//         "maintenance_margin_ratio_with_orders": 0.05,
-		//         "margin_ratio": 1.2385,
-		//         "open_margin_ratio": 1.2102,
-		//         "total_collateral_value": 489865.71329,
-		//         "total_pnl_24_h": 123,
-		//         "rows": [{
-		//             "IMR_withdraw_orders": 0.1,
-		//             "MMR_with_orders": 0.05,
-		//             "average_open_price": 27908.14386047,
-		//             "cost_position": -139329.358492,
-		//             "est_liq_price": 117335.92899428,
-		//             "fee_24_h": 123,
-		//             "imr": 0.1,
-		//             "last_sum_unitary_funding": 70.38,
-		//             "mark_price": 27794.9,
-		//             "mmr": 0.05,
-		//             "pending_long_qty": 123,
-		//             "pending_short_qty": 123,
-		//             "pnl_24_h": 123,
-		//             "position_qty": -5,
-		//             "settle_price": 27865.8716984,
-		//             "symbol": "PERP_BTC_USDC",
-		//             "timestamp": 1685429350571,
-		//             "unsettled_pnl": 354.858492
-		//         }]
-		//     }
-		// }
-		//
-		var result any = this.SafeDict(response, "data", map[string]any{})
-		var positions any = this.SafeList(result, "rows", []any{})
-
-		ch <- this.ParsePositions(positions, symbols)
-		return nil
-
-	}()
+	ch := make(chan any, 1)
+	go this.fetchPositionsBody(ch, optionalArgs...)
 	return ch
+}
+func (this *WoofiproCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	symbols := GetArg(optionalArgs, 0, nil)
+	_ = symbols
+	params := GetArg(optionalArgs, 1, map[string]any{})
+	_ = params
+	if IsTrue(IsEqual(this.Markets, nil)) {
+
+		retRes341212 := (<-this.LoadMarkets())
+		PanicOnError(retRes341212)
+	}
+
+	response := (<-this.V1PrivateGetPositions(params))
+	PanicOnError(response)
+	//
+	// {
+	//     "success": true,
+	//     "timestamp": 1702989203989,
+	//     "data": {
+	//         "current_margin_ratio_with_orders": 1.2385,
+	//         "free_collateral": 450315.09115,
+	//         "initial_margin_ratio": 0.1,
+	//         "initial_margin_ratio_with_orders": 0.1,
+	//         "maintenance_margin_ratio": 0.05,
+	//         "maintenance_margin_ratio_with_orders": 0.05,
+	//         "margin_ratio": 1.2385,
+	//         "open_margin_ratio": 1.2102,
+	//         "total_collateral_value": 489865.71329,
+	//         "total_pnl_24_h": 123,
+	//         "rows": [{
+	//             "IMR_withdraw_orders": 0.1,
+	//             "MMR_with_orders": 0.05,
+	//             "average_open_price": 27908.14386047,
+	//             "cost_position": -139329.358492,
+	//             "est_liq_price": 117335.92899428,
+	//             "fee_24_h": 123,
+	//             "imr": 0.1,
+	//             "last_sum_unitary_funding": 70.38,
+	//             "mark_price": 27794.9,
+	//             "mmr": 0.05,
+	//             "pending_long_qty": 123,
+	//             "pending_short_qty": 123,
+	//             "pnl_24_h": 123,
+	//             "position_qty": -5,
+	//             "settle_price": 27865.8716984,
+	//             "symbol": "PERP_BTC_USDC",
+	//             "timestamp": 1685429350571,
+	//             "unsettled_pnl": 354.858492
+	//         }]
+	//     }
+	// }
+	//
+	var result any = this.SafeDict(response, "data", map[string]any{})
+	var positions any = this.SafeList(result, "rows", []any{})
+
+	ch <- this.ParsePositions(positions, symbols)
+	return nil
 }
 func (this *WoofiproCore) Nonce() any {
 	return this.Milliseconds()
@@ -3678,7 +4566,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 			params = this.Keysort(params)
 		}
 		var auth any = ""
-		var ts any = ToString(this.Nonce())
+		var ts string = ToString(this.Nonce())
 		url = Add(url, pathWithParams)
 		var apiKey any = this.ApiKey
 		if IsTrue(IsLessThan(GetIndexOf(apiKey, "ed25519:"), 0)) {
@@ -3706,7 +4594,7 @@ func (this *WoofiproCore) Sign(path any, optionalArgs ...any) any {
 		}
 		var secret any = this.Secret
 		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(secret, "ed25519:"), 0)) {
-			var parts any = Split(secret, "ed25519:")
+			var parts []string = Split(secret, "ed25519:")
 			secret = GetValue(parts, 1)
 		}
 		var signature any = Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ed25519)

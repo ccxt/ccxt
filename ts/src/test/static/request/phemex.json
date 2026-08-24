@@ -70,7 +70,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT1234561b1598e7648198f0\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"priceRp\":\"395\",\"reduceOnly\":true}"
+                "output": { "symbol": "SOLUSDT", "side": "Buy", "ordType": "StopLimit", "clOrdID": "CCXT1234561b1598e7648198f0", "stopPxRp": "400", "posSide": "Merged", "orderQtyRq": "0.01", "triggerType": "ByMarkPrice", "priceRp": "395", "reduceOnly": true }
             },
             {
                 "description": "swap +buy +market +triggerPrice +triggerDirection +reduceOnly",
@@ -88,7 +88,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT123456b6074ff3d4d3ad71\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"reduceOnly\":true}"
+                "output": { "symbol": "SOLUSDT", "side": "Buy", "ordType": "Stop", "clOrdID": "CCXT123456b6074ff3d4d3ad71", "stopPxRp": "400", "posSide": "Merged", "orderQtyRq": "0.01", "triggerType": "ByMarkPrice", "reduceOnly": true }
             },
             {
                 "description": "swap +sell +market +triggerPrice +triggerDirection +reduceOnly",
@@ -106,7 +106,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Sell\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT12345604588208b43c8181\",\"stopPxRp\":\"400\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"reduceOnly\":true}"
+                "output": { "symbol": "SOLUSDT", "side": "Sell", "ordType": "MarketIfTouched", "clOrdID": "CCXT12345604588208b43c8181", "stopPxRp": "400", "posSide": "Merged", "orderQtyRq": "0.01", "triggerType": "ByMarkPrice", "reduceOnly": true }
             },
             {
                 "description": "swap +buy +triggerPrice +triggerDirection +reduceOnly",
@@ -124,7 +124,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"MarketIfTouched\",\"clOrdID\":\"CCXT1234567a026aa3e4c0b839\",\"stopPxRp\":\"200\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"triggerType\":\"ByMarkPrice\",\"reduceOnly\":true}"
+                "output": { "symbol": "SOLUSDT", "side": "Buy", "ordType": "MarketIfTouched", "clOrdID": "CCXT1234567a026aa3e4c0b839", "stopPxRp": "200", "posSide": "Merged", "orderQtyRq": "0.01", "triggerType": "ByMarkPrice", "reduceOnly": true }
             },
             {
                 "description": "swap +marginMode +stopLoss +takeProfit +triggerLimitPrices",
@@ -150,7 +150,33 @@
                         }
                     }
                 ],
-                "output": "{\"symbol\":\"SOLUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456efbeec36d415aadf\",\"posSide\":\"Merged\",\"orderQtyRq\":0.01,\"stopLossRp\":\"190\",\"slTrigger\":\"ByMarkPrice\",\"slPxRp\":\"189\",\"takeProfitRp\":\"277\",\"tpTrigger\":\"ByLastPrice\",\"tpPxRp\":\"278\",\"priceRp\":\"192\",\"marginMode\":\"isolated\"}"
+                "output": { "symbol": "SOLUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "CCXT123456efbeec36d415aadf", "posSide": "Merged", "orderQtyRq": "0.01", "stopLossRp": "190", "slTrigger": "ByMarkPrice", "slPxRp": "189", "takeProfitRp": "277", "tpTrigger": "ByLastPrice", "tpPxRp": "278", "priceRp": "192", "marginMode": "isolated" }
+            },
+            {
+                "description": "swap +stableSettled +limit, amount is truncated to qtyStepSize precision",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/g-orders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.012345,
+                    195
+                ],
+                "output": { "symbol": "SOLUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "CCXT123456efbeec36d415aadf", "posSide": "Merged", "orderQtyRq": "0.01", "priceRp": "195" }
+            },
+            {
+                "description": "swap +inverse +limit, orderQty stays an integer number of contracts",
+                "method": "createOrder",
+                "url": "https://api.phemex.com/orders",
+                "input": [
+                    "BTC/USD:BTC",
+                    "limit",
+                    "buy",
+                    2,
+                    60000
+                ],
+                "output": { "symbol": "BTCUSD", "side": "Buy", "ordType": "Limit", "clOrdID": "CCXT123456efbeec36d415aadf", "posSide": "Merged", "orderQty": 2, "priceEp": 600000000 }
             },
             {
                 "description": "Spot market buy",
@@ -162,7 +188,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20228e2ff23c142d8430\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000}"
+                "output": { "symbol": "sLTCUSDT", "side": "Buy", "ordType": "Market", "clOrdID": "ccxt20228e2ff23c142d8430", "qtyType": "ByBase", "baseQtyEv": 10000000 }
             },
             {
                 "description": "Spot market sell",
@@ -174,7 +200,7 @@
                     "sell",
                     0.1
                 ],
-                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt2022682fd099549bbfeb\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000}"
+                "output": { "symbol": "sLTCUSDT", "side": "Sell", "ordType": "Market", "clOrdID": "ccxt2022682fd099549bbfeb", "qtyType": "ByBase", "baseQtyEv": 10000000 }
             },
             {
                 "description": "Spot limit buy",
@@ -187,7 +213,20 @@
                     0.1,
                     "55"
                 ],
-                "output": "{\"symbol\":\"sLTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"ccxt202269fb13ce74759a10\",\"qtyType\":\"ByBase\",\"baseQtyEv\":10000000,\"priceEp\":5500000000}"
+                "output": { "symbol": "sLTCUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "ccxt202269fb13ce74759a10", "qtyType": "ByBase", "baseQtyEv": 10000000, "priceEp": 5500000000 }
+            },
+            {
+                "description": "Spot limit buy with float-artifact amount rounds to market precision",
+                "method": "createOrder",
+                "url": "https://testnet-api.phemex.com/spot/orders",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.10000000800000003,
+                    "55"
+                ],
+                "output": { "symbol": "sLTCUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "ccxt202269fb13ce74759a10", "qtyType": "ByBase", "baseQtyEv": 10000000, "priceEp": 5500000000 }
             },
             {
                 "description": "spot limit trigger order",
@@ -203,7 +242,7 @@
                     "triggerPrice": 3500
                   }
                 ],
-                "output": "{\"symbol\":\"sETHUSDT\",\"side\":\"Buy\",\"ordType\":\"StopLimit\",\"clOrdID\":\"CCXT123456ebe0dbfc04c284b5\",\"stopPxEp\":350000000000,\"trigger\":\"ByLastPrice\",\"qtyType\":\"ByBase\",\"baseQtyEv\":100000,\"priceEp\":320000000000}"
+                "output": { "symbol": "sETHUSDT", "side": "Buy", "ordType": "StopLimit", "clOrdID": "CCXT123456ebe0dbfc04c284b5", "stopPxEp": 350000000000, "trigger": "ByLastPrice", "qtyType": "ByBase", "baseQtyEv": 100000, "priceEp": 320000000000 }
             },
             {
                 "description": "spot market trigger order",
@@ -219,7 +258,7 @@
                     "triggerPrice": 3500
                   }
                 ],
-                "output": "{\"symbol\":\"sETHUSDT\",\"side\":\"Buy\",\"ordType\":\"Stop\",\"clOrdID\":\"CCXT1234561e393cf154038656\",\"stopPxEp\":350000000000,\"trigger\":\"ByLastPrice\",\"qtyType\":\"ByBase\",\"baseQtyEv\":100000}"
+                "output": { "symbol": "sETHUSDT", "side": "Buy", "ordType": "Stop", "clOrdID": "CCXT1234561e393cf154038656", "stopPxEp": 350000000000, "trigger": "ByLastPrice", "qtyType": "ByBase", "baseQtyEv": 100000 }
             },
             {
                 "description": "Swap market buy",
@@ -231,7 +270,7 @@
                     "buy",
                     0.1
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"ccxt20221857f87e9488b077\",\"posSide\":\"Merged\",\"orderQtyRq\":0.1}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "ordType": "Market", "clOrdID": "ccxt20221857f87e9488b077", "posSide": "Merged", "orderQtyRq": "0.1" }
             },
             {
                 "description": "swap order with tp/sl attached",
@@ -252,7 +291,7 @@
                     }
                   }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Limit\",\"clOrdID\":\"CCXT123456037657993410b08f\",\"posSide\":\"Merged\",\"orderQtyRq\":0.5,\"stopLossRp\":\"30\",\"takeProfitRp\":\"150\",\"priceRp\":\"50\"}"
+                "output": { "symbol": "LTCUSDT", "side": "Buy", "ordType": "Limit", "clOrdID": "CCXT123456037657993410b08f", "posSide": "Merged", "orderQtyRq": "0.5", "stopLossRp": "30", "takeProfitRp": "150", "priceRp": "50" }
             },
             {
                 "description": "Swap sell hedged reduceOnly order",
@@ -269,7 +308,7 @@
                     "reduceOnly": true
                   }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Sell\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT1234569a4fe87934c6ab0c\",\"posSide\":\"Long\",\"orderQtyRq\":0.001}"
+                "output": { "symbol": "BTCUSDT", "side": "Sell", "ordType": "Market", "clOrdID": "CCXT1234569a4fe87934c6ab0c", "posSide": "Long", "orderQtyRq": "0.001" }
             },
             {
                 "description": "Swap buy hedged reduceOnly order",
@@ -286,7 +325,7 @@
                     "reduceOnly": true
                   }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"side\":\"Buy\",\"ordType\":\"Market\",\"clOrdID\":\"CCXT123456f0ddc1de04ee9efb\",\"posSide\":\"Short\",\"orderQtyRq\":0.001}"
+                "output": { "symbol": "BTCUSDT", "side": "Buy", "ordType": "Market", "clOrdID": "CCXT123456f0ddc1de04ee9efb", "posSide": "Short", "orderQtyRq": "0.001" }
             }
         ],
         "editOrder": [
@@ -840,7 +879,7 @@
                     0.03,
                     "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK"
                 ],
-                "output": "{\"currency\":\"SOL\",\"address\":\"6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK\",\"amount\":0.03,\"chainName\":\"SOL\"}"
+                "output": { "currency": "SOL", "address": "6CV4jDnwyiJDEmR5paeiCdia1386c15vvuwLQSScQTCK", "amount": 0.03, "chainName": "SOL" }
             }
         ],
         "setLeverage": [
@@ -896,6 +935,20 @@
                 "url": "https://api.phemex.com/exchange/public/md/v2/kline/last?symbol=BTCUSDT&resolution=60&limit=1000",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap ohlcv with until only",
+                "method": "fetchOHLCV",
+                "url": "https://api.phemex.com/exchange/public/md/v2/kline/list?symbol=BTCUSDT&resolution=60&limit=2000&from=1718517717&to=1718637717",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1m",
+                  null,
+                  2000,
+                  {
+                    "until": 1718637717000
+                  }
                 ]
             }
         ],

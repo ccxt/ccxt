@@ -90,16 +90,16 @@ public partial class hitbtc : ccxt.hitbtc
     {
         this.checkRequiredCredentials();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         var client = this.client(url);
         var future = client.reusableFuture(messageHash);
         object authenticated = this.safeValue(((WebSocketClient)client).subscriptions, messageHash);
         if (isTrue(isEqual(authenticated, null)))
         {
-            object timestamp = this.milliseconds();
+            Int64 timestamp = this.milliseconds();
             object timestampString = this.numberToString(timestamp);
             object timestampEncoded = ((bool) isTrue((isEqual(timestampString, null)))) ? "" : timestampString;
-            object signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
+            string signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
             object request = new Dictionary<string, object>() {
                 { "method", "login" },
                 { "params", new Dictionary<string, object>() {
@@ -130,7 +130,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object isBatch = isGreaterThanOrEqual(getIndexOf(name, "batch"), 0);
+        bool isBatch = isGreaterThanOrEqual(getIndexOf(name, "batch"), 0);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         object messageHashes = new List<object>() {};
         if (isTrue(isTrue(!isEqual(symbols, null)) && !isTrue(isBatch)))
@@ -148,7 +148,7 @@ public partial class hitbtc : ccxt.hitbtc
             { "id", this.nonce() },
             { "ch", name },
         };
-        object request = this.extend(subscribe, parameters);
+        Dictionary<string, object> request = this.extend(subscribe, parameters);
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
@@ -168,7 +168,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object splitName = ((string)name).Split(new [] {((string)"_subscribe")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitName = ((string)name).Split(new [] {((string)"_subscribe")}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitName, 0, "");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -197,7 +197,7 @@ public partial class hitbtc : ccxt.hitbtc
         }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        string messageHash = ((object)this.nonce()).ToString();
         object subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", parameters },
@@ -221,7 +221,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [params.method] 'orderbook/full', 'orderbook/{depth}/{speed}', 'orderbook/{depth}/{speed}/batch'
      * @param {int} [params.depth] 5 , 10, or 20 (default)
      * @param {int} [params.speed] 100 (default), 500, or 1000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -276,7 +276,7 @@ public partial class hitbtc : ccxt.hitbtc
         object snapshot = this.safeDict(message, "snapshot");
         object data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
         object type = ((bool) isTrue(snapshot)) ? "snapshot" : "update";
-        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -384,7 +384,10 @@ public partial class hitbtc : ccxt.hitbtc
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object marketId = this.marketId(getValue(symbols, i));
-                ((IList<object>)marketIds).Add(marketId);
+                if (isTrue(!isEqual(marketId, null)))
+                {
+                    ((IList<object>)marketIds).Add(marketId);
+                }
             }
         }
         object request = new Dictionary<string, object>() {
@@ -446,9 +449,9 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         object result = new List<object>() {};
-        object topic = "tickers";
+        string topic = "tickers";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -583,9 +586,9 @@ public partial class hitbtc : ccxt.hitbtc
         //     }
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         object result = new List<object>() {};
-        object topic = "bidask";
+        string topic = "bidask";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -644,7 +647,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object name = "trades";
+        string name = "trades";
         object trades = await this.subscribePublic(name, "trades", new List<object>() {symbol}, this.deepExtend(request, parameters));
         if (isTrue(this.newUpdates))
         {
@@ -695,7 +698,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -722,11 +725,11 @@ public partial class hitbtc : ccxt.hitbtc
     public override object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        trades = this.toArray(trades);
+        object tradesArray = this.toArray(trades);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
-            object trade = this.extend(this.parseWsTrade(getValue(trades, i), market), parameters);
+            Dictionary<string, object> trade = this.extend(this.parseWsTrade(getValue(tradesArray, i), market), parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -835,9 +838,9 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         object channel = this.safeString(message, "ch", "");
-        object splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object period = this.safeString(splitChannel, 1);
         object timeframe = this.findTimeframe(period);
         if (isTrue(isEqual(timeframe, null)))
@@ -850,7 +853,7 @@ public partial class hitbtc : ccxt.hitbtc
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1013,9 +1016,13 @@ public partial class hitbtc : ccxt.hitbtc
     public virtual void handleOrderHelper(WebSocketClient client, object message, object order)
     {
         object orders = this.orders;
+        if (isTrue(isEqual(orders, null)))
+        {
+            return;
+        }
         object marketId = this.safeStringLower2(order, "instrument", "symbol");
         object method = this.safeString(message, "method", "");
-        object splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();
+        List<object> splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitMethod, 0);
         object symbol = this.safeSymbol(marketId);
         object parsed = this.parseOrder(order);
@@ -1469,7 +1476,7 @@ public partial class hitbtc : ccxt.hitbtc
         object channel = this.safeString2(message, "ch", "method");
         if (isTrue(!isEqual(channel, null)))
         {
-            object splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
+            List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             channel = this.safeString(splitChannel, 0);
             if (isTrue(isEqual(channel, "orderbook")))
             {
@@ -1515,7 +1522,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 // to do improve this, not very reliable right now
                 object first = this.safeValue(result, 0, new Dictionary<string, object>() {});
-                object arrayLength = getArrayLength(result);
+                int arrayLength = getArrayLength(result);
                 if (isTrue(isTrue((isEqual(arrayLength, 0))) || isTrue((inOp(first, "client_order_id")))))
                 {
                     this.handleOrderRequest(client as WebSocketClient, message);
@@ -1533,7 +1540,7 @@ public partial class hitbtc : ccxt.hitbtc
         //    }
         //
         object success = this.safeValue(message, "result");
-        object messageHash = "authenticated";
+        string messageHash = "authenticated";
         if (isTrue(success))
         {
             var future = this.safeValue((client as WebSocketClient).futures, messageHash);
@@ -1579,7 +1586,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 if (isTrue(e is AuthenticationError))
                 {
-                    object messageHash = "authenticated";
+                    string messageHash = "authenticated";
                     ((WebSocketClient)client).reject(e, messageHash);
                     if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
                     {

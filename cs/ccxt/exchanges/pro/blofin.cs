@@ -174,7 +174,7 @@ public partial class blofin : ccxt.blofin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -192,7 +192,7 @@ public partial class blofin : ccxt.blofin
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -364,14 +364,14 @@ public partial class blofin : ccxt.blofin
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, false);
-        object symbolsList = (IList<string>)(symbols);
+        object symbolsList = symbols;
         object firstMarket = this.market(getValue(symbolsList, 0));
-        object channel = "tickers";
+        string channel = "tickers";
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         object messageHashes = new List<object>() {};
         object args = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
@@ -459,7 +459,7 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        int symbolsLength = getArrayLength(symbolsAndTimeframes);
         if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -501,7 +501,7 @@ public partial class blofin : ccxt.blofin
         object marketId = this.safeString(arg, "instId");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object interval = ((string)((string)channelName)).Replace((string)"candle", (string)"");
+        string interval = ((string)((string)channelName)).Replace((string)"candle", (string)"");
         object unifiedTimeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
@@ -551,7 +551,7 @@ public partial class blofin : ccxt.blofin
             { "channel", "account" },
         };
         object request = this.getSubscriptionRequest(new List<object>() {sub});
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -565,7 +565,7 @@ public partial class blofin : ccxt.blofin
         //         data: <same object as shown in REST example>,
         //     }
         //
-        object marketType = "swap"; // for now
+        string marketType = "swap"; // for now
         if (!isTrue((inOp(this.balance, marketType))))
         {
             ((IDictionary<string,object>)this.balance)[(string)marketType] = new Dictionary<string, object>() {};
@@ -759,7 +759,7 @@ public partial class blofin : ccxt.blofin
             { "instId", getValue(market, "id") },
         };
         object request = this.getSubscriptionRequest(new List<object>() {requestParams});
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public");
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -801,7 +801,7 @@ public partial class blofin : ccxt.blofin
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
-        object isOHLCV = (isEqual(channelName, "candle"));
+        bool isOHLCV = (isEqual(channelName, "candle"));
         object symbols = ((bool) isTrue(isOHLCV)) ? this.getListFromObjectValues(symbolsArray, 0) : symbolsArray;
         symbols = this.marketSymbols(symbols, null, true, true);
         object firstMarket = null;
@@ -824,7 +824,7 @@ public partial class blofin : ccxt.blofin
         {
             symbols = new List<object>() {};
         }
-        object symbolsLength = getArrayLength(symbols);
+        int symbolsLength = getArrayLength(symbols);
         if (isTrue(isGreaterThan(symbolsLength, 0)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -866,7 +866,7 @@ public partial class blofin : ccxt.blofin
         }
         object request = this.getSubscriptionRequest(rawSubscriptions);
         object privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic));
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
@@ -942,9 +942,9 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        object milliseconds = this.milliseconds();
-        object messageHash = "authenticate_hash";
-        object timestamp = ((object)milliseconds).ToString();
+        Int64 milliseconds = this.milliseconds();
+        string messageHash = "authenticate_hash";
+        string timestamp = ((object)milliseconds).ToString();
         object nonce = add("n_", timestamp);
         object auth = add(add(add(add("/users/self/verify", "GET"), timestamp), ""), nonce);
         object signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256));
@@ -958,8 +958,8 @@ public partial class blofin : ccxt.blofin
     { "sign", signature },
 }} },
         };
-        object marketType = "swap"; // for now
-        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
+        string marketType = "swap"; // for now
+        object url = getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private");
         await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 }

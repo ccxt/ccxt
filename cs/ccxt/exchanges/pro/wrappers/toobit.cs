@@ -10,7 +10,7 @@ public partial class toobit
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -33,10 +33,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -44,7 +42,7 @@ public partial class toobit
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#trade-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -73,10 +71,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
-    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchTradesForSymbols(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -84,7 +80,8 @@ public partial class toobit
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -107,10 +104,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<OHLCV>> WatchOHLCV(string symbol, string timeframe = "1m", Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCV(symbol, timeframe, since, limit, parameters);
         return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
     }
@@ -118,7 +113,8 @@ public partial class toobit
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#kline-candlestick-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -141,10 +137,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
     }
@@ -152,7 +146,8 @@ public partial class toobit
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -172,7 +167,8 @@ public partial class toobit
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -192,7 +188,10 @@ public partial class toobit
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -209,9 +208,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBook(symbol, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
@@ -219,7 +217,10 @@ public partial class toobit
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-market-data.html#diff-depth-stream"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#partial-book-depth-streams"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-market-data.html#diff-book-depth-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -235,10 +236,9 @@ public partial class toobit
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
+    public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrderBookForSymbols(symbols, limit, parameters);
         return ((ccxt.pro.IOrderBook) res).Copy();
     }
@@ -246,7 +246,8 @@ public partial class toobit
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-account-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-account.html#payload-account-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-balance"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -266,7 +267,8 @@ public partial class toobit
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-order-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-account.html#payload-order-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -289,10 +291,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
-    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
@@ -300,7 +300,8 @@ public partial class toobit
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/spot/v1/en/#payload-ticket-push"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/spot-websocket-account.html#payload-ticket-push"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-trade-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -329,10 +330,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
-    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchMyTrades(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
     }
@@ -340,7 +339,7 @@ public partial class toobit
     /// watch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://toobit-docs.github.io/apidocs/usdt_swap/v1/en/#event-position-update"/>  <br/>
+    /// See <see href="https://api-docs.toobit.com/api/usdt-m-websocket-account.html#event-position-update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -357,10 +356,8 @@ public partial class toobit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
-    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since = null, Int64? limit = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchPositions(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
     }

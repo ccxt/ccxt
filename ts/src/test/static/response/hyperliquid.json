@@ -940,7 +940,7 @@
                         "fees": [],
                         "stopPrice": 0.6,
                         "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopLossPrice": 0.6
                     }
                 ]
             }
@@ -2642,7 +2642,6 @@
                 }
             }
         ],
-        "fetchTickers": [],
         "fetchDeposits": [
             {
                 "description": "user deposits",

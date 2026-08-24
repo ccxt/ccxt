@@ -166,51 +166,51 @@ class bitrue extends Exchange {
                     'kline' => array(
                         'public' => array(
                             'get' => array(
-                                'public.json' => 0.24,
-                                'public{currency}.json' => 0.24,
+                                'public.json' => array( 'cost' => 0.24 ),
+                                'public{currency}.json' => array( 'cost' => 0.24 ),
                             ),
                         ),
                     ),
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ping' => 0.24,
-                                'time' => 0.24,
-                                'exchangeInfo' => 0.24,
+                                'ping' => array( 'cost' => 0.24 ),
+                                'time' => array( 'cost' => 0.24 ),
+                                'exchangeInfo' => array( 'cost' => 0.24 ),
                                 'depth' => array( 'cost' => 1, 'byLimit' => array( array( 100, 0.24 ), array( 500, 1.2 ), array( 1000, 2.4 ) ) ),
-                                'trades' => 0.24,
-                                'historicalTrades' => 1.2,
-                                'aggTrades' => 0.24,
+                                'trades' => array( 'cost' => 0.24 ),
+                                'historicalTrades' => array( 'cost' => 1.2 ),
+                                'aggTrades' => array( 'cost' => 0.24 ),
                                 'ticker/24hr' => array( 'cost' => 0.24, 'noSymbol' => 9.6 ),
-                                'ticker/price' => 0.24,
-                                'ticker/bookTicker' => 0.24,
-                                'market/kline' => 0.24,
+                                'ticker/price' => array( 'cost' => 0.24 ),
+                                'ticker/bookTicker' => array( 'cost' => 0.24 ),
+                                'market/kline' => array( 'cost' => 0.24 ),
                             ),
                         ),
                         'private' => array(
                             'get' => array(
-                                'order' => 5,
-                                'openOrders' => 5,
-                                'allOrders' => 25,
-                                'account' => 25,
-                                'myTrades' => 25,
-                                'etf/net-value/{symbol}' => 0.24,
-                                'withdraw/history' => 120,
-                                'deposit/history' => 120,
+                                'order' => array( 'cost' => 5 ),
+                                'openOrders' => array( 'cost' => 5 ),
+                                'allOrders' => array( 'cost' => 25 ),
+                                'account' => array( 'cost' => 25 ),
+                                'myTrades' => array( 'cost' => 25 ),
+                                'etf/net-value/{symbol}' => array( 'cost' => 0.24 ),
+                                'withdraw/history' => array( 'cost' => 120 ),
+                                'deposit/history' => array( 'cost' => 120 ),
                             ),
                             'post' => array(
-                                'order' => 5,
-                                'withdraw/commit' => 120,
+                                'order' => array( 'cost' => 5 ),
+                                'withdraw/commit' => array( 'cost' => 120 ),
                             ),
                             'delete' => array(
-                                'order' => 5,
+                                'order' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
                     'v2' => array(
                         'private' => array(
                             'get' => array(
-                                'myTrades' => 1.2,
+                                'myTrades' => array( 'cost' => 1.2 ),
                             ),
                         ),
                     ),
@@ -219,34 +219,34 @@ class bitrue extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ping' => 0.24,
-                                'time' => 0.24,
-                                'contracts' => 0.24,
-                                'depth' => 0.24,
-                                'ticker' => 0.24,
-                                'klines' => 0.24,
+                                'ping' => array( 'cost' => 0.24 ),
+                                'time' => array( 'cost' => 0.24 ),
+                                'contracts' => array( 'cost' => 0.24 ),
+                                'depth' => array( 'cost' => 0.24 ),
+                                'ticker' => array( 'cost' => 0.24 ),
+                                'klines' => array( 'cost' => 0.24 ),
                             ),
                         ),
                     ),
                     'v2' => array(
                         'private' => array(
                             'get' => array(
-                                'myTrades' => 5,
-                                'openOrders' => 5,
-                                'order' => 5,
-                                'account' => 5,
-                                'leverageBracket' => 5,
-                                'commissionRate' => 5,
-                                'futures_transfer_history' => 5,
-                                'forceOrdersHistory' => 5,
+                                'myTrades' => array( 'cost' => 5 ),
+                                'openOrders' => array( 'cost' => 5 ),
+                                'order' => array( 'cost' => 5 ),
+                                'account' => array( 'cost' => 5 ),
+                                'leverageBracket' => array( 'cost' => 5 ),
+                                'commissionRate' => array( 'cost' => 5 ),
+                                'futures_transfer_history' => array( 'cost' => 5 ),
+                                'forceOrdersHistory' => array( 'cost' => 5 ),
                             ),
                             'post' => array(
-                                'positionMargin' => 5,
-                                'level_edit' => 5,
-                                'cancel' => 5,
-                                'order' => 25,
-                                'allOpenOrders' => 5,
-                                'futures_transfer' => 5,
+                                'positionMargin' => array( 'cost' => 5 ),
+                                'level_edit' => array( 'cost' => 5 ),
+                                'cancel' => array( 'cost' => 5 ),
+                                'order' => array( 'cost' => 25 ),
+                                'allOpenOrders' => array( 'cost' => 5 ),
+                                'futures_transfer' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
@@ -255,34 +255,34 @@ class bitrue extends Exchange {
                     'v1' => array(
                         'public' => array(
                             'get' => array(
-                                'ping' => 0.24,
-                                'time' => 0.24,
-                                'contracts' => 0.24,
-                                'depth' => 0.24,
-                                'ticker' => 0.24,
-                                'klines' => 0.24,
+                                'ping' => array( 'cost' => 0.24 ),
+                                'time' => array( 'cost' => 0.24 ),
+                                'contracts' => array( 'cost' => 0.24 ),
+                                'depth' => array( 'cost' => 0.24 ),
+                                'ticker' => array( 'cost' => 0.24 ),
+                                'klines' => array( 'cost' => 0.24 ),
                             ),
                         ),
                     ),
                     'v2' => array(
                         'private' => array(
                             'get' => array(
-                                'myTrades' => 5,
-                                'openOrders' => 5,
-                                'order' => 5,
-                                'account' => 5,
-                                'leverageBracket' => 5,
-                                'commissionRate' => 5,
-                                'futures_transfer_history' => 5,
-                                'forceOrdersHistory' => 5,
+                                'myTrades' => array( 'cost' => 5 ),
+                                'openOrders' => array( 'cost' => 5 ),
+                                'order' => array( 'cost' => 5 ),
+                                'account' => array( 'cost' => 5 ),
+                                'leverageBracket' => array( 'cost' => 5 ),
+                                'commissionRate' => array( 'cost' => 5 ),
+                                'futures_transfer_history' => array( 'cost' => 5 ),
+                                'forceOrdersHistory' => array( 'cost' => 5 ),
                             ),
                             'post' => array(
-                                'positionMargin' => 5,
-                                'level_edit' => 5,
-                                'cancel' => 5,
-                                'order' => 5,
-                                'allOpenOrders' => 5,
-                                'futures_transfer' => 5,
+                                'positionMargin' => array( 'cost' => 5 ),
+                                'level_edit' => array( 'cost' => 5 ),
+                                'cancel' => array( 'cost' => 5 ),
+                                'order' => array( 'cost' => 5 ),
+                                'allOpenOrders' => array( 'cost' => 5 ),
+                                'futures_transfer' => array( 'cost' => 5 ),
                             ),
                         ),
                     ),
@@ -379,8 +379,8 @@ class bitrue extends Exchange {
                 'fetchMyTradesMethod' => 'v2PrivateGetMyTrades', // spotV1PrivateGetMyTrades
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'recvWindow' => 5 * 1000, // 5 sec, binance default
-                'timeDifference' => 0, // the difference between system clock and Binance clock
+                'recvWindow' => 5 * 1000, // 5 sec, the exchange default
+                'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'parseOrderToPrecision' => false, // force amounts and costs in parseOrder to precision
                 'newOrderRespType' => array(
@@ -663,7 +663,7 @@ class bitrue extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -775,22 +775,24 @@ class bitrue extends Exchange {
             $entry = $networkDetails[$j];
             $networkId = $this->safe_string($entry, 'chain');
             $network = $this->network_id_to_code($networkId, $code);
-            $networks[$network] = array(
-                'info' => $entry,
-                'id' => $networkId,
-                'network' => $network,
-                'deposit' => $this->safe_bool($entry, 'enableDeposit'),
-                'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
-                'active' => null,
-                'fee' => $this->safe_number($entry, 'withdrawFee'),
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($entry, 'minWithdraw'),
-                        'max' => $this->safe_number($entry, 'maxWithdraw'),
+            if ($network !== null) {
+                $networks[$network] = array(
+                    'info' => $entry,
+                    'id' => $networkId,
+                    'network' => $network,
+                    'deposit' => $this->safe_bool($entry, 'enableDeposit'),
+                    'withdraw' => $this->safe_bool($entry, 'enableWithdraw'),
+                    'active' => null,
+                    'fee' => $this->safe_number($entry, 'withdrawFee'),
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array(
+                            'min' => $this->safe_number($entry, 'minWithdraw'),
+                            'max' => $this->safe_number($entry, 'maxWithdraw'),
+                        ),
                     ),
-                ),
-            );
+                );
+            }
         }
         return $this->safe_currency_structure(array(
             'id' => $id,
@@ -822,7 +824,7 @@ class bitrue extends Exchange {
          * @see https://www.bitrue.com/api-docs#current-open-contract
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#current-open-contract
          *
-         * @param {array} [$params] extra parameters specific to the exchange api endpoint
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
         $promisesRaw = array();
@@ -979,7 +981,7 @@ class bitrue extends Exchange {
             $minCost = $this->safe_number($market, 'minOrderMoney');
         }
         $isSpot = ($type === 'spot');
-        return array(
+        return $this->safe_market_structure(array(
             'id' => $id,
             'lowercaseId' => $lowercaseId,
             'symbol' => $symbol,
@@ -1028,10 +1030,10 @@ class bitrue extends Exchange {
             ),
             'created' => null,
             'info' => $market,
-        );
+        ));
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         //
         // spot
         //
@@ -1090,7 +1092,9 @@ class bitrue extends Exchange {
             $account = $this->account();
             $account['free'] = $this->safe_string_2($balance, 'free', 'accountNormal');
             $account['used'] = $this->safe_string_2($balance, 'locked', 'accountLock');
-            $result[$code] = $account;
+            if ($code !== null) {
+                $result[$code] = $account;
+            }
         }
         $result['timestamp'] = $timestamp;
         $result['datetime'] = $this->iso8601($timestamp);
@@ -1222,7 +1226,7 @@ class bitrue extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1529,7 +1533,7 @@ class bitrue extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // spot
         //
@@ -1649,7 +1653,7 @@ class bitrue extends Exchange {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols);
-        $response = null;
+        $response = array();
         $data = array();
         $request = array();
         $type = null;
@@ -1660,7 +1664,7 @@ class bitrue extends Exchange {
                 throw new NotSupported($this->id . ' fetchTickers does not support swap markets, please use fetchTicker instead');
             } elseif ($market['spot']) {
                 $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
-                $data = $response;
+                $data = $this->to_array($response);
             } else {
                 throw new NotSupported($this->id . ' fetchTickers only support spot & swap markets');
             }
@@ -1670,7 +1674,7 @@ class bitrue extends Exchange {
                 throw new NotSupported($this->id . ' fetchTickers only support spot when $symbols are not proved');
             }
             $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
-            $data = $response;
+            $data = $this->to_array($response);
         }
         //
         // spot
@@ -1716,7 +1720,13 @@ class bitrue extends Exchange {
         $tickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->safe_dict($data, $i, array());
-            $market = $this->safe_market($this->safe_string($ticker, 'symbol'));
+            // skip entries without a symbol => an null $market id would become a null
+            // dictionary key here, which crashes fetchTickers in the C# build
+            $marketId = $this->safe_string($ticker, 'symbol');
+            if ($marketId === null) {
+                continue;
+            }
+            $market = $this->safe_market($marketId);
             $tickers[($market['id'])] = $ticker;
         }
         return $this->parse_tickers($tickers, $symbols);
@@ -1788,7 +1798,7 @@ class bitrue extends Exchange {
             $side = $isBuyer ? 'buy' : 'sell'; // this is a true $side
         }
         $fee = null;
-        if (is_array($trade) && array_key_exists('commission', $trade)) {
+        if (is_array($trade) && array_key_exists('commission' ?? '', $trade)) {
             $fee = array(
                 'cost' => $this->safe_string_2($trade, 'commission', 'fee'),
                 'currency' => $this->safe_currency_code($this->safe_string($trade, 'commissionAssert')),
@@ -1938,11 +1948,11 @@ class bitrue extends Exchange {
         $filled = $this->safe_string($order, 'executedQty');
         $timestamp = null;
         $lastTradeTimestamp = null;
-        if (is_array($order) && array_key_exists('time', $order)) {
+        if (is_array($order) && array_key_exists('time' ?? '', $order)) {
             $timestamp = $this->safe_integer($order, 'time');
-        } elseif (is_array($order) && array_key_exists('transactTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('transactTime' ?? '', $order)) {
             $timestamp = $this->safe_integer($order, 'transactTime');
-        } elseif (is_array($order) && array_key_exists('updateTime', $order)) {
+        } elseif (is_array($order) && array_key_exists('updateTime' ?? '', $order)) {
             if ($status === 'open') {
                 if (Precise::string_gt($filled, '0')) {
                     $lastTradeTimestamp = $this->safe_integer($order, 'updateTime');
@@ -1956,7 +1966,7 @@ class bitrue extends Exchange {
         $amount = $this->safe_string($order, 'origQty');
         // - Spot/Margin $market => cummulativeQuoteQty
         // - Futures $market => cumQuote.
-        //   Note this is not the actual $cost, since Binance futures uses leverage to calculate margins.
+        //   Note this is not the actual $cost, since the exchange uses leverage to calculate margins.
         $cost = $this->safe_string_2($order, 'cummulativeQuoteQty', 'cumQuote');
         $id = $this->safe_string($order, 'orderId');
         $type = $this->safe_string_lower($order, 'type');
@@ -1968,7 +1978,7 @@ class bitrue extends Exchange {
         if ($type === 'limit_maker') {
             $type = 'limit';
         }
-        $triggerPrice = $this->parse_number($this->omit_zero(($this->safe_string($order, 'stopPrice'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'stopPrice')));
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2475,7 +2485,7 @@ class bitrue extends Exchange {
          * @see https://www.bitrue.com/api-docs#cancel-all-open-orders-trade-hmac-sha256
          * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#cancel-all-open-orders-trade-hmac-sha256
          *
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+         * @param {string} [$symbol] unified $market $symbol of the $market to cancel orders in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
@@ -2743,7 +2753,7 @@ class bitrue extends Exchange {
         return $this->parse_transactions($data, $currency);
     }
 
-    public function parse_transaction_status_by_type($status, ?string $type = null) {
+    public function parse_transaction_status_by_type(mixed $status, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 '0' => 'pending',
@@ -2841,8 +2851,8 @@ class bitrue extends Exchange {
         $txid = $this->safe_string($transaction, 'txid');
         $timestamp = $this->safe_integer($transaction, 'createdAt');
         $updated = $this->safe_integer($transaction, 'updatedAt');
-        $payAmount = (is_array($transaction) && array_key_exists('payAmount', $transaction));
-        $ctime = (is_array($transaction) && array_key_exists('ctime', $transaction));
+        $payAmount = (is_array($transaction) && array_key_exists('payAmount' ?? '', $transaction));
+        $ctime = (is_array($transaction) && array_key_exists('ctime' ?? '', $transaction));
         $type = ($payAmount || $ctime) ? 'withdrawal' : 'deposit';
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
@@ -2942,7 +2952,7 @@ class bitrue extends Exchange {
         return $this->parse_transaction($data, $currency);
     }
 
-    public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
+    public function parse_deposit_withdraw_fee(mixed $fee, ?array $currency = null) {
         //
         //   {
         //       "coin" => "adx",
@@ -2971,10 +2981,12 @@ class bitrue extends Exchange {
                 $networkId = $this->safe_string($chainDetail, 'chain');
                 $currencyCode = $this->safe_string($currency, 'code');
                 $networkCode = $this->network_id_to_code($networkId, $currencyCode);
-                $result['networks'][$networkCode] = array(
-                    'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false ),
-                );
+                if ($networkCode !== null) {
+                    $result['networks'][$networkCode] = array(
+                        'deposit' => array( 'fee' => null, 'percentage' => null ),
+                        'withdraw' => array( 'fee' => $this->safe_number($chainDetail, 'withdrawFee'), 'percentage' => false ),
+                    );
+                }
                 if ($chainDetailLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($chainDetail, 'withdrawFee');
                     $result['withdraw']['percentage'] = false;
@@ -2984,7 +2996,7 @@ class bitrue extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()): array {
         /**
          * fetch deposit and withdraw fees
          *
@@ -3002,7 +3014,7 @@ class bitrue extends Exchange {
         return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(mixed $transfer, ?array $currency = null) {
         //
         //     fetchTransfers
         //
@@ -3175,7 +3187,7 @@ class bitrue extends Exchange {
         return $response;
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(mixed $data, ?array $market = null): array {
         //
         // setMargin
         //
@@ -3238,7 +3250,7 @@ class bitrue extends Exchange {
         return $this->parse_margin_modification($response, $market);
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $this->safe_string($api, 0);
         $version = $this->safe_string($api, 1);
         $access = $this->safe_string($api, 2);
@@ -3315,12 +3327,12 @@ class bitrue extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (($code === 418) || ($code === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $code . ' ' . $reason . ' ' . $body);
         }
         // $error $response in a form => array( "code" => -1013, "msg" => "Invalid quantity." )
-        // following block cointains legacy checks against $message patterns in "msg" property
+        // following block contains legacy checks against $message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if ($code >= 400) {
             if (mb_strpos($body, 'Price * QTY is zero or less') !== false) {
@@ -3383,12 +3395,12 @@ class bitrue extends Exchange {
         return null;
     }
 
-    public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array()) {
-        if ((is_array($config) && array_key_exists('noSymbol', $config)) && !(is_array($params) && array_key_exists('symbol', $params))) {
+    public function calculate_rate_limiter_cost(mixed $api, mixed $method, mixed $path, mixed $params, $config = array()) {
+        if ((is_array($config) && array_key_exists('noSymbol' ?? '', $config)) && !(is_array($params) && array_key_exists('symbol' ?? '', $params))) {
             return $config['noSymbol'];
-        } elseif ((is_array($config) && array_key_exists('byLimit', $config)) && (is_array($params) && array_key_exists('limit', $params))) {
+        } elseif ((is_array($config) && array_key_exists('byLimit' ?? '', $config)) && (is_array($params) && array_key_exists('limit' ?? '', $params))) {
             $limit = $params['limit'];
-            $byLimit = $config['byLimit'];
+            $byLimit = $this->safe_list($config, 'byLimit', array());
             for ($i = 0; $i < count($byLimit); $i++) {
                 $entry = $byLimit[$i];
                 if ($limit <= $entry[0]) {

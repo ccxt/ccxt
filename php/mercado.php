@@ -138,39 +138,39 @@ class mercado extends Exchange {
             'api' => array(
                 'public' => array(
                     'get' => array(
-                        'coins',
-                        '{coin}/orderbook/', // last slash critical
-                        '{coin}/ticker/',
-                        '{coin}/trades/',
-                        '{coin}/trades/{from}/',
-                        '{coin}/trades/{from}/{to}',
-                        '{coin}/day-summary/{year}/{month}/{day}/',
+                        'coins' => array( 'cost' => 1 ),
+                        '{coin}/orderbook/' => array( 'cost' => 1 ),
+                        '{coin}/ticker/' => array( 'cost' => 1 ),
+                        '{coin}/trades/' => array( 'cost' => 1 ),
+                        '{coin}/trades/{from}/' => array( 'cost' => 1 ),
+                        '{coin}/trades/{from}/{to}' => array( 'cost' => 1 ),
+                        '{coin}/day-summary/{year}/{month}/{day}/' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'post' => array(
-                        'cancel_order',
-                        'get_account_info',
-                        'get_order',
-                        'get_withdrawal',
-                        'list_system_messages',
-                        'list_orders',
-                        'list_orderbook',
-                        'place_buy_order',
-                        'place_sell_order',
-                        'place_market_buy_order',
-                        'place_market_sell_order',
-                        'withdraw_coin',
+                        'cancel_order' => array( 'cost' => 1 ),
+                        'get_account_info' => array( 'cost' => 1 ),
+                        'get_order' => array( 'cost' => 1 ),
+                        'get_withdrawal' => array( 'cost' => 1 ),
+                        'list_system_messages' => array( 'cost' => 1 ),
+                        'list_orders' => array( 'cost' => 1 ),
+                        'list_orderbook' => array( 'cost' => 1 ),
+                        'place_buy_order' => array( 'cost' => 1 ),
+                        'place_sell_order' => array( 'cost' => 1 ),
+                        'place_market_buy_order' => array( 'cost' => 1 ),
+                        'place_market_sell_order' => array( 'cost' => 1 ),
+                        'withdraw_coin' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v4Public' => array(
                     'get' => array(
-                        '{coin}/candle/',
+                        '{coin}/candle/' => array( 'cost' => 1 ),
                     ),
                 ),
                 'v4PublicNet' => array(
                     'get' => array(
-                        'candles',
+                        'candles' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -292,12 +292,16 @@ class mercado extends Exchange {
         //
         $result = array();
         $amountLimits = $this->safe_value($this->options, 'limits', array());
-        for ($i = 0; $i < count($response); $i++) {
-            $coin = $response[$i];
+        $coins = $this->to_array($response);
+        for ($i = 0; $i < count($coins); $i++) {
+            $coin = $coins[$i];
             $baseId = $coin;
             $quoteId = 'BRL';
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
+            if (($base === null) || ($quote === null)) {
+                continue;
+            }
             $id = $quote . $base;
             $result[] = array(
                 'id' => $id,
@@ -358,7 +362,7 @@ class mercado extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -490,23 +494,25 @@ class mercado extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
-        $method = 'publicGetCoinTrades';
         $request = array(
             'coin' => $market['base'],
         );
         if ($since !== null) {
-            $method .= 'From';
             $request['from'] = $this->parse_to_int($since / 1000);
         }
         $to = $this->safe_integer($params, 'to');
-        if ($to !== null) {
-            $method .= 'To';
+        $response = null;
+        if (($since !== null) && ($to !== null)) {
+            $response = $this->publicGetCoinTradesFromTo($this->extend($request, $params));
+        } elseif ($since !== null) {
+            $response = $this->publicGetCoinTradesFrom($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetCoinTrades($this->extend($request, $params));
         }
-        $response = $this->$method($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_balance($response): array {
+    public function parse_balance(mixed $response): array {
         $data = $this->safe_value($response, 'response_data', array());
         $balances = $this->safe_value($data, 'balance', array());
         $result = array( 'info' => $response );
@@ -514,12 +520,14 @@ class mercado extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            if (is_array($balances) && array_key_exists($currencyId, $balances)) {
+            if (is_array($balances) && array_key_exists($currencyId ?? '', $balances)) {
                 $balance = $this->safe_value($balances, $currencyId, array());
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'available');
                 $account['total'] = $this->safe_string($balance, 'total');
-                $result[$code] = $account;
+                if ($code !== null) {
+                    $result[$code] = $account;
+                }
             }
         }
         return $this->safe_balance($result);
@@ -556,13 +564,16 @@ class mercado extends Exchange {
         $request = array(
             'coin_pair' => $market['id'],
         );
-        $method = $this->capitalize($side) . 'Order';
+        $response = null;
         if ($type === 'limit') {
-            $method = 'privatePostPlace' . $method;
             $request['limit_price'] = $this->price_to_precision($market['symbol'], $price);
             $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+            if ($side === 'buy') {
+                $response = $this->privatePostPlaceBuyOrder($this->extend($request, $params));
+            } else {
+                $response = $this->privatePostPlaceSellOrder($this->extend($request, $params));
+            }
         } else {
-            $method = 'privatePostPlaceMarket' . $method;
             if ($side === 'buy') {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . ' createOrder() requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and amount');
@@ -571,11 +582,12 @@ class mercado extends Exchange {
                 $priceString = $this->number_to_string($price);
                 $cost = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
                 $request['cost'] = $this->price_to_precision($market['symbol'], $cost);
+                $response = $this->privatePostPlaceMarketBuyOrder($this->extend($request, $params));
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);
+                $response = $this->privatePostPlaceMarketSellOrder($this->extend($request, $params));
             }
         }
-        $response = $this->$method($this->extend($request, $params));
         // TODO => replace this with a call to parseOrder for unification
         return $this->safe_order(array(
             'info' => $response,
@@ -669,7 +681,7 @@ class mercado extends Exchange {
         $id = $this->safe_string($order, 'order_id');
         $order_type = $this->safe_string($order, 'order_type');
         $side = null;
-        if (is_array($order) && array_key_exists('order_type', $order)) {
+        if (is_array($order) && array_key_exists('order_type' ?? '', $order)) {
             $side = ($order_type === '1') ? 'buy' : 'sell';
         }
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
@@ -760,18 +772,18 @@ class mercado extends Exchange {
             'address' => $address,
         );
         if ($code === 'BRL') {
-            $account_ref = (is_array($params) && array_key_exists('account_ref', $params));
+            $account_ref = (is_array($params) && array_key_exists('account_ref' ?? '', $params));
             if (!$account_ref) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $account_ref parameter to withdraw ' . $code);
             }
         } elseif ($code !== 'LTC') {
-            $tx_fee = (is_array($params) && array_key_exists('tx_fee', $params));
+            $tx_fee = (is_array($params) && array_key_exists('tx_fee' ?? '', $params));
             if (!$tx_fee) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires $tx_fee parameter to withdraw ' . $code);
             }
             if ($code === 'XRP') {
                 if ($tag === null) {
-                    if (!(is_array($params) && array_key_exists('destination_tag', $params))) {
+                    if (!(is_array($params) && array_key_exists('destination_tag' ?? '', $params))) {
                         throw new ArgumentsRequired($this->id . ' withdraw() requires a $tag argument or destination_tag parameter to withdraw ' . $code);
                     }
                 } else {
@@ -843,7 +855,7 @@ class mercado extends Exchange {
         );
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         return array(
             $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
@@ -860,9 +872,9 @@ class mercado extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of $candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -883,8 +895,9 @@ class mercado extends Exchange {
             $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
         }
         $response = $this->v4PublicNetGetCandles($this->extend($request, $params));
-        $candles = $this->convert_trading_view_to_ohlcv($response, 't', 'o', 'h', 'l', 'c', 'v');
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
+        // then parseOHLCVs, and takes the raw $response without narrowing it to a candle matrix
+        return $this->parse_trading_view_ohlcv($response, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -966,7 +979,7 @@ class mercado extends Exchange {
         return $this->filter_by_symbol_since_limit($trades, $market['symbol'], $since, $limit);
     }
 
-    public function orders_to_trades($orders) {
+    public function orders_to_trades(mixed $orders) {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
             $trades = $this->safe_value($orders[$i], 'trades', array());
@@ -977,7 +990,7 @@ class mercado extends Exchange {
         return $result;
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
         if (($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet')) {
@@ -1003,7 +1016,7 @@ class mercado extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if ($response === null) {
             return null;
         }

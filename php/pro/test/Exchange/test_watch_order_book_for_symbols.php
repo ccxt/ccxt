@@ -14,13 +14,17 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_order_book.php';
 function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symbols) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbols) {
         $method = 'watchOrderBookForSymbols';
+        // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
+        // loop has to be bounded by the deadline alone. waiting for every requested
+        // symbol to be seen would hang forever whenever one of them stays idle.
+        $max_idle_time = 5000;
         $current_time = $exchange->milliseconds();
         $deadline = $current_time + 15000;
-        $seen_symbols = [];
-        // keep polling until the time window elapses and every requested symbol has been observed
-        while ($current_time < $deadline || count($seen_symbols) < count($symbols)) {
+        $idle = false;
+        while (($current_time < $deadline) && !$idle) {
             $response = null;
             $succeeded = true;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_order_book_for_symbols($symbols));
             } catch(\Throwable $e) {
@@ -28,17 +32,15 @@ function test_watch_order_book_for_symbols($exchange, $skipped_properties, $symb
                 if (!is_temporary_failure($e) && !($e instanceof InvalidNonce)) {
                     throw $e;
                 }
-                $current_time = $exchange->milliseconds();
                 $succeeded = false;
             }
+            $current_time = $exchange->milliseconds();
             if (($succeeded === true) && ($response !== null)) {
-                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($symbols) . ' must return an object. ' . $exchange->json($response));
-                $current_time = $exchange->milliseconds();
-                assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
                 test_order_book($exchange, $skipped_properties, $method, $response, null);
-                $symbol = $response['symbol'];
-                if (($symbol !== null) && !$exchange->in_array($symbol, $seen_symbols)) {
-                    $seen_symbols[] = $symbol;
+                assert_in_array($exchange, $skipped_properties, $method, $response, 'symbol', $symbols);
+                $elapsed = $current_time - $start_time;
+                if ($elapsed > $max_idle_time) {
+                    $idle = true;
                 }
             }
         }

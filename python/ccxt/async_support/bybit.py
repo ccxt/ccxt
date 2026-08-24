@@ -7,8 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, MarketInterface, TransferEntry
-from typing import List
+from ccxt.base.types import ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -33,7 +32,7 @@ from ccxt.base.precise import Precise
 
 class bybit(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bybit, self).describe(), {
             'id': 'bybit',
             'name': 'Bybit',
@@ -79,9 +78,9 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchAllGreeks': True,
                 'fetchBalance': True,
                 'fetchBidsAsks': 'emulated',
-                'fetchBorrowInterest': False,  # temporarily disabled, doesn't work
+                'fetchBorrowInterest': True,
                 'fetchBorrowRateHistories': False,
-                'fetchBorrowRateHistory': False,
+                'fetchBorrowRateHistory': True,
                 'fetchCanceledAndClosedOrders': True,
                 'fetchCanceledOrders': True,
                 'fetchClosedOrder': True,
@@ -130,7 +129,6 @@ class bybit(Exchange, ImplicitAPI):
                 'fetchOptionChain': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
                 'fetchPositionADLRank': True,
@@ -211,465 +209,466 @@ class bybit(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         # spot
-                        'spot/v3/public/symbols': 1,
-                        'spot/v3/public/quote/depth': 1,
-                        'spot/v3/public/quote/depth/merged': 1,
-                        'spot/v3/public/quote/trades': 1,
-                        'spot/v3/public/quote/kline': 1,
-                        'spot/v3/public/quote/ticker/24hr': 1,
-                        'spot/v3/public/quote/ticker/price': 1,
-                        'spot/v3/public/quote/ticker/bookTicker': 1,
-                        'spot/v3/public/server-time': 1,
-                        'spot/v3/public/infos': 1,
-                        'spot/v3/public/margin-product-infos': 1,
-                        'spot/v3/public/margin-ensure-tokens': 1,
+                        'spot/v3/public/symbols': {'cost': 1},
+                        'spot/v3/public/quote/depth': {'cost': 1},
+                        'spot/v3/public/quote/depth/merged': {'cost': 1},
+                        'spot/v3/public/quote/trades': {'cost': 1},
+                        'spot/v3/public/quote/kline': {'cost': 1},
+                        'spot/v3/public/quote/ticker/24hr': {'cost': 1},
+                        'spot/v3/public/quote/ticker/price': {'cost': 1},
+                        'spot/v3/public/quote/ticker/bookTicker': {'cost': 1},
+                        'spot/v3/public/server-time': {'cost': 1},
+                        'spot/v3/public/infos': {'cost': 1},
+                        'spot/v3/public/margin-product-infos': {'cost': 1},
+                        'spot/v3/public/margin-ensure-tokens': {'cost': 1},
                         # data
-                        'v3/public/time': 1,
-                        'contract/v3/public/copytrading/symbol/list': 1,
+                        'v3/public/time': {'cost': 1},
+                        'contract/v3/public/copytrading/symbol/list': {'cost': 1},
                         # derivative
-                        'derivatives/v3/public/order-book/L2': 1,
-                        'derivatives/v3/public/kline': 1,
-                        'derivatives/v3/public/tickers': 1,
-                        'derivatives/v3/public/instruments-info': 1,
-                        'derivatives/v3/public/mark-price-kline': 1,
-                        'derivatives/v3/public/index-price-kline': 1,
-                        'derivatives/v3/public/funding/history-funding-rate': 1,
-                        'derivatives/v3/public/risk-limit/list': 1,
-                        'derivatives/v3/public/delivery-price': 1,
-                        'derivatives/v3/public/recent-trade': 1,
-                        'derivatives/v3/public/open-interest': 1,
-                        'derivatives/v3/public/insurance': 1,
+                        'derivatives/v3/public/order-book/L2': {'cost': 1},
+                        'derivatives/v3/public/kline': {'cost': 1},
+                        'derivatives/v3/public/tickers': {'cost': 1},
+                        'derivatives/v3/public/instruments-info': {'cost': 1},
+                        'derivatives/v3/public/mark-price-kline': {'cost': 1},
+                        'derivatives/v3/public/index-price-kline': {'cost': 1},
+                        'derivatives/v3/public/funding/history-funding-rate': {'cost': 1},
+                        'derivatives/v3/public/risk-limit/list': {'cost': 1},
+                        'derivatives/v3/public/delivery-price': {'cost': 1},
+                        'derivatives/v3/public/recent-trade': {'cost': 1},
+                        'derivatives/v3/public/open-interest': {'cost': 1},
+                        'derivatives/v3/public/insurance': {'cost': 1},
                         # v5
-                        'v5/announcements/index': 5,  # 10/s = 1000 / (20 * 5)
-                        'v5/system/status': 5,
+                        'v5/announcements/index': {'cost': 5},  # 10/s = 1000 / (20 * 5)
+                        'v5/system/status': {'cost': 5},
                         # market
-                        'v5/market/time': 5,
-                        'v5/market/kline': 5,
-                        'v5/market/mark-price-kline': 5,
-                        'v5/market/index-price-kline': 5,
-                        'v5/market/premium-index-price-kline': 5,
-                        'v5/market/instruments-info': 5,
-                        'v5/market/orderbook': 5,
-                        'v5/market/rpi_orderbook': 5,
-                        'v5/market/full_orderbook': 5,
-                        'v5/market/tickers': 5,
-                        'v5/market/funding/history': 5,
-                        'v5/market/recent-trade': 5,
-                        'v5/market/open-interest': 5,
-                        'v5/market/historical-volatility': 5,
-                        'v5/market/insurance': 5,
-                        'v5/market/risk-limit': 5,
-                        'v5/market/delivery-price': 5,
-                        'v5/market/new-delivery-price': 5,
-                        'v5/market/account-ratio': 5,
-                        'v5/market/index-price-components': 5,
-                        'v5/market/price-limit': 5,
-                        'v5/market/adlAlert': 5,
-                        'v5/market/fee-group-info': 5,
+                        'v5/market/time': {'cost': 5},
+                        'v5/market/kline': {'cost': 5},
+                        'v5/market/mark-price-kline': {'cost': 5},
+                        'v5/market/index-price-kline': {'cost': 5},
+                        'v5/market/premium-index-price-kline': {'cost': 5},
+                        'v5/market/instruments-info': {'cost': 5},
+                        'v5/market/orderbook': {'cost': 5},
+                        'v5/market/rpi_orderbook': {'cost': 5},
+                        'v5/market/full_orderbook': {'cost': 5},
+                        'v5/market/tickers': {'cost': 5},
+                        'v5/market/funding/history': {'cost': 5},
+                        'v5/market/recent-trade': {'cost': 5},
+                        'v5/market/open-interest': {'cost': 5},
+                        'v5/market/historical-volatility': {'cost': 5},
+                        'v5/market/insurance': {'cost': 5},
+                        'v5/market/risk-limit': {'cost': 5},
+                        'v5/market/delivery-price': {'cost': 5},
+                        'v5/market/new-delivery-price': {'cost': 5},
+                        'v5/market/account-ratio': {'cost': 5},
+                        'v5/market/index-price-components': {'cost': 5},
+                        'v5/market/price-limit': {'cost': 5},
+                        'v5/market/adlAlert': {'cost': 5},
+                        'v5/market/fee-group-info': {'cost': 5},
                         # spot leverage token
-                        'v5/spot-lever-token/info': 5,
-                        'v5/spot-lever-token/reference': 5,
+                        'v5/spot-lever-token/info': {'cost': 5},
+                        'v5/spot-lever-token/reference': {'cost': 5},
                         # spot margin trade
-                        'v5/spot-margin-trade/data': 5,
-                        'v5/spot-margin-trade/collateral': 5,
-                        'v5/spot-cross-margin-trade/data': 5,
-                        'v5/spot-cross-margin-trade/pledge-token': 5,
-                        'v5/spot-cross-margin-trade/borrow-token': 5,
+                        'v5/spot-margin-trade/data': {'cost': 5},
+                        'v5/spot-margin-trade/collateral': {'cost': 5},
+                        'v5/spot-cross-margin-trade/data': {'cost': 5},
+                        'v5/spot-cross-margin-trade/pledge-token': {'cost': 5},
+                        'v5/spot-cross-margin-trade/borrow-token': {'cost': 5},
                         # crypto loan
-                        'v5/crypto-loan/collateral-data': 5,
-                        'v5/crypto-loan/loanable-data': 5,
+                        'v5/crypto-loan/collateral-data': {'cost': 5},
+                        'v5/crypto-loan/loanable-data': {'cost': 5},
                         # crypto loan(new)
-                        'v5/crypto-loan-common/loanable-data': 5,
-                        'v5/crypto-loan-common/collateral-data': 5,
-                        'v5/crypto-loan-fixed/supply-order-quote': 5,
-                        'v5/crypto-loan-fixed/borrow-order-quote': 5,
+                        'v5/crypto-loan-common/loanable-data': {'cost': 5},
+                        'v5/crypto-loan-common/collateral-data': {'cost': 5},
+                        'v5/crypto-loan-fixed/supply-order-quote': {'cost': 5},
+                        'v5/crypto-loan-fixed/borrow-order-quote': {'cost': 5},
                         # institutional lending
-                        'v5/ins-loan/product-infos': 5,
-                        'v5/ins-loan/ensure-tokens-convert': 5,
+                        'v5/ins-loan/product-infos': {'cost': 5},
+                        'v5/ins-loan/ensure-tokens-convert': {'cost': 5},
                         # earn
-                        'v5/earn/product': 5,
+                        'v5/earn/product': {'cost': 5},
                     },
                 },
                 'private': {
                     'get': {
-                        'v5/market/instruments-info': 5,
+                        'v5/market/instruments-info': {'cost': 5},
                         # Legacy inverse swap
-                        'v2/private/wallet/fund/records': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'v2/private/wallet/fund/records': {'cost': 25},  # 120 per minute = 2 per second => cost = 50 / 2 = 25
                         # spot
-                        'spot/v3/private/order': 2.5,
-                        'spot/v3/private/open-orders': 2.5,
-                        'spot/v3/private/history-orders': 2.5,
-                        'spot/v3/private/my-trades': 2.5,
-                        'spot/v3/private/account': 2.5,
-                        'spot/v3/private/reference': 2.5,
-                        'spot/v3/private/record': 2.5,
-                        'spot/v3/private/cross-margin-orders': 10,
-                        'spot/v3/private/cross-margin-account': 10,
-                        'spot/v3/private/cross-margin-loan-info': 10,
-                        'spot/v3/private/cross-margin-repay-history': 10,
-                        'spot/v3/private/margin-loan-infos': 10,
-                        'spot/v3/private/margin-repaid-infos': 10,
-                        'spot/v3/private/margin-ltv': 10,
+                        'spot/v3/private/order': {'cost': 2.5},
+                        'spot/v3/private/open-orders': {'cost': 2.5},
+                        'spot/v3/private/history-orders': {'cost': 2.5},
+                        'spot/v3/private/my-trades': {'cost': 2.5},
+                        'spot/v3/private/account': {'cost': 2.5},
+                        'spot/v3/private/reference': {'cost': 2.5},
+                        'spot/v3/private/record': {'cost': 2.5},
+                        'spot/v3/private/cross-margin-orders': {'cost': 10},
+                        'spot/v3/private/cross-margin-account': {'cost': 10},
+                        'spot/v3/private/cross-margin-loan-info': {'cost': 10},
+                        'spot/v3/private/cross-margin-repay-history': {'cost': 10},
+                        'spot/v3/private/margin-loan-infos': {'cost': 10},
+                        'spot/v3/private/margin-repaid-infos': {'cost': 10},
+                        'spot/v3/private/margin-ltv': {'cost': 10},
                         # account
-                        'asset/v3/private/transfer/inter-transfer/list/query': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
-                        'asset/v3/private/transfer/sub-member/list/query': 50,
-                        'asset/v3/private/transfer/sub-member-transfer/list/query': 50,
-                        'asset/v3/private/transfer/universal-transfer/list/query': 25,
-                        'asset/v3/private/coin-info/query': 25,  # 2/s
-                        'asset/v3/private/deposit/address/query': 10,
-                        'contract/v3/private/copytrading/order/list': 30,  # 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
-                        'contract/v3/private/copytrading/position/list': 40,  # 75 req/min = 1000 / (20 * 40) = 1.25/s
-                        'contract/v3/private/copytrading/wallet/balance': 25,  # 120 req/min = 1000 / (20 * 25) = 2/s
-                        'contract/v3/private/position/limit-info': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
-                        'contract/v3/private/order/unfilled-orders': 1,
-                        'contract/v3/private/order/list': 1,
-                        'contract/v3/private/position/list': 1,
-                        'contract/v3/private/execution/list': 1,
-                        'contract/v3/private/position/closed-pnl': 1,
-                        'contract/v3/private/account/wallet/balance': 1,
-                        'contract/v3/private/account/fee-rate': 1,
-                        'contract/v3/private/account/wallet/fund-records': 1,
+                        'asset/v3/private/transfer/inter-transfer/list/query': {'cost': 50},  # 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v3/private/transfer/sub-member/list/query': {'cost': 50},
+                        'asset/v3/private/transfer/sub-member-transfer/list/query': {'cost': 50},
+                        'asset/v3/private/transfer/universal-transfer/list/query': {'cost': 25},
+                        'asset/v3/private/coin-info/query': {'cost': 25},  # 2/s
+                        'asset/v3/private/deposit/address/query': {'cost': 10},
+                        'contract/v3/private/copytrading/order/list': {'cost': 30},  # 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/position/list': {'cost': 40},  # 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/wallet/balance': {'cost': 25},  # 120 req/min = 1000 / (20 * 25) = 2/s
+                        'contract/v3/private/position/limit-info': {'cost': 25},  # 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'contract/v3/private/order/unfilled-orders': {'cost': 1},
+                        'contract/v3/private/order/list': {'cost': 1},
+                        'contract/v3/private/position/list': {'cost': 1},
+                        'contract/v3/private/execution/list': {'cost': 1},
+                        'contract/v3/private/position/closed-pnl': {'cost': 1},
+                        'contract/v3/private/account/wallet/balance': {'cost': 1},
+                        'contract/v3/private/account/fee-rate': {'cost': 1},
+                        'contract/v3/private/account/wallet/fund-records': {'cost': 1},
                         # derivative
-                        'unified/v3/private/order/unfilled-orders': 1,
-                        'unified/v3/private/order/list': 1,
-                        'unified/v3/private/position/list': 1,
-                        'unified/v3/private/execution/list': 1,
-                        'unified/v3/private/delivery-record': 1,
-                        'unified/v3/private/settlement-record': 1,
-                        'unified/v3/private/account/wallet/balance': 1,
-                        'unified/v3/private/account/transaction-log': 1,
-                        'unified/v3/private/account/borrow-history': 1,
-                        'unified/v3/private/account/borrow-rate': 1,
-                        'unified/v3/private/account/info': 1,
-                        'user/v3/private/frozen-sub-member': 10,  # 5/s
-                        'user/v3/private/query-sub-members': 5,  # 10/s
-                        'user/v3/private/query-api': 5,  # 10/s
-                        'user/v3/private/get-member-type': 1,
-                        'asset/v3/private/transfer/transfer-coin/list/query': 50,
-                        'asset/v3/private/transfer/account-coin/balance/query': 50,
-                        'asset/v3/private/transfer/account-coins/balance/query': 25,
-                        'asset/v3/private/transfer/asset-info/query': 50,
-                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17,  # 300/s
-                        'asset/v3/private/deposit/record/query': 10,
-                        'asset/v3/private/withdraw/record/query': 10,
+                        'unified/v3/private/order/unfilled-orders': {'cost': 1},
+                        'unified/v3/private/order/list': {'cost': 1},
+                        'unified/v3/private/position/list': {'cost': 1},
+                        'unified/v3/private/execution/list': {'cost': 1},
+                        'unified/v3/private/delivery-record': {'cost': 1},
+                        'unified/v3/private/settlement-record': {'cost': 1},
+                        'unified/v3/private/account/wallet/balance': {'cost': 1},
+                        'unified/v3/private/account/transaction-log': {'cost': 1},
+                        'unified/v3/private/account/borrow-history': {'cost': 1},
+                        'unified/v3/private/account/borrow-rate': {'cost': 1},
+                        'unified/v3/private/account/info': {'cost': 1},
+                        'user/v3/private/frozen-sub-member': {'cost': 10},  # 5/s
+                        'user/v3/private/query-sub-members': {'cost': 5},  # 10/s
+                        'user/v3/private/query-api': {'cost': 5},  # 10/s
+                        'user/v3/private/get-member-type': {'cost': 1},
+                        'asset/v3/private/transfer/transfer-coin/list/query': {'cost': 50},
+                        'asset/v3/private/transfer/account-coin/balance/query': {'cost': 50},
+                        'asset/v3/private/transfer/account-coins/balance/query': {'cost': 25},
+                        'asset/v3/private/transfer/asset-info/query': {'cost': 50},
+                        'asset/v3/public/deposit/allowed-deposit-list/query': {'cost': 0.17},  # 300/s
+                        'asset/v3/private/deposit/record/query': {'cost': 10},
+                        'asset/v3/private/withdraw/record/query': {'cost': 10},
                         # v5
                         # trade
-                        'v5/order/realtime': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/order/history': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/order/spot-borrow-check': 1,  # 50/s = 1000 / (20 * 1)
+                        'v5/order/realtime': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/order/history': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/order/spot-borrow-check': {'cost': 1},  # 50/s = 1000 / (20 * 1)
                         # position
-                        'v5/position/list': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/execution/list': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/position/closed-pnl': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/position/get-closed-positions': 5,
-                        'v5/position/move-history': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/position/symbol-info': 5,
+                        'v5/position/list': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/execution/list': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/closed-pnl': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/get-closed-positions': {'cost': 5},
+                        'v5/position/move-history': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/symbol-info': {'cost': 5},
                         # pre-upgrade
-                        'v5/pre-upgrade/order/history': 5,
-                        'v5/pre-upgrade/execution/list': 5,
-                        'v5/pre-upgrade/position/closed-pnl': 5,
-                        'v5/pre-upgrade/account/transaction-log': 5,
-                        'v5/pre-upgrade/asset/delivery-record': 5,
-                        'v5/pre-upgrade/asset/settlement-record': 5,
+                        'v5/pre-upgrade/order/history': {'cost': 5},
+                        'v5/pre-upgrade/execution/list': {'cost': 5},
+                        'v5/pre-upgrade/position/closed-pnl': {'cost': 5},
+                        'v5/pre-upgrade/account/transaction-log': {'cost': 5},
+                        'v5/pre-upgrade/asset/delivery-record': {'cost': 5},
+                        'v5/pre-upgrade/asset/settlement-record': {'cost': 5},
                         # account
-                        'v5/account/wallet-balance': 1,
-                        'v5/account/borrow-history': 1,
-                        'v5/account/instruments-info': 1,
-                        'v5/account/collateral-info': 1,
-                        'v5/account/option-asset-info': 1,
-                        'v5/asset/coin-greeks': 1,
-                        'v5/account/fee-rate': 10,  # 5/s = 1000 / (20 * 10)
-                        'v5/account/info': 5,
-                        'v5/account/transaction-log': 1.66,  # 30/s = 50 / 30
-                        'v5/account/contract-transaction-log': 1,  # deprecated
-                        'v5/account/query-dcp-info': 5,
-                        'v5/account/user-setting-config': 5,
-                        'v5/account/pay-info': 5,
-                        'v5/account/trade-info-for-analysis': 5,
-                        'v5/account/smp-group': 1,
-                        'v5/account/mmp-state': 5,
-                        'v5/account/withdrawal': 5,
+                        'v5/account/wallet-balance': {'cost': 1},
+                        'v5/account/borrow-history': {'cost': 1},
+                        'v5/account/instruments-info': {'cost': 1},
+                        'v5/account/collateral-info': {'cost': 1},
+                        'v5/account/option-asset-info': {'cost': 1},
+                        'v5/asset/coin-greeks': {'cost': 1},
+                        'v5/account/fee-rate': {'cost': 10},  # 5/s = 1000 / (20 * 10)
+                        'v5/account/info': {'cost': 5},
+                        'v5/account/transaction-log': {'cost': 1.66},  # 30/s = 50 / 30
+                        'v5/account/contract-transaction-log': {'cost': 1},  # deprecated
+                        'v5/account/query-dcp-info': {'cost': 5},
+                        'v5/account/user-setting-config': {'cost': 5},
+                        'v5/account/pay-info': {'cost': 5},
+                        'v5/account/trade-info-for-analysis': {'cost': 5},
+                        'v5/account/smp-group': {'cost': 1},
+                        'v5/account/mmp-state': {'cost': 5},
+                        'v5/account/withdrawal': {'cost': 5},
                         # asset
-                        'v5/asset/asset-overview': 5,
-                        'v5/asset/exchange/query-coin-list': 0.5,  # 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/convert-result-query': 0.5,  # 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/query-convert-history': 0.5,  # 100/s => cost = 50 / 100 = 0.5
-                        'v5/asset/exchange/order-record': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/asset/fundinghistory': 5,
-                        'v5/asset/portfolio-margin': 5,
-                        'v5/asset/total-members-assets': 5,
-                        'v5/asset/delivery-record': 5,
-                        'v5/asset/settlement-record': 5,
-                        'v5/asset/transfer/query-asset-info': 50,  # deprecated, 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-account-coins-balance': 25,  # 2/s => cost = 50 / 2 = 25
-                        'v5/asset/transfer/query-account-coin-balance': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-transfer-coin-list': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-inter-transfer-list': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-sub-member-list': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/query-universal-transfer-list': 25,  # 2/s => cost = 50 / 2 = 25
-                        'v5/asset/deposit/query-allowed-list': 5,
-                        'v5/asset/deposit/query-record': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-sub-member-record': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-internal-record': 5,
-                        'v5/asset/deposit/query-address': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/query-sub-member-address': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/coin/query-info': 28,  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
-                        'v5/asset/withdraw/query-address': 10,
-                        'v5/asset/withdraw/query-record': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/withdraw/withdrawable-amount': 5,
-                        'v5/asset/withdraw/vasp/list': 5,
-                        'v5/asset/covert/small-balance-list': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/asset/covert/small-balance-history': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/asset/convert/small-balance-list': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/asset/convert/small-balance-history': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/fiat/query-coin-list': 5,
-                        'v5/fiat/reference-price': 5,
-                        'v5/fiat/trade-query': 5,
-                        'v5/fiat/query-trade-history': 5,
-                        'v5/fiat/balance-query': 5,
+                        'v5/asset/asset-overview': {'cost': 5},
+                        'v5/asset/exchange/query-coin-list': {'cost': 0.5},  # 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/convert-result-query': {'cost': 0.5},  # 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/query-convert-history': {'cost': 0.5},  # 100/s => cost = 50 / 100 = 0.5
+                        'v5/asset/exchange/order-record': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/fundinghistory': {'cost': 5},
+                        'v5/asset/portfolio-margin': {'cost': 5},
+                        'v5/asset/total-members-assets': {'cost': 5},
+                        'v5/asset/delivery-record': {'cost': 5},
+                        'v5/asset/settlement-record': {'cost': 5},
+                        'v5/asset/transfer/query-asset-info': {'cost': 50},  # deprecated, 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-account-coins-balance': {'cost': 25},  # 2/s => cost = 50 / 2 = 25
+                        'v5/asset/transfer/query-account-coin-balance': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-transfer-coin-list': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-inter-transfer-list': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-sub-member-list': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/query-universal-transfer-list': {'cost': 25},  # 2/s => cost = 50 / 2 = 25
+                        'v5/asset/deposit/query-allowed-list': {'cost': 5},
+                        'v5/asset/deposit/query-record': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-record': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-internal-record': {'cost': 5},
+                        'v5/asset/deposit/query-address': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/query-sub-member-address': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/coin/query-info': {'cost': 28},  # should be 25 but exceeds ratelimit unless the weight is 28 or higher
+                        'v5/asset/withdraw/query-address': {'cost': 10},
+                        'v5/asset/withdraw/query-record': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/withdraw/withdrawable-amount': {'cost': 5},
+                        'v5/asset/withdraw/vasp/list': {'cost': 5},
+                        'v5/asset/covert/small-balance-list': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/covert/small-balance-history': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-list': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/asset/convert/small-balance-history': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/fiat/query-coin-list': {'cost': 5},
+                        'v5/fiat/reference-price': {'cost': 5},
+                        'v5/fiat/trade-query': {'cost': 5},
+                        'v5/fiat/query-trade-history': {'cost': 5},
+                        'v5/fiat/balance-query': {'cost': 5},
                         # user
-                        'v5/user/query-sub-members': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/user/query-api': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/user/sub-apikeys': 5,
-                        'v5/user/get-member-type': 5,
-                        'v5/user/aff-customer-info': 5,
-                        'v5/user/del-submember': 5,
-                        'v5/user/submembers': 5,
-                        'v5/user/escrow_sub_members': 5,
-                        'v5/user/invitation/referrals': 5,
+                        'v5/user/query-sub-members': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/user/query-api': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/user/sub-apikeys': {'cost': 5},
+                        'v5/user/get-member-type': {'cost': 5},
+                        'v5/user/aff-customer-info': {'cost': 5},
+                        'v5/user/del-submember': {'cost': 5},
+                        'v5/user/submembers': {'cost': 5},
+                        'v5/user/escrow_sub_members': {'cost': 5},
+                        'v5/user/invitation/referrals': {'cost': 5},
                         # affilate
-                        'v5/affiliate/aff-user-list': 5,
-                        'v5/affiliate/affiliate-sub-list': 5,
+                        'v5/affiliate/aff-user-list': {'cost': 5},
+                        'v5/affiliate/affiliate-sub-list': {'cost': 5},
                         # spot leverage token
-                        'v5/spot-lever-token/order-record': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-lever-token/order-record': {'cost': 1},  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
-                        'v5/spot-margin-trade/interest-rate-history': 5,
-                        'v5/spot-margin-trade/state': 5,
-                        'v5/spot-margin-trade/max-borrowable': 5,
-                        'v5/spot-margin-trade/position-tiers': 5,
-                        'v5/spot-margin-trade/coinstate': 5,
-                        'v5/spot-margin-trade/currency-data': 5,
-                        'v5/spot-margin-trade/fixedborrow-contract-info': 5,
-                        'v5/spot-margin-trade/fixedborrow-order-info': 5,
-                        'v5/spot-margin-trade/fixedborrow-order-quote': 5,
-                        'v5/spot-margin-trade/liability': 5,
-                        'v5/spot-margin-trade/repayment-available-amount': 5,
-                        'v5/spot-margin-trade/get-auto-repay-mode': 5,
-                        'v5/spot-cross-margin-trade/loan-info': 1,  # 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/account': 1,  # 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/orders': 1,  # 50/s => cost = 50 / 50 = 1
-                        'v5/spot-cross-margin-trade/repay-history': 1,  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-margin-trade/flexible-available-inventory': {'cost': 5},
+                        'v5/spot-margin-trade/interest-rate-history': {'cost': 5},
+                        'v5/spot-margin-trade/state': {'cost': 5},
+                        'v5/spot-margin-trade/max-borrowable': {'cost': 5},
+                        'v5/spot-margin-trade/position-tiers': {'cost': 5},
+                        'v5/spot-margin-trade/coinstate': {'cost': 5},
+                        'v5/spot-margin-trade/currency-data': {'cost': 5},
+                        'v5/spot-margin-trade/fixedborrow-contract-info': {'cost': 5},
+                        'v5/spot-margin-trade/fixedborrow-order-info': {'cost': 5},
+                        'v5/spot-margin-trade/fixedborrow-order-quote': {'cost': 5},
+                        'v5/spot-margin-trade/liability': {'cost': 5},
+                        'v5/spot-margin-trade/repayment-available-amount': {'cost': 5},
+                        'v5/spot-margin-trade/get-auto-repay-mode': {'cost': 5},
+                        'v5/spot-cross-margin-trade/loan-info': {'cost': 1},  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/account': {'cost': 1},  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/orders': {'cost': 1},  # 50/s => cost = 50 / 50 = 1
+                        'v5/spot-cross-margin-trade/repay-history': {'cost': 1},  # 50/s => cost = 50 / 50 = 1
                         # crypto loan
-                        'v5/crypto-loan/borrowable-collateralisable-number': 5,
-                        'v5/crypto-loan/ongoing-orders': 5,
-                        'v5/crypto-loan/repayment-history': 5,
-                        'v5/crypto-loan/borrow-history': 5,
-                        'v5/crypto-loan/max-collateral-amount': 5,
-                        'v5/crypto-loan/adjustment-history': 5,
+                        'v5/crypto-loan/borrowable-collateralisable-number': {'cost': 5},
+                        'v5/crypto-loan/ongoing-orders': {'cost': 5},
+                        'v5/crypto-loan/repayment-history': {'cost': 5},
+                        'v5/crypto-loan/borrow-history': {'cost': 5},
+                        'v5/crypto-loan/max-collateral-amount': {'cost': 5},
+                        'v5/crypto-loan/adjustment-history': {'cost': 5},
                         # crypto loan(new)
-                        'v5/crypto-loan-common/max-collateral-amount': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-common/adjustment-history': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-common/position': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/ongoing-coin': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/borrow-history': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/repayment-history': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/borrow-contract-info': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/supply-contract-info': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/borrow-order-info': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/renew-info': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/supply-order-info': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-fixed/repayment-history': 10,  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/max-collateral-amount': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/adjustment-history': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-common/position': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/ongoing-coin': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow-history': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/repayment-history': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-contract-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-contract-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/borrow-order-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/renew-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/supply-order-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/repayment-history': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
                         # institutional lending
-                        'v5/ins-loan/product-infos': 5,
-                        'v5/ins-loan/ensure-tokens': 5,  # deprecated
-                        'v5/ins-loan/ensure-tokens-convert': 5,
-                        'v5/ins-loan/loan-order': 5,
-                        'v5/ins-loan/repaid-history': 5,
-                        'v5/ins-loan/ltv': 5,  # deprecated
-                        'v5/ins-loan/ltv-convert': 5,
-                        'v5/ins-loan/coin-delta-amount': 5,
+                        'v5/ins-loan/product-infos': {'cost': 5},
+                        'v5/ins-loan/ensure-tokens': {'cost': 5},  # deprecated
+                        'v5/ins-loan/ensure-tokens-convert': {'cost': 5},
+                        'v5/ins-loan/loan-order': {'cost': 5},
+                        'v5/ins-loan/repaid-history': {'cost': 5},
+                        'v5/ins-loan/ltv': {'cost': 5},  # deprecated
+                        'v5/ins-loan/ltv-convert': {'cost': 5},
+                        'v5/ins-loan/coin-delta-amount': {'cost': 5},
                         # c2c lending
-                        'v5/lending/info': 5,  # deprecated
-                        'v5/lending/history-order': 5,  # deprecated
-                        'v5/lending/account': 5,  # deprecated
+                        'v5/lending/info': {'cost': 5},  # deprecated
+                        'v5/lending/history-order': {'cost': 5},  # deprecated
+                        'v5/lending/account': {'cost': 5},  # deprecated
                         # broker
-                        'v5/broker/earning-record': 5,  # deprecated
-                        'v5/broker/earnings-info': 5,
-                        'v5/broker/account-info': 5,
-                        'v5/broker/asset/query-sub-member-deposit-record': 10,
+                        'v5/broker/earning-record': {'cost': 5},  # deprecated
+                        'v5/broker/earnings-info': {'cost': 5},
+                        'v5/broker/account-info': {'cost': 5},
+                        'v5/broker/asset/query-sub-member-deposit-record': {'cost': 10},
                         # earn
-                        'v5/earn/product': 5,
-                        'v5/earn/order': 5,
-                        'v5/earn/position': 5,
-                        'v5/earn/yield': 5,
-                        'v5/earn/hourly-yield': 5,
+                        'v5/earn/product': {'cost': 5},
+                        'v5/earn/order': {'cost': 5},
+                        'v5/earn/position': {'cost': 5},
+                        'v5/earn/yield': {'cost': 5},
+                        'v5/earn/hourly-yield': {'cost': 5},
                     },
                     'post': {
                         # spot
-                        'spot/v3/private/order': 2.5,
-                        'spot/v3/private/cancel-order': 2.5,
-                        'spot/v3/private/cancel-orders': 2.5,
-                        'spot/v3/private/cancel-orders-by-ids': 2.5,
-                        'spot/v3/private/purchase': 2.5,
-                        'spot/v3/private/redeem': 2.5,
-                        'spot/v3/private/cross-margin-loan': 10,
-                        'spot/v3/private/cross-margin-repay': 10,
+                        'spot/v3/private/order': {'cost': 2.5},
+                        'spot/v3/private/cancel-order': {'cost': 2.5},
+                        'spot/v3/private/cancel-orders': {'cost': 2.5},
+                        'spot/v3/private/cancel-orders-by-ids': {'cost': 2.5},
+                        'spot/v3/private/purchase': {'cost': 2.5},
+                        'spot/v3/private/redeem': {'cost': 2.5},
+                        'spot/v3/private/cross-margin-loan': {'cost': 10},
+                        'spot/v3/private/cross-margin-repay': {'cost': 10},
                         # account
-                        'asset/v3/private/transfer/inter-transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
-                        'asset/v3/private/withdraw/create': 300,
-                        'asset/v3/private/withdraw/cancel': 50,
-                        'asset/v3/private/transfer/sub-member-transfer': 150,
-                        'asset/v3/private/transfer/transfer-sub-member-save': 150,
-                        'asset/v3/private/transfer/universal-transfer': 10,  # 5/s
-                        'user/v3/private/create-sub-member': 10,  # 5/s
-                        'user/v3/private/create-sub-api': 10,  # 5/s
-                        'user/v3/private/update-api': 10,  # 5/s
-                        'user/v3/private/delete-api': 10,  # 5/s
-                        'user/v3/private/update-sub-api': 10,  # 5/s
-                        'user/v3/private/delete-sub-api': 10,  # 5/s
+                        'asset/v3/private/transfer/inter-transfer': {'cost': 150},  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v3/private/withdraw/create': {'cost': 300},
+                        'asset/v3/private/withdraw/cancel': {'cost': 50},
+                        'asset/v3/private/transfer/sub-member-transfer': {'cost': 150},
+                        'asset/v3/private/transfer/transfer-sub-member-save': {'cost': 150},
+                        'asset/v3/private/transfer/universal-transfer': {'cost': 10},  # 5/s
+                        'user/v3/private/create-sub-member': {'cost': 10},  # 5/s
+                        'user/v3/private/create-sub-api': {'cost': 10},  # 5/s
+                        'user/v3/private/update-api': {'cost': 10},  # 5/s
+                        'user/v3/private/delete-api': {'cost': 10},  # 5/s
+                        'user/v3/private/update-sub-api': {'cost': 10},  # 5/s
+                        'user/v3/private/delete-sub-api': {'cost': 10},  # 5/s
                         # contract
-                        'contract/v3/private/copytrading/order/create': 30,  # 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
-                        'contract/v3/private/copytrading/order/cancel': 30,
-                        'contract/v3/private/copytrading/order/close': 30,
-                        'contract/v3/private/copytrading/position/close': 40,  # 75 req/min = 1000 / (20 * 40) = 1.25/s
-                        'contract/v3/private/copytrading/position/set-leverage': 40,
-                        'contract/v3/private/copytrading/wallet/transfer': 25,  # 120 req/min = 1000 / (20 * 25) = 2/s
-                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
-                        'contract/v3/private/order/create': 1,
-                        'contract/v3/private/order/cancel': 1,
-                        'contract/v3/private/order/cancel-all': 1,
-                        'contract/v3/private/order/replace': 1,
-                        'contract/v3/private/position/set-auto-add-margin': 1,
-                        'contract/v3/private/position/switch-isolated': 1,
-                        'contract/v3/private/position/switch-mode': 1,
-                        'contract/v3/private/position/switch-tpsl-mode': 1,
-                        'contract/v3/private/position/set-leverage': 1,
-                        'contract/v3/private/position/trading-stop': 1,
-                        'contract/v3/private/position/set-risk-limit': 1,
-                        'contract/v3/private/account/setMarginMode': 1,
+                        'contract/v3/private/copytrading/order/create': {'cost': 30},  # 100 req/min = 1000 / (20 * 30) = 1.66666666667/s
+                        'contract/v3/private/copytrading/order/cancel': {'cost': 30},
+                        'contract/v3/private/copytrading/order/close': {'cost': 30},
+                        'contract/v3/private/copytrading/position/close': {'cost': 40},  # 75 req/min = 1000 / (20 * 40) = 1.25/s
+                        'contract/v3/private/copytrading/position/set-leverage': {'cost': 40},
+                        'contract/v3/private/copytrading/wallet/transfer': {'cost': 25},  # 120 req/min = 1000 / (20 * 25) = 2/s
+                        'contract/v3/private/copytrading/order/trading-stop': {'cost': 2.5},
+                        'contract/v3/private/order/create': {'cost': 1},
+                        'contract/v3/private/order/cancel': {'cost': 1},
+                        'contract/v3/private/order/cancel-all': {'cost': 1},
+                        'contract/v3/private/order/replace': {'cost': 1},
+                        'contract/v3/private/position/set-auto-add-margin': {'cost': 1},
+                        'contract/v3/private/position/switch-isolated': {'cost': 1},
+                        'contract/v3/private/position/switch-mode': {'cost': 1},
+                        'contract/v3/private/position/switch-tpsl-mode': {'cost': 1},
+                        'contract/v3/private/position/set-leverage': {'cost': 1},
+                        'contract/v3/private/position/trading-stop': {'cost': 1},
+                        'contract/v3/private/position/set-risk-limit': {'cost': 1},
+                        'contract/v3/private/account/setMarginMode': {'cost': 1},
                         # derivative
-                        'unified/v3/private/order/create': 30,  # 100 req/min(shared) = 1000 / (20 * 30) = 1.66666666667/s
-                        'unified/v3/private/order/replace': 30,
-                        'unified/v3/private/order/cancel': 30,
-                        'unified/v3/private/order/create-batch': 30,
-                        'unified/v3/private/order/replace-batch': 30,
-                        'unified/v3/private/order/cancel-batch': 30,
-                        'unified/v3/private/order/cancel-all': 30,
-                        'unified/v3/private/position/set-leverage': 2.5,
-                        'unified/v3/private/position/tpsl/switch-mode': 2.5,
-                        'unified/v3/private/position/set-risk-limit': 2.5,
-                        'unified/v3/private/position/trading-stop': 2.5,
-                        'unified/v3/private/account/upgrade-unified-account': 2.5,
-                        'unified/v3/private/account/setMarginMode': 2.5,
+                        'unified/v3/private/order/create': {'cost': 30},  # 100 req/min(shared) = 1000 / (20 * 30) = 1.66666666667/s
+                        'unified/v3/private/order/replace': {'cost': 30},
+                        'unified/v3/private/order/cancel': {'cost': 30},
+                        'unified/v3/private/order/create-batch': {'cost': 30},
+                        'unified/v3/private/order/replace-batch': {'cost': 30},
+                        'unified/v3/private/order/cancel-batch': {'cost': 30},
+                        'unified/v3/private/order/cancel-all': {'cost': 30},
+                        'unified/v3/private/position/set-leverage': {'cost': 2.5},
+                        'unified/v3/private/position/tpsl/switch-mode': {'cost': 2.5},
+                        'unified/v3/private/position/set-risk-limit': {'cost': 2.5},
+                        'unified/v3/private/position/trading-stop': {'cost': 2.5},
+                        'unified/v3/private/account/upgrade-unified-account': {'cost': 2.5},
+                        'unified/v3/private/account/setMarginMode': {'cost': 2.5},
                         # tax
-                        'fht/compliance/tax/v3/private/registertime': 50,
-                        'fht/compliance/tax/v3/private/create': 50,
-                        'fht/compliance/tax/v3/private/status': 50,
-                        'fht/compliance/tax/v3/private/url': 50,
+                        'fht/compliance/tax/v3/private/registertime': {'cost': 50},
+                        'fht/compliance/tax/v3/private/create': {'cost': 50},
+                        'fht/compliance/tax/v3/private/status': {'cost': 50},
+                        'fht/compliance/tax/v3/private/url': {'cost': 50},
                         # v5
                         # trade
-                        'v5/order/create': 2.5,  # 20/s = 1000 / (20 * 2.5)
-                        'v5/order/amend': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel': 2.5,
-                        'v5/order/cancel-all': 50,  # 1/s = 1000 / (20 * 50)
-                        'v5/order/create-batch': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/order/amend-batch': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/order/cancel-batch': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/order/disconnected-cancel-all': 5,
-                        'v5/order/pre-check': 5,
+                        'v5/order/create': {'cost': 2.5},  # 20/s = 1000 / (20 * 2.5)
+                        'v5/order/amend': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel': {'cost': 2.5},
+                        'v5/order/cancel-all': {'cost': 50},  # 1/s = 1000 / (20 * 50)
+                        'v5/order/create-batch': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/order/amend-batch': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/order/cancel-batch': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/order/disconnected-cancel-all': {'cost': 5},
+                        'v5/order/pre-check': {'cost': 5},
                         # position
-                        'v5/position/set-leverage': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-isolated': 5,  # deprecated
-                        'v5/position/set-tpsl-mode': 5,  # deprecated, 10/s => cost = 50 / 10 = 5
-                        'v5/position/switch-mode': 5,
-                        'v5/position/set-risk-limit': 5,  # deprecated, 10/s => cost = 50 / 10 = 5
-                        'v5/position/trading-stop': 5,  # 10/s => cost = 50 / 10 = 5
-                        'v5/position/set-auto-add-margin': 5,
-                        'v5/position/add-margin': 5,
-                        'v5/position/move-positions': 5,
-                        'v5/position/confirm-pending-mmr': 5,
+                        'v5/position/set-leverage': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-isolated': {'cost': 5},  # deprecated
+                        'v5/position/set-tpsl-mode': {'cost': 5},  # deprecated, 10/s => cost = 50 / 10 = 5
+                        'v5/position/switch-mode': {'cost': 5},
+                        'v5/position/set-risk-limit': {'cost': 5},  # deprecated, 10/s => cost = 50 / 10 = 5
+                        'v5/position/trading-stop': {'cost': 5},  # 10/s => cost = 50 / 10 = 5
+                        'v5/position/set-auto-add-margin': {'cost': 5},
+                        'v5/position/add-margin': {'cost': 5},
+                        'v5/position/move-positions': {'cost': 5},
+                        'v5/position/confirm-pending-mmr': {'cost': 5},
                         # account
-                        'v5/account/upgrade-to-uta': 5,
-                        'v5/account/quick-repayment': 5,
-                        'v5/account/set-margin-mode': 5,
-                        'v5/account/set-hedging-mode': 5,
-                        'v5/account/mmp-modify': 5,
-                        'v5/account/mmp-reset': 5,
-                        'v5/account/borrow': 5,
-                        'v5/account/repay': 5,
-                        'v5/account/no-convert-repay': 5,
-                        'v5/account/set-limit-px-action': 5,
-                        'v5/account/set-delta-mode': 5,
+                        'v5/account/upgrade-to-uta': {'cost': 5},
+                        'v5/account/quick-repayment': {'cost': 5},
+                        'v5/account/set-margin-mode': {'cost': 5},
+                        'v5/account/set-hedging-mode': {'cost': 5},
+                        'v5/account/mmp-modify': {'cost': 5},
+                        'v5/account/mmp-reset': {'cost': 5},
+                        'v5/account/borrow': {'cost': 5},
+                        'v5/account/repay': {'cost': 5},
+                        'v5/account/no-convert-repay': {'cost': 5},
+                        'v5/account/set-limit-px-action': {'cost': 5},
+                        'v5/account/set-delta-mode': {'cost': 5},
                         # asset
-                        'v5/asset/exchange/quote-apply': 1,  # 50/s
-                        'v5/asset/exchange/convert-execute': 1,  # 50/s
-                        'v5/asset/transfer/inter-transfer': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/transfer/save-transfer-sub-member': 150,  # deprecated, 1/3/s => cost = 50 / 1/3 = 150
-                        'v5/asset/transfer/universal-transfer': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/deposit/deposit-to-account': 5,
-                        'v5/asset/travel-rule/deposit/submit': 5,
-                        'v5/asset/withdraw/create': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/withdraw/cancel': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/asset/covert/get-quote': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/asset/covert/small-balance-execute': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/fiat/quote-apply': 10,
-                        'v5/fiat/trade-execute': 10,
+                        'v5/asset/exchange/quote-apply': {'cost': 1},  # 50/s
+                        'v5/asset/exchange/convert-execute': {'cost': 1},  # 50/s
+                        'v5/asset/transfer/inter-transfer': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/transfer/save-transfer-sub-member': {'cost': 150},  # deprecated, 1/3/s => cost = 50 / 1/3 = 150
+                        'v5/asset/transfer/universal-transfer': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/deposit/deposit-to-account': {'cost': 5},
+                        'v5/asset/travel-rule/deposit/submit': {'cost': 5},
+                        'v5/asset/withdraw/create': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/withdraw/cancel': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/asset/covert/get-quote': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/asset/covert/small-balance-execute': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/fiat/quote-apply': {'cost': 10},
+                        'v5/fiat/trade-execute': {'cost': 10},
                         # user
-                        'v5/user/create-sub-member': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/create-sub-api': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/frozen-sub-member': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/update-api': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/update-sub-api': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/delete-api': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/delete-sub-api': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/agreement': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/user/create-demo-member': 10,  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-sub-member': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-sub-api': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/frozen-sub-member': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-api': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/update-sub-api': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-api': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/delete-sub-api': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/agreement': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/user/create-demo-member': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
                         # spot leverage token
-                        'v5/spot-lever-token/purchase': 2.5,  # 20/s => cost = 50 / 20 = 2.5
-                        'v5/spot-lever-token/redeem': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-lever-token/purchase': {'cost': 2.5},  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-lever-token/redeem': {'cost': 2.5},  # 20/s => cost = 50 / 20 = 2.5
                         # spot margin trade
-                        'v5/spot-margin-trade/switch-mode': 5,
-                        'v5/spot-margin-trade/set-leverage': 5,
-                        'v5/spot-margin-trade/set-auto-repay-mode': 5,
-                        'v5/spot-margin-trade/fixedborrow': 5,
-                        'v5/spot-margin-trade/fixedborrow-renew': 5,
-                        'v5/spot-cross-margin-trade/loan': 2.5,  # 20/s => cost = 50 / 20 = 2.5
-                        'v5/spot-cross-margin-trade/repay': 2.5,  # 20/s => cost = 50 / 20 = 2.5
-                        'v5/spot-cross-margin-trade/switch': 2.5,  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-margin-trade/switch-mode': {'cost': 5},
+                        'v5/spot-margin-trade/set-leverage': {'cost': 5},
+                        'v5/spot-margin-trade/set-auto-repay-mode': {'cost': 5},
+                        'v5/spot-margin-trade/fixedborrow': {'cost': 5},
+                        'v5/spot-margin-trade/fixedborrow-renew': {'cost': 5},
+                        'v5/spot-cross-margin-trade/loan': {'cost': 2.5},  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/repay': {'cost': 2.5},  # 20/s => cost = 50 / 20 = 2.5
+                        'v5/spot-cross-margin-trade/switch': {'cost': 2.5},  # 20/s => cost = 50 / 20 = 2.5
                         # crypto loan
-                        'v5/crypto-loan/borrow': 5,
-                        'v5/crypto-loan/repay': 5,
-                        'v5/crypto-loan/adjust-ltv': 5,
+                        'v5/crypto-loan/borrow': {'cost': 5},
+                        'v5/crypto-loan/repay': {'cost': 5},
+                        'v5/crypto-loan/adjust-ltv': {'cost': 5},
                         # crypto loan(new)
-                        'v5/crypto-loan-common/adjust-ltv': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-common/max-loan': 10,  # 5/s => cost = 50 / 5 = 10
-                        'v5/crypto-loan-flexible/borrow': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-flexible/repay': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-flexible/repay-collateral': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/borrow': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/renew': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/supply': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/borrow-order-cancel': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/supply-order-cancel': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/fully-repay': 50,  # 1/s => cost = 50 / 1 = 50
-                        'v5/crypto-loan-fixed/repay-collateral': 50,  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/adjust-ltv': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-common/max-loan': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/borrow': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-flexible/repay-collateral': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/renew': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/borrow-order-cancel': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/supply-order-cancel': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/fully-repay': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
+                        'v5/crypto-loan-fixed/repay-collateral': {'cost': 50},  # 1/s => cost = 50 / 1 = 50
                         # institutional lending
-                        'v5/ins-loan/association-uid': 5,
-                        'v5/ins-loan/repay-loan': 5,
+                        'v5/ins-loan/association-uid': {'cost': 5},
+                        'v5/ins-loan/repay-loan': {'cost': 5},
                         # c2c lending
-                        'v5/lending/purchase': 5,  # deprecated
-                        'v5/lending/redeem': 5,  # deprecated
-                        'v5/lending/redeem-cancel': 5,  # deprecated
-                        'v5/account/set-collateral-switch': 5,
-                        'v5/account/set-collateral-switch-batch': 5,
+                        'v5/lending/purchase': {'cost': 5},  # deprecated
+                        'v5/lending/redeem': {'cost': 5},  # deprecated
+                        'v5/lending/redeem-cancel': {'cost': 5},  # deprecated
+                        'v5/account/set-collateral-switch': {'cost': 5},
+                        'v5/account/set-collateral-switch-batch': {'cost': 5},
                         # demo trading
-                        'v5/account/demo-apply-money': 5,
+                        'v5/account/demo-apply-money': {'cost': 5},
                         # broker
-                        'v5/broker/award/info': 5,
-                        'v5/broker/award/distribute-award': 5,
-                        'v5/broker/award/distribution-record': 5,
+                        'v5/broker/award/info': {'cost': 5},
+                        'v5/broker/award/distribute-award': {'cost': 5},
+                        'v5/broker/award/distribution-record': {'cost': 5},
                         # earn
-                        'v5/earn/place-order': 5,
+                        'v5/earn/place-order': {'cost': 5},
                     },
                 },
             },
@@ -1149,7 +1148,7 @@ class bybit(Exchange, ImplicitAPI):
                     'usePrivateInstrumentsInfo': False,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
-                    'loadAllOptions': False,  # load all possible option markets, adds signficant load time
+                    'loadAllOptions': False,  # load all possible option markets, adds significant load time
                     'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 },
                 'enableUnifiedMargin': None,
@@ -1202,8 +1201,8 @@ class bybit(Exchange, ImplicitAPI):
                     'ADA': 'ADA',
                     'ALGO': 'ALGO',
                     'APT': 'APTOS',
-                    'ARBONE': 'ARBI',
-                    'ARBNOVA': 'ARBINOVA',
+                    'ARBITRUM': 'ARBI',
+                    'ARBITRUM_NOVA': 'ARBINOVA',
                     'AVAXC': 'CAVAX',
                     'AVAXX': 'XAVAX',
                     'COSMOS': 'ATOM',
@@ -1267,6 +1266,7 @@ class bybit(Exchange, ImplicitAPI):
                     'BSC': 'BEP20',
                     'OP': 'OP',
                     'MATIC': 'MATIC',
+                    'SPL': 'SOL',  # see https://github.com/ccxt/ccxt/issues/23989
                 },
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
@@ -1432,7 +1432,7 @@ class bybit(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds() - self.options['timeDifference']
 
-    def add_pagination_cursor_to_result(self, response):
+    def add_pagination_cursor_to_result(self, response: object):
         result = self.safe_dict(response, 'result', {})
         data = self.safe_list_n(result, ['list', 'rows', 'data', 'dataList'], [])
         paginationCursor = self.safe_string_2(result, 'nextPageCursor', 'cursor')
@@ -1555,6 +1555,8 @@ class bybit(Exchange, ImplicitAPI):
             base = self.safe_string(symbolBase, 0)
             expiry = self.safe_string(optionParts, 1)
             symbolQuoteAndSettle = self.safe_string(symbolBase, 1)
+            if symbolQuoteAndSettle is None:
+                raise ExchangeError(self.id + ' createExpiredOptionMarket() missing symbolQuoteAndSettle')
             splitQuote = symbolQuoteAndSettle.split(':')
             quoteAndSettle = self.safe_string(splitQuote, 0)
             quote = quoteAndSettle
@@ -1596,8 +1598,9 @@ class bybit(Exchange, ImplicitAPI):
             'settleId': settle,
             'active': False,
             'type': 'option',
-            'linear': None,
-            'inverse': None,
+            'subType': 'inverse' if (base == settle) else 'linear',
+            'linear': (base != settle),
+            'inverse': (base == settle),
             'spot': False,
             'swap': False,
             'future': False,
@@ -1632,12 +1635,12 @@ class bybit(Exchange, ImplicitAPI):
 
     def safe_market(self, marketId: Str = None, market: Market = None, delimiter: Str = None, marketType: Str = None) -> MarketInterface:
         isOption = (marketId is not None) and ((marketId.find('-C') > -1) or (marketId.find('-P') > -1))
-        if isOption and not (marketId in self.markets_by_id):
+        if isOption and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
             # handle expired option contracts
             return self.create_expired_option_market(marketId)
         return super(bybit, self).safe_market(marketId, market, delimiter, marketType)
 
-    def get_bybit_type(self, method, market, params={}) -> list:
+    def get_bybit_type(self, method: object, market: object, params={}) -> list:
         type = None
         type, params = self.handle_market_type_and_params(method, market, params)
         subType = None
@@ -1646,7 +1649,7 @@ class bybit(Exchange, ImplicitAPI):
             return [type, params]
         return [subType, params]
 
-    def get_amount(self, symbol: str, amount: float):
+    def get_amount(self, symbol: Str, amount: float | None):
         # some markets like options might not have the precision available
         # and we shouldn't crash in those cases
         market = self.market(symbol)
@@ -1656,7 +1659,7 @@ class bybit(Exchange, ImplicitAPI):
             return self.amount_to_precision(symbol, amount)
         return amountString
 
-    def get_price(self, symbol: str, price: str):
+    def get_price(self, symbol: Str, price: Str):
         if price is None:
             return price
         market = self.market(symbol)
@@ -1665,14 +1668,14 @@ class bybit(Exchange, ImplicitAPI):
             return self.price_to_precision(symbol, price)
         return price
 
-    def get_cost(self, symbol: str, cost: str):
+    def get_cost(self, symbol: Str, cost: Str):
         market = self.market(symbol)
         emptyPrecisionPrice = (market['precision']['price'] is None)
         if not emptyPrecisionPrice:
             return self.cost_to_precision(symbol, cost)
         return cost
 
-    async def fetch_status(self, params={}) -> dict:
+    async def fetch_status(self, params={}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -1803,7 +1806,7 @@ class bybit(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_currencies(rows)
 
-    def parse_currency(self, currency: dict) -> Currency:
+    def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(currency, 'coin')
         code = self.safe_currency_code(currencyId)
         name = self.safe_string(currency, 'name')
@@ -1813,26 +1816,27 @@ class bybit(Exchange, ImplicitAPI):
             chain = chains[j]
             networkId = self.safe_string(chain, 'chain')
             networkCode = self.network_id_to_code(networkId, code)
-            networks[networkCode] = {
-                'info': chain,
-                'id': networkId,
-                'network': networkCode,
-                'active': None,
-                'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
-                'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
-                'fee': self.safe_number(chain, 'withdrawFee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
-                'limits': {
-                    'withdraw': {
-                        'min': self.safe_number(chain, 'withdrawMin'),
-                        'max': None,
+            if networkCode is not None:
+                networks[networkCode] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': None,
+                    'deposit': self.safe_integer(chain, 'chainDeposit') == 1,
+                    'withdraw': self.safe_integer(chain, 'chainWithdraw') == 1,
+                    'fee': self.safe_number(chain, 'withdrawFee'),
+                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'minAccuracy'))),
+                    'limits': {
+                        'withdraw': {
+                            'min': self.safe_number(chain, 'withdrawMin'),
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.safe_number(chain, 'depositMin'),
+                            'max': None,
+                        },
                     },
-                    'deposit': {
-                        'min': self.safe_number(chain, 'depositMin'),
-                        'max': None,
-                    },
-                },
-            }
+                }
         return self.safe_currency_structure({
             'info': currency,
             'code': code,
@@ -1861,7 +1865,7 @@ class bybit(Exchange, ImplicitAPI):
             'type': 'crypto',  # atm exchange api provides only cryptos
         })
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params={}) -> list[Market]:
         """
         retrieves data on all markets for bybit
 
@@ -1914,7 +1918,7 @@ class bybit(Exchange, ImplicitAPI):
         # return self.array_concat(spotMarkets, derivativeMarkets)
         return result
 
-    async def fetch_spot_markets(self, params) -> List[Market]:
+    async def fetch_spot_markets(self, params: object) -> list[Market]:
         request = {
             'category': 'spot',
         }
@@ -2029,7 +2033,7 @@ class bybit(Exchange, ImplicitAPI):
             }))
         return result
 
-    async def fetch_future_markets(self, params={}) -> List[Market]:
+    async def fetch_future_markets(self, params: dict = {}) -> list[Market]:
         params = self.extend(params, {})
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
@@ -2212,7 +2216,7 @@ class bybit(Exchange, ImplicitAPI):
             result.append(parsedMarket)
         return result
 
-    async def fetch_option_markets(self, params) -> List[Market]:
+    async def fetch_option_markets(self, params: object) -> list[Market]:
         request = {
             'category': 'option',
         }
@@ -2292,6 +2296,8 @@ class bybit(Exchange, ImplicitAPI):
             priceFilter = self.safe_dict(market, 'priceFilter', {})
             status = self.safe_string(market, 'status')
             expiry = self.safe_integer(market, 'deliveryTime')
+            if id is None:
+                raise ExchangeError(self.id + ' method() missing id')
             splitId = id.split('-')
             strike = self.safe_string(splitId, 2)
             optionLetter = self.safe_string(splitId, 3)
@@ -2536,7 +2542,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result', {})
         tickers = self.safe_list(result, 'list', [])
-        rawTicker = self.safe_dict(tickers, 0)
+        rawTicker = self.safe_dict(tickers, 0, {})
         return self.parse_ticker(rawTicker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -2560,7 +2566,7 @@ class bybit(Exchange, ImplicitAPI):
             parsedSymbols = []
             marketTypeInfo = self.handle_market_type_and_params('fetchTickers', None, params)
             defaultType = marketTypeInfo[0]  # don't omit here
-            # we can't use marketSymbols here due to the conflicing ids between markets
+            # we can't use marketSymbols here due to the conflicting ids between markets
             currentType = None
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -2652,7 +2658,7 @@ class bybit(Exchange, ImplicitAPI):
         """
         return await self.fetch_tickers(symbols, params)
 
-    def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         "1621162800",
@@ -2675,7 +2681,7 @@ class bybit(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, volumeIndex),
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -2708,7 +2714,15 @@ class bybit(Exchange, ImplicitAPI):
         if limit is None:
             limit = 200  # default is 200 when requested with `since`
         if since is not None:
-            request['start'] = since
+            # bybit returns the candle that contains `start`, whose timestamp is
+            # before a mid-interval `since` and gets dropped by the client-side
+            # since-filter, emptying a limit=1 request entirely, see issue
+            # https://github.com/ccxt/ccxt/issues/26736 - align the requested
+            # start up to the interval boundary so that the exchange returns
+            # candles from the first bucket at or after `since`
+            duration = self.parse_timeframe(timeframe) * 1000
+            rounded = self.parse_to_int(since / duration) * duration
+            request['start'] = since if (rounded == since) else self.sum(rounded, duration)
         if limit is not None:
             request['limit'] = limit  # max 1000, default 1000
         request, params = self.handle_until_option('end', request, params)
@@ -2779,7 +2793,7 @@ class bybit(Exchange, ImplicitAPI):
         ohlcvs = self.safe_list(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
-    def parse_funding_rate(self, ticker, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, ticker: object, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTCUSDT",
@@ -3223,7 +3237,7 @@ class bybit(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -3290,7 +3304,7 @@ class bybit(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
+        :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
@@ -3346,7 +3360,7 @@ class bybit(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(result, 'ts')
         return self.parse_order_book(result, symbol, timestamp, 'b', 'a')
 
-    def parse_balance(self, response) -> Balances:
+    def parse_balance(self, response: object) -> Balances:
         #
         # cross
         #     {
@@ -3491,7 +3505,8 @@ class bybit(Exchange, ImplicitAPI):
                         # account['used'] = self.safe_string(coinEntry, 'locked')
                         currencyId = self.safe_string(coinEntry, 'coin')
                         code = self.safe_currency_code(currencyId)
-                        result[code] = account
+                        if code is not None:
+                            result[code] = account
                 else:
                     account = self.account()
                     loan = self.safe_string(entry, 'loan')
@@ -3503,7 +3518,8 @@ class bybit(Exchange, ImplicitAPI):
                     account['used'] = self.safe_string(entry, 'locked')
                     currencyId = self.safe_string_n(entry, ['tokenId', 'coin', 'currencyCoin'])
                     code = self.safe_currency_code(currencyId)
-                    result[code] = account
+                    if code is not None:
+                        result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}) -> Balances:
@@ -3828,23 +3844,27 @@ class bybit(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, None, marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'createdTime', 'createdAt')
-        marketUnit = self.safe_string(order, 'marketUnit', 'baseCoin')
+        marketUnit = self.safe_string(order, 'marketUnit')  # '' is filtered by safeString, do not force a default:
+        # bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
+        # see https://github.com/ccxt/ccxt/issues/27725
         id = self.safe_string(order, 'orderId')
         type = self.safe_string_lower(order, 'orderType')
         price = self.safe_string(order, 'price')
+        side = self.safe_string_lower(order, 'side')
         amount = None
         cost = None
-        if marketUnit == 'baseCoin':
-            amount = self.safe_string(order, 'qty')
+        qtyIsQuote = market['spot'] and (type == 'market') and ((marketUnit == 'quoteCoin') or ((marketUnit is None) and (side == 'buy')))
+        if qtyIsQuote:
+            # qty is denominated in the quote currency, safeOrder derives amount from filled + remaining
             cost = self.safe_string(order, 'cumExecValue')
         else:
+            amount = self.safe_string(order, 'qty')
             cost = self.safe_string(order, 'cumExecValue')
         filled = self.safe_string(order, 'cumExecQty')
         remaining = self.safe_string(order, 'leavesQty')
         lastTradeTimestamp = self.safe_integer_2(order, 'updatedTime', 'updatedAt')
         rawStatus = self.safe_string(order, 'orderStatus')
         status = self.parse_order_status(rawStatus)
-        side = self.safe_string_lower(order, 'side')
         fee = None
         cumFeeDetail = self.safe_dict(order, 'cumFeeDetail', {})
         feeCoins = list(cumFeeDetail.keys())
@@ -4030,7 +4050,11 @@ class bybit(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'result', {})
         return self.parse_order(order, market)
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}, isUTA=True):
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}, isUTA=True):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         symbol = market['symbol']
         lowerCaseType = type.lower()
@@ -4271,7 +4295,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.omit(params, ['stopPrice', 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId', 'triggerPrice', 'stopLoss', 'takeProfit', 'trailingAmount', 'trailingTriggerPrice', 'hedged'])
         return self.extend(request, params)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def create_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -4360,7 +4384,11 @@ class bybit(Exchange, ImplicitAPI):
         #
         return self.parse_orders(data)
 
-    def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    def edit_order_request(self, id: Str, symbol: Str, type: Str, side: Str, amount: Num = None, price: Num = None, params={}):
+        if type is None:
+            raise ArgumentsRequired(self.id + ' requires a type argument')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' requires a side argument')
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4473,7 +4501,7 @@ class bybit(Exchange, ImplicitAPI):
             'clientOrderId': self.safe_string(result, 'orderLinkId'),
         }, market)
 
-    async def edit_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def edit_orders(self, orders: list[OrderRequest], params={}) -> list[Order]:
         """
         edit a list of trade orders
 
@@ -4616,7 +4644,7 @@ class bybit(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result, market)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params={}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -4711,6 +4739,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
+        if timeout is None:
+            raise ExchangeError(self.id + ' cancelAllOrdersAfter() missing timeout')
         request = {
             'timeWindow': self.parse_to_int(timeout / 1000),
         }
@@ -4732,7 +4762,7 @@ class bybit(Exchange, ImplicitAPI):
         #
         return response
 
-    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+    async def cancel_orders_for_symbols(self, orders: list[CancellationRequest], params={}):
         """
         cancel multiple orders for multiple symbols
 
@@ -4821,7 +4851,7 @@ class bybit(Exchange, ImplicitAPI):
 
         https://bybit-exchange.github.io/docs/v5/order/cancel-all
 
-        :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: True if trigger order
         :param boolean [params.stop]: alias for trigger
@@ -4910,7 +4940,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'orderId': id,
         }
-        result = await self.fetch_orders(symbol, None, None, self.extend(request, params))
+        result = await self.fetch_orders_classic(symbol, None, None, self.extend(request, params))
         length = len(result)
         if length == 0:
             isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
@@ -5006,36 +5036,16 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = self.safe_dict(response, 'result', {})
         innerList = self.safe_list(result, 'list', [])
-        if len(innerList) == 0:
+        # the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
+        # see https://github.com/ccxt/ccxt/pull/29602
+        innerListLength = len(innerList)
+        if innerListLength == 0:
             extra = '' if isTrigger else ' If you are trying to fetch SL/TP conditional order, you might try setting params["trigger"] = True'
             raise OrderNotFound('Order ' + str(id) + ' was not found.' + extra)
         order = self.safe_dict(innerList, 0, {})
         return self.parse_order(order, market)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
-        res = await self.is_unified_enabled()
-        """
-        *classic accounts only/ spot not supported* fetches information on multiple orders made by the user *classic accounts only/ spot not supported*
-        https://bybit-exchange.github.io/docs/v5/order/order-list
-        :param str symbol: unified market symbol of the market orders were made in
-        :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: True if trigger order
-        :param boolean [params.stop]: alias for trigger
-        :param str [params.type]: market type, ['swap', 'option']
-        :param str [params.subType]: market subType, ['linear', 'inverse']
-        :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
-        :param int [params.until]: the latest time in ms to fetch entries for
-        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
-        """
-        enableUnifiedAccount = self.safe_bool(res, 1)
-        if enableUnifiedAccount:
-            raise NotSupported(self.id + ' fetchOrders() is not supported after the 5/02 update for UTA accounts, please use fetchOpenOrders, fetchClosedOrders or fetchCanceledOrders')
-        return await self.fetch_orders_classic(symbol, since, limit, params)
-
-    async def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders_classic(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple orders made by the user *classic accounts only*
 
@@ -5057,18 +5067,18 @@ classic accounts only/ spot not supported*  fetches information on an order made
         if self.markets is None:
             await self.load_markets()
         paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, params = self.handle_option_and_params(params, 'fetchOrdersClassic', 'paginate')
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchOrdersClassic', symbol, since, limit, params, 'nextPageCursor', 'cursor', None, 50)
         request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
         type = None
-        type, params = self.get_bybit_type('fetchOrders', market, params)
+        type, params = self.get_bybit_type('fetchOrdersClassic', market, params)
         if type == 'spot':
-            raise NotSupported(self.id + ' fetchOrders() is not supported for spot markets')
+            raise NotSupported(self.id + ' fetchOrdersClassic() is not supported for spot markets')
         request['category'] = type
         isTrigger = self.safe_bool_2(params, 'trigger', 'stop', False)
         params = self.omit(params, ['trigger', 'stop'])
@@ -5201,7 +5211,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             raise InvalidOrder(self.id + ' returned more than one order')
         return self.safe_value(result, 0)
 
-    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled and closed orders made by the user
 
@@ -5315,7 +5325,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple closed orders made by the user
 
@@ -5341,7 +5351,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return await self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches information on multiple canceled orders made by the user
 
@@ -5367,7 +5377,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return await self.fetch_canceled_and_closed_orders(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch all unfilled currently open orders
 
@@ -5481,7 +5491,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_orders(data, market, since, limit)
 
-    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_order_trades(self, id: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all the trades made from a single order
 
@@ -5503,7 +5513,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         params = self.omit(params, ['clientOrderId', 'orderLinkId'])
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -5583,7 +5593,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         trades = self.add_pagination_cursor_to_result(response)
         return self.parse_trades(trades, market, since, limit)
 
-    def parse_deposit_address(self, depositAddress, currency: Currency = None) -> DepositAddress:
+    def parse_deposit_address(self, depositAddress: object, currency: Currency = None) -> DepositAddress:
         #
         #     {
         #         "chainType": "ERC20",
@@ -5604,7 +5614,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'tag': tag,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> List[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -5669,9 +5679,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = await self.fetch_deposit_addresses_by_network(code, paramsOmited)
         selectedNetworkCode = self.select_network_code_from_unified_networks(currency['code'], networkCode, indexedAddresses)
-        return indexedAddresses[selectedNetworkCode]
+        return self.safe_value(indexedAddresses, selectedNetworkCode)
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -5738,7 +5748,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transactions(data, currency, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -5914,7 +5924,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'comment': None,
         }
 
-    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LedgerEntry]:
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LedgerEntry]:
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
@@ -6161,7 +6171,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             },
         }, currency)
 
-    def parse_ledger_entry_type(self, type):
+    def parse_ledger_entry_type(self, type: object):
         types = {
             'Deposit': 'transaction',
             'Withdraw': 'transaction',
@@ -6311,7 +6321,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         position['datetime'] = self.iso8601(timestamp)
         return position
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch all open positions
 
@@ -6866,6 +6876,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         params = self.omit(params, ['until'])
         if until is not None:
             request['endTime'] = until
+        elif since is not None:
+            # the endpoint walks backwards from endTime and ignores a lone startTime
+            duration = self.parse_timeframe(timeframe)
+            requestedLimit = 50 if (limit is None) else limit  # exchange default
+            request['endTime'] = self.sum(since, duration * requestedLimit * 1000)
         if limit is not None:
             request['limit'] = limit
         response = await self.publicGetV5MarketOpenInterest(self.extend(request, params))
@@ -6957,7 +6972,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_open_interest(data[0], safeMarketObj)
 
-    async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
+    async def fetch_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params: dict = {}):
         """
         Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
 
@@ -6965,9 +6980,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
 
         :param str symbol: Unified market symbol
         :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
-        :param int [since]: Not used by Bybit
+        :param int [since]: Timestamp in ms of the earliest open interest to fetch
         :param int [limit]: The number of open interest structures to return. Max 200, default 50
         :param dict [params]: Exchange specific parameters
+        :param int [params.until]: Timestamp in ms of the latest open interest to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns: An array of open interest structures
         """
@@ -6990,7 +7006,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             request['limit'] = limit
         return await self.fetch_derivatives_open_interest_history(symbol, timeframe, since, limit, params)
 
-    def parse_open_interest(self, interest, market: Market = None):
+    def parse_open_interest(self, interest: object, market: Market = None):
         #
         #    {
         #        "openInterest": 64757.62400000,
@@ -7015,46 +7031,68 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         fetch the rate of interest to borrow a currency for margin trading
 
-        https://bybit-exchange.github.io/docs/zh-TW/v5/spot-margin-normal/interest-quota
+        https://bybit-exchange.github.io/docs/v5/spot-margin-uta/vip-margin
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vipLevel]: the vip level to fetch the borrow rate for, defaults to 'No VIP'
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
         request = {
-            'coin': currency['id'],
+            'currency': currency['id'],
+            'vipLevel': 'No VIP',
         }
-        response = await self.privateGetV5SpotCrossMarginTradeLoanInfo(self.extend(request, params))
+        response = await self.publicGetV5SpotMarginTradeData(self.extend(request, params))
         #
-        #    {
-        #         "retCode": "0",
+        #     {
+        #         "retCode": 0,
         #         "retMsg": "success",
         #         "result": {
-        #             "coin": "USDT",
-        #             "interestRate": "0.000107000000",
-        #             "loanAbleAmount": "",
-        #             "maxLoanAmount": "79999.999"
+        #             "vipCoinList": [
+        #                 {
+        #                     "list": [
+        #                         {
+        #                             "borrowable": True,
+        #                             "collateralRatio": "0.98",
+        #                             "currency": "BTC",
+        #                             "hourlyBorrowRate": "0.0000005030430000",
+        #                             "liquidationOrder": "3",
+        #                             "marginCollateral": True,
+        #                             "maxBorrowingAmount": "300"
+        #                         }
+        #                     ],
+        #                     "vipLevel": "No VIP"
+        #                 }
+        #             ]
         #         },
-        #         "retExtInfo": null,
-        #         "time": "1666734490778"
+        #         "retExtInfo": "{}",
+        #         "time": 1786958191900
         #     }
         #
         timestamp = self.safe_integer(response, 'time')
         data = self.safe_dict(response, 'result', {})
-        data['timestamp'] = timestamp
-        return self.parse_borrow_rate(data, currency)
+        vipCoinList = self.safe_list(data, 'vipCoinList', [])
+        firstVip = self.safe_dict(vipCoinList, 0, {})
+        coins = self.safe_list(firstVip, 'list', [])
+        coin = self.safe_dict(coins, 0, {})
+        coin['timestamp'] = timestamp
+        return self.parse_borrow_rate(coin, currency)
 
-    def parse_borrow_rate(self, info, currency: Currency = None):
+    def parse_borrow_rate(self, info: object, currency: Currency = None):
         #
+        # fetchCrossBorrowRate
         #     {
-        #         "coin": "USDT",
-        #         "interestRate": "0.000107000000",
-        #         "loanAbleAmount": "",
-        #         "maxLoanAmount": "79999.999",
-        #         "timestamp": 1666734490778
+        #         "borrowable": True,
+        #         "collateralRatio": "0.98",
+        #         "currency": "BTC",
+        #         "hourlyBorrowRate": "0.0000005030430000",
+        #         "liquidationOrder": "3",
+        #         "marginCollateral": True,
+        #         "maxBorrowingAmount": "300",
+        #         "timestamp": 1786958191900
         #     }
         #
         # fetchBorrowRateHistory
@@ -7078,7 +7116,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'info': info,
         }
 
-    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[BorrowInterest]:
+    async def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[BorrowInterest]:
         """
         fetch the interest owed by the user for borrowing currency for margin trading
 
@@ -7252,7 +7290,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'status': status,
         })
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
 
@@ -7308,7 +7346,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         data = self.add_pagination_cursor_to_result(response)
         return self.parse_transfers(data, currency, since, limit)
 
-    async def borrow_cross_margin(self, code: str, amount: float, params={}):
+    async def borrow_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         create a loan to borrow margin
 
@@ -7342,7 +7380,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         return self.parse_margin_loan(result, currency)
 
-    async def repay_cross_margin(self, code: str, amount, params={}):
+    async def repay_cross_margin(self, code: str, amount: float, params={}) -> MarginLoan:
         """
         repay borrowed margin and interest
 
@@ -7378,7 +7416,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'amount': amount,
         })
 
-    def parse_margin_loan(self, info, currency: Currency = None) -> dict:
+    def parse_margin_loan(self, info: object, currency: Currency = None) -> MarginLoan:
         #
         # borrowCrossMargin
         #
@@ -7397,7 +7435,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         return {
             'id': None,
             'currency': self.safe_currency_code(currencyId, currency),
-            'amount': self.safe_string(info, 'amount'),
+            'amount': self.safe_number(info, 'amount'),
             'symbol': None,
             'timestamp': None,
             'datetime': None,
@@ -7451,7 +7489,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
 
-    async def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    async def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -7490,7 +7528,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         tiers = self.safe_list(result, 'list')
         return self.parse_market_leverage_tiers(tiers, market)
 
-    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
+    async def fetch_market_leverage_tiers(self, symbol: str, params={}) -> list[LeverageTier]:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
 
@@ -7612,10 +7650,11 @@ classic accounts only/ spot not supported*  fetches information on an order made
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            if symbol is not None:
+                result[symbol] = fee
         return result
 
-    def parse_deposit_withdraw_fee(self, fee, currency: Currency = None) -> Any:
+    def parse_deposit_withdraw_fee(self, fee: object, currency: Currency = None) -> object:
         #
         #    {
         #        "name": "BTC",
@@ -7656,16 +7695,17 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 networkId = self.safe_string(chain, 'chain')
                 currencyCode = self.safe_string(currency, 'code')
                 networkCode = self.network_id_to_code(networkId, currencyCode)
-                result['networks'][networkCode] = {
-                    'deposit': {'fee': None, 'percentage': None},
-                    'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
-                }
+                if networkCode is not None:
+                    result['networks'][networkCode] = {
+                        'deposit': {'fee': None, 'percentage': None},
+                        'withdraw': {'fee': self.safe_number(chain, 'withdrawFee'), 'percentage': False},
+                    }
                 if chainsLength == 1:
                     result['withdraw']['fee'] = self.safe_number(chain, 'withdrawFee')
                     result['withdraw']['percentage'] = False
         return result
 
-    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}):
+    async def fetch_deposit_withdraw_fees(self, codes: Strings = None, params={}) -> DepositWithdrawFees:
         """
         fetch deposit and withdraw fees
 
@@ -7713,7 +7753,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         rows = self.safe_list(data, 'rows', [])
         return self.parse_deposit_withdraw_fees(rows, codes, 'coin')
 
-    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records
 
@@ -7826,7 +7866,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def parse_settlement(self, settlement, market):
+    def parse_settlement(self, settlement: object, market: object):
         #
         # fetchSettlementHistory
         #
@@ -7859,7 +7899,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         }
 
-    def parse_settlements(self, settlements, market):
+    def parse_settlements(self, settlements: object, market: object):
         #
         # fetchSettlementHistory
         #
@@ -7927,7 +7967,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         volatility = self.safe_list(response, 'result', [])
         return self.parse_volatility_history(volatility)
 
-    def parse_volatility_history(self, volatility):
+    def parse_volatility_history(self, volatility: object):
         #
         #     {
         #         "period": 7,
@@ -8014,7 +8054,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         })
 
-    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> list[Greeks]:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -8138,7 +8178,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'info': greeks,
         }
 
-    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -8218,7 +8258,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         liquidations = self.add_pagination_cursor_to_result(response)
         return self.parse_liquidations(liquidations, market, since, limit)
 
-    def parse_liquidation(self, liquidation, market: Market = None) -> Liquidation:
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         #     {
         #         "symbol": "ETHPERP",
@@ -8319,7 +8359,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         symbols = self.market_symbols(symbols)
         return self.parse_leverage_tiers(data, symbols, 'symbol')
 
-    def parse_leverage_tiers(self, response, symbols: Strings = None, marketIdKey=None) -> LeverageTiers:
+    def parse_leverage_tiers(self, response: object, symbols: Strings = None, marketIdKey: Str = None) -> LeverageTiers:
         #
         #  [
         #      {
@@ -8335,8 +8375,9 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         tiers = {}
         marketIds = self.market_ids(symbols)
-        filteredResults = self.filter_by_array(response, marketIdKey, marketIds, False)
-        grouped = self.group_by(filteredResults, marketIdKey)
+        idKey = 'symbol' if (marketIdKey is None) else marketIdKey
+        filteredResults = self.filter_by_array(response, idKey, marketIds, False)
+        grouped = self.group_by(filteredResults, idKey)
         keys = list(grouped.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
@@ -8349,7 +8390,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             tiers[symbol] = self.parse_market_leverage_tiers(self.sort_by(entry, 'id'), market)
         return tiers
 
-    def parse_market_leverage_tiers(self, info, market: Market = None) -> List[LeverageTier]:
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
         #
         #  [
         #      {
@@ -8383,7 +8424,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             })
         return tiers
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -8425,7 +8466,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         fundings = self.add_pagination_cursor_to_result(response)
         return self.parse_incomes(fundings, market, since, limit)
 
-    def parse_income(self, income, market: Market = None) -> object:
+    def parse_income(self, income: object, market: Market = None) -> object:
         #
         # {
         #     "symbol": "XMRUSDT",
@@ -8654,7 +8695,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'quoteVolume': None,
         }
 
-    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> list[Position]:
         """
         fetches historical positions
 
@@ -8663,7 +8704,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str[] symbols: a list of unified market symbols
         :param int [since]: timestamp in ms of the earliest position to fetch, params["until"] - since <= 7 days
         :param int [limit]: the maximum amount of records to fetch, default=50, max=100
-        :param dict params: extra parameters specific to the exchange api endpoint
+        :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest position to fetch, params["until"] - since <= 7 days
         :param str [params.subType]: 'linear' or 'inverse'
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
@@ -8727,7 +8768,10 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = self.safe_dict(response, 'result')
         rawPositions = self.safe_list(result, 'list')
-        positions = self.parse_positions(rawPositions, symbols, params)
+        rawPositionsList = []
+        if rawPositions is not None:
+            rawPositionsList = rawPositions
+        positions = self.parse_positions(rawPositionsList, symbols, params)
         return self.filter_by_since_limit(positions, since, limit)
 
     async def fetch_convert_currencies(self, params={}) -> Currencies:
@@ -8794,34 +8838,35 @@ classic accounts only/ spot not supported*  fetches information on an order made
             disableTo = self.safe_bool(entry, 'disableTo')
             inactive = (disableFrom or disableTo)
             code = self.safe_currency_code(id)
-            result[code] = {
-                'info': entry,
-                'id': id,
-                'code': code,
-                'networks': None,
-                'type': self.safe_string(entry, 'coinType'),
-                'name': self.safe_string(entry, 'fullName'),
-                'active': not inactive,
-                'deposit': None,
-                'withdraw': self.safe_number(entry, 'balance'),
-                'fee': None,
-                'precision': None,
-                'limits': {
-                    'amount': {
-                        'min': self.safe_number(entry, 'singleFromMinLimit'),
-                        'max': self.safe_number(entry, 'singleFromMaxLimit'),
+            if code is not None:
+                result[code] = {
+                    'info': entry,
+                    'id': id,
+                    'code': code,
+                    'networks': None,
+                    'type': self.safe_string(entry, 'coinType'),
+                    'name': self.safe_string(entry, 'fullName'),
+                    'active': not inactive,
+                    'deposit': None,
+                    'withdraw': self.safe_number(entry, 'balance'),
+                    'fee': None,
+                    'precision': None,
+                    'limits': {
+                        'amount': {
+                            'min': self.safe_number(entry, 'singleFromMinLimit'),
+                            'max': self.safe_number(entry, 'singleFromMaxLimit'),
+                        },
+                        'withdraw': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': None,
+                            'max': None,
+                        },
                     },
-                    'withdraw': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'deposit': {
-                        'min': None,
-                        'max': None,
-                    },
-                },
-                'created': None,
-            }
+                    'created': None,
+                }
         return result
 
     async def fetch_convert_quote(self, fromCode: str, toCode: str, amount: Num = None, params={}) -> Conversion:
@@ -8931,7 +8976,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         accountTypeDefault = 'eb_convert_uta' if isUnifiedAccount else 'eb_convert_spot'
-        accountType, params = self.handle_option_and_params(params, 'fetchConvertQuote', 'accountType', accountTypeDefault)
+        accountType, params = self.handle_option_and_params(params, 'fetchConvertTrade', 'accountType', accountTypeDefault)
         request = {
             'quoteTxId': id,
             'accountType': accountType,
@@ -8974,7 +9019,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             toCurrency = self.currency(toCurrencyId)
         return self.parse_conversion(result, fromCurrency, toCurrency)
 
-    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Conversion]:
+    async def fetch_convert_trade_history(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Conversion]:
         """
         fetch the users history of conversion trades
 
@@ -9084,7 +9129,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'fee': None,
         }
 
-    async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> List[LongShortRatio]:
+    async def fetch_long_short_ratio_history(self, symbol: Str = None, timeframe: Str = None, since: Int = None, limit: Int = None, params={}) -> list[LongShortRatio]:
         """
         fetches the long short ratio history for a unified market symbol
 
@@ -9158,7 +9203,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'longShortRatio': self.parse_to_numeric(Precise.string_div(longString, shortString)),
         }
 
-    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> List[ADL]:
+    async def fetch_positions_adl_rank(self, symbols: Strings = None, params={}) -> list[ADL]:
         """
         fetches the auto deleveraging rank and risk percentage for a list of symbols
 
@@ -9323,7 +9368,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         result = self.safe_dict(response, 'result', {})
         return self.parse_margin_mode(result, market)
 
-    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market: Market = None) -> MarginMode:
         marginType = self.safe_string(marginMode, 'marginMode')
         return {
             'info': marginMode,
@@ -9339,7 +9384,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
         return self.safe_string(marginModes, marginMode, marginMode)
 
-    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
+    def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: object = None):
         url = self.implode_hostname(self.urls['api'][api]) + '/' + path
         if api == 'public':
             if params:
@@ -9429,7 +9474,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
                 headers['Referer'] = brokerId
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: object, requestBody: object):
         if not response:
             return None  # fallback to default error handler
         #

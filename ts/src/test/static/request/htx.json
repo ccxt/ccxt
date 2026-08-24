@@ -25,7 +25,7 @@
                         "subType": "inverse"
                     }
                 ],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "Linear swap fetch open orders",
@@ -83,7 +83,7 @@
                     0.21,
                     50
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-market\",\"client-order-id\":\"AA03022abc6dc8eac0-c980-4b1d-b4b0-6cf159701f7a\",\"amount\":\"10.5\"}"
+                "output": { "account-id": "44234548", "symbol": "ltcusdt", "type": "buy-market", "client-order-id": "AA03022abc6dc8eac0-c980-4b1d-b4b0-6cf159701f7a", "amount": "10.5" }
             },
             {
                 "description": "Spot limit buy with triggerPrice",
@@ -99,7 +99,7 @@
                     "stopPrice": 100
                   }
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"stop-price\":\"100\",\"operator\":\"gte\",\"type\":\"buy-stop-limit\",\"client-order-id\":\"AA03022abc06339387-791f-4bfc-a5b5-e3641702cf7d\",\"amount\":\"0.2\",\"price\":\"50\"}"
+                "output": { "account-id": "44234548", "symbol": "ltcusdt", "stop-price": "100", "operator": "gte", "type": "buy-stop-limit", "client-order-id": "AA03022abc06339387-791f-4bfc-a5b5-e3641702cf7d", "amount": "0.2", "price": "50" }
             },
             {
                 "description": "Linear swap market buy",
@@ -115,7 +115,7 @@
                         "position_side": "long"
                     }
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"buy\",\"time_in_force\":\"gtc\",\"type\":\"market\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "BTC-USDT", "volume": "1", "margin_mode": "cross", "side": "buy", "time_in_force": "gtc", "type": "market", "channel_code": "AA03022abc", "position_side": "long" }
             },
             {
                 "description": "Spot limit buy with FOK",
@@ -131,7 +131,7 @@
                         "timeInForce": "FOK"
                     }
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-limit-fok\",\"client-order-id\":\"AA03022abc63e7a241-2e13-4b75-a5ca-fe10a3dfbda5\",\"amount\":\"0.2\",\"price\":\"50\"}"
+                "output": { "account-id": "44234548", "symbol": "ltcusdt", "type": "buy-limit-fok", "client-order-id": "AA03022abc63e7a241-2e13-4b75-a5ca-fe10a3dfbda5", "amount": "0.2", "price": "50" }
             },
             {
                 "description": "Spot limit buy with IOC",
@@ -147,7 +147,7 @@
                         "timeInForce": "IOC"
                     }
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-ioc\",\"client-order-id\":\"AA03022abc766d3f3a-4d8f-4196-a63f-b2950dbd15a9\",\"amount\":\"0.2\",\"price\":\"50\"}"
+                "output": { "account-id": "44234548", "symbol": "ltcusdt", "type": "buy-ioc", "client-order-id": "AA03022abc766d3f3a-4d8f-4196-a63f-b2950dbd15a9", "amount": "0.2", "price": "50" }
             },
             {
                 "description": "Linear swap limit buy with IOC",
@@ -164,7 +164,7 @@
                         "position_side": "long"
                     }
                 ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"buy\",\"time_in_force\":\"ioc\",\"price\":\"40\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "LTC-USDT", "volume": "1", "margin_mode": "cross", "side": "buy", "time_in_force": "ioc", "price": "40", "type": "limit", "channel_code": "AA03022abc", "position_side": "long" }
             },
             {
                 "description": "Linear swap limit sell with takeProfitPrice",
@@ -181,7 +181,7 @@
                         "position_side": "long"
                     }
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"sell\",\"time_in_force\":\"gtc\",\"type\":\"tp\",\"tp_trigger_price\":\"101000\",\"tp_order_price\":\"100000\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "BTC-USDT", "volume": "1", "margin_mode": "cross", "side": "sell", "time_in_force": "gtc", "type": "tp", "tp_trigger_price": "101000", "tp_order_price": "100000", "channel_code": "AA03022abc", "position_side": "long" }
             },
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
@@ -197,7 +197,7 @@
                     "createMarketBuyOrderRequiresPrice": false
                   }
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-market\",\"client-order-id\":\"AA03022abcae7ce25d-1a09-46ff-aaad-ae2d4c5dcc95\",\"amount\":\"10\"}"
+                "output": { "account-id": "44234548", "symbol": "btcusdt", "type": "buy-market", "client-order-id": "AA03022abcae7ce25d-1a09-46ff-aaad-ae2d4c5dcc95", "amount": "10" }
             },
             {
                 "description": "Spot market buy order using the cost param",
@@ -213,7 +213,7 @@
                     "cost": 10
                   }
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-market\",\"client-order-id\":\"AA03022abc72f0bcb9-5138-42ee-b20a-4ef2002461ea\",\"amount\":\"10\"}"
+                "output": { "account-id": "44234548", "symbol": "btcusdt", "type": "buy-market", "client-order-id": "AA03022abc72f0bcb9-5138-42ee-b20a-4ef2002461ea", "amount": "10" }
             },
             {
                 "description": "Spot market sell order",
@@ -225,7 +225,7 @@
                   "sell",
                   0.000776
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"sell-market\",\"client-order-id\":\"AA03022abc20c197bc-30a9-4806-b114-1b257819b0a4\",\"amount\":\"0.000776\"}"
+                "output": { "account-id": "44234548", "symbol": "btcusdt", "type": "sell-market", "client-order-id": "AA03022abc20c197bc-30a9-4806-b114-1b257819b0a4", "amount": "0.000776" }
             },
             {
                 "description": "Linear swap trailing percent order",
@@ -244,7 +244,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"sell\",\"time_in_force\":\"gtc\",\"callback_rate\":0.05,\"order_price_type\":\"formula_price\",\"active_price\":90000,\"type\":\"trailing_stop\",\"reduce_only\":1,\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "BTC-USDT", "volume": "1", "margin_mode": "cross", "side": "sell", "time_in_force": "gtc", "callback_rate": 0.05, "order_price_type": "formula_price", "active_price": 90000, "type": "trailing_stop", "reduce_only": 1, "channel_code": "AA03022abc", "position_side": "long" }
             },
             {
                 "description": "Create an isolated linear swap order",
@@ -261,7 +261,7 @@
                         "position_side": "long"
                     }
                 ],
-                "output": "{\"contract_code\":\"LTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"isolated\",\"side\":\"buy\",\"time_in_force\":\"gtc\",\"price\":\"30\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "LTC-USDT", "volume": "1", "margin_mode": "isolated", "side": "buy", "time_in_force": "gtc", "price": "30", "type": "limit", "channel_code": "AA03022abc", "position_side": "long" }
             },
             {
                 "description": "spot order with clientOrderId",
@@ -277,7 +277,7 @@
                     "clientOrderId": "101"
                   }
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"ltcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"101\",\"amount\":\"0.21\",\"price\":\"50\"}"
+                "output": { "account-id": "44234548", "symbol": "ltcusdt", "type": "buy-limit", "client-order-id": "101", "amount": "0.21", "price": "50" }
             },
             {
                 "description": "Linear swap createOrder with attached stopLoss and takeProfit",
@@ -301,7 +301,7 @@
                         }
                     }
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"buy\",\"time_in_force\":\"gtc\",\"sl_order_price\":\"40000\",\"tp_trigger_price\":\"59000\",\"tp_order_price\":\"60000\",\"tp_type\":\"limit\",\"price\":\"45000\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "BTC-USDT", "volume": "1", "margin_mode": "cross", "side": "buy", "time_in_force": "gtc", "sl_order_price": "40000", "tp_trigger_price": "59000", "tp_order_price": "60000", "tp_type": "limit", "price": "45000", "type": "limit", "channel_code": "AA03022abc", "position_side": "long" }
             }
         ],
         "createOrders": [
@@ -327,7 +327,7 @@
                     }
                   ]
                 ],
-                "output": "[{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"AA03022abcb14baaf0-6b3b-420b-95b2-e5250d5a2573\",\"amount\":\"0.001\",\"price\":\"25000\"},{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-limit\",\"client-order-id\":\"AA03022abc19232010-2560-485d-a3ca-f5e478989560\",\"amount\":\"0.001\",\"price\":\"27000\"}]"
+                "output": [ { "account-id": "44234548", "symbol": "btcusdt", "type": "buy-limit", "client-order-id": "AA03022abcb14baaf0-6b3b-420b-95b2-e5250d5a2573", "amount": "0.001", "price": "25000" }, { "account-id": "44234548", "symbol": "btcusdt", "type": "buy-limit", "client-order-id": "AA03022abc19232010-2560-485d-a3ca-f5e478989560", "amount": "0.001", "price": "27000" } ]
             },
             {
                 "description": "Linear swap createOrders",
@@ -357,7 +357,7 @@
                         }
                     ]
                 ],
-                "output": "[{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"buy\",\"time_in_force\":\"gtc\",\"price\":\"40000\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"},{\"contract_code\":\"BTC-USDT\",\"volume\":\"1\",\"margin_mode\":\"cross\",\"side\":\"buy\",\"time_in_force\":\"gtc\",\"price\":\"35000\",\"type\":\"limit\",\"channel_code\":\"AA03022abc\",\"position_side\":\"long\"}]"
+                "output": [ { "contract_code": "BTC-USDT", "volume": "1", "margin_mode": "cross", "side": "buy", "time_in_force": "gtc", "price": "40000", "type": "limit", "channel_code": "AA03022abc", "position_side": "long" }, { "contract_code": "BTC-USDT", "volume": "1", "margin_mode": "cross", "side": "buy", "time_in_force": "gtc", "price": "35000", "type": "limit", "channel_code": "AA03022abc", "position_side": "long" } ]
             },
             {
                 "description": "Create multiple inverse swap orders at the same time",
@@ -381,7 +381,7 @@
                     }
                   ]
                 ],
-                "output": "{\"orders_data\":[{\"contract_code\":\"BTC-USD\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC-USD\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"27000\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
+                "output": { "orders_data": [ { "contract_code": "BTC-USD", "volume": "1", "direction": "buy", "price": "25000", "lever_rate": 1, "order_price_type": "limit", "channel_code": "AA03022abc" }, { "contract_code": "BTC-USD", "volume": "1", "direction": "buy", "price": "27000", "lever_rate": 1, "order_price_type": "limit", "channel_code": "AA03022abc" } ] }
             },
             {
                 "description": "Create multiple inverse future orders at the same time",
@@ -405,7 +405,7 @@
                     }
                   ]
                 ],
-                "output": "{\"orders_data\":[{\"contract_code\":\"BTC231124\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"25000\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"},{\"contract_code\":\"BTC231124\",\"volume\":\"1\",\"direction\":\"buy\",\"price\":\"27000\",\"lever_rate\":1,\"order_price_type\":\"limit\",\"channel_code\":\"AA03022abc\"}]}"
+                "output": { "orders_data": [ { "contract_code": "BTC231124", "volume": "1", "direction": "buy", "price": "25000", "lever_rate": 1, "order_price_type": "limit", "channel_code": "AA03022abc" }, { "contract_code": "BTC231124", "volume": "1", "direction": "buy", "price": "27000", "lever_rate": 1, "order_price_type": "limit", "channel_code": "AA03022abc" } ] }
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -417,7 +417,7 @@
                   "BTC/USDT",
                   10
                 ],
-                "output": "{\"account-id\":\"44234548\",\"symbol\":\"btcusdt\",\"type\":\"buy-market\",\"client-order-id\":\"AA03022abc148ae2ff-345f-4bf2-a3c3-f3e78d1b1cbd\",\"amount\":\"10\"}"
+                "output": { "account-id": "44234548", "symbol": "btcusdt", "type": "buy-market", "client-order-id": "AA03022abc148ae2ff-345f-4bf2-a3c3-f3e78d1b1cbd", "amount": "10" }
             }
         ],
         "fetchOrders": [
@@ -480,7 +480,7 @@
                     "357632718898331",
                     "BTC/USD:BTC"
                 ],
-                "output": "{\"contract_code\":\"BTC-USD\",\"order_id\":\"357632718898331\"}"
+                "output": { "contract_code": "BTC-USD", "order_id": "357632718898331" }
             },
             {
                 "description": "fetch Order - future",
@@ -490,7 +490,7 @@
                     "357632718898331",
                     "BTC/USD:BTC-231124"
                 ],
-                "output": "{\"symbol\":\"btc\",\"order_id\":\"357632718898331\"}"
+                "output": { "symbol": "btc", "order_id": "357632718898331" }
             },
             {
                 "description": "Linear swap takeProfit fetchOrder",
@@ -535,7 +535,7 @@
                     1699457638000,
                     5
                 ],
-                "output": "{\"contract\":\"BTC-USD\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5}"
+                "output": { "contract": "BTC-USD", "trade_type": 0, "start_time": 1699457638000, "page_size": 5 }
             },
             {
                 "description": "fetch My Trades - future",
@@ -546,7 +546,7 @@
                     1699457638000,
                     5
                 ],
-                "output": "{\"contract\":\"BTC231124\",\"trade_type\":0,\"start_time\":1699457638000,\"page_size\":5,\"symbol\":\"btc\"}"
+                "output": { "contract": "BTC231124", "trade_type": 0, "start_time": 1699457638000, "page_size": 5, "symbol": "btc" }
             }
         ],
         "fetchClosedOrders": [
@@ -590,7 +590,7 @@
                 "input": [
                     "LTC/USDT"
                 ],
-                "output": "{\"symbol\":\"ltcusdt\"}"
+                "output": { "symbol": "ltcusdt" }
             },
             {
                 "description": "Linear swap cancelAllOrders",
@@ -599,7 +599,7 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\"}"
+                "output": { "contract_code": "BTC-USDT" }
             }
         ],
         "cancelAllOrdersAfter": [
@@ -610,7 +610,7 @@
                 "input": [
                     10000
                 ],
-                "output": "{\"timeout\":10}"
+                "output": { "timeout": 10 }
             },
             {
                 "description": "Close cancel all orders after",
@@ -619,7 +619,7 @@
                 "input": [
                     0
                 ],
-                "output": "{\"timeout\":0}"
+                "output": { "timeout": 0 }
             }
         ],
         "fetchPositions": [
@@ -642,7 +642,7 @@
                         "BTC/USD:BTC"
                     ]
                 ],
-                "output": "{}"
+                "output": {}
             },
             {
                 "description": "Fetch future position",
@@ -653,7 +653,7 @@
                         "BTC/USD:BTC-231124"
                     ]
                 ],
-                "output": "{}"
+                "output": {}
             }
         ],
         "fetchPosition": [
@@ -672,7 +672,7 @@
                 "input": [
                     "BTC/USD:BTC"
                 ],
-                "output": "{\"margin_account\":\"USDT\",\"contract_code\":\"BTC-USD\"}"
+                "output": { "margin_account": "USDT", "contract_code": "BTC-USD" }
             },
             {
                 "description": "Fetch future position",
@@ -681,7 +681,7 @@
                 "input": [
                     "BTC/USD:BTC-231124"
                 ],
-                "output": "{\"symbol\":\"btc\"}"
+                "output": { "symbol": "btc" }
             }
         ],
         "fetchOpenInterestHistory": [
@@ -796,7 +796,7 @@
                     10,
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"lever_rate\":10,\"contract_code\":\"BTC-USDT\",\"margin_mode\":\"cross\"}"
+                "output": { "lever_rate": 10, "contract_code": "BTC-USDT", "margin_mode": "cross" }
             },
             {
                 "description": "Set inverse leverage",
@@ -806,7 +806,7 @@
                     5,
                     "BTC/USD:BTC"
                 ],
-                "output": "{\"lever_rate\":5,\"contract_code\":\"BTC-USD\"}"
+                "output": { "lever_rate": 5, "contract_code": "BTC-USD" }
             },
             {
                 "description": "Set future leverage",
@@ -816,7 +816,7 @@
                     5,
                     "BTC/USD:BTC-231124"
                 ],
-                "output": "{\"lever_rate\":5,\"symbol\":\"btc\"}"
+                "output": { "lever_rate": 5, "symbol": "btc" }
             }
         ],
         "fetchDeposits": [
@@ -846,7 +846,7 @@
                     "spot",
                     "swap"
                 ],
-                "output": "{\"currency\":\"usdt\",\"amount\":1,\"margin-account\":\"USDT\",\"from\":\"spot\",\"to\":\"linear-swap\"}"
+                "output": { "currency": "usdt", "amount": 1, "margin-account": "USDT", "from": "spot", "to": "linear-swap" }
             },
             {
                 "description": "transfer from spot to future",
@@ -858,7 +858,7 @@
                     "spot",
                     "future"
                 ],
-                "output": "{\"currency\":\"usdt\",\"amount\":1,\"type\":\"pro-to-futures\"}"
+                "output": { "currency": "usdt", "amount": 1, "type": "pro-to-futures" }
             },
             {
                 "description": "transfer from spot to cross",
@@ -870,7 +870,7 @@
                     "spot",
                     "cross"
                 ],
-                "output": "{\"currency\":\"usdt\",\"amount\":1}"
+                "output": { "currency": "usdt", "amount": 1 }
             }
         ],
         "fetchTransfers": [
@@ -924,8 +924,19 @@
             {
                 "description": "fetch Status",
                 "method": "fetchStatus",
-                "url": "https://status.huobigroup.com/api/v2/summary.json",
+                "url": "https://api.huobi.pro/v2/market-status",
                 "input": []
+            },
+            {
+                "description": "fetch Status for linear swaps via the heartbeat endpoint",
+                "method": "fetchStatus",
+                "url": "https://api.hbdm.com/heartbeat/",
+                "input": [
+                    {
+                        "type": "swap",
+                        "subType": "linear"
+                    }
+                ]
             }
         ],
         "fetchTime": [
@@ -1449,6 +1460,16 @@
                 ]
             },
             {
+                "description": "Linear swap fetchFundingRateHistory caps limit above the exchange max of 100",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.hbdm.vn/v5/market/funding_rate_history?contract_code=BTC-USDT&limit=100",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    200
+                ]
+            },
+            {
                 "description": "fetch Funding Rate History - swap inverse",
                 "method": "fetchFundingRateHistory",
                 "url": "https://api.huobi.pro/swap-api/v1/swap_historical_funding_rate?contract_code=BTC-USD&page_size=50",
@@ -1514,7 +1535,7 @@
                 "input": [
                     "BTC/USD:BTC"
                 ],
-                "output": "{\"type\":\"30,31\",\"contract\":\"BTC-USD\"}"
+                "output": { "type": "30,31", "contract": "BTC-USD" }
             },
             {
                 "description": "fetch Funding History - future",
@@ -1523,7 +1544,7 @@
                 "input": [
                     "BTC/USD:BTC-231124"
                 ],
-                "output": "{\"type\":\"30,31\",\"symbol\":\"BTC231124\"}"
+                "output": { "type": "30,31", "symbol": "BTC231124" }
             }
         ],
         "setPositionMode": [
@@ -1535,7 +1556,7 @@
                     false,
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"position_mode\":\"single_side\"}"
+                "output": { "position_mode": "single_side" }
             }
         ],
         "closePosition": [
@@ -1550,7 +1571,7 @@
                         "amount": 1
                     }
                 ],
-                "output": "{\"contract_code\":\"BTC240628\",\"direction\":\"sell\",\"volume\":\"1\"}"
+                "output": { "contract_code": "BTC240628", "direction": "sell", "volume": "1" }
             },
             {
                 "description": "Close position for an inverse swap",
@@ -1563,7 +1584,7 @@
                     "amount": 1
                   }
                 ],
-                "output": "{\"contract_code\":\"XRP-USD\",\"direction\":\"sell\",\"volume\":\"1\"}"
+                "output": { "contract_code": "XRP-USD", "direction": "sell", "volume": "1" }
             },
             {
                 "description": "Linear swap closePosition",
@@ -1576,7 +1597,7 @@
                         "position_side": "long"
                     }
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\",\"margin_mode\":\"cross\",\"position_side\":\"long\"}"
+                "output": { "contract_code": "BTC-USDT", "margin_mode": "cross", "position_side": "long" }
             }
         ],
         "fetchPositionADLRank": [
@@ -1611,7 +1632,7 @@
                     "1512509978516443136",
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"order_id\":\"1512509978516443136\",\"contract_code\":\"LTC-USDT\"}"
+                "output": { "order_id": "1512509978516443136", "contract_code": "LTC-USDT" }
             },
             {
                 "description": "Linear swap algo cancelOrder",
@@ -1624,7 +1645,7 @@
                         "stopLossTakeProfit": true
                     }
                 ],
-                "output": "[{\"contract_code\":\"BTC-USDT\",\"algo_id\":\"1512871666507657216\"}]"
+                "output": [ { "contract_code": "BTC-USDT", "algo_id": "1512871666507657216" } ]
             }
         ],
         "cancelOrders": [
@@ -1639,7 +1660,7 @@
                     ],
                     "BTC/USDT:USDT"
                 ],
-                "output": "{\"contract_code\":\"BTC-USDT\",\"order_id\":[\"1513225117834096640\",\"1513225117834096641\"]}"
+                "output": { "contract_code": "BTC-USDT", "order_id": [ "1513225117834096640", "1513225117834096641" ] }
             }
         ],
         "fetchCanceledOrders": [

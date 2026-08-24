@@ -5,15 +5,15 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
 
 class bitrue(ccxt.async_support.bitrue):
 
-    def describe(self) -> Any:
+    def describe(self) -> object:
         return self.deep_extend(super(bitrue, self).describe(), {
             'has': {
                 'ws': True,
@@ -41,13 +41,13 @@ class bitrue(ccxt.async_support.bitrue):
                     'v1': {
                         'private': {
                             'post': {
-                                'poseidon/api/v1/listenKey': 1,
+                                'poseidon/api/v1/listenKey': {'cost': 1},
                             },
                             'put': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': {'cost': 1},
                             },
                             'delete': {
-                                'poseidon/api/v1/listenKey/{listenKey}': 1,
+                                'poseidon/api/v1/listenKey/{listenKey}': {'cost': 1},
                             },
                         },
                     },
@@ -92,7 +92,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_balance(self, client: Client, message):
+    def handle_balance(self, client: Client, message: object):
         #
         #     {
         #         "e": "BALANCE",
@@ -143,7 +143,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'balance'
         client.resolve(self.balance, messageHash)
 
-    def parse_ws_balances(self, balances):
+    def parse_ws_balances(self, balances: object):
         #
         #    [{
         #         "a": "btc",
@@ -177,10 +177,11 @@ class bitrue(ccxt.async_support.bitrue):
                     account['free'] = free
                 if updateUsed:
                     account['used'] = used
-                self.balance[code] = account
+                if code is not None:
+                    self.balance[code] = account
         self.balance = self.safe_balance(self.balance)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         watches information on user orders
 
@@ -211,7 +212,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def handle_order(self, client: Client, message):
+    def handle_order(self, client: Client, message: object):
         #
         #    {
         #        "e": "ORDER",
@@ -244,7 +245,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'orders'
         client.resolve(self.orders, messageHash)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order: object, market: Market = None):
         #
         #    {
         #        "e": "ORDER",
@@ -334,7 +335,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_order_book(self, client: Client, message):
+    def handle_order_book(self, client: Client, message: object):
         #
         #     {
         #         "channel": "market_ethbtc_simple_depth_step0",
@@ -398,9 +399,12 @@ class bitrue(ccxt.async_support.bitrue):
         client.resolve(orderbook, messageHash)
 
     def find_swap_market_by_ws_base_quote(self, wsBaseQuote: str):
-        symbols = list(self.markets.keys())
+        markets = self.markets
+        if markets is None:
+            return None
+        symbols = list(markets.keys())
         for i in range(0, len(symbols)):
-            candidate = self.markets[symbols[i]]
+            candidate = markets[symbols[i]]
             if not candidate['swap']:
                 continue
             baseId = self.safe_string_lower(candidate, 'baseId', '')
@@ -409,7 +413,7 @@ class bitrue(ccxt.async_support.bitrue):
                 return candidate
         return None
 
-    def parse_contract_bids_asks(self, bidsAsks, symbol: str):
+    def parse_contract_bids_asks(self, bidsAsks: object, symbol: str):
         result = []
         for i in range(0, len(bidsAsks)):
             level = bidsAsks[i]
@@ -419,7 +423,7 @@ class bitrue(ccxt.async_support.bitrue):
             result.append([price, amount])
         return result
 
-    def convert_from_raw_quantity(self, symbol: str, rawQuantity):
+    def convert_from_raw_quantity(self, symbol: str, rawQuantity: object):
         if rawQuantity is None:
             return None
         market = self.market(symbol)
@@ -428,7 +432,7 @@ class bitrue(ccxt.async_support.bitrue):
         contractSize = self.safe_number(market, 'contractSize', 1)
         return rawQuantity * contractSize
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
         watches public trades for a swap(futures) market
 
@@ -465,7 +469,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message):
+    def handle_trades(self, client: Client, message: object):
         #
         #     {
         #         "event_rep": "",
@@ -509,7 +513,7 @@ class bitrue(ccxt.async_support.bitrue):
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None):
+    def parse_ws_trade(self, trade: object, market: Market = None):
         symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
         sideLower = self.safe_string_lower(trade, 'side')
@@ -532,7 +536,7 @@ class bitrue(ccxt.async_support.bitrue):
             'fee': None,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         """
         watches OHLCV candles for a swap(futures) market
 
@@ -574,7 +578,7 @@ class bitrue(ccxt.async_support.bitrue):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    def handle_ohlcv(self, client: Client, message):
+    def handle_ohlcv(self, client: Client, message: object):
         #
         #     {
         #         "channel": "market_e_btcusdt_kline_1min",
@@ -617,7 +621,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, tick, market: Market = None) -> list:
+    def parse_ws_ohlcv(self, tick: object, market: Market = None) -> list:
         symbol = market['symbol']
         idSeconds = self.safe_integer(tick, 'id')
         timestamp = None if (idSeconds is None) else idSeconds * 1000
@@ -661,7 +665,7 @@ class bitrue(ccxt.async_support.bitrue):
         request = self.deep_extend(message, params)
         return await self.watch(url, messageHash, request, messageHash)
 
-    def handle_ticker(self, client: Client, message):
+    def handle_ticker(self, client: Client, message: object):
         #
         #     {
         #         "channel": "market_e_btcusdt_ticker",
@@ -694,7 +698,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'ticker:' + symbol
         client.resolve(parsed, messageHash)
 
-    def parse_ws_ticker(self, tick, market, timestamp: Int = None) -> Ticker:
+    def parse_ws_ticker(self, tick: object, market: object, timestamp: Int = None) -> Ticker:
         symbol = market['symbol']
         rawVol = self.safe_number(tick, 'vol')
         rawAmount = self.safe_number(tick, 'amount')
@@ -726,7 +730,7 @@ class bitrue(ccxt.async_support.bitrue):
             'quoteVolume': quoteVolume,
         }, market)
 
-    def parse_ws_order_type(self, typeId):
+    def parse_ws_order_type(self, typeId: object):
         types = {
             '1': 'limit',
             '2': 'market',
@@ -734,7 +738,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         return self.safe_string(types, typeId, typeId)
 
-    def parse_ws_order_status(self, status):
+    def parse_ws_order_status(self, status: object):
         statuses = {
             '0': 'open',  # The order has not been accepted by the engine.
             '1': 'open',  # The order has been accepted by the engine.
@@ -745,10 +749,10 @@ class bitrue(ccxt.async_support.bitrue):
         }
         return self.safe_string(statuses, status, status)
 
-    def handle_ping(self, client: Client, message):
+    def handle_ping(self, client: Client, message: object):
         self.spawn(self.pong, client, message)
 
-    async def pong(self, client, message):
+    async def pong(self, client: Client, message: object):
         #
         #     {
         #         "ping": 1670057540627
@@ -760,7 +764,7 @@ class bitrue(ccxt.async_support.bitrue):
         }
         await client.send(pong)
 
-    def handle_message(self, client: Client, message):
+    def handle_message(self, client: Client, message: object):
         if 'channel' in message:
             channel = self.safe_string(message, 'channel')
             if channel.find('_depth_step') > -1:
@@ -786,20 +790,59 @@ class bitrue(ccxt.async_support.bitrue):
     async def authenticate(self, params={}):
         listenKey = self.safe_value(self.options, 'listenKey')
         if listenKey is None:
-            response = await self.openV1PrivatePostPoseidonApiV1ListenKey(params)
-            #
-            #     {
-            #         "msg": "succ",
-            #         "code": 200,
-            #         "data": {
-            #             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
-            #         }
-            #     }
-            #
-            data = self.safe_value(response, 'data', {})
-            key = self.safe_string(data, 'listenKey')
-            self.options['listenKey'] = key
-            self.options['listenKeyUrl'] = self.urls['api']['ws']['private'] + '/stream?listenKey=' + key
+            # single-flight leader election on a never-dialed client, see
+            # https://github.com/ccxt/ccxt/issues/29393: the key rides the
+            # stream url, so racing fetches mint several listenKeys and the
+            # losers dial '/stream?listenKey=' + an orphaned key whose
+            # subscriptions never deliver. the flight is registered in
+            # client.futures and settled through client.resolve/client.reject,
+            # so every mutation of that map happens under the ws client's own
+            # lock rather than through an unsynchronized map write
+            messageHash = 'authenticateFlight'
+            client = self.client('authenticationFlights')
+            if messageHash in client.futures:
+                # a flight is already in progress - wake when the leader
+                # settles it: the listenKey url is then in the options
+                await client.future(messageHash)
+                return self.options['listenKeyUrl']
+            # register before the first await, so a concurrent caller entering
+            # authenticate() while self one is inside the fetch sees the flight
+            future = client.reusableFuture(messageHash)
+            try:
+                response = await self.openV1PrivatePostPoseidonApiV1ListenKey(params)
+                #
+                #     {
+                #         "msg": "succ",
+                #         "code": 200,
+                #         "data": {
+                #             "listenKey": "7d1ec51340f499d85bb33b00a96ef680bda28869d5c3374a444c5ca4847d1bf0"
+                #         }
+                #     }
+                #
+                data = self.safe_value(response, 'data', {})
+                key = self.safe_string(data, 'listenKey')
+                if key is None:
+                    # reject instead of caching an empty credential, so
+                    # waiters retry rather than dial a hollow stream url
+                    raise AuthenticationError(self.id + ' authenticate() received an empty listenKey')
+                self.options['listenKey'] = key
+                self.options['listenKeyUrl'] = self.urls['api']['ws']['private'] + '/stream?listenKey=' + key
+                client.resolve(key, messageHash)
+            except Exception as e:
+                # reject the flight - all waiters raise and the next caller
+                # re-leads instead of deadlocking on a dead flight
+                client.reject(e, messageHash)
+            # rethrows to the leader on failure and attaches the handler that
+            # keeps an alone leader's rejection from crashing the process
+            await future
+            # only the leader schedules the keepalive, so a burst of watchers
+            # no longer stacks one refresh timer per racing caller. waiters
+            # early-return above, so self runs once per successful flight.
+            # it also has to stay the LAST statement of the block: master's
+            # build/csharpTranspiler.ts:154 rewrites self.delay with a greedy
+            # /self\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
+            # so any following statement carrying a comma gets swallowed into
+            # a bogus `new object[] {...}` argument
             refreshTimeout = self.safe_integer(self.options, 'listenKeyRefreshRate', 1800000)
             self.delay(refreshTimeout, self.keep_alive_listen_key)
         return self.options['listenKeyUrl']

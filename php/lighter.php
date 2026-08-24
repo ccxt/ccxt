@@ -161,81 +161,81 @@ class lighter extends Exchange {
                 'root' => array(
                     'get' => array(
                         // root
-                        '' => 1, // status
-                        'info' => 1,
+                        '' => array( 'cost' => 1 ), // status
+                        'info' => array( 'cost' => 1 ),
                     ),
                 ),
                 'public' => array(
                     'get' => array(
                         // account
-                        'account' => 1,
-                        'accountsByL1Address' => 1,
-                        'apikeys' => 1,
+                        'account' => array( 'cost' => 1 ),
+                        'accountsByL1Address' => array( 'cost' => 1 ),
+                        'apikeys' => array( 'cost' => 1 ),
                         // order
-                        'exchangeStats' => 1,
-                        'assetDetails' => 1,
-                        'orderBookDetails' => 1,
-                        'orderBookOrders' => 1,
-                        'orderBooks' => 1,
-                        'recentTrades' => 1,
+                        'exchangeStats' => array( 'cost' => 1 ),
+                        'assetDetails' => array( 'cost' => 1 ),
+                        'orderBookDetails' => array( 'cost' => 1 ),
+                        'orderBookOrders' => array( 'cost' => 1 ),
+                        'orderBooks' => array( 'cost' => 1 ),
+                        'recentTrades' => array( 'cost' => 1 ),
                         // transaction
-                        'blockTxs' => 1,
-                        'nextNonce' => 1,
-                        'tx' => 1,
-                        'txFromL1TxHash' => 1,
-                        'txs' => 1,
+                        'blockTxs' => array( 'cost' => 1 ),
+                        'nextNonce' => array( 'cost' => 1 ),
+                        'tx' => array( 'cost' => 1 ),
+                        'txFromL1TxHash' => array( 'cost' => 1 ),
+                        'txs' => array( 'cost' => 1 ),
                         // announcement
-                        'announcement' => 1,
+                        'announcement' => array( 'cost' => 1 ),
                         // block
-                        'block' => 1,
-                        'blocks' => 1,
-                        'currentHeight' => 1,
+                        'block' => array( 'cost' => 1 ),
+                        'blocks' => array( 'cost' => 1 ),
+                        'currentHeight' => array( 'cost' => 1 ),
                         // candlestick
-                        'candles' => 1,
-                        'fundings' => 1,
+                        'candles' => array( 'cost' => 1 ),
+                        'fundings' => array( 'cost' => 1 ),
                         // bridge
-                        'fastbridge/info' => 1,
+                        'fastbridge/info' => array( 'cost' => 1 ),
                         // funding
-                        'funding-rates' => 1,
+                        'funding-rates' => array( 'cost' => 1 ),
                         // info
-                        'withdrawalDelay' => 1,
+                        'withdrawalDelay' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // transaction
-                        'sendTx' => 1,
-                        'sendTxBatch' => 1,
+                        'sendTx' => array( 'cost' => 1 ),
+                        'sendTxBatch' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         // account
-                        'accountLimits' => 1,
-                        'accountMetadata' => 1,
-                        'pnl' => 1,
-                        'l1Metadata' => 1,
-                        'liquidations' => 1,
-                        'positionFunding' => 1,
-                        'publicPoolsMetadata' => 1,
+                        'accountLimits' => array( 'cost' => 1 ),
+                        'accountMetadata' => array( 'cost' => 1 ),
+                        'pnl' => array( 'cost' => 1 ),
+                        'l1Metadata' => array( 'cost' => 1 ),
+                        'liquidations' => array( 'cost' => 1 ),
+                        'positionFunding' => array( 'cost' => 1 ),
+                        'publicPoolsMetadata' => array( 'cost' => 1 ),
                         // order
-                        'accountActiveOrders' => 1,
-                        'accountInactiveOrders' => 1,
-                        'export' => 1,
-                        'trades' => 1,
+                        'accountActiveOrders' => array( 'cost' => 1 ),
+                        'accountInactiveOrders' => array( 'cost' => 1 ),
+                        'export' => array( 'cost' => 1 ),
+                        'trades' => array( 'cost' => 1 ),
                         // transaction
-                        'accountTxs' => 1,
-                        'deposit/history' => 1,
-                        'transfer/history' => 1,
-                        'withdraw/history' => 1,
+                        'accountTxs' => array( 'cost' => 1 ),
+                        'deposit/history' => array( 'cost' => 1 ),
+                        'transfer/history' => array( 'cost' => 1 ),
+                        'withdraw/history' => array( 'cost' => 1 ),
                         // referral
-                        'referral/points' => 1,
+                        'referral/points' => array( 'cost' => 1 ),
                         // info
-                        'transferFeeInfo' => 1,
+                        'transferFeeInfo' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // account
-                        'changeAccountTier' => 1,
+                        'changeAccountTier' => array( 'cost' => 1 ),
                         // notification
-                        'notification/ack' => 1,
+                        'notification/ack' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -373,7 +373,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function load_account($chainId, $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
+    public function load_account(mixed $chainId, mixed $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
         $this->init_auth_object($accountIndex, $apiKeyIndex);
         $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
         $signer = $this->safe_value($cachedAuths, 'signer');
@@ -405,13 +405,13 @@ class lighter extends Exchange {
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             $this->options['auths'] = array();
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             $this->options['auths'][$strAccountIndex] = array();
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             $this->options['auths'][$strAccountIndex][$strApiKeyIndex] = array(
                 'signer' => null,
                 'lighterPrivateKey' => null,
@@ -422,16 +422,16 @@ class lighter extends Exchange {
     }
 
     public function get_lighter_private_key(string $strAccountIndex, string $strApiKeyIndex) {
-        if (!(is_array($this->options) && array_key_exists('auths', $this->options))) {
+        if (!(is_array($this->options) && array_key_exists('auths' ?? '', $this->options))) {
             return null;
         }
-        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex, $this->options['auths']))) {
+        if (!(is_array($this->options['auths']) && array_key_exists($strAccountIndex ?? '', $this->options['auths']))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex, $this->options['auths'][$strAccountIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex]) && array_key_exists($strApiKeyIndex ?? '', $this->options['auths'][$strAccountIndex]))) {
             return null;
         }
-        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
+        if (!(is_array($this->options['auths'][$strAccountIndex][$strApiKeyIndex]) && array_key_exists('lighterPrivateKey' ?? '', $this->options['auths'][$strAccountIndex][$strApiKeyIndex]))) {
             return null;
         }
         return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
@@ -462,7 +462,7 @@ class lighter extends Exchange {
         return ($signer !== null);
     }
 
-    public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): array {
+    public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
         if (($apiKeyIndex === null) || ($apiKeyIndex < 4) || ($apiKeyIndex > 254)) {
@@ -473,7 +473,7 @@ class lighter extends Exchange {
         return array( $this->parse_to_int($apiKeyIndex), $params );
     }
 
-    public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): array {
+    public function handle_account_index(array $params, string $methodName1, string $optionName1, string $optionName2, mixed $defaultValue = null): array {
         $accountIndex = null;
         list($accountIndex, $params) = $this->handle_option_and_params_2($params, $methodName1, $optionName1, $optionName2, $defaultValue);
         if ($accountIndex === null) {
@@ -607,7 +607,7 @@ class lighter extends Exchange {
         return '0x' . $this->hash($this->binary_concat($prefix, $binaryMessage), 'keccak', 'hex');
     }
 
-    public function sign_hash($hash, $privateKey) {
+    public function sign_hash(mixed $hash, mixed $privateKey) {
         $this->check_required_credentials();
         $signature = $this->ecdsa(mb_substr($hash, -64), mb_substr($privateKey, -64), 'secp256k1', null);
         $r = $signature['r'];
@@ -616,7 +616,7 @@ class lighter extends Exchange {
         return '0x' . str_pad($r, 64, '0', STR_PAD_LEFT) . str_pad($s, 64, '0', STR_PAD_LEFT) . $v;
     }
 
-    public function sign_l1_and_prepare_tx_info($txInfo, $message, $privateKey) {
+    public function sign_l1_and_prepare_tx_info(mixed $txInfo, mixed $message, mixed $privateKey) {
         $hashMessage = $this->hash_message($message);
         $signature = $this->sign_hash($hashMessage, $privateKey);
         $decTxInfo = $this->parse_json($txInfo);
@@ -645,7 +645,7 @@ class lighter extends Exchange {
         return true;
     }
 
-    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, array $params = array()) {
+    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, $params = array()) {
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
@@ -670,7 +670,7 @@ class lighter extends Exchange {
         return $response;
     }
 
-    public function change_api_key(array $params = array()) {
+    public function change_api_key($params = array()) {
         $apiKeyIndex = null;
         list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
@@ -707,7 +707,13 @@ class lighter extends Exchange {
         $this->options['chainId'] = $enable ? 300 : 304;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
+        if ($type === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $type argument');
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' requires a $side argument');
+        }
         /**
          * @ignore
          * helper function to build the $request
@@ -773,6 +779,7 @@ class lighter extends Exchange {
         }
         if ($postOnly) {
             $timeInForceNum = 2;
+            $orderExpiry = -1;
         } else {
             if (!$isMarketOrder) {
                 if ($timeInForce === 'ioc') {
@@ -864,11 +871,11 @@ class lighter extends Exchange {
         return $orders;
     }
 
-    public function fetch_nonce($accountIndex, $apiKeyIndex, $params = array()) {
+    public function fetch_nonce(mixed $accountIndex, mixed $apiKeyIndex, $params = array()) {
         if (($accountIndex === null) || ($apiKeyIndex === null)) {
             throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
         }
-        if (is_array($params) && array_key_exists('nonce', $params)) {
+        if (is_array($params) && array_key_exists('nonce' ?? '', $params)) {
             return $this->safe_integer($params, 'nonce');
         }
         $nonceInOptions = $this->safe_integer($this->options, 'nonce');
@@ -885,36 +892,17 @@ class lighter extends Exchange {
         return $this->safe_integer($response, 'nonce');
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
-         * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
-         * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
-         * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
-         * @param {int} [$params->nonce] nonce for the account
-         * @param {int} [$params->apiKeyIndex] $apiKeyIndex
-         * @param {int} [$params->accountIndex] $accountIndex
-         * @param {int} [$params->orderExpiry] orderExpiry
-         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
-         */
+    public function sign_and_create_order(string $method, ?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $accountIndex = null;
-        list($accountIndex, $params) = $this->handle_account_index($params, 'createOrder', 'accountIndex', 'account_index');
+        list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
         $params['accountIndex'] = $accountIndex;
         $market = $this->market($symbol);
         $groupingType = null;
-        list($groupingType, $params) = $this->handle_option_and_params($params, 'createOrder', 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
+        list($groupingType, $params) = $this->handle_option_and_params($params, $method, 'groupingType', 3); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
         $orderRequests = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-        // for php
         $totalOrderRequests = count($orderRequests);
         $apiKeyIndex = null;
         $order = null;
@@ -947,6 +935,29 @@ class lighter extends Exchange {
             }
             list($txType, $txInfo) = $this->lighter_sign_create_grouped_orders($signer, $signingPayload);
         }
+        return array( $txType, $txInfo, $order, $market );
+    }
+
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        /**
+         * create a trade $order
+         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] 'GTT' or 'IOC', default is 'GTT'
+         * @param {int} [$params->clientOrderId] client $order id, should be unique for each $order, default is a random number
+         * @param {string} [$params->triggerPrice] trigger $price for stop loss or take profit orders, in units of the quote currency
+         * @param {boolean} [$params->reduceOnly] whether the $order is reduce only, default false
+         * @param {int} [$params->nonce] nonce for the account
+         * @param {int} [$params->apiKeyIndex] apiKeyIndex
+         * @param {int} [$params->accountIndex] accountIndex
+         * @param {int} [$params->orderExpiry] orderExpiry
+         * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
+         */
+        list($txType, $txInfo, $order, $market) = $this->sign_and_create_order('createOrder', $symbol, $type, $side, $amount, $price, $params);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
@@ -1027,7 +1038,7 @@ class lighter extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_status($params = array()) {
+    public function fetch_status($params = array()): array {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -1326,7 +1337,7 @@ class lighter extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
@@ -1567,7 +1578,7 @@ class lighter extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_ohlcv($ohlcv, ?array $market = null): array {
+    public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {
         //
         // {
         //     "t" => 1767700500000,
@@ -1673,7 +1684,7 @@ class lighter extends Exchange {
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_funding_rate($contract, ?array $market = null): array {
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
         //
         //     {
         //         "market_id" => 0,
@@ -1824,7 +1835,9 @@ class lighter extends Exchange {
                     $balance = $this->safe_dict($result, $code, $this->account());
                     $balance['total'] = Precise::string_add($balance['total'], $this->safe_string($asset, 'balance'));
                     $balance['used'] = Precise::string_add($balance['used'], $this->safe_string($asset, 'locked_balance'));
-                    $result[$code] = $balance;
+                    if ($code !== null) {
+                        $result[$code] = $balance;
+                    }
                 }
             } else {
                 $perpBalance = $this->safe_dict($result, 'USDC', $this->account());
@@ -2062,7 +2075,7 @@ class lighter extends Exchange {
         return $this->parse_accounts($accounts, $params);
     }
 
-    public function parse_account($account) {
+    public function parse_account(mixed $account) {
         //
         //     {
         //         "code" => "0",
@@ -2314,7 +2327,7 @@ class lighter extends Exchange {
             $typeAsInteger = $this->safe_integer($order, 'order_type');
             $type = $this->parse_order_type_integer($typeAsInteger);
         }
-        $triggerPrice = $this->parse_number($this->omit_zero(($this->safe_string($order, 'trigger_price'))));
+        $triggerPrice = $this->parse_number($this->omit_zero($this->safe_string($order, 'trigger_price')));
         $stopLossPrice = null;
         $takeProfitPrice = null;
         if ($type !== null) {
@@ -2392,7 +2405,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_type($type) {
+    public function parse_order_type(mixed $type) {
         $types = array(
             'limit' => 'limit',
             'market' => 'market',
@@ -2407,7 +2420,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order_type_integer($typeInteger) {
+    public function parse_order_type_integer(mixed $typeInteger) {
         if ($typeInteger === null) {
             return null;
         }
@@ -2425,7 +2438,7 @@ class lighter extends Exchange {
         return $this->safe_string($types, (string) $typeInteger);
     }
 
-    public function parse_order_time_in_force($tif) {
+    public function parse_order_time_in_force(mixed $tif) {
         $timeInForces = array(
             'immediate-or-cancel' => 'IOC',
             'good-till-time' => 'GTC',
@@ -2435,7 +2448,7 @@ class lighter extends Exchange {
         return $this->safe_string($timeInForces, $tif, $tif);
     }
 
-    public function parse_order_time_in_force_integer($tifInteger) {
+    public function parse_order_time_in_force_integer(mixed $tifInteger) {
         $timeInForces = array(
             '0' => 'immediate-or-cancel',
             '1' => 'good-till-time',
@@ -3054,7 +3067,7 @@ class lighter extends Exchange {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $marginMode parameter');
         }
         $leverage = null;
-        list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 'leverage');
+        list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage');
         if ($leverage === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
         }
@@ -3096,29 +3109,20 @@ class lighter extends Exchange {
         return $this->publicPostSendTx($request);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->accountIndex] account index
-         * @param {string} [$params->apiKeyIndex] api key index
-         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
-         */
+    public function sign_and_cancel_order(string $method, string $id, ?string $symbol = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $apiKeyIndex = null;
-        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires a $symbol argument');
         }
+        $apiKeyIndex = null;
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
+        $accountIndex = null;
+        list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'client_order_index', 'clientOrderId');
         $params = $this->omit($params, array( 'client_order_index', 'clientOrderId' ));
-        $accountIndex = null;
-        list($accountIndex, $params) = $this->handle_account_index($params, 'cancelOrder', 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
@@ -3134,9 +3138,23 @@ class lighter extends Exchange {
         } elseif ($id !== null) {
             $signRaw['order_index'] = $this->parse_to_int($id);
         } else {
-            throw new ArgumentsRequired($this->id . ' cancelOrder requires order $id or client order id');
+            throw new ArgumentsRequired($this->id . ' ' . $method . ' requires order $id or client order id');
         }
         list($txType, $txInfo) = $this->lighter_sign_cancel_order($signer, $this->extend($signRaw, $params));
+        return array( $txType, $txInfo, $market );
+    }
+
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        list($txType, $txInfo, $market) = $this->sign_and_cancel_order('cancelOrder', $id, $symbol, $params);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
@@ -3145,22 +3163,14 @@ class lighter extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array()) {
-        /**
-         * cancel all open orders
-         * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->accountIndex] account index
-         * @param {string} [$params->apiKeyIndex] api key index
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
-         */
+    public function sign_and_cancel_all_orders(string $method, ?string $symbol = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
         $apiKeyIndex = null;
-        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
+        list($apiKeyIndex, $params) = $this->handle_api_key_index($params, $method, 'apiKeyIndex', 'api_key_index');
         $accountIndex = null;
-        list($accountIndex, $params) = $this->handle_account_index($params, 'cancelAllOrders', 'accountIndex', 'account_index');
+        list($accountIndex, $params) = $this->handle_account_index($params, $method, 'accountIndex', 'account_index');
         $strAccountIndex = $this->number_to_string($accountIndex);
         $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
         $signer = $this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex, $params);
@@ -3173,6 +3183,19 @@ class lighter extends Exchange {
             'account_index' => $accountIndex,
         );
         list($txType, $txInfo) = $this->lighter_sign_cancel_all_orders($signer, $this->extend($signRaw, $params));
+        return array( $txType, $txInfo );
+    }
+
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
+        /**
+         * cancel all open orders
+         * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->accountIndex] account index
+         * @param {string} [$params->apiKeyIndex] api key index
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        list($txType, $txInfo) = $this->sign_and_cancel_all_orders('cancelAllOrdersWs', $symbol, $params);
         $request = array(
             'tx_type' => $txType,
             'tx_info' => $txInfo,
@@ -3251,7 +3274,7 @@ class lighter extends Exchange {
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
-         * @param {array} [$params] parameters specific to the bingx api endpoint
+         * @param {array} [$params] parameters specific to the exchange API endpoint
          * @param {string} [$params->accountIndex] account index
          * @param {string} [$params->apiKeyIndex] api key index
          * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
@@ -3311,7 +3334,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
             $url = $this->implode_hostname($this->urls['api']['public']);
@@ -3336,7 +3359,7 @@ class lighter extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
         if (!$response) {
             return null; // fallback to default error handler
         }

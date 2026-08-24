@@ -148,72 +148,184 @@ public partial class backpack : Exchange
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/assets", 1 },
-                        { "api/v1/collateral", 1 },
-                        { "api/v1/borrowLend/markets", 1 },
-                        { "api/v1/borrowLend/markets/history", 1 },
-                        { "api/v1/markets", 1 },
-                        { "api/v1/market", 1 },
-                        { "api/v1/ticker", 1 },
-                        { "api/v1/tickers", 1 },
-                        { "api/v1/depth", 1 },
-                        { "api/v1/klines", 1 },
-                        { "api/v1/markPrices", 1 },
-                        { "api/v1/openInterest", 1 },
-                        { "api/v1/fundingRates", 1 },
-                        { "api/v1/status", 1 },
-                        { "api/v1/ping", 1 },
-                        { "api/v1/time", 1 },
-                        { "api/v1/wallets", 1 },
-                        { "api/v1/trades", 1 },
-                        { "api/v1/trades/history", 1 },
+                        { "api/v1/assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/collateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend/markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend/markets/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/market", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/klines", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/markPrices", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/openInterest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/fundingRates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/ping", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/wallets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/trades/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
-                        { "api/v1/account", 1 },
-                        { "api/v1/account/limits/borrow", 1 },
-                        { "api/v1/account/limits/order", 1 },
-                        { "api/v1/account/limits/withdrawal", 1 },
-                        { "api/v1/borrowLend/positions", 1 },
-                        { "api/v1/capital", 1 },
-                        { "api/v1/capital/collateral", 1 },
-                        { "wapi/v1/capital/deposits", 1 },
-                        { "wapi/v1/capital/deposit/address", 1 },
-                        { "wapi/v1/capital/withdrawals", 1 },
-                        { "api/v1/position", 1 },
-                        { "wapi/v1/history/borrowLend", 1 },
-                        { "wapi/v1/history/interest", 1 },
-                        { "wapi/v1/history/borrowLend/positions", 1 },
-                        { "wapi/v1/history/dust", 1 },
-                        { "wapi/v1/history/fills", 1 },
-                        { "wapi/v1/history/funding", 1 },
-                        { "wapi/v1/history/orders", 1 },
-                        { "wapi/v1/history/rfq", 1 },
-                        { "wapi/v1/history/quote", 1 },
-                        { "wapi/v1/history/settlement", 1 },
-                        { "wapi/v1/history/strategies", 1 },
-                        { "api/v1/order", 1 },
-                        { "api/v1/orders", 1 },
+                        { "api/v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/limits/borrow", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/limits/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/account/limits/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/capital", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/capital/collateral", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/deposits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/deposit/address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/borrowLend", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/interest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/borrowLend/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/dust", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/fills", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/funding", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/settlement", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/strategies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
-                        { "api/v1/account/convertDust", 1 },
-                        { "api/v1/borrowLend", 1 },
-                        { "wapi/v1/capital/withdrawals", 1 },
-                        { "api/v1/order", 1 },
-                        { "api/v1/orders", 1 },
-                        { "api/v1/rfq", 1 },
-                        { "api/v1/rfq/accept", 1 },
-                        { "api/v1/rfq/refresh", 1 },
-                        { "api/v1/rfq/cancel", 1 },
-                        { "api/v1/rfq/quote", 1 },
+                        { "api/v1/account/convertDust", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/borrowLend", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/capital/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/accept", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/refresh", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfq/quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
-                        { "api/v1/order", 1 },
-                        { "api/v1/orders", 1 },
+                        { "api/v1/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "patch", new Dictionary<string, object>() {
-                        { "api/v1/account", 1 },
+                        { "api/v1/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -396,7 +508,7 @@ public partial class backpack : Exchange
                 { "adjustForTimeDifference", false },
                 { "networks", new Dictionary<string, object>() {
                     { "APT", "Aptos" },
-                    { "ARB", "Arbitrum" },
+                    { "ARBITRUM", "Arbitrum" },
                     { "AVAX", "Avalanche" },
                     { "BASE", "Base" },
                     { "BERA", "Berachain" },
@@ -421,7 +533,7 @@ public partial class backpack : Exchange
                 } },
                 { "networksById", new Dictionary<string, object>() {
                     { "aptos", "APT" },
-                    { "arbitrum", "ARB" },
+                    { "arbitrum", "ARBITRUM" },
                     { "avalanche", "AVAX" },
                     { "base", "BASE" },
                     { "berachain", "BERA" },
@@ -537,26 +649,29 @@ public partial class backpack : Exchange
             object networkId = this.safeString(network, "blockchain");
             object networkIdLowerCase = this.safeStringLower(network, "blockchain");
             object networkCode = this.networkIdToCode(networkIdLowerCase, code);
-            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                { "id", networkId },
-                { "network", networkCode },
-                { "limits", new Dictionary<string, object>() {
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "minimumWithdrawal") },
-                        { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
+            if (isTrue(!isEqual(networkCode, null)))
+            {
+                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                    { "id", networkId },
+                    { "network", networkCode },
+                    { "limits", new Dictionary<string, object>() {
+                        { "withdraw", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "minimumWithdrawal") },
+                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
+                        } },
+                        { "deposit", new Dictionary<string, object>() {
+                            { "min", this.safeNumber(network, "minimumDeposit") },
+                            { "max", null },
+                        } },
                     } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(network, "minimumDeposit") },
-                        { "max", null },
-                    } },
-                } },
-                { "active", null },
-                { "deposit", this.safeBool(network, "depositEnabled") },
-                { "withdraw", this.safeBool(network, "withdrawEnabled") },
-                { "fee", this.safeNumber(network, "withdrawalFee") },
-                { "precision", null },
-                { "info", network },
-            };
+                    { "active", null },
+                    { "deposit", this.safeBool(network, "depositEnabled") },
+                    { "withdraw", this.safeBool(network, "withdrawEnabled") },
+                    { "fee", this.safeNumber(network, "withdrawalFee") },
+                    { "precision", null },
+                    { "info", network },
+                };
+            }
         }
         object active = null;
         object deposit = null;
@@ -796,7 +911,7 @@ public partial class backpack : Exchange
             { "SPOT", "spot" },
             { "PERP", "swap" },
         };
-        return this.safeString(types, type, type);
+        return this.safeString(types, ((string)type), type);
     }
 
     /**
@@ -914,8 +1029,8 @@ public partial class backpack : Exchange
      * @see https://docs.backpack.exchange/#tag/Markets/operation/get_depth
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -944,6 +1059,10 @@ public partial class backpack : Exchange
         //     }
         //
         object microseconds = this.safeInteger(response, "timestamp");
+        if (isTrue(isEqual(microseconds, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchOrderBook() missing microseconds")) ;
+        }
         object timestamp = this.parseToInt(divide(microseconds, 1000));
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
@@ -959,7 +1078,7 @@ public partial class backpack : Exchange
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in seconds of the earliest candle to fetch
      * @param {int} [limit] the maximum amount of candles to fetch (default 100)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
@@ -1006,7 +1125,8 @@ public partial class backpack : Exchange
             parameters = this.omit(parameters, "price");
         }
         object response = await this.publicGetApiV1Klines(this.extend(request, parameters));
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        object ohlcvs = this.toArray(response);
+        return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1189,9 +1309,10 @@ public partial class backpack : Exchange
         //     ]
         //
         object rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawRates = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawRates)); postFixIncrement(ref i))
         {
-            object rate = getValue(response, i);
+            object rate = getValue(rawRates, i);
             object datetime = this.safeString(rate, "intervalEndTimestamp");
             object timestamp = this.parse8601(datetime);
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
@@ -1243,7 +1364,8 @@ public partial class backpack : Exchange
         {
             response = await this.publicGetApiV1Trades(this.extend(request, parameters));
         }
-        return this.parseTrades(response, market, since, limit);
+        object responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     /**
@@ -1293,7 +1415,8 @@ public partial class backpack : Exchange
             ((IDictionary<string,object>)request)["fillType"] = "User"; // default
         }
         object response = await this.privateGetWapiV1HistoryFills(this.extend(request, parameters));
-        return this.parseTrades(response, market, since, limit);
+        object responseList = this.toArray(response);
+        return this.parseTrades(responseList, market, since, limit);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1397,6 +1520,10 @@ public partial class backpack : Exchange
         //     }
         //
         object status = this.safeString(response, "status");
+        if (isTrue(isEqual(status, null)))
+        {
+            throw new ExchangeError ((string)add(this.id, " fetchStatus() missing status")) ;
+        }
         return new Dictionary<string, object>() {
             { "status", ((string)status).ToLower() },
             { "updated", null },
@@ -1454,7 +1581,7 @@ public partial class backpack : Exchange
         //         }
         //     }
         //
-        object balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
+        List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
@@ -1467,7 +1594,10 @@ public partial class backpack : Exchange
             object used = Precise.stringAdd(locked, staked);
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = used;
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            if (isTrue(!isEqual(code, null)))
+            {
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
         }
         return this.safeBalance(result);
     }
@@ -1861,7 +1991,7 @@ public partial class backpack : Exchange
             object amount = this.safeNumber(rawOrder, "amount");
             object price = this.safeNumber(rawOrder, "price");
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
-            object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            Dictionary<string, object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
@@ -1872,6 +2002,14 @@ public partial class backpack : Exchange
     public virtual object createOrderRequest(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(type, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a type argument")) ;
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1879,7 +2017,7 @@ public partial class backpack : Exchange
             { "orderType", this.capitalize(type) },
         };
         object triggerPrice = this.safeString(parameters, "triggerPrice");
-        object isTriggerOrder = !isEqual(triggerPrice, null);
+        bool isTriggerOrder = !isEqual(triggerPrice, null);
         object quantityKey = ((bool) isTrue(isTriggerOrder)) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (isTrue(isEqual(type, "limit")))
@@ -2012,7 +2150,7 @@ public partial class backpack : Exchange
      * @description fetch an open order by it's id
      * @see https://docs.backpack.exchange/#tag/Order/operation/get_order
      * @param {string} id order id
-     * @param {string} symbol not used by hollaex fetchOpenOrder ()
+     * @param {string} symbol not used by fetchOpenOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2099,10 +2237,10 @@ public partial class backpack : Exchange
      * @name backpack#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://docs.backpack.exchange/#tag/History/operation/get_order_history
-     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of  orde structures to retrieve (default 100, max 1000)
-     * @param {object} [params] extra parameters specific to the bitteam api endpoint
+     * @param {int} [limit] the maximum number of order structures to retrieve (default 100, max 1000)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -2489,7 +2627,7 @@ public partial class backpack : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object ts = ((object)this.nonce()).ToString();
+            string ts = ((object)this.nonce()).ToString();
             object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             object optionInstructions = this.safeDict(this.options, "instructions", new Dictionary<string, object>() {});
             object optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});

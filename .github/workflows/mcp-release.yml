@@ -1,0 +1,89 @@
+name: MCP Release
+
+# Publishes the ccxt-mcp sub-package to npm, mirroring the main release workflow
+# (manual dispatch, maintainer allowlist, Node 24, npm publish with provenance via OIDC).
+# Bump mcp/package.json first and run `npm run sync-versions` so manifest/server.json match,
+# then dispatch this workflow. npm auth uses OIDC trusted publishing — configure a trusted
+# publisher for the `ccxt-mcp` package on npmjs pointing at this workflow (one-time setup).
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: Prod
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false  # never use caching in release builds
+      - name: Install
+        run: npm ci
+      - name: Verify manifest/server.json versions match package.json
+        run: node scripts/sync-versions.mjs --check
+      - name: Build (tsc + doc manifest)
+        run: npm run build
+      - name: Test
+        run: npm test
+      - run: node -v && npm -v
+      - name: Publish to npm (provenance)
+        run: npm publish --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
+  # Build the Claude Desktop .mcpb bundle and attach it to a GitHub Release so users can
+  # one-click install (Settings -> Extensions) or curl a stable URL. Runs after the npm
+  # publish so the two stay in lockstep. Bundle is unsigned (Desktop shows an "unverified"
+  # prompt); add `mcpb sign` with an Anthropic signing cert here once one is configured.
+  bundle:
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: Prod
+    if: github.ref == 'refs/heads/master' && contains(fromJSON('["kroitor", "frosty00", "carlosmiei", "pcriadoperez"]'), github.actor)
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: mcp
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false  # never use caching in release builds
+      - name: Install
+        run: npm ci
+      - name: Build the .mcpb desktop bundle
+        run: npm run mcpb
+      - name: Attach the .mcpb to a versioned + a moving "latest" GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          TAG="ccxt-mcp-v$VERSION"
+          NOTES="Download **ccxt-mcp.mcpb** below and open it in Claude Desktop (Settings > Extensions) for a one-click install. Any other MCP host (Claude Code, Cursor, VS Code, Windsurf): \`claude mcp add ccxt -- npx -y ccxt-mcp\`. Docs: https://docs.ccxt.com/#/mcp"
+          # versioned archival release (kept out of the repo-wide "latest" pointer) — immutable:
+          # a re-run must NOT overwrite an already-published version, it must fail loudly
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::error::release $TAG already exists — bump mcp/package.json before re-releasing (archived .mcpb artifacts are immutable)"
+            exit 1
+          else
+            gh release create "$TAG" ccxt-mcp.mcpb --title "ccxt-mcp v$VERSION" --notes "$NOTES" --latest=false
+          fi
+          # moving release -> stable URL: /releases/download/ccxt-mcp-latest/ccxt-mcp.mcpb
+          if gh release view ccxt-mcp-latest >/dev/null 2>&1; then
+            gh release upload ccxt-mcp-latest ccxt-mcp.mcpb --clobber
+            gh release edit ccxt-mcp-latest --title "CCXT MCP - latest (v$VERSION)" --notes "$NOTES"
+          else
+            gh release create ccxt-mcp-latest ccxt-mcp.mcpb --title "CCXT MCP - latest (v$VERSION)" --notes "$NOTES" --latest=false
+          fi

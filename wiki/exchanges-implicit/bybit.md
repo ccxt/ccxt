@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bybit API documentation:** [bybit-exchange.github.io](https://bybit-exchange.github.io/docs/inverse/) · [bybit-exchange.github.io](https://bybit-exchange.github.io/docs/linear/) · [github.com](https://github.com/bybit-exchange)
 
-> 403 implicit endpoints across 2 access groups.
+> 404 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -274,6 +274,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV5AffiliateAffUserList` | GET | `v5/affiliate/aff-user-list` | 5 |
 | `privateGetV5AffiliateAffiliateSubList` | GET | `v5/affiliate/affiliate-sub-list` | 5 |
 | `privateGetV5SpotLeverTokenOrderRecord` | GET | `v5/spot-lever-token/order-record` | 1 |
+| `privateGetV5SpotMarginTradeFlexibleAvailableInventory` | GET | `v5/spot-margin-trade/flexible-available-inventory` | 5 |
 | `privateGetV5SpotMarginTradeInterestRateHistory` | GET | `v5/spot-margin-trade/interest-rate-history` | 5 |
 | `privateGetV5SpotMarginTradeState` | GET | `v5/spot-margin-trade/state` | 5 |
 | `privateGetV5SpotMarginTradeMaxBorrowable` | GET | `v5/spot-margin-trade/max-borrowable` | 5 |

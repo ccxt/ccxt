@@ -167,116 +167,116 @@ class ndax extends ndax$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'Activate2FA': 1,
-                        'Authenticate2FA': 1,
-                        'AuthenticateUser': 1,
-                        'EnableXP2FA': 1,
-                        'GetL2Snapshot': 1,
-                        'GetLevel1': 1,
-                        'GetValidate2FARequiredEndpoints': 1,
-                        'LogOut': 1,
-                        'GetTickerHistory': 1,
-                        'GetProduct': 1,
-                        'GetProducts': 1,
-                        'GetInstrument': 1,
-                        'GetInstruments': 1,
-                        'GetEarliestTickTime': 1,
-                        'Ping': 1,
-                        'assets': 1,
-                        'orderbook': 1,
-                        'ticker': 1,
-                        'summary': 1,
-                        'trades': 1, // undocumented
-                        'GetLastTrades': 1, // undocumented
-                        'ConfirmWithdraw': 1,
-                        'SubscribeLevel1': 1,
-                        'SubscribeLevel2': 1,
-                        'SubscribeTicker': 1,
-                        'SubscribeTrades': 1,
-                        'SubscribeBlockTrades': 1,
-                        'UnsubscribeBlockTrades': 1,
-                        'UnsubscribeLevel1': 1,
-                        'UnsubscribeLevel2': 1,
-                        'UnsubscribeTicker': 1,
-                        'UnsubscribeTrades': 1,
-                        'Authenticate': 1, // undocumented
+                        'Activate2FA': { 'cost': 1 },
+                        'Authenticate2FA': { 'cost': 1 },
+                        'AuthenticateUser': { 'cost': 1 },
+                        'EnableXP2FA': { 'cost': 1 },
+                        'GetL2Snapshot': { 'cost': 1 },
+                        'GetLevel1': { 'cost': 1 },
+                        'GetValidate2FARequiredEndpoints': { 'cost': 1 },
+                        'LogOut': { 'cost': 1 },
+                        'GetTickerHistory': { 'cost': 1 },
+                        'GetProduct': { 'cost': 1 },
+                        'GetProducts': { 'cost': 1 },
+                        'GetInstrument': { 'cost': 1 },
+                        'GetInstruments': { 'cost': 1 },
+                        'GetEarliestTickTime': { 'cost': 1 },
+                        'Ping': { 'cost': 1 },
+                        'assets': { 'cost': 1 },
+                        'orderbook': { 'cost': 1 },
+                        'ticker': { 'cost': 1 },
+                        'summary': { 'cost': 1 },
+                        'trades': { 'cost': 1 }, // undocumented
+                        'GetLastTrades': { 'cost': 1 }, // undocumented
+                        'ConfirmWithdraw': { 'cost': 1 },
+                        'SubscribeLevel1': { 'cost': 1 },
+                        'SubscribeLevel2': { 'cost': 1 },
+                        'SubscribeTicker': { 'cost': 1 },
+                        'SubscribeTrades': { 'cost': 1 },
+                        'SubscribeBlockTrades': { 'cost': 1 },
+                        'UnsubscribeBlockTrades': { 'cost': 1 },
+                        'UnsubscribeLevel1': { 'cost': 1 },
+                        'UnsubscribeLevel2': { 'cost': 1 },
+                        'UnsubscribeTicker': { 'cost': 1 },
+                        'UnsubscribeTrades': { 'cost': 1 },
+                        'Authenticate': { 'cost': 1 }, // undocumented
                     },
                 },
                 'private': {
                     'get': {
-                        'GetUserAccountInfos': 1,
-                        'GetUserAccounts': 1,
-                        'GetUserAffiliateCount': 1,
-                        'GetUserAffiliateTag': 1,
-                        'GetUserConfig': 1,
-                        'GetAllUnredactedUserConfigsForUser': 1,
-                        'GetUnredactedUserConfigByKey': 1,
-                        'GetUserDevices': 1,
-                        'GetUserReportTickets': 1,
-                        'GetUserReportWriterResultRecords': 1,
-                        'GetAccountInfo': 1,
-                        'GetAccountPositions': 1,
-                        'GetAllAccountConfigs': 1,
-                        'GetTreasuryProductsForAccount': 1,
-                        'GetAccountTrades': 1,
-                        'GetAccountTransactions': 1,
-                        'GetOpenTradeReports': 1,
-                        'GetAllOpenTradeReports': 1,
-                        'GetTradesHistory': 1,
-                        'GetOpenOrders': 1,
-                        'GetOpenQuotes': 1,
-                        'GetOrderFee': 1,
-                        'GetOrderHistory': 1,
-                        'GetOrdersHistory': 1,
-                        'GetOrderStatus': 1,
-                        'GetOmsFeeTiers': 1,
-                        'GetAccountDepositTransactions': 1,
-                        'GetAccountWithdrawTransactions': 1,
-                        'GetAllDepositRequestInfoTemplates': 1,
-                        'GetDepositInfo': 1,
-                        'GetDepositRequestInfoTemplate': 1,
-                        'GetDeposits': 1,
-                        'GetDepositTicket': 1,
-                        'GetDepositTickets': 1,
-                        'GetOMSWithdrawFees': 1,
-                        'GetWithdrawFee': 1,
-                        'GetWithdraws': 1,
-                        'GetWithdrawTemplate': 1,
-                        'GetWithdrawTemplateTypes': 1,
-                        'GetWithdrawTicket': 1,
-                        'GetWithdrawTicketAttachment': 1,
-                        'GetWithdrawTickets': 1,
-                        'GetDepositTicketAttachment': 1,
+                        'GetUserAccountInfos': { 'cost': 1 },
+                        'GetUserAccounts': { 'cost': 1 },
+                        'GetUserAffiliateCount': { 'cost': 1 },
+                        'GetUserAffiliateTag': { 'cost': 1 },
+                        'GetUserConfig': { 'cost': 1 },
+                        'GetAllUnredactedUserConfigsForUser': { 'cost': 1 },
+                        'GetUnredactedUserConfigByKey': { 'cost': 1 },
+                        'GetUserDevices': { 'cost': 1 },
+                        'GetUserReportTickets': { 'cost': 1 },
+                        'GetUserReportWriterResultRecords': { 'cost': 1 },
+                        'GetAccountInfo': { 'cost': 1 },
+                        'GetAccountPositions': { 'cost': 1 },
+                        'GetAllAccountConfigs': { 'cost': 1 },
+                        'GetTreasuryProductsForAccount': { 'cost': 1 },
+                        'GetAccountTrades': { 'cost': 1 },
+                        'GetAccountTransactions': { 'cost': 1 },
+                        'GetOpenTradeReports': { 'cost': 1 },
+                        'GetAllOpenTradeReports': { 'cost': 1 },
+                        'GetTradesHistory': { 'cost': 1 },
+                        'GetOpenOrders': { 'cost': 1 },
+                        'GetOpenQuotes': { 'cost': 1 },
+                        'GetOrderFee': { 'cost': 1 },
+                        'GetOrderHistory': { 'cost': 1 },
+                        'GetOrdersHistory': { 'cost': 1 },
+                        'GetOrderStatus': { 'cost': 1 },
+                        'GetOmsFeeTiers': { 'cost': 1 },
+                        'GetAccountDepositTransactions': { 'cost': 1 },
+                        'GetAccountWithdrawTransactions': { 'cost': 1 },
+                        'GetAllDepositRequestInfoTemplates': { 'cost': 1 },
+                        'GetDepositInfo': { 'cost': 1 },
+                        'GetDepositRequestInfoTemplate': { 'cost': 1 },
+                        'GetDeposits': { 'cost': 1 },
+                        'GetDepositTicket': { 'cost': 1 },
+                        'GetDepositTickets': { 'cost': 1 },
+                        'GetOMSWithdrawFees': { 'cost': 1 },
+                        'GetWithdrawFee': { 'cost': 1 },
+                        'GetWithdraws': { 'cost': 1 },
+                        'GetWithdrawTemplate': { 'cost': 1 },
+                        'GetWithdrawTemplateTypes': { 'cost': 1 },
+                        'GetWithdrawTicket': { 'cost': 1 },
+                        'GetWithdrawTicketAttachment': { 'cost': 1 },
+                        'GetWithdrawTickets': { 'cost': 1 },
+                        'GetDepositTicketAttachment': { 'cost': 1 },
                     },
                     'post': {
-                        'AddUserAffiliateTag': 1,
-                        'AddDepositTicketAttachment': 1,
-                        'AddWithdrawTicketAttachment': 1,
-                        'CancelUserReport': 1,
-                        'RegisterNewDevice': 1,
-                        'SubscribeAccountEvents': 1,
-                        'UpdateUserAffiliateTag': 1,
-                        'GenerateTradeActivityReport': 1,
-                        'GenerateTransactionActivityReport': 1,
-                        'GenerateTreasuryActivityReport': 1,
-                        'ScheduleTradeActivityReport': 1,
-                        'ScheduleTransactionActivityReport': 1,
-                        'ScheduleTreasuryActivityReport': 1,
-                        'CancelAllOrders': 1,
-                        'CancelOrder': 1,
-                        'CancelQuote': 1,
-                        'CancelReplaceOrder': 1,
-                        'CreateQuote': 1,
-                        'ModifyOrder': 1,
-                        'SendOrder': 1,
-                        'SubmitBlockTrade': 1,
-                        'UpdateQuote': 1,
-                        'CancelWithdraw': 1,
-                        'CreateDepositTicket': 1,
-                        'CreateWithdrawTicket': 1,
-                        'SubmitDepositTicketComment': 1,
-                        'SubmitWithdrawTicketComment': 1,
-                        'GetOrderHistoryByOrderId': 1,
+                        'AddUserAffiliateTag': { 'cost': 1 },
+                        'AddDepositTicketAttachment': { 'cost': 1 },
+                        'AddWithdrawTicketAttachment': { 'cost': 1 },
+                        'CancelUserReport': { 'cost': 1 },
+                        'RegisterNewDevice': { 'cost': 1 },
+                        'SubscribeAccountEvents': { 'cost': 1 },
+                        'UpdateUserAffiliateTag': { 'cost': 1 },
+                        'GenerateTradeActivityReport': { 'cost': 1 },
+                        'GenerateTransactionActivityReport': { 'cost': 1 },
+                        'GenerateTreasuryActivityReport': { 'cost': 1 },
+                        'ScheduleTradeActivityReport': { 'cost': 1 },
+                        'ScheduleTransactionActivityReport': { 'cost': 1 },
+                        'ScheduleTreasuryActivityReport': { 'cost': 1 },
+                        'CancelAllOrders': { 'cost': 1 },
+                        'CancelOrder': { 'cost': 1 },
+                        'CancelQuote': { 'cost': 1 },
+                        'CancelReplaceOrder': { 'cost': 1 },
+                        'CreateQuote': { 'cost': 1 },
+                        'ModifyOrder': { 'cost': 1 },
+                        'SendOrder': { 'cost': 1 },
+                        'SubmitBlockTrade': { 'cost': 1 },
+                        'UpdateQuote': { 'cost': 1 },
+                        'CancelWithdraw': { 'cost': 1 },
+                        'CreateDepositTicket': { 'cost': 1 },
+                        'CreateWithdrawTicket': { 'cost': 1 },
+                        'SubmitDepositTicketComment': { 'cost': 1 },
+                        'SubmitWithdrawTicketComment': { 'cost': 1 },
+                        'GetOrderHistoryByOrderId': { 'cost': 1 },
                     },
                 },
             },
@@ -624,7 +624,7 @@ class ndax extends ndax$1["default"] {
         const sessionStatus = this.safeString(market, 'SessionStatus');
         const isDisable = this.safeValue(market, 'IsDisable');
         const sessionRunning = (sessionStatus === 'Running');
-        return {
+        return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
             'base': base,
@@ -672,7 +672,7 @@ class ndax extends ndax$1["default"] {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
     parseOrderBook(orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 6, amountKey = 8, countOrIdKey = 2) {
         let nonce = undefined;
@@ -707,8 +707,7 @@ class ndax extends ndax$1["default"] {
             const bidask = this.parseOrderBookBidAsk(level, priceKey, amountKey);
             const levelSide = this.safeInteger(level, 9);
             const side = levelSide ? asksKey : bidsKey;
-            const resultSide = result[side];
-            resultSide.push(bidask);
+            result[side].push(bidask);
         }
         result['bids'] = this.sortBy(result['bids'], 0, true);
         result['asks'] = this.sortBy(result['asks'], 0);
@@ -725,7 +724,7 @@ class ndax extends ndax$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -1003,7 +1002,11 @@ class ndax extends ndax$1["default"] {
         //         [1607299380000,19069.32,19069.32,19069.32,19069.32,0,19069.31,19069.32,8,1607299320000],
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        let candles = [];
+        if (Array.isArray(response)) {
+            candles = response;
+        }
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
     parseTrade(trade, market = undefined) {
         //
@@ -1250,12 +1253,14 @@ class ndax extends ndax$1["default"] {
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
             const currencyId = this.safeString(balance, 'ProductId');
-            if ((currencyId !== undefined) && (currencyId in this.currencies_by_id)) {
+            if ((currencyId !== undefined) && (this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
                 account['total'] = this.safeString(balance, 'Amount');
                 account['used'] = this.safeString(balance, 'Hold');
-                result[code] = account;
+                if (code !== undefined) {
+                    result[code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -1612,7 +1617,11 @@ class ndax extends ndax$1["default"] {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat(this.priceToPrecision(symbol, price));
+            let limitPriceString = this.priceToPrecision(symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
+            request['LimitPrice'] = parseFloat(limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1678,7 +1687,11 @@ class ndax extends ndax$1["default"] {
         };
         // If OrderType=1 (Market), Side=0 (Buy), and LimitPrice is supplied, the Market order will execute up to the value specified
         if (price !== undefined) {
-            request['LimitPrice'] = parseFloat(this.priceToPrecision(symbol, price));
+            let limitPriceString = this.priceToPrecision(symbol, price);
+            if (limitPriceString === undefined) {
+                limitPriceString = '0';
+            }
+            request['LimitPrice'] = parseFloat(limitPriceString);
         }
         if (clientOrderId !== undefined) {
             request['ClientOrderId'] = clientOrderId;
@@ -1789,7 +1802,7 @@ class ndax extends ndax$1["default"] {
      * @name ndax#cancelAllOrders
      * @description cancel all open orders
      * @see https://apidoc.ndax.io/#cancelallorders
-     * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+     * @param {string} [symbol] unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */

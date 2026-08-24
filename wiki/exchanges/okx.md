@@ -226,7 +226,7 @@ okx.fetchCurrencies (params?)
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**
 
@@ -776,7 +776,7 @@ fetch all unfilled currently open orders
 | limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>bool</code> | No | True if fetching trigger or conditional orders |
-| params.ordType | <code>string</code> | No | "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap" |
+| params.ordType | <code>string</code> | No | market, limit, post_only, fok, ioc and stop orders: conditional, oco, trigger, move_order_stop, iceberg, or twap |
 | params.algoId | <code>string</code> | No | Algo ID "'433845797218942976'" |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 | params.trailing | <code>boolean</code> | No | set to true if you want to fetch trailing orders |
@@ -1854,7 +1854,7 @@ closes open positions for a market
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | Unified CCXT market symbol |
 | side | <code>string</code> | No | 'buy' or 'sell', leave as undefined in net mode |
-| params | <code>object</code> | No | extra parameters specific to the okx api endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.clientOrderId | <code>string</code> | No | a unique identifier for the order |
 | params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross; |
 | params.code | <code>string</code> | No | *required in the case of closing cross MARGIN position for Single-currency margin* margin currency EXCHANGE SPECIFIC PARAMETERS |
@@ -2043,7 +2043,7 @@ fetches the history of margin added or reduced from contract isolated positions
 | type | <code>string</code> | No | "add" or "reduce" |
 | since | <code>int</code> | No | the earliest time in ms to fetch margin adjustment history for |
 | limit | <code>int</code> | No | the maximum number of entries to retrieve |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.auto | <code>boolean</code> | No | true if fetching auto margin increases |
 
 
@@ -2067,7 +2067,7 @@ fetches historical positions
 | symbols | <code>string</code> | No | unified market symbols |
 | since | <code>int</code> | No | timestamp in ms of the earliest position to fetch |
 | limit | <code>int</code> | No | the maximum amount of records to fetch, default=100, max=100 |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
 | params.marginMode | <code>string</code> | No | "cross" or "isolated" EXCHANGE SPECIFIC PARAMETERS |
 | params.instType | <code>string</code> | No | margin, swap, futures or option |
 | params.type | <code>string</code> | No | the type of latest close position 1: close position partially, 2：close all, 3：liquidation, 4：partial liquidation; 5：adl, is it is the latest type if there are several types for the same position |
@@ -2548,7 +2548,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
@@ -2562,7 +2562,7 @@ okx.watchOrderBook (symbol, limit?, params?)
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>okx</code>](#okx)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - an [order book structure](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel  
 
@@ -2571,7 +2571,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | limit | <code>int</code> | No | 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
@@ -2594,7 +2594,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 | symbols | <code>Array&lt;string&gt;</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript
@@ -2617,7 +2617,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 | symbol | <code>string</code> | Yes | unified array of symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.limit | <code>int</code> | No | the maximum amount of order book entries to return |
-| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt |
+| params.depth | <code>string</code> | No | okx order book depth, can be books, books5, books-rpi, books-l2-tbt, books50-l2-tbt, bbo-tbt |
 
 
 ```javascript

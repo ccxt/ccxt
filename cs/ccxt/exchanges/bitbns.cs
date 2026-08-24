@@ -75,14 +75,126 @@ public partial class bitbns : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "www", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"order/fetchMarkets", "order/fetchTickers", "order/fetchOrderbook", "order/getTickerWithVolume", "exchangeData/ohlc", "exchangeData/orderBook", "exchangeData/tradedetails"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "order/fetchMarkets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/fetchTickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/fetchOrderbook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order/getTickerWithVolume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeData/ohlc", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeData/orderBook", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "exchangeData/tradedetails", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v1", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"platform/status", "tickers", "orderbook/sell/{symbol}", "orderbook/buy/{symbol}"} },
-                    { "post", new List<object>() {"currentCoinBalance/EVERYTHING", "getApiUsageStatus/USAGE", "getOrderSocketToken/USAGE", "currentCoinBalance/{symbol}", "orderStatus/{symbol}", "depositHistory/{symbol}", "withdrawHistory/{symbol}", "withdrawHistoryAll/{symbol}", "depositHistoryAll/{symbol}", "listOpenOrders/{symbol}", "listOpenStopOrders/{symbol}", "getCoinAddress/{symbol}", "placeSellOrder/{symbol}", "placeBuyOrder/{symbol}", "buyStopLoss/{symbol}", "sellStopLoss/{symbol}", "cancelOrder/{symbol}", "cancelStopLossOrder/{symbol}", "listExecutedOrders/{symbol}", "placeMarketOrder/{symbol}", "placeMarketOrderQnty/{symbol}"} },
+                    { "get", new Dictionary<string, object>() {
+                        { "platform/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/sell/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderbook/buy/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "currentCoinBalance/EVERYTHING", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getApiUsageStatus/USAGE", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getOrderSocketToken/USAGE", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "currentCoinBalance/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orderStatus/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depositHistory/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawHistory/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "withdrawHistoryAll/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "depositHistoryAll/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listOpenOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listOpenStopOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getCoinAddress/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeSellOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeBuyOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "buyStopLoss/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "sellStopLoss/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelStopLossOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listExecutedOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeMarketOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeMarketOrderQnty/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
                 { "v2", new Dictionary<string, object>() {
-                    { "post", new List<object>() {"orders", "cancel", "getordersnew", "marginOrders"} },
+                    { "post", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getordersnew", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "marginOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
@@ -238,9 +350,10 @@ public partial class bitbns : Exchange
         //     ]
         //
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        object rawMarkets = this.toArray(response);
+        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
-            object market = getValue(response, i);
+            object market = getValue(rawMarkets, i);
             object id = this.safeString(market, "id");
             object baseId = this.safeString(market, "base");
             object quoteId = this.safeString(market, "quote");
@@ -251,7 +364,7 @@ public partial class bitbns : Exchange
             object amountLimits = this.safeDict(marketLimits, "amount", new Dictionary<string, object>() {});
             object priceLimits = this.safeDict(marketLimits, "price", new Dictionary<string, object>() {});
             object costLimits = this.safeDict(marketLimits, "cost", new Dictionary<string, object>() {});
-            object usdt = (isEqual(quoteId, "USDT"));
+            bool usdt = (isEqual(quoteId, "USDT"));
             // INR markets don't need a _INR prefix
             object uppercaseId = ((bool) isTrue(usdt)) ? (add(add(baseId, "_"), quoteId)) : baseId;
             ((IList<object>)result).Add(new Dictionary<string, object>() {
@@ -315,7 +428,7 @@ public partial class bitbns : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
+     * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -474,12 +587,12 @@ public partial class bitbns : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object keys = new List<object>(((IDictionary<string,object>)data).Keys);
+        List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
-            object parts = ((string)key).Split(new [] {((string)"availableorder")}, StringSplitOptions.None).ToList<object>();
-            object numParts = getArrayLength(parts);
+            List<object> parts = ((string)key).Split(new [] {((string)"availableorder")}, StringSplitOptions.None).ToList<object>();
+            int numParts = getArrayLength(parts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
                 object currencyId = this.safeString(parts, 1);
@@ -492,7 +605,10 @@ public partial class bitbns : Exchange
                     currencyId = "INR";
                 }
                 object code = this.safeCurrencyCode(currencyId);
-                ((IDictionary<string,object>)result)[(string)code] = account;
+                if (isTrue(!isEqual(code, null)))
+                {
+                    ((IDictionary<string,object>)result)[(string)code] = account;
+                }
             }
         }
         return this.safeBalance(result);
@@ -658,18 +774,20 @@ public partial class bitbns : Exchange
         object targetRate = this.safeString(parameters, "target_rate");
         object trailRate = this.safeString(parameters, "trail_rate");
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stopPrice", "trail_rate", "target_rate", "t_rate"});
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object request = new Dictionary<string, object>() {
             { "side", ((string)side).ToUpper() },
             { "symbol", getValue(market, "uppercaseId") },
             { "quantity", this.amountToPrecision(symbol, amount) },
         };
-        object method = "v2PostOrders";
         if (isTrue(isEqual(type, "limit")))
         {
             ((IDictionary<string,object>)request)["rate"] = this.priceToPrecision(symbol, price);
         } else
         {
-            method = "v1PostPlaceMarketOrderQntySymbol";
             ((IDictionary<string,object>)request)["market"] = getValue(market, "quoteId");
         }
         if (isTrue(!isEqual(triggerPrice, null)))
@@ -684,7 +802,14 @@ public partial class bitbns : Exchange
         {
             ((IDictionary<string,object>)request)["trail_rate"] = this.priceToPrecision(symbol, trailRate);
         }
-        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(type, "limit")))
+        {
+            response = await this.v2PostOrders(this.extend(request, parameters));
+        } else
+        {
+            response = await this.v1PostPlaceMarketOrderQntySymbol(this.extend(request, parameters));
+        }
         //
         //     {
         //         "data":"Successfully placed bid to purchase currency",
@@ -694,7 +819,8 @@ public partial class bitbns : Exchange
         //         "code":200
         //     }
         //
-        return this.parseOrder(response, market);
+        object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -733,7 +859,8 @@ public partial class bitbns : Exchange
         quoteSide = add(quoteSide, tail);
         ((IDictionary<string,object>)request)["side"] = quoteSide;
         response = await this.v2PostCancel(this.extend(request, parameters));
-        return this.parseOrder(response, market);
+        object parsed = ((bool) isTrue((isEqual(response, null)))) ? new Dictionary<string, object>() {} : response;
+        return this.parseOrder(parsed, market);
     }
 
     /**
@@ -794,7 +921,7 @@ public partial class bitbns : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object first = this.safeDict(data, 0);
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseOrder(first, market);
     }
 
@@ -1295,7 +1422,7 @@ public partial class bitbns : Exchange
         api ??= "www";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object urls = ((object)this.urls);
+        object urls = this.urls;
         if (!isTrue((inOp(getValue(urls, "api"), api))))
         {
             throw new ExchangeError ((string)add(add(add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
@@ -1310,7 +1437,7 @@ public partial class bitbns : Exchange
         object baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), api));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
-        object nonce = ((object)this.nonce()).ToString();
+        string nonce = ((object)this.nonce()).ToString();
         if (isTrue(isEqual(method, "GET")))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys))))
@@ -1331,7 +1458,7 @@ public partial class bitbns : Exchange
                 { "body", body },
             };
             object payload = this.stringToBase64(this.json(auth));
-            object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
+            string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512);
             headers = ((bool) isTrue((isEqual(headers, null)))) ? new Dictionary<string, object>() {} : headers;
             ((IDictionary<string,object>)headers)["X-BITBNS-PAYLOAD"] = payload;
             ((IDictionary<string,object>)headers)["X-BITBNS-SIGNATURE"] = signature;
@@ -1357,7 +1484,7 @@ public partial class bitbns : Exchange
         //
         object code = this.safeString(response, "code");
         object message = this.safeString(response, "msg");
-        object error = isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, "200")))) && isTrue((!isEqual(code, "204")));
+        bool error = isTrue(isTrue((!isEqual(code, null))) && isTrue((!isEqual(code, "200")))) && isTrue((!isEqual(code, "204")));
         if (isTrue(isTrue(error) || isTrue((!isEqual(message, null)))))
         {
             object feedback = add(add(this.id, " "), body);

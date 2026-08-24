@@ -9,14 +9,14 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	if IsTrue(IsEqual(entry, nil)) {
 		return
 	}
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"id":   "btc",
 		"code": "BTC",
 	}
 	// todo: remove fee from empty
 	var emptyAllowedFor any = []any{"name", "fee"}
 	// todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-	var isNative any = IsTrue(GetValue(exchange.GetHas(), "fetchCurrencies")) && IsTrue(!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
+	var isNative bool = IsTrue(GetValue(exchange.GetHas(), "fetchCurrencies")) && IsTrue(!IsEqual(GetValue(exchange.GetHas(), "fetchCurrencies"), "emulated"))
 	var currencyType any = exchange.SafeString(entry, "type")
 	if IsTrue(isNative) {
 		AddElementToObject(format, "info", map[string]any{})
@@ -53,8 +53,8 @@ func TestCurrency(exchange ccxt.ICoreExchange, skippedProperties any, method any
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "code"))
 	// check if empty networks should be skipped
 	var networks any = exchange.SafeDict(entry, "networks", map[string]any{})
-	var networkKeys any = ObjectKeys(networks)
-	var networkKeysLength any = GetArrayLength(networkKeys)
+	var networkKeys []string = ObjectKeys(networks)
+	var networkKeysLength int = GetArrayLength(networkKeys)
 	if IsTrue(IsTrue(IsEqual(networkKeysLength, 0)) && IsTrue((InOp(skippedProperties, "skipCurrenciesWithoutNetworks")))) {
 		return
 	}
