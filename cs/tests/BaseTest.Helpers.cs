@@ -389,9 +389,25 @@ public partial class testMainClass : BaseTest
             {
                 fieldValue = unwrapListInfo(fieldValue);
             }
-            result[field.Name] = detypeForComparison(fieldValue);
+            result[unifiedKeyOf(field.Name)] = detypeForComparison(fieldValue);
         }
         return result;
+    }
+
+    // Two struct fields are spelled differently from the unified key they carry, because
+    // `event` and `base` are reserved words in C#. Project them back under the unified
+    // name so the comparator sees the key the fixture stores.
+    private static string unifiedKeyOf(string fieldName)
+    {
+        if (fieldName == "eventId")
+        {
+            return "event";
+        }
+        if (fieldName == "baseCurrency")
+        {
+            return "base";
+        }
+        return fieldName;
     }
 
     private static bool isProjectable(Type type)

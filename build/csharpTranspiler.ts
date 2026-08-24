@@ -220,7 +220,9 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDepositsWs': 'List<Transaction>',
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
     'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
-    'fetchEvent': 'PredictionEvent',
+    // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
+    // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
+    // /limits/...) the fixtures store on each nested market. See fetchEvents below.
     'fetchFreeBalance': 'Balance',
     'fetchFundingHistory': 'List<FundingHistory>',
     'fetchFundingInterval': 'FundingRate',
@@ -399,7 +401,9 @@ const REVERSIBLE_FAMILIES: string[] = [
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
 // structures, so the same method name is typed differently there — no invariance conflict
 const PREDICTION_TYPED_CORES: Record<string, string> = {
-    'cancelAllOrders': 'List<PredictionOrder>',
+    // 'cancelAllOrders': '' below is an explicit opt-out, not an omission: omitting it would
+    // fall through to TYPED_CORES and pick up 'List<Order>'.
+    'cancelAllOrders': '',
     'cancelOrder': 'PredictionOrder',
     'cancelOrders': 'List<PredictionOrder>',
     'createMarketBuyOrderWithCost': 'PredictionOrder',
@@ -411,7 +415,9 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchAccounts': 'List<Account>',
     'fetchCanceledOrders': 'List<PredictionOrder>',
     'fetchClosedOrders': 'List<PredictionOrder>',
-    'fetchEvents': 'List<PredictionEvent>',
+    // 'fetchEvents' is deliberately absent for the same reason as 'fetchEvent': the nested
+    // PredictionMarket has no unified market-interface fields, so a typed core rewrites
+    // every nested market into a much narrower key set than the fixture stores.
     'fetchMyTrades': 'List<PredictionTrade>',
     'fetchOpenInterest': 'PredictionOpenInterest',
     'fetchOpenOrders': 'List<PredictionOrder>',
