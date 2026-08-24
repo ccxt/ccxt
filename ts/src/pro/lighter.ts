@@ -1,6 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import Precise from '../base/Precise.js';
+import { ExchangeError } from '../base/errors.js';
 import type { Balances, Dict, FeeString, Int, Liquidation, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, Market, OrderType, OrderSide, Num } from '../base/types.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -1341,10 +1342,15 @@ export default class lighter extends lighterRest {
         try {
             if (error !== undefined) {
                 const code = this.safeString (error, 'code');
-                if (code !== undefined) {
-                    const feedback = this.id + ' ' + this.json (message);
-                    this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-                }
+                const errorMessage = this.safeString (error, 'message');
+                const feedback = this.id + ' ' + this.json (message);
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+                // the rest handler ends with the same unconditional throw. without it an
+                // error whose code is not in the map raises nothing, falls through the
+                // type/channel routing below, and is dropped -- leaving the request that
+                // caused it awaiting a response that never comes
+                throw new ExchangeError (feedback);
             }
         } catch (e) {
             const id = this.safeString (message, 'id');
