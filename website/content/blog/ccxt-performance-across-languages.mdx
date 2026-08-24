@@ -242,6 +242,69 @@ in PHP.
 | PHP | 8.97 s | 49.8 ms | 16.7 | 11.7 ms | 116 MB |
 | Go | 1.33 s | 50.1 ms | 17.4 | 18.7 ms | 105 MB |
 
+## 6. What we're going to look into
+
+Benchmarking your own library is uncomfortable in a useful way. Several numbers above aren't
+facts about a language — they're things we can fix. Here's the list we came away with, roughly in
+order of how much they're worth, with the code that produces them.
+
+**PHP's REST client should pool connections.** This is the largest single win in the whole
+exercise: ~220 ms versus ~52 ms for everyone else, on every REST call, because the ReactPHP
+connector opens a fresh connection per request and pays a TCP+TLS handshake each time. Nothing
+about PHP requires that. A keep-alive pool would bring it in line with the other five.
+
+**The JavaScript order-book insert shifts more than it needs to.** In
+[`ts/src/base/ws/OrderBookSide.ts`](https://github.com/ccxt/ccxt/blob/master/ts/src/base/ws/OrderBookSide.ts),
+inserting a price level does two shifts, and the two are not bounded the same way:
+
+```js
+this.index.copyWithin (index + 1, index, this.index.length)  // whole allocated buffer
+this.index[index] = index_price
+this.copyWithin (index + 1, index, this.length)              // just the live entries
+```
+
+`this.index` is a `Float64Array` grown by doubling (`existing.length = this.length * 2`), so the
+first line can walk up to twice as far as the second — the tail it copies is `Number.MAX_VALUE`
+padding. Bounding it to `this.length`, as the line below already does, looks safe. On a ~45,500
+level book at ~20 updates/s that shift is most of the 11 ms of CPU per delta.
+
+**Go's `SortBy` does formatting work inside the comparator.** In
+[`go/v4/exchange_generic.go`](https://github.com/ccxt/ccxt/blob/master/go/v4/exchange_generic.go),
+the string-key branch compares like this:
+
+```go
+return fmt.Sprintf("%v", a) < fmt.Sprintf("%v", b)
+```
+
+That's two allocations and a reflection-based format on *every comparison* of an O(n log n) sort.
+The integer-key branch calls `reflect.TypeOf(list[i]).Kind()` twice per comparison for the same
+reason. Both could resolve the type once before sorting instead of per-compare. The string branch
+also orders numbers lexicographically, which is worth a second look on its own — it's fine for
+13-digit millisecond timestamps, where every value has the same width, and not obviously fine
+elsewhere.
+
+**Go decodes JSON twice.** `ParseJson` runs `decoder.UseNumber()` and then walks the entire
+decoded tree again in `normalizeNumbers` to convert every `json.Number`. For a 2,000-level book
+that's a second full traversal of the structure. Converting during the decode would remove it.
+Go's `parseJson` measures 0.87 ms of its 2.63 ms parse.
+
+**The boxing tax in Go and C# is the structural one.** Every price is an `interface{}`/`object`,
+and every field read, append, and coercion goes through a generic runtime-typed helper. That's
+what puts two compiled languages behind interpreted Python in §2, and it's the deliberate price
+of generating six languages from one source — but it isn't a law of nature. Typed fast paths in
+the hottest helpers (`GetValue`, `AppendToArray`, `SafeFloat`) would recover part of it without
+changing the transpilation model. This is the biggest job on the list and the least certain.
+
+One caveat on all of these: the millisecond figures come from one machine on one network path, so
+treat them as pointing at *where* to look, not as the size of the prize. The reproducible parts
+are the mechanisms — an extra handshake, an extra traversal, an allocation inside a comparator —
+and those are worth fixing regardless of what any single run measures.
+
+We also came away with a lesson about the benchmark itself, which §1 describes: don't attribute
+latency to a language without a control run that removes the library. Our first draft did, and it
+was wrong. The control now lives in
+[`examples/benchmarks/net-baseline/`](https://github.com/ccxt/ccxt/tree/master/examples/benchmarks/net-baseline).
+
 ## Takeaways
 
 - **For REST, pick the language you like.** The round-trip dominates and the five non-PHP
@@ -260,6 +323,9 @@ in PHP.
   and Go is the most expensive (~19 ms); PHP's real cost is the one-time snapshot build, not the
   deltas.
 - **Bandwidth is a wash** — same protocol, same bytes, every language.
+- **Several of these costs are ours, not the languages'** — §6 lists what we're going to look
+  into, from PHP's missing connection pool to an over-long array shift in the JavaScript
+  order book.
 
 There's no single "fastest CCXT." There's a fastest CCXT *for your workload* — and now there's a
 six-language benchmark you can run to find yours.
@@ -328,6 +394,6 @@ and hover any span for its exact share of the trace.
 Pick your language for the workload, not the benchmark. If you're calling REST endpoints, the
 network dwarfs everything and any of the six will do. If you're parsing at volume or merging deep
 order books, the runtime's JIT and the shape of the generated code decide it — and that ordering
-has little to do with whether the language is compiled. Several of the costs above are ours to
-fix, not the languages': the CCXT team is committed to continuously improving the library, and
-the numbers here are a roadmap as much as a report.
+has little to do with whether the language is compiled. And several of the costs above are ours
+to fix rather than the languages' — §6 names them. The CCXT team is committed to continuously
+improving the library, so this is a roadmap as much as a report.
