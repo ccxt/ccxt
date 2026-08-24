@@ -122,3 +122,9 @@ required-features = ["ws"]
 name = "ob_live_bench"
 path = "src/ob_live_bench.rs"
 required-features = ["ws"]
+
+# Order placement with exchange-specific extras (clientOrderId, postOnly,
+# selfTradePrevention) built through the typed `Params` builder.
+[[bin]]
+name = "binance-order-with-params"
+path = "src/binance_order_with_params.rs"
