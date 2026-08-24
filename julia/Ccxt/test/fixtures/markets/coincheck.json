@@ -1,0 +1,52 @@
+{
+ "ETC/BTC": {
+  "id": "etc_btc",
+  "symbol": "ETC/BTC",
+  "base": "ETC",
+  "quote": "BTC",
+  "baseId": "etc",
+  "quoteId": "btc",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "tierBased": false,
+  "percentage": true
+ },
+ "BTC/JPY": {
+  "id": "btc_jpy",
+  "symbol": "BTC/JPY",
+  "base": "BTC",
+  "quote": "JPY",
+  "baseId": "btc",
+  "quoteId": "jpy",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "contract": false,
+  "precision": {},
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "tierBased": false,
+  "percentage": true
+ }
+}

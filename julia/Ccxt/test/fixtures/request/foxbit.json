@@ -1,0 +1,752 @@
+{
+    "exchange": "foxbit",
+    "skipKeys": [],
+    "outputType": "json",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "Fetch all currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.foxbit.com.br/rest/v3/currencies",
+                "input": []
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "Fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api.foxbit.com.br/rest/v3/markets",
+                "input": []
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch a ticker by a market symbol",
+                "method": "fetchTicker",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/ticker/24hr",
+                "input": [
+                    "BTC/BRL"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Fetch tickers with filters",
+                "method": "fetchTickers",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
+                "input": [
+                    [
+                        "BTC/BRL",
+                        "ETH/BRL"
+                    ]
+                ]
+            },
+            {
+                "description": "Fetch tickers without filters",
+                "method": "fetchTickers",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book without limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/orderbook?depth=20",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch order book with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/orderbook?depth=5",
+                "input": [
+                    "BTC/BRL",
+                    5
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV without filters",
+                "method": "fetchOHLCV",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/candlesticks?interval=1m",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV with a limit filter",
+                "method": "fetchOHLCV",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/candlesticks?interval=1m&limit=5",
+                "input": [
+                    "BTC/BRL",
+                    "1m",
+                    null,
+                    5
+                ]
+            },
+            {
+                "description": "Fetch OHLCV with a since filter",
+                "method": "fetchOHLCV",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/candlesticks?interval=1m&start_time=2024-08-01T00%3A54%3A23.773Z",
+                "input": [
+                    "BTC/BRL",
+                    "1m",
+                    1722473663773
+                ]
+            },
+            {
+                "description": "Fetch OHLCV with a different interval",
+                "method": "fetchOHLCV",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/candlesticks?interval=15m",
+                "input": [
+                    "BTC/BRL",
+                    "15m"
+                ]
+            },
+            {
+                "description": "Fetch OHLCV at BTC/USDT symbol",
+                "method": "fetchOHLCV",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcusdt/candlesticks?interval=15m",
+                "input": [
+                    "BTC/USDT",
+                    "15m"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades without filters",
+                "method": "fetchTrades",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/trades/history",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch trades with a limit filter",
+                "method": "fetchTrades",
+                "url": "https://api.foxbit.com.br/rest/v3/markets/btcbrl/trades/history?page_size=5",
+                "input": [
+                    "BTC/BRL",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetches the balances of all accounts",
+                "method": "fetchBalance",
+                "url": "https://api.foxbit.com.br/rest/v3/accounts",
+                "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create order with clientOrderId",
+                "method": "createOrder",
+                "url": "https://api.foxbit-sandbox.com.br/rest/v3/orders",
+                "input": [
+                    "XRP/BRL",
+                    "market",
+                    "buy",
+                    2,
+                    null,
+                    {
+                        "clientOrderId": "1234"
+                    }
+                ],
+                "output": "{\"market_symbol\":\"xrpbrl\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"2\",\"client_order_id\":\"1234\"}"
+            },
+            {
+                "description": "Create a limit sell order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "LIMIT",
+                    "SELL",
+                    0.0001,
+                    330000
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"quantity\":\"0.0001\",\"price\":\"330000\"}"
+            },
+            {
+                "description": "Create a limit buy order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "LIMIT",
+                    "BUY",
+                    0.00001,
+                    280000
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"0.00001\",\"price\":\"280000\"}"
+            },
+            {
+                "description": "Create market buy order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "MARKET",
+                    "BUY",
+                    0.000005
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"MARKET\",\"quantity\":\"0.000005\"}"
+            },
+            {
+                "description": "Create market sell order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "MARKET",
+                    "SELL",
+                    0.000005
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"MARKET\",\"quantity\":\"0.000005\"}"
+            },
+            {
+                "description": "Create stop market sell order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "STOP_MARKET",
+                    "SELL",
+                    0.000005,
+                    null,
+                    {
+                        "triggerPrice": 330000
+                    }
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"STOP_MARKET\",\"stop_price\":\"330000\",\"quantity\":\"0.000005\"}"
+            },
+            {
+                "description": "Create stop market buy order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "STOP_MARKET",
+                    "BUY",
+                    0.000005,
+                    null,
+                    {
+                        "triggerPrice": 330000
+                    }
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"STOP_MARKET\",\"stop_price\":\"330000\",\"quantity\":\"0.000005\"}"
+            },
+            {
+                "description": "Create stop market sell order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "STOP_LIMIT",
+                    "SELL",
+                    0.000005,
+                    330000,
+                    {
+                        "triggerPrice": 331000
+                    }
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"STOP_LIMIT\",\"stop_price\":\"331000\",\"quantity\":\"0.000005\",\"price\":\"330000\"}"
+            },
+            {
+                "description": "Create stop market buy order",
+                "method": "createOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": [
+                    "BTC/BRL",
+                    "STOP_LIMIT",
+                    "BUY",
+                    0.000005,
+                    330000,
+                    {
+                        "triggerPrice": 329000
+                    }
+                ],
+                "output": "{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"stop_price\":\"329000\",\"quantity\":\"0.000005\",\"price\":\"330000\"}"
+            }
+        ],
+        "createOrders": [
+            {
+                "description": "Spot create orders",
+                "method": "createOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/batch",
+                "input": [
+                    [
+                        {
+                            "symbol": "BTC/BRL",
+                            "amount": 0.1,
+                            "side": "buy",
+                            "type": "limit",
+                            "price": 50
+                        },
+                        {
+                            "symbol": "BTC/BRL",
+                            "amount": 0.11,
+                            "side": "sell",
+                            "type": "limit",
+                            "price": 70
+                        }
+                    ]
+                ],
+                "output": "{\"data\":[{\"market_symbol\":\"btcbrl\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"quantity\":\"0.1\",\"price\":\"50\"},{\"market_symbol\":\"btcbrl\",\"side\":\"SELL\",\"type\":\"LIMIT\",\"quantity\":\"0.11\",\"price\":\"70\"}]}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "Cancel an order by ID",
+                "method": "cancelOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel",
+                "input": [
+                    3916418841
+                ],
+                "output": "{\"id\":3916418841,\"type\":\"ID\"}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "Cancel al orders",
+                "method": "cancelAllOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel",
+                "input": [],
+                "output": "{\"type\":\"ALL\"}"
+            },
+            {
+                "description": "Cancel orders by symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel",
+                "input": [
+                    "BTC/BRL"
+                ],
+                "output": "{\"type\":\"MARKET\",\"market_symbol\":\"btcbrl\"}"
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch an order by ID",
+                "method": "fetchOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/by-order-id/3916393949",
+                "input": [
+                    "3916393949"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "Fetch orders without filters",
+                "method": "fetchOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders",
+                "input": []
+            },
+            {
+                "description": "Fetch orders with symbol filter",
+                "method": "fetchOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?market_symbol=btcbrl",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch orders with start time filter",
+                "method": "fetchOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    null,
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch orders with limit filter",
+                "method": "fetchOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?page_size=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "Fetch the open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=ACTIVE",
+                "input": []
+            },
+            {
+                "description": "Fetch the open orders with market symbol filter",
+                "method": "fetchOpenOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=ACTIVE&market_symbol=btcbrl",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch the open orders with since filter",
+                "method": "fetchOpenOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=ACTIVE&start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    null,
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch the open orders with limit filter",
+                "method": "fetchOpenOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=ACTIVE&page_size=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "Fetch all closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=FILLED",
+                "input": []
+            },
+            {
+                "description": "Fetch closed orders with market symbol filter",
+                "method": "fetchClosedOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=FILLED&market_symbol=btcbrl",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch closed orders with since filter",
+                "method": "fetchClosedOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=FILLED&start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    null,
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch closed orders with limit filter",
+                "method": "fetchClosedOrders",
+                "url": "https://api.foxbit.com.br/rest/v3/orders?state=FILLED&page_size=5",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch the user's trades by market symbol",
+                "method": "fetchMyTrades",
+                "url": "https://api.foxbit.com.br/rest/v3/trades?market_symbol=btcbrl",
+                "input": [
+                    "BTC/BRL"
+                ]
+            },
+            {
+                "description": "Fetch the user's trades with since filter",
+                "method": "fetchMyTrades",
+                "url": "https://api.foxbit.com.br/rest/v3/trades?market_symbol=btcbrl&start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    "BTC/BRL",
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch the user's trades with limit filter",
+                "method": "fetchMyTrades",
+                "url": "https://api.foxbit.com.br/rest/v3/trades?market_symbol=btcbrl&page_size=5",
+                "input": [
+                    "BTC/BRL",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "Fetch all deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.foxbit.com.br/rest/v3/deposits",
+                "input": []
+            },
+            {
+                "description": "Fetch deposits by currency code",
+                "method": "fetchDeposits",
+                "url": "https://api.foxbit.com.br/rest/v3/deposits",
+                "input": [
+                    "BTC"
+                ]
+            },
+            {
+                "description": "Fetch deposits with since filter",
+                "method": "fetchDeposits",
+                "url": "https://api.foxbit.com.br/rest/v3/deposits?start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    null,
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch deposits with limit filter",
+                "method": "fetchDeposits",
+                "url": "https://api.foxbit.com.br/rest/v3/deposits?page_size=2",
+                "input": [
+                    null,
+                    null,
+                    2
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "Fetch all withdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": []
+            },
+            {
+                "description": "Fetch withdrawals by currency code",
+                "method": "fetchWithdrawals",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": [
+                    "BTC"
+                ]
+            },
+            {
+                "description": "Fetch withdrawals with since filter",
+                "method": "fetchWithdrawals",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals?start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    null,
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch withdrawals with limit filter",
+                "method": "fetchWithdrawals",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals?page_size=2",
+                "input": [
+                    null,
+                    null,
+                    2
+                ]
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "Fetch all transactions",
+                "method": "fetchTransactions",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": []
+            },
+            {
+                "description": "Fetch transactions by currency code",
+                "method": "fetchTransactions",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": [
+                    "BTC"
+                ]
+            },
+            {
+                "description": "Fetch transactions with since filter",
+                "method": "fetchTransactions",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals?start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    null,
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch transactions with limit filter",
+                "method": "fetchTransactions",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals?page_size=2",
+                "input": [
+                    null,
+                    null,
+                    2
+                ]
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address by currency code",
+                "method": "fetchDepositAddress",
+                "url": "https://api.foxbit.com.br/rest/v3/deposits/address?currency_symbol=btc",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://metadata-v2.foxbit.com.br/api/status",
+                "input": []
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "Cancel an order and replace by a market one",
+                "method": "editOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel-replace",
+                "input": [
+                    4071391945,
+                    "BTC/BRL",
+                    "MARKET",
+                    "SELL",
+                    0.00001
+                ],
+                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071391945},\"create\":{\"type\":\"MARKET\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"quantity\":\"0.00001\"}}"
+            },
+            {
+                "description": "Cancel an order and replace by a limit one",
+                "method": "editOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel-replace",
+                "input": [
+                    "4071396126",
+                    "BTC/BRL",
+                    "LIMIT",
+                    "SELL",
+                    0.0001,
+                    355000
+                ],
+                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071396126},\"create\":{\"type\":\"LIMIT\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"quantity\":\"0.0001\",\"price\":\"355000\"}}"
+            },
+            {
+                "description": "Cancel an order and replace by a stop market one",
+                "method": "editOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel-replace",
+                "input": [
+                    "4071399012",
+                    "BTC/BRL",
+                    "STOP_MARKET",
+                    "SELL",
+                    0.0001,
+                    375000
+                ],
+                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071399012},\"create\":{\"type\":\"STOP_MARKET\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"stop_price\":\"375000\",\"quantity\":\"0.0001\"}}"
+            },
+            {
+                "description": "Cancel an order and replace by a instant one",
+                "method": "editOrder",
+                "url": "https://api.foxbit.com.br/rest/v3/orders/cancel-replace",
+                "input": [
+                    "4071399967",
+                    "BTC/BRL",
+                    "INSTANT",
+                    "SELL",
+                    2
+                ],
+                "output": "{\"mode\":\"ALLOW_FAILURE\",\"cancel\":{\"type\":\"ID\",\"id\":4071399967},\"create\":{\"type\":\"INSTANT\",\"side\":\"SELL\",\"market_symbol\":\"btcbrl\",\"amount\":\"2\"}}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "Fetch trading fee of a specific market",
+                "method": "fetchTradingFee",
+                "url": "https://api.foxbit.com.br/rest/v3/me/fees/trading",
+                "input": [
+                    "BTC/BRL"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "Fetch trading fees of all markets",
+                "method": "fetchTradingFees",
+                "url": "https://api.foxbit.com.br/rest/v3/me/fees/trading",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch a ledger for BTC",
+                "method": "fetchLedger",
+                "url": "https://api.foxbit.com.br/rest/v3/accounts/btc/transactions",
+                "input": [
+                    "BTC"
+                ]
+            },
+            {
+                "description": "Fetch a ledger with since param",
+                "method": "fetchLedger",
+                "url": "https://api.foxbit.com.br/rest/v3/accounts/btc/transactions?start_time=2024-07-27T00%3A52%3A27.316Z",
+                "input": [
+                    "BTC",
+                    1722041547316
+                ]
+            },
+            {
+                "description": "Fetch a ledger with limit param",
+                "method": "fetchLedger",
+                "url": "https://api.foxbit.com.br/rest/v3/accounts/btc/transactions?page_size=1",
+                "input": [
+                    "BTC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw usdt on tron",
+                "method": "withdraw",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": [
+                  "USDT",
+                  5,
+                  "address_here",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "{\"currency_symbol\":\"usdt\",\"amount\":\"5\",\"destination_address\":\"address_here\",\"network_code\":\"trc20\"}"
+            },
+            {
+                "description": "withdraw on an unmapped network (Ton)",
+                "method": "withdraw",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": [
+                  "USDT",
+                  5,
+                  "address_here",
+                  null,
+                  {
+                    "network": "ton"
+                  }
+                ],
+                "output": "{\"currency_symbol\":\"usdt\",\"amount\":\"5\",\"destination_address\":\"address_here\",\"network_code\":\"ton\"}"
+            },
+            {
+                "description": "withdraw with tag",
+                "method": "withdraw",
+                "url": "https://api.foxbit.com.br/rest/v3/withdrawals",
+                "input": [
+                  "USDT",
+                  5,
+                  "address_here",
+                  "tag_here",
+                  {
+                    "network": "ton"
+                  }
+                ],
+                "output": "{\"currency_symbol\":\"usdt\",\"amount\":\"5\",\"destination_address\":\"address_here\",\"destination_tag\":\"tag_here\",\"network_code\":\"ton\"}"
+            }
+        ]
+    }
+}

@@ -1,0 +1,140 @@
+{
+ "ETH/BTC": {
+  "id": "ethbtc",
+  "symbol": "ETH/BTC",
+  "base": "ETH",
+  "quote": "BTC",
+  "baseId": "eth",
+  "quoteId": "btc",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": false,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "price": 0.000001,
+   "amount": 0.0001,
+   "cost": 0.0001
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 5,
+    "superMax": 1
+   },
+   "amount": {
+    "min": 0.001,
+    "max": 10000
+   },
+   "price": {},
+   "cost": {
+    "min": 0.0001
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "base-currency": "eth",
+   "quote-currency": "btc",
+   "price-precision": 6,
+   "amount-precision": 4,
+   "symbol-partition": "main",
+   "symbol": "ethbtc",
+   "state": "offline",
+   "value-precision": 4,
+   "min-order-amt": 0.001,
+   "max-order-amt": 10000,
+   "min-order-value": 0.0001,
+   "limit-order-min-order-amt": 0.001,
+   "limit-order-max-order-amt": 10000,
+   "limit-order-max-buy-amt": 10000,
+   "limit-order-max-sell-amt": 10000,
+   "buy-limit-must-less-than": 1.1,
+   "sell-limit-must-greater-than": 0.9,
+   "sell-market-min-order-amt": 0.1,
+   "sell-market-max-order-amt": 1000,
+   "buy-market-max-order-value": 100000,
+   "market-sell-order-rate-must-less-than": 0,
+   "market-buy-order-rate-must-less-than": 0,
+   "leverage-ratio": 5,
+   "api-trading": "enabled",
+   "tags": ""
+  },
+  "tierBased": false,
+  "percentage": true,
+  "feeSide": "get"
+ },
+ "XRP/BTC": {
+  "id": "xrpbtc",
+  "symbol": "XRP/BTC",
+  "base": "XRP",
+  "quote": "BTC",
+  "baseId": "xrp",
+  "quoteId": "btc",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": false,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "price": 1e-9,
+   "amount": 0.01,
+   "cost": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 5,
+    "superMax": 1
+   },
+   "amount": {
+    "min": 0.001,
+    "max": 10000
+   },
+   "price": {},
+   "cost": {
+    "min": 0.0001
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "base-currency": "xrp",
+   "quote-currency": "btc",
+   "price-precision": 9,
+   "amount-precision": 2,
+   "symbol-partition": "main",
+   "symbol": "xrpbtc",
+   "state": "offline",
+   "value-precision": 8,
+   "min-order-amt": 0.001,
+   "max-order-amt": 10000,
+   "min-order-value": 0.0001,
+   "limit-order-min-order-amt": 0.001,
+   "limit-order-max-order-amt": 10000,
+   "limit-order-max-buy-amt": 10000,
+   "limit-order-max-sell-amt": 10000,
+   "buy-limit-must-less-than": 1.1,
+   "sell-limit-must-greater-than": 0.9,
+   "sell-market-min-order-amt": 0.1,
+   "sell-market-max-order-amt": 1000,
+   "buy-market-max-order-value": 100000,
+   "market-sell-order-rate-must-less-than": 0,
+   "market-buy-order-rate-must-less-than": 0,
+   "leverage-ratio": 5,
+   "api-trading": "enabled",
+   "tags": ""
+  },
+  "tierBased": false,
+  "percentage": true,
+  "feeSide": "get"
+ }
+}

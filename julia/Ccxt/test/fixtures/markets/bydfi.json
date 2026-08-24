@@ -1,0 +1,140 @@
+{
+ "BTC/USDT:USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0002,
+  "contractSize": 0.001,
+  "precision": {
+   "amount": 1,
+   "price": 0.1,
+   "base": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "max": 200
+   },
+   "amount": {
+    "min": 1,
+    "max": 1200000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTC-USDT",
+   "baseAsset": "BTC",
+   "marginAsset": "USDT",
+   "quoteAsset": "USDT",
+   "contractFactor": "0.001",
+   "limitMaxQty": 1200000,
+   "limitMinQty": 1,
+   "marketMaxQty": 120000,
+   "marketMinQty": 1,
+   "pricePrecision": 8,
+   "basePrecision": 8,
+   "feeRateTaker": "0.0006",
+   "feeRateMaker": "0.0002",
+   "liqFeeRate": "0.0006",
+   "openBuyLimitRateMax": "0.05",
+   "openSellLimitRateMax": "100",
+   "openBuyLimitRateMin": "0.98",
+   "openSellLimitRateMin": "0.05",
+   "priceOrderPrecision": 1,
+   "baseShowPrecision": 1,
+   "maxLeverageLevel": 200,
+   "volumePrecision": 3,
+   "maxLimitOrderNum": 200,
+   "maxPlanOrderNum": 10,
+   "reverse": false,
+   "onboardTime": "1644278400000",
+   "status": "NORMAL"
+  }
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0002,
+  "contractSize": 0.01,
+  "precision": {
+   "amount": 1,
+   "price": 0.01,
+   "base": 1e-8
+  },
+  "limits": {
+   "leverage": {
+    "max": 200
+   },
+   "amount": {
+    "min": 1,
+    "max": 10000000
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "ETH-USDT",
+   "baseAsset": "ETH",
+   "marginAsset": "USDT",
+   "quoteAsset": "USDT",
+   "contractFactor": "0.01",
+   "limitMaxQty": 10000000,
+   "limitMinQty": 1,
+   "marketMaxQty": 1000000,
+   "marketMinQty": 1,
+   "pricePrecision": 8,
+   "basePrecision": 8,
+   "feeRateTaker": "0.0006",
+   "feeRateMaker": "0.0002",
+   "liqFeeRate": "0.0006",
+   "openBuyLimitRateMax": "0.05",
+   "openSellLimitRateMax": "100",
+   "openBuyLimitRateMin": "0.98",
+   "openSellLimitRateMin": "0.05",
+   "priceOrderPrecision": 2,
+   "baseShowPrecision": 2,
+   "maxLeverageLevel": 200,
+   "volumePrecision": 2,
+   "maxLimitOrderNum": 200,
+   "maxPlanOrderNum": 10,
+   "reverse": false,
+   "onboardTime": "1701100800000",
+   "status": "NORMAL"
+  }
+ }
+}

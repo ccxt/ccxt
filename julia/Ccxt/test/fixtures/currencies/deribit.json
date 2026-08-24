@@ -1,0 +1,276 @@
+{
+ "BTC": {
+  "info": {
+   "decimals": 8,
+   "currency": "BTC",
+   "currency_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+   "apr": 0,
+   "min_withdrawal_fee": 0.00001,
+   "withdrawal_fee": 0.00001,
+   "coinbase_networks": [
+    {
+     "display_name": "Bitcoin",
+     "resource_name": "networks/bitcoin-mainnet"
+    }
+   ],
+   "coin_type": "BTC",
+   "withdrawal_priorities": [],
+   "network_fee": 0.000003072,
+   "network_currency": "BTC",
+   "min_confirmations": 1,
+   "currency_long": "Bitcoin",
+   "in_cross_collateral_pool": true,
+   "onchain_operations_precision": 8
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "type": "crypto",
+  "name": "Bitcoin",
+  "fee": 0.00001,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "decimals": 6,
+   "currency": "ETH",
+   "currency_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+   "apr": 0,
+   "min_withdrawal_fee": 0.001,
+   "withdrawal_fee": 0.001,
+   "coinbase_networks": [
+    {
+     "display_name": "Ethereum",
+     "resource_name": "networks/ethereum-mainnet"
+    }
+   ],
+   "coin_type": "ETH",
+   "withdrawal_priorities": [],
+   "network_fee": 0.00000262574475,
+   "network_currency": "ETH",
+   "min_confirmations": 50,
+   "currency_long": "Ethereum",
+   "in_cross_collateral_pool": true,
+   "onchain_operations_precision": 6
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "type": "crypto",
+  "name": "Ethereum",
+  "fee": 0.001,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "decimals": 6,
+   "currency": "USDT",
+   "currency_uuid": "b26327c1-9a34-51d9-b982-9b29e6012648",
+   "apr": 0,
+   "min_withdrawal_fee": 2,
+   "withdrawal_fee": 2,
+   "coinbase_networks": [
+    {
+     "display_name": "Ethereum",
+     "resource_name": "networks/ethereum-mainnet"
+    }
+   ],
+   "coin_type": "USDT",
+   "withdrawal_priorities": [],
+   "network_fee": 0.00000529034,
+   "network_currency": "ETH",
+   "min_confirmations": 1,
+   "currency_long": "Tether",
+   "in_cross_collateral_pool": true,
+   "onchain_operations_precision": 6
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "type": "crypto",
+  "name": "Tether",
+  "fee": 2,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "decimals": 6,
+   "currency": "ADA",
+   "currency_uuid": "63062039-7afb-56ff-8e19-5e3215dc404a",
+   "apr": 0,
+   "min_withdrawal_fee": 0,
+   "withdrawal_fee": 0,
+   "coinbase_networks": [
+    {
+     "display_name": "Cardano",
+     "resource_name": "networks/cardano-mainnet"
+    }
+   ],
+   "coin_type": "ADA",
+   "withdrawal_priorities": [],
+   "network_fee": 0,
+   "network_currency": "ADA",
+   "min_confirmations": 0,
+   "currency_long": "Cardano",
+   "in_cross_collateral_pool": false,
+   "onchain_operations_precision": 6
+  },
+  "id": "ADA",
+  "code": "ADA",
+  "type": "crypto",
+  "name": "Cardano",
+  "fee": 0,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AVAX": {
+  "info": {
+   "decimals": 8,
+   "currency": "AVAX",
+   "currency_uuid": "9d06e463-b3ba-5abf-9082-8761846b28ab",
+   "apr": 0,
+   "min_withdrawal_fee": 0,
+   "withdrawal_fee": 0,
+   "coinbase_networks": [
+    {
+     "display_name": "Avalanche C-Chain",
+     "resource_name": "networks/avacchain-mainnet"
+    }
+   ],
+   "coin_type": "AVAX",
+   "withdrawal_priorities": [],
+   "network_fee": 0,
+   "network_currency": "AVAX",
+   "min_confirmations": 0,
+   "currency_long": "Avalanche",
+   "in_cross_collateral_pool": false,
+   "onchain_operations_precision": 8
+  },
+  "id": "AVAX",
+  "code": "AVAX",
+  "type": "crypto",
+  "name": "Avalanche",
+  "fee": 0,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "BCH": {
+  "info": {
+   "decimals": 8,
+   "currency": "BCH",
+   "currency_uuid": "45f99e13-b522-57d7-8058-c57bf92fe7a3",
+   "apr": 0,
+   "min_withdrawal_fee": 0,
+   "withdrawal_fee": 0,
+   "coinbase_networks": [
+    {
+     "display_name": "Bitcoin Cash",
+     "resource_name": "networks/bitcoincash-mainnet"
+    }
+   ],
+   "coin_type": "BCH",
+   "withdrawal_priorities": [],
+   "network_fee": 0,
+   "network_currency": "BCH",
+   "min_confirmations": 0,
+   "currency_long": "Bitcoin Cash",
+   "in_cross_collateral_pool": false,
+   "onchain_operations_precision": 8
+  },
+  "id": "BCH",
+  "code": "BCH",
+  "type": "crypto",
+  "name": "Bitcoin Cash",
+  "fee": 0,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "BNB": {
+  "info": {
+   "decimals": 4,
+   "currency": "BNB",
+   "currency_uuid": "eb8ab5cb-d2a5-5068-88af-21c3ed92757a",
+   "apr": 0,
+   "min_withdrawal_fee": 0.0001,
+   "withdrawal_fee": 0.0001,
+   "coinbase_networks": [
+    {
+     "display_name": "BNB Smart Chain",
+     "resource_name": "networks/bsc-mainnet"
+    }
+   ],
+   "coin_type": "BNB",
+   "withdrawal_priorities": [],
+   "network_fee": 0.000003,
+   "network_currency": "BNB",
+   "min_confirmations": 1,
+   "currency_long": "Binance Coin",
+   "in_cross_collateral_pool": false,
+   "onchain_operations_precision": 4
+  },
+  "id": "BNB",
+  "code": "BNB",
+  "type": "crypto",
+  "name": "Binance Coin",
+  "fee": 0.0001,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "BUIDL": {
+  "info": {
+   "decimals": 6,
+   "currency": "BUIDL",
+   "currency_uuid": "297c64fb-112e-4722-bad0-175507f46d8e",
+   "apr": 3.421572571428572,
+   "min_withdrawal_fee": 0.0001,
+   "withdrawal_fee": 0.01015,
+   "coin_type": "BUIDL",
+   "withdrawal_priorities": [],
+   "network_fee": 0.00000529034,
+   "network_currency": "ETH",
+   "min_confirmations": 1,
+   "currency_long": "BUIDL",
+   "in_cross_collateral_pool": true,
+   "onchain_operations_precision": 6
+  },
+  "id": "BUIDL",
+  "code": "BUIDL",
+  "type": "crypto",
+  "name": "BUIDL",
+  "fee": 0.01015,
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ }
+}

@@ -1,0 +1,68 @@
+{
+ "BTC/BRL": {
+  "id": "BRLBTC",
+  "symbol": "BTC/BRL",
+  "base": "BTC",
+  "quote": "BRL",
+  "baseId": "BTC",
+  "quoteId": "BRL",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.007,
+  "maker": 0.003,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.00001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.001
+   },
+   "price": {
+    "min": 0.00001
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": "BTC"
+ },
+ "ETH/BRL": {
+  "id": "BRLETH",
+  "symbol": "ETH/BRL",
+  "base": "ETH",
+  "quote": "BRL",
+  "baseId": "ETH",
+  "quoteId": "BRL",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.007,
+  "maker": 0.003,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.00001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.01
+   },
+   "price": {
+    "min": 0.00001
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": "ETH"
+ }
+}

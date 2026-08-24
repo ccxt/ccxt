@@ -1,0 +1,230 @@
+{
+ "BTC/USDT": {
+  "id": "BTC_USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001
+   },
+   "price": {},
+   "cost": {
+    "min": 1,
+    "max": 10000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "name": "BTC_USDT",
+   "stock": "BTC",
+   "money": "USDT",
+   "stockPrec": "6",
+   "moneyPrec": "2",
+   "feePrec": "6",
+   "makerFee": "0.1",
+   "takerFee": "0.1",
+   "minAmount": "0.00001",
+   "minTotal": "1",
+   "tradesEnabled": true,
+   "type": "spot",
+   "isCollateral": true,
+   "maxTotal": "10000000",
+   "isTradFiFutures": false,
+   "delistedAt": null
+  },
+  "tierBased": false,
+  "percentage": true
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTC_PERP",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00055,
+  "maker": 0.0001,
+  "contractSize": 0.001,
+  "precision": {
+   "amount": 0.001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.001
+   },
+   "price": {},
+   "cost": {
+    "min": 5,
+    "max": 100000000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "name": "BTC_PERP",
+   "stock": "BTC",
+   "money": "USDT",
+   "stockPrec": "3",
+   "moneyPrec": "1",
+   "feePrec": "6",
+   "makerFee": "0.01",
+   "takerFee": "0.055",
+   "minAmount": "0.001",
+   "minTotal": "5",
+   "tradesEnabled": true,
+   "type": "futures",
+   "isCollateral": true,
+   "maxTotal": "100000000000",
+   "isTradFiFutures": false,
+   "delistedAt": null
+  },
+  "tierBased": false,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "ETH_USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {},
+   "cost": {
+    "min": 1,
+    "max": 100000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "name": "ETH_USDT",
+   "stock": "ETH",
+   "money": "USDT",
+   "stockPrec": "5",
+   "moneyPrec": "2",
+   "feePrec": "6",
+   "makerFee": "0.1",
+   "takerFee": "0.1",
+   "minAmount": "0.0001",
+   "minTotal": "1",
+   "tradesEnabled": true,
+   "type": "spot",
+   "isCollateral": true,
+   "maxTotal": "100000000",
+   "isTradFiFutures": false,
+   "delistedAt": null
+  },
+  "tierBased": false,
+  "percentage": true
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETH_PERP",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.00055,
+  "maker": 0.0001,
+  "contractSize": 0.01,
+  "precision": {
+   "amount": 0.01,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.01
+   },
+   "price": {},
+   "cost": {
+    "min": 5,
+    "max": 100000000000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "name": "ETH_PERP",
+   "stock": "ETH",
+   "money": "USDT",
+   "stockPrec": "2",
+   "moneyPrec": "2",
+   "feePrec": "6",
+   "makerFee": "0.01",
+   "takerFee": "0.055",
+   "minAmount": "0.01",
+   "minTotal": "5",
+   "tradesEnabled": true,
+   "type": "futures",
+   "isCollateral": true,
+   "maxTotal": "100000000000",
+   "isTradFiFutures": false,
+   "delistedAt": null
+  },
+  "tierBased": false,
+  "percentage": true
+ }
+}

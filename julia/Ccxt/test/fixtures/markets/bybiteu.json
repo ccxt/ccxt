@@ -1,0 +1,144 @@
+{
+ "BTC/USDC": {
+  "id": "BTCUSDC",
+  "symbol": "BTC/USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "amount": 0.000001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {
+    "min": 0.000001,
+    "max": 10.936921
+   },
+   "price": {},
+   "cost": {
+    "min": 1,
+    "max": 1200000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbolId": 838,
+   "symbol": "BTCUSDC",
+   "baseCoin": "BTC",
+   "quoteCoin": "USDC",
+   "innovation": "0",
+   "status": "Trading",
+   "marginTrading": "utaOnly",
+   "stTag": "0",
+   "lotSizeFilter": {
+    "basePrecision": "0.000001",
+    "quotePrecision": "0.0000001",
+    "minOrderQty": "0.000001",
+    "maxOrderQty": "10.936921",
+    "minOrderAmt": "1",
+    "maxOrderAmt": "1200000",
+    "maxLimitOrderQty": "10.936921",
+    "maxMarketOrderQty": "10.936921",
+    "postOnlyMaxLimitOrderSize": "54.684605"
+   },
+   "priceFilter": {
+    "tickSize": "0.1"
+   },
+   "riskParameters": {
+    "priceLimitRatioX": "0.01",
+    "priceLimitRatioY": "0.02"
+   },
+   "symbolType": "",
+   "xstockMultiplier": "1"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get"
+ },
+ "ETH/USDC": {
+  "id": "ETHUSDC",
+  "symbol": "ETH/USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0.001,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "min": 1
+   },
+   "amount": {
+    "min": 0.0001,
+    "max": 430.7359
+   },
+   "price": {},
+   "cost": {
+    "min": 5,
+    "max": 1200000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "symbolId": 934,
+   "symbol": "ETHUSDC",
+   "baseCoin": "ETH",
+   "quoteCoin": "USDC",
+   "innovation": "0",
+   "status": "Trading",
+   "marginTrading": "utaOnly",
+   "stTag": "0",
+   "lotSizeFilter": {
+    "basePrecision": "0.0001",
+    "quotePrecision": "0.000001",
+    "minOrderQty": "0.0001",
+    "maxOrderQty": "430.7359",
+    "minOrderAmt": "5",
+    "maxOrderAmt": "1200000",
+    "maxLimitOrderQty": "430.7359",
+    "maxMarketOrderQty": "430.7359",
+    "postOnlyMaxLimitOrderSize": "2153.6795"
+   },
+   "priceFilter": {
+    "tickSize": "0.01"
+   },
+   "riskParameters": {
+    "priceLimitRatioX": "0.01",
+    "priceLimitRatioY": "0.02"
+   },
+   "symbolType": "",
+   "xstockMultiplier": "1"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get"
+ }
+}

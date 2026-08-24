@@ -1,0 +1,122 @@
+{
+ "4": {
+  "info": {
+   "asset": "4"
+  },
+  "id": "4",
+  "code": "4",
+  "type": "crypto",
+  "name": "4",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "BTC": {
+  "info": {
+   "asset": "BTC"
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "type": "crypto",
+  "name": "BTC",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "asset": "ETH"
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "type": "crypto",
+  "name": "ETH",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "asset": "USDT"
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "type": "crypto",
+  "name": "USDT",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AIW3": {
+  "info": {
+   "asset": "AIW3"
+  },
+  "id": "AIW3",
+  "code": "AIW3",
+  "type": "crypto",
+  "name": "AIW3",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ALLO": {
+  "info": {
+   "asset": "ALLO"
+  },
+  "id": "ALLO",
+  "code": "ALLO",
+  "type": "crypto",
+  "name": "ALLO",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AN": {
+  "info": {
+   "asset": "AN"
+  },
+  "id": "AN",
+  "code": "AN",
+  "type": "crypto",
+  "name": "AN",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ARTX": {
+  "info": {
+   "asset": "ARTX"
+  },
+  "id": "ARTX",
+  "code": "ARTX",
+  "type": "crypto",
+  "name": "ARTX",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ }
+}

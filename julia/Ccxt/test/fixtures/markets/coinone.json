@@ -1,0 +1,112 @@
+{
+ "BTC/KRW": {
+  "id": "1786336159897001",
+  "symbol": "BTC/KRW",
+  "base": "BTC",
+  "quote": "KRW",
+  "baseId": "BTC",
+  "quoteId": "KRW",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.0001,
+   "cost": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "quote_currency": "krw",
+   "target_currency": "btc",
+   "timestamp": 1786336159897,
+   "high": "92000000.0",
+   "low": "91000000.0",
+   "first": "91180000.0",
+   "last": "91470000.0",
+   "quote_volume": "1771026856.5417",
+   "target_volume": "19.36262811",
+   "best_asks": [
+    {
+     "price": "91430000.0",
+     "qty": "0.0578"
+    }
+   ],
+   "best_bids": [
+    {
+     "price": "91400000.0",
+     "qty": "0.00012017"
+    }
+   ],
+   "id": "1786336159897001"
+  },
+  "tierBased": false,
+  "percentage": true
+ },
+ "ETH/KRW": {
+  "id": "1786336161981001",
+  "symbol": "ETH/KRW",
+  "base": "ETH",
+  "quote": "KRW",
+  "baseId": "ETH",
+  "quoteId": "KRW",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.002,
+  "maker": 0.002,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.0001,
+   "cost": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "quote_currency": "krw",
+   "target_currency": "eth",
+   "timestamp": 1786336161981,
+   "high": "2718000.0",
+   "low": "2681000.0",
+   "first": "2693000.0",
+   "last": "2699000.0",
+   "quote_volume": "1079417705.8696",
+   "target_volume": "399.87761582",
+   "best_asks": [
+    {
+     "price": "2699000.0",
+     "qty": "0.90616443"
+    }
+   ],
+   "best_bids": [
+    {
+     "price": "2697000.0",
+     "qty": "0.90045003"
+    }
+   ],
+   "id": "1786336161981001"
+  },
+  "tierBased": false,
+  "percentage": true
+ }
+}

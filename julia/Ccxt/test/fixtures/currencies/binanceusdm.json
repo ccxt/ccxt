@@ -1,0 +1,90 @@
+{
+ "BTC": {
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "USDT": {
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "0G": {
+  "id": "0G",
+  "code": "0G",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "1000000BOB": {
+  "id": "1000000BOB",
+  "code": "1000000BOB",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "1000000MOG": {
+  "id": "1000000MOG",
+  "code": "1000000MOG",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "1000BONK": {
+  "id": "1000BONK",
+  "code": "1000BONK",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "1000CAT": {
+  "id": "1000CAT",
+  "code": "1000CAT",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

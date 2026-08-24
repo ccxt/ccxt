@@ -1,0 +1,51 @@
+name: Julia
+run-name: ${{ github.event.head_commit.message || github.event.pull_request.title || format('{0} · {1}', github.ref_name, github.sha) }}
+
+env:
+  HEAD_COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ !contains(github.event.head_commit.message, '[Automated changes]') }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+    - name: Skip Automated Push Commits
+      id: check_commit
+      run: |
+        if [[ "$HEAD_COMMIT_MESSAGE" == *"[Automated changes]"* ]]; then
+          echo "This commit was made by the action. Skipping."
+          exit 0
+        fi
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 2
+        clean: false
+    - uses: actions/setup-node@v5
+      with:
+        node-version: '22'
+    - name: Install Julia
+      uses: julia-actions/setup-julia@v2
+      with:
+        version: '1'
+    - uses: julia-actions/cache@v2
+    - name: Install npm dependencies
+      run: npm ci --include=dev
+    - name: Determine modified files
+      run: ./build/utils/init_actions.sh
+    - name: Load package and run offline base/validator/load_all groups
+      env:
+        JULIA_PROJECT: julia/Ccxt
+      run: |
+        julia --project=julia/Ccxt -e 'using Ccxt; ex = Ccxt.Binance(; enableRateLimit=true); println("loaded: ", ex.id)'
+        julia --project=julia/Ccxt julia/Ccxt/test/runtests.jl base_utils base_number base_encoding base_crypto base_datetime base_exchange validators validators_pass validators_shared exchange_stubs load_all

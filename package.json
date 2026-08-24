@@ -53,6 +53,9 @@
     "transpileGORest": "tsx build/goTranspiler.ts",
     "transpileGO": "tsx build/goTranspiler.ts --rest-and-ws",
     "force-transpileGO": "tsx build/goTranspiler.ts --rest-and-ws --force",
+    "transpileJulia": "tsx build/transpileJulia.ts",
+    "transpileJuliaBase": "tsx build/transpileJulia.ts --base --errors",
+    "transpileJuliaAll": "tsx build/transpileJulia.ts --base --errors --all",
     "transpile-prediction-py": "tsx build/transpile.ts --python --prediction --force",
     "transpile-prediction-php": "tsx build/transpile.ts --php --prediction --force",
     "transpile-prediction-cs": "tsx build/csharpTranspiler.ts --prediction --force",
@@ -268,7 +271,10 @@
     "cleanup-old-tags": "tsx ./build/cleanup-old-tags.ts",
     "test-types-go": "go run -C go ./tests/types/types.go",
     "test-go": "npm run test-types-go && npm run response-go && npm run request-go && npm run test-base-rest-go && npm run test-base-ws-go",
-    "go-build-single": "tsx ./build/granular-go-build.ts"
+    "go-build-single": "tsx ./build/granular-go-build.ts",
+    "test-julia": "julia --project=julia/Ccxt julia/Ccxt/test/runtests.jl",
+    "julia-runtests": "julia --project=julia/Ccxt julia/Ccxt/test/runtests.jl",
+    "julia-test": "julia --project=julia/Ccxt julia/Ccxt/test/runtests.jl"
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {

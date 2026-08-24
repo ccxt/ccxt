@@ -1,0 +1,856 @@
+{
+ "67": {
+  "info": {
+   "currency": "67",
+   "fiat": false,
+   "precision": 6,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "The Official 67 Coin",
+   "blockchains": {
+    "solana": {
+     "type": "SPL",
+     "deposit": "enabled",
+     "contract": "9AvytnUKsLxPxFHFqS6VLxaxt5p6BhYNr53SD2Chpump",
+     "minDeposit": "1000",
+     "withdrawal": "enabled",
+     "minWithdrawal": "5000",
+     "withdrawalFee": "550",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 1
+    }
+   }
+  },
+  "id": "67",
+  "code": "67",
+  "precision": 0.000001,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 550,
+  "fees": {},
+  "networks": {
+   "SOLANA": {
+    "id": "solana",
+    "network": "SOLANA",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 550,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": 1000
+     },
+     "withdraw": {
+      "min": 5000
+     }
+    },
+    "info": {
+     "type": "SPL",
+     "deposit": "enabled",
+     "contract": "9AvytnUKsLxPxFHFqS6VLxaxt5p6BhYNr53SD2Chpump",
+     "minDeposit": "1000",
+     "withdrawal": "enabled",
+     "minWithdrawal": "5000",
+     "withdrawalFee": "550",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 1
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 5000
+   },
+   "deposit": {
+    "min": 1000
+   }
+  }
+ },
+ "BTC": {
+  "info": {
+   "currency": "BTC",
+   "fiat": false,
+   "precision": 8,
+   "walletPrecision": 8,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "Bitcoin",
+   "blockchains": {
+    "bitcoin": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.000075",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.00015",
+     "withdrawalFee": "0.000075",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 2
+    }
+   }
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.000075,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "id": "bitcoin",
+    "network": "BTC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.000075,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 0.000075
+     },
+     "withdraw": {
+      "min": 0.00015
+     }
+    },
+    "info": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.000075",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.00015",
+     "withdrawalFee": "0.000075",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 2
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.00015
+   },
+   "deposit": {
+    "min": 0.000075
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "currency": "ETH",
+   "fiat": false,
+   "precision": 8,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "Ethereum",
+   "blockchains": {
+    "ethereum": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.0017",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.0034",
+     "withdrawalFee": "0.00084",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    },
+    "optimism": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.0013",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.0034",
+     "withdrawalFee": "0.00042",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 32
+    },
+    "arbitrum": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.001",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.002",
+     "withdrawalFee": "0.0005",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    },
+    "base": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.001",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.003",
+     "withdrawalFee": "0.0004",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    },
+    "binancesmartchain": {
+     "type": "BEP20",
+     "deposit": "disabled",
+     "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+     "minDeposit": "0.002",
+     "withdrawal": "disabled",
+     "minWithdrawal": "0.0033",
+     "withdrawalFee": "0.00066",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   }
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0004,
+  "fees": {},
+  "networks": {
+   "ethereum": {
+    "id": "ethereum",
+    "network": "ethereum",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.00084,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 0.0017
+     },
+     "withdraw": {
+      "min": 0.0034
+     }
+    },
+    "info": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.0017",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.0034",
+     "withdrawalFee": "0.00084",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   },
+   "OPT": {
+    "id": "optimism",
+    "network": "OPT",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.00042,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 0.0013
+     },
+     "withdraw": {
+      "min": 0.0034
+     }
+    },
+    "info": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.0013",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.0034",
+     "withdrawalFee": "0.00042",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 32
+    }
+   },
+   "ARB": {
+    "id": "arbitrum",
+    "network": "ARB",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0005,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 0.001
+     },
+     "withdraw": {
+      "min": 0.002
+     }
+    },
+    "info": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.001",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.002",
+     "withdrawalFee": "0.0005",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   },
+   "base": {
+    "id": "base",
+    "network": "base",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0004,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 0.001
+     },
+     "withdraw": {
+      "min": 0.003
+     }
+    },
+    "info": {
+     "type": "coin",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.001",
+     "withdrawal": "enabled",
+     "minWithdrawal": "0.003",
+     "withdrawalFee": "0.0004",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   },
+   "BSC20": {
+    "id": "binancesmartchain",
+    "network": "BSC20",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 0.00066,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 0.002
+     },
+     "withdraw": {
+      "min": 0.0033
+     }
+    },
+    "info": {
+     "type": "BEP20",
+     "deposit": "disabled",
+     "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+     "minDeposit": "0.002",
+     "withdrawal": "disabled",
+     "minWithdrawal": "0.0033",
+     "withdrawalFee": "0.00066",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.002
+   },
+   "deposit": {
+    "min": 0.001
+   }
+  }
+ },
+ "USDT": {
+  "info": {
+   "currency": "USDT",
+   "fiat": false,
+   "precision": 8,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "USDT",
+   "blockchains": {
+    "ethereum": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "3",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    },
+    "tron": {
+     "type": "TRC20",
+     "deposit": "enabled",
+     "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "3",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 19
+    },
+    "solana": {
+     "type": "SPL",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 1
+    },
+    "binancesmartchain": {
+     "type": "BEP20",
+     "deposit": "enabled",
+     "contract": "0x55d398326f99059ff775485246999027b3197955",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    },
+    "avalanche": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 32
+    },
+    "polygon": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 128
+    }
+   }
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 1e-8,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "ethereum": {
+    "id": "ethereum",
+    "network": "ethereum",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 3,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    },
+    "info": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "3",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   },
+   "TRC20": {
+    "id": "tron",
+    "network": "TRC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 3,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    },
+    "info": {
+     "type": "TRC20",
+     "deposit": "enabled",
+     "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "3",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 19
+    }
+   },
+   "SOLANA": {
+    "id": "solana",
+    "network": "SOLANA",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    },
+    "info": {
+     "type": "SPL",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 1
+    }
+   },
+   "BSC20": {
+    "id": "binancesmartchain",
+    "network": "BSC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    },
+    "info": {
+     "type": "BEP20",
+     "deposit": "enabled",
+     "contract": "0x55d398326f99059ff775485246999027b3197955",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   },
+   "AVALANCHEC": {
+    "id": "avalanche",
+    "network": "AVALANCHEC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    },
+    "info": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 32
+    }
+   },
+   "MATIC": {
+    "id": "polygon",
+    "network": "MATIC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 5
+     },
+     "withdraw": {
+      "min": 10
+     }
+    },
+    "info": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+     "minDeposit": "5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "10",
+     "withdrawalFee": "1",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 128
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 10
+   },
+   "deposit": {
+    "min": 5
+   }
+  }
+ },
+ "0G": {
+  "info": {
+   "currency": "0G",
+   "fiat": false,
+   "precision": 6,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "0G",
+   "blockchains": {
+    "ethereum": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "1",
+     "withdrawalFee": "0.3",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   }
+  },
+  "id": "0G",
+  "code": "0G",
+  "precision": 0.000001,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.3,
+  "fees": {},
+  "networks": {
+   "ethereum": {
+    "id": "ethereum",
+    "network": "ethereum",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.3,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": 0.5
+     },
+     "withdraw": {
+      "min": 1
+     }
+    },
+    "info": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": null,
+     "minDeposit": "0.5",
+     "withdrawal": "enabled",
+     "minWithdrawal": "1",
+     "withdrawalFee": "0.3",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1
+   },
+   "deposit": {
+    "min": 0.5
+   }
+  }
+ },
+ "1000SATS": {
+  "info": {
+   "currency": "1000SATS",
+   "fiat": false,
+   "precision": 6,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true
+  },
+  "id": "1000SATS",
+  "code": "1000SATS",
+  "precision": 0.000001,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "1INCH": {
+  "info": {
+   "currency": "1INCH",
+   "fiat": false,
+   "precision": 8,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "1inch",
+   "blockchains": {
+    "ethereum": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0x111111111117dc0aa78b770fa6a738034120c302",
+     "minDeposit": "40",
+     "withdrawal": "enabled",
+     "minWithdrawal": "80",
+     "withdrawalFee": "20",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   }
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 20,
+  "fees": {},
+  "networks": {
+   "ethereum": {
+    "id": "ethereum",
+    "network": "ethereum",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 20,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": 40
+     },
+     "withdraw": {
+      "min": 80
+     }
+    },
+    "info": {
+     "type": "ERC20",
+     "deposit": "enabled",
+     "contract": "0x111111111117dc0aa78b770fa6a738034120c302",
+     "minDeposit": "40",
+     "withdrawal": "enabled",
+     "minWithdrawal": "80",
+     "withdrawalFee": "20",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 25
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 80
+   },
+   "deposit": {
+    "min": 40
+   }
+  }
+ },
+ "2Z": {
+  "info": {
+   "currency": "2Z",
+   "fiat": false,
+   "precision": 6,
+   "walletPrecision": 6,
+   "walletDeposit": true,
+   "walletWithdrawal": true,
+   "name": "DoubleZero",
+   "blockchains": {
+    "solana": {
+     "type": "SPL",
+     "deposit": "enabled",
+     "contract": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+     "minDeposit": "25",
+     "withdrawal": "enabled",
+     "minWithdrawal": "90",
+     "withdrawalFee": "11",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 1
+    }
+   }
+  },
+  "id": "2Z",
+  "code": "2Z",
+  "precision": 0.000001,
+  "type": "crypto",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 11,
+  "fees": {},
+  "networks": {
+   "SOLANA": {
+    "id": "solana",
+    "network": "SOLANA",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 11,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": 25
+     },
+     "withdraw": {
+      "min": 90
+     }
+    },
+    "info": {
+     "type": "SPL",
+     "deposit": "enabled",
+     "contract": "J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd",
+     "minDeposit": "25",
+     "withdrawal": "enabled",
+     "minWithdrawal": "90",
+     "withdrawalFee": "11",
+     "withdrawalFeePercent": "0",
+     "depositConfirmations": 1
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 90
+   },
+   "deposit": {
+    "min": 25
+   }
+  }
+ }
+}

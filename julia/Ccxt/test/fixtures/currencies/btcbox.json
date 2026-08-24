@@ -1,0 +1,90 @@
+{
+ "BTC": {
+  "id": "btc",
+  "code": "BTC",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "eth",
+  "code": "ETH",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "JPY": {
+  "id": "jpy",
+  "code": "JPY",
+  "precision": 0.01,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "BCH": {
+  "id": "bch",
+  "code": "BCH",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "DOGE": {
+  "id": "doge",
+  "code": "DOGE",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "DOT": {
+  "id": "dot",
+  "code": "DOT",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "LTC": {
+  "id": "ltc",
+  "code": "LTC",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "TRX": {
+  "id": "trx",
+  "code": "TRX",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

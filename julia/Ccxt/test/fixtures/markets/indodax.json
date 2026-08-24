@@ -1,0 +1,128 @@
+{
+ "BTC/USDT": {
+  "id": "btcusdt",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.06,
+  "maker": 0,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.000001,
+   "cost": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.000015
+   },
+   "price": {
+    "min": 1
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "id": "btcusdt",
+   "symbol": "BTCUSDT",
+   "base_currency": "usdt",
+   "traded_currency": "btc",
+   "traded_currency_unit": "BTC",
+   "description": "BTC/USDT",
+   "ticker_id": "btc_usdt",
+   "url_logo": "https://indodax.com/v2/logo/svg/color/btc.svg",
+   "url_logo_png": "https://indodax.com/v2/logo/png/color/btc.png",
+   "coingecko_id": "bitcoin",
+   "volume_precision": 0,
+   "price_round": 6,
+   "trade_min_base_currency": 1,
+   "is_maintenance": 0,
+   "is_market_suspended": 0,
+   "cmc_id": 1,
+   "pricescale": 1,
+   "price_precision": 1,
+   "trade_min_traded_currency": 0.000015,
+   "trade_fee_percent": 0.06,
+   "trade_fee_percent_taker": 0.06,
+   "trade_fee_percent_maker": 0.03,
+   "disable_deposit": false,
+   "has_memo": false,
+   "memo_name": false
+  },
+  "tierBased": false,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "ethusdt",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "eth",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.06,
+  "maker": 0,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.000001,
+   "cost": 1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.000522
+   },
+   "price": {
+    "min": 1
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "id": "ethusdt",
+   "symbol": "ETHUSDT",
+   "base_currency": "usdt",
+   "traded_currency": "eth",
+   "traded_currency_unit": "ETH",
+   "description": "ETH/USDT",
+   "ticker_id": "eth_usdt",
+   "url_logo": "https://indodax.com/v2/logo/svg/color/eth.svg",
+   "url_logo_png": "https://indodax.com/v2/logo/png/color/eth.png",
+   "coingecko_id": "ethereum",
+   "volume_precision": 0,
+   "price_round": 6,
+   "trade_min_base_currency": 1,
+   "is_maintenance": 0,
+   "is_market_suspended": 0,
+   "cmc_id": 1027,
+   "pricescale": 1,
+   "price_precision": 1,
+   "trade_min_traded_currency": 0.000522,
+   "trade_fee_percent": 0.06,
+   "trade_fee_percent_taker": 0.06,
+   "trade_fee_percent_maker": 0.03,
+   "disable_deposit": false,
+   "has_memo": false,
+   "memo_name": false
+  },
+  "tierBased": false,
+  "percentage": true
+ }
+}

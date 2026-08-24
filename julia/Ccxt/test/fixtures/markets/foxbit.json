@@ -1,0 +1,140 @@
+{
+ "BTC/USDT": {
+  "id": "btcusdt",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "btc",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.005,
+  "maker": 0.0025,
+  "precision": {
+   "price": 8,
+   "amount": 8,
+   "cost": 8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00000692
+   },
+   "price": {
+    "min": 0.0001
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "base": {
+    "name": "Bitcoin",
+    "precision": 8,
+    "symbol": "btc",
+    "type": "CRYPTO"
+   },
+   "quote": {
+    "name": "Tether",
+    "precision": 8,
+    "symbol": "usdt",
+    "type": "CRYPTO"
+   },
+   "symbol": "btcusdt",
+   "quantity_min": "0.00000692",
+   "quantity_increment": "0.00000001",
+   "quantity_precision": 8,
+   "price_min": "0.0001",
+   "price_increment": "0.01",
+   "price_precision": 2,
+   "default_fees": {
+    "maker": "0.0025",
+    "taker": "0.005"
+   },
+   "order_type": [
+    "MARKET",
+    "LIMIT",
+    "INSTANT",
+    "STOP_LIMIT"
+   ]
+  },
+  "tierBased": false,
+  "percentage": true,
+  "feeSide": "get"
+ },
+ "ETH/USDT": {
+  "id": "ethusdt",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "eth",
+  "quoteId": "usdt",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.005,
+  "maker": 0.0025,
+  "precision": {
+   "price": 8,
+   "amount": 8,
+   "cost": 8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00023488
+   },
+   "price": {
+    "min": 0.0001
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "base": {
+    "name": "Ethereum",
+    "precision": 8,
+    "symbol": "eth",
+    "type": "CRYPTO"
+   },
+   "quote": {
+    "name": "Tether",
+    "precision": 8,
+    "symbol": "usdt",
+    "type": "CRYPTO"
+   },
+   "symbol": "ethusdt",
+   "quantity_min": "0.00023488",
+   "quantity_increment": "0.00000001",
+   "quantity_precision": 8,
+   "price_min": "0.0001",
+   "price_increment": "0.01",
+   "price_precision": 2,
+   "default_fees": {
+    "maker": "0.0025",
+    "taker": "0.005"
+   },
+   "order_type": [
+    "MARKET",
+    "LIMIT",
+    "INSTANT",
+    "STOP_LIMIT"
+   ]
+  },
+  "tierBased": false,
+  "percentage": true,
+  "feeSide": "get"
+ }
+}

@@ -1,0 +1,202 @@
+{
+ "BTC": {
+  "info": {
+   "product_id": 2,
+   "ticker_id": "BTC-PERP_USDT0",
+   "market_type": "perp",
+   "name": "Bitcoin Perp",
+   "symbol": "BTC-PERP",
+   "maker_fee": 0.0001,
+   "taker_fee": 0.00035,
+   "can_withdraw": false,
+   "can_deposit": false
+  },
+  "id": "2",
+  "code": "BTC",
+  "type": "crypto",
+  "name": "Bitcoin Perp",
+  "deposit": false,
+  "withdraw": false,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "product_id": 4,
+   "ticker_id": "ETH-PERP_USDT0",
+   "market_type": "perp",
+   "name": "Ethereum Perp",
+   "symbol": "ETH-PERP",
+   "maker_fee": 0.0001,
+   "taker_fee": 0.00035,
+   "can_withdraw": false,
+   "can_deposit": false
+  },
+  "id": "4",
+  "code": "ETH",
+  "type": "crypto",
+  "name": "Ethereum Perp",
+  "deposit": false,
+  "withdraw": false,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "KBTC": {
+  "info": {
+   "product_id": 1,
+   "ticker_id": "KBTC_USDT0",
+   "market_type": "spot",
+   "name": "Kraken Wrapped BTC",
+   "symbol": "KBTC",
+   "maker_fee": 0.0001,
+   "taker_fee": 0.00035,
+   "can_withdraw": true,
+   "can_deposit": true
+  },
+  "id": "1",
+  "code": "KBTC",
+  "type": "crypto",
+  "name": "Kraken Wrapped BTC",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "NLP": {
+  "info": {
+   "product_id": 11,
+   "ticker_id": "NLP_USDT0",
+   "market_type": "spot",
+   "name": "Nado LP",
+   "symbol": "NLP",
+   "maker_fee": null,
+   "taker_fee": null,
+   "can_withdraw": true,
+   "can_deposit": true
+  },
+  "id": "11",
+  "code": "NLP",
+  "type": "crypto",
+  "name": "Nado LP",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "USDT0": {
+  "info": {
+   "product_id": 0,
+   "ticker_id": null,
+   "market_type": null,
+   "name": "USDT0",
+   "symbol": "USDT0",
+   "maker_fee": null,
+   "taker_fee": null,
+   "can_withdraw": true,
+   "can_deposit": true
+  },
+  "id": "0",
+  "code": "USDT0",
+  "type": "crypto",
+  "name": "USDT0",
+  "deposit": true,
+  "withdraw": true,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAPL": {
+  "info": {
+   "product_id": 102,
+   "ticker_id": "AAPL-PERP_USDT0",
+   "market_type": "perp",
+   "name": "Apple Perp",
+   "symbol": "AAPL-PERP",
+   "maker_fee": 0.0001,
+   "taker_fee": 0.00035,
+   "can_withdraw": false,
+   "can_deposit": false
+  },
+  "id": "102",
+  "code": "AAPL",
+  "type": "crypto",
+  "name": "Apple Perp",
+  "deposit": false,
+  "withdraw": false,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "product_id": 26,
+   "ticker_id": "AAVE-PERP_USDT0",
+   "market_type": "perp",
+   "name": "Aave Perp",
+   "symbol": "AAVE-PERP",
+   "maker_fee": 0.0001,
+   "taker_fee": 0.00035,
+   "can_withdraw": false,
+   "can_deposit": false
+  },
+  "id": "26",
+  "code": "AAVE",
+  "type": "crypto",
+  "name": "Aave Perp",
+  "deposit": false,
+  "withdraw": false,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "product_id": 60,
+   "ticker_id": "ADA-PERP_USDT0",
+   "market_type": "perp",
+   "name": "Cardano Perp",
+   "symbol": "ADA-PERP",
+   "maker_fee": 0.0001,
+   "taker_fee": 0.00035,
+   "can_withdraw": false,
+   "can_deposit": false
+  },
+  "id": "60",
+  "code": "ADA",
+  "type": "crypto",
+  "name": "Cardano Perp",
+  "deposit": false,
+  "withdraw": false,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ }
+}

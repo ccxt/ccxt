@@ -1,0 +1,100 @@
+{
+ "ETH/BTC": {
+  "id": "eth_btc",
+  "symbol": "ETH/BTC",
+  "base": "ETH",
+  "quote": "BTC",
+  "baseId": "ETH",
+  "quoteId": "BTC",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {
+    "min": 0.0001
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "aux_japanese": "BTC",
+   "description": "Zaifの取引所です。イーサリアム（ETH）の価格、チャートなどの情報をまとめてチェックできます。暗号資産交換所Zaif（ザイフ）、暗号資産積立、自動売買。",
+   "item_japanese": "ETH",
+   "aux_unit_point": 4,
+   "item_unit_step": 0.0001,
+   "id": 178,
+   "is_token": true,
+   "seq": 181,
+   "name": "ETH/BTC",
+   "title": "ETH/BTC（イーサリアム/ビットコイン） 暗号資産取引なら - Zaif（ザイフ）",
+   "event_number": 0,
+   "aux_unit_min": 0.0001,
+   "currency_pair": "eth_btc",
+   "item_unit_min": 0.0001,
+   "aux_unit_step": 0.0001
+  },
+  "percentage": true
+ },
+ "BCH/BTC": {
+  "id": "bch_btc",
+  "symbol": "BCH/BTC",
+  "base": "BCH",
+  "quote": "BTC",
+  "baseId": "BCH",
+  "quoteId": "BTC",
+  "type": "spot",
+  "spot": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.001,
+  "maker": 0,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.0001
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {
+    "min": 0.0001
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "aux_japanese": "BTC",
+   "description": "Zaifの取引所です。ビットコインキャッシュ（BCH）の価格、チャートなどの情報をまとめてチェックできます。暗号資産交換所Zaif（ザイフ）、暗号資産積立、自動売買。",
+   "item_japanese": "BCH",
+   "aux_unit_point": 4,
+   "item_unit_step": 0.0001,
+   "id": 176,
+   "is_token": true,
+   "seq": 179,
+   "name": "BCH/BTC",
+   "title": "BCH/BTC（ビットコインキャッシュ/ビットコイン） 暗号資産取引なら - Zaif（ザイフ）",
+   "event_number": 0,
+   "aux_unit_min": 0.0001,
+   "currency_pair": "bch_btc",
+   "item_unit_min": 0.0001,
+   "aux_unit_step": 0.0001
+  },
+  "percentage": true
+ }
+}

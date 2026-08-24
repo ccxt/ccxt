@@ -1,0 +1,108 @@
+{
+ "BTC/USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.006,
+  "maker": 0.004,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "BTC-USDT",
+   "base_currency": "BTC",
+   "quote_currency": "USDT",
+   "quote_increment": "0.01",
+   "base_increment": "0.00000001",
+   "display_name": "BTC-USDT",
+   "min_market_funds": "1",
+   "margin_enabled": false,
+   "post_only": false,
+   "limit_only": false,
+   "cancel_only": false,
+   "status": "online",
+   "status_message": "",
+   "trading_disabled": false,
+   "fx_stablecoin": false,
+   "max_slippage_percentage": "0.03000000",
+   "auction_mode": false,
+   "high_bid_limit_percentage": ""
+  },
+  "tierBased": true,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.006,
+  "maker": 0.004,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 1
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "id": "ETH-USDT",
+   "base_currency": "ETH",
+   "quote_currency": "USDT",
+   "quote_increment": "0.01",
+   "base_increment": "0.00000001",
+   "display_name": "ETH-USDT",
+   "min_market_funds": "1",
+   "margin_enabled": false,
+   "post_only": false,
+   "limit_only": false,
+   "cancel_only": false,
+   "status": "online",
+   "status_message": "",
+   "trading_disabled": false,
+   "fx_stablecoin": false,
+   "max_slippage_percentage": "0.03000000",
+   "auction_mode": false,
+   "high_bid_limit_percentage": ""
+  },
+  "tierBased": true,
+  "percentage": true
+ }
+}

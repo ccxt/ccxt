@@ -1,0 +1,806 @@
+{
+ "BTC": {
+  "info": {
+   "uuid": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+   "symbol": "BTC",
+   "name": "Bitcoin",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": [
+    {
+     "guid": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+     "is_deposit_enabled": true,
+     "gateway_name": "Bitcoin",
+     "min_withdrawal_amount": "0.001",
+     "withdrawal_fee": "0.0001",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   ]
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.0001,
+  "fees": {},
+  "networks": {
+   "BTC": {
+    "id": "Bitcoin",
+    "network": "BTC",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.0001,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "0"
+     },
+     "withdraw": {
+      "min": "0.001"
+     }
+    },
+    "info": {
+     "guid": "0df9c3c3-255a-46d7-ab82-dedae169fba9",
+     "is_deposit_enabled": true,
+     "gateway_name": "Bitcoin",
+     "min_withdrawal_amount": "0.001",
+     "withdrawal_fee": "0.0001",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.001
+   },
+   "deposit": {
+    "min": 0
+   }
+  }
+ },
+ "ETH": {
+  "info": {
+   "uuid": "c98f5d90-c619-4de2-b643-3d429f622239",
+   "symbol": "ETH",
+   "name": "Ethereum",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": [
+    {
+     "guid": "c98f5d90-c619-4de2-b643-3d429f622239",
+     "is_deposit_enabled": true,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "0.00000001",
+     "withdrawal_fee": "0.002",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    },
+    {
+     "guid": "116dcb61-4f33-425d-af72-eae2570192d3",
+     "is_deposit_enabled": true,
+     "gateway_name": "BinanceSmartChain",
+     "min_withdrawal_amount": "0.001",
+     "withdrawal_fee": "0.0023",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.00022",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   ]
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ethereum",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 0.002,
+  "fees": {},
+  "networks": {
+   "ETH": {
+    "id": "Ethereum",
+    "network": "ETH",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 0.002,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "0"
+     },
+     "withdraw": {
+      "min": "0.00000001"
+     }
+    },
+    "info": {
+     "guid": "c98f5d90-c619-4de2-b643-3d429f622239",
+     "is_deposit_enabled": true,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "0.00000001",
+     "withdrawal_fee": "0.002",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   },
+   "BEP20": {
+    "id": "BinanceSmartChain",
+    "network": "BEP20",
+    "deposit": true,
+    "withdraw": false,
+    "fee": 0.0023,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "0.00022"
+     },
+     "withdraw": {
+      "min": "0.001"
+     }
+    },
+    "info": {
+     "guid": "116dcb61-4f33-425d-af72-eae2570192d3",
+     "is_deposit_enabled": true,
+     "gateway_name": "BinanceSmartChain",
+     "min_withdrawal_amount": "0.001",
+     "withdrawal_fee": "0.0023",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.00022",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 0
+   }
+  }
+ },
+ "USDT": {
+  "info": {
+   "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+   "symbol": "USDT",
+   "name": "TetherUS",
+   "scale": 12,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 12,
+   "binding_gateways": [
+    {
+     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+     "is_deposit_enabled": true,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "4.68",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    },
+    {
+     "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+     "is_deposit_enabled": true,
+     "gateway_name": "Tron",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "3",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    },
+    {
+     "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+     "is_deposit_enabled": true,
+     "gateway_name": "Solana",
+     "min_withdrawal_amount": "10",
+     "withdrawal_fee": "3",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "1",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    },
+    {
+     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+     "is_deposit_enabled": true,
+     "gateway_name": "BinanceSmartChain",
+     "min_withdrawal_amount": "10",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "1",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 12
+    },
+    {
+     "guid": "42872c37-435f-459a-8136-7dc041c3effe",
+     "is_deposit_enabled": false,
+     "gateway_name": "AvaxChain",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    },
+    {
+     "guid": "64d2fb11-e6f2-4321-81a7-21c879a78325",
+     "is_deposit_enabled": false,
+     "gateway_name": "Polygon",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    },
+    {
+     "guid": "fd72b5e0-0716-4031-bed3-7e811f478ece",
+     "is_deposit_enabled": false,
+     "gateway_name": "Optimism",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    },
+    {
+     "guid": "d5f1fae4-030d-4ba8-90fc-cb8f7cc0ee04",
+     "is_deposit_enabled": false,
+     "gateway_name": "Aptos",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   ]
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 0.000001,
+  "type": "crypto",
+  "name": "TetherUS",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 1,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "Ethereum",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 4.68,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "0.000001"
+     },
+     "withdraw": {
+      "min": "0.000001"
+     }
+    },
+    "info": {
+     "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+     "is_deposit_enabled": true,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "4.68",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   },
+   "TRC20": {
+    "id": "Tron",
+    "network": "TRC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 3,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "0.000001"
+     },
+     "withdraw": {
+      "min": "0.000001"
+     }
+    },
+    "info": {
+     "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+     "is_deposit_enabled": true,
+     "gateway_name": "Tron",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "3",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   },
+   "SOL": {
+    "id": "Solana",
+    "network": "SOL",
+    "deposit": true,
+    "withdraw": false,
+    "fee": 3,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "1"
+     },
+     "withdraw": {
+      "min": "10"
+     }
+    },
+    "info": {
+     "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+     "is_deposit_enabled": true,
+     "gateway_name": "Solana",
+     "min_withdrawal_amount": "10",
+     "withdrawal_fee": "3",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "1",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   },
+   "BEP20": {
+    "id": "BinanceSmartChain",
+    "network": "BEP20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 1,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "1"
+     },
+     "withdraw": {
+      "min": "10"
+     }
+    },
+    "info": {
+     "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+     "is_deposit_enabled": true,
+     "gateway_name": "BinanceSmartChain",
+     "min_withdrawal_amount": "10",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "1",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 12
+    }
+   },
+   "AVAXX": {
+    "id": "AvaxChain",
+    "network": "AVAXX",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "0.000001"
+     },
+     "withdraw": {
+      "min": "0.000001"
+     }
+    },
+    "info": {
+     "guid": "42872c37-435f-459a-8136-7dc041c3effe",
+     "is_deposit_enabled": false,
+     "gateway_name": "AvaxChain",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   },
+   "MATIC": {
+    "id": "Polygon",
+    "network": "MATIC",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "0.000001"
+     },
+     "withdraw": {
+      "min": "0.000001"
+     }
+    },
+    "info": {
+     "guid": "64d2fb11-e6f2-4321-81a7-21c879a78325",
+     "is_deposit_enabled": false,
+     "gateway_name": "Polygon",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   },
+   "OPTIMISM": {
+    "id": "Optimism",
+    "network": "OPTIMISM",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "0.000001"
+     },
+     "withdraw": {
+      "min": "0.000001"
+     }
+    },
+    "info": {
+     "guid": "fd72b5e0-0716-4031-bed3-7e811f478ece",
+     "is_deposit_enabled": false,
+     "gateway_name": "Optimism",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   },
+   "APT": {
+    "id": "Aptos",
+    "network": "APT",
+    "deposit": false,
+    "withdraw": false,
+    "fee": 1,
+    "precision": 0.000001,
+    "limits": {
+     "deposit": {
+      "min": "0.000001"
+     },
+     "withdraw": {
+      "min": "0.000001"
+     }
+    },
+    "info": {
+     "guid": "d5f1fae4-030d-4ba8-90fc-cb8f7cc0ee04",
+     "is_deposit_enabled": false,
+     "gateway_name": "Aptos",
+     "min_withdrawal_amount": "0.000001",
+     "withdrawal_fee": "1",
+     "is_withdrawal_enabled": false,
+     "min_deposit_amount": "0.000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 6,
+     "scale": 12
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 0.000001
+   },
+   "deposit": {
+    "min": 0.000001
+   }
+  }
+ },
+ "0G": {
+  "info": {
+   "uuid": "a032c26d-2082-4bf4-838c-c73f907724d1",
+   "symbol": "0G",
+   "name": "0G",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": [
+    {
+     "guid": "1fffef2f-bb56-4ba7-96f3-6d821f2e2486",
+     "is_deposit_enabled": true,
+     "gateway_name": "BinanceSmartChain",
+     "min_withdrawal_amount": "0.00000001",
+     "withdrawal_fee": "5",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.00000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   ]
+  },
+  "id": "0G",
+  "code": "0G",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "0G",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 5,
+  "fees": {},
+  "networks": {
+   "BEP20": {
+    "id": "BinanceSmartChain",
+    "network": "BEP20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 5,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "0.00000001"
+     },
+     "withdraw": {
+      "min": "0.00000001"
+     }
+    },
+    "info": {
+     "guid": "1fffef2f-bb56-4ba7-96f3-6d821f2e2486",
+     "is_deposit_enabled": true,
+     "gateway_name": "BinanceSmartChain",
+     "min_withdrawal_amount": "0.00000001",
+     "withdrawal_fee": "5",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.00000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 1e-8
+   }
+  }
+ },
+ "0G3L": {
+  "info": {
+   "uuid": "011deda2-e936-4484-832e-1aa459742f4d",
+   "symbol": "0G3L",
+   "name": "0G3L",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": []
+  },
+  "id": "0G3L",
+  "code": "0G3L",
+  "precision": 1e-8,
+  "type": "leveraged",
+  "name": "0G3L",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "0G3S": {
+  "info": {
+   "uuid": "29489a3f-452a-4157-84ca-31717118b160",
+   "symbol": "0G3S",
+   "name": "0G3S",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": []
+  },
+  "id": "0G3S",
+  "code": "0G3S",
+  "precision": 1e-8,
+  "type": "leveraged",
+  "name": "0G3S",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "1CAT": {
+  "info": {
+   "uuid": "23dba016-f6e7-4cd6-bf37-8b25676a1bd3",
+   "symbol": "1CAT",
+   "name": "Bitcoin Cats",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": [
+    {
+     "guid": "e7cbb959-fa75-4fe9-9ba1-834ac7c7770d",
+     "is_deposit_enabled": true,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "0.00000001",
+     "withdrawal_fee": "3000",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.00000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   ]
+  },
+  "id": "1CAT",
+  "code": "1CAT",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin Cats",
+  "deposit": true,
+  "withdraw": true,
+  "fee": 3000,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "Ethereum",
+    "network": "ERC20",
+    "deposit": true,
+    "withdraw": true,
+    "fee": 3000,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "0.00000001"
+     },
+     "withdraw": {
+      "min": "0.00000001"
+     }
+    },
+    "info": {
+     "guid": "e7cbb959-fa75-4fe9-9ba1-834ac7c7770d",
+     "is_deposit_enabled": true,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "0.00000001",
+     "withdrawal_fee": "3000",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "0.00000001",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 1e-8
+   },
+   "deposit": {
+    "min": 1e-8
+   }
+  }
+ },
+ "1INCH": {
+  "info": {
+   "uuid": "03faa3bf-c6e1-46ab-8a87-eee705974061",
+   "symbol": "1INCH",
+   "name": "1INCH Token",
+   "scale": 8,
+   "is_fiat": false,
+   "is_transfer_enabled": true,
+   "transfer_scale": 8,
+   "binding_gateways": [
+    {
+     "guid": "54661525-8ab9-4a9c-87d7-600147330263",
+     "is_deposit_enabled": false,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "18",
+     "withdrawal_fee": "51",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "1",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   ]
+  },
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "1INCH Token",
+  "deposit": false,
+  "withdraw": true,
+  "fee": 51,
+  "fees": {},
+  "networks": {
+   "ERC20": {
+    "id": "Ethereum",
+    "network": "ERC20",
+    "deposit": false,
+    "withdraw": true,
+    "fee": 51,
+    "precision": 1e-8,
+    "limits": {
+     "deposit": {
+      "min": "1"
+     },
+     "withdraw": {
+      "min": "18"
+     }
+    },
+    "info": {
+     "guid": "54661525-8ab9-4a9c-87d7-600147330263",
+     "is_deposit_enabled": false,
+     "gateway_name": "Ethereum",
+     "min_withdrawal_amount": "18",
+     "withdrawal_fee": "51",
+     "is_withdrawal_enabled": true,
+     "min_deposit_amount": "1",
+     "is_memo_required": false,
+     "withdrawal_scale": 8,
+     "scale": 8
+    }
+   }
+  },
+  "limits": {
+   "amount": {},
+   "withdraw": {
+    "min": 18
+   },
+   "deposit": {
+    "min": 1
+   }
+  }
+ }
+}

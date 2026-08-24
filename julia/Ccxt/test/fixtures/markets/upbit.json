@@ -1,0 +1,76 @@
+{
+ "BTC/USDT": {
+  "id": "USDT-BTC",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0025,
+  "maker": 0.0025,
+  "precision": {
+   "price": 1e-8,
+   "amount": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "market": "USDT-BTC",
+   "korean_name": "비트코인",
+   "english_name": "Bitcoin"
+  },
+  "tierBased": false,
+  "percentage": true
+ },
+ "ETH/USDT": {
+  "id": "USDT-ETH",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.0025,
+  "maker": 0.0025,
+  "precision": {
+   "price": 1e-8,
+   "amount": 1e-8
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "market": "USDT-ETH",
+   "korean_name": "이더리움",
+   "english_name": "Ethereum"
+  },
+  "tierBased": false,
+  "percentage": true
+ }
+}

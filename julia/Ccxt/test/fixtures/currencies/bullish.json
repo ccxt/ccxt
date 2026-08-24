@@ -1,0 +1,385 @@
+{
+ "BTC": {
+  "info": {
+   "assetId": "1",
+   "symbol": "BTC",
+   "name": "Bitcoin",
+   "precision": "8",
+   "minBalanceInterest": "0.00000000",
+   "apr": "0.30",
+   "minFee": "0.00000000",
+   "maxBorrow": "4000.00000000",
+   "totalOfferedLoanQuantity": "602.37664999",
+   "loanBorrowedQuantity": "1.93204697",
+   "collateralBands": [
+    {
+     "collateralPercentage": "100.00",
+     "bandLimitUSD": "500000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "BTC",
+    "assetId": "1",
+    "bpmMinReturnStart": "0.9155",
+    "bpmMinReturnEnd": "0.9130",
+    "bpmMaxReturnStart": "1.0769",
+    "bpmMaxReturnEnd": "1.0767",
+    "marketRiskFloorPctStart": "2.82",
+    "marketRiskFloorPctEnd": "2.90",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "assetId": "4",
+   "symbol": "ETH",
+   "name": "Ether",
+   "precision": "8",
+   "minBalanceInterest": "0.00000000",
+   "apr": "3.20",
+   "minFee": "0.00000000",
+   "maxBorrow": "60000.00000000",
+   "totalOfferedLoanQuantity": "5085.76186791",
+   "loanBorrowedQuantity": "67.71811574",
+   "collateralBands": [
+    {
+     "collateralPercentage": "100.00",
+     "bandLimitUSD": "500000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "ETH",
+    "assetId": "4",
+    "bpmMinReturnStart": "0.8750",
+    "bpmMinReturnEnd": "0.8761",
+    "bpmMaxReturnStart": "1.1149",
+    "bpmMaxReturnEnd": "1.1149",
+    "marketRiskFloorPctStart": "4.17",
+    "marketRiskFloorPctEnd": "4.13",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ether",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "USDC": {
+  "info": {
+   "assetId": "5",
+   "symbol": "USDC",
+   "name": "USD Coin",
+   "precision": "4",
+   "minBalanceInterest": "0.0000",
+   "apr": "3.80",
+   "minFee": "0.0000",
+   "maxBorrow": "100000000.0000",
+   "totalOfferedLoanQuantity": "44528049.7641",
+   "loanBorrowedQuantity": "9258879.0935",
+   "collateralBands": [
+    {
+     "collateralPercentage": "100.00",
+     "bandLimitUSD": "1000000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "USDC",
+    "assetId": "5",
+    "bpmMinReturnStart": "0.9996",
+    "bpmMinReturnEnd": "0.9996",
+    "bpmMaxReturnStart": "1.0004",
+    "bpmMaxReturnEnd": "1.0004",
+    "marketRiskFloorPctStart": "0.01",
+    "marketRiskFloorPctEnd": "0.01",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "USDC",
+  "code": "USDC",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "USD Coin",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "assetId": "15",
+   "symbol": "USDT",
+   "name": "Tether",
+   "precision": "7",
+   "minBalanceInterest": "0.0000000",
+   "apr": "0.00",
+   "minFee": "0.0000000",
+   "maxBorrow": "0.0000000",
+   "totalOfferedLoanQuantity": "0.0000000",
+   "loanBorrowedQuantity": "0.0000000",
+   "collateralBands": [
+    {
+     "collateralPercentage": "100.00",
+     "bandLimitUSD": "400000000.0000"
+    },
+    {
+     "collateralPercentage": "99.00",
+     "bandLimitUSD": "500000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "USDT",
+    "assetId": "15",
+    "bpmMinReturnStart": "0.9990",
+    "bpmMinReturnEnd": "0.9990",
+    "bpmMaxReturnStart": "1.0010",
+    "bpmMaxReturnEnd": "1.0011",
+    "marketRiskFloorPctStart": "0.03",
+    "marketRiskFloorPctEnd": "0.04",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 1e-7,
+  "type": "crypto",
+  "name": "Tether",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "assetId": "10",
+   "symbol": "AAVE",
+   "name": "Aave",
+   "precision": "8",
+   "minBalanceInterest": "0.00000000",
+   "apr": "0.00",
+   "minFee": "0.00000000",
+   "maxBorrow": "0.00000000",
+   "totalOfferedLoanQuantity": "0.00000000",
+   "loanBorrowedQuantity": "0.00000000",
+   "collateralBands": [
+    {
+     "collateralPercentage": "100.00",
+     "bandLimitUSD": "18000000.0000"
+    },
+    {
+     "collateralPercentage": "82.00",
+     "bandLimitUSD": "40000000.0000"
+    },
+    {
+     "collateralPercentage": "77.00",
+     "bandLimitUSD": "65000000.0000"
+    },
+    {
+     "collateralPercentage": "71.00",
+     "bandLimitUSD": "240000000.0000"
+    },
+    {
+     "collateralPercentage": "70.00",
+     "bandLimitUSD": "500000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "AAVE",
+    "assetId": "10",
+    "bpmMinReturnStart": "0.8454",
+    "bpmMinReturnEnd": "0.8456",
+    "bpmMaxReturnStart": "1.1438",
+    "bpmMaxReturnEnd": "1.1452",
+    "marketRiskFloorPctStart": "5.15",
+    "marketRiskFloorPctEnd": "5.15",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Aave",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "assetId": "37",
+   "symbol": "ADA",
+   "name": "Cardano",
+   "precision": "5",
+   "minBalanceInterest": "0.00000",
+   "apr": "10.00",
+   "minFee": "0.00000",
+   "maxBorrow": "0.00000",
+   "totalOfferedLoanQuantity": "0.00000",
+   "loanBorrowedQuantity": "0.00000",
+   "collateralBands": [
+    {
+     "collateralPercentage": "100.00",
+     "bandLimitUSD": "18000000.0000"
+    },
+    {
+     "collateralPercentage": "82.00",
+     "bandLimitUSD": "40000000.0000"
+    },
+    {
+     "collateralPercentage": "77.00",
+     "bandLimitUSD": "65000000.0000"
+    },
+    {
+     "collateralPercentage": "71.00",
+     "bandLimitUSD": "240000000.0000"
+    },
+    {
+     "collateralPercentage": "70.00",
+     "bandLimitUSD": "500000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "ADA",
+    "assetId": "37",
+    "bpmMinReturnStart": "0.8651",
+    "bpmMinReturnEnd": "0.8582",
+    "bpmMaxReturnStart": "1.1385",
+    "bpmMaxReturnEnd": "1.1411",
+    "marketRiskFloorPctStart": "4.62",
+    "marketRiskFloorPctEnd": "4.73",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "ADA",
+  "code": "ADA",
+  "precision": 0.00001,
+  "type": "crypto",
+  "name": "Cardano",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "AEVO": {
+  "info": {
+   "assetId": "56",
+   "symbol": "AEVO",
+   "name": "Aevo",
+   "precision": "5",
+   "minBalanceInterest": "0.00000",
+   "apr": "0.00",
+   "minFee": "0.00000",
+   "maxBorrow": "-0.00001",
+   "totalOfferedLoanQuantity": "0.00000",
+   "loanBorrowedQuantity": "0.00000",
+   "collateralBands": [],
+   "underlyingAsset": {
+    "symbol": "AEVO",
+    "assetId": "56",
+    "bpmMinReturnStart": "0.8136",
+    "bpmMinReturnEnd": "0.8180",
+    "bpmMaxReturnStart": "1.2044",
+    "bpmMaxReturnEnd": "1.2028",
+    "marketRiskFloorPctStart": "6.81",
+    "marketRiskFloorPctEnd": "6.76",
+    "bpmTransitionDateTimeStart": "2026-07-08T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-11T08:00:00.000Z"
+   }
+  },
+  "id": "AEVO",
+  "code": "AEVO",
+  "precision": 0.00001,
+  "type": "crypto",
+  "name": "Aevo",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ },
+ "ANVL": {
+  "info": {
+   "assetId": "93",
+   "symbol": "ANVL",
+   "name": "Anvil",
+   "precision": "4",
+   "minBalanceInterest": "0.0000",
+   "apr": "0.00",
+   "minFee": "0.0000",
+   "maxBorrow": "1000000000.0000",
+   "totalOfferedLoanQuantity": "150000000.0000",
+   "loanBorrowedQuantity": "0.0000",
+   "collateralBands": [
+    {
+     "collateralPercentage": "0.00",
+     "bandLimitUSD": "500000000.0000"
+    }
+   ],
+   "underlyingAsset": {
+    "symbol": "ANVL",
+    "assetId": "93",
+    "bpmMinReturnStart": "1.0000",
+    "bpmMinReturnEnd": "1.0000",
+    "bpmMaxReturnStart": "1.0000",
+    "bpmMaxReturnEnd": "1.0000",
+    "marketRiskFloorPctStart": "0.00",
+    "marketRiskFloorPctEnd": "0.00",
+    "bpmTransitionDateTimeStart": "2026-07-14T08:00:00.000Z",
+    "bpmTransitionDateTimeEnd": "2026-07-16T08:00:00.000Z"
+   }
+  },
+  "id": "ANVL",
+  "code": "ANVL",
+  "precision": 0.0001,
+  "type": "crypto",
+  "name": "Anvil",
+  "fee": 0,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {}
+  }
+ }
+}

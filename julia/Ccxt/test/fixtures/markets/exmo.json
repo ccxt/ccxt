@@ -1,0 +1,102 @@
+{
+ "BTC/USDC": {
+  "id": "BTC_USDC",
+  "symbol": "BTC/USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.01,
+  "maker": 0.01,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00002
+   },
+   "price": {
+    "min": 0.01,
+    "max": 200000
+   },
+   "cost": {
+    "min": 1,
+    "max": 700000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "min_quantity": "0.00002",
+   "max_quantity": "1000",
+   "min_price": "0.01",
+   "max_price": "200000",
+   "max_amount": "700000",
+   "min_amount": "1",
+   "price_precision": 2,
+   "commission_taker_percent": "1",
+   "commission_maker_percent": "1"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get"
+ },
+ "ETH/USDC": {
+  "id": "ETH_USDC",
+  "symbol": "ETH/USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "contract": false,
+  "taker": 0.01,
+  "maker": 0.01,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0005
+   },
+   "price": {
+    "min": 0.01,
+    "max": 100000
+   },
+   "cost": {
+    "min": 1,
+    "max": 500000
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "min_quantity": "0.0005",
+   "max_quantity": "5000",
+   "min_price": "0.01",
+   "max_price": "100000",
+   "max_amount": "500000",
+   "min_amount": "1",
+   "price_precision": 2,
+   "commission_taker_percent": "1",
+   "commission_maker_percent": "1"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "feeSide": "get"
+ }
+}

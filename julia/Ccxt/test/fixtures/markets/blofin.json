@@ -1,0 +1,130 @@
+{
+ "BTC/USDT:USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0002,
+  "contractSize": 0.001,
+  "precision": {
+   "amount": 0.1,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 150
+   },
+   "amount": {
+    "min": 0.1
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1673517600000,
+  "info": {
+   "instId": "BTC-USDT",
+   "baseCurrency": "BTC",
+   "quoteCurrency": "USDT",
+   "contractValue": "0.001",
+   "listTime": "1673517600000",
+   "expireTime": "4918462709025",
+   "maxLeverage": "150",
+   "assetClass": "Crypto",
+   "minSize": "0.1",
+   "lotSize": "0.1",
+   "tickSize": "0.1",
+   "instType": "SWAP",
+   "contractType": "linear",
+   "maxLimitSize": "1000000",
+   "maxMarketSize": "100000",
+   "state": "live",
+   "thresholdX": "0.02",
+   "thresholdY": "0.01",
+   "thresholdZ": "0.02",
+   "settleCurrency": "USDT",
+   "offTime": ""
+  }
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "settle": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "settleId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.0006,
+  "maker": 0.0002,
+  "contractSize": 0.01,
+  "precision": {
+   "amount": 0.1,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 150
+   },
+   "amount": {
+    "min": 0.1
+   },
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1673517600000,
+  "info": {
+   "instId": "ETH-USDT",
+   "baseCurrency": "ETH",
+   "quoteCurrency": "USDT",
+   "contractValue": "0.01",
+   "listTime": "1673517600000",
+   "expireTime": "4918462716651",
+   "maxLeverage": "150",
+   "assetClass": "Crypto",
+   "minSize": "0.1",
+   "lotSize": "0.1",
+   "tickSize": "0.01",
+   "instType": "SWAP",
+   "contractType": "linear",
+   "maxLimitSize": "600000",
+   "maxMarketSize": "200000",
+   "state": "live",
+   "thresholdX": "0.02",
+   "thresholdY": "0.02",
+   "thresholdZ": "0.05",
+   "settleCurrency": "USDT",
+   "offTime": ""
+  }
+ }
+}

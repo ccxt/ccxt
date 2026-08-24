@@ -1,0 +1,154 @@
+{
+ "BTC": {
+  "info": {
+   "id": 5,
+   "symbol": "BTC",
+   "balance_decimals": 9,
+   "quantity_multiplier": "1000000000"
+  },
+  "id": "BTC",
+  "numericId": 5,
+  "code": "BTC",
+  "precision": 1e-9,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "id": 4,
+   "symbol": "ETH",
+   "balance_decimals": 9,
+   "quantity_multiplier": "1000000000"
+  },
+  "id": "ETH",
+  "numericId": 4,
+  "code": "ETH",
+  "precision": 1e-9,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "USDT": {
+  "info": {
+   "id": 3,
+   "symbol": "USDT",
+   "balance_decimals": 6,
+   "quantity_multiplier": "1000000"
+  },
+  "id": "USDT",
+  "numericId": 3,
+  "code": "USDT",
+  "precision": 0.000001,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AAOI": {
+  "info": {
+   "id": 179,
+   "symbol": "AAOI",
+   "balance_decimals": 9,
+   "quantity_multiplier": "1000000000"
+  },
+  "id": "AAOI",
+  "numericId": 179,
+  "code": "AAOI",
+  "precision": 1e-9,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AAPL": {
+  "info": {
+   "id": 119,
+   "symbol": "AAPL",
+   "balance_decimals": 9,
+   "quantity_multiplier": "1000000000"
+  },
+  "id": "AAPL",
+  "numericId": 119,
+  "code": "AAPL",
+  "precision": 1e-9,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "id": 34,
+   "symbol": "AAVE",
+   "balance_decimals": 9,
+   "quantity_multiplier": "1000000000"
+  },
+  "id": "AAVE",
+  "numericId": 34,
+  "code": "AAVE",
+  "precision": 1e-9,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "id": 33,
+   "symbol": "ADA",
+   "balance_decimals": 6,
+   "quantity_multiplier": "1000000"
+  },
+  "id": "ADA",
+  "numericId": 33,
+  "code": "ADA",
+  "precision": 0.000001,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "AI16Z": {
+  "info": {
+   "id": 32,
+   "symbol": "AI16Z",
+   "balance_decimals": 6,
+   "quantity_multiplier": "1000000"
+  },
+  "id": "AI16Z",
+  "numericId": 32,
+  "code": "AI16Z",
+  "precision": 0.000001,
+  "type": "crypto",
+  "fees": {},
+  "limits": {
+   "amount": {},
+   "withdraw": {},
+   "deposit": {}
+  }
+ }
+}

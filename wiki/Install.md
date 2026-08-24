@@ -15,6 +15,7 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [./python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
 - [ccxt.php](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
 - [./java/](https://github.com/ccxt/ccxt/blob/master/java/) in Java (generated from TS)
+- [./julia/Ccxt/](https://github.com/ccxt/ccxt/blob/master/julia/Ccxt/) in Julia (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
 manually into your working directory with language extension appropriate for your environment.
@@ -191,6 +192,29 @@ cd java
 ```
 
 See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for the full list of examples.
+
+### Julia
+
+The Julia port is generated from the TypeScript source and lives under [`julia/Ccxt`](https://github.com/ccxt/ccxt/tree/master/julia/Ccxt) in this repo (no package-registry release yet). Add it to your environment from a local clone with `Pkg.develop`:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/julia/Ccxt
+julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
+```
+
+```julia
+using Ccxt
+import InteractiveUtils: subtypes
+using Ccxt: CcxtExchange
+
+# list every generated exchange type
+println(length(subtypes(CcxtExchange)))
+
+# instantiate an exchange (unified camelCase API, e.g. fetchTicker)
+exchange = Ccxt.Binance(; enableRateLimit = true)
+println(exchange.id)  # "binance"
+```
 
 ### Docker
 

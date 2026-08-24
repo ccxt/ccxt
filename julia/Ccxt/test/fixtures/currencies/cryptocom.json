@@ -1,0 +1,90 @@
+{
+ "BTC": {
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-14,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 0.000001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "USD": {
+  "id": "USD",
+  "code": "USD",
+  "precision": 1e-11,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "USDT": {
+  "id": "USDT",
+  "code": "USDT",
+  "precision": 1e-11,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "1INCH": {
+  "id": "1INCH",
+  "code": "1INCH",
+  "precision": 0.1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "2Z": {
+  "id": "2Z",
+  "code": "2Z",
+  "precision": 1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "A": {
+  "id": "A",
+  "code": "A",
+  "precision": 0.1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "A2Z": {
+  "id": "A2Z",
+  "code": "A2Z",
+  "precision": 1000,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

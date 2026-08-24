@@ -1,0 +1,338 @@
+{
+ "BTC/USDC": {
+  "id": "BTC_USDC",
+  "symbol": "BTC/USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001
+   },
+   "price": {
+    "min": 0.1
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1737441294691,
+  "info": {
+   "baseSymbol": "BTC",
+   "createdAt": "2025-01-21T06:34:54.691858",
+   "filters": {
+    "price": {
+     "borrowEntryFeeMaxMultiplier": "1.01",
+     "borrowEntryFeeMinMultiplier": "0.99",
+     "discoveryBoundBand": null,
+     "maxImpactMultiplier": "1.01",
+     "maxMultiplier": "2",
+     "maxPrice": null,
+     "maxPriceUpdateMultiplier": "1.0025",
+     "meanMarkPriceBand": {
+      "maxMultiplier": "1.03",
+      "minMultiplier": "0.97"
+     },
+     "meanPremiumBand": null,
+     "minImpactMultiplier": "0.99",
+     "minMultiplier": "0.25",
+     "minPrice": "0.1",
+     "minPriceUpdateMultiplier": "0.9975",
+     "tickSize": "0.1"
+    },
+    "quantity": {
+     "maxQuantity": null,
+     "minQuantity": "0.00001",
+     "stepSize": "0.00001"
+    }
+   },
+   "fundingInterval": 28800000,
+   "fundingRateLowerBound": null,
+   "fundingRateUpperBound": null,
+   "imfFunction": null,
+   "marketType": "SPOT",
+   "mmfFunction": null,
+   "openInterestLimit": "0",
+   "orderBookState": "Open",
+   "positionLimitWeight": null,
+   "quoteSymbol": "USDC",
+   "rwaMarketType": null,
+   "symbol": "BTC_USDC",
+   "visible": true
+  }
+ },
+ "BTC/USDC:USDC": {
+  "id": "BTC_USDC_PERP",
+  "symbol": "BTC/USDC:USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "settle": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.00001
+   },
+   "price": {
+    "min": 0.1,
+    "max": 1000000
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1737441294691,
+  "info": {
+   "baseSymbol": "BTC",
+   "createdAt": "2025-01-21T06:34:54.691858",
+   "filters": {
+    "price": {
+     "borrowEntryFeeMaxMultiplier": null,
+     "borrowEntryFeeMinMultiplier": null,
+     "discoveryBoundBand": null,
+     "maxImpactMultiplier": "1.01",
+     "maxMultiplier": "2",
+     "maxPrice": "1000000",
+     "maxPriceUpdateMultiplier": "1.0025",
+     "meanMarkPriceBand": {
+      "maxMultiplier": "1.06",
+      "minMultiplier": "0.94"
+     },
+     "meanPremiumBand": {
+      "tolerancePct": "0.05"
+     },
+     "minImpactMultiplier": "0.99",
+     "minMultiplier": "0.25",
+     "minPrice": "0.1",
+     "minPriceUpdateMultiplier": "0.9975",
+     "tickSize": "0.1"
+    },
+    "quantity": {
+     "maxQuantity": null,
+     "minQuantity": "0.00001",
+     "stepSize": "0.00001"
+    }
+   },
+   "fundingInterval": 3600000,
+   "fundingRateLowerBound": "-100",
+   "fundingRateUpperBound": "100",
+   "imfFunction": {
+    "base": "0.01333333",
+    "factor": "0.00002494",
+    "type": "sqrt"
+   },
+   "marketType": "PERP",
+   "mmfFunction": {
+    "base": "0.00666667",
+    "factor": "0.00001496",
+    "type": "sqrt"
+   },
+   "openInterestLimit": "4000",
+   "orderBookState": "Open",
+   "positionLimitWeight": "1",
+   "quoteSymbol": "USDC",
+   "rwaMarketType": null,
+   "symbol": "BTC_USDC_PERP",
+   "visible": true
+  }
+ },
+ "ETH/USDC": {
+  "id": "ETH_USDC",
+  "symbol": "ETH/USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": true,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "index": false,
+  "active": true,
+  "contract": false,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {
+    "min": 0.01
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1737441294691,
+  "info": {
+   "baseSymbol": "ETH",
+   "createdAt": "2025-01-21T06:34:54.691858",
+   "filters": {
+    "price": {
+     "borrowEntryFeeMaxMultiplier": "1.01",
+     "borrowEntryFeeMinMultiplier": "0.99",
+     "discoveryBoundBand": null,
+     "maxImpactMultiplier": "1.01",
+     "maxMultiplier": "2",
+     "maxPrice": null,
+     "maxPriceUpdateMultiplier": "1.0025",
+     "meanMarkPriceBand": {
+      "maxMultiplier": "1.03",
+      "minMultiplier": "0.97"
+     },
+     "meanPremiumBand": null,
+     "minImpactMultiplier": "0.99",
+     "minMultiplier": "0.25",
+     "minPrice": "0.01",
+     "minPriceUpdateMultiplier": "0.9975",
+     "tickSize": "0.01"
+    },
+    "quantity": {
+     "maxQuantity": null,
+     "minQuantity": "0.0001",
+     "stepSize": "0.0001"
+    }
+   },
+   "fundingInterval": null,
+   "fundingRateLowerBound": null,
+   "fundingRateUpperBound": null,
+   "imfFunction": null,
+   "marketType": "SPOT",
+   "mmfFunction": null,
+   "openInterestLimit": "0",
+   "orderBookState": "Open",
+   "positionLimitWeight": null,
+   "quoteSymbol": "USDC",
+   "rwaMarketType": null,
+   "symbol": "ETH_USDC",
+   "visible": true
+  }
+ },
+ "ETH/USDC:USDC": {
+  "id": "ETH_USDC_PERP",
+  "symbol": "ETH/USDC:USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "settle": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {
+    "min": 0.0001
+   },
+   "price": {
+    "min": 0.01,
+    "max": 1000000
+   },
+   "cost": {}
+  },
+  "marginModes": {},
+  "created": 1737441294691,
+  "info": {
+   "baseSymbol": "ETH",
+   "createdAt": "2025-01-21T06:34:54.691858",
+   "filters": {
+    "price": {
+     "borrowEntryFeeMaxMultiplier": null,
+     "borrowEntryFeeMinMultiplier": null,
+     "discoveryBoundBand": null,
+     "maxImpactMultiplier": "1.01",
+     "maxMultiplier": "2",
+     "maxPrice": "1000000",
+     "maxPriceUpdateMultiplier": "1.0025",
+     "meanMarkPriceBand": {
+      "maxMultiplier": "1.09",
+      "minMultiplier": "0.92"
+     },
+     "meanPremiumBand": {
+      "tolerancePct": "0.05"
+     },
+     "minImpactMultiplier": "0.99",
+     "minMultiplier": "0.25",
+     "minPrice": "0.01",
+     "minPriceUpdateMultiplier": "0.9975",
+     "tickSize": "0.01"
+    },
+    "quantity": {
+     "maxQuantity": null,
+     "minQuantity": "0.0001",
+     "stepSize": "0.0001"
+    }
+   },
+   "fundingInterval": 3600000,
+   "fundingRateLowerBound": "-100",
+   "fundingRateUpperBound": "100",
+   "imfFunction": {
+    "base": "0.02",
+    "factor": "0.00004214",
+    "type": "sqrt"
+   },
+   "marketType": "PERP",
+   "mmfFunction": {
+    "base": "0.01111111",
+    "factor": "0.00002528",
+    "type": "sqrt"
+   },
+   "openInterestLimit": "64000",
+   "orderBookState": "Open",
+   "positionLimitWeight": "1",
+   "quoteSymbol": "USDC",
+   "rwaMarketType": null,
+   "symbol": "ETH_USDC_PERP",
+   "visible": true
+  }
+ }
+}

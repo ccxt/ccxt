@@ -2,7 +2,7 @@
 
 [![NPM Downloads](https://img.shields.io/npm/dy/ccxt.svg)](https://www.npmjs.com/package/ccxt) [![npm](https://img.shields.io/npm/v/ccxt.svg)](https://npmjs.com/package/ccxt) [![PyPI](https://img.shields.io/pypi/v/ccxt.svg)](https://pypi.python.org/pypi/ccxt) [![NuGet version](https://img.shields.io/nuget/v/ccxt)](https://www.nuget.org/packages/ccxt) [![GoDoc](https://img.shields.io/github/v/tag/ccxt/ccxt?label=go)](https://godoc.org/github.com/ccxt/ccxt/go/v4) [![Mvn](https://badges.mvnrepository.com/badge/io.github.ccxt/ccxt/badge.svg?label=mvn)](https://mvnrepository.com/artifact/io.github.ccxt/ccxt) [![Packagist](https://img.shields.io/packagist/v/ccxt/ccxt)](https://packagist.org/packages/ccxt/ccxt) [![Supported Exchanges](https://img.shields.io/badge/exchanges-103-blue.svg)](https://github.com/ccxt/ccxt/wiki/Exchange-Markets) [![CCXT Chat in Telegram](https://telegram-badge.vercel.app/api/telegram-badge?channelId=@ccxt_chat&label=chat)](https://t.me/ccxt_chat) [![CCXT Discord Server](https://img.shields.io/discord/690203284119617602?logo=discord&logoColor=white)](https://discord.gg/ccxt) [![Follow CCXT at x.com](https://img.shields.io/twitter/follow/ccxt_official.svg?style=social&label=CCXT)](https://x.com/ccxt_official)
 
-A crypto trading API with more than 100 exchanges and prediction markets in JavaScript / TypeScript / Python / C# / PHP / Go / Java.
+A crypto trading API with more than 100 exchanges and prediction markets in JavaScript / TypeScript / Python / C# / PHP / Go / Java / Julia.
 
 ### [Install](#install) · [Usage](#usage) · [Manual](https://github.com/ccxt/ccxt/wiki) · [FAQ](https://github.com/ccxt/ccxt/wiki/FAQ) · [Examples](https://github.com/ccxt/ccxt/tree/master/examples) · [Contributing](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) · [Disclaimer](#disclaimer) · [Social](#social)
 
@@ -218,6 +218,7 @@ The easiest way to install the CCXT library is to use a package manager:
 - [ccxt in **Nuget**](https://www.nuget.org/packages/ccxt) (netstandard 2.0)
 - [ccxt in **GO**](https://pkg.go.dev/github.com/ccxt/ccxt/go/v4)
 - [ccxt in **Java**](https://central.sonatype.com/artifact/io.github.ccxt/ccxt) (Java 21+, Gradle)
+- [ccxt in **Julia**](https://github.com/ccxt/ccxt/tree/master/julia/Ccxt) (Julia 1.9+, generated from TS, lives under `julia/Ccxt`)
 
 This library is shipped as an all-in-one module implementation with minimalistic dependencies and requirements:
 
@@ -227,6 +228,7 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [cs/](https://github.com/ccxt/ccxt/blob/master/cs/)  in C# (generated from TS)
 - [go/](https://github.com/ccxt/ccxt/blob/master/go/)  in Go (generated from TS)
 - [java/](https://github.com/ccxt/ccxt/blob/master/java/) in Java (generated from TS)
+- [julia/Ccxt/](https://github.com/ccxt/ccxt/blob/master/julia/Ccxt/) in Julia (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt):
 
@@ -416,6 +418,29 @@ CompletableFuture<Ticker> future = exchange.watchTickerAsync("BTC/USDT", null);
 ```
 
 See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for more usage examples.
+
+### Julia
+
+The Julia port is generated from the TypeScript source and lives under [`julia/Ccxt`](https://github.com/ccxt/ccxt/tree/master/julia/Ccxt) in this repo (no package-registry release yet). Add it to your environment from a local clone with `Pkg.develop`:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/julia/Ccxt
+julia --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()))'
+```
+
+```julia
+using Ccxt
+import InteractiveUtils: subtypes
+using Ccxt: CcxtExchange
+
+# list every generated exchange type
+println(length(subtypes(CcxtExchange)))
+
+# instantiate an exchange (methods use the unified camelCase API, e.g. fetchTicker)
+exchange = Ccxt.Binance(; enableRateLimit = true)
+println(exchange.id)  # "binance"
+```
 
 ### Docker
 
@@ -639,6 +664,20 @@ var_dump ($zaif->id, $zaif->create_limit_buy_order ('BTC/JPY', 1, 285000));
 
 // set a custom user-defined id to your order
 $hitbtc->create_order ('BTC/USD', 'limit', 'buy', 1, 3000, array ('clientOrderId' => '123'));
+```
+
+### Julia
+
+```julia
+using Ccxt
+
+# instantiate an exchange; pass options as keyword arguments
+exchange = Ccxt.Binance(; enableRateLimit = true)
+
+# load markets and fetch a ticker (unified camelCase API, e.g. fetchTicker)
+exchange.loadMarkets()
+ticker = exchange.fetchTicker("BTC/USDT")
+println(ticker["last"])
 ```
 
 ### .net/C#

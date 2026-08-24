@@ -1,0 +1,90 @@
+{
+ "BCH": {
+  "id": "BCH",
+  "code": "BCH",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "BTC": {
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "BORA": {
+  "id": "BORA",
+  "code": "BORA",
+  "precision": 1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "CICC": {
+  "id": "CICC",
+  "code": "CICC",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "COT": {
+  "id": "COT",
+  "code": "COT",
+  "precision": 0.0001,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "CSBTC": {
+  "id": "CSBTC",
+  "code": "CSBTC",
+  "precision": 1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "CSCMSETH": {
+  "id": "CSCMSETH",
+  "code": "CSCMSETH",
+  "precision": 1,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

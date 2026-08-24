@@ -1,0 +1,602 @@
+{
+ "BTC/USDC": {
+  "id": "BTC-USDC",
+  "lowercaseId": "btc-usdc",
+  "symbol": "BTC/USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.004,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01,
+   "cost": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "max": 1
+   },
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "instrument_id": "257679283722387456",
+   "instrument_uuid": "cf8dee38-6d4e-4658-a5ff-70c19201c485",
+   "symbol": "BTC-USDC",
+   "type": "SPOT",
+   "mode": "STANDARD",
+   "base_asset_id": "118059611751202816",
+   "base_asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+   "base_asset_name": "BTC",
+   "quote_asset_id": "1",
+   "quote_asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+   "quote_asset_name": "USDC",
+   "base_increment": "0.00000001",
+   "quote_increment": "0.01",
+   "price_band_percent": 0.02,
+   "market_order_percent": 0.0075,
+   "qty_24hr": "3151.5459251",
+   "notional_24hr": "0",
+   "avg_daily_qty": "5499.754309416333",
+   "avg_daily_notional": "0",
+   "avg_30day_notional": "0",
+   "avg_30day_qty": "164992.62928249",
+   "previous_day_qty": "2494.26436439",
+   "open_interest": "0",
+   "position_limit_qty": "0",
+   "position_limit_adq_pct": 0,
+   "position_notional_limit": "70000000",
+   "open_interest_notional_limit": "300000000",
+   "replacement_cost": "0.19",
+   "base_imf": 1,
+   "min_notional_value": "10",
+   "min_quantity": "0.0001",
+   "funding_interval": "0",
+   "trading_state": "TRADING",
+   "quote": {
+    "best_bid_price": "64926.23",
+    "best_bid_size": "0.14699429",
+    "best_ask_price": "64926.24",
+    "best_ask_size": "0.17151674",
+    "trade_price": "64920.81",
+    "trade_qty": "0.00000015",
+    "index_price": "64981.38",
+    "mark_price": "64976.42",
+    "settlement_price": "64993.48",
+    "limit_up": "0",
+    "limit_down": "0",
+    "predicted_funding": "0",
+    "timestamp": "2026-08-10T04:29:39.921Z"
+   },
+   "default_imf": 1,
+   "base_asset_multiplier": "1.0",
+   "underlying_type": "SPOT",
+   "rfq_maker_fee_rate": "0",
+   "execution_exchange": "COINBASE_EXCHANGE"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.004
+    ],
+    [
+     1000000,
+     0.004
+    ],
+    [
+     5000000,
+     0.0035
+    ],
+    [
+     10000000,
+     0.0035
+    ],
+    [
+     50000000,
+     0.003
+    ],
+    [
+     250000000,
+     0.0025
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1000000,
+     0.0016
+    ],
+    [
+     5000000,
+     0.001
+    ],
+    [
+     10000000,
+     0.0008
+    ],
+    [
+     50000000,
+     0.0005
+    ],
+    [
+     250000000,
+     0
+    ]
+   ]
+  }
+ },
+ "BTC/USDC:USDC": {
+  "id": "BTC-PERP",
+  "lowercaseId": "btc-perp",
+  "symbol": "BTC/USDC:USDC",
+  "base": "BTC",
+  "quote": "USDC",
+  "settle": "USDC",
+  "baseId": "BTC",
+  "quoteId": "USDC",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.004,
+  "maker": 0.002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.1,
+   "cost": 0.1
+  },
+  "limits": {
+   "leverage": {
+    "max": 0.02
+   },
+   "amount": {
+    "max": 3508.735
+   },
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "instrument_id": "149264167780483072",
+   "instrument_uuid": "b3469e0b-222c-4f8a-9f68-1f9e44d7e5e0",
+   "symbol": "BTC-PERP",
+   "type": "PERP",
+   "mode": "STANDARD",
+   "base_asset_id": "118059611751202816",
+   "base_asset_uuid": "5b71fc48-3dd3-540c-809b-f8c94d0e68b5",
+   "base_asset_name": "BTC",
+   "quote_asset_id": "1",
+   "quote_asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+   "quote_asset_name": "USDC",
+   "base_increment": "0.0001",
+   "quote_increment": "0.1",
+   "price_band_percent": 0.02,
+   "market_order_percent": 0.0075,
+   "qty_24hr": "16443.2833",
+   "notional_24hr": "1069248007.82642",
+   "avg_daily_qty": "49452.48020666667",
+   "avg_daily_notional": "3179175778.7083926",
+   "avg_30day_notional": "95375273361.25179",
+   "avg_30day_qty": "1483574.4062",
+   "previous_day_qty": "9147.9261",
+   "open_interest": "1803.349",
+   "position_limit_qty": "3508.735",
+   "position_limit_adq_pct": 0.0155,
+   "position_notional_limit": "155000000",
+   "open_interest_notional_limit": "935010036",
+   "replacement_cost": "0.19",
+   "base_imf": 0.02,
+   "min_notional_value": "10",
+   "min_quantity": "0.0001",
+   "funding_interval": "3600000000000",
+   "trading_state": "TRADING",
+   "quote": {
+    "best_bid_price": "64986.1",
+    "best_bid_size": "1.7336",
+    "best_ask_price": "64986.2",
+    "best_ask_size": "7.5928",
+    "trade_price": "64986.1",
+    "trade_qty": "0.0041",
+    "index_price": "64981.4",
+    "mark_price": "64986.1",
+    "settlement_price": "64996.9",
+    "limit_up": "69529.9",
+    "limit_down": "60432.7",
+    "predicted_funding": "0.000002",
+    "timestamp": "2026-08-10T04:29:39.470Z"
+   },
+   "default_imf": 0.2,
+   "base_asset_multiplier": "1.0",
+   "underlying_type": "SPOT",
+   "rfq_maker_fee_rate": "0",
+   "execution_exchange": "COINBASE_INTERNATIONAL_EXCHANGE"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.004
+    ],
+    [
+     1000000,
+     0.004
+    ],
+    [
+     5000000,
+     0.0035
+    ],
+    [
+     10000000,
+     0.0035
+    ],
+    [
+     50000000,
+     0.003
+    ],
+    [
+     250000000,
+     0.0025
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1000000,
+     0.0016
+    ],
+    [
+     5000000,
+     0.001
+    ],
+    [
+     10000000,
+     0.0008
+    ],
+    [
+     50000000,
+     0.0005
+    ],
+    [
+     250000000,
+     0
+    ]
+   ]
+  }
+ },
+ "ETH/USDC": {
+  "id": "ETH-USDC",
+  "lowercaseId": "eth-usdc",
+  "symbol": "ETH/USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": false,
+  "taker": 0.004,
+  "maker": 0.002,
+  "precision": {
+   "amount": 1e-8,
+   "price": 0.01,
+   "cost": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "max": 1
+   },
+   "amount": {},
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "instrument_id": "257671623446888448",
+   "instrument_uuid": "63d76b4a-3363-4d3a-9dfe-af43ef3c3df4",
+   "symbol": "ETH-USDC",
+   "type": "SPOT",
+   "mode": "STANDARD",
+   "base_asset_id": "118059611793145856",
+   "base_asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+   "base_asset_name": "ETH",
+   "quote_asset_id": "1",
+   "quote_asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+   "quote_asset_name": "USDC",
+   "base_increment": "0.00000001",
+   "quote_increment": "0.01",
+   "price_band_percent": 0.02,
+   "market_order_percent": 0.0075,
+   "qty_24hr": "45302.81509808",
+   "notional_24hr": "0",
+   "avg_daily_qty": "74355.03065028",
+   "avg_daily_notional": "0",
+   "avg_30day_notional": "0",
+   "avg_30day_qty": "2230650.9195084",
+   "previous_day_qty": "17577.70766728",
+   "open_interest": "0",
+   "position_limit_qty": "0",
+   "position_limit_adq_pct": 0,
+   "position_notional_limit": "70000000",
+   "open_interest_notional_limit": "300000000",
+   "replacement_cost": "0.24",
+   "base_imf": 1,
+   "min_notional_value": "10",
+   "min_quantity": "0.0001",
+   "funding_interval": "0",
+   "trading_state": "TRADING",
+   "quote": {
+    "best_bid_price": "1918.17",
+    "best_bid_size": "1.15420726",
+    "best_ask_price": "1918.18",
+    "best_ask_size": "1.04268794",
+    "trade_price": "1918.3",
+    "trade_qty": "0.11061304",
+    "index_price": "1918.26",
+    "mark_price": "1918.25",
+    "settlement_price": "1917.4",
+    "limit_up": "0",
+    "limit_down": "0",
+    "predicted_funding": "0",
+    "timestamp": "2026-08-10T04:29:39.921Z"
+   },
+   "default_imf": 1,
+   "base_asset_multiplier": "1.0",
+   "underlying_type": "SPOT",
+   "rfq_maker_fee_rate": "0",
+   "execution_exchange": "COINBASE_EXCHANGE"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.004
+    ],
+    [
+     1000000,
+     0.004
+    ],
+    [
+     5000000,
+     0.0035
+    ],
+    [
+     10000000,
+     0.0035
+    ],
+    [
+     50000000,
+     0.003
+    ],
+    [
+     250000000,
+     0.0025
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1000000,
+     0.0016
+    ],
+    [
+     5000000,
+     0.001
+    ],
+    [
+     10000000,
+     0.0008
+    ],
+    [
+     50000000,
+     0.0005
+    ],
+    [
+     250000000,
+     0
+    ]
+   ]
+  }
+ },
+ "ETH/USDC:USDC": {
+  "id": "ETH-PERP",
+  "lowercaseId": "eth-perp",
+  "symbol": "ETH/USDC:USDC",
+  "base": "ETH",
+  "quote": "USDC",
+  "settle": "USDC",
+  "baseId": "ETH",
+  "quoteId": "USDC",
+  "settleId": "USDC",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "linear": true,
+  "inverse": false,
+  "subType": "linear",
+  "taker": 0.004,
+  "maker": 0.002,
+  "contractSize": 1,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01,
+   "cost": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "max": 0.02
+   },
+   "amount": {
+    "max": 63486.177
+   },
+   "price": {},
+   "cost": {
+    "min": 10
+   }
+  },
+  "marginModes": {},
+  "info": {
+   "instrument_id": "149264164756389888",
+   "instrument_uuid": "e9360798-6a10-45d6-af05-67c30eb91e2d",
+   "symbol": "ETH-PERP",
+   "type": "PERP",
+   "mode": "STANDARD",
+   "base_asset_id": "118059611793145856",
+   "base_asset_uuid": "d85dce9b-5b73-5c3c-8978-522ce1d1c1b4",
+   "base_asset_name": "ETH",
+   "quote_asset_id": "1",
+   "quote_asset_uuid": "2b92315d-eab7-5bef-84fa-089a131333f5",
+   "quote_asset_name": "USDC",
+   "base_increment": "0.0001",
+   "quote_increment": "0.01",
+   "price_band_percent": 0.02,
+   "market_order_percent": 0.0075,
+   "qty_24hr": "685409.7481",
+   "notional_24hr": "1314939180.630763",
+   "avg_daily_qty": "1154287.5105866666",
+   "avg_daily_notional": "2169722982.573267",
+   "avg_30day_notional": "65091689477.19801",
+   "avg_30day_qty": "34628625.3176",
+   "previous_day_qty": "459437.7552",
+   "open_interest": "25564.9069",
+   "position_limit_qty": "63486.177",
+   "position_limit_adq_pct": 0.0255,
+   "position_notional_limit": "100000000",
+   "open_interest_notional_limit": "600000000",
+   "replacement_cost": "0.23",
+   "base_imf": 0.02,
+   "min_notional_value": "10",
+   "min_quantity": "0.0001",
+   "funding_interval": "3600000000000",
+   "trading_state": "TRADING",
+   "quote": {
+    "best_bid_price": "1918.16",
+    "best_bid_size": "0.108",
+    "best_ask_price": "1918.17",
+    "best_ask_size": "35.7647",
+    "trade_price": "1918.2",
+    "trade_qty": "3.7545",
+    "index_price": "1918.26",
+    "mark_price": "1918.17",
+    "settlement_price": "1917.5",
+    "limit_up": "2052.52",
+    "limit_down": "1783.98",
+    "predicted_funding": "0.000006",
+    "timestamp": "2026-08-10T04:29:39.470Z"
+   },
+   "default_imf": 0.2,
+   "base_asset_multiplier": "1.0",
+   "underlying_type": "SPOT",
+   "rfq_maker_fee_rate": "0",
+   "execution_exchange": "COINBASE_INTERNATIONAL_EXCHANGE"
+  },
+  "tierBased": true,
+  "percentage": true,
+  "tiers": {
+   "taker": [
+    [
+     0,
+     0.004
+    ],
+    [
+     1000000,
+     0.004
+    ],
+    [
+     5000000,
+     0.0035
+    ],
+    [
+     10000000,
+     0.0035
+    ],
+    [
+     50000000,
+     0.003
+    ],
+    [
+     250000000,
+     0.0025
+    ]
+   ],
+   "maker": [
+    [
+     0,
+     0.002
+    ],
+    [
+     1000000,
+     0.0016
+    ],
+    [
+     5000000,
+     0.001
+    ],
+    [
+     10000000,
+     0.0008
+    ],
+    [
+     50000000,
+     0.0005
+    ],
+    [
+     250000000,
+     0
+    ]
+   ]
+  }
+ }
+}

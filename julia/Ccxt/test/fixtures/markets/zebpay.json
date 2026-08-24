@@ -1,0 +1,204 @@
+{
+ "BTC/USDT": {
+  "id": "BTC-USDT",
+  "symbol": "BTC/USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "taker": 0.45,
+  "maker": 0.45,
+  "precision": {
+   "amount": 0.00001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTC-USDT",
+   "status": "Open",
+   "baseAsset": "BTC",
+   "quoteAsset": "USDT",
+   "pricePrecision": "2",
+   "quantityPrecision": "5",
+   "tickSz": "0.01",
+   "lotSz": "0.00001",
+   "orderTypes": [
+    "LIMIT",
+    "STOP_LOSS_LIMIT"
+   ],
+   "timeInForce": [],
+   "makerFee": 0.45,
+   "takerFee": 0.45
+  }
+ },
+ "BTC/USDT:USDT": {
+  "id": "BTCUSDT",
+  "symbol": "BTC/USDT:USDT",
+  "base": "BTC",
+  "quote": "USDT",
+  "baseId": "BTC",
+  "quoteId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "taker": 0.06,
+  "maker": 0.02,
+  "precision": {
+   "amount": 0.001,
+   "price": 0.1
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 75
+   },
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "BTCUSDT",
+   "status": "Open",
+   "maintMarginPercent": "15",
+   "requiredMarginPercent": "0",
+   "baseAsset": "BTC",
+   "quoteAsset": "USDT",
+   "pricePrecision": 1,
+   "tickSz": "0.1",
+   "quantityPrecision": 3,
+   "lotSz": "0.001",
+   "baseAssetPrecision": 0,
+   "quotePrecision": 0,
+   "orderTypes": [
+    "LIMIT",
+    "MARKET"
+   ],
+   "timeInForce": [
+    "GTC"
+   ],
+   "makerFee": 0.02,
+   "takerFee": 0.06,
+   "minLeverage": 1,
+   "maxLeverage": 75
+  }
+ },
+ "ETH/USDT": {
+  "id": "ETH-USDT",
+  "symbol": "ETH/USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "spot",
+  "spot": true,
+  "margin": false,
+  "swap": false,
+  "future": false,
+  "option": false,
+  "taker": 0.45,
+  "maker": 0.45,
+  "precision": {
+   "amount": 0.0001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {},
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "ETH-USDT",
+   "status": "Open",
+   "baseAsset": "ETH",
+   "quoteAsset": "USDT",
+   "pricePrecision": "2",
+   "quantityPrecision": "4",
+   "tickSz": "0.01",
+   "lotSz": "0.0001",
+   "orderTypes": [
+    "LIMIT",
+    "STOP_LOSS_LIMIT"
+   ],
+   "timeInForce": [],
+   "makerFee": 0.45,
+   "takerFee": 0.45
+  }
+ },
+ "ETH/USDT:USDT": {
+  "id": "ETHUSDT",
+  "symbol": "ETH/USDT:USDT",
+  "base": "ETH",
+  "quote": "USDT",
+  "baseId": "ETH",
+  "quoteId": "USDT",
+  "type": "swap",
+  "spot": false,
+  "margin": false,
+  "swap": true,
+  "future": false,
+  "option": false,
+  "active": true,
+  "contract": true,
+  "taker": 0.06,
+  "maker": 0.02,
+  "precision": {
+   "amount": 0.001,
+   "price": 0.01
+  },
+  "limits": {
+   "leverage": {
+    "min": 1,
+    "max": 75
+   },
+   "amount": {},
+   "price": {},
+   "cost": {}
+  },
+  "marginModes": {},
+  "info": {
+   "symbol": "ETHUSDT",
+   "status": "Open",
+   "maintMarginPercent": "15",
+   "requiredMarginPercent": "0",
+   "baseAsset": "ETH",
+   "quoteAsset": "USDT",
+   "pricePrecision": 2,
+   "tickSz": "0.01",
+   "quantityPrecision": 3,
+   "lotSz": "0.001",
+   "baseAssetPrecision": 0,
+   "quotePrecision": 0,
+   "orderTypes": [
+    "LIMIT",
+    "MARKET"
+   ],
+   "timeInForce": [
+    "GTC"
+   ],
+   "makerFee": 0.02,
+   "takerFee": 0.06,
+   "minLeverage": 1,
+   "maxLeverage": 75
+  }
+ }
+}

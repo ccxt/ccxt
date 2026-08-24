@@ -1,0 +1,90 @@
+{
+ "BTC": {
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ETH": {
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "JPY": {
+  "id": "JPY",
+  "code": "JPY",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "USD": {
+  "id": "USD",
+  "code": "USD",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "BCH": {
+  "id": "BCH",
+  "code": "BCH",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "ELF": {
+  "id": "ELF",
+  "code": "ELF",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "EUR": {
+  "id": "EUR",
+  "code": "EUR",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ },
+ "MONA": {
+  "id": "MONA",
+  "code": "MONA",
+  "precision": 1e-8,
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "deposit": {},
+   "withdraw": {}
+  }
+ }
+}

@@ -1,0 +1,372 @@
+{
+ "BTC": {
+  "info": {
+   "currency": {
+    "name": "BTC",
+    "description": "Bitcoin"
+   },
+   "providers": [
+    {
+     "type": "withdraw",
+     "name": "BITCOIN",
+     "currency_name": "BTC",
+     "min": "0.00017",
+     "max": "0.3",
+     "enabled": true,
+     "comment": "",
+     "commission_desc": "",
+     "currency_confirmations": 6
+    }
+   ]
+  },
+  "id": "BTC",
+  "code": "BTC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Bitcoin",
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "BITCOIN": {
+    "id": "BITCOIN",
+    "network": "BITCOIN",
+    "withdraw": true,
+    "limits": {
+     "withdraw": {
+      "min": "0.00017",
+      "max": "0.3"
+     },
+     "deposit": {}
+    },
+    "info": [
+     {
+      "type": "withdraw",
+      "name": "BITCOIN",
+      "currency_name": "BTC",
+      "min": "0.00017",
+      "max": "0.3",
+      "enabled": true,
+      "comment": "",
+      "commission_desc": "",
+      "currency_confirmations": 6
+     }
+    ]
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 0.00017,
+    "max": 0.3
+   },
+   "deposit": {}
+  }
+ },
+ "ETH": {
+  "info": {
+   "currency": {
+    "name": "ETH",
+    "description": "Ethereum"
+   },
+   "providers": [
+    {
+     "type": "withdraw",
+     "name": "ETHEREUM ERC-20",
+     "currency_name": "ETH",
+     "min": "0.005",
+     "max": "10",
+     "enabled": true,
+     "comment": "",
+     "commission_desc": "",
+     "currency_confirmations": 30
+    }
+   ]
+  },
+  "id": "ETH",
+  "code": "ETH",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Ethereum",
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ETHEREUM ERC-20": {
+    "id": "ETHEREUM ERC-20",
+    "network": "ETHEREUM ERC-20",
+    "withdraw": true,
+    "limits": {
+     "withdraw": {
+      "min": "0.005",
+      "max": "10"
+     },
+     "deposit": {}
+    },
+    "info": [
+     {
+      "type": "withdraw",
+      "name": "ETHEREUM ERC-20",
+      "currency_name": "ETH",
+      "min": "0.005",
+      "max": "10",
+      "enabled": true,
+      "comment": "",
+      "commission_desc": "",
+      "currency_confirmations": 30
+     }
+    ]
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 0.005,
+    "max": 10
+   },
+   "deposit": {}
+  }
+ },
+ "USDC": {
+  "info": {
+   "currency": {
+    "name": "USDC",
+    "description": "USD Coin"
+   },
+   "providers": [
+    {
+     "type": "withdraw",
+     "name": "ETHEREUM ERC-20",
+     "currency_name": "USDC",
+     "min": "10",
+     "max": "20000",
+     "enabled": true,
+     "comment": "",
+     "commission_desc": "",
+     "currency_confirmations": 30
+    }
+   ]
+  },
+  "id": "USDC",
+  "code": "USDC",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "USD Coin",
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "ETHEREUM ERC-20": {
+    "id": "ETHEREUM ERC-20",
+    "network": "ETHEREUM ERC-20",
+    "withdraw": true,
+    "limits": {
+     "withdraw": {
+      "min": "10",
+      "max": "20000"
+     },
+     "deposit": {}
+    },
+    "info": [
+     {
+      "type": "withdraw",
+      "name": "ETHEREUM ERC-20",
+      "currency_name": "USDC",
+      "min": "10",
+      "max": "20000",
+      "enabled": true,
+      "comment": "",
+      "commission_desc": "",
+      "currency_confirmations": 30
+     }
+    ]
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 10,
+    "max": 20000
+   },
+   "deposit": {}
+  }
+ },
+ "A": {
+  "info": {
+   "currency": {
+    "name": "A",
+    "description": "Vaulta"
+   },
+   "providers": [
+    {
+     "type": "withdraw",
+     "name": "VAULTA",
+     "currency_name": "A",
+     "min": "150",
+     "max": "25000",
+     "enabled": true,
+     "comment": "This withdrawal requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+     "commission_desc": "",
+     "currency_confirmations": 1
+    }
+   ]
+  },
+  "id": "A",
+  "code": "A",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Vaulta",
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "VAULTA": {
+    "id": "VAULTA",
+    "network": "VAULTA",
+    "withdraw": true,
+    "limits": {
+     "withdraw": {
+      "min": "150",
+      "max": "25000"
+     },
+     "deposit": {}
+    },
+    "info": [
+     {
+      "type": "withdraw",
+      "name": "VAULTA",
+      "currency_name": "A",
+      "min": "150",
+      "max": "25000",
+      "enabled": true,
+      "comment": "This withdrawal requires a Memo/Tag/Invoice to identify the transfer. No or incorrect Memo/Tag/Invoice will result in a loss of funds or a delayed deposit.",
+      "commission_desc": "",
+      "currency_confirmations": 1
+     }
+    ]
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 150,
+    "max": 25000
+   },
+   "deposit": {}
+  }
+ },
+ "AAVE": {
+  "info": {
+   "currency": {
+    "name": "AAVE",
+    "description": "Aave"
+   },
+   "providers": []
+  },
+  "id": "AAVE",
+  "code": "AAVE",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Aave",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ACT": {
+  "info": {
+   "currency": {
+    "name": "ACT",
+    "description": "Act I The AI Prophecy"
+   },
+   "providers": []
+  },
+  "id": "ACT",
+  "code": "ACT",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Act I The AI Prophecy",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "withdraw": {},
+   "deposit": {}
+  }
+ },
+ "ADA": {
+  "info": {
+   "currency": {
+    "name": "ADA",
+    "description": "Cardano"
+   },
+   "providers": [
+    {
+     "type": "withdraw",
+     "name": "CARDANO",
+     "currency_name": "ADA",
+     "min": "65",
+     "max": "120000",
+     "enabled": true,
+     "comment": "",
+     "commission_desc": "",
+     "currency_confirmations": 15
+    }
+   ]
+  },
+  "id": "ADA",
+  "code": "ADA",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "Cardano",
+  "withdraw": true,
+  "fees": {},
+  "networks": {
+   "CARDANO": {
+    "id": "CARDANO",
+    "network": "CARDANO",
+    "withdraw": true,
+    "limits": {
+     "withdraw": {
+      "min": "65",
+      "max": "120000"
+     },
+     "deposit": {}
+    },
+    "info": [
+     {
+      "type": "withdraw",
+      "name": "CARDANO",
+      "currency_name": "ADA",
+      "min": "65",
+      "max": "120000",
+      "enabled": true,
+      "comment": "",
+      "commission_desc": "",
+      "currency_confirmations": 15
+     }
+    ]
+   }
+  },
+  "limits": {
+   "withdraw": {
+    "min": 65,
+    "max": 120000
+   },
+   "deposit": {}
+  }
+ },
+ "AIXBT": {
+  "info": {
+   "currency": {
+    "name": "AIXBT",
+    "description": "aixbt by Virtuals"
+   },
+   "providers": []
+  },
+  "id": "AIXBT",
+  "code": "AIXBT",
+  "precision": 1e-8,
+  "type": "crypto",
+  "name": "aixbt by Virtuals",
+  "fees": {},
+  "networks": {},
+  "limits": {
+   "withdraw": {},
+   "deposit": {}
+  }
+ }
+}
