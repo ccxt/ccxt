@@ -5,7 +5,7 @@
 // dedicated task and WS connection per venue — keeps the latest top-of-book from
 // each, and prints a live comparison table.
 //
-// Each venue is built by id via `ccxt_pro::from_id(id, config)` and driven
+// Each venue is built by id via `ccxt_pro::from_id_with_config(id, config)` and driven
 // through the typed `watch_order_book() -> Result<OrderBook>`.
 //
 // Usage (needs the `ws` feature):
@@ -20,8 +20,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use ccxt::types::OrderBook;
-use ccxt::Value;
-use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
+use ccxt::{Config, Params};
+use ccxt_pro::{from_id_with_config, TypedExchange, TypedExchangeExt};
 use futures::FutureExt;
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
@@ -58,7 +58,7 @@ fn top_of_book(ob: &OrderBook) -> Option<(f64, f64)> {
 /// each update; a watch that errors is caught and retried after a short backoff.
 async fn watch_loop(name: &'static str, mut ex: Box<dyn TypedExchange>, board: Board) {
     loop {
-        let fut = ex.watch_order_book(SYMBOL, None, Value::Null);
+        let fut = ex.watch_order_book(SYMBOL, None, Params::none());
         match AssertUnwindSafe(fut).catch_unwind().await {
             Ok(Ok(ob)) => {
                 if let Some((bid, ask)) = top_of_book(&ob) {
@@ -124,17 +124,15 @@ async fn async_main() {
 
     // binance & bybit are told to load ONLY linear (USDⓈ-M) markets so the WS
     // depth stream's bare "BTCUSDT" id resolves to the perpetual, not spot.
-    let linear_cfg = || ccxt::runtime::json_parse(&Value::Str(
-        r#"{"options":{"fetchMarkets":{"types":["linear"]}}}"#.to_string(),
-    ));
+    let linear_cfg = || Config::new().option("fetchMarkets", Params::new().with_strs("types", &["linear"]));
 
     let mut handles = Vec::new();
     for (name, cfg) in [
-        ("binance", Some(linear_cfg())),
-        ("bybit", Some(linear_cfg())),
-        ("okx", None),
+        ("binance", linear_cfg()),
+        ("bybit", linear_cfg()),
+        ("okx", Config::none()),
     ] {
-        match from_id(name, cfg) {
+        match from_id_with_config(name, cfg) {
             Some(ex) => { handles.push(tokio::spawn(watch_loop(name, ex, board.clone()))); }
             None => eprintln!("[{name}] no typed WS wrapper — skipping"),
         }

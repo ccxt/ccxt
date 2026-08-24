@@ -16,7 +16,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use ccxt::Value;
+use ccxt::Params;
 use ccxt::Binance;
 use tokio::sync::RwLock;
 use tokio::time::MissedTickBehavior;
@@ -59,7 +59,7 @@ async fn run_fetcher(symbol: &'static str, books: SharedBooks, every: Duration, 
         attempts += 1;
         let started = Instant::now();
         let started_wall = wall_ms();
-        match exchange.fetch_order_book(symbol, Some(5), Value::Null).await {
+        match exchange.fetch_order_book(symbol, Some(5), Params::none()).await {
             Ok(ob) => {
                 if let (Some(bid), Some(ask)) = (ob.bids.first(), ob.asks.first()) {
                     updates += 1;

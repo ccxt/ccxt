@@ -9,7 +9,7 @@
 // Note: the underlying behaviour is transpiled from `ts/src/binance.ts` — to
 // change it, edit the TypeScript and re-run the Rust transpiler.
 use ccxt::Binance;
-use ccxt::Value;
+use ccxt::Params;
 
 #[tokio::main]
 async fn main() {
@@ -23,7 +23,7 @@ async fn main() {
 
     // fetch_tickers() -> Tickers  (HashMap<String, Ticker>)
     println!("→ fetch_tickers() -> Tickers");
-    match binance.fetch_tickers(None, Value::Null).await {
+    match binance.fetch_tickers(None, Params::none()).await {
         Ok(tickers) => {
             println!("   ✓ {} tickers", tickers.len());
             for sym in ["BTC/USDT", "ETH/USDT", "SOL/USDT"] {
@@ -37,7 +37,7 @@ async fn main() {
 
     // fetch_trades(symbol, since, limit, params) -> Vec<Trade>
     println!("\n→ fetch_trades(\"BTC/USDT\", limit=5) -> Vec<Trade>");
-    match binance.fetch_trades("BTC/USDT", None, Some(5), Value::Null).await {
+    match binance.fetch_trades("BTC/USDT", None, Some(5), Params::none()).await {
         Ok(trades) => {
             println!("   ✓ {} trades", trades.len());
             for t in trades.iter().take(5) {

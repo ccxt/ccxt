@@ -97,3 +97,28 @@ path = "src/iexchange_demo.rs"
 [[bin]]
 name = "ob_bench"
 path = "src/ob_bench.rs"
+
+# Unified error handling around createOrder / cancelOrder: provokes a series of
+# failures and routes each through one hierarchy-based policy function.
+[[bin]]
+name = "binance-order-error-handling"
+path = "src/binance_order_error_handling.rs"
+
+# Typed-wrapper walkthrough: all swap markets -> active only -> first 10 ->
+# batched prices, without touching the dynamic `Value` enum.
+[[bin]]
+name = "binance-active-swap-prices"
+path = "src/binance_active_swap_prices.rs"
+
+# Two simultaneous WS subscriptions: channel multiplexing on one connection,
+# and two independent instances running concurrently.
+[[bin]]
+name = "multi_sub"
+path = "src/multi_sub.rs"
+required-features = ["ws"]
+
+# Live watch_order_book CPU benchmark (5s tick report).
+[[bin]]
+name = "ob_live_bench"
+path = "src/ob_live_bench.rs"
+required-features = ["ws"]

@@ -5,13 +5,13 @@
 // `TypedExchange` = object-safe core (call_raw + load_markets, enables
 // `Box<dyn ...>`); `TypedExchangeExt` = the typed methods (fetch_ticker, …),
 // blanket-implemented for every `TypedExchange`. Import both to call them.
-use ccxt::Value;
+use ccxt::Params;
 use ccxt::{Binance, Kraken, TypedExchange, TypedExchangeExt};
 
 // ── A. generic (static dispatch) ─────────────────────────────────────────────
 async fn last_price<E: TypedExchange>(ex: &mut E, symbol: &str) -> Option<f64> {
     ex.load_markets(false).await;
-    ex.fetch_ticker(symbol, Value::Null).await.ok()?.last
+    ex.fetch_ticker(symbol, Params::none()).await.ok()?.last
 }
 
 // ── B. dynamic (runtime selection, heterogeneous collection) ─────────────────
@@ -34,11 +34,11 @@ async fn demo() {
         ["binance", "kraken"].iter().filter_map(|id| create(id)).collect();
     for ex in &mut venues {
         ex.load_markets(false).await;
-        if let Ok(t) = ex.fetch_ticker("BTC/USDT", Value::Null).await {
+        if let Ok(t) = ex.fetch_ticker("BTC/USDT", Params::none()).await {
             println!("{} last={:?}", t.symbol, t.last);
         }
         // Unsupported methods resolve to a NotSupported error at runtime:
-        match ex.fetch_deposit_addresses(None, Value::Null).await {
+        match ex.fetch_deposit_addresses(None, Params::none()).await {
             Ok(addrs) => println!("{} deposit addresses", addrs.len()),
             Err(e) => println!("unsupported: {e}"),
         }

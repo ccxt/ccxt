@@ -6,7 +6,7 @@
 // with CCXT_SYMBOL, and the window with CCXT_SECS.
 use std::time::{Duration, Instant};
 
-use ccxt::Value;
+use ccxt::Params;
 use ccxt_pro::{from_id, TypedExchange, TypedExchangeExt};
 
 fn secs() -> u64 {
@@ -62,7 +62,7 @@ async fn run() {
             break;
         }
         // watch_trades(symbol, since, limit, params) -> Result<Vec<Trade>>
-        let fut = ex.watch_trades(&sym, None, None, Value::Null);
+        let fut = ex.watch_trades(&sym, None, None, Params::none());
         match tokio::time::timeout(deadline - now, fut).await {
             Ok(Ok(tr)) => {
                 resolutions += 1;
