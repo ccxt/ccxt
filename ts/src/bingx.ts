@@ -3476,7 +3476,7 @@ export default class bingx extends Exchange {
      * @description create a list of trade orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
-     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.sync] *spot only* if true, multiple orders are ordered serially and all orders do not require the same symbol/side/type
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -3502,6 +3502,9 @@ export default class bingx extends Exchange {
         const symbols = this.marketSymbols (marketIds, undefined, false, true, true);
         const symbolsLength = symbols.length;
         const market = this.market (symbols[0]);
+        if (market['inverse']) {
+            throw new NotSupported (this.id + ' createOrders() is not supported for inverse swap markets');
+        }
         const request: Dict = {};
         let response: Dict | string;
         if (market['swap']) {
