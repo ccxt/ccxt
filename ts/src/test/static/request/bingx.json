@@ -1926,6 +1926,17 @@
                 "input": [
                   "BTC/USD:BTC"
                 ]
+            },
+            {
+                "description": "Inverse swap fetch trading fee omits type alias",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/commissionRate?timestamp=1721370753542&signature=82ecf511c5fdb7655ef37166633af2dbacc75b0c9a3e6f6994cddd77db45096f",
+                "input": [
+                  "BTC/USD:BTC",
+                  {
+                    "type": "swap"
+                  }
+                ]
             }
         ],
         "fetchMarkPrices": [
