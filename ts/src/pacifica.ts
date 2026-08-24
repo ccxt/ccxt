@@ -2611,11 +2611,8 @@ export default class pacifica extends Exchange {
         //     }
         //
         const marketId = this.safeString2 (order, 'symbol', 's');
-        let symbol: Str = undefined;
-        if (symbol !== undefined) {
-            market = this.safeMarket (marketId, market);
-            symbol = market['symbol'];
-        }
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'created_at', 'ct');
         const status = this.safeString2 (order, 'order_status', 'os', 'open'); // open if method is fetchOpenOrders
         let side = this.safeString (order, 'side', 'd');

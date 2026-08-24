@@ -361,7 +361,7 @@
                         "datetime": "2026-01-27T22:46:48.249Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": 1769554008249,
-                        "symbol": null,
+                        "symbol": "BTC/USDC:USDC",
                         "type": "limit",
                         "timeInForce": null,
                         "postOnly": null,
@@ -406,7 +406,7 @@
                         "datetime": "2026-01-27T22:47:22.649Z",
                         "lastTradeTimestamp": null,
                         "lastUpdateTimestamp": 1769554042649,
-                        "symbol": null,
+                        "symbol": "BTC/USDC:USDC",
                         "type": "limit",
                         "timeInForce": null,
                         "postOnly": null,
@@ -428,6 +428,84 @@
                         "stopLossPrice": null
                     }
                 ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch order by id without symbol",
+                "method": "fetchOrder",
+                "input": ["241146145"],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "history_id": 641452639,
+                            "order_id": 241146145,
+                            "client_order_id": null,
+                            "symbol": "BTC",
+                            "side": "bid",
+                            "price": "87768",
+                            "initial_amount": "0.002",
+                            "filled_amount": "0",
+                            "cancelled_amount": "0",
+                            "event_type": "make",
+                            "order_type": "limit",
+                            "order_status": "open",
+                            "stop_price": null,
+                            "stop_parent_order_id": null,
+                            "reduce_only": false,
+                            "created_at": 1769554008249
+                        }
+                    ],
+                    "error": null,
+                    "code": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "history_id": 641452639,
+                        "order_id": 241146145,
+                        "client_order_id": null,
+                        "symbol": "BTC",
+                        "side": "bid",
+                        "price": "87768",
+                        "initial_amount": "0.002",
+                        "filled_amount": "0",
+                        "cancelled_amount": "0",
+                        "event_type": "make",
+                        "order_type": "limit",
+                        "order_status": "open",
+                        "stop_price": null,
+                        "stop_parent_order_id": null,
+                        "reduce_only": false,
+                        "created_at": 1769554008249
+                    },
+                    "id": "241146145",
+                    "clientOrderId": null,
+                    "timestamp": 1769554008249,
+                    "datetime": "2026-01-27T22:46:48.249Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 87768,
+                    "triggerPrice": null,
+                    "amount": 0.002,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.002,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
             }
         ],
         "createOrder": [
