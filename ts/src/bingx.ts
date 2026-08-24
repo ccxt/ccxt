@@ -6417,8 +6417,8 @@ export default class bingx extends Exchange {
         const request: Dict = {};
         let response: Dict;
         if (positionId !== undefined) {
-            if (market['inverse']) {
-                throw new NotSupported (this.id + ' closePosition() with a positionId is not supported for inverse swap markets');
+            if (!market['swap'] || market['inverse']) {
+                throw new NotSupported (this.id + ' closePosition() with a positionId is only supported for linear swap markets');
             }
             response = await this.swapV1PrivatePostTradeClosePosition (this.extend (request, params));
             //
