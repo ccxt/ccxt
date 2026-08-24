@@ -96,7 +96,7 @@ func (this *AlpacaCore) watchTickerBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes788 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes788)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes8012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes8012)
@@ -128,7 +128,7 @@ func (this *AlpacaCore) HandleTicker(client any, message any) {
 	var ticker any = this.ParseTicker(message)
 	var symbol any = ccxt.GetValue(ticker, "symbol")
 	var messageHash any = ccxt.Add("ticker:", symbol)
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		ccxt.AddElementToObject(this.Tickers, symbol, ticker)
 	}
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
@@ -147,8 +147,8 @@ func (this *AlpacaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(ticker, "S")
-	var datetime any = this.SafeString(ticker, "t")
+	var marketId *string = this.SafeString(ticker, "S")
+	var datetime *string = this.SafeString(ticker, "t")
 	return this.SafeTicker(map[string]any{
 		"symbol":        this.SafeSymbol(marketId, market),
 		"timestamp":     this.Parse8601(datetime),
@@ -205,7 +205,7 @@ func (this *AlpacaCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 	retRes1648 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes1648)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes16612 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes16612)
@@ -220,7 +220,7 @@ func (this *AlpacaCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 
 	ohlcv := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(ohlcv)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(ohlcv).GetLimit(symbol, limit)
 	}
 
@@ -242,11 +242,11 @@ func (this *AlpacaCore) HandleOHLCV(client any, message any) {
 	//        "vw": 17421.9529234915
 	//    }
 	//
-	var marketId any = this.SafeString(message, "S")
+	var marketId *string = this.SafeString(message, "S")
 	var symbol any = this.SafeSymbol(marketId)
 	var stored any = this.SafeValue(this.Ohlcvs, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, stored)
 	}
@@ -282,7 +282,7 @@ func (this *AlpacaCore) watchOrderBookBody(ch chan any, symbol any, optionalArgs
 
 	retRes2238 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes2238)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes22512 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes22512)
@@ -323,16 +323,16 @@ func (this *AlpacaCore) HandleOrderBook(client any, message any) {
 	//        "r": true,
 	//    }
 	//
-	var marketId any = this.SafeString(message, "S")
+	var marketId *string = this.SafeString(message, "S")
 	var symbol any = this.SafeSymbol(marketId)
-	var datetime any = this.SafeString(message, "t")
+	var datetime *string = this.SafeString(message, "t")
 	var timestamp any = this.Parse8601(datetime)
 	var isSnapshot any = this.SafeBool(message, "r", false)
-	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		ccxt.AddElementToObject(this.Orderbooks, symbol, this.OrderBook())
 	}
 	var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
-	if ccxt.IsTrue(isSnapshot) {
+	if ccxt.EvalTruthy(isSnapshot) {
 		var snapshot any = this.ParseOrderBook(message, symbol, timestamp, "b", "a", "p", "s")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
 	} else {
@@ -386,7 +386,7 @@ func (this *AlpacaCore) watchTradesBody(ch chan any, symbol any, optionalArgs ..
 
 	retRes3098 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes3098)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes31112 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes31112)
@@ -401,7 +401,7 @@ func (this *AlpacaCore) watchTradesBody(ch chan any, symbol any, optionalArgs ..
 
 	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -420,11 +420,11 @@ func (this *AlpacaCore) HandleTrades(client any, message any) {
 	//         "tks": "B"
 	//     ]
 	//
-	var marketId any = this.SafeString(message, "S")
+	var marketId *string = this.SafeString(message, "S")
 	var symbol any = this.SafeSymbol(marketId)
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
@@ -467,12 +467,12 @@ func (this *AlpacaCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	retRes3678 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes3678)
 	var messageHash any = "myTrades"
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes37012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes37012)
 	}
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		symbol = this.Symbol(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
 	}
@@ -485,7 +485,7 @@ func (this *AlpacaCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any 
 
 	trades := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -523,13 +523,13 @@ func (this *AlpacaCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	retRes4018 := (<-this.Authenticate(url))
 	ccxt.PanicOnError(retRes4018)
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes40312 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes40312)
 	}
 	var messageHash any = "orders"
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		var market any = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add("orders:", symbol)
@@ -543,7 +543,7 @@ func (this *AlpacaCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
 	ccxt.PanicOnError(orders)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -602,8 +602,8 @@ func (this *AlpacaCore) HandleOrder(client any, message any) {
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	var rawOrder any = this.SafeValue(data, "order", map[string]any{})
-	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
+	if ccxt.IsEqual(this.Orders, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
@@ -661,18 +661,18 @@ func (this *AlpacaCore) HandleMyTrade(client any, message any) {
 	//      }
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
-	var event any = this.SafeString(data, "event")
-	if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(event, "fill")) && ccxt.IsTrue(!ccxt.IsEqual(event, "partial_fill"))) {
+	var event *string = this.SafeString(data, "event")
+	if (event == nil || *event != "fill") && (event == nil || *event != "partial_fill") {
 		return
 	}
 	var rawOrder any = this.SafeValue(data, "order", map[string]any{})
 	var myTrades any = this.MyTrades
-	if ccxt.IsTrue(ccxt.IsEqual(myTrades, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(myTrades, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		myTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var trade any = this.ParseMyTrade(rawOrder)
-	if ccxt.IsTrue(ccxt.IsEqual(trade, nil)) {
+	if ccxt.IsEqual(trade, nil) {
 		return
 	}
 	myTrades.(ccxt.Appender).Append(trade)
@@ -721,13 +721,13 @@ func (this *AlpacaCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(trade, "symbol")
-	var datetime any = this.SafeString(trade, "filled_at")
+	var marketId *string = this.SafeString(trade, "symbol")
+	var datetime *string = this.SafeString(trade, "filled_at")
 	var typeVar any = this.SafeString(trade, "type")
-	if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
+	if ccxt.IsEqual(typeVar, nil) {
 		return nil
 	}
-	if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(typeVar, "limit"), 0)) {
+	if ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(typeVar, "limit"), 0) {
 		// might be limit or stop-limit
 		typeVar = "limit"
 	}
@@ -740,7 +740,7 @@ func (this *AlpacaCore) ParseMyTrade(trade any, optionalArgs ...any) any {
 		"order":        this.SafeString(trade, "id"),
 		"type":         typeVar,
 		"side":         this.SafeString(trade, "side"),
-		"takerOrMaker": ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, "market"))), "taker", "maker"),
+		"takerOrMaker": ccxt.Ternary((ccxt.IsEqual(typeVar, "market")), "taker", "maker"),
 		"price":        this.SafeString(trade, "filled_avg_price"),
 		"amount":       this.SafeString(trade, "filled_qty"),
 		"cost":         nil,
@@ -762,13 +762,13 @@ func (this *AlpacaCore) authenticateBody(ch chan any, url any, optionalArgs ...a
 	var client any = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
-	if ccxt.IsTrue(ccxt.IsEqual(authenticated, nil)) {
+	if ccxt.IsEqual(authenticated, nil) {
 		var request any = map[string]any{
 			"action": "auth",
 			"key":    this.ApiKey,
 			"secret": this.Secret,
 		}
-		if ccxt.IsTrue(ccxt.IsEqual(url, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading"))) {
+		if ccxt.IsEqual(url, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")) {
 			// this auth request is being deprecated in test environment
 			request = map[string]any{
 				"action": "authenticate",
@@ -794,7 +794,7 @@ func (this *AlpacaCore) HandleErrorMessage(client any, message any) any {
 	//        "msg": "invalid syntax"
 	//    }
 	//
-	var code any = this.SafeString(message, "code")
+	var code *string = this.SafeString(message, "code")
 	var msg any = this.SafeValue(message, "msg", map[string]any{})
 	panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " code: "), code), " message: "), msg)))
 }
@@ -810,17 +810,17 @@ func (this *AlpacaCore) HandleConnected(client any, message any) any {
 func (this *AlpacaCore) HandleCryptoMessage(client any, message any) {
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
 		var data any = ccxt.GetValue(message, i)
-		var T any = this.SafeString(data, "T")
-		var msg any = this.SafeString(data, "msg")
-		if ccxt.IsTrue(ccxt.IsEqual(T, "subscription")) {
+		var T *string = this.SafeString(data, "T")
+		var msg *string = this.SafeString(data, "msg")
+		if T != nil && *T == "subscription" {
 			this.HandleSubscription(client, data)
 			return
 		}
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(T, "success")) && ccxt.IsTrue(ccxt.IsEqual(msg, "connected"))) {
+		if (T != nil && *T == "success") && (msg != nil && *msg == "connected") {
 			this.HandleConnected(client, data)
 			return
 		}
-		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(T, "success")) && ccxt.IsTrue(ccxt.IsEqual(msg, "authenticated"))) {
+		if (T != nil && *T == "success") && (msg != nil && *msg == "authenticated") {
 			this.HandleAuthenticate(client, data)
 			return
 		}
@@ -832,25 +832,25 @@ func (this *AlpacaCore) HandleCryptoMessage(client any, message any) {
 			"o":     this.HandleOrderBook,
 		}
 		var method any = this.SafeValue(methods, T)
-		if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
+		if !ccxt.IsEqual(method, nil) {
 			ccxt.CallDynamically(method, client, data)
 		}
 	}
 }
 func (this *AlpacaCore) HandleTradingMessage(client any, message any) {
-	var stream any = this.SafeString(message, "stream")
+	var stream *string = this.SafeString(message, "stream")
 	var methods map[string]any = map[string]any{
 		"authorization": this.HandleAuthenticate,
 		"listening":     this.HandleSubscription,
 		"trade_updates": this.HandleTradeUpdate,
 	}
 	var method any = this.SafeValue(methods, stream)
-	if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
+	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
 func (this *AlpacaCore) HandleMessage(client any, message any) {
-	if ccxt.IsTrue(ccxt.IsArray(message)) {
+	if ccxt.IsArray(message) {
 		this.HandleCryptoMessage(client, message)
 		return
 	}
@@ -882,10 +882,10 @@ func (this *AlpacaCore) HandleAuthenticate(client any, message any) {
 	//        }
 	//    }
 	//
-	var T any = this.SafeString(message, "T")
+	var T *string = this.SafeString(message, "T")
 	var data any = this.SafeValue(message, "data", map[string]any{})
-	var status any = this.SafeString(data, "status")
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(T, "success")) || ccxt.IsTrue(ccxt.IsEqual(status, "authorized"))) {
+	var status *string = this.SafeString(data, "status")
+	if (T != nil && *T == "success") || (status != nil && *status == "authorized") {
 		var promise any = ccxt.GetValue(client.(ccxt.ClientInterface).GetFutures(), "authenticated")
 		promise.(*ccxt.Future).Resolve(ccxt.ToGetsLimit(message))
 		return

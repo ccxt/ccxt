@@ -81,7 +81,7 @@ func (this *HollaexCore) watchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes7012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes7012)
@@ -117,24 +117,24 @@ func (this *HollaexCore) HandleOrderBook(client any, message any) {
 	//         "time":1649751425
 	//     }
 	//
-	var marketId any = this.SafeString(message, "symbol")
-	var channel any = this.SafeString(message, "topic")
+	var marketId *string = this.SafeString(message, "symbol")
+	var channel *string = this.SafeString(message, "topic")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	if ccxt.IsTrue(ccxt.IsEqual(symbol, nil)) {
+	if ccxt.IsEqual(symbol, nil) {
 		return
 	}
 	var data any = this.SafeValue(message, "data")
-	var timestamp any = this.SafeString(data, "timestamp")
+	var timestamp *string = this.SafeString(data, "timestamp")
 	var timestampMs any = this.Parse8601(timestamp)
 	var snapshot any = this.ParseOrderBook(data, symbol, timestampMs)
 	var orderbook any = nil
-	if !ccxt.IsTrue((ccxt.InOp(this.Orderbooks, symbol))) {
+	if !(ccxt.InOp(this.Orderbooks, symbol)) {
 		orderbook = this.OrderBook(snapshot)
 		ccxt.AddElementToObject(this.Orderbooks, symbol, orderbook)
 	} else {
 		orderbook = ccxt.GetValue(this.Orderbooks, symbol)
-		if ccxt.IsTrue(ccxt.IsEqual(orderbook, nil)) {
+		if ccxt.IsEqual(orderbook, nil) {
 			return
 		}
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
@@ -168,7 +168,7 @@ func (this *HollaexCore) watchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes13912 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes13912)
@@ -179,7 +179,7 @@ func (this *HollaexCore) watchTradesBody(ch chan any, symbol any, optionalArgs .
 
 	trades := (<-this.WatchPublic(messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -202,13 +202,13 @@ func (this *HollaexCore) HandleTrades(client any, message any) {
 	//         ]
 	//     }
 	//
-	var channel any = this.SafeString(message, "topic")
-	var marketId any = this.SafeString(message, "symbol")
+	var channel *string = this.SafeString(message, "topic")
+	var marketId *string = this.SafeString(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var stored any = this.SafeValue(this.Trades, symbol)
-	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(stored, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
@@ -249,14 +249,14 @@ func (this *HollaexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes20012 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes20012)
 	}
 	var messageHash any = "usertrade"
 	var market any = nil
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
@@ -264,7 +264,7 @@ func (this *HollaexCore) watchMyTradesBody(ch chan any, optionalArgs ...any) any
 
 	trades := (<-this.WatchPrivate(messageHash, params))
 	ccxt.PanicOnError(trades)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(trades).GetLimit(symbol, limit)
 	}
 
@@ -296,16 +296,16 @@ func (this *HollaexCore) HandleMyTrades(client any, message any, optionalArgs ..
 	//
 	subscription := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = subscription
-	var channel any = this.SafeString(message, "topic")
+	var channel *string = this.SafeString(message, "topic")
 	var rawTrades any = this.SafeValue(message, "data")
 	// usually the first message is an empty array
 	// when the user does not have any trades yet
 	var dataLength int = ccxt.GetArrayLength(rawTrades)
-	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
+	if ccxt.IsEqual(dataLength, 0) {
 		return
 	}
-	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
-		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
+	if ccxt.IsEqual(this.MyTrades, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCache(limit)
 	}
 	var stored any = this.MyTrades
@@ -317,7 +317,7 @@ func (this *HollaexCore) HandleMyTrades(client any, message any, optionalArgs ..
 		var symbol any = ccxt.GetValue(trade, "symbol")
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
+		if !ccxt.IsEqual(marketId, nil) {
 			ccxt.AddElementToObject(marketIds, marketId, true)
 		}
 	}
@@ -358,14 +358,14 @@ func (this *HollaexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = limit
 	params := ccxt.GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes28712 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes28712)
 	}
 	var messageHash any = "order"
 	var market any = nil
-	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
+	if !ccxt.IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		symbol = ccxt.GetValue(market, "symbol")
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "id")))
@@ -373,7 +373,7 @@ func (this *HollaexCore) watchOrdersBody(ch chan any, optionalArgs ...any) any {
 
 	orders := (<-this.WatchPrivate(messageHash, params))
 	ccxt.PanicOnError(orders)
-	if ccxt.IsTrue(this.NewUpdates) {
+	if ccxt.EvalTruthy(this.NewUpdates) {
 		limit = ccxt.ToGetsLimit(orders).GetLimit(symbol, limit)
 	}
 
@@ -440,20 +440,20 @@ func (this *HollaexCore) HandleOrder(client any, message any, optionalArgs ...an
 	//
 	subscription := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = subscription
-	var channel any = this.SafeString(message, "topic")
+	var channel *string = this.SafeString(message, "topic")
 	var data any = this.SafeValue(message, "data", map[string]any{})
 	// usually the first message is an empty array
 	var dataLength int = ccxt.GetArrayLength(data)
-	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
+	if ccxt.IsEqual(dataLength, 0) {
 		return
 	}
-	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
-		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
+	if ccxt.IsEqual(this.Orders, nil) {
+		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored any = this.Orders
 	var rawOrders any = nil
-	if !ccxt.IsTrue(ccxt.IsArray(data)) {
+	if !ccxt.IsArray(data) {
 		rawOrders = []any{data}
 	} else {
 		rawOrders = data
@@ -466,7 +466,7 @@ func (this *HollaexCore) HandleOrder(client any, message any, optionalArgs ...an
 		var symbol any = ccxt.GetValue(order, "symbol")
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")
-		if ccxt.IsTrue(!ccxt.IsEqual(marketId, nil)) {
+		if !ccxt.IsEqual(marketId, nil) {
 			ccxt.AddElementToObject(marketIds, marketId, true)
 		}
 	}
@@ -522,26 +522,26 @@ func (this *HollaexCore) HandleBalance(client any, message any) {
 	//         "time": 1649687396
 	//     }
 	//
-	var messageHash any = this.SafeString(message, "topic")
+	var messageHash *string = this.SafeString(message, "topic")
 	var data any = this.SafeValue(message, "data")
 	var keys []string = ccxt.ObjectKeys(data)
-	var timestamp any = this.SafeTimestamp(message, "time")
+	var timestamp *int64 = this.SafeTimestamp(message, "time")
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 		var key any = ccxt.GetValue(keys, i)
 		var parts []string = ccxt.Split(key, "_")
-		var currencyId any = this.SafeString(parts, 0)
+		var currencyId *string = this.SafeString(parts, 0)
 		var code any = this.SafeCurrencyCode(currencyId)
 		var account any = this.Account()
-		if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(code, nil))) && ccxt.IsTrue((ccxt.InOp(this.Balance, code)))) {
+		if (!ccxt.IsEqual(code, nil)) && (ccxt.InOp(this.Balance, code)) {
 			account = ccxt.GetValue(this.Balance, code)
 		}
-		var second any = this.SafeString(parts, 1)
-		var freeOrTotal any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(second, "available"))), "free", "total")
+		var second *string = this.SafeString(parts, 1)
+		var freeOrTotal any = ccxt.Ternary((second != nil && *second == "available"), "free", "total")
 		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
-		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
+		if !ccxt.IsEqual(code, nil) {
 			ccxt.AddElementToObject(this.Balance, code, account)
 		}
 	}
@@ -582,10 +582,10 @@ func (this *HollaexCore) watchPrivateBody(ch chan any, messageHash any, optional
 	_ = params
 	this.CheckRequiredCredentials()
 	var expires any = this.SafeString(this.Options, "ws-expires")
-	if ccxt.IsTrue(ccxt.IsEqual(expires, nil)) {
+	if ccxt.IsEqual(expires, nil) {
 		var timeout int64 = ccxt.ParseInt(ccxt.ToString((ccxt.Divide(this.Timeout, 1000))))
 		expires = this.Sum(this.Seconds(), timeout)
-		if ccxt.IsTrue(ccxt.IsEqual(expires, nil)) {
+		if ccxt.IsEqual(expires, nil) {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchPrivate() expires is required")))
 		}
 		expires = ccxt.ToString(expires)
@@ -618,7 +618,7 @@ func (this *HollaexCore) HandleErrorMessage(client any, message any) any {
 	//     { error: "Bearer or HMAC authentication required" }
 	//     { error: "Error: wrong input" }
 	//
-	var error any = this.SafeInteger(message, "error")
+	var error *int64 = this.SafeInteger(message, "error")
 
 	{
 		func(this *HollaexCore) (ret_ any) {
@@ -629,7 +629,7 @@ func (this *HollaexCore) HandleErrorMessage(client any, message any) any {
 					}
 					ret_ = func(this *HollaexCore) any {
 						// catch block:
-						if ccxt.IsTrue(ccxt.IsInstance(e, ccxt.AuthenticationError)) {
+						if ccxt.IsInstance(e, ccxt.AuthenticationError) {
 							return false
 						}
 						return nil
@@ -637,7 +637,7 @@ func (this *HollaexCore) HandleErrorMessage(client any, message any) any {
 				}
 			}()
 			// try block:
-			if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
+			if error != nil {
 				var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
 				this.ThrowExactlyMatchedException(ccxt.GetValue(ccxt.GetValue(this.Exceptions, "ws"), "exact"), error, feedback)
 			}
@@ -733,11 +733,11 @@ func (this *HollaexCore) HandleMessage(client any, message any) {
 	//         }
 	//     }
 	//
-	if !ccxt.IsTrue(this.HandleErrorMessage(client, message)) {
+	if !ccxt.EvalTruthy(this.HandleErrorMessage(client, message)) {
 		return
 	}
-	var content any = this.SafeString(message, "message")
-	if ccxt.IsTrue(ccxt.IsEqual(content, "pong")) {
+	var content *string = this.SafeString(message, "message")
+	if content != nil && *content == "pong" {
 		this.HandlePong(client, message)
 		return
 	}
@@ -750,7 +750,7 @@ func (this *HollaexCore) HandleMessage(client any, message any) {
 	}
 	var topic any = this.SafeValue(message, "topic")
 	var method any = this.SafeValue(methods, topic)
-	if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
+	if !ccxt.IsEqual(method, nil) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }

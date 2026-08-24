@@ -20,7 +20,7 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	Assert(GetArrayLength(timeframeKeys), Add(Add(Add(exchange.GetId(), " "), method), " - no timeframes found"))
 	// prefer 1m timeframe if available, otherwise return the first one
 	var chosenTimeframeKey any = "1m"
-	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
+	if !EvalTruthy(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
 	var limit any = 10
@@ -28,7 +28,7 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 	var maxIdleTime any = 5000
 	var idle bool = false
-	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
+	for (IsLessThan(now, ends)) && !idle {
 		var response any = nil
 		var success bool = true
 		var startTime any = exchange.Milliseconds()
@@ -42,7 +42,7 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							success = false
@@ -54,7 +54,7 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 
 				response = (UnWrapType(<-exchange.WatchOHLCV(symbol, chosenTimeframeKey, since, limit)))
 				PanicOnError(response)
-				if IsTrue(IsEqual(response, nil)) {
+				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
 				return nil
@@ -62,12 +62,12 @@ func testWatchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 
 		}
 		now = exchange.Milliseconds()
-		if IsTrue(IsTrue((IsEqual(success, true))) && IsTrue((!IsEqual(response, nil)))) {
+		if (success == true) && (!IsEqual(response, nil)) {
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)
 			for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
 				TestOHLCV(exchange, skippedProperties, method, GetValue(response, i), symbol, now)
 			}
-			if IsTrue(IsGreaterThan((Subtract(now, startTime)), maxIdleTime)) {
+			if IsGreaterThan((Subtract(now, startTime)), maxIdleTime) {
 				idle = true
 			}
 		}

@@ -14,7 +14,7 @@ func testSignInBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties 
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var method string = "signIn"
-	if IsTrue(GetValue(exchange.GetHas(), method)) {
+	if EvalTruthy(GetValue(exchange.GetHas(), method)) {
 
 		retRes58 := (<-exchange.SignIn())
 		PanicOnError(retRes58)

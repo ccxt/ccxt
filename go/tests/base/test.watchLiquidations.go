@@ -18,14 +18,14 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 	var method string = "watchLiquidations"
 	// we have to skip some exchanges here due to the frequency of trading
 	var skippedExchanges []any = []any{}
-	if IsTrue(exchange.InArray(exchange.GetId(), skippedExchanges)) {
+	if EvalTruthy(exchange.InArray(exchange.GetId(), skippedExchanges)) {
 		var m1 any = (Add(Add(Add(exchange.GetId(), " "), method), "() test skipped"))
 		fmt.Println(m1)
 
 		ch <- false
 		return nil
 	}
-	if !IsTrue(GetValue(exchange.GetHas(), method)) {
+	if !EvalTruthy(GetValue(exchange.GetHas(), method)) {
 		var m2 any = (Add(Add(Add(exchange.GetId(), " does not support "), method), "() method"))
 		fmt.Println(m2)
 
@@ -46,7 +46,7 @@ func testWatchLiquidationsBody(ch chan any, exchange ccxt.ICoreExchange, skipped
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue((IsInstance(e, NetworkError))) {
+							if !(IsInstance(e, NetworkError)) {
 								panic(e)
 							}
 							now = DateNow()

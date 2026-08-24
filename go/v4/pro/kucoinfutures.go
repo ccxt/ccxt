@@ -99,7 +99,7 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	defer ccxt.ReturnPanicError(ch)
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
+	if ccxt.IsEqual(this.Markets, nil) {
 
 		retRes6612 := (<-this.LoadMarkets())
 		ccxt.PanicOnError(retRes6612)
@@ -112,12 +112,12 @@ func (this *KucoinfuturesCore) transferBody(ch chan any, code any, amount any, f
 	}
 	var toAccountString any = this.ParseTransferType(toAccount)
 	var response any = nil
-	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(toAccountString, "TRADE")) || ccxt.IsTrue(ccxt.IsEqual(toAccountString, "MAIN"))) {
+	if ccxt.IsEqual(toAccountString, "TRADE") || ccxt.IsEqual(toAccountString, "MAIN") {
 		ccxt.AddElementToObject(request, "recAccountType", toAccountString)
 
 		response = (<-this.FuturesPrivatePostTransferOut(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
-	} else if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(toAccount, "future")) || ccxt.IsTrue(ccxt.IsEqual(toAccount, "swap"))) || ccxt.IsTrue(ccxt.IsEqual(toAccount, "contract"))) {
+	} else if ccxt.IsEqual(toAccount, "future") || ccxt.IsEqual(toAccount, "swap") || ccxt.IsEqual(toAccount, "contract") {
 		ccxt.AddElementToObject(request, "payAccountType", this.ParseTransferType(fromAccount))
 
 		response = (<-this.FuturesPrivatePostTransferIn(this.Extend(request, params)))

@@ -29,7 +29,7 @@ func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 						}
 						ret_ = func() any {
 							// catch block:
-							if !IsTrue(IsTemporaryFailure(e)) {
+							if !EvalTruthy(IsTemporaryFailure(e)) {
 								panic(e)
 							}
 							now = exchange.Milliseconds()
@@ -43,15 +43,15 @@ func testWatchOrdersBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 
 				response = (UnWrapType(<-exchange.WatchOrders(symbol)))
 				PanicOnError(response)
-				if IsTrue(IsEqual(response, nil)) {
+				if IsEqual(response, nil) {
 					panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 				}
 				return nil
 			}()
 
 		}
-		if IsTrue(IsEqual(success, true)) {
-			if IsTrue(IsEqual(response, nil)) {
+		if success == true {
+			if IsEqual(response, nil) {
 				panic(Error(Add(exchange.GetId(), " watch returned undefined response")))
 			}
 			AssertNonEmtpyArray(exchange, skippedProperties, method, response, symbol)

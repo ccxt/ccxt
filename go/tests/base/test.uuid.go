@@ -21,7 +21,7 @@ func TestUuid() {
 	assert(ccxt.IsEqual(ccxt.ToString(id2), id2), "uuid() must return a string")
 	assert(ccxt.IsEqual(ccxt.GetLength(id1), 36), ccxt.Add("uuid() must return a 36-character string, returned id1: ", id1))
 	assert(ccxt.IsEqual(ccxt.GetLength(id2), 36), ccxt.Add("uuid() must return a 36-character string, returned id2: ", id2))
-	assert(ccxt.IsEqual(ccxt.GetIndexOf(id1, "-"), 8), ccxt.Add("uuid() must have dash, returned id1: ", id1))
+	assert((ccxt.GetIndexOf(id1, "-") == 8), ccxt.Add("uuid() must have dash, returned id1: ", id1))
 	// uuid16() - 16-char hex string
 	var id16a any = exchange.Uuid16()
 	var id16b any = exchange.Uuid16()

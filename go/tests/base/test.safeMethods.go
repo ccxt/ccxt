@@ -406,7 +406,7 @@ func TestCacheSafeCalls() {
 	arrayCacheByTimestamp := ccxt.NewArrayCacheByTimestamp(100)
 	arrayCacheByTimestamp.Append([]any{1000, 50000, 1, 2, 3})
 	var arrayCacheByTimestampData any = exchange.SafeValue(arrayCacheByTimestamp, "Data")
-	var cacheByTimestampData any = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheByTimestampData, nil)), arrayCacheByTimestampData, arrayCacheByTimestamp)
+	var cacheByTimestampData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheByTimestampData, nil), arrayCacheByTimestampData, arrayCacheByTimestamp)
 	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheByTimestampData), 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolById
 	arrayCacheBySymbolById := ccxt.NewArrayCacheBySymbolById(100)
@@ -420,7 +420,7 @@ func TestCacheSafeCalls() {
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), nil))
 	Assert(!ccxt.IsEqual(ccxt.GetValue(ccxt.GetValue(arrayCacheBySymbolByIdHashmap, "ETH/USDT"), "order2"), nil))
 	var arrayCacheBySymbolByIdData any = exchange.SafeValue(arrayCacheBySymbolById, "Data")
-	var cacheBySymbolByIdData any = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheBySymbolByIdData, nil)), arrayCacheBySymbolByIdData, arrayCacheBySymbolById)
+	var cacheBySymbolByIdData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheBySymbolByIdData, nil), arrayCacheBySymbolByIdData, arrayCacheBySymbolById)
 	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolByIdData), 0))
 	// Test cache types - ccxt.ArrayCacheBySymbolBySide
 	arrayCacheBySymbolBySide := ccxt.NewArrayCacheBySymbolBySide()
@@ -433,7 +433,7 @@ func TestCacheSafeCalls() {
 	var arrayCacheBySymbolBySideHashmap any = arrayCacheBySymbolBySide.Hashmap
 	Assert(!ccxt.IsEqual(ccxt.GetValue(arrayCacheBySymbolBySideHashmap, "BNB/USDT"), nil))
 	var arrayCacheBySymbolBySideData any = exchange.SafeValue(arrayCacheBySymbolBySide, "Data")
-	var cacheBySymbolBySideData any = ccxt.Ternary(ccxt.IsTrue(!ccxt.IsEqual(arrayCacheBySymbolBySideData, nil)), arrayCacheBySymbolBySideData, arrayCacheBySymbolBySide)
+	var cacheBySymbolBySideData any = ccxt.Ternary(!ccxt.IsEqual(arrayCacheBySymbolBySideData, nil), arrayCacheBySymbolBySideData, arrayCacheBySymbolBySide)
 	Assert(ccxt.IsGreaterThan(ccxt.GetArrayLength(cacheBySymbolBySideData), 0))
 	// Test map[string]map[string]interface{} (ccxt.ArrayCache.hashmap)
 	// Use direct property access for object attributes

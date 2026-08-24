@@ -25,7 +25,7 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	var marketKeysLength int = GetArrayLength(marketKeys)
 	Assert(IsGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)")
 	Assert(IsGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)")
-	Assert(IsEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets")
+	Assert((symbolsLength == marketKeysLength), "number of .symbols is not equal to the number of .markets")
 	var marketValues any = ObjectValues(markets)
 	for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
 		TestMarket(exchange, skippedProperties, method, GetValue(marketValues, i))
@@ -36,21 +36,21 @@ func testLoadMarketsBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	var allMarkets any = ObjectValues(exchange.GetMarkets())
 	for i := 0; IsLessThan(i, GetArrayLength(allMarkets)); i++ {
 		var market any = GetValue(allMarkets, i)
-		if !IsTrue(exchange.InArray(GetValue(market, "type"), collectedTypes)) {
+		if !EvalTruthy(exchange.InArray(GetValue(market, "type"), collectedTypes)) {
 			AppendToArray(&collectedTypes, GetValue(market, "type"))
 		}
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(marketTypes)); i++ {
 		var mType any = GetValue(marketTypes, i)
-		if IsTrue(GetValue(exchange.GetHas(), mType)) {
-			var skipMarketTypes bool = IsTrue((InOp(skippedProperties, "optionsNotLoadedByDefault"))) && IsTrue(IsEqual(mType, "option"))
-			Assert(IsTrue(exchange.InArray(mType, collectedTypes)) || IsTrue(skipMarketTypes), Add(Add(Add(Add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"))
-		} else if IsTrue(IsEqual(GetValue(exchange.GetHas(), mType), false)) {
+		if EvalTruthy(GetValue(exchange.GetHas(), mType)) {
+			var skipMarketTypes bool = (InOp(skippedProperties, "optionsNotLoadedByDefault")) && IsEqual(mType, "option")
+			Assert(EvalTruthy(exchange.InArray(mType, collectedTypes)) || skipMarketTypes, Add(Add(Add(Add("exchange.has[", mType), "] is true, but no markets of type "), mType), " were found in exchange.markets"))
+		} else if IsEqual(GetValue(exchange.GetHas(), mType), false) {
 			// some exchanges might have a couple of markets of a certain type loaded even though 'has[type]' is
 			// marked as false (e.g. a legacy/edge-case market); such known exceptions can be whitelisted per-exchange
 			// in skip-tests.json by adding a key matching the market type (e.g. "swap") under that method's skips
 			var isKnownException bool = (InOp(skippedProperties, mType))
-			Assert(!IsTrue(exchange.InArray(mType, collectedTypes)) || IsTrue(isKnownException), Add(Add(Add(Add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"))
+			Assert(!EvalTruthy(exchange.InArray(mType, collectedTypes)) || isKnownException, Add(Add(Add(Add("exchange.has[", mType), "] is false, but markets of type "), mType), " were found in exchange.markets"))
 		}
 	}
 

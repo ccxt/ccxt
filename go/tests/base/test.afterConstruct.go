@@ -13,7 +13,7 @@ func TestAfterConstruct(exchange ccxt.ICoreExchange, skippedProperties any) <-ch
 func testAfterConstructBody(ch chan any, exchange ccxt.ICoreExchange, skippedProperties any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
-	if !IsTrue((InOp(skippedProperties, "networks"))) {
+	if !(InOp(skippedProperties, "networks")) {
 		TestOptionsNetworks(exchange, skippedProperties)
 	}
 
@@ -21,19 +21,19 @@ func testAfterConstructBody(ch chan any, exchange ccxt.ICoreExchange, skippedPro
 	return nil
 }
 func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
-	if !IsTrue((InOp(skippedProperties, "networks"))) {
+	if !(InOp(skippedProperties, "networks")) {
 		// only allow these whitelisted unified networkCodes to be repeated
 		var allowedUnifiedAliases []any = []any{"BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"}
 		// safeDict, not exchange.options['networks']: a direct missing-key access throws
 		// KeyError in Python (e.g. an exchange whose options has no 'networks', like the
 		// hyperliquid prediction market)
 		var networks any = exchange.SafeDict(exchange.GetOptions(), "networks")
-		if IsTrue(IsEqual(networks, nil)) {
+		if IsEqual(networks, nil) {
 			return
 		}
 		// 1) ensure 'networks' dictionary exists in options
 		Assert(exchange.IsDictionary(networks), "exchange.options[\"networks\"] is not a dict")
-		if IsTrue(IsEqual(GetArrayLength(ObjectKeys(networks)), 0)) {
+		if GetArrayLength(ObjectKeys(networks)) == 0 {
 			return
 		}
 		// 2) ensure 'networksById' dictionary exists in options
@@ -46,8 +46,8 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
 			var networkCode any = GetValue(networkCodes, i)
 			var networkId any = GetValue(GetValue(exchange.GetOptions(), "networks"), networkCode)
-			if !IsTrue(exchange.InArray(networkCode, allowedUnifiedAliases)) {
-				Assert(!IsTrue(exchange.InArray(networkId, collectedNetworkIds)), Add(Add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""))
+			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
+				Assert(!EvalTruthy(exchange.InArray(networkId, collectedNetworkIds)), Add(Add("exchange.options[\"networks\"] should not contain multiple non-unified networkCodes (in the list of unified-networks) with the same networkId: \"", networkId), "\""))
 			}
 			AppendToArray(&collectedNetworkIds, networkId)
 		}
@@ -55,7 +55,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 		var collectedNetworkCodes any = []any{}
 		for i := 0; IsLessThan(i, GetArrayLength(networkCodes)); i++ {
 			var networkCodeLower string = ToLower((GetValue(networkCodes, i)))
-			Assert(!IsTrue(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"))
+			Assert(!EvalTruthy(exchange.InArray(networkCodeLower, collectedNetworkCodes)), Add(Add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"))
 			AppendToArray(&collectedNetworkCodes, networkCodeLower)
 		}
 		// 5) test networkCodeToId & networkIdToCode
@@ -68,7 +68,7 @@ func TestOptionsNetworks(exchange ccxt.ICoreExchange, skippedProperties any) {
 			// ensure it exists in networksById
 			Assert(InOp(GetValue(exchange.GetOptions(), "networksById"), networkId), Add(Add("exchange.options[\"networksById\"] does not contain networkId \"", networkId), "\""))
 			// ensure networkCode matches for networksById (however, it only works if one mapping is set)
-			if !IsTrue(exchange.InArray(networkCode, allowedUnifiedAliases)) {
+			if !EvalTruthy(exchange.InArray(networkCode, allowedUnifiedAliases)) {
 				Assert(IsEqual(GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId), networkCode), Add(Add(Add(Add(Add(Add("exchange.options[\"networksById\"][\"", networkId), "\"] value is not expected \""), networkCode), "\", but: \""), GetValue(GetValue(exchange.GetOptions(), "networksById"), networkId)), "\""))
 				// check networkIdToCode conversion back
 				var networkCodeConverted any = exchange.NetworkIdToCode(networkId)

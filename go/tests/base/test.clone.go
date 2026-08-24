@@ -123,7 +123,7 @@ func TestClone() {
 	// -------------------------------------------------------------------------
 	// --- test C: cloning an empty object ---
 	var emptyClone any = exchange.Clone(map[string]any{})
-	assert(ccxt.IsEqual(ccxt.GetArrayLength(ccxt.ObjectKeys(emptyClone)), 0), "clone C: cloning empty object gives empty object")
+	assert((ccxt.GetArrayLength(ccxt.ObjectKeys(emptyClone)) == 0), "clone C: cloning empty object gives empty object")
 	ccxt.AddElementToObject(emptyClone, "newKey", "injected")
 	// confirm the operation didn't throw and the value was set
 	assert(ccxt.IsEqual(ccxt.GetValue(emptyClone, "newKey"), "injected"), "clone C: can add key to clone of empty object")
@@ -153,11 +153,11 @@ func TestClone() {
 	ccxt.AddElementToObject(clone1, "d", 999) // add extra key
 	// original still pristine
 	assert(ccxt.IsEqual(ccxt.GetValue(masterOrig, "a"), 1), "clone E: original a untouched after clone1 mutation")
-	assert(!ccxt.IsTrue((ccxt.InOp(masterOrig, "d"))), "clone E: extra key must not appear in original")
+	assert(!(ccxt.InOp(masterOrig, "d")), "clone E: extra key must not appear in original")
 	// second independent clone from the still-pristine original
 	var clone2 any = exchange.Clone(masterOrig)
 	assert(ccxt.IsEqual(ccxt.GetValue(clone2, "a"), 1), "clone E: clone2 starts from pristine original")
-	assert(!ccxt.IsTrue((ccxt.InOp(clone2, "d"))), "clone E: clone2 must not inherit clone1 extra key")
+	assert(!(ccxt.InOp(clone2, "d")), "clone E: clone2 must not inherit clone1 extra key")
 	// mutate clone2 differently
 	ccxt.AddElementToObject(clone2, "b", 200)
 	assert(ccxt.IsEqual(ccxt.GetValue(clone1, "b"), 2), "clone E: clone1.b unaffected by clone2 mutation")

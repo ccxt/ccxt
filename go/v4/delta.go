@@ -430,7 +430,7 @@ func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 	var base any = nil
 	var expiry any = nil
 	var optionType any = nil
-	if IsTrue(IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1))) {
+	if IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1)) {
 		base = this.SafeString(symbolBase, 0)
 		expiry = this.SafeString(optionParts, 1)
 		optionType = this.SafeString(optionParts, 3)
@@ -439,14 +439,14 @@ func (this *DeltaCore) CreateExpiredOptionMarket(symbol any) any {
 		expiry = this.SafeString(optionParts, 3)
 		optionType = this.SafeString(optionParts, 0)
 	}
-	if IsTrue(!IsEqual(expiry, nil)) {
+	if !IsEqual(expiry, nil) {
 		expiry = Add(Add(Slice(expiry, 4, nil), Slice(expiry, 2, 4)), Slice(expiry, 0, 2))
 	}
 	var settle any = quote
-	var strike any = this.SafeString(optionParts, 2)
+	var strike *string = this.SafeString(optionParts, 2)
 	var datetime any = this.ConvertExpireDate(expiry)
 	var timestamp any = this.Parse8601(datetime)
-	var optionTypeUnified any = Ternary(IsTrue((IsEqual(optionType, "C"))), "call", "put")
+	var optionTypeUnified any = Ternary((IsEqual(optionType, "C")), "call", "put")
 	return this.SafeMarketStructure(map[string]any{
 		"id":             Add(Add(Add(Add(Add(Add(optionType, "-"), base), "-"), strike), "-"), expiry),
 		"symbol":         Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(base, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType),
@@ -501,8 +501,8 @@ func (this *DeltaCore) SafeMarket(optionalArgs ...any) any {
 	_ = delimiter
 	marketType := GetArg(optionalArgs, 3, nil)
 	_ = marketType
-	var isOption bool = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue(IsTrue(IsTrue((EndsWith(marketId, "-C"))) || IsTrue((EndsWith(marketId, "-P")))) || IsTrue((StartsWith(marketId, "C-")))) || IsTrue((StartsWith(marketId, "P-")))))
-	if IsTrue(IsTrue(isOption) && IsTrue((IsTrue((IsEqual(this.Markets_by_id, nil))) || !IsTrue((InOp(this.Markets_by_id, marketId)))))) {
+	var isOption bool = (!IsEqual(marketId, nil)) && ((EndsWith(marketId, "-C")) || (EndsWith(marketId, "-P")) || (StartsWith(marketId, "C-")) || (StartsWith(marketId, "P-")))
+	if isOption && ((IsEqual(this.Markets_by_id, nil)) || !(InOp(this.Markets_by_id, marketId))) {
 		// handle expired option contracts
 		return this.CreateExpiredOptionMarket(marketId)
 	}
@@ -610,9 +610,9 @@ func (this *DeltaCore) fetchStatusBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result any = this.SafeDict(response, "result", map[string]any{})
-	var underMaintenance any = this.SafeString(result, "under_maintenance")
-	var status any = Ternary(IsTrue((IsEqual(underMaintenance, "true"))), "maintenance", "ok")
-	var updated any = this.SafeIntegerProduct(result, "server_time", 0.001, this.Milliseconds())
+	var underMaintenance *string = this.SafeString(result, "under_maintenance")
+	var status any = Ternary((underMaintenance != nil && *underMaintenance == "true"), "maintenance", "ok")
+	var updated *int64 = this.SafeIntegerProduct(result, "server_time", 0.001, this.Milliseconds())
 
 	ch <- map[string]any{
 		"status":  status,
@@ -699,16 +699,16 @@ func (this *DeltaCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	return nil
 }
 func (this *DeltaCore) ParseCurrency(rawCurrency any) any {
-	var id any = this.SafeString(rawCurrency, "symbol")
-	var numericId any = this.SafeInteger(rawCurrency, "id")
+	var id *string = this.SafeString(rawCurrency, "symbol")
+	var numericId *int64 = this.SafeInteger(rawCurrency, "id")
 	var code any = this.SafeCurrencyCode(id)
 	var chains any = this.SafeList(rawCurrency, "networks", []any{})
 	var networks map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
-		var networkId any = this.SafeString(chain, "network")
+		var networkId *string = this.SafeString(chain, "network")
 		var networkCode any = this.NetworkIdToCode(networkId, code)
-		if IsTrue(!IsEqual(networkCode, nil)) {
+		if !IsEqual(networkCode, nil) {
 			AddElementToObject(networks, networkCode, map[string]any{
 				"id":       networkId,
 				"network":  networkCode,
@@ -772,11 +772,11 @@ func (this *DeltaCore) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 	markets := (<-this.Exchange.LoadMarkets(reload, params))
 	PanicOnError(markets)
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
-	if IsTrue(IsTrue((IsEqual(currenciesByNumericId, nil))) || IsTrue(reload)) {
+	if (IsEqual(currenciesByNumericId, nil)) || EvalTruthy(reload) {
 		AddElementToObject(this.Options, "currenciesByNumericId", this.IndexByStringifiedNumericId(this.Currencies))
 	}
 	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId")
-	if IsTrue(IsTrue((IsEqual(marketsByNumericId, nil))) || IsTrue(reload)) {
+	if (IsEqual(marketsByNumericId, nil)) || EvalTruthy(reload) {
 		AddElementToObject(this.Options, "marketsByNumericId", this.IndexByStringifiedNumericId(this.Markets))
 	}
 
@@ -785,15 +785,15 @@ func (this *DeltaCore) loadMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *DeltaCore) IndexByStringifiedNumericId(input any) any {
 	var result map[string]any = map[string]any{}
-	if IsTrue(IsEqual(input, nil)) {
+	if IsEqual(input, nil) {
 		return nil
 	}
 	var keys []string = ObjectKeys(input)
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var item any = GetValue(input, key)
-		var numericIdString any = this.SafeString(item, "numericId")
-		if IsTrue(IsEqual(numericIdString, nil)) {
+		var numericIdString *string = this.SafeString(item, "numericId")
+		if numericIdString == nil {
 			continue
 		}
 		AddElementToObject(result, numericIdString, item)
@@ -1005,7 +1005,7 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var market any = GetValue(markets, i)
 		var typeVar any = this.SafeString(market, "contract_type")
-		if IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "options_combos"))) || IsTrue((IsEqual(typeVar, "binary_call_options")))) || IsTrue((IsEqual(typeVar, "binary_put_options")))) {
+		if (IsEqual(typeVar, "options_combos")) || (IsEqual(typeVar, "binary_call_options")) || (IsEqual(typeVar, "binary_put_options")) {
 			continue
 		}
 		// const settlingAsset = this.safeValue (market, 'settling_asset', {});
@@ -1013,11 +1013,11 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var underlyingAsset any = this.SafeDict(market, "underlying_asset", map[string]any{})
 		var settlingAsset any = this.SafeDict(market, "settling_asset")
 		var productSpecs any = this.SafeDict(market, "product_specs", map[string]any{})
-		var baseId any = this.SafeString(underlyingAsset, "symbol")
-		var quoteId any = this.SafeString(quotingAsset, "symbol")
-		var settleId any = this.SafeString(settlingAsset, "symbol")
-		var id any = this.SafeString(market, "symbol")
-		var numericId any = this.SafeInteger(market, "id")
+		var baseId *string = this.SafeString(underlyingAsset, "symbol")
+		var quoteId *string = this.SafeString(quotingAsset, "symbol")
+		var settleId *string = this.SafeString(settlingAsset, "symbol")
+		var id *string = this.SafeString(market, "symbol")
+		var numericId *int64 = this.SafeInteger(market, "id")
 		var base any = this.SafeCurrencyCode(baseId)
 		var quote any = this.SafeCurrencyCode(quoteId)
 		var settle any = this.SafeCurrencyCode(settleId)
@@ -1027,13 +1027,13 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var spot bool = (IsEqual(typeVar, "spot"))
 		var swap bool = (IsEqual(typeVar, "perpetual_futures"))
 		var future bool = (IsEqual(typeVar, "futures"))
-		var option bool = (IsTrue(IsTrue(callOptions) || IsTrue(putOptions)) || IsTrue(moveOptions))
-		var strike any = this.SafeString(market, "strike_price")
-		var expiryDatetime any = this.SafeString(market, "settlement_time")
+		var option bool = (callOptions || putOptions || moveOptions)
+		var strike *string = this.SafeString(market, "strike_price")
+		var expiryDatetime *string = this.SafeString(market, "settlement_time")
 		var expiry any = this.Parse8601(expiryDatetime)
 		var contractSize any = this.SafeNumber(market, "contract_value")
 		var amountPrecision any = nil
-		if IsTrue(spot) {
+		if spot {
 			amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(productSpecs, "underlying_precision"))) // seems inverse of 'impact_size'
 		} else {
 			// other markets (swap, futures, move, spread, irs) seem to use the step of '1' contract
@@ -1042,18 +1042,18 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var linear bool = (IsEqual(settle, quote))
 		var optionType any = nil
 		var symbol any = Add(Add(base, "/"), quote)
-		if IsTrue(IsTrue(IsTrue(swap) || IsTrue(future)) || IsTrue(option)) {
+		if swap || future || option {
 			symbol = Add(Add(symbol, ":"), settle)
-			if IsTrue(IsTrue(future) || IsTrue(option)) {
+			if future || option {
 				symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
-				if IsTrue(option) {
+				if option {
 					typeVar = "option"
 					var letter string = "C"
 					optionType = "call"
-					if IsTrue(putOptions) {
+					if putOptions {
 						letter = "P"
 						optionType = "put"
-					} else if IsTrue(moveOptions) {
+					} else if moveOptions {
 						letter = "M"
 						optionType = "move"
 					}
@@ -1065,7 +1065,7 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 				typeVar = "swap"
 			}
 		}
-		var state any = this.SafeString(market, "state")
+		var state *string = this.SafeString(market, "state")
 		AppendToArray(&result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"numericId":      numericId,
@@ -1082,13 +1082,13 @@ func (this *DeltaCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"swap":           swap,
 			"future":         future,
 			"option":         option,
-			"active":         (IsEqual(state, "live")),
-			"contract":       !IsTrue(spot),
-			"linear":         Ternary(IsTrue(spot), nil, linear),
-			"inverse":        Ternary(IsTrue(spot), nil, !IsTrue(linear)),
+			"active":         (state != nil && *state == "live"),
+			"contract":       !spot,
+			"linear":         Ternary(spot, nil, linear),
+			"inverse":        Ternary(spot, nil, !linear),
 			"taker":          this.SafeNumber(market, "taker_commission_rate"),
 			"maker":          this.SafeNumber(market, "maker_commission_rate"),
-			"contractSize":   Ternary(IsTrue(spot), nil, contractSize),
+			"contractSize":   Ternary(spot, nil, contractSize),
 			"expiry":         expiry,
 			"expiryDatetime": this.Iso8601(expiry),
 			"strike":         this.ParseNumber(strike),
@@ -1241,18 +1241,18 @@ func (this *DeltaCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
-	var marketId any = this.SafeString(ticker, "symbol")
+	var timestamp *int64 = this.SafeIntegerProduct(ticker, "timestamp", 0.001)
+	var marketId *string = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var last any = this.SafeString(ticker, "close")
+	var last *string = this.SafeString(ticker, "close")
 	var quotes any = this.SafeDict(ticker, "quotes", map[string]any{})
 	// turnover_symbol names the currency turnover is denominated in, and on
 	// spot markets that is the base currency rather than the quote
-	var turnoverSymbol any = this.SafeStringUpper(ticker, "turnover_symbol")
-	var quoteId any = this.SafeStringUpper(market, "quoteId")
-	var baseDenominated bool = IsTrue(IsTrue((!IsEqual(turnoverSymbol, nil))) && IsTrue((!IsEqual(quoteId, nil)))) && IsTrue((!IsEqual(turnoverSymbol, quoteId)))
-	var quoteVolume any = Ternary(IsTrue(baseDenominated), this.SafeNumber(ticker, "turnover_usd"), this.SafeNumber(ticker, "turnover"))
+	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
+	var quoteId *string = this.SafeStringUpper(market, "quoteId")
+	var baseDenominated bool = (turnoverSymbol != nil) && (quoteId != nil) && (turnoverSymbol != quoteId && (turnoverSymbol == nil || quoteId == nil || *turnoverSymbol != *quoteId))
+	var quoteVolume any = Ternary(baseDenominated, this.SafeNumber(ticker, "turnover_usd"), this.SafeNumber(ticker, "turnover"))
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1600,13 +1600,13 @@ func (this *DeltaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var rawTicker any = GetValue(tickers, i)
-		var contractType any = this.SafeString(rawTicker, "contract_type")
-		if IsTrue(IsTrue(IsTrue((IsEqual(contractType, "options_combos"))) || IsTrue((IsEqual(contractType, "binary_call_options")))) || IsTrue((IsEqual(contractType, "binary_put_options")))) {
+		var contractType *string = this.SafeString(rawTicker, "contract_type")
+		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
 		var ticker any = this.ParseTicker(rawTicker)
 		var symbol any = GetValue(ticker, "symbol")
-		if IsTrue(!IsEqual(symbol, nil)) {
+		if !IsEqual(symbol, nil) {
 			AddElementToObject(result, symbol, ticker)
 		}
 	}
@@ -1644,7 +1644,7 @@ func (this *DeltaCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "depth", limit)
 	}
 
@@ -1723,35 +1723,35 @@ func (this *DeltaCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(trade, "id")
-	var orderId any = this.SafeString(trade, "order_id")
+	var id *string = this.SafeString(trade, "id")
+	var orderId *string = this.SafeString(trade, "order_id")
 	var timestamp any = this.Parse8601(this.SafeString(trade, "created_at"))
 	timestamp = this.SafeIntegerProduct(trade, "timestamp", 0.001, timestamp)
-	var priceString any = this.SafeString(trade, "price")
-	var amountString any = this.SafeString(trade, "size")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = this.SafeString(trade, "size")
 	var product any = this.SafeDict(trade, "product", map[string]any{})
-	var marketId any = this.SafeString(product, "symbol")
+	var marketId *string = this.SafeString(product, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
-	var sellerRole any = this.SafeString(trade, "seller_role")
+	var sellerRole *string = this.SafeString(trade, "seller_role")
 	var side any = this.SafeString(trade, "side")
-	if IsTrue(IsEqual(side, nil)) {
-		if IsTrue(IsEqual(sellerRole, "taker")) {
+	if IsEqual(side, nil) {
+		if sellerRole != nil && *sellerRole == "taker" {
 			side = "sell"
-		} else if IsTrue(IsEqual(sellerRole, "maker")) {
+		} else if sellerRole != nil && *sellerRole == "maker" {
 			side = "buy"
 		}
 	}
-	var takerOrMaker any = this.SafeString(trade, "role")
+	var takerOrMaker *string = this.SafeString(trade, "role")
 	var metaData any = this.SafeDict(trade, "meta_data", map[string]any{})
 	var typeVar any = this.SafeString(metaData, "order_type")
-	if IsTrue(!IsEqual(typeVar, nil)) {
+	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
 	}
-	var feeCostString any = this.SafeString(trade, "commission")
+	var feeCostString *string = this.SafeString(trade, "commission")
 	var fee any = nil
-	if IsTrue(!IsEqual(feeCostString, nil)) {
+	if feeCostString != nil {
 		var settlingAsset any = this.SafeDict(product, "settling_asset", map[string]any{})
-		var feeCurrencyId any = this.SafeString(settlingAsset, "symbol")
+		var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 		var feeCurrencyCode any = this.SafeCurrencyCode(feeCurrencyId)
 		fee = map[string]any{
 			"cost":     feeCostString,
@@ -1883,28 +1883,28 @@ func (this *DeltaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		"resolution": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var duration any = this.ParseTimeframe(timeframe)
-	limit = Ternary(IsTrue(limit), limit, 2000) // max 2000
+	limit = Ternary(EvalTruthy(limit), limit, 2000) // max 2000
 	var until any = this.SafeIntegerProduct(params, "until", 0.001)
-	var untilIsDefined any = (!IsEqual(until, nil))
-	if IsTrue(untilIsDefined) {
+	var untilIsDefined bool = (!IsEqual(until, nil))
+	if untilIsDefined {
 		until = this.ParseToInt(until)
 	}
-	if IsTrue(IsEqual(since, nil)) {
-		var end any = Ternary(IsTrue(untilIsDefined), until, this.Seconds())
+	if IsEqual(since, nil) {
+		var end any = Ternary(untilIsDefined, until, this.Seconds())
 		AddElementToObject(request, "end", end)
-		if IsTrue(IsEqual(end, nil)) {
+		if IsEqual(end, nil) {
 			panic(ExchangeError(Add(this.Id, " fetchOHLCV() missing end")))
 		}
 		AddElementToObject(request, "start", Subtract(end, Multiply(limit, duration)))
 	} else {
 		var start any = this.ParseToInt(Divide(since, 1000))
 		AddElementToObject(request, "start", start)
-		AddElementToObject(request, "end", Ternary(IsTrue(untilIsDefined), until, this.Sum(start, Multiply(limit, duration))))
+		AddElementToObject(request, "end", Ternary(untilIsDefined, until, this.Sum(start, Multiply(limit, duration))))
 	}
-	var price any = this.SafeString(params, "price")
-	if IsTrue(IsEqual(price, "mark")) {
+	var price *string = this.SafeString(params, "price")
+	if price != nil && *price == "mark" {
 		AddElementToObject(request, "symbol", Add("MARK:", GetValue(market, "id")))
-	} else if IsTrue(IsEqual(price, "index")) {
+	} else if price != nil && *price == "index" {
 		AddElementToObject(request, "symbol", GetValue(GetValue(GetValue(market, "info"), "spot_index"), "symbol"))
 	} else {
 		AddElementToObject(request, "symbol", GetValue(market, "id"))
@@ -1936,9 +1936,9 @@ func (this *DeltaCore) ParseBalance(response any) any {
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId", map[string]any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
-		var currencyId any = this.SafeString(balance, "asset_id")
+		var currencyId *string = this.SafeString(balance, "asset_id")
 		var currency any = this.SafeDict(currenciesByNumericId, currencyId)
-		var code any = Ternary(IsTrue((IsEqual(currency, nil))), currencyId, GetValue(currency, "code"))
+		var code any = Ternary((IsEqual(currency, nil)), currencyId, GetValue(currency, "code"))
 		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(balance, "balance"))
 		AddElementToObject(account, "free", this.SafeString(balance, "available_balance"))
@@ -2125,16 +2125,16 @@ func (this *DeltaCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(position, "product_symbol")
+	var marketId *string = this.SafeString(position, "product_symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var timestamp any = this.SafeIntegerProduct(position, "timestamp", 0.001)
-	var sizeString any = this.SafeString(position, "size")
+	var timestamp *int64 = this.SafeIntegerProduct(position, "timestamp", 0.001)
+	var sizeString *string = this.SafeString(position, "size")
 	var side any = nil
-	if IsTrue(!IsEqual(sizeString, nil)) {
-		if IsTrue(Precise.StringGt(sizeString, "0")) {
+	if sizeString != nil {
+		if Precise.StringGt(sizeString, "0") {
 			side = "buy"
-		} else if IsTrue(Precise.StringLt(sizeString, "0")) {
+		} else if Precise.StringLt(sizeString, "0") {
 			side = "sell"
 		}
 	}
@@ -2235,38 +2235,38 @@ func (this *DeltaCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var id any = this.SafeString(order, "id")
-	var clientOrderId any = this.SafeString(order, "client_order_id")
-	var createdAt any = this.SafeString(order, "created_at")
+	var id *string = this.SafeString(order, "id")
+	var clientOrderId *string = this.SafeString(order, "client_order_id")
+	var createdAt *string = this.SafeString(order, "created_at")
 	var timestamp any = nil
-	if IsTrue(!IsEqual(createdAt, nil)) {
-		if IsTrue(IsGreaterThanOrEqual(GetIndexOf(createdAt, "-"), 0)) {
+	if createdAt != nil {
+		if IsGreaterThanOrEqual(GetIndexOf(createdAt, "-"), 0) {
 			timestamp = this.Parse8601(createdAt)
 		} else {
 			timestamp = this.SafeIntegerProduct(order, "created_at", 0.001)
 		}
 	}
-	var marketId any = this.SafeString(order, "product_id")
+	var marketId *string = this.SafeString(order, "product_id")
 	var marketsByNumericId any = this.SafeDict(this.Options, "marketsByNumericId", map[string]any{})
 	market = this.SafeValue(marketsByNumericId, marketId, market)
-	var symbol any = Ternary(IsTrue((IsEqual(market, nil))), marketId, GetValue(market, "symbol"))
+	var symbol any = Ternary((IsEqual(market, nil)), marketId, GetValue(market, "symbol"))
 	var status any = this.ParseOrderStatus(this.SafeString(order, "state"))
-	var side any = this.SafeString(order, "side")
+	var side *string = this.SafeString(order, "side")
 	var typeVar any = this.SafeString(order, "order_type")
-	if IsTrue(!IsEqual(typeVar, nil)) {
+	if !IsEqual(typeVar, nil) {
 		typeVar = Replace(typeVar, "_order", "")
 	}
-	var price any = this.SafeString(order, "limit_price")
-	var amount any = this.SafeString(order, "size")
-	var remaining any = this.SafeString(order, "unfilled_size")
-	var average any = this.SafeString(order, "average_fill_price")
+	var price *string = this.SafeString(order, "limit_price")
+	var amount *string = this.SafeString(order, "size")
+	var remaining *string = this.SafeString(order, "unfilled_size")
+	var average *string = this.SafeString(order, "average_fill_price")
 	var fee any = nil
-	var feeCostString any = this.SafeString(order, "paid_commission")
-	if IsTrue(!IsEqual(feeCostString, nil)) {
+	var feeCostString *string = this.SafeString(order, "paid_commission")
+	if feeCostString != nil {
 		var feeCurrencyCode any = nil
-		if IsTrue(!IsEqual(market, nil)) {
+		if !IsEqual(market, nil) {
 			var settlingAsset any = this.SafeDict(GetValue(market, "info"), "settling_asset", map[string]any{})
-			var feeCurrencyId any = this.SafeString(settlingAsset, "symbol")
+			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
 		}
 		fee = map[string]any{
@@ -2333,16 +2333,16 @@ func (this *DeltaCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 		"side":       side,
 		"order_type": orderType,
 	}
-	if IsTrue(IsEqual(typeVar, "limit")) {
+	if IsEqual(typeVar, "limit") {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(GetValue(market, "symbol"), price))
 	}
-	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id")
+	var clientOrderId *string = this.SafeString2(params, "clientOrderId", "client_order_id")
 	params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	if clientOrderId != nil {
 		AddElementToObject(request, "client_order_id", clientOrderId)
 	}
 	var reduceOnly any = this.SafeBool(params, "reduceOnly")
-	if IsTrue(reduceOnly) {
+	if EvalTruthy(reduceOnly) {
 		AddElementToObject(request, "reduce_only", reduceOnly)
 		params = this.Omit(params, "reduceOnly")
 	}
@@ -2427,14 +2427,14 @@ func (this *DeltaCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 		"id":         ParseInt(id),
 		"product_id": GetValue(market, "numericId"),
 	}
-	if IsTrue(!IsEqual(amount, nil)) {
+	if !IsEqual(amount, nil) {
 		var sizeString any = this.AmountToPrecision(symbol, amount)
-		if IsTrue(IsEqual(sizeString, nil)) {
+		if IsEqual(sizeString, nil) {
 			sizeString = "0"
 		}
 		AddElementToObject(request, "size", ParseInt(sizeString))
 	}
-	if IsTrue(!IsEqual(price, nil)) {
+	if !IsEqual(price, nil) {
 		AddElementToObject(request, "limit_price", this.PriceToPrecision(symbol, price))
 	}
 
@@ -2485,7 +2485,7 @@ func (this *DeltaCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
 
@@ -2562,7 +2562,7 @@ func (this *DeltaCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 	}
 
@@ -2614,14 +2614,14 @@ func (this *DeltaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	retRes22618 := (<-this.LoadMarkets())
 	PanicOnError(retRes22618)
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
-	var clientOrderId any = this.SafeStringN(params, []any{"clientOrderId", "client_oid", "clientOid"})
+	var clientOrderId *string = this.SafeStringN(params, []any{"clientOrderId", "client_oid", "clientOid"})
 	params = this.Omit(params, []any{"clientOrderId", "client_oid", "clientOid"})
 	var request map[string]any = map[string]any{}
 	var response any = nil
-	if IsTrue(!IsEqual(clientOrderId, nil)) {
+	if clientOrderId != nil {
 		AddElementToObject(request, "client_oid", clientOrderId)
 
 		response = (<-this.PrivateGetOrdersClientOrderIdClientOid(this.Extend(request, params)))
@@ -2750,22 +2750,22 @@ func (this *DeltaCore) fetchOrdersWithMethodBody(ch chan any, method any, option
 	PanicOnError(retRes23368)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "product_ids", GetValue(market, "numericId")) // accepts a comma-separated list of ids
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start_time", Add(ToString(since), "000"))
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "page_size", limit)
 	}
 	var response any = nil
-	if IsTrue(IsEqual(method, "privateGetOrders")) {
+	if IsEqual(method, "privateGetOrders") {
 
 		response = (<-this.PrivateGetOrders(this.Extend(request, params)))
 		PanicOnError(response)
-	} else if IsTrue(IsEqual(method, "privateGetOrdersHistory")) {
+	} else if IsEqual(method, "privateGetOrdersHistory") {
 
 		response = (<-this.PrivateGetOrdersHistory(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2831,14 +2831,14 @@ func (this *DeltaCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes24038)
 	var request map[string]any = map[string]any{}
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "product_ids", GetValue(market, "numericId")) // accepts a comma-separated list of ids
 	}
-	if IsTrue(!IsEqual(since, nil)) {
+	if !IsEqual(since, nil) {
 		AddElementToObject(request, "start_time", Add(ToString(since), "000"))
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "page_size", limit)
 	}
 
@@ -2927,11 +2927,11 @@ func (this *DeltaCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes24868)
 	var request map[string]any = map[string]any{}
 	var currency any = nil
-	if IsTrue(!IsEqual(code, nil)) {
+	if !IsEqual(code, nil) {
 		currency = this.Currency(code)
 		AddElementToObject(request, "asset_id", GetValue(currency, "numericId"))
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "page_size", limit)
 	}
 
@@ -2993,26 +2993,26 @@ func (this *DeltaCore) ParseLedgerEntry(item any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id any = this.SafeString(item, "uuid")
+	var id *string = this.SafeString(item, "uuid")
 	var direction any = nil
 	var account any = nil
 	var metaData any = this.SafeDict(item, "meta_data", map[string]any{})
-	var referenceId any = this.SafeString(metaData, "transaction_id")
+	var referenceId *string = this.SafeString(metaData, "transaction_id")
 	var referenceAccount any = nil
 	var typeVar any = this.SafeString(item, "transaction_type")
-	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "deposit"))) || IsTrue((IsEqual(typeVar, "commission_rebate")))) || IsTrue((IsEqual(typeVar, "referral_bonus")))) || IsTrue((IsEqual(typeVar, "pnl")))) || IsTrue((IsEqual(typeVar, "withdrawal_cancellation")))) || IsTrue((IsEqual(typeVar, "promo_credit")))) {
+	if (IsEqual(typeVar, "deposit")) || (IsEqual(typeVar, "commission_rebate")) || (IsEqual(typeVar, "referral_bonus")) || (IsEqual(typeVar, "pnl")) || (IsEqual(typeVar, "withdrawal_cancellation")) || (IsEqual(typeVar, "promo_credit")) {
 		direction = "in"
-	} else if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, "withdrawal"))) || IsTrue((IsEqual(typeVar, "commission")))) || IsTrue((IsEqual(typeVar, "conversion")))) || IsTrue((IsEqual(typeVar, "perpetual_futures_funding")))) {
+	} else if (IsEqual(typeVar, "withdrawal")) || (IsEqual(typeVar, "commission")) || (IsEqual(typeVar, "conversion")) || (IsEqual(typeVar, "perpetual_futures_funding")) {
 		direction = "out"
 	}
 	typeVar = this.ParseLedgerEntryType(typeVar)
-	var currencyId any = this.SafeString(item, "asset_id")
+	var currencyId *string = this.SafeString(item, "asset_id")
 	var currenciesByNumericId any = this.SafeDict(this.Options, "currenciesByNumericId")
 	currency = this.SafeValue(currenciesByNumericId, currencyId, currency)
-	var code any = Ternary(IsTrue((IsEqual(currency, nil))), nil, GetValue(currency, "code"))
-	var amount any = this.SafeString(item, "amount")
+	var code any = Ternary((IsEqual(currency, nil)), nil, GetValue(currency, "code"))
+	var amount *string = this.SafeString(item, "amount")
 	var timestamp any = this.Parse8601(this.SafeString(item, "created_at"))
-	var after any = this.SafeString(item, "balance")
+	var after *string = this.SafeString(item, "balance")
 	var before any = Precise.StringMax("0", Precise.StringSub(after, amount))
 	var status string = "ok"
 	return this.SafeLedgerEntry(map[string]any{
@@ -3060,8 +3060,8 @@ func (this *DeltaCore) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	var request map[string]any = map[string]any{
 		"asset_symbol": GetValue(currency, "id"),
 	}
-	var networkCode any = this.SafeStringUpper(params, "network")
-	if IsTrue(!IsEqual(networkCode, nil)) {
+	var networkCode *string = this.SafeStringUpper(params, "network")
+	if networkCode != nil {
 		AddElementToObject(request, "network", this.NetworkCodeToId(networkCode, code))
 		params = this.Omit(params, "network")
 	}
@@ -3107,9 +3107,9 @@ func (this *DeltaCore) ParseDepositAddress(depositAddress any, optionalArgs ...a
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var address any = this.SafeString(depositAddress, "address")
-	var marketId any = this.SafeString(depositAddress, "asset_symbol")
-	var networkId any = this.SafeString(depositAddress, "network")
+	var address *string = this.SafeString(depositAddress, "address")
+	var marketId *string = this.SafeString(depositAddress, "asset_symbol")
+	var networkId *string = this.SafeString(depositAddress, "network")
 	var code any = this.SafeCurrencyCode(marketId, currency)
 	this.CheckAddress(address)
 	return map[string]any{
@@ -3144,7 +3144,7 @@ func (this *DeltaCore) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	retRes26828 := (<-this.LoadMarkets())
 	PanicOnError(retRes26828)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "swap")) {
+	if !EvalTruthy(GetValue(market, "swap")) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
 	}
 	var request map[string]any = map[string]any{
@@ -3332,9 +3332,9 @@ func (this *DeltaCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct(contract, "timestamp", 0.001)
-	var marketId any = this.SafeString(contract, "symbol")
-	var fundingRateString any = this.SafeString(contract, "funding_rate")
+	var timestamp *int64 = this.SafeIntegerProduct(contract, "timestamp", 0.001)
+	var marketId *string = this.SafeString(contract, "symbol")
+	var fundingRateString *string = this.SafeString(contract, "funding_rate")
 	var fundingRate any = Precise.StringDiv(fundingRateString, "100")
 	return map[string]any{
 		"info":                     contract,
@@ -3426,7 +3426,7 @@ func (this *DeltaCore) modifyMarginHelperBody(ch chan any, symbol any, amount an
 	PanicOnError(retRes29058)
 	var market any = this.Market(symbol)
 	amount = ToString(amount)
-	if IsTrue(IsEqual(typeVar, "reduce")) {
+	if IsEqual(typeVar, "reduce") {
 		amount = Precise.StringMul(amount, "-1")
 	}
 	var request map[string]any = map[string]any{
@@ -3487,7 +3487,7 @@ func (this *DeltaCore) ParseMarginModification(data any, optionalArgs ...any) an
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(data, "product_symbol")
+	var marketId *string = this.SafeString(data, "product_symbol")
 	market = this.SafeMarket(marketId, market)
 	return map[string]any{
 		"info":       data,
@@ -3526,7 +3526,7 @@ func (this *DeltaCore) fetchOpenInterestBody(ch chan any, symbol any, optionalAr
 	retRes29908 := (<-this.LoadMarkets())
 	PanicOnError(retRes29908)
 	var market any = this.Market(symbol)
-	if !IsTrue(GetValue(market, "contract")) {
+	if !EvalTruthy(GetValue(market, "contract")) {
 		panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
 	}
 	var request map[string]any = map[string]any{
@@ -3644,8 +3644,8 @@ func (this *DeltaCore) ParseOpenInterest(interest any, optionalArgs ...any) any 
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct(interest, "timestamp", 0.001)
-	var marketId any = this.SafeString(interest, "symbol")
+	var timestamp *int64 = this.SafeIntegerProduct(interest, "timestamp", 0.001)
+	var marketId *string = this.SafeString(interest, "symbol")
 	return this.SafeOpenInterest(map[string]any{
 		"symbol":             this.SafeSymbol(marketId, market),
 		"baseVolume":         this.SafeNumber(interest, "oi_value"),
@@ -3708,8 +3708,8 @@ func (this *DeltaCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs .
 func (this *DeltaCore) ParseLeverage(leverage any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(leverage, "index_symbol")
-	var leverageValue any = this.SafeInteger(leverage, "leverage")
+	var marketId *string = this.SafeString(leverage, "index_symbol")
+	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
 	return map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),
@@ -3741,7 +3741,7 @@ func (this *DeltaCore) setLeverageBody(ch chan any, leverage any, optionalArgs .
 	_ = symbol
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(symbol, nil)) {
+	if IsEqual(symbol, nil) {
 		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 	}
 
@@ -3801,13 +3801,13 @@ func (this *DeltaCore) fetchSettlementHistoryBody(ch chan any, optionalArgs ...a
 	retRes32108 := (<-this.LoadMarkets())
 	PanicOnError(retRes32108)
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 	var request map[string]any = map[string]any{
 		"states": "expired",
 	}
-	if IsTrue(!IsEqual(limit, nil)) {
+	if !IsEqual(limit, nil) {
 		AddElementToObject(request, "page_size", limit)
 	}
 
@@ -3932,8 +3932,8 @@ func (this *DeltaCore) ParseSettlement(settlement any, market any) any {
 	//         "maintenance_margin_scaling_factor":"0.000002"
 	//     }
 	//
-	var datetime any = this.SafeString(settlement, "settlement_time")
-	var marketId any = this.SafeString(settlement, "symbol")
+	var datetime *string = this.SafeString(settlement, "settlement_time")
+	var marketId *string = this.SafeString(settlement, "symbol")
 	return map[string]any{
 		"info":      settlement,
 		"symbol":    this.SafeSymbol(marketId, market),
@@ -4088,8 +4088,8 @@ func (this *DeltaCore) ParseGreeks(greeks any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var timestamp any = this.SafeIntegerProduct(greeks, "timestamp", 0.001)
-	var marketId any = this.SafeString(greeks, "symbol")
+	var timestamp *int64 = this.SafeIntegerProduct(greeks, "timestamp", 0.001)
+	var marketId *string = this.SafeString(greeks, "symbol")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var stats any = this.SafeDict(greeks, "greeks", map[string]any{})
 	var quotes any = this.SafeDict(greeks, "quotes", map[string]any{})
@@ -4177,7 +4177,7 @@ func (this *DeltaCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs
 	retRes35438 := (<-this.LoadMarkets())
 	PanicOnError(retRes35438)
 	var market any = nil
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 	}
 
@@ -4255,7 +4255,7 @@ func (this *DeltaCore) ParseMarginMode(marginMode any, optionalArgs ...any) any 
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = nil
-	if IsTrue(!IsEqual(market, nil)) {
+	if !IsEqual(market, nil) {
 		symbol = GetValue(market, "symbol")
 	}
 	return map[string]any{
@@ -4289,7 +4289,7 @@ func (this *DeltaCore) setMarginModeBody(ch chan any, marginMode any, optionalAr
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 	this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"isolated", "portfolio"})
-	var subaccountUserId any = this.SafeString(params, "subaccount_user_id")
+	var subaccountUserId *string = this.SafeString(params, "subaccount_user_id")
 	this.CheckRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]")
 	var request map[string]any = map[string]any{
 		"margin_mode": marginMode,
@@ -4441,10 +4441,10 @@ func (this *DeltaCore) ParseOption(chain any, optionalArgs ...any) any {
 	_ = currency
 	market := GetArg(optionalArgs, 1, nil)
 	_ = market
-	var marketId any = this.SafeString(chain, "symbol")
+	var marketId *string = this.SafeString(chain, "symbol")
 	market = this.SafeMarket(marketId, market)
 	var quotes any = this.SafeDict(chain, "quotes", map[string]any{})
-	var timestamp any = this.SafeIntegerProduct(chain, "timestamp", 0.001)
+	var timestamp *int64 = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return map[string]any{
 		"info":              chain,
 		"currency":          this.SafeString(chain, "currency"),
@@ -4838,8 +4838,8 @@ func (this *DeltaCore) ParseADLRank(info any, optionalArgs ...any) any {
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId any = this.SafeString(info, "product_symbol")
-	var datetime any = this.SafeString(info, "created_at")
+	var marketId *string = this.SafeString(info, "product_symbol")
+	var datetime *string = this.SafeString(info, "created_at")
 	return map[string]any{
 		"info":       info,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "contract"),
@@ -4864,11 +4864,11 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	var requestPath any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), requestPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	if IsTrue(IsEqual(api, "public")) {
-		if IsTrue(GetArrayLength(ObjectKeys(query))) {
+	if IsEqual(api, "public") {
+		if EvalTruthy(GetArrayLength(ObjectKeys(query))) {
 			url = Add(url, Add("?", this.Urlencode(query)))
 		}
-	} else if IsTrue(IsEqual(api, "private")) {
+	} else if IsEqual(api, "private") {
 		this.CheckRequiredCredentials()
 		var timestamp string = ToString(this.Seconds())
 		headers = map[string]any{
@@ -4876,8 +4876,8 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 			"timestamp": timestamp,
 		}
 		var auth any = Add(Add(method, timestamp), requestPath)
-		if IsTrue(IsEqual(method, "GET")) {
-			if IsTrue(GetArrayLength(ObjectKeys(query))) {
+		if IsEqual(method, "GET") {
+			if EvalTruthy(GetArrayLength(ObjectKeys(query))) {
 				var queryString any = Add("?", this.Urlencode(query))
 				auth = Add(auth, queryString)
 				url = Add(url, queryString)
@@ -4898,15 +4898,15 @@ func (this *DeltaCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *DeltaCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	//
 	// {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
 	//
 	var error any = this.SafeDict(response, "error", map[string]any{})
-	var errorCode any = this.SafeString(error, "code")
-	if IsTrue(!IsEqual(errorCode, nil)) {
+	var errorCode *string = this.SafeString(error, "code")
+	if errorCode != nil {
 		var feedback any = Add(Add(this.Id, " "), body)
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errorCode, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), errorCode, feedback)

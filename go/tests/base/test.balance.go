@@ -26,7 +26,7 @@ func TestBalance(exchange ccxt.ICoreExchange, skippedProperties any, method any,
 	var codesLength int = GetArrayLength(codesTotal)
 	var freeLength int = GetArrayLength(codesFree)
 	var usedLength int = GetArrayLength(codesUsed)
-	Assert(IsTrue((IsEqual(codesLength, freeLength))) || IsTrue((IsEqual(codesLength, usedLength))), Add("free and total and used codes have different lengths", logText))
+	Assert((codesLength == freeLength) || (codesLength == usedLength), Add("free and total and used codes have different lengths", logText))
 	for i := 0; IsLessThan(i, GetArrayLength(allCodes)); i++ {
 		var code any = GetValue(allCodes, i)
 		// AssertCurrencyCode (exchange, skippedProperties, method, entry, code);

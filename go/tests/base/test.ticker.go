@@ -10,7 +10,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// books where bid==ask and a stale `last` far from the median are normal — skip the
 	// crypto-oriented price-relationship checks for them. the PredictionTicker type also
 	// omits vwap/previousClose entirely, so their presence must not be Asserted
-	if IsTrue(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
+	if EvalTruthy(exchange.SafeBool(exchange.GetHas(), "prediction", false)) {
 		skippedProperties = exchange.Extend(map[string]any{
 			"symbol":            true,
 			"spread":            true,
@@ -45,7 +45,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// todo: atm, many exchanges fail, so temporarily decrease stict mode
 	var emptyAllowedFor any = []any{"timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"}
 	// trick csharp-transpiler for string
-	if !IsTrue((Contains(ToString(method), "BidsAsks"))) {
+	if !EvalTruthy((Contains(ToString(method), "BidsAsks"))) {
 		AppendToArray(&emptyAllowedFor, "bid")
 		AppendToArray(&emptyAllowedFor, "ask")
 	}
@@ -56,29 +56,29 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var market any = nil
 	var isUnrecognizedSymbol bool = false
 	var isFetchTickerCalled bool = IsEqual(method, "fetchTicker")
-	var symbolForMarket any = Ternary(IsTrue((!IsEqual(symbol, nil))), symbol, exchange.SafeString(entry, "symbol"))
-	if IsTrue(!IsEqual(symbolForMarket, nil)) {
-		if IsTrue(IsTrue((!IsEqual(exchange.GetMarkets(), nil))) && IsTrue((InOp(exchange.GetMarkets(), symbolForMarket)))) {
+	var symbolForMarket any = Ternary((!IsEqual(symbol, nil)), symbol, exchange.SafeString(entry, "symbol"))
+	if !IsEqual(symbolForMarket, nil) {
+		if (!IsEqual(exchange.GetMarkets(), nil)) && (InOp(exchange.GetMarkets(), symbolForMarket)) {
 			market = exchange.Market(symbolForMarket)
 		} else {
 			isUnrecognizedSymbol = true
 		}
 	}
 	// temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
-	if !IsTrue((InOp(skippedProperties, "checkInactiveMarkets"))) {
-		if IsTrue(IsTrue(!IsEqual(market, nil)) && IsTrue(IsEqual(GetValue(market, "active"), false))) {
+	if !(InOp(skippedProperties, "checkInactiveMarkets")) {
+		if !IsEqual(market, nil) && IsEqual(GetValue(market, "active"), false) {
 			return
 		}
 	}
-	if IsTrue(InOp(skippedProperties, "skipNonActiveMarkets")) {
-		if IsTrue(IsTrue(IsEqual(market, nil)) || !IsTrue(GetValue(market, "active"))) {
+	if InOp(skippedProperties, "skipNonActiveMarkets") {
+		if IsEqual(market, nil) || !EvalTruthy(GetValue(market, "active")) {
 			return
 		}
 	}
 	// only check "above zero" values if exchange is not supposed to have exotic index markets
-	var isStandardMarket bool = (IsTrue(!IsEqual(market, nil)) && IsTrue(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
+	var isStandardMarket bool = (!IsEqual(market, nil) && EvalTruthy(exchange.InArray(GetValue(market, "type"), []any{"spot", "swap", "future", "option"})))
 	var valuesShouldBePositive any = isStandardMarket // || (market === undefined) atm, no check for index markets
-	if IsTrue(IsTrue(valuesShouldBePositive) && !IsTrue((InOp(skippedProperties, "positiveValues")))) {
+	if EvalTruthy(valuesShouldBePositive) && !(InOp(skippedProperties, "positiveValues")) {
 		AssertGreater(exchange, skippedProperties, method, entry, "open", "0")
 		AssertGreater(exchange, skippedProperties, method, entry, "high", "0")
 		AssertGreater(exchange, skippedProperties, method, entry, "low", "0")
@@ -98,7 +98,7 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	//
 	var lastString any = exchange.SafeString(entry, "last")
 	var closeString any = exchange.SafeString(entry, "close")
-	Assert(IsTrue((IsTrue((IsEqual(closeString, nil))) && IsTrue((IsEqual(lastString, nil))))) || IsTrue(ccxt.Precise.StringEq(lastString, closeString)), Add("`last` != `close`", logText))
+	Assert(((IsEqual(closeString, nil)) && (IsEqual(lastString, nil))) || ccxt.Precise.StringEq(lastString, closeString), Add("`last` != `close`", logText))
 	var openPrice any = exchange.SafeString(entry, "open")
 	//
 	// base & quote volumes
@@ -109,21 +109,21 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	var low any = exchange.OmitZero(exchange.SafeString(entry, "low"))
 	var open any = exchange.OmitZero(exchange.SafeString(entry, "open"))
 	var close any = exchange.OmitZero(exchange.SafeString(entry, "close"))
-	if !IsTrue((InOp(skippedProperties, "compareQuoteVolumeBaseVolume"))) {
+	if !(InOp(skippedProperties, "compareQuoteVolumeBaseVolume")) {
 		// Assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
 		// skip the quoteVolume/baseVolume identity for inverse (coin-margined) contracts: their
 		// volumes carry contract-denominated units (e.g. binance DOGEUSD_PERP reports quoteVolume
 		// far above baseVolume * high), so the spot-derived invariant does not hold there,
 		// see https://github.com/ccxt/ccxt/pull/29563
 		var isInverse any = exchange.SafeBool(market, "inverse", false)
-		if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(baseVolume, nil))) && IsTrue((!IsEqual(quoteVolume, nil)))) && IsTrue((!IsEqual(high, nil)))) && IsTrue((!IsEqual(low, nil)))) && !IsTrue(isInverse)) {
+		if (!IsEqual(baseVolume, nil)) && (!IsEqual(quoteVolume, nil)) && (!IsEqual(high, nil)) && (!IsEqual(low, nil)) && !EvalTruthy(isInverse) {
 			var baseLow any = ccxt.Precise.StringMul(baseVolume, low)
 			var baseHigh any = ccxt.Precise.StringMul(baseVolume, high)
 			// to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
 			var mPrecision any = exchange.SafeDict(market, "precision")
 			var amountPrecision any = exchange.SafeString(mPrecision, "amount")
 			var tolerance string = "1.0001"
-			if IsTrue(!IsEqual(amountPrecision, nil)) {
+			if !IsEqual(amountPrecision, nil) {
 				baseLow = ccxt.Precise.StringMul(ccxt.Precise.StringSub(baseVolume, amountPrecision), low)
 				baseHigh = ccxt.Precise.StringMul(ccxt.Precise.StringAdd(baseVolume, amountPrecision), high)
 			} else {
@@ -152,12 +152,12 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		}
 	}
 	// open and close should be between High & Low
-	if IsTrue(IsTrue(IsTrue(!IsEqual(high, nil)) && IsTrue(!IsEqual(low, nil))) && !IsTrue((InOp(skippedProperties, "compareOHLC")))) {
-		if IsTrue(!IsEqual(open, nil)) {
+	if !IsEqual(high, nil) && !IsEqual(low, nil) && !(InOp(skippedProperties, "compareOHLC")) {
+		if !IsEqual(open, nil) {
 			Assert(ccxt.Precise.StringGe(open, low), Add("open should be >= low", logText))
 			Assert(ccxt.Precise.StringLe(open, high), Add("open should be <= high", logText))
 		}
-		if IsTrue(!IsEqual(close, nil)) {
+		if !IsEqual(close, nil) {
 			Assert(ccxt.Precise.StringGe(close, low), Add("close should be >= low", logText))
 			Assert(ccxt.Precise.StringLe(close, high), Add("close should be <= high", logText))
 		}
@@ -166,33 +166,33 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// vwap
 	//
 	var vwap any = exchange.SafeString(entry, "vwap")
-	if IsTrue(!IsEqual(vwap, nil)) {
+	if !IsEqual(vwap, nil) {
 		// todo
 		// Assert (high !== undefined, 'vwap is defined, but high is not' + logText);
 		// Assert (low !== undefined, 'vwap is defined, but low is not' + logText);
 		// Assert (vwap >= low && vwap <= high)
 		// todo: calc compare
-		Assert(!IsTrue(valuesShouldBePositive) || IsTrue(ccxt.Precise.StringGe(vwap, "0")), Add("vwap is not greater than zero", logText))
-		if IsTrue(!IsEqual(baseVolume, nil)) {
+		Assert(!EvalTruthy(valuesShouldBePositive) || ccxt.Precise.StringGe(vwap, "0"), Add("vwap is not greater than zero", logText))
+		if !IsEqual(baseVolume, nil) {
 			Assert(!IsEqual(quoteVolume, nil), Add("baseVolume & vwap is defined, but quoteVolume is not", logText))
 		}
-		if IsTrue(!IsEqual(quoteVolume, nil)) {
+		if !IsEqual(quoteVolume, nil) {
 			Assert(!IsEqual(baseVolume, nil), Add("quoteVolume & vwap is defined, but baseVolume is not", logText))
 		}
 	}
 	var askString any = exchange.SafeString(entry, "ask")
 	var bidString any = exchange.SafeString(entry, "bid")
-	if IsTrue(IsTrue(IsTrue((!IsEqual(askString, nil))) && IsTrue((!IsEqual(bidString, nil)))) && !IsTrue((InOp(skippedProperties, "spread")))) {
+	if (!IsEqual(askString, nil)) && (!IsEqual(bidString, nil)) && !(InOp(skippedProperties, "spread")) {
 		// greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
 		AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", exchange.SafeString(entry, "bid"))
 	}
 	// last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
 	var allowedPercentageVariation string = "0.01"
-	if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(isFetchTickerCalled) && IsTrue(!IsEqual(lastString, nil))) && IsTrue(!IsEqual(bidString, nil))) && IsTrue(!IsEqual(askString, nil))) && !IsTrue((InOp(skippedProperties, "lastBetweenBidAsk")))) {
+	if isFetchTickerCalled && !IsEqual(lastString, nil) && !IsEqual(bidString, nil) && !IsEqual(askString, nil) && !(InOp(skippedProperties, "lastBetweenBidAsk")) {
 		var medianPrice any = ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(bidString, askString), "2")
 		var medianLow any = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringSub("1", allowedPercentageVariation))
 		var medianHigh any = ccxt.Precise.StringMul(medianPrice, ccxt.Precise.StringAdd("1", allowedPercentageVariation))
-		Assert(IsTrue(ccxt.Precise.StringGe(lastString, medianLow)) && IsTrue(ccxt.Precise.StringLe(lastString, medianHigh)), Add("last price should be within 1% of the bid/ask median price", logText))
+		Assert(ccxt.Precise.StringGe(lastString, medianLow) && ccxt.Precise.StringLe(lastString, medianHigh), Add("last price should be within 1% of the bid/ask median price", logText))
 	}
 	var percentage any = exchange.SafeString(entry, "percentage")
 	var change any = exchange.SafeString(entry, "change")
@@ -203,15 +203,15 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	// intrinsic). the floors stay: a long option cannot lose more than its
 	// premium, so percentage >= -100 and change >= -open hold for options too
 	var isOptionMarket any = exchange.SafeBool(market, "option", false)
-	if IsTrue(!IsTrue((InOp(skippedProperties, "maxIncrease"))) && !IsTrue(isUnrecognizedSymbol)) {
+	if !(InOp(skippedProperties, "maxIncrease")) && !isUnrecognizedSymbol {
 		//
 		// percentage
 		//
 		var maxIncrease string = "1000" // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
-		if IsTrue(!IsEqual(percentage, nil)) {
+		if !IsEqual(percentage, nil) {
 			// - should be above -100 and (for non-options) below MAX
 			Assert(ccxt.Precise.StringGe(percentage, "-100"), Add("percentage should be above -100% ", logText))
-			if !IsTrue(isOptionMarket) {
+			if !EvalTruthy(isOptionMarket) {
 				Assert(ccxt.Precise.StringLe(percentage, ccxt.Precise.StringMul("+100", maxIncrease)), Add(Add(Add("percentage should be below ", maxIncrease), "00% "), logText))
 			}
 		}
@@ -219,10 +219,10 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 		// change
 		//
 		var approxValue any = exchange.SafeStringN(entry, []any{"open", "close", "average", "bid", "ask", "vwap", "previousClose"})
-		if IsTrue(!IsEqual(change, nil)) {
+		if !IsEqual(change, nil) {
 			// - should be above -price and (for non-options) below +price*maxIncrease
 			Assert(ccxt.Precise.StringGe(change, ccxt.Precise.StringNeg(approxValue)), Add("change should be above -price ", logText))
-			if !IsTrue(isOptionMarket) {
+			if !EvalTruthy(isOptionMarket) {
 				Assert(ccxt.Precise.StringLe(change, ccxt.Precise.StringMul(approxValue, maxIncrease)), Add(Add(Add("change should be below ", maxIncrease), "x price "), logText))
 			}
 		}
@@ -230,21 +230,21 @@ func TestTicker(exchange ccxt.ICoreExchange, skippedProperties any, method any, 
 	//
 	// ensure all expected values are defined
 	//
-	if IsTrue(!IsEqual(lastString, nil)) {
-		if IsTrue(!IsEqual(percentage, nil)) {
+	if !IsEqual(lastString, nil) {
+		if !IsEqual(percentage, nil) {
 			// if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
-			Assert(IsTrue(!IsEqual(openPrice, nil)) && IsTrue(!IsEqual(change, nil)), Add("open & change should be defined if last & percentage are defined", logText)) // todo : add average price too
-		} else if IsTrue(!IsEqual(change, nil)) {
+			Assert(!IsEqual(openPrice, nil) && !IsEqual(change, nil), Add("open & change should be defined if last & percentage are defined", logText)) // todo : add average price too
+		} else if !IsEqual(change, nil) {
 			// if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
-			Assert(IsTrue(!IsEqual(openPrice, nil)) && IsTrue(!IsEqual(percentage, nil)), Add("open & percentage should be defined if last & change are defined", logText)) // todo : add average price too
+			Assert(!IsEqual(openPrice, nil) && !IsEqual(percentage, nil), Add("open & percentage should be defined if last & change are defined", logText)) // todo : add average price too
 		}
-	} else if IsTrue(!IsEqual(openPrice, nil)) {
-		if IsTrue(!IsEqual(percentage, nil)) {
+	} else if !IsEqual(openPrice, nil) {
+		if !IsEqual(percentage, nil) {
 			// if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
-			Assert(IsTrue(!IsEqual(lastString, nil)) && IsTrue(!IsEqual(change, nil)), Add("last & change should be defined if open & percentage are defined", logText)) // todo : add average price too
-		} else if IsTrue(!IsEqual(change, nil)) {
+			Assert(!IsEqual(lastString, nil) && !IsEqual(change, nil), Add("last & change should be defined if open & percentage are defined", logText)) // todo : add average price too
+		} else if !IsEqual(change, nil) {
 			// if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
-			Assert(IsTrue(!IsEqual(lastString, nil)) && IsTrue(!IsEqual(percentage, nil)), Add("last & percentage should be defined if open & change are defined", logText)) // todo : add average price too
+			Assert(!IsEqual(lastString, nil) && !IsEqual(percentage, nil), Add("last & percentage should be defined if open & change are defined", logText)) // todo : add average price too
 		}
 	}
 	//

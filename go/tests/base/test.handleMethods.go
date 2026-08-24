@@ -31,7 +31,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	marketType1 := ccxt.GetValue(marketType1params1Variable, 0)
 	params1 := ccxt.GetValue(marketType1params1Variable, 1)
 	Assert(ccxt.InOp(initialParams, "defaultType"))
-	Assert(!ccxt.IsTrue((ccxt.InOp(params1, "defaultType"))))
+	Assert(!(ccxt.InOp(params1, "defaultType")))
 	Assert(ccxt.IsEqual(marketType1, "valueFromParam"))
 	//
 	// case #2, should prevail: market.type
@@ -70,7 +70,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	params6 := ccxt.GetValue(marketType6params6Variable, 1)
 	Assert(ccxt.IsEqual(marketType6, "spot"))
 	// fake assertion to avoid unused vars
-	Assert(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(params1, nil)) || ccxt.IsTrue(!ccxt.IsEqual(params2, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params3, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params4, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params5, nil))) || ccxt.IsTrue(!ccxt.IsEqual(params6, nil)))
+	Assert(!ccxt.IsEqual(params1, nil) || !ccxt.IsEqual(params2, nil) || !ccxt.IsEqual(params3, nil) || !ccxt.IsEqual(params4, nil) || !ccxt.IsEqual(params5, nil) || !ccxt.IsEqual(params6, nil))
 }
 func HelperTestHandleNetworkRequest() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
@@ -91,7 +91,7 @@ func HelperTestHandleNetworkRequest() {
 	}, map[string]any{}, "chain_id", currencyCode, false)
 	request1 := ccxt.GetValue(request1params1Variable, 0)
 	params1 := ccxt.GetValue(request1params1Variable, 1)
-	Assert(!ccxt.IsTrue((ccxt.InOp(params1, "network"))))
+	Assert(!(ccxt.InOp(params1, "network")))
 	Assert(ccxt.InOp(request1, "chain_id"))
 	Assert(ccxt.IsEqual(ccxt.GetValue(request1, "chain_id"), "Xyz"))
 }

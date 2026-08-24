@@ -334,9 +334,9 @@ func (this *ZaifCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *ZaifCore) ParseMarket(market any) any {
-	var id any = this.SafeString(market, "currency_pair")
-	var name any = this.SafeString(market, "name")
-	if IsTrue(IsEqual(name, nil)) {
+	var id *string = this.SafeString(market, "currency_pair")
+	var name *string = this.SafeString(market, "name")
+	if name == nil {
 		panic(ExchangeError(Add(this.Id, " parseMarket() missing name")))
 	}
 	baseIdquoteIdVariable := Split(name, "/")
@@ -408,16 +408,16 @@ func (this *ZaifCore) ParseBalance(response any) any {
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)
 		var code any = this.SafeCurrencyCode(currencyId)
-		var balance any = this.SafeString(funds, currencyId)
+		var balance *string = this.SafeString(funds, currencyId)
 		var account any = this.Account()
 		AddElementToObject(account, "free", balance)
 		AddElementToObject(account, "total", balance)
-		if IsTrue(!IsEqual(deposit, nil)) {
-			if IsTrue(InOp(deposit, currencyId)) {
+		if !IsEqual(deposit, nil) {
+			if InOp(deposit, currencyId) {
 				AddElementToObject(account, "total", this.SafeString(deposit, currencyId))
 			}
 		}
-		if IsTrue(!IsEqual(code, nil)) {
+		if !IsEqual(code, nil) {
 			AddElementToObject(result, code, account)
 		}
 	}
@@ -442,7 +442,7 @@ func (this *ZaifCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes36612 := (<-this.LoadMarkets())
 		PanicOnError(retRes36612)
@@ -477,7 +477,7 @@ func (this *ZaifCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = limit
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes38412 := (<-this.LoadMarkets())
 		PanicOnError(retRes38412)
@@ -508,10 +508,10 @@ func (this *ZaifCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var symbol any = this.SafeSymbol(nil, market)
-	var vwap any = this.SafeString(ticker, "vwap")
-	var baseVolume any = this.SafeString(ticker, "volume")
+	var vwap *string = this.SafeString(ticker, "vwap")
+	var baseVolume *string = this.SafeString(ticker, "volume")
 	var quoteVolume any = Precise.StringMul(baseVolume, vwap)
-	var last any = this.SafeString(ticker, "last")
+	var last *string = this.SafeString(ticker, "last")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,
@@ -555,7 +555,7 @@ func (this *ZaifCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	defer ReturnPanicError(ch)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes44612 := (<-this.LoadMarkets())
 		PanicOnError(retRes44612)
@@ -598,12 +598,12 @@ func (this *ZaifCore) ParseTrade(trade any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = this.SafeString(trade, "trade_type")
-	side = Ternary(IsTrue((IsEqual(side, "bid"))), "buy", "sell")
-	var timestamp any = this.SafeTimestamp(trade, "date")
-	var id any = this.SafeString2(trade, "id", "tid")
-	var priceString any = this.SafeString(trade, "price")
-	var amountString any = this.SafeString(trade, "amount")
-	var marketId any = this.SafeString(trade, "currency_pair")
+	side = Ternary((IsEqual(side, "bid")), "buy", "sell")
+	var timestamp *int64 = this.SafeTimestamp(trade, "date")
+	var id *string = this.SafeString2(trade, "id", "tid")
+	var priceString *string = this.SafeString(trade, "price")
+	var amountString *string = this.SafeString(trade, "amount")
+	var marketId *string = this.SafeString(trade, "currency_pair")
 	var symbol any = this.SafeSymbol(marketId, market, "_")
 	return this.SafeTrade(map[string]any{
 		"id":           id,
@@ -647,7 +647,7 @@ func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = limit
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes51812 := (<-this.LoadMarkets())
 		PanicOnError(retRes51812)
@@ -673,9 +673,9 @@ func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//
 	var trades any = this.ToArray(response)
 	var numTrades int = GetArrayLength(trades)
-	if IsTrue(IsEqual(numTrades, 1)) {
+	if numTrades == 1 {
 		var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
-		if !IsTrue(GetArrayLength(ObjectKeys(firstTrade))) {
+		if !EvalTruthy(GetArrayLength(ObjectKeys(firstTrade))) {
 			trades = []any{}
 		}
 	}
@@ -709,18 +709,18 @@ func (this *ZaifCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = price
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes56312 := (<-this.LoadMarkets())
 		PanicOnError(retRes56312)
 	}
-	if IsTrue(!IsEqual(typeVar, "limit")) {
+	if !IsEqual(typeVar, "limit") {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"currency_pair": GetValue(market, "id"),
-		"action":        Ternary(IsTrue((IsEqual(side, "buy"))), "bid", "ask"),
+		"action":        Ternary((IsEqual(side, "buy")), "bid", "ask"),
 		"amount":        amount,
 		"price":         price,
 	}
@@ -809,13 +809,13 @@ func (this *ZaifCore) ParseOrder(order any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var side any = this.SafeString(order, "action")
-	side = Ternary(IsTrue((IsEqual(side, "bid"))), "buy", "sell")
-	var timestamp any = this.SafeTimestamp(order, "timestamp")
-	var marketId any = this.SafeString(order, "currency_pair")
+	side = Ternary((IsEqual(side, "bid")), "buy", "sell")
+	var timestamp *int64 = this.SafeTimestamp(order, "timestamp")
+	var marketId *string = this.SafeString(order, "currency_pair")
 	var symbol any = this.SafeSymbol(marketId, market, "_")
-	var price any = this.SafeString(order, "price")
-	var amount any = this.SafeString(order, "amount")
-	var id any = this.SafeString2(order, "id", "order_id")
+	var price *string = this.SafeString(order, "price")
+	var amount *string = this.SafeString(order, "amount")
+	var id *string = this.SafeString2(order, "id", "order_id")
 	return this.SafeOrder(map[string]any{
 		"id":                 id,
 		"clientOrderId":      nil,
@@ -868,14 +868,14 @@ func (this *ZaifCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes68512 := (<-this.LoadMarkets())
 		PanicOnError(retRes68512)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "currency_pair", GetValue(market, "id"))
 	}
@@ -915,14 +915,14 @@ func (this *ZaifCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes71412 := (<-this.LoadMarkets())
 		PanicOnError(retRes71412)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
-	if IsTrue(!IsEqual(symbol, nil)) {
+	if !IsEqual(symbol, nil) {
 		market = this.Market(symbol)
 		AddElementToObject(request, "currency_pair", GetValue(market, "id"))
 	}
@@ -963,13 +963,13 @@ func (this *ZaifCore) withdrawBody(ch chan any, code any, amount any, address an
 	tag = GetValue(tagparamsVariable, 0)
 	params = GetValue(tagparamsVariable, 1)
 	this.CheckAddress(address)
-	if IsTrue(IsEqual(this.Markets, nil)) {
+	if IsEqual(this.Markets, nil) {
 
 		retRes75212 := (<-this.LoadMarkets())
 		PanicOnError(retRes75212)
 	}
 	var currency any = this.Currency(code)
-	if IsTrue(IsEqual(code, "JPY")) {
+	if IsEqual(code, "JPY") {
 		panic(ExchangeError(Add(Add(Add(this.Id, " withdraw() does not allow "), code), " withdrawals")))
 	}
 	var request map[string]any = map[string]any{
@@ -977,7 +977,7 @@ func (this *ZaifCore) withdrawBody(ch chan any, code any, amount any, address an
 		"amount":   amount,
 		"address":  address,
 	}
-	if IsTrue(!IsEqual(tag, nil)) {
+	if !IsEqual(tag, nil) {
 		AddElementToObject(request, "message", tag)
 	}
 
@@ -1023,7 +1023,7 @@ func (this *ZaifCore) ParseTransaction(transaction any, optionalArgs ...any) any
 	currency = this.SafeCurrency(nil, currency)
 	var fee any = nil
 	var feeCost any = this.SafeValue(transaction, "fee")
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	if !IsEqual(feeCost, nil) {
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": GetValue(currency, "code"),
@@ -1069,15 +1069,15 @@ func (this *ZaifCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), "/")
-	if IsTrue(IsEqual(api, "public")) {
+	if IsEqual(api, "public") {
 		url = Add(url, Add(Add(Add("api/", this.Version), "/"), this.ImplodeParams(path, params)))
-	} else if IsTrue(IsEqual(api, "fapi")) {
+	} else if IsEqual(api, "fapi") {
 		url = Add(url, Add(Add(Add("fapi/", this.Version), "/"), this.ImplodeParams(path, params)))
 	} else {
 		this.CheckRequiredCredentials()
-		if IsTrue(IsEqual(api, "ecapi")) {
+		if IsEqual(api, "ecapi") {
 			url = Add(url, "ecapi")
-		} else if IsTrue(IsEqual(api, "tlapi")) {
+		} else if IsEqual(api, "tlapi") {
 			url = Add(url, "tlapi")
 		} else {
 			url = Add(url, "tapi")
@@ -1101,21 +1101,21 @@ func (this *ZaifCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *ZaifCore) HandleErrors(httpCode any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
-	if IsTrue(IsEqual(response, nil)) {
+	if IsEqual(response, nil) {
 		return nil
 	}
 	//
 	//     {"error": "unsupported currency_pair"}
 	//
 	var feedback any = Add(Add(this.Id, " "), body)
-	var error any = this.SafeString(response, "error")
-	if IsTrue(!IsEqual(error, nil)) {
+	var error *string = this.SafeString(response, "error")
+	if error != nil {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), error, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), error, feedback)
 		panic(ExchangeError(feedback))
 	}
 	var success any = this.SafeBool(response, "success", true)
-	if !IsTrue(success) {
+	if !EvalTruthy(success) {
 		panic(ExchangeError(feedback))
 	}
 	return nil
