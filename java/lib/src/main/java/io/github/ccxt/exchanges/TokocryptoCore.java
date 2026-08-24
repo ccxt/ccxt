@@ -2973,7 +2973,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object userDataStream = Helpers.isTrue((Helpers.isEqual(path, "userDataStream"))) || Helpers.isTrue((Helpers.isEqual(path, "listenKey")));
         if (Helpers.isTrue(userDataStream))
         {
-            if (Helpers.isTrue(this.apiKey))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))) && Helpers.isTrue((!Helpers.isEqual(this.apiKey, "")))))
             {
                 // v1 special case for userDataStream
                 headers = new java.util.HashMap<String, Object>() {{
@@ -3030,7 +3030,7 @@ public class TokocryptoCore extends TokocryptoApi
             }
         } else
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

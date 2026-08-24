@@ -2442,7 +2442,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instrument", Helpers.GetValue(market, "id"));
@@ -2635,7 +2635,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "result_offset", offSet );
             }};
             Object market = null;
-            if (Helpers.isTrue(symbol))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((!Helpers.isEqual(symbol, "")))))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instrument", symbol);
@@ -2895,7 +2895,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object savedPath = Helpers.add("/api", fullPath);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -2908,7 +2908,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

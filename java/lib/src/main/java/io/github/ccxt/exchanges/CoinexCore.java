@@ -2852,11 +2852,11 @@ public class CoinexCore extends CoinexApi
             Helpers.addElementToObject(request, "market_type", "FUTURES");
             if (Helpers.isTrue(Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice)))
             {
-                if (Helpers.isTrue(stopLossPrice))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) && Helpers.isTrue((!Helpers.isEqual(stopLossPrice, "")))))
                 {
                     Helpers.addElementToObject(request, "stop_loss_price", this.priceToPrecision(symbol, stopLossPrice));
                     Helpers.addElementToObject(request, "stop_loss_type", this.safeString(parameters, "stop_type", "latest_price"));
-                } else if (Helpers.isTrue(takeProfitPrice))
+                } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))) && Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, "")))))
                 {
                     Helpers.addElementToObject(request, "take_profit_price", this.priceToPrecision(symbol, takeProfitPrice));
                     Helpers.addElementToObject(request, "take_profit_type", this.safeString(parameters, "stop_type", "latest_price"));
@@ -6119,7 +6119,7 @@ final Object finalI = i;
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(entry, "withdrawal_fee"));
                 Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
                 Object networkId = this.safeString(entry, "chain");
-                if (Helpers.isTrue(networkId))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkId, null))) && Helpers.isTrue((!Helpers.isEqual(networkId, "")))))
                 {
                     Object currencyId = this.safeString(asset, "ccy");
                     Object feeCode = this.safeCurrencyCode(currencyId, currency);
@@ -6483,7 +6483,7 @@ final Object finalI = i;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(requestUrl, "public")) || Helpers.isTrue(Helpers.isEqual(requestUrl, "perpetualPublic"))))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
             }

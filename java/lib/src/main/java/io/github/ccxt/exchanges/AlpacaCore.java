@@ -2065,7 +2065,7 @@ public class AlpacaCore extends AlpacaApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            if (Helpers.isTrue(tag))
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
             {
                 address = Helpers.add(Helpers.add(address, ":"), tag);
             }
@@ -2538,7 +2538,7 @@ public class AlpacaCore extends AlpacaApi
             Helpers.addElementToObject(headers, "APCA-API-SECRET-KEY", this.secret);
         }
         Object query = this.omit(parameters, this.extractParams(path));
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))
             {

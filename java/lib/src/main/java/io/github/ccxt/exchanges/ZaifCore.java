@@ -657,7 +657,7 @@ public class ZaifCore extends ZaifApi
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
                 Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
-                if (!Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(firstTrade))))
+                if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(Helpers.objectKeys(firstTrade)), 0)))
                 {
                     trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }

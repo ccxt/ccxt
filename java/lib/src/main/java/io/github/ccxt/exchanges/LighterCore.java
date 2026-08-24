@@ -4264,7 +4264,7 @@ public class LighterCore extends LighterApi
                 put( "Authorization", LighterCore.this.createAuth(parameters) );
             }};
         }
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {

@@ -1170,7 +1170,7 @@ public class Bit2cCore extends Bit2cApi
             side = this.safeValue(trade, "isBid");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
             {
-                if (Helpers.isTrue(side))
+                if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(side, null))) && Helpers.isTrue((!Helpers.isEqual(side, "")))))
                 {
                     side = "buy";
                 } else
@@ -1297,7 +1297,7 @@ public class Bit2cCore extends Bit2cApi
             Object auth = this.urlencode(query);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", auth));
                 }

@@ -7538,7 +7538,7 @@ final Object finalMarket = market;
         parameters = this.keysort(parameters);
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", this.urlencode(parameters)));
             }

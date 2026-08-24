@@ -300,7 +300,7 @@ public class MudrexCore extends MudrexApi
                 }};
             }
         }
-        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
         {
             url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
         }
@@ -628,7 +628,7 @@ public class MudrexCore extends MudrexApi
                     items = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
                     Object itemsLength = Helpers.getArrayLength(items);
-                    if (!Helpers.isTrue(itemsLength))
+                    if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(itemsLength, null))) || Helpers.isTrue((Helpers.isEqual(itemsLength, 0)))))
                     {
                         items = this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         itemsLength = Helpers.getArrayLength(items);
@@ -642,7 +642,7 @@ public class MudrexCore extends MudrexApi
                     items = this.toArray(data);
                 }
                 Object numItems = Helpers.getArrayLength(items);
-                if (!Helpers.isTrue(numItems))
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(numItems, null))) || Helpers.isTrue((Helpers.isEqual(numItems, 0)))))
                 {
                     paging = false;
                     break;

@@ -2658,7 +2658,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
         Object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        Object isTrigger = (Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice));
+        Object isTrigger = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
         Object px = null;
         if (Helpers.isTrue(isMarket))
         {
@@ -3329,7 +3329,7 @@ final Object finalClientOrderId = clientOrderId;
             Object triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
             Object stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             Object takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
-            Object isTrigger = (Helpers.isTrue(stopLossPrice) || Helpers.isTrue(takeProfitPrice));
+            Object isTrigger = (Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null))));
             Object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly")));
             Object px = this.numberToString(price);
@@ -6009,7 +6009,7 @@ final Object finalClientOrderId = clientOrderId;
             return null;
         }
         Object hi3TokensByname = this.safeDict(this.options, "hip3TokensByName", new java.util.HashMap<String, Object>() {{}});
-        if (Helpers.isTrue(this.safeDict(hi3TokensByname, coin)))
+        if (Helpers.isTrue(!Helpers.isEqual(this.safeDict(hi3TokensByname, coin), null)))
         {
             Object hip3Dict = this.safeDict(hi3TokensByname, coin);
             Object quote = this.safeString(hip3Dict, "quote", "USDC");

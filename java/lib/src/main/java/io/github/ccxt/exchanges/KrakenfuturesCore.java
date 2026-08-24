@@ -4143,7 +4143,7 @@ final Object finalI = i;
         {
             postData = Helpers.add("json=", this.json(parameters));
             body = postData;
-        } else if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(parameters))))
+        } else if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
         {
             if (Helpers.isTrue(Helpers.inOp(parameters, "orderIds")))
             {

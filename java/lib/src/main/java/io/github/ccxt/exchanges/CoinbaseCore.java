@@ -6368,7 +6368,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object savedPath = fullPath;
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 fullPath = Helpers.add(fullPath, Helpers.add("?", this.urlencodeWithArrayRepeat(query)));
             }
@@ -6391,7 +6391,7 @@ public class CoinbaseCore extends CoinbaseApi
                 Object payload = "";
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                     {
                         body = this.json(query);
                         payload = body;
@@ -6400,7 +6400,7 @@ public class CoinbaseCore extends CoinbaseApi
                 {
                     if (!Helpers.isTrue(isV3))
                     {
-                        if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                         {
                             payload = Helpers.add(payload, Helpers.add("?", this.urlencode(query)));
                         }
@@ -6465,7 +6465,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
                 {
-                    if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                    if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                     {
                         body = this.json(query);
                     }

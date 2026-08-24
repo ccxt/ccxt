@@ -2676,7 +2676,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(query)));
             }
@@ -2689,7 +2689,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {
-                if (Helpers.isTrue(Helpers.getArrayLength(Helpers.objectKeys(query))))
+                if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
                     body = this.json(query);
                     payload = body;

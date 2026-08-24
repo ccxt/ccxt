@@ -649,7 +649,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object timestamp = this.safeInteger(entry, "t");
         Object snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
         Object nonce = this.safeInteger(entry, "li");
-        if (Helpers.isTrue(nonce))
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, 0)))))
         {
             Helpers.addElementToObject(snapshot, "nonce", nonce);
         }
