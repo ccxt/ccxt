@@ -6930,7 +6930,7 @@ export default class bingx extends Exchange {
      * @name bingx#fetchMarketLeverageTiers
      * @description retrieve information on the maximum leverage, for different trade sizes for a single market
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
-     * @param {string} symbol unified market symbol
+     * @param {string} symbol unified market symbol, inverse (Coin-M) markets are not supported
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
@@ -6941,6 +6941,9 @@ export default class bingx extends Exchange {
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        if (market['inverse']) {
+            throw new NotSupported (this.id + ' fetchMarketLeverageTiers() is not supported for inverse swap markets');
         }
         const request: Dict = {
             'symbol': market['id'],
